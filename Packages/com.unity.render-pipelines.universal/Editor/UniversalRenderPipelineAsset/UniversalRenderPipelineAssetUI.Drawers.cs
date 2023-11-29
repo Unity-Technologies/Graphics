@@ -201,6 +201,20 @@ namespace UnityEditor.Rendering.Universal
 
                 --EditorGUI.indentLevel;
             }
+            else if (serialized.asset.upscalingFilter == UpscalingFilterSelection.STP)
+            {
+                // Warn users if they attempt to enable STP without render graph
+                if (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph)
+                {
+                    EditorGUILayout.HelpBox(Styles.stpRequiresRenderGraph, MessageType.Warning, true);
+                }
+
+                // Warn users about performance expectations if they attempt to enable STP on a mobile platform
+                if (PlatformAutoDetect.isShaderAPIMobileDefined)
+                {
+                    EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
+                }
+            }
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
             EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);

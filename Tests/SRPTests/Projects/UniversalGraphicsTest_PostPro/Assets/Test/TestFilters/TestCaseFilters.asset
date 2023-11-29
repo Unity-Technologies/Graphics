@@ -257,3 +257,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Occlusion not working on OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2b1e933506b286343a1128073e1d94e4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: GLES3 not supported by STP

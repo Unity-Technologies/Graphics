@@ -7,6 +7,46 @@ namespace UnityEngine.Rendering.Universal
 {
     internal partial class PostProcessPass : ScriptableRenderPass
     {
+        private class UpdateCameraResolutionPassData
+        {
+            internal Vector2Int newCameraTargetSize;
+        }
+
+        // Updates render target descriptors and shader constants to reflect a new render size
+        // This should be called immediately after the resolution changes mid-frame (typically after an upscaling operation).
+        void UpdateCameraResolution(RenderGraph renderGraph, UniversalCameraData cameraData, Vector2Int newCameraTargetSize)
+        {
+            // Update the local descriptor and the camera data descriptor to reflect post-upscaled sizes
+            m_Descriptor.width = newCameraTargetSize.x;
+            m_Descriptor.height = newCameraTargetSize.y;
+            cameraData.cameraTargetDescriptor.width = newCameraTargetSize.x;
+            cameraData.cameraTargetDescriptor.height = newCameraTargetSize.y;
+
+            // Update the shader constants to reflect the new camera resolution
+            using (var builder = renderGraph.AddUnsafePass<UpdateCameraResolutionPassData>("Update Camera Resolution", out var passData))
+            {
+                passData.newCameraTargetSize = newCameraTargetSize;
+
+                // This pass only modifies shader constants so we need to set some special flags to ensure it isn't culled or optimized away
+                builder.AllowGlobalStateModification(true);
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc(
+                    (UpdateCameraResolutionPassData data, UnsafeGraphContext ctx) =>
+                {
+                    ctx.cmd.SetGlobalVector(
+                        ShaderPropertyId.screenSize,
+                        new Vector4(
+                            data.newCameraTargetSize.x,
+                            data.newCameraTargetSize.y,
+                            1.0f / data.newCameraTargetSize.x,
+                            1.0f / data.newCameraTargetSize.y
+                        )
+                    );
+                });
+            }
+        }
+
         #region StopNaNs
         private class StopNaNsPassData
         {
@@ -954,11 +994,44 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.height,
                 m_Descriptor.graphicsFormat,
                 DepthBits.None);
-            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);    // TODO: use a constant for the name
+            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);
 
             TextureHandle cameraDepth = resourceData.cameraDepth;
             TextureHandle motionVectors = resourceData.motionVectorColor;
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
+        }
+        #endregion
+
+        #region STP
+
+        private const string _UpscaledColorTargetName = "_UpscaledColorTarget";
+
+        private void RenderSTP(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, ref TextureHandle source, out TextureHandle destination)
+        {
+            TextureHandle cameraDepth = resourceData.cameraDepth;
+            TextureHandle motionVectors = resourceData.motionVectorColor;
+
+            var desc = GetCompatibleDescriptor(cameraData.cameraTargetDescriptor,
+                cameraData.pixelWidth,
+                cameraData.pixelHeight,
+                cameraData.cameraTargetDescriptor.graphicsFormat,
+                DepthBits.None);
+
+            // STP uses compute shaders so all render textures must enable random writes
+            desc.enableRandomWrite = true;
+
+            // Avoid enabling sRGB because STP works with compute shaders which can't output sRGB automatically.
+            desc.sRGB = false;
+
+            destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _UpscaledColorTargetName, false, FilterMode.Bilinear);
+
+            int frameIndex = Time.frameCount;
+            var noiseTexture = m_Data.textures.blueNoise16LTex[frameIndex & (m_Data.textures.blueNoise16LTex.Length - 1)];
+
+            StpUtils.Execute(renderGraph, resourceData, cameraData, source, cameraDepth, motionVectors, destination, noiseTexture);
+
+            // Update the camera resolution to reflect the upscaled size
+            UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(desc.width, desc.height));
         }
         #endregion
 
@@ -1536,7 +1609,8 @@ namespace UnityEngine.Rendering.Universal
             // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
-            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled;
+            // If STP is enabled, then TAA sharpening has already been performed inside STP.
+            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled && !cameraData.IsSTPEnabled();
 
             var tempRtDesc = cameraData.cameraTargetDescriptor;
             tempRtDesc.msaaSamples = 1;
@@ -1744,7 +1818,6 @@ namespace UnityEngine.Rendering.Universal
             m_UseFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
             m_SupportDataDrivenLensFlare = postProcessingData.supportDataDrivenLensFlare;
             m_SupportScreenSpaceLensFlare = postProcessingData.supportScreenSpaceLensFlare;
-            // TODO RENDERGRAPH: the descriptor should come from postProcessingTarget, not cameraTarget
             m_Descriptor = cameraData.cameraTargetDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
@@ -1776,6 +1849,10 @@ namespace UnityEngine.Rendering.Universal
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
                 TemporalAA.ValidateAndWarn(cameraData);
+
+            // STP is only supported when TAA is enabled and all of its runtime requirements are met.
+            // See the comments for IsSTPEnabled() for more information.
+            bool useSTP = useTemporalAA && cameraData.IsSTPEnabled();
 
             using (var builder = renderGraph.AddRasterRenderPass<PostFXSetupPassData>("Setup PostFX passes", out var passData,
                 ProfilingSampler.Get(URPProfileId.RG_SetupPostFX)))
@@ -1818,8 +1895,16 @@ namespace UnityEngine.Rendering.Universal
             // Temporal Anti Aliasing
             if (useTemporalAA)
             {
-                RenderTemporalAA(renderGraph, resourceData, cameraData, ref currentSource, out var TemporalAATarget);
-                currentSource = TemporalAATarget;
+                if (useSTP)
+                {
+                    RenderSTP(renderGraph, resourceData, cameraData, ref currentSource, out var StpTarget);
+                    currentSource = StpTarget;
+                }
+                else
+                {
+                    RenderTemporalAA(renderGraph, resourceData, cameraData, ref currentSource, out var TemporalAATarget);
+                    currentSource = TemporalAATarget;
+                }
             }
 
             if(useMotionBlur)

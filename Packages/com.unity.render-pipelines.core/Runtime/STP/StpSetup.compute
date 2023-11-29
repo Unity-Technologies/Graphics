@@ -1,0 +1,659 @@
+#pragma kernel StpSetup
+
+#pragma multi_compile _ ENABLE_DEBUG_MODE
+#pragma multi_compile _ ENABLE_STENCIL_RESPONSIVE
+
+#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_NATIVE_16BIT
+#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_WAVE_ANY
+
+#pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#define STP_GROUP_SIZE 64
+#define STP_PAT 1
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/STP/StpCommon.hlsl"
+
+//
+// Input
+//
+
+TEXTURE2D_X(_StpInputColor);
+TEXTURE2D_X(_StpInputDepth);
+TEXTURE2D_X(_StpInputMotion);
+
+#if defined(ENABLE_STENCIL_RESPONSIVE)
+    TYPED_TEXTURE2D_X(uint2, _StpInputStencil);
+#endif
+
+//
+// Intermediate Output
+//
+
+RW_TEXTURE2D_X(float4, _StpIntermediateColor);
+RW_TEXTURE2D_X(float, _StpIntermediateConvergence);
+
+//
+// History Input/Output
+//
+
+TYPED_TEXTURE2D_X(uint, _StpPriorDepthMotion);
+RW_TEXTURE2D_X(uint, _StpDepthMotion);
+
+TEXTURE2D_X(_StpPriorLuma);
+RW_TEXTURE2D_X(float2, _StpLuma);
+
+TEXTURE2D_X(_StpPriorConvergence);
+
+TEXTURE2D_X(_StpPriorFeedback);
+
+#define STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET (SLICE_ARRAY_INDEX * STPSETUPPERVIEWCONSTANTS_COUNT)
+
+#if defined(SHADER_API_PSSL) || defined(SHADER_API_SWITCH)
+    // BUG: On PlayStation and Switch, we force usage the 32-bit reduction even on the 16-bit path in order to work around compiler issues.
+    #define STP_FORCE_32BIT_REDUCTION
+#endif
+
+#if defined(SHADER_API_PS4)
+    // On PS4, we force usage of groupshared rather than using wave operations because in STP's case, groupshared will yield better performance.
+    #define STP_FORCE_GROUPSHARED
+#endif
+
+// Enable the use of wave operations when they're supported by the current hardware and usage of groupshared hasn't been forced.
+#if defined(UNITY_HW_SUPPORTS_WAVE) && !defined(STP_FORCE_GROUPSHARED)
+    #define STP_ENABLE_WAVEOPS
+#endif
+
+// STP requires a 4x4 reduction which must be implemented by either wave operations, or group shared memory.
+#if !defined(STP_ENABLE_WAVEOPS)
+#if defined(STP_16BIT)
+groupshared uint gs_StpScratch[STP_GROUP_SIZE * 4];
+#else
+groupshared uint gs_StpScratch[STP_GROUP_SIZE * 8];
+#endif
+#endif
+
+// In some cases, we have to expose the 32-bit reduction code in the 16-bit path to work around platform specific issues
+#if defined(STP_32BIT) || defined(STP_FORCE_32BIT_REDUCTION)
+void StpPat4x4MaxF8(StpU1 i, inout StpF4 a, inout StpF4 b)
+{
+#if defined(STP_ENABLE_WAVEOPS)
+    a.x = max(a.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 1)));
+    a.y = max(a.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 1)));
+    a.z = max(a.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 1)));
+    a.w = max(a.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 1)));
+    b.x = max(b.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.x), WaveGetLaneIndex() ^ 1)));
+    b.y = max(b.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.y), WaveGetLaneIndex() ^ 1)));
+    b.z = max(b.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.z), WaveGetLaneIndex() ^ 1)));
+    b.w = max(b.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.w), WaveGetLaneIndex() ^ 1)));
+
+    a.x = max(a.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 2)));
+    a.y = max(a.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 2)));
+    a.z = max(a.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 2)));
+    a.w = max(a.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 2)));
+    b.x = max(b.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.x), WaveGetLaneIndex() ^ 2)));
+    b.y = max(b.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.y), WaveGetLaneIndex() ^ 2)));
+    b.z = max(b.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.z), WaveGetLaneIndex() ^ 2)));
+    b.w = max(b.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.w), WaveGetLaneIndex() ^ 2)));
+
+    a.x = max(a.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 4)));
+    a.y = max(a.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 4)));
+    a.z = max(a.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 4)));
+    a.w = max(a.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 4)));
+    b.x = max(b.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.x), WaveGetLaneIndex() ^ 4)));
+    b.y = max(b.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.y), WaveGetLaneIndex() ^ 4)));
+    b.z = max(b.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.z), WaveGetLaneIndex() ^ 4)));
+    b.w = max(b.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.w), WaveGetLaneIndex() ^ 4)));
+
+    a.x = max(a.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 8)));
+    a.y = max(a.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 8)));
+    a.z = max(a.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 8)));
+    a.w = max(a.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 8)));
+    b.x = max(b.x, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.x), WaveGetLaneIndex() ^ 8)));
+    b.y = max(b.y, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.y), WaveGetLaneIndex() ^ 8)));
+    b.z = max(b.z, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.z), WaveGetLaneIndex() ^ 8)));
+    b.w = max(b.w, StpF1_U1(WaveReadLaneAt(StpU1_F1(b.w), WaveGetLaneIndex() ^ 8)));
+#else
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_F1(a.x);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_F1(a.y);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 2)] = StpU1_F1(a.z);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 3)] = StpU1_F1(a.w);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 4)] = StpU1_F1(b.x);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 5)] = StpU1_F1(b.y);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 6)] = StpU1_F1(b.z);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 7)] = StpU1_F1(b.w);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 2x2 Reduction
+    {
+        uint offset = (i & (~3));
+
+        uint a0 = offset + ((i + 1) & 3);
+        uint a1 = offset + ((i + 2) & 3);
+        uint a2 = offset + ((i + 3) & 3);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        uint z0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 2)];
+        uint z1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 2)];
+        uint z2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 2)];
+
+        uint w0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 3)];
+        uint w1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 3)];
+        uint w2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 3)];
+
+        uint s0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 4)];
+        uint s1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 4)];
+        uint s2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 4)];
+
+        uint t0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 5)];
+        uint t1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 5)];
+        uint t2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 5)];
+
+        uint u0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 6)];
+        uint u1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 6)];
+        uint u2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 6)];
+
+        uint v0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 7)];
+        uint v1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 7)];
+        uint v2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 7)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.x = max(max(max(a.x, StpF1_U1(x0)), StpF1_U1(x1)), StpF1_U1(x2));
+        a.y = max(max(max(a.y, StpF1_U1(y0)), StpF1_U1(y1)), StpF1_U1(y2));
+        a.z = max(max(max(a.z, StpF1_U1(z0)), StpF1_U1(z1)), StpF1_U1(z2));
+        a.w = max(max(max(a.w, StpF1_U1(w0)), StpF1_U1(w1)), StpF1_U1(w2));
+
+        b.x = max(max(max(b.x, StpF1_U1(s0)), StpF1_U1(s1)), StpF1_U1(s2));
+        b.y = max(max(max(b.y, StpF1_U1(t0)), StpF1_U1(t1)), StpF1_U1(t2));
+        b.z = max(max(max(b.z, StpF1_U1(u0)), StpF1_U1(u1)), StpF1_U1(u2));
+        b.w = max(max(max(b.w, StpF1_U1(v0)), StpF1_U1(v1)), StpF1_U1(v2));
+    }
+
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_F1(a.x);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_F1(a.y);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 2)] = StpU1_F1(a.z);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 3)] = StpU1_F1(a.w);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 4)] = StpU1_F1(b.x);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 5)] = StpU1_F1(b.y);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 6)] = StpU1_F1(b.z);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 7)] = StpU1_F1(b.w);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 4x4 Reduction
+    {
+        uint offset = (i & (~15));
+
+        uint a0 = offset + ((i + 4) & 15);
+        uint a1 = offset + ((i + 8) & 15);
+        uint a2 = offset + ((i + 12) & 15);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        uint z0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 2)];
+        uint z1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 2)];
+        uint z2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 2)];
+
+        uint w0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 3)];
+        uint w1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 3)];
+        uint w2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 3)];
+
+        uint s0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 4)];
+        uint s1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 4)];
+        uint s2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 4)];
+
+        uint t0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 5)];
+        uint t1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 5)];
+        uint t2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 5)];
+
+        uint u0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 6)];
+        uint u1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 6)];
+        uint u2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 6)];
+
+        uint v0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 7)];
+        uint v1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 7)];
+        uint v2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 7)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.x = max(max(max(a.x, StpF1_U1(x0)), StpF1_U1(x1)), StpF1_U1(x2));
+        a.y = max(max(max(a.y, StpF1_U1(y0)), StpF1_U1(y1)), StpF1_U1(y2));
+        a.z = max(max(max(a.z, StpF1_U1(z0)), StpF1_U1(z1)), StpF1_U1(z2));
+        a.w = max(max(max(a.w, StpF1_U1(w0)), StpF1_U1(w1)), StpF1_U1(w2));
+
+        b.x = max(max(max(b.x, StpF1_U1(s0)), StpF1_U1(s1)), StpF1_U1(s2));
+        b.y = max(max(max(b.y, StpF1_U1(t0)), StpF1_U1(t1)), StpF1_U1(t2));
+        b.z = max(max(max(b.z, StpF1_U1(u0)), StpF1_U1(u1)), StpF1_U1(u2));
+        b.w = max(max(max(b.w, StpF1_U1(v0)), StpF1_U1(v1)), StpF1_U1(v2));
+    }
+#endif
+}
+void StpPat4x4SumF4(StpU1 i, inout StpF4 a)
+{
+#if defined(STP_ENABLE_WAVEOPS)
+    a.x += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 1));
+    a.y += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 1));
+    a.z += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 1));
+    a.w += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 1));
+
+    a.x += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 2));
+    a.y += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 2));
+    a.z += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 2));
+    a.w += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 2));
+
+    a.x += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 4));
+    a.y += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 4));
+    a.z += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 4));
+    a.w += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 4));
+
+    a.x += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.x), WaveGetLaneIndex() ^ 8));
+    a.y += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.y), WaveGetLaneIndex() ^ 8));
+    a.z += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.z), WaveGetLaneIndex() ^ 8));
+    a.w += StpF1_U1(WaveReadLaneAt(StpU1_F1(a.w), WaveGetLaneIndex() ^ 8));
+#else
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_F1(a.x);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_F1(a.y);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 2)] = StpU1_F1(a.z);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 3)] = StpU1_F1(a.w);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 2x2 Reduction
+    {
+        uint offset = (i & (~3));
+
+        uint a0 = offset + ((i + 1) & 3);
+        uint a1 = offset + ((i + 2) & 3);
+        uint a2 = offset + ((i + 3) & 3);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        uint z0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 2)];
+        uint z1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 2)];
+        uint z2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 2)];
+
+        uint w0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 3)];
+        uint w1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 3)];
+        uint w2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 3)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.x = a.x + StpF1_U1(x0) + StpF1_U1(x1) + StpF1_U1(x2);
+        a.y = a.y + StpF1_U1(y0) + StpF1_U1(y1) + StpF1_U1(y2);
+        a.z = a.z + StpF1_U1(z0) + StpF1_U1(z1) + StpF1_U1(z2);
+        a.w = a.w + StpF1_U1(w0) + StpF1_U1(w1) + StpF1_U1(w2);
+    }
+
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_F1(a.x);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_F1(a.y);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 2)] = StpU1_F1(a.z);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 3)] = StpU1_F1(a.w);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 4x4 Reduction
+    {
+        uint offset = (i & (~15));
+
+        uint a0 = offset + ((i + 4) & 15);
+        uint a1 = offset + ((i + 8) & 15);
+        uint a2 = offset + ((i + 12) & 15);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        uint z0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 2)];
+        uint z1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 2)];
+        uint z2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 2)];
+
+        uint w0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 3)];
+        uint w1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 3)];
+        uint w2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 3)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.x = a.x + StpF1_U1(x0) + StpF1_U1(x1) + StpF1_U1(x2);
+        a.y = a.y + StpF1_U1(y0) + StpF1_U1(y1) + StpF1_U1(y2);
+        a.z = a.z + StpF1_U1(z0) + StpF1_U1(z1) + StpF1_U1(z2);
+        a.w = a.w + StpF1_U1(w0) + StpF1_U1(w1) + StpF1_U1(w2);
+    }
+#endif
+}
+#endif
+
+#if defined(STP_16BIT)
+void StpPat4x4MaxH8(StpU1 i, inout StpH4 a, inout StpH4 b)
+{
+#if defined(STP_FORCE_32BIT_REDUCTION)
+    StpPat4x4MaxF8(i, a, b);
+#else
+#if defined(STP_ENABLE_WAVEOPS)
+    a.xy = max(a.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 1)));
+    a.zw = max(a.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 1)));
+    b.xy = max(b.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.xy), WaveGetLaneIndex() ^ 1)));
+    b.zw = max(b.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.zw), WaveGetLaneIndex() ^ 1)));
+
+    a.xy = max(a.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 2)));
+    a.zw = max(a.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 2)));
+    b.xy = max(b.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.xy), WaveGetLaneIndex() ^ 2)));
+    b.zw = max(b.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.zw), WaveGetLaneIndex() ^ 2)));
+
+    a.xy = max(a.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 4)));
+    a.zw = max(a.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 4)));
+    b.xy = max(b.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.xy), WaveGetLaneIndex() ^ 4)));
+    b.zw = max(b.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.zw), WaveGetLaneIndex() ^ 4)));
+
+    a.xy = max(a.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 8)));
+    a.zw = max(a.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 8)));
+    b.xy = max(b.xy, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.xy), WaveGetLaneIndex() ^ 8)));
+    b.zw = max(b.zw, StpH2_U1(WaveReadLaneAt(StpU1_H2(b.zw), WaveGetLaneIndex() ^ 8)));
+#else
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_H2(a.xy);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_H2(a.zw);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 2)] = StpU1_H2(b.xy);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 3)] = StpU1_H2(b.zw);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 2x2 Reduction
+    {
+        uint offset = (i & (~3));
+
+        uint a0 = offset + ((i + 1) & 3);
+        uint a1 = offset + ((i + 2) & 3);
+        uint a2 = offset + ((i + 3) & 3);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        uint z0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 2)];
+        uint z1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 2)];
+        uint z2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 2)];
+
+        uint w0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 3)];
+        uint w1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 3)];
+        uint w2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 3)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.xy = max(max(max(a.xy, StpH2_U1(x0)), StpH2_U1(x1)), StpH2_U1(x2));
+        a.zw = max(max(max(a.zw, StpH2_U1(y0)), StpH2_U1(y1)), StpH2_U1(y2));
+        b.xy = max(max(max(b.xy, StpH2_U1(z0)), StpH2_U1(z1)), StpH2_U1(z2));
+        b.zw = max(max(max(b.zw, StpH2_U1(w0)), StpH2_U1(w1)), StpH2_U1(w2));
+    }
+
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_H2(a.xy);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_H2(a.zw);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 2)] = StpU1_H2(b.xy);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 3)] = StpU1_H2(b.zw);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 4x4 Reduction
+    {
+        uint offset = (i & (~15));
+
+        uint a0 = offset + ((i + 4) & 15);
+        uint a1 = offset + ((i + 8) & 15);
+        uint a2 = offset + ((i + 12) & 15);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        uint z0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 2)];
+        uint z1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 2)];
+        uint z2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 2)];
+
+        uint w0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 3)];
+        uint w1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 3)];
+        uint w2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 3)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.xy = max(max(max(a.xy, StpH2_U1(x0)), StpH2_U1(x1)), StpH2_U1(x2));
+        a.zw = max(max(max(a.zw, StpH2_U1(y0)), StpH2_U1(y1)), StpH2_U1(y2));
+        b.xy = max(max(max(b.xy, StpH2_U1(z0)), StpH2_U1(z1)), StpH2_U1(z2));
+        b.zw = max(max(max(b.zw, StpH2_U1(w0)), StpH2_U1(w1)), StpH2_U1(w2));
+    }
+#endif
+#endif
+}
+void StpPat4x4SumH4(StpU1 i, inout StpH4 a)
+{
+#if defined(STP_FORCE_32BIT_REDUCTION)
+    StpPat4x4SumF4(i, a);
+#else
+#if defined(STP_ENABLE_WAVEOPS)
+    a.xy += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 1));
+    a.zw += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 1));
+
+    a.xy += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 2));
+    a.zw += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 2));
+
+    a.xy += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 4));
+    a.zw += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 4));
+
+    a.xy += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.xy), WaveGetLaneIndex() ^ 8));
+    a.zw += StpH2_U1(WaveReadLaneAt(StpU1_H2(a.zw), WaveGetLaneIndex() ^ 8));
+#else
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_H2(a.xy);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_H2(a.zw);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 2x2 Reduction
+    {
+        uint offset = (i & (~3));
+
+        uint a0 = offset + ((i + 1) & 3);
+        uint a1 = offset + ((i + 2) & 3);
+        uint a2 = offset + ((i + 3) & 3);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.xy = a.xy + StpH2_U1(x0) + StpH2_U1(x1) + StpH2_U1(x2);
+        a.zw = a.zw + StpH2_U1(y0) + StpH2_U1(y1) + StpH2_U1(y2);
+    }
+
+    gs_StpScratch[i + (STP_GROUP_SIZE * 0)] = StpU1_H2(a.xy);
+    gs_StpScratch[i + (STP_GROUP_SIZE * 1)] = StpU1_H2(a.zw);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // 4x4 Reduction
+    {
+        uint offset = (i & (~15));
+
+        uint a0 = offset + ((i + 4) & 15);
+        uint a1 = offset + ((i + 8) & 15);
+        uint a2 = offset + ((i + 12) & 15);
+
+        uint x0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 0)];
+        uint x1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 0)];
+        uint x2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 0)];
+
+        uint y0 = gs_StpScratch[a0 + (STP_GROUP_SIZE * 1)];
+        uint y1 = gs_StpScratch[a1 + (STP_GROUP_SIZE * 1)];
+        uint y2 = gs_StpScratch[a2 + (STP_GROUP_SIZE * 1)];
+
+        GroupMemoryBarrierWithGroupSync();
+
+        a.xy = a.xy + StpH2_U1(x0) + StpH2_U1(x1) + StpH2_U1(x2);
+        a.zw = a.zw + StpH2_U1(y0) + StpH2_U1(y1) + StpH2_U1(y2);
+    }
+#endif
+#endif
+}
+StpH1 StpPatPriConH(StpF2 p) { return (StpH1)SAMPLE_TEXTURE2D_X_LOD(_StpPriorConvergence, s_linear_clamp_sampler, p, 0); }
+void StpPatDatH(
+    inout StpH1 r,
+    inout StpH3 c,
+    inout StpF1 z,
+    inout StpF2 m,
+    StpU2 o)
+{
+    c = (StpH3)LOAD_TEXTURE2D_X_LOD(_StpInputColor, o, 0).rgb;
+
+    float depth = LOAD_TEXTURE2D_X_LOD(_StpInputDepth, o, 0).x;
+    z = 1.0 / (STP_ZBUFFER_PARAMS_Z * depth + STP_ZBUFFER_PARAMS_W);
+
+    float2 motion = LOAD_TEXTURE2D_X_LOD(_StpInputMotion, o, 0).xy;
+    m = motion > 1.0 ? 0.0 : motion;
+
+    // Activate the "responsive" feature when we don't have valid history textures
+    bool hasValidHistory = DecodeHasValidHistory(STP_COMMON_CONSTANT);
+    bool excludeTaa = false;
+#if defined(ENABLE_STENCIL_RESPONSIVE)
+    excludeTaa = (GetStencilValue(LOAD_TEXTURE2D_X_LOD(_StpInputStencil, o, 0).xy) & DecodeStencilMask(STP_COMMON_CONSTANT)) != 0;
+#endif
+    r = (hasValidHistory && !excludeTaa) ? StpH1_(1.0) : StpH1_(0.0);
+}
+StpH1 StpPatDitH(StpU2 o) { return StpDitH1(o); }
+StpH4 StpPatPriFedH(StpF2 p) { return (StpH4)SAMPLE_TEXTURE2D_X_LOD(_StpPriorFeedback, s_linear_clamp_sampler, p, 0); }
+StpH4 StpPatPriFedR4H(StpF2 p) { return (StpH4)GATHER_RED_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpH4 StpPatPriFedG4H(StpF2 p) { return (StpH4)GATHER_GREEN_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpH4 StpPatPriFedB4H(StpF2 p) { return (StpH4)GATHER_BLUE_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpH2 StpPatPriLumH(StpF2 p) { return (StpH2)SAMPLE_TEXTURE2D_X_LOD(_StpPriorLuma, s_linear_clamp_sampler, p, 0); }
+StpU4 StpPatPriMot4H(StpF2 p) { return GATHER_RED_TEXTURE2D_X(_StpPriorDepthMotion, s_point_clamp_sampler, p); }
+#endif
+
+#if defined(STP_32BIT)
+StpMF1 StpPatPriConF(StpF2 p) { return (StpMF1)SAMPLE_TEXTURE2D_X_LOD(_StpPriorConvergence, s_linear_clamp_sampler, p, 0); }
+void StpPatDatF(
+    inout StpMF1 r,
+    inout StpMF3 c,
+    inout StpF1 z,
+    inout StpF2 m,
+    StpU2 o)
+{
+    c = (StpMF3)LOAD_TEXTURE2D_X_LOD(_StpInputColor, o, 0).rgb;
+
+    float depth = LOAD_TEXTURE2D_X_LOD(_StpInputDepth, o, 0).x;
+    z = 1.0 / (STP_ZBUFFER_PARAMS_Z * depth + STP_ZBUFFER_PARAMS_W);
+
+    float2 motion = LOAD_TEXTURE2D_X_LOD(_StpInputMotion, o, 0).xy;
+    m = motion > 1.0 ? 0.0 : motion;
+
+    // Activate the "responsive" feature when we don't have valid history textures
+    bool hasValidHistory = DecodeHasValidHistory(STP_COMMON_CONSTANT);
+    bool excludeTaa = false;
+#if defined(ENABLE_STENCIL_RESPONSIVE)
+    excludeTaa = (GetStencilValue(LOAD_TEXTURE2D_X_LOD(_StpInputStencil, o, 0).xy) & DecodeStencilMask(STP_COMMON_CONSTANT)) != 0;
+#endif
+    r = (hasValidHistory && !excludeTaa) ? StpMF1_(1.0) : StpMF1_(0.0);
+}
+StpMF1 StpPatDitF(StpU2 o) { return (StpMF1)StpDitF1(o); }
+StpMF4 StpPatPriFedF(StpF2 p) { return (StpMF4)SAMPLE_TEXTURE2D_X_LOD(_StpPriorFeedback, s_linear_clamp_sampler, p, 0); }
+StpMF4 StpPatPriFedR4F(StpF2 p) { return (StpMF4)GATHER_RED_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpMF4 StpPatPriFedG4F(StpF2 p) { return (StpMF4)GATHER_GREEN_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpMF4 StpPatPriFedB4F(StpF2 p) { return (StpMF4)GATHER_BLUE_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpMF2 StpPatPriLumF(StpF2 p) { return (StpMF2)SAMPLE_TEXTURE2D_X_LOD(_StpPriorLuma, s_linear_clamp_sampler, p, 0); }
+StpU4 StpPatPriMot4F(StpF2 p) { return GATHER_RED_TEXTURE2D_X(_StpPriorDepthMotion, s_point_clamp_sampler, p); }
+#endif
+
+#define THREADING_BLOCK_SIZE STP_GROUP_SIZE
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+[numthreads(STP_GROUP_SIZE, 1, 1)]
+void StpSetup(Threading::Group group)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(group.groupID.z);
+
+    uint lane = group.groupIndex;
+    uint2 pos = (group.groupID.xy << 3) + group.RemapLaneTo8x16();
+
+    half4 color;
+    uint depthMotion;
+    half2 luma;
+    half convergence;
+
+#if defined(STP_16BIT)
+    StpPatH(
+#else
+    StpPatF(
+#endif
+        // Outputs
+        color,
+        depthMotion,
+        luma,
+        convergence,
+
+        // Inputs
+        lane,
+        pos,
+
+        asuint(_StpSetupConstants0),
+        asuint(_StpSetupConstants1),
+        asuint(_StpSetupConstants2),
+        asuint(_StpSetupConstants3),
+        asuint(_StpSetupConstants4),
+        asuint(_StpSetupConstants5),
+
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 0]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 1]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 2]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 3]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 4]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 5]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 6]),
+        asuint(_StpSetupPerViewConstants[STP_SETUP_PER_VIEW_CONSTANTS_STEREO_OFFSET + 7])
+    );
+
+    _StpIntermediateColor[COORD_TEXTURE2D_X(pos)] = color;
+
+    _StpDepthMotion[COORD_TEXTURE2D_X(pos)] = depthMotion;
+    _StpLuma[COORD_TEXTURE2D_X(pos)] = luma;
+
+    if ((group.groupIndex & 15) == 0)
+        _StpIntermediateConvergence[COORD_TEXTURE2D_X(pos >> 2)] = convergence;
+}
+

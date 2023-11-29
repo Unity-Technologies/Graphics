@@ -1,7 +1,7 @@
 #ifndef UNITY_TEXTUREXR_INCLUDED
 #define UNITY_TEXTUREXR_INCLUDED
 
-// single-pass instancing is the default VR method for HDRP
+// single-pass instancing is the default VR method for SRPs
 // multi-pass is working but not recommended due to lower performance
 // single-pass multi-view is not yet supported
 // single-pass doule-wide is deprecated
@@ -17,7 +17,7 @@
 #endif
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
-    #error Single-pass (double-wide) is not compatible with HDRP.
+    #error Single-pass (double-wide) is not compatible with TextureXR.hlsl.
 #endif
 
 // Control if TEXTURE2D_X macros will expand to texture arrays
@@ -35,7 +35,7 @@
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-// Define to override default rendering matrices (used mostly in ShaderVariables.hlsl)
+// Define to override default rendering matrices
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
     #define USING_STEREO_MATRICES
 #endif

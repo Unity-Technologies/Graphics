@@ -1517,7 +1517,7 @@ namespace UnityEngine.Rendering.Universal
                 universalRenderingData, cameraData, lightData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
-                m_DeferredLights.SetupLights(renderingData.commandBuffer, cameraData, lightData);
+                m_DeferredLights.SetupLights(renderingData.commandBuffer, cameraData, new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height), lightData);
         }
 
         /// <inheritdoc />

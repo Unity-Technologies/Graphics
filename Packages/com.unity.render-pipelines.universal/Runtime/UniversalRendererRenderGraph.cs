@@ -168,12 +168,25 @@ namespace UnityEngine.Rendering.Universal
         {
             null, null
         };
+        private static RTHandle[] m_RenderGraphUpscaledCameraColorHandles = new RTHandle[]
+        {
+            null, null
+        };
         private static RTHandle m_RenderGraphCameraDepthHandle;
         private static int m_CurrentColorHandle = 0;
+        private static bool m_UseUpscaledColorHandle = false;
 
         private static RTHandle m_RenderGraphDebugTextureHandle;
 
-        private RTHandle currentRenderGraphCameraColorHandle => (m_RenderGraphCameraColorHandles[m_CurrentColorHandle]);
+        private RTHandle currentRenderGraphCameraColorHandle
+        {
+            get
+            {
+                // Select between the pre-upscale and post-upscale color handle sets based on the current upscaling state
+                return m_UseUpscaledColorHandle ? m_RenderGraphUpscaledCameraColorHandles[m_CurrentColorHandle]
+                                                : m_RenderGraphCameraColorHandles[m_CurrentColorHandle];
+            }
+        }
 
         // get the next m_RenderGraphCameraColorHandles and make it the new current for future accesses
         private RTHandle nextRenderGraphCameraColorHandle
@@ -181,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 m_CurrentColorHandle = (m_CurrentColorHandle + 1) % 2;
-                return m_RenderGraphCameraColorHandles[m_CurrentColorHandle];
+                return currentRenderGraphCameraColorHandle;
             }
         }
 
@@ -197,6 +210,8 @@ namespace UnityEngine.Rendering.Universal
         {
             m_RenderGraphCameraColorHandles[0]?.Release();
             m_RenderGraphCameraColorHandles[1]?.Release();
+            m_RenderGraphUpscaledCameraColorHandles[0]?.Release();
+            m_RenderGraphUpscaledCameraColorHandles[1]?.Release();
             m_RenderGraphCameraDepthHandle?.Release();
 
             m_RenderGraphDebugTextureHandle?.Release();
@@ -319,6 +334,11 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
+
+        const string _CameraTargetAttachmentAName = "_CameraTargetAttachmentA";
+        const string _CameraTargetAttachmentBName = "_CameraTargetAttachmentB";
+        const string _CameraUpscaledTargetAttachmentAName = "_CameraUpscaledTargetAttachmentA";
+        const string _CameraUpscaledTargetAttachmentBName = "_CameraUpscaledTargetAttachmentB";
 
         void CreateRenderGraphCameraRenderTargets(RenderGraph renderGraph, bool isCameraTargetOffscreenDepth)
         {
@@ -553,17 +573,35 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.autoGenerateMips = false;
                 cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
-                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandles[0], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraTargetAttachmentA");
-                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandles[1], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraTargetAttachmentB");
+                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandles[0], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentAName);
+                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandles[1], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentBName);
 
                 // Make sure that the base camera always starts rendering to the ColorAttachmentA for deterministic frame results.
                 // Not doing so makes the targets look different every frame, causing the frame debugger to flash, and making debugging harder.
                 if (cameraData.renderType == CameraRenderType.Base)
+                {
                     m_CurrentColorHandle = 0;
+
+                    // Base camera rendering always starts with a pre-upscale size color target
+                    // If upscaling happens during the frame, we'll switch to the post-upscale color target size and any overlay camera that renders on top should inherit the upscaled size
+                    m_UseUpscaledColorHandle = false;
+                }
 
                 importColorParams.discardOnLastUse = lastCameraInTheStack;
                 resourceData.cameraColor = renderGraph.ImportTexture(currentRenderGraphCameraColorHandle, importColorParams);
                 resourceData.activeColorID = UniversalResourceData.ActiveID.Camera;
+
+                // If STP is enabled, we'll be upscaling the rendered frame during the post processing logic.
+                // Once upscaling occurs, we must use different set of color handles that reflect the upscaled size.
+                if (cameraData.IsSTPEnabled())
+                {
+                    var upscaledTargetDesc = cameraTargetDescriptor;
+                    upscaledTargetDesc.width = cameraData.pixelWidth;
+                    upscaledTargetDesc.height = cameraData.pixelHeight;
+
+                    RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphUpscaledCameraColorHandles[0], upscaledTargetDesc, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraUpscaledTargetAttachmentAName);
+                    RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphUpscaledCameraColorHandles[1], upscaledTargetDesc, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraUpscaledTargetAttachmentBName);
+                }
             }
             else
             {
@@ -1239,6 +1277,11 @@ namespace UnityEngine.Rendering.Universal
                     importColorParams.clearColor = Color.black;
                     importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
+                    // When STP is enabled, we must switch to the upscaled set of color handles before the next color handle value is queried. This ensures
+                    // that the post processing output is rendered to a properly sized target. Any rendering performed beyond this point will also use the upscaled targets.
+                    if (cameraData.IsSTPEnabled())
+                        m_UseUpscaledColorHandle = true;
+
                     cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                     resourceData.cameraColor = cameraColor;
                 }
@@ -1256,6 +1299,10 @@ namespace UnityEngine.Rendering.Universal
 
                 bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
                 m_PostProcessPasses.postProcessPass.RenderPostProcessingRenderGraph(renderGraph, frameData, in activeColor, in internalColorLut, in overlayUITexture, in target, applyFinalPostProcessing, resolveToDebugScreen, doSRGBEncoding);
+
+                // Handle any after-post rendering debugger overlays
+                if (cameraData.resolveFinalTarget)
+                    SetupAfterPostRenderGraphFinalPassDebug(renderGraph, frameData);
 
                 if (isTargetBackbuffer)
                 {

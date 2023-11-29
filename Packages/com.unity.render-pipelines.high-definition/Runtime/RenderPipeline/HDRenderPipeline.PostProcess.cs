@@ -554,7 +554,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
-                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, postDoF: false, "TAA Destination");
+                        if (hdCamera.IsSTPEnabled())
+                        {
+                            source = DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer);
+                        }
+                        else
+                        {
+                            source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, postDoF: false, "TAA Destination");
+                        }
                         if (hdCamera.IsTAAUEnabled())
                         {
                             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);

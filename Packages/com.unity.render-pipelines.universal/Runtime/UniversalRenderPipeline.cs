@@ -1351,18 +1351,24 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = disableRenderScale ? 1.0f : settings.renderScale;
 
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph);
 
             if (cameraData.renderScale > 1.0f)
             {
                 cameraData.imageScalingMode = ImageScalingMode.Downscaling;
             }
-            else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)))
+            else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && ((cameraData.upscalingFilter == ImageUpscalingFilter.FSR) || (cameraData.upscalingFilter == ImageUpscalingFilter.STP))))
             {
-                // When FSR is enabled, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
-                // This allows us to run the FSR shader passes all the time since they improve visual quality even at 100% scale.
+                // When certain upscalers are enabled, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
+                // This allows us to run the upscaling shader passes all the time since they improve visual quality even at 100% scale.
 
                 cameraData.imageScalingMode = ImageScalingMode.Upscaling;
+
+                // When STP is enabled, we force temporal anti-aliasing on since it's a prerequisite.
+                if (cameraData.upscalingFilter == ImageUpscalingFilter.STP)
+                {
+                    cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
+                }
             }
             else
             {
@@ -1482,7 +1488,8 @@ namespace UnityEngine.Rendering.Universal
             ApplyTaaRenderingDebugOverrides(ref cameraData.taaSettings);
 
             // Depends on the cameraTargetDesc, size and MSAA also XR modifications of those.
-            Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(cameraData);
+            TemporalAA.JitterFunc jitterFunc = cameraData.IsSTPEnabled() ? StpUtils.s_JitterFunc : TemporalAA.s_JitterFunc;
+            Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(cameraData, jitterFunc);
             cameraData.SetViewProjectionAndJitterMatrix(camera.worldToCameraMatrix, projectionMatrix, jitterMat);
 
             cameraData.worldSpaceCameraPos = camera.transform.position;
@@ -1763,6 +1770,12 @@ namespace UnityEngine.Rendering.Universal
             additionalCameraData.historyManager.RequestAccess<TemporalAA.PersistentData>();
             cameraData.taaPersistentData = additionalCameraData.historyManager.GetHistoryForWrite<TemporalAA.PersistentData>();
 
+            if (cameraData.IsSTPEnabled())
+            {
+                additionalCameraData.historyManager.RequestAccess<StpHistory>();
+                cameraData.stpHistory = additionalCameraData.historyManager.GetHistoryForWrite<StpHistory>();
+            }
+
             // Update TAA settings
             ref var taaSettings = ref additionalCameraData.taaSettings;
             cameraData.taaSettings = taaSettings;
@@ -1779,7 +1792,20 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
 #endif
-                bool allocation = cameraData.taaPersistentData.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                bool allocation;
+                if (cameraData.IsSTPEnabled())
+                {
+                    Debug.Assert(cameraData.stpHistory != null);
+
+                    // When STP is active, we don't require the full set of resources needed by TAA.
+                    cameraData.taaPersistentData.Reset();
+
+                    allocation = cameraData.stpHistory.Update(cameraData);
+                }
+                else
+                {
+                    allocation = cameraData.taaPersistentData.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                }
 
                 // Fill new history with current frame
                 // XR Multipass renders a "frame" per eye
@@ -1787,7 +1813,13 @@ namespace UnityEngine.Rendering.Universal
                     cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
             }
             else
+            {
                 cameraData.taaPersistentData.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
+
+                // In the case where STP is enabled, but TAA gets disabled for various reasons, we should release the STP history resources
+                if (cameraData.IsSTPEnabled())
+                    cameraData.stpHistory.Reset();
+            }
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
@@ -1960,13 +1992,15 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderScale">Scale being applied to the final image size</param>
         /// <param name="selection">Upscaling filter selected by the user</param>
         /// <returns>Either the original filter provided, or the best replacement available</returns>
-        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection)
+        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection, bool enableRenderGraph)
         {
             // By default we just use linear filtering since it's the most compatible choice
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
-            // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
-            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
+            // Fall back to the automatic filter if the selected filter isn't supported on the current platform or rendering environment
+            if (((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
+                || ((selection == UpscalingFilterSelection.STP) && (!STP.IsSupported() || !enableRenderGraph))
+            )
             {
                 selection = UpscalingFilterSelection.Auto;
             }
@@ -2015,6 +2049,13 @@ namespace UnityEngine.Rendering.Universal
                 case UpscalingFilterSelection.FSR:
                 {
                     filter = ImageUpscalingFilter.FSR;
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.STP:
+                {
+                    filter = ImageUpscalingFilter.STP;
 
                     break;
                 }

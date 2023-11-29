@@ -775,6 +775,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 /* || graphicDevice == GraphicsDeviceType.Switch */);
         }
 
+        internal static bool IsHardwareDynamicResolutionSupportedByDevice(GraphicsDeviceType deviceType)
+        {
+            // TODO: This information should be exposed through the SystemInfo interface
+            return (deviceType != GraphicsDeviceType.Direct3D11 &&
+                deviceType != GraphicsDeviceType.OpenGLES3 &&
+                deviceType != GraphicsDeviceType.OpenGLCore &&
+                deviceType != GraphicsDeviceType.WebGPU);
+        }
+
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
         internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)

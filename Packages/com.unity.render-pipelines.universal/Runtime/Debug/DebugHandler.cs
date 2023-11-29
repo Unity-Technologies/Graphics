@@ -145,6 +145,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal int stpDebugViewIndex { get { return RenderingSettings.stpDebugViewIndex; } }
+
         internal DebugHandler()
         {
             m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;

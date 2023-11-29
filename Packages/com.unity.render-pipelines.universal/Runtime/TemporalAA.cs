@@ -172,7 +172,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static internal Matrix4x4 CalculateJitterMatrix(UniversalCameraData cameraData)
+
+        /// <summary>
+        /// A function delegate that returns a jitter offset for the provided frame
+        /// This provides support for cases where a non-standard jitter pattern is desired
+        /// </summary>
+        /// <param name="frameIndex">index of the current frame</param>
+        /// <param name="jitter">computed jitter offset</param>
+        /// <param name="allowScaling">true if the jitter function's output supports scaling</param>
+        internal delegate void JitterFunc(int frameIndex, out Vector2 jitter, out bool allowScaling);
+
+        static internal Matrix4x4 CalculateJitterMatrix(UniversalCameraData cameraData, JitterFunc jitterFunc)
         {
             Matrix4x4 jitterMat = Matrix4x4.identity;
 
@@ -186,7 +196,12 @@ namespace UnityEngine.Rendering.Universal
                 float actualHeight = cameraData.cameraTargetDescriptor.height;
                 float jitterScale = cameraData.taaSettings.jitterScale;
 
-                var jitter = CalculateJitter(taaFrameIndex) * jitterScale;
+                Vector2 jitter;
+                bool allowScaling;
+                jitterFunc(taaFrameIndex, out jitter, out allowScaling);
+
+                if (allowScaling)
+                    jitter *= jitterScale;
 
                 float offsetX = jitter.x * (2.0f / actualWidth);
                 float offsetY = jitter.y * (2.0f / actualHeight);
@@ -197,15 +212,19 @@ namespace UnityEngine.Rendering.Universal
             return jitterMat;
         }
 
-        static internal Vector2 CalculateJitter(int frameIndex)
+        static void CalculateJitter(int frameIndex, out Vector2 jitter, out bool allowScaling)
         {
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((frameIndex & 1023) + 1, 2) - 0.5f;
             float jitterY = HaltonSequence.Get((frameIndex & 1023) + 1, 3) - 0.5f;
 
-            return new Vector2(jitterX, jitterY);
+            jitter = new Vector2(jitterX, jitterY);
+            allowScaling = true;
         }
+
+        // Static allocation of JitterFunc delegate to avoid GC
+        internal static JitterFunc s_JitterFunc = CalculateJitter;
 
         private static readonly Vector2[] taaFilterOffsets = new Vector2[]
         {
@@ -231,7 +250,10 @@ namespace UnityEngine.Rendering.Universal
             float totalWeight = 0;
             for (int i = 0; i < 9; ++i)
             {
-                Vector2 jitter = CalculateJitter(Time.frameCount) * jitterScale;
+                // The internal jitter function used by TAA always allows scaling
+                CalculateJitter(Time.frameCount, out var jitter, out var _);
+                jitter *= jitterScale;
+
                 // The rendered frame (pixel grid) is already jittered.
                 // We sample 3x3 neighbors with int offsets, but weight the samples
                 // relative to the distance to the non-jittered pixel center.

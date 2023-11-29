@@ -1364,6 +1364,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCam.cameraCanRenderDLSS = false;
             hdCam.cameraCanRenderFSR2 = false;
+            hdCam.cameraCanRenderSTP = false;
 
             if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
                 return;
@@ -1403,6 +1404,20 @@ namespace UnityEngine.Rendering.HighDefinition
                                 : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings;
                             m_FSR2Pass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
                         }
+                    }
+                    break;
+                case AdvancedUpscalers.STP:
+                    {
+                        bool isHwDrsSupported = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);
+
+                        var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+
+                        // STP cannot support dynamic resolution when hardware support is not available.
+                        // However, we make an exception for cases where the dynamic resolution is known to be forced to a fixed value.
+                        bool isStpSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
+
+                        hdCam.cameraCanRenderSTP = isStpSupported;
+                        found = hdCam.cameraCanRenderSTP;
                     }
                     break;
                 }
@@ -2314,12 +2329,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     //Warning!! do not read anything off the dynResHandler, until we have called Update(). Otherwise, the handler is in the process of getting constructed.
                     var dynResHandler = DynamicResolutionHandler.instance;
 
-                    if (hdCam != null)
+                    if ((hdCam != null) && cameraRequestedDynamicRes)
                     {
-                        // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
-                        // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
-                        if (drsSettings.dynResType == DynamicResolutionType.Hardware && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
+                        bool isHwDrsSupported = camera.allowDynamicResolution;
+
+                        // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
+                        if (drsSettings.dynResType == DynamicResolutionType.Hardware && !isHwDrsSupported)
                         {
                             dynResHandler.ForceSoftwareFallback();
                         }
@@ -2327,7 +2343,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Notify the hanlder if this camera requests DRS.
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
-                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP)) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
                     // Finally, our configuration is prepared. Push it to the drs handler
                     dynResHandler.Update(drsSettings);

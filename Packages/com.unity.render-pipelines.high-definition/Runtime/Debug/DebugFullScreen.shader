@@ -593,6 +593,17 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return LOAD_TEXTURE2D_X(_DebugFullScreenTexture, samplePosition);
                 }
 
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_STP)
+                {
+                    uint2 samplePosition = (uint2)((input.texcoord / _RTHandleScale.xy) * _DebugViewportSize.xy);
+                    float4 stp = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, samplePosition);
+
+                    // This is encoded in gamma 2.0 (so the square is needed to get it back to linear).
+                    stp.rgb *= stp.rgb;
+
+                    return stp;
+                }
+
                 return float4(0.0, 0.0, 0.0, 0.0);
             }
 

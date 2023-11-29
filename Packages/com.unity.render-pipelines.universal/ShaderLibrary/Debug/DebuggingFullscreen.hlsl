@@ -64,6 +64,7 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
         case DEBUGFULLSCREENMODE_MAIN_LIGHT_SHADOW_MAP:
         case DEBUGFULLSCREENMODE_ADDITIONAL_LIGHTS_SHADOW_MAP:
         case DEBUGFULLSCREENMODE_REFLECTION_PROBE_ATLAS:
+        case DEBUGFULLSCREENMODE_STP:
         {
             float2 uvOffset = half2(uv.x - _DebugTextureDisplayRect.x, uv.y - _DebugTextureDisplayRect.y);
 
@@ -78,7 +79,20 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
                 else
                     sampleColor = SAMPLE_TEXTURE2D(_DebugTextureNoStereo, sampler_DebugTexture, debugTextureUv);
 
-                debugColor = _DebugFullScreenMode == DEBUGFULLSCREENMODE_DEPTH ? half4(sampleColor.rrr, 1) : sampleColor;
+                if (_DebugFullScreenMode == DEBUGFULLSCREENMODE_DEPTH)
+                {
+                    debugColor = half4(sampleColor.rrr, 1);
+                }
+                else if (_DebugFullScreenMode == DEBUGFULLSCREENMODE_STP)
+                {
+                    // This is encoded in gamma 2.0 (so the square is needed to get it back to linear).
+                    debugColor = sampleColor * sampleColor;
+                }
+                else
+                {
+                    debugColor = sampleColor;
+                }
+
                 return true;
             }
             else

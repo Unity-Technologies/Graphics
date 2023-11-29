@@ -73,7 +73,10 @@ namespace UnityEngine.Rendering.Universal
         Point,
 
         /// FidelityFX Super Resolution
-        FSR
+        FSR,
+
+        /// Scalable Temporal Post-Processing
+        STP
     }
 
     /// <summary>
@@ -582,7 +585,6 @@ namespace UnityEngine.Rendering.Universal
 
         // Post-process history reset has been triggered for this camera.
         internal bool resetHistory => frameData.Get<UniversalCameraData>().resetHistory;
-
 
         /// <summary>
         /// Camera at the top of the overlay camera stack

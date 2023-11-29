@@ -1611,6 +1611,18 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Divides one value by another and rounds up to the next integer.
+        /// This is often used to calculate dispatch dimensions for compute shaders.
+        /// </summary>
+        /// <param name="value">The value to divide.</param>
+        /// <param name="divisor">The value to divide by.</param>
+        /// <returns>The value divided by the divisor rounded up to the next integer.</returns>
+        public static int DivRoundUp(int value, int divisor)
+        {
+            return (value + (divisor - 1)) / divisor;
+        }
+
+        /// <summary>
         /// Get the last declared value from an enum Type
         /// </summary>
         /// <typeparam name="T">Type of the enum</typeparam>

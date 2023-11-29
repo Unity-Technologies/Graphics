@@ -153,6 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeThickness,
         /// <summary>Display Line Renderer Debug Modes.</summary>
         HighQualityLines,
+        /// <summary>Display STP Debug Modes.</summary>
+        STP,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
@@ -340,6 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool applyExposure = false;
             /// <summary>The debug mode used for high quality line rendering.</summary>
             public LineRendering.DebugMode lineRenderingDebugMode = LineRendering.DebugMode.SegmentsPerTile;
+            /// <summary>The debug view index used for STP.</summary>
+            internal int stpDebugViewIndex = 0;
 
             // TODO: The only reason this exist is because of Material/Engine debug enums
             // They have repeating values, which caused issues when iterating through the enum, thus the need for explicit indices
@@ -372,6 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int lineRenderingDebugModeEnumIndex;
             internal int lightClusterCategoryDebug;
             internal int historyBufferFrameIndex = 0;
+            internal int stpDebugModeEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -1706,6 +1711,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public static readonly NameAndTooltip FreezeCameraForCulling = new() { name = "Freeze Camera For Culling", tooltip = "Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it." };
             public static readonly NameAndTooltip HighQualityLineRenderingMode = new() { name = "High Quality Line Rendering Mode", tooltip = "" };
+            public static readonly NameAndTooltip StpDebugMode = new() { name = "STP Debug Mode", tooltip = "" };
 
             // Monitors
             public static readonly NameAndTooltip MonitorsSize        = new() { name = "Size"       , tooltip = "Sets the size ratio of the displayed monitors" };
@@ -1805,6 +1811,17 @@ namespace UnityEngine.Rendering.HighDefinition
                    children =
                    {
                        new DebugUI.EnumField{ nameAndTooltip = RenderingStrings.HighQualityLineRenderingMode, getter = () => (int)data.lineRenderingDebugMode, setter = value => data.lineRenderingDebugMode = (LineRendering.DebugMode)value, autoEnum = typeof(LineRendering.DebugMode), getIndex = () => data.lineRenderingDebugModeEnumIndex, setIndex = value => data.lineRenderingDebugModeEnumIndex = value },
+                   }
+                });
+            }
+
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                   isHiddenCallback = () => (data.fullScreenDebugMode != FullScreenDebugMode.STP),
+                   children =
+                   {
+                       new DebugUI.EnumField{ nameAndTooltip = RenderingStrings.StpDebugMode, getter = () => (int)data.stpDebugViewIndex, setter = value => data.stpDebugViewIndex = value, enumNames = STP.debugViewDescriptions, enumValues = STP.debugViewIndices, getIndex = () => data.stpDebugModeEnumIndex, setIndex = value => data.stpDebugModeEnumIndex = value },
                    }
                 });
             }
@@ -2249,7 +2266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds ||
                     data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
                     data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination || data.fullScreenDebugMode == FullScreenDebugMode.LensFlareScreenSpace ||
-                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog);
+                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog || data.fullScreenDebugMode == FullScreenDebugMode.STP);
         }
     }
 }

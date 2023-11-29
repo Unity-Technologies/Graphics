@@ -270,6 +270,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalCameraData cameraData;
             internal UniversalLightData lightData;
             internal DeferredLights deferredLights;
+
+            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
+            internal Vector2Int cameraTargetSizeCopy;
         };
         /// <summary>
         /// Sets up the ForwardLight data for RenderGraph execution
@@ -280,6 +283,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 s_SetupDeferredLights))
             {
                 passData.cameraData = cameraData;
+                passData.cameraTargetSizeCopy = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                 passData.lightData = lightData;
                 passData.deferredLights = this;
 
@@ -287,19 +291,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.lightData);
+                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.cameraTargetSizeCopy, data.lightData);
                 });
             }
         }
 
-        internal void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData)
+        internal void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, UniversalLightData lightData)
         {
             Profiler.BeginSample(k_SetupLights);
 
             Camera camera = cameraData.camera;
             // Support for dynamic resolution.
-            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraData.cameraTargetDescriptor.width) : cameraData.cameraTargetDescriptor.width;
-            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraData.cameraTargetDescriptor.height) : cameraData.cameraTargetDescriptor.height;
+            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraTargetSizeCopy.x) : cameraTargetSizeCopy.x;
+            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraTargetSizeCopy.y) : cameraTargetSizeCopy.y;
 
             // inspect lights in lightData.visibleLights and convert them to entries in m_stencilVisLights
             PrecomputeLights(

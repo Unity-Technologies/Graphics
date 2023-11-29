@@ -182,5 +182,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/374_HDROutput_PassOrder.unity
     guid: 8bf4b7781b2a77a4987ae2a487e42414
+  - enabled: 1
+    path: Assets/Scenes/380_STP.unity
+    guid: 2b1e933506b286343a1128073e1d94e4
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

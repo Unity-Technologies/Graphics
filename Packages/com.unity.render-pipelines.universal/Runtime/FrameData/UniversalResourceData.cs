@@ -315,6 +315,16 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle _ssaoTexture;
 
+        /// <summary>
+        /// STP debug visualization written to by the STP upscaler.
+        /// </summary>
+        internal TextureHandle stpDebugView
+        {
+            get => CheckAndGetTextureHandle(ref _stpDebugView);
+            set => CheckAndSetTextureHandle(ref _stpDebugView, value);
+        }
+        private TextureHandle _stpDebugView;
+
         /// <inheritdoc />
         public override void Reset()
         {
@@ -337,6 +347,7 @@ namespace UnityEngine.Rendering.Universal
             _renderingLayersTexture = TextureHandle.nullHandle;
             _dBufferDepth = TextureHandle.nullHandle;
             _ssaoTexture = TextureHandle.nullHandle;
+            _stpDebugView = TextureHandle.nullHandle;
 
             for (int i = 0; i < _gBuffer.Length; i++)
                 _gBuffer[i] = TextureHandle.nullHandle;

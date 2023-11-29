@@ -1,7 +1,7 @@
 #ifndef DEPTH_OF_FIELD_COMMON
 #define DEPTH_OF_FIELD_COMMON
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
 struct TileData

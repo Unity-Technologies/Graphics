@@ -374,7 +374,13 @@ namespace UnityEngine.Rendering.Universal
         /// Unity uses the AMD FSR 1.0 technique to perform upscaling.
         /// </summary>
         [InspectorName("FidelityFX Super Resolution 1.0"), Tooltip("If the target device does not support Unity shader model 4.5, Unity falls back to the Automatic option.")]
-        FSR
+        FSR,
+
+        /// <summary>
+        /// Unity uses the Scalable Temporal Post-Processing technique to perform upscaling.
+        /// </summary>
+        [InspectorName("Scalable Temporal Post-Processing"), Tooltip("If the target device does not support compute shaders or is running GLES, Unity falls back to the Automatic option.")]
+        STP
     }
 
     /// <summary>

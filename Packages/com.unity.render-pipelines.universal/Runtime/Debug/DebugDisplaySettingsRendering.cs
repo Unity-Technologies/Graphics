@@ -106,6 +106,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugFullScreenMode fullScreenDebugMode { get; set; } = DebugFullScreenMode.None;
 
+        internal int stpDebugViewIndex { get; set; } = 0;
+
         /// <summary>
         /// Size of the debug fullscreen overlay, as percentage of the screen size.
         /// </summary>
@@ -221,6 +223,7 @@ namespace UnityEngine.Rendering.Universal
             public const string RangeValidationSettingsContainerName = "Pixel Range Settings";
 
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
+            public static readonly NameAndTooltip StpDebugViews = new() { name = "STP Debug Views", tooltip = "Debug visualizations provided by STP." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
             public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
@@ -256,6 +259,18 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => panel.data.fullScreenDebugMode = (DebugFullScreenMode)value,
                 getIndex = () => (int)panel.data.fullScreenDebugMode,
                 setIndex = (value) => panel.data.fullScreenDebugMode = (DebugFullScreenMode)value
+            };
+
+            internal static DebugUI.Widget CreateStpDebugViews(SettingsPanel panel) => new DebugUI.EnumField
+            {
+                nameAndTooltip = Strings.StpDebugViews,
+                isHiddenCallback = () => panel.data.fullScreenDebugMode != DebugFullScreenMode.STP,
+                enumNames = STP.debugViewDescriptions,
+                enumValues = STP.debugViewIndices,
+                getter = () => (int)panel.data.stpDebugViewIndex,
+                setter = (value) => panel.data.stpDebugViewIndex = value,
+                getIndex = () => (int)panel.data.stpDebugViewIndex,
+                setIndex = (value) => panel.data.stpDebugViewIndex = value
             };
 
             internal static DebugUI.Widget CreateMapOverlaySize(SettingsPanel panel) => new DebugUI.Container()
@@ -542,6 +557,7 @@ namespace UnityEngine.Rendering.Universal
                     children =
                     {
                         WidgetFactory.CreateMapOverlays(this),
+                        WidgetFactory.CreateStpDebugViews(this),
                         WidgetFactory.CreateMapOverlaySize(this),
                         WidgetFactory.CreateHDR(this),
                         WidgetFactory.CreateMSAA(this),

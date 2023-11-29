@@ -210,33 +210,33 @@ namespace UnityEngine.Rendering.Universal
         /// <typeparam name="T">Base type for the CommandBuffer</typeparam>
         void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
-            SetPerCameraShaderVariables(cmd, cameraData, cameraData.IsCameraProjectionMatrixFlipped());
+            SetPerCameraShaderVariables(cmd, cameraData, new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height), cameraData.IsCameraProjectionMatrixFlipped());
         }
 
-        void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool isTargetFlipped)
+        void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, bool isTargetFlipped)
         {
             using var profScope = new ProfilingScope(Profiling.setPerCameraShaderVariables);
 
             Camera camera = cameraData.camera;
 
-            float scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
-            float scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            float scaledCameraTargetWidth = (float)cameraTargetSizeCopy.x;
+            float scaledCameraTargetHeight = (float)cameraTargetSizeCopy.y;
             float cameraWidth = (float)camera.pixelWidth;
             float cameraHeight = (float)camera.pixelHeight;
 
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
-                cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
-                cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+                cameraWidth = (float)cameraTargetSizeCopy.x;
+                cameraHeight = (float)cameraTargetSizeCopy.y;
 
                 useRenderPassEnabled = false;
             }
 
             if (camera.allowDynamicResolution)
             {
-                scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
-                scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
+                scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
             float near = camera.nearClipPlane;
@@ -277,11 +277,11 @@ namespace UnityEngine.Rendering.Universal
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
             cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, cameraData.worldSpaceCameraPos);
             cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f + 1.0f / scaledCameraTargetWidth, 1.0f + 1.0f / scaledCameraTargetHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
-            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f / scaledCameraWidth, 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight));
             cmd.SetKeyword(ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
-            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
+            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraTargetWidth, 2.0f), 0.0f);
             // Temporal Anti-aliasing can use negative mip bias to increase texture sharpness and new information for the jitter.
             float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
             mipBias = Math.Min(mipBias, taaMipBias);
@@ -860,6 +860,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.renderer = this;
                 passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.cameraTargetSizeCopy = new Vector2Int(passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height);
                 passData.isTargetBackbuffer = isTargetBackbuffer;
 
                 builder.AllowPassCulling(false);
@@ -880,12 +881,12 @@ namespace UnityEngine.Rendering.Universal
                     if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.cmd.SetupCameraProperties(data.cameraData.camera);
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, !yFlip);
                     }
                     else
                     {
                         // Set new properties
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, !yFlip);
                         data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !yFlip);
                         data.renderer.SetPerCameraBillboardProperties(context.cmd, data.cameraData);
                     }
@@ -1051,6 +1052,9 @@ namespace UnityEngine.Rendering.Universal
             internal ScriptableRenderer renderer;
             internal UniversalCameraData cameraData;
             internal bool isTargetBackbuffer;
+
+            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
+            internal Vector2Int cameraTargetSizeCopy;
         };
 
 
