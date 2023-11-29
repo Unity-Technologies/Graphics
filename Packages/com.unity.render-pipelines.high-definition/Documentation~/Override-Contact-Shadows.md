@@ -10,6 +10,7 @@ For information about contact shadow properties, refer to [Contact shadows overr
 <a name="enable-contact-shadows"><a>
 
 ## Enable contact shadows
+
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
 Enable the following properties:

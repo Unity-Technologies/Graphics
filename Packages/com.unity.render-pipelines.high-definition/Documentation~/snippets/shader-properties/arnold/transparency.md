@@ -1,4 +1,4 @@
 <tr>
-<td>**Transparency**</td>
+<td><strong>Transparency</strong></td>
 <td>The transparency of the material.</td>
 </tr>
