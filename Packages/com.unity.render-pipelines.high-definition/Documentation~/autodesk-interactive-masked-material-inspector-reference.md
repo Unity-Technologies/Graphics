@@ -25,6 +25,7 @@ When Unity imports an FBX with a compatible Autodesk shader, it automatically cr
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/autodesk-interactive/use-color-map.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/base-color.md)]
 [!include[](snippets/shader-properties/autodesk-interactive/color-map.md)]
@@ -49,4 +50,5 @@ When Unity imports an FBX with a compatible Autodesk shader, it automatically cr
 [!include[](snippets/shader-properties/general/emission.md)]
 [!include[](snippets/shader-properties/general/emission-global-illumination.md)]
 [!include[](snippets/shader-properties/general/motion-vector-for-vertex-animation.md)]
+
 </table>

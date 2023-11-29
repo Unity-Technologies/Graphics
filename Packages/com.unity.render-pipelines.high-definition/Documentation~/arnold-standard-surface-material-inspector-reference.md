@@ -27,10 +27,16 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 **Surface Options** control the look of your Material's surface and how Unity renders the Material on screen.
 
 <table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
+<thead>
+  <tr>
+    <th>Property</th>
+    <th></th>
+    <th></th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
 [!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
 [!include[](snippets/shader-properties/surface-options/blending-mode.md)]
@@ -47,6 +53,8 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 [!include[](snippets/shader-properties/surface-options/receive-decals.md)]
 [!include[](snippets/shader-properties/surface-options/receive-ssr.md)]
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
+
+</tbody>
 </table>
 
 ### Exposed Properties
@@ -56,6 +64,7 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/arnold/base-color.md)]
 [!include[](snippets/shader-properties/arnold/base-color-map.md)]
 [!include[](snippets/shader-properties/arnold/metalness.md)]
@@ -81,6 +90,7 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 [!include[](snippets/shader-properties/arnold/normal-map.md)]
 [!include[](snippets/shader-properties/arnold/opacity-map.md)]
 [!include[](snippets/shader-properties/arnold/opacity.md)]
+
 </table>
 
 ### Advanced Options
@@ -90,8 +100,10 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/general/enable-gpu-instancing.md)]
 [!include[](snippets/shader-properties/general/emission.md)]
 [!include[](snippets/shader-properties/general/emission-global-illumination.md)]
 [!include[](snippets/shader-properties/general/motion-vector-for-vertex-animation.md)]
+
 </table>

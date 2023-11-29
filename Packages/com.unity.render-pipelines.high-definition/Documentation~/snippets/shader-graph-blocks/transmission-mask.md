@@ -1,6 +1,6 @@
 <tr>
-<td>**Transmission Mask**</td>
+<td><strong>Transmission Mask</strong></td>
 <td>The strength of transmitted light across the Material.</td>
-<td>&#8226; **Material** set to **Lit** <br/>&#8226; **Material Type** set to **Subsurface Scattering** and **Transmission** enabled.<br/>Or<br/>&#8226; **Material Type** set to **Translucent**</td>
+<td>&#8226; <strong>Material</strong> set to <strong>Lit</strong> <br/>&#8226; <strong>Material Type</strong> set to <strong>Subsurface Scattering</strong> and <strong>Transmission</strong> enabled.<br/>Or<br/>&#8226; <strong>Material Type</strong> set to <strong>Translucent</strong></td>
 <td>1.0</td>
 </tr>

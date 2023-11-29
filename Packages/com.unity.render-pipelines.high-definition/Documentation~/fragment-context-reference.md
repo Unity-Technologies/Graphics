@@ -18,6 +18,7 @@ This section lists the Blocks that are compatible with Fragment Contexts in the 
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/ambient-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold.md)]
@@ -89,4 +90,5 @@ This section lists the Blocks that are compatible with Fragment Contexts in the 
 [!include[](snippets/shader-graph-blocks/tangent-world-space.md)]
 [!include[](snippets/shader-graph-blocks/thickness.md)]
 [!include[](snippets/shader-graph-blocks/transmittance.md)]
+
 </table>

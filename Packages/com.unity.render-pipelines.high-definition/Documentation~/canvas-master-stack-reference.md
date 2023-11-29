@@ -29,9 +29,11 @@ When you create a new Canvas Master Stack, the Fragment Context contains the fol
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/base-color.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]
+
 </table>
 
 #### Relevant Fragment Context Blocks
@@ -45,6 +47,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph might a
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold.md)]
 
 ## Graph Settings
@@ -56,6 +59,7 @@ The following table describes the Surface options:
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/surface-options/material-type.md)]
 [!include[](snippets/shader-properties/surface-options/alpha-clipping.md)]
 

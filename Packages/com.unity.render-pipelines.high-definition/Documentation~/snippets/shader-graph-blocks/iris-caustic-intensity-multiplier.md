@@ -1,6 +1,6 @@
 <tr>
-<td>**Iris Caustic Intensity Multiplier**</td>
+<td><strong>Iris Caustic Intensity Multiplier</strong></td>
 <td>Determines the intensity of the eye caustic.</td>
-<td>**Material Type** set to **Eye Cinematic With Caustic**</td>
+<td><strong>Material Type</strong> set to <strong>Eye Cinematic With Caustic</strong></td>
 <td>1.0</td>
 </tr>
