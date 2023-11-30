@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
@@ -24,6 +25,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             m_TestRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_PassData.viewportScale = m_TestRenderingLayersTextureHandle.useScaling ? new Vector2(m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.x, m_TestRenderingLayersTextureHandle.rtHandleProperties.rtHandleScale.y) : Vector2.one;
@@ -96,12 +98,14 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
                 m_RenderingLayerColors[i] = Color.HSVToRGB(i / 32f, 1, 1);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ConfigureTarget(m_ColoredRenderingLayersTextureHandle);
             ConfigureClear(ClearFlag.ColorStencil, Color.black);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             RasterCommandBuffer cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
@@ -195,9 +199,11 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         desc.depthBufferBits = 0;
         RenderingUtils.ReAllocateIfNeeded(ref m_ColoredRenderingLayersTextureHandle, desc, name: "_ColoredRenderingLayersTexture");
 
+        #pragma warning disable CS0618 // Type or member is obsolete
         m_DrawRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle, m_Material);
         renderer.EnqueuePass(m_DrawRenderingLayerPass);
         m_RequestRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle);
         renderer.EnqueuePass(m_RequestRenderingLayerPass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 }

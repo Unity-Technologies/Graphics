@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// Settings for Render Graph
     /// </summary>
     [Serializable]
-    [Category("Miscellaneous")]
+    [Category("Render Graph")]
     [HideInInspector] // TODO Remove when UI has fully being migrated
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class RenderGraphSettings: IRenderPipelineGraphicsSettings
@@ -31,19 +32,23 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField]
         [InspectorName("Use Render Graph")]
-        [Tooltip("When enabled, Universal Rendering Pipeline will use Render Graph API to construct and execute the frame")]
-        private bool m_UseRenderGraph;
+        [Tooltip("When enabled, Universal Rendering Pipeline will not use Render Graph API to construct and execute the frame.")]
+        [RecreatePipelineOnChange]
+        private bool m_EnableRenderCompatibilityMode;
         #endregion
 
         #region Data Accessors
 
         /// <summary>
-        /// When enabled, Universal Rendering Pipeline will use Render Graph API to construct and execute the frame
+        /// When enabled, Universal Rendering Pipeline will not use Render Graph API to construct and execute the frame.
         /// </summary>
-        public bool useRenderGraph
+        public bool enableRenderCompatibilityMode
         {
-            get => m_UseRenderGraph || RenderGraphGraphicsAutomatedTests.enabled;
-            set => this.SetValueAndNotify(ref m_UseRenderGraph, value, nameof(m_UseRenderGraph));
+            get => m_EnableRenderCompatibilityMode && !RenderGraphGraphicsAutomatedTests.enabled;
+            set
+            {
+                this.SetValueAndNotify(ref m_EnableRenderCompatibilityMode, value, nameof(m_EnableRenderCompatibilityMode));
+            }
         }
 
         #endregion

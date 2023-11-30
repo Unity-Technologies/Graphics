@@ -102,7 +102,10 @@ namespace UnityEngine.Rendering.Universal
 
                     renderPass.renderPassQueueIndex = i;
 
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     bool RPEnabled = IsRenderPassEnabled(renderPass);
+                    #pragma warning restore CS0618
                     if (!RPEnabled)
                         continue;
 
@@ -461,7 +464,10 @@ namespace UnityEngine.Rendering.Universal
 
                 attachmentIndices.Dispose();
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderPass.Execute(context, ref renderingData);
+                #pragma warning restore CS0618
 
                 // Need to execute it immediately to avoid sync issues between context and cmd buffer
                 context.ExecuteCommandBuffer(renderingData.commandBuffer);
@@ -501,7 +507,10 @@ namespace UnityEngine.Rendering.Universal
                 // Only update it as long as it has default value - if it was changed once, we assume it'll be memoryless in the whole RenderPass
                 if (!m_IsActiveColorAttachmentTransient[pass.m_InputAttachmentIndices[i]])
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     m_IsActiveColorAttachmentTransient[pass.m_InputAttachmentIndices[i]] = pass.IsInputAttachmentTransient(i);
+                    #pragma warning restore CS0618
                 }
             }
         }
@@ -672,8 +681,11 @@ namespace UnityEngine.Rendering.Universal
                 targetRT = handle.rt != null ? handle.rt.descriptor : renderPass.depthAttachmentHandle.rt.descriptor;
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachmentHandle : cameraDepthTargetHandle;
             var depthID = (targetRT.graphicsFormat == GraphicsFormat.None && targetRT.depthStencilFormat != GraphicsFormat.None) ? renderPass.colorAttachmentHandle.GetHashCode() : depthTarget.GetHashCode();
+            #pragma warning restore CS0618
 
             return new RenderPassDescriptor(targetRT.width, targetRT.height, targetRT.msaaSamples, depthID);
         }

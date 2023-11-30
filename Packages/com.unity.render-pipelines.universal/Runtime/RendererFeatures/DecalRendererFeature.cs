@@ -483,7 +483,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderingData.cameraData.cameraType == CameraType.Preview)
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderer.EnqueuePass(m_DecalPreviewPass);
+                #pragma warning restore CS0618
                 return;
             }
 
@@ -513,6 +516,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             switch (m_Technique)
             {
                 case DecalTechnique.ScreenSpace:
@@ -528,6 +533,7 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
             }
+            #pragma warning restore CS0618
         }
 
         internal override bool SupportsNativeRenderPass()
@@ -538,6 +544,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
+
             if (renderer.cameraColorTargetHandle == null)
                 return;
 
@@ -572,6 +581,7 @@ namespace UnityEngine.Rendering.Universal
                 // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
                 m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
             }
+            #pragma warning restore CS0618
         }
 
         /// <inheritdoc />

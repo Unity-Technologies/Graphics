@@ -109,6 +109,28 @@ namespace UnityEditor.Rendering.Universal
 
 
         #region Misc Settings
+        static void DrawRenderGraphCheckBox(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            var enableRenderGraphProperty = serialized.enableRenderCompatibilityMode;
+            if (enableRenderGraphProperty != null)
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (!UniversalRenderPipeline.asset.enableRenderGraph)
+#pragma warning restore 618 // Type or member is obsolete
+                    EditorGUILayout.HelpBox("Unity no longer develops or improves the rendering path that does not use Render Graph API. Use the Render Graph API when developing new graphics features.", MessageType.Warning);
+
+                bool prevValue = enableRenderGraphProperty.boolValue;
+                bool result = EditorGUILayout.Toggle(Styles.renderCompatibilityModeLabel, prevValue);
+
+                if (result != prevValue)
+                {
+                    enableRenderGraphProperty.boolValue = result;
+                    UniversalRenderPipeline.asset.OnEnableRenderGraphChanged();
+                }
+
+                EditorGUILayout.Space();
+            }
+        }
 
         private static readonly CED.IDrawer MiscSection =
             CED.Group((s, owner) =>
@@ -117,10 +139,7 @@ namespace UnityEditor.Rendering.Universal
                 CoreEditorUtils.DrawSectionHeader(Styles.renderGraphHeaderLabel);
                 using var indentScope = new EditorGUI.IndentLevelScope();
                 EditorGUILayout.Space();
-                EditorGUILayout.PropertyField(s.enableRenderGraph, Styles.enableRenderGraphLabel);
-                EditorGUILayout.Space();
-                if (EditorGUI.EndChangeCheck())
-                    GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph = s.enableRenderGraph.boolValue;
+                DrawRenderGraphCheckBox(s, owner);
             });
 
         #endregion

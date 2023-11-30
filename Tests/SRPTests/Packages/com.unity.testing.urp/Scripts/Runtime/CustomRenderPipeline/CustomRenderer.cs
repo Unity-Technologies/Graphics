@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
@@ -37,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
@@ -173,6 +175,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();

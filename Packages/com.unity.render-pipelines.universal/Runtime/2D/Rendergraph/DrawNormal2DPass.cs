@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
             internal RendererListHandle rendererList;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();

@@ -612,11 +612,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
                 return;
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             if (m_CreateEmptyShadowmap)
             {
                 ConfigureTarget(m_EmptyAdditionalLightShadowmapTexture);
@@ -626,9 +629,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ConfigureTarget(m_AdditionalLightsShadowmapHandle);
 
             ConfigureClear(ClearFlag.All, Color.black);
+            #pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;

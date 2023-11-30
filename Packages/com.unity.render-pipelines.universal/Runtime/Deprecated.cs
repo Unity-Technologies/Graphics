@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("Moved to UniversalRenderPipelineRuntimeXRResources on GraphicsSettings. #from(2023.3)", false)]
         public ShaderResources shaders;
     }
-    
+
     public partial class UniversalRendererData
     {
 #if ENABLE_VR && ENABLE_XR_MODULE

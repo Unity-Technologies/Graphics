@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.Universal
             m_LightLookupRTHandle?.Release();
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();

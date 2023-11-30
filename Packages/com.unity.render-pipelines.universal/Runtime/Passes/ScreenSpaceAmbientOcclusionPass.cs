@@ -599,6 +599,7 @@ namespace UnityEngine.Rendering.Universal
          ----------------------------------------------------------------------------------------------------------------------------------------*/
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -636,12 +637,16 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_PassData.ssaoTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
             PostProcessUtils.SetSourceSize(cmd, m_PassData.ssaoTextures[3]);
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // Configure targets and clear color
             ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTargetHandle : m_SSAOTextures[3]);
             ConfigureClear(ClearFlag.None, Color.white);
+            #pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (m_Material == null)
@@ -709,7 +714,12 @@ namespace UnityEngine.Rendering.Universal
         private static void RenderAndSetBaseMap(ref CommandBuffer cmd, ref RenderingData renderingData, ref ScriptableRenderer renderer, ref Material mat, ref RTHandle baseMap, ref RTHandle target, ShaderPasses pass)
         {
             if (IsAfterOpaquePass(ref pass))
+            {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 Blitter.BlitCameraTexture(cmd, baseMap, renderer.cameraColorTargetHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, mat, (int)pass);
+                #pragma warning restore CS0618
+            }
 
             else if (baseMap.rt == null)
             {

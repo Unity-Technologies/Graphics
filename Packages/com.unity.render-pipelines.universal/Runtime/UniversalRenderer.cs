@@ -586,6 +586,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
@@ -1184,8 +1185,11 @@ namespace UnityEngine.Rendering.Universal
                 else
                     renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+                #pragma warning restore CS0618
 
                 // If there is any custom render pass renders to opaque pass' target before opaque pass,
                 // we can't clear color as it contains the valid rendering output.
@@ -1198,7 +1202,12 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO: investigate DX XR clear issues.
                 if (SystemInfo.usesLoadStoreActions)
 #endif
-                renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
+                {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
+                    renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
+                    #pragma warning restore CS0618
+                }
 
                 EnqueuePass(renderOpaqueForwardPass);
             }
@@ -1285,8 +1294,11 @@ namespace UnityEngine.Rendering.Universal
                         transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
                 }
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
+                #pragma warning restore CS0618
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
@@ -1473,7 +1485,10 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawColorCopyPass.Setup(m_ActiveCameraColorAttachment, colorHistory.GetCurrentTexture(multipassId), Downsampling.None);
                             // See pass creation for actual execution order.
+                            // Disable obsolete warning for internal usage
+                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawColorCopyPass);
+                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1499,7 +1514,10 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, depthHistory.GetCurrentTexture(multipassId));
                             // See pass creation for actual execution order.
+                            // Disable obsolete warning for internal usage
+                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawDepthCopyPass);
+                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1507,6 +1525,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
@@ -1588,10 +1607,15 @@ namespace UnityEngine.Rendering.Universal
             // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
             if (useRenderPassEnabled && m_DeferredLights.UseFramebufferFetch)
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 m_GBufferPass.Configure(null, cameraTargetDescriptor);
                 m_DeferredPass.Configure(null, cameraTargetDescriptor);
+                #pragma warning restore CS0618
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
@@ -1604,6 +1628,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredPass);
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            #pragma warning restore CS0618
         }
 
         private struct RenderPassInputSummary
@@ -1679,8 +1704,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget)
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                     ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
+                    #pragma warning restore CS0618
+
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
                     //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
                     cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
@@ -1805,11 +1834,14 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorBufferSystem.Swap();
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             //Check if we are using the depth that is attached to color buffer
             if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
+            #pragma warning restore CS0618
 
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
@@ -1817,11 +1849,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetBackBuffer(cmd);

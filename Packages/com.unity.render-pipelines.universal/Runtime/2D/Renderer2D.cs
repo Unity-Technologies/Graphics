@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -252,6 +253,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
@@ -367,7 +369,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_Render2DLightingPass.Setup(renderPassInputs.requiresDepthTexture || m_UseDepthStencilBuffer);
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
+            #pragma warning restore CS0618
             EnqueuePass(m_Render2DLightingPass);
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
@@ -456,11 +461,14 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorBufferSystem.Swap();
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             //Check if we are using the depth that is attached to color buffer
             if (m_DepthTextureHandle.nameID != BuiltinRenderTextureType.CameraTarget)
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_DepthTextureHandle);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
+            #pragma warning restore CS0618
 
             m_ColorTextureHandle = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ColorTextureHandle.nameID);
@@ -468,11 +476,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ColorTextureHandle.nameID);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetBackBuffer(cmd);

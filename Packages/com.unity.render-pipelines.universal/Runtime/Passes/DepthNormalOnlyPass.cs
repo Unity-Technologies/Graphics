@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RTHandle[] colorHandles;
@@ -100,12 +101,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 colorHandles = k_ColorAttachment1;
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
                 ConfigureTarget(colorHandles, renderingData.cameraData.renderer.cameraDepthTargetHandle);
             else
                 ConfigureTarget(colorHandles, depthHandle);
 
             ConfigureClear(ClearFlag.All, Color.black);
+            #pragma warning restore CS0618
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
@@ -126,6 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;

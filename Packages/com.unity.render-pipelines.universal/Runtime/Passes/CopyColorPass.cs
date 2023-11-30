@@ -99,12 +99,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.SetGlobalTexture(destination.name, destination.nameID);
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_PassData.samplingMaterial = m_SamplingMaterial;

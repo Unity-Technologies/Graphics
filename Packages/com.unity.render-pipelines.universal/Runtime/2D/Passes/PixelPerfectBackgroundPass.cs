@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.Universal
 {
     // Only to be used when Pixel Perfect Camera is present and it has Crop Frame X or Y enabled.
@@ -12,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;

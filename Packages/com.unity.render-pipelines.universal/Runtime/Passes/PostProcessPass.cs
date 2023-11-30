@@ -241,8 +241,12 @@ namespace UnityEngine.Rendering.Universal
             m_HasFinalPass = hasFinalPass;
             m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_ResolveToScreen = resolveToScreen;
-            m_Destination = k_CameraTarget;
             m_UseSwapBuffer = true;
+
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
+            m_Destination = k_CameraTarget;
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -279,14 +283,19 @@ namespace UnityEngine.Rendering.Universal
         public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false, bool enableColorEncoding = true)
         {
             m_Source = source;
-            m_Destination = k_CameraTarget;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
             m_EnableColorEncodingIfNeeded = enableColorEncoding;
             m_UseSwapBuffer = useSwapBuffer;
+
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
+            m_Destination = k_CameraTarget;
+            #pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             overrideCameraTarget = true;
@@ -299,6 +308,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Start by pre-fetching all builtin effect settings we need
@@ -407,10 +417,13 @@ namespace UnityEngine.Rendering.Universal
                 renderer.EnableSwapBufferMSAA(false);
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
             RTHandle source = m_UseSwapBuffer ? renderer.cameraColorTargetHandle : m_Source;
             RTHandle destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : null;
+            #pragma warning restore CS0618
 
             RTHandle GetSource() => source;
 
@@ -436,11 +449,20 @@ namespace UnityEngine.Rendering.Universal
                 if (m_UseSwapBuffer)
                 {
                     r.SwapColorBuffer(cmd);
+
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     source = r.cameraColorTargetHandle;
+                    #pragma warning restore CS0618
+
                     //we want the last blit to be to MSAA
                     if (amountOfPassesRemaining == 0 && !m_HasFinalPass)
                         r.EnableSwapBufferMSAA(true);
+
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     destination = r.GetCameraColorFrontBuffer(cmd);
+                    #pragma warning restore CS0618
                 }
                 else
                 {
@@ -611,8 +633,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
+
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 if (m_Destination == k_CameraTarget && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
+                #pragma warning restore CS0618
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
@@ -632,10 +658,16 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // We need to reenable this to be able to blit to the correct AA target
                         renderer.EnableSwapBufferMSAA(true);
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
                         destination = renderer.GetCameraColorFrontBuffer(cmd);
+                        #pragma warning restore CS0618
                     }
                     Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     renderer.ConfigureCameraColorTarget(destination);
+                    #pragma warning restore CS0618
                     Swap(ref renderer);
                 }
                 // TODO: Implement swapbuffer in 2DRenderer so we can remove this
@@ -654,7 +686,10 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Blit to the debugger texture instead of the camera target
                         Blitter.BlitCameraTexture(cmd, GetSource(), debugHandler.DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
                         renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+                        #pragma warning restore CS0618
                     }
                     else
                     {
@@ -664,7 +699,10 @@ namespace UnityEngine.Rendering.Universal
                         var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
                         RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
                         renderer.ConfigureCameraColorTarget(cameraTargetHandle);
+                        #pragma warning restore CS0618
                     }
                 }
             }
@@ -1464,7 +1502,10 @@ namespace UnityEngine.Rendering.Universal
             var material = m_Materials.finalPass;
             material.shaderKeywords = null;
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
+            #pragma warning restore CS0618
 
             SetupGrain(renderingData.cameraData.universalCameraData, material);
             SetupDithering(renderingData.cameraData.universalCameraData, material);
@@ -1490,7 +1531,12 @@ namespace UnityEngine.Rendering.Universal
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, m_IsFinalPass && !resolveToDebugScreen);
 
             if (m_UseSwapBuffer)
+            {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
+                #pragma warning restore CS0618
+            }
 
             RTHandle sourceTex = m_Source;
 
@@ -1647,7 +1693,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Blit to the debugger texture instead of the camera target
                 Blitter.BlitCameraTexture(cmd, sourceTex, debugHandler.DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, material, 0);
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+                #pragma warning restore CS0618
             }
             else
             {

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -16,6 +17,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         m_Material = material;
     }
 
+    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var target = renderingData.cameraData.renderer.cameraColorTargetHandle;

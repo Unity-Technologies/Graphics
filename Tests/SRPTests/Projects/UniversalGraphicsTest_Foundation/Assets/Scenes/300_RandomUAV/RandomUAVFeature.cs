@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -34,7 +35,9 @@ public class RandomUAVFeature : ScriptableRendererFeature
 
         m_RandomUAVPass.renderPassEvent = renderPassEvent;
         m_RandomUAVPass.Setup(renderer, m_RandomUAVFillMaterial, m_RandomUAVReadWriteMaterial, m_RandomUAVFinalOutputMaterial);
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_RandomUAVPass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     private bool GetMaterials()
@@ -74,6 +77,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
             m_ProfilingOutputSampler = new ProfilingSampler(profilerTagOutput);
         }
 
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Don't do anything as this is a RenderGraph only feature

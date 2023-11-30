@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = blitMaterial;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();

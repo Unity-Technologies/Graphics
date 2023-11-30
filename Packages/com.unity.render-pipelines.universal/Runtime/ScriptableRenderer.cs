@@ -56,7 +56,11 @@ namespace UnityEngine.Rendering.Universal
             public static class RenderPass
             {
                 private const string k_Name = nameof(ScriptableRenderPass);
+
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 public static readonly ProfilingSampler configure = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderPass.Configure)}");
+                #pragma warning restore CS0618
 
                 public static readonly ProfilingSampler setRenderPassAttachments = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetRenderPassAttachments)}");
             }
@@ -139,7 +143,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetCameraMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData.universalCameraData, setInverseMatrices, cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -154,7 +161,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, UniversalCameraData cameraData, bool setInverseMatrices)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetCameraMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData, setInverseMatrices, cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         internal static void SetCameraMatrices(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool setInverseMatrices, bool isTargetFlipped)
@@ -210,7 +220,10 @@ namespace UnityEngine.Rendering.Universal
         /// <typeparam name="T">Base type for the CommandBuffer</typeparam>
         void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetPerCameraShaderVariables(cmd, cameraData, new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height), cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, bool isTargetFlipped)
@@ -364,7 +377,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetPerCameraClippingPlaneProperties(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetPerCameraClippingPlaneProperties(cmd, in cameraData, cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         private void SetPerCameraClippingPlaneProperties(RasterCommandBuffer cmd, in UniversalCameraData cameraData, bool isTargetFlipped)
@@ -427,6 +443,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraColorTargetHandle in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public RTHandle cameraColorTargetHandle
         {
             get
@@ -448,6 +465,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         virtual internal RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return null;
@@ -460,6 +478,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         virtual internal RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
         {
             return null;
@@ -478,6 +497,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraDepthTargetHandle in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public RTHandle cameraDepthTargetHandle
         {
             get
@@ -705,12 +725,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorTarget">Camera color target. Pass k_CameraTarget if rendering to backbuffer.</param>
         /// <param name="depthTarget">Camera depth target. Pass k_CameraTarget if color has depth or rendering to backbuffer.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget)
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget, RTHandle resolveTarget)
         {
             m_CameraColorTarget = colorTarget;
@@ -719,6 +741,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // This should be removed when early camera color target assignment is removed.
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
         {
             m_CameraColorTarget = colorTarget;
@@ -732,6 +755,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
@@ -740,6 +764,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
         }
@@ -1191,6 +1216,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
@@ -1241,7 +1267,12 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(Profiling.RenderPass.configure))
                 {
                     foreach (var pass in activeRenderPassQueue)
+                    {
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
                         pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                        #pragma warning restore CS0618
+                    }
 
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
@@ -1375,6 +1406,7 @@ namespace UnityEngine.Rendering.Universal
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
@@ -1500,6 +1532,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRendererFeature.SetupRenderPasses(ScriptableRenderer, in RenderingData)"/>
         /// </summary>
         /// <param name="renderingData"></param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         protected void SetupRenderPasses(in RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(Profiling.setupRenderPasses);
@@ -1555,6 +1588,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = null;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void ExecuteBlock(int blockIndex, in RenderBlocks renderBlocks,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
@@ -1570,11 +1604,13 @@ namespace UnityEngine.Rendering.Universal
                 context.Submit();
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         private bool IsRenderPassEnabled(ScriptableRenderPass renderPass)
         {
             return renderPass.useNativeRenderPass && useRenderPassEnabled;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, UniversalCameraData cameraData, ref RenderingData renderingData)
         {
             // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
@@ -1606,7 +1642,10 @@ namespace UnityEngine.Rendering.Universal
                 ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData); // cmdBuffer is executed inside
             else
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderPass.Execute(context, ref renderingData);
+                #pragma warning restore CS0618
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -1634,6 +1673,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, UniversalCameraData cameraData)
         {
             Camera camera = cameraData.camera;
@@ -1910,6 +1950,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1934,6 +1975,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void EndXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1956,6 +1998,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal static void SetRenderTarget(CommandBuffer cmd, RTHandle colorAttachment, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -1985,6 +2028,7 @@ namespace UnityEngine.Rendering.Universal
                     depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal static void SetRenderTarget(CommandBuffer cmd, RTHandle colorAttachment, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -2020,6 +2064,7 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         static void SetRenderTarget(CommandBuffer cmd,
             RTHandle colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -2039,6 +2084,7 @@ namespace UnityEngine.Rendering.Universal
                     depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         static void SetRenderTarget(CommandBuffer cmd, RTHandle[] colorAttachments, RenderTargetIdentifier[] colorAttachmentIDs, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;
@@ -2084,7 +2130,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     m_ActiveRenderPassQueue[i].OnCameraSetup(renderingData.commandBuffer, ref renderingData);
+                    #pragma warning restore CS0618
                 }
             }
 
@@ -2103,7 +2152,12 @@ namespace UnityEngine.Rendering.Universal
                 if (resolveFinalTarget)
                 {
                     for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                    {
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
                         m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(renderingData.commandBuffer);
+                        #pragma warning restore CS0618
+                    }
 
                     FinishRendering(renderingData.commandBuffer);
 

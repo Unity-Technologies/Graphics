@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -26,11 +27,13 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             Debug.LogWarningFormat("{0}.AddRenderPasses(): Missing materials. {1} render pass will not be added.", GetType().Name, name);
             return;
         }
-        
-        if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph)
+
+        #pragma warning disable CS0618 // Type or member is obsolete
+        if (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
             renderer.EnqueuePass(copyDepthPasses);
         else
             copyDepthPasses.EnqueuePasses(renderer);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
@@ -88,20 +91,25 @@ internal class ThreeCopyDepths : ScriptableRenderPass
         RenderingUtils.ReAllocateIfNeeded(ref m_Depth1, depthDesc, name: "CopiedDepth1");
         RenderingUtils.ReAllocateIfNeeded(ref m_Depth2, depthDesc, name: "CopiedDepth2");
 
+        #pragma warning disable CS0618 // Type or member is obsolete
         m_CopyDepthPass1.Setup(renderer.cameraDepthTargetHandle, m_Depth1);
         m_CopyDepthPass2.Setup(m_Depth1, m_Depth2);
         m_CopyDepthPass3.Setup(m_Depth2, renderer.cameraDepthTargetHandle);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
+    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
     }
 
     internal void EnqueuePasses(ScriptableRenderer renderer)
     {
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_CopyDepthPass1);
         renderer.EnqueuePass(m_CopyDepthPass2);
         renderer.EnqueuePass(m_CopyDepthPass3);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)

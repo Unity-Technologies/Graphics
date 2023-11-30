@@ -197,11 +197,6 @@ namespace UnityEngine.Rendering.Universal
         {
             pipelineAsset = asset;
 
-#if UNITY_EDITOR
-
-            GraphicsSettings.Subscribe<RenderGraphSettings>(OnRenderGraphEnabledChanged);
-#endif
-
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 
             runtimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
@@ -250,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             s_RenderGraph = new RenderGraph("URPRenderGraph");
-            useRenderGraph = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph;
+            useRenderGraph = !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode;
 
 #if !UNITY_EDITOR
             Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
@@ -286,14 +281,6 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
         }
-
-
-#if UNITY_EDITOR
-        private void OnRenderGraphEnabledChanged(RenderGraphSettings _, string __)
-        {
-            pipelineAsset.OnEnableRenderGraphChanged();
-        }
-#endif
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
@@ -335,10 +322,6 @@ namespace UnityEngine.Rendering.Universal
 
             DisposeAdditionalCameraData();
             AdditionalLightsShadowAtlasLayout.ClearStaticCaches();
-
-#if UNITY_EDITOR
-            GraphicsSettings.Unsubscribe<RenderGraphSettings>(OnRenderGraphEnabledChanged);
-#endif
         }
 
         // If the URP gets destroyed, we must clean up all the added URP specific camera data and
@@ -807,11 +790,16 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     using (new ProfilingScope(Profiling.Pipeline.Renderer.setup))
+                    {
                         renderer.Setup(context, ref legacyRenderingData);
+                    }
 
                     // Timing scope inside
                     renderer.Execute(context, ref legacyRenderingData);
+                    #pragma warning restore CS0618
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
@@ -1351,7 +1339,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = disableRenderScale ? 1.0f : settings.renderScale;
 
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph);
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode);
 
             if (cameraData.renderScale > 1.0f)
             {

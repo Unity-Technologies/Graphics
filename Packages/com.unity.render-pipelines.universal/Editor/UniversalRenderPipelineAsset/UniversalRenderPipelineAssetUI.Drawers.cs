@@ -204,7 +204,7 @@ namespace UnityEditor.Rendering.Universal
             else if (serialized.asset.upscalingFilter == UpscalingFilterSelection.STP)
             {
                 // Warn users if they attempt to enable STP without render graph
-                if (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph)
+                if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
                 {
                     EditorGUILayout.HelpBox(Styles.stpRequiresRenderGraph, MessageType.Warning, true);
                 }

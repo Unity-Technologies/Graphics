@@ -45,10 +45,14 @@ namespace UnityEngine.Rendering.Universal
             m_Depth = depth;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             cmd.SetGlobalTexture(m_Color.name, m_Color.nameID);
             cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
+
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             ConfigureTarget(m_Color, m_Depth);
             ConfigureClear(ClearFlag.Color | ClearFlag.Depth, Color.black);
 
@@ -56,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
             // We need to keep the MotionVecDepth in case of a user wants to extend the motion vectors
             // using a custom RendererFeature.
             ConfigureDepthStoreAction(RenderBufferStoreAction.DontCare);
+            #pragma warning restore CS0618
         }
 
         #endregion
@@ -88,6 +93,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;

@@ -9,6 +9,7 @@ using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 using System.ComponentModel;
 using System.Linq;
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 
@@ -421,6 +422,25 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Evaluate lighting per pixel.</summary>
         PerPixel = 3,
     }
+
+    internal struct DeprecationMessage
+    {
+        internal const string CompatibilityScriptingAPIObsolete = "This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.";
+        internal const string CompatibilityScriptingAPIConsoleWarning = "Currently using rendering compatibility mode, support for this will be removed in the next version. Please use Render Graph instead.";
+    }
+
+#if UNITY_EDITOR
+    internal class WarnUsingNonRenderGraph
+    {
+        [InitializeOnLoadMethod]
+        internal static void EmitConsoleWarning()
+        {
+            RenderGraphSettings rgs = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
+            if (rgs != null && rgs.enableRenderCompatibilityMode)
+                Debug.LogWarning(DeprecationMessage.CompatibilityScriptingAPIConsoleWarning);
+        }
+    }
+#endif
 
     /// <summary>
     /// The asset that contains the URP setting.
@@ -1511,8 +1531,20 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls whether the RenderGraph render path is enabled.
         /// </summary>
-        [Obsolete("This has been deprecated, please use GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph instead.")]
-        public bool enableRenderGraph => GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().useRenderGraph;
+        [Obsolete("This has been deprecated, please use GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode instead.")]
+        public bool enableRenderGraph
+        {
+            get
+            {
+                if (RenderGraphGraphicsAutomatedTests.enabled)
+                   return true;
+
+                if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings))
+                    return !renderGraphSettings.enableRenderCompatibilityMode;
+
+                return false;
+            }
+        }
 
         internal void OnEnableRenderGraphChanged()
         {

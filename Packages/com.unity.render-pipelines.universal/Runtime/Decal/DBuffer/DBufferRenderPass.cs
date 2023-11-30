@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -117,11 +118,16 @@ namespace UnityEngine.Rendering.Universal
             depthHandle = depthTextureHandle;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             ConfigureTarget(dBufferColorHandles, depthHandle);
+            #pragma warning restore CS0618
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             InitPassData(ref m_PassData);

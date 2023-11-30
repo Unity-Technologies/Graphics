@@ -1289,10 +1289,10 @@ namespace UnityEditor.Rendering
 
         void ClearGraphViewerUI()
         {
-            rootVisualElement.Q<VisualElement>(Names.kGridlineContainer).Clear();
-            rootVisualElement.Q<VisualElement>(Names.kPassList).Clear();
-            rootVisualElement.Q<VisualElement>(Names.kResourceListScrollView).Clear();
-            rootVisualElement.Q<VisualElement>(Names.kResourceGrid).Clear();
+            rootVisualElement.Q<VisualElement>(Names.kGridlineContainer)?.Clear();
+            rootVisualElement.Q<VisualElement>(Names.kPassList)?.Clear();
+            rootVisualElement.Q<VisualElement>(Names.kResourceListScrollView)?.Clear();
+            rootVisualElement.Q<VisualElement>(Names.kResourceGrid)?.Clear();
 
             m_PassElementsInfo.Clear();
             m_ResourceElementsInfo.Clear();

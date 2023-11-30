@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
         public static void UpgradeAsset(int assetInstanceID)
         {
             if (EditorUtility.InstanceIDToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
-                    return;
+                return;
 
             int assetVersionBeforeUpgrade = asset.m_AssetVersion;
 
@@ -98,6 +98,9 @@ namespace UnityEngine.Rendering.Universal
             if (asset.m_AssetVersion < 6)
             {
                 MigrateToRenderPipelineGraphicsSettings(asset);
+#pragma warning disable 618 // Type or member is obsolete
+                asset.m_EnableRenderGraph = false;
+#pragma warning restore 618 // Type or member is obsolete
                 asset.m_AssetVersion = 6;
             }
 
@@ -148,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
             var rgSettings = GetOrCreateGraphicsSettings<RenderGraphSettings>(data);
 
 #pragma warning disable 618 // Type or member is obsolete
-            rgSettings.useRenderGraph = data.m_EnableRenderGraph;
+            rgSettings.enableRenderCompatibilityMode = !data.m_EnableRenderGraph;
 #pragma warning restore 618
         }
 

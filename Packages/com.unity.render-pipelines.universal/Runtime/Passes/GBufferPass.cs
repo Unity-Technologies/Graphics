@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -68,6 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DeferredLights?.ReleaseGbufferResources();
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RTHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
@@ -108,13 +110,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DeferredLights.UseFramebufferFetch)
                 m_DeferredLights.UpdateDeferredInputAttachments();
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             ConfigureTarget(m_DeferredLights.GbufferAttachments, m_DeferredLights.DepthAttachment, m_DeferredLights.GbufferFormats);
 
             // We must explicitly specify we don't want any clear to avoid unwanted side-effects.
             // ScriptableRenderer will implicitly force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
+            #pragma warning restore CS0618
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;

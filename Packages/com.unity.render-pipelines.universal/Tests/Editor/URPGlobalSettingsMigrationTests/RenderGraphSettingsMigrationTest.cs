@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
             public bool IsMigrationCorrect(RenderGraphSettings settings, out string message)
             {
                 message = string.Empty;
-                return settings.useRenderGraph;
+                return !settings.enableRenderCompatibilityMode;
             }
         }
 
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
             public bool IsMigrationCorrect(RenderGraphSettings settings, out string message)
             {
                 message = string.Empty;
-                return !settings.useRenderGraph;
+                return settings.enableRenderCompatibilityMode;
             }
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -50,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights = deferredLights;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_DeferredLights.UseFramebufferFetch)
@@ -72,7 +74,10 @@ namespace UnityEngine.Rendering.Universal
                         true, false, // TODO: Make rendering layers transient
                     };
 
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
+                    #pragma warning restore CS0618
                 }
                 else
                 {
@@ -86,7 +91,10 @@ namespace UnityEngine.Rendering.Universal
                         true,
                     };
 
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
+                    #pragma warning restore CS0618
                 }
             }
             else
@@ -97,9 +105,13 @@ namespace UnityEngine.Rendering.Universal
                 m_GbufferAttachments[3] = m_DeferredLights.GbufferAttachments[3];
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentHandle);
+            #pragma warning restore CS0618
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();

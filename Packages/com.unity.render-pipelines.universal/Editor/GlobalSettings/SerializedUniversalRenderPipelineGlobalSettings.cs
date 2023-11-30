@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty renderingLayerNames;
         public ReorderableList renderingLayerNameList;
 
-        public SerializedProperty enableRenderGraph;
+        public SerializedProperty enableRenderCompatibilityMode;
         public SerializedProperty serializedShaderStrippingSettings;
         public SerializedProperty serializedURPShaderStrippingSettings;
 
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (type == typeof(RenderGraphSettings))
                 {
-                    enableRenderGraph = currentElementProperty.FindPropertyRelative("m_UseRenderGraph");
+                    enableRenderCompatibilityMode = currentElementProperty.FindPropertyRelative("m_EnableRenderCompatibilityMode");
                     continue;
                 }
             }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -49,11 +50,13 @@ public class HistoryVisualizer : ScriptableRendererFeature
         }
 
         // For the Execute path only.
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RequestHistory(renderingData.cameraData.historyManager);
         }
 
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -101,7 +104,9 @@ public class HistoryVisualizer : ScriptableRendererFeature
 
             UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
 
+            #pragma warning disable CS0618 // Type or member is obsolete
             ConfigureTarget(renderer?.cameraColorTargetHandle);
+            #pragma warning restore CS0618 // Type or member is obsolete
 
             int multipassId = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -206,7 +211,9 @@ public class HistoryVisualizer : ScriptableRendererFeature
         }
 
         m_ScriptablePass.Setup(m_Material);
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_ScriptablePass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     protected override void Dispose(bool disposing)

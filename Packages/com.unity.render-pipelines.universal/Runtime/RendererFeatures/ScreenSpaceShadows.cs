@@ -71,8 +71,11 @@ namespace UnityEngine.Rendering.Universal
                     ? RenderPassEvent.AfterRenderingGbuffer
                     : RenderPassEvent.AfterRenderingPrePasses + 1; // We add 1 to ensure this happens after depth priming depth copy pass that might be scheduled
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
+                #pragma warning restore CS0618
             }
         }
 
@@ -140,6 +143,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
@@ -154,8 +158,11 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.ReAllocateIfNeeded(ref m_RenderTarget, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScreenSpaceShadowmapTexture");
                 cmd.SetGlobalTexture(m_RenderTarget.name, m_RenderTarget.nameID);
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
+                #pragma warning restore CS0618
             }
 
             private class PassData
@@ -220,6 +227,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 if (m_Material == null)
@@ -244,9 +252,13 @@ namespace UnityEngine.Rendering.Universal
             private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
             private static readonly RTHandle k_CurrentActive = RTHandles.Alloc(BuiltinRenderTextureType.CurrentActive);
 
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 ConfigureTarget(k_CurrentActive);
+                #pragma warning restore CS0618
             }
 
             private static void ExecutePass(RasterCommandBuffer cmd, UniversalShadowData shadowData)
@@ -264,6 +276,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, receiveShadowsCascades);
             }
 
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 var cmd = renderingData.commandBuffer;

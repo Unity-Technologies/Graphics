@@ -83,7 +83,7 @@ public class UniversalGraphicsTests
 
         // Check for RenderGraph compatibility and skip test if needed.
         bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled ||
-            (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>()?.useRenderGraph ?? false);
+            (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>()?.enableRenderCompatibilityMode ?? false);
 
         if (isUsingRenderGraph && settings.renderBackendCompatibility == UniversalGraphicsTestSettings.RenderBackendCompatibility.NonRenderGraph)
             Assert.Ignore("Test scene is not compatible with Render Graph and will be skipped.");

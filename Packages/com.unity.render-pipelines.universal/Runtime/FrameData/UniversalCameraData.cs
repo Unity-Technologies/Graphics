@@ -111,8 +111,11 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
             return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -125,8 +128,11 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
             return GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
@@ -386,8 +392,11 @@ namespace UnityEngine.Rendering.Universal
             var renderer = ScriptableRenderer.current;
             Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             if (renderer != null)
                 return IsHandleYFlipped(renderer.cameraColorTargetHandle) || targetTexture != null;
+            #pragma warning restore CS0618
 
             return true;
         }

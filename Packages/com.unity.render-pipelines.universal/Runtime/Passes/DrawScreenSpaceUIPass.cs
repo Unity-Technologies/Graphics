@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -98,12 +99,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if(m_RenderOffscreen)
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 ConfigureTarget(m_ColorTarget, m_DepthTarget);
                 ConfigureClear(ClearFlag.Color, Color.clear);
+                #pragma warning restore CS0618
                 cmd?.SetGlobalTexture(ShaderPropertyId.overlayUITexture, m_ColorTarget);
             }
             else
@@ -114,7 +119,10 @@ namespace UnityEngine.Rendering.Universal
 
                 if (resolveToDebugScreen)
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     ConfigureTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+                    #pragma warning restore CS0618
                 }
                 else
                 {
@@ -123,12 +131,16 @@ namespace UnityEngine.Rendering.Universal
                     RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                     var colorTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     ConfigureTarget(colorTargetHandle);
+                    #pragma warning restore CS0618
                 }
             }
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             using (new ProfilingScope(renderingData.commandBuffer, ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI)))

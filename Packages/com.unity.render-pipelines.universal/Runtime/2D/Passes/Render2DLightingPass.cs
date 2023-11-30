@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 using UnityEngine.Experimental.Rendering;
@@ -327,6 +328,7 @@ namespace UnityEngine.Rendering.Universal
             return batchesDrawn;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var isLitView = true;

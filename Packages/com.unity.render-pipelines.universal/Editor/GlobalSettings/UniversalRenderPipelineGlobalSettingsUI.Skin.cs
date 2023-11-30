@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent renderingLayersLabel = EditorGUIUtility.TrTextContent("Rendering Layers (3D)", "The list of rendering layer names. When using decals, increasing the layer count increases the required memory bandwidth and decreases the performance.");
 
             public static readonly GUIContent renderGraphHeaderLabel = EditorGUIUtility.TrTextContent("Render Graph");
-            public static readonly GUIContent enableRenderGraphLabel = EditorGUIUtility.TrTextContent("Use Render Graph", "When enabled, Universal Rendering Pipeline will use Render Graph API to construct and execute the frame");
+            public static readonly GUIContent renderCompatibilityModeLabel = EditorGUIUtility.TrTextContent("Compatibility Mode (Render Graph Disabled)", "Select this checkbox if your project requires to disable the Render Graph API for compatibility with previous API versions.");
         }
     }
 }

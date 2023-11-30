@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -27,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
             return !m_shouldReceiveShadows;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Get a command buffer...
