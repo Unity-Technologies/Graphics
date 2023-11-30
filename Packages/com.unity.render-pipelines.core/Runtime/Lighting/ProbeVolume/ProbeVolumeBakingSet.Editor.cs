@@ -542,9 +542,12 @@ namespace UnityEngine.Rendering
 
         internal SceneBakeData GetSceneBakeData(string sceneGUID)
         {
-            if (m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData))
-                return bakeData;
-            return null;
+            if (!m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData))
+            {
+                if (m_SceneGUIDs.Contains(sceneGUID))
+                    m_SceneBakeData[sceneGUID] = bakeData = new SceneBakeData();
+            }
+            return bakeData;
         }
 
         internal static bool SceneHasProbeVolumes(string sceneGUID)

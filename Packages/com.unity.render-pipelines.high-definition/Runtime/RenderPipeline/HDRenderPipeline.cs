@@ -2961,6 +2961,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugDisplaySettings.DebugHideTransparent())
                 {
                     currentFrameSettings.SetEnabled(FrameSettingsField.TransparentObjects, false);
+                    currentFrameSettings.SetEnabled(FrameSettingsField.Refraction, false);
+                    currentFrameSettings.SetEnabled(FrameSettingsField.Water, false);
+                    currentFrameSettings.SetEnabled(FrameSettingsField.LowResTransparent, false);
                 }
             }
 

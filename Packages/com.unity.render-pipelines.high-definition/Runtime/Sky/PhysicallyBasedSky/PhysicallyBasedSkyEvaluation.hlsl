@@ -124,8 +124,7 @@ void UnmapAtmosphericScattering(uint s, inout float3 V, out float3 O, out float 
     }
 #endif
 
-    // Offset sample by 1 to make sure first slice is all black. Looks better for bilinear at close range
-    GetSample(max(s, 1) - 1, PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_DEPTH-1, ATMOSPHERIC_SCATTERING_MAX_DISTANCE, t, dt);
+    GetSample(s, PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_DEPTH, ATMOSPHERIC_SCATTERING_MAX_DISTANCE, t, dt);
 }
 
 // Evaluate using LUTs

@@ -292,11 +292,6 @@ namespace UnityEngine.Rendering.HighDefinition
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
 
-            // Reset the volumetric cloud offset animation data
-            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
-            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
-            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
-
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
                 visualSky.Reset();
@@ -404,19 +399,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // A combination of masks that define the validity state of the history
             public int flagMask;
         }
-
-        /// <summary>
-        /// Struct that holds volumetric clouds animation data accumulated over time
-        /// </summary>
-        internal struct VolumetricCloudsAnimationData
-        {
-            public Vector2 cloudOffset;
-            public float verticalShapeOffset;
-            public float verticalErosionOffset;
-        }
-
-        // This property allows us to track the volumetric cloud animation data
-        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
         internal struct PlanetData
         {
