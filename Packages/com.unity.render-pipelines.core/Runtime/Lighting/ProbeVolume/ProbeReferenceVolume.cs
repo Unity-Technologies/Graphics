@@ -676,7 +676,6 @@ namespace UnityEngine.Rendering
         ProbeBrickIndex m_Index;
         ProbeGlobalIndirection m_CellIndices;
         ProbeBrickBlendingPool m_BlendingPool;
-        DynamicSkyPrecomputedDirections m_DynamicSkyPrecomputedDirections;
         List<Chunk> m_TmpSrcChunks = new List<Chunk>();
         float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Bounds m_CurrGlobalBounds = new Bounds();
@@ -749,7 +748,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool skyOcclusion
         {
-            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyOcclusion : false;
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyOcclusion : true;
         }
 
         /// <summary>
@@ -757,7 +756,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool skyOcclusionShadingDirection
         {
-            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : false;
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : true;
         }
 
         bool m_NeedsIndexRebuild = false;
@@ -910,7 +909,12 @@ namespace UnityEngine.Rendering
             }
             else
             {
+                #if UNITY_EDITOR
+                // some scenes in a baking set may not contain a probe volume; so no perscenedata
+                bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
+                #else
                 bakingSet = null;
+                #endif
                 return false;
             }
         }
@@ -970,10 +974,10 @@ namespace UnityEngine.Rendering
             // So we need to split the conditions to plan for that.
             m_DiskStreamingUseCompute = SystemInfo.supportsComputeShaders && streamingUploadCS != null && streamingUploadL2CS != null;
             InitializeDebug();
-            InitDynamicSkyPrecomputedDirections();
+            DynamicSkyPrecomputedDirections.Initialize();
             ProbeBrickPool.Initialize();
             ProbeBrickBlendingPool.Initialize();
-            InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget);
+            InitProbeReferenceVolume();
             InitStreaming();
 
             m_IsInitialized = true;
@@ -1015,7 +1019,7 @@ namespace UnityEngine.Rendering
             m_SHBands = shBands;
 
             DeinitProbeReferenceVolume();
-            InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget);
+            InitProbeReferenceVolume();
 
             PerformPendingOperations();
         }
@@ -1034,8 +1038,7 @@ namespace UnityEngine.Rendering
             m_EmptyIndexBuffer = null;
             CoreUtils.SafeRelease(m_EmptyDirectionsBuffer);
             m_EmptyDirectionsBuffer = null;
-            m_DynamicSkyPrecomputedDirections?.Cleanup();
-            m_DynamicSkyPrecomputedDirections = null;
+            DynamicSkyPrecomputedDirections.Cleanup();
 
             if (!m_ProbeReferenceVolumeInit) return;
 
@@ -1517,9 +1520,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Initialize the reference volume.
         /// </summary>
-        /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
-        /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
-        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget)
+        void InitProbeReferenceVolume()
         {
             if (!m_ProbeReferenceVolumeInit)
             {
@@ -1527,11 +1528,11 @@ namespace UnityEngine.Rendering
                 m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, skyOcclusion, (skyOcclusion && skyOcclusionShadingDirection));
                 m_BlendingPool = new ProbeBrickBlendingPool(m_BlendingMemoryBudget, m_SHBands);
 
-                m_Index = new ProbeBrickIndex(memoryBudget);
+                m_Index = new ProbeBrickIndex(m_MemoryBudget);
 
                 if (m_SupportGPUStreaming)
                 {
-                    m_DefragIndex = new ProbeBrickIndex(memoryBudget);
+                    m_DefragIndex = new ProbeBrickIndex(m_MemoryBudget);
                 }
 
                 InitializeGlobalIndirection();
@@ -1559,26 +1560,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void InitDynamicSkyPrecomputedDirections()
-        {
-            m_DynamicSkyPrecomputedDirections = new DynamicSkyPrecomputedDirections();
-            m_DynamicSkyPrecomputedDirections.Allocate();
-        }
-
-#if UNITY_EDITOR
-        internal static Func<LightingSettings> _GetLightingSettingsOrDefaultsFallback;
-#endif
-
         ProbeReferenceVolume()
         {
             m_MinBrickSize = 1.0f;
-
-#if UNITY_EDITOR
-            Type lightMappingType = typeof(Lightmapping);
-            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
-            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
-            _GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
-#endif
         }
 
 #if UNITY_EDITOR
@@ -1608,7 +1592,7 @@ namespace UnityEngine.Rendering
             m_Index.GetRuntimeResources(ref rr);
             m_CellIndices.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
-            m_DynamicSkyPrecomputedDirections?.GetRuntimeResources(ref rr);
+            DynamicSkyPrecomputedDirections.GetRuntimeResources(ref rr);
             return rr;
         }
 
@@ -1649,16 +1633,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns></returns>
         public bool DataHasBeenLoaded() => m_LoadedCells.size != 0;
-
-        internal Vector3[] GetPrecomputedDirections()
-        {
-            if (m_DynamicSkyPrecomputedDirections!=null)
-            {
-                return m_DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
-            }
-            return null;
-        }
-
+          
         internal void Clear()
         {
             if (m_ProbeReferenceVolumeInit)
@@ -1671,12 +1646,12 @@ namespace UnityEngine.Rendering
                 finally
                 {
                     UnloadAllCells();
+                    m_ToBeLoadedCells.Clear();
                     m_Pool.Clear();
                     m_BlendingPool.Clear();
                     m_Index.Clear();
                     cells.Clear();
 
-                    Debug.Assert(m_ToBeLoadedCells.size == 0);
                     Debug.Assert(m_LoadedCells.size == 0);
                 }
             }

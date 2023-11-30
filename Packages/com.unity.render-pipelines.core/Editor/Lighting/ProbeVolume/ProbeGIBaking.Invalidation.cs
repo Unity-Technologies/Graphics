@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering
         static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();
         static DynamicArray<int> s_ProbeIndices = new DynamicArray<int>();
 
-        static Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
+        static internal Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
 
         internal static Vector3Int GetSampleOffset(int i)
         {
@@ -77,14 +77,13 @@ namespace UnityEngine.Rendering
 
         // This is very much modeled  to be as close as possible to the way bricks are loaded in the texture pool.
         // Not necessarily a good thing.
-        static void ComputeValidityMasks(BakingCell bakingCell)
+        static void ComputeValidityMasks(in BakingCell cell)
         {
-            var bricks = bakingCell.bricks;
-            var cell = bakingCell;
+            var bricks = cell.bricks;
             int chunkSize = ProbeBrickPool.GetChunkSizeInBrickCount();
             int brickChunksCount = (bricks.Length + chunkSize - 1) / chunkSize;
 
-            var probeHasEmptySpaceInGrid = new NativeArray<bool>(bakingCell.probePositions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var probeHasEmptySpaceInGrid = new NativeArray<bool>(cell.probePositions.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             int shidx = 0;
             for (int chunkIndex = 0; chunkIndex < brickChunksCount; ++chunkIndex)

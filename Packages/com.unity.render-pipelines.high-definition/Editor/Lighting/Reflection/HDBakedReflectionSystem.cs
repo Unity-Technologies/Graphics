@@ -423,6 +423,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
                 }
 
+                // APV Normalization
+                {
+                    ProbeGIBaking.BakeAdditionalRequest(probe.GetInstanceID());
+
+                    probe.TryUpdateLuminanceSHL2ForNormalization();
+                    #if UNITY_EDITOR
+                    // If we are treating probes inside a prefab, we need to explicitly record the mods
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(probe);
+                    #endif
+                }
+
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
 
                 RenderTexture probeRT;

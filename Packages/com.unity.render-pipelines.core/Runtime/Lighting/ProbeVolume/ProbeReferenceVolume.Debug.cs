@@ -769,6 +769,42 @@ namespace UnityEngine.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
+        static void UpdateDebugFromSelection(out Vector4[] _AdjustmentVolumeBounds, out int _AdjustmentVolumeCount)
+        {
+            _AdjustmentVolumeBounds = new Vector4[16];
+            _AdjustmentVolumeCount = 0;
+
+            #if UNITY_EDITOR
+            foreach (var go in Selection.gameObjects)
+            {
+                if (!go.TryGetComponent<ProbeTouchupVolume>(out var touchup)) continue;
+                if (!go.activeInHierarchy || !touchup.isActiveAndEnabled) continue;
+
+                Volume volume = new Volume(Matrix4x4.TRS(touchup.transform.position, touchup.transform.rotation, touchup.GetExtents()), 0, 0);
+                volume.CalculateCenterAndSize(out Vector3 center, out var _);
+
+                if (touchup.shape == ProbeTouchupVolume.Shape.Sphere)
+                {
+                    volume.Z.x = float.MaxValue;
+                    volume.X.x = touchup.radius;
+                }
+                else
+                {
+                    volume.X *= 0.5f;
+                    volume.Y *= 0.5f;
+                    volume.Z *= 0.5f;
+                }
+
+                _AdjustmentVolumeBounds[_AdjustmentVolumeCount * 3 + 0] = new Vector4(center.x, center.y, center.z, volume.Z.x);
+                _AdjustmentVolumeBounds[_AdjustmentVolumeCount * 3 + 1] = new Vector4(volume.X.x, volume.X.y, volume.X.z, volume.Z.y);
+                _AdjustmentVolumeBounds[_AdjustmentVolumeCount * 3 + 2] = new Vector4(volume.Y.x, volume.Y.y, volume.Y.z, volume.Z.z);
+
+                if (++_AdjustmentVolumeCount == 16)
+                    break;
+            }
+            #endif
+        }
+
         void DrawProbeDebug(Camera camera, Texture exposureTexture)
         {
             if (!enabledBySRP || !isInitialized)
@@ -846,6 +882,10 @@ namespace UnityEngine.Rendering
 
                     if (probeVolumeDebug.drawProbes)
                     {
+                        UpdateDebugFromSelection(out var bounds, out var count);
+                        m_DebugMaterial.SetVectorArray("_TouchupVolumeBounds", bounds);
+                        m_DebugMaterial.SetInt("_AdjustmentVolumeCount", count);
+
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
                         m_DebugMaterial.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
@@ -864,6 +904,10 @@ namespace UnityEngine.Rendering
 
                     if (probeVolumeDebug.drawVirtualOffsetPush)
                     {
+                        UpdateDebugFromSelection(out var bounds, out var count);
+                        m_DebugOffsetMaterial.SetVectorArray("_TouchupVolumeBounds", bounds);
+                        m_DebugOffsetMaterial.SetInt("_AdjustmentVolumeCount", count);
+
                         var offsetBuffer = debug.offsetBuffers[i];
                         Graphics.DrawMeshInstanced(m_DebugOffsetMesh, 0, m_DebugOffsetMaterial, offsetBuffer, offsetBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }

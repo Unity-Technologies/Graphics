@@ -343,4 +343,39 @@ float3 CalculateDiffuseLighting(v2f i)
     }
 }
 
+CBUFFER_START(TouchupVolumeBounds)
+    float4 _TouchupVolumeBounds[16 * 3]; // A BBox is 3 float4
+    uint _AdjustmentVolumeCount;
+CBUFFER_END
+
+bool IsInSelection(float3 position)
+{
+    for (uint i = 0; i < _AdjustmentVolumeCount; i++)
+    {
+        float3 center = _TouchupVolumeBounds[i * 3 + 0].xyz;
+        bool isSphere = _TouchupVolumeBounds[i * 3 + 0].w >= FLT_MAX;
+        if (isSphere)
+        {
+            float radius = _TouchupVolumeBounds[i * 3 + 1].x;
+            if (dot(position - center, position - center) < radius * radius)
+                return true;
+        }
+        else
+        {
+            float3 X = _TouchupVolumeBounds[i * 3 + 1].xyz;
+            float3 Y = _TouchupVolumeBounds[i * 3 + 2].xyz;
+            float3 Z = float3(_TouchupVolumeBounds[i * 3 + 0].w,
+                              _TouchupVolumeBounds[i * 3 + 1].w,
+                              _TouchupVolumeBounds[i * 3 + 2].w);
+
+            if (abs(dot(position - center, normalize(X))) < length(X) &&
+                abs(dot(position - center, normalize(Y))) < length(Y) &&
+                abs(dot(position - center, normalize(Z))) < length(Z))
+                return true;
+        }
+    }
+
+    return false;
+}
+
 #endif //PROBEVOLUMEDEBUG_BASE_HLSL

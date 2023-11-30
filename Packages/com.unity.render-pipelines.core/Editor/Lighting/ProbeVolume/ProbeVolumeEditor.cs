@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering
 
             bool drawInspector = true;
 
-            if (ProbeReferenceVolume._GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
+            if (ProbeVolumeLightingTab.GetLightingSettings().realtimeGI)
             {
                 EditorGUILayout.HelpBox("The Probe Volume feature is not supported when using Enlighten.", MessageType.Warning, wide: true);
                 drawInspector = false;

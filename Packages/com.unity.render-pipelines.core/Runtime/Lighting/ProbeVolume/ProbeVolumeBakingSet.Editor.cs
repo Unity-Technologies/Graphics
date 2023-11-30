@@ -119,7 +119,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name ="name">The name of the scenario to add.</param>
         /// <returns>Whether the scenario was successfully created.</returns>
-        /// 
         public bool TryAddScenario(string name)
         {
             if (m_LightingScenarios.Contains(name))
@@ -140,7 +139,12 @@ namespace UnityEngine.Rendering
             return renamed;
         }
 
-        internal bool RemoveScenario(string name)
+        /// <summary>
+        /// Tries to remove a given scenario from the baking set. This will delete associated baked data.
+        /// </summary>
+        /// <param name="name">The name of the scenario to remove</param>
+        /// <returns>Whether the scenario was successfully deleted.</returns>
+        public bool RemoveScenario(string name)
         {
             if (scenarios.TryGetValue(name, out var scenarioData))
             {
@@ -226,8 +230,13 @@ namespace UnityEngine.Rendering
                 perSceneCellLists.Add(sceneGUID, new List<int>());
         }
 
-
-        internal string RenameScenario(string scenario, string newName)
+        /// <summary>
+        /// Renames a given scenario.
+        /// </summary>
+        /// <param name="scenario">The original scenario name.</param>
+        /// <param name="newName">The requested new scenario name.</param>
+        /// <returns>The new scenario name. The is different than the requested name in case a scenario with the same name already exists.</returns>
+        public string RenameScenario(string scenario, string newName)
         {
             if (!m_LightingScenarios.Contains(scenario))
                 return newName;
@@ -393,7 +402,6 @@ namespace UnityEngine.Rendering
             return assetPath;
         }
 
-
         internal static void OnSceneSaving(Scene scene, string path = null)
         {
             // If we are called from the scene callback, we want to update all global volumes that are potentially affected
@@ -542,9 +550,9 @@ namespace UnityEngine.Rendering
         internal static bool SceneHasProbeVolumes(string sceneGUID)
         {
             var bakingSet = GetBakingSetForScene(sceneGUID);
-            return bakingSet.GetSceneBakeData(sceneGUID).hasProbeVolume;
+            return bakingSet.GetSceneBakeData(sceneGUID)?.hasProbeVolume ?? false;
         }
-		
+
 		internal bool DialogNoProbeVolumeInSetShown()
         {
             return dialogNoProbeVolumeInSetShown;

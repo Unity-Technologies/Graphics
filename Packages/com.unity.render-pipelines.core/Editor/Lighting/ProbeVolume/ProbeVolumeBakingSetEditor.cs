@@ -7,6 +7,26 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering
 {
+    [CustomPropertyDrawer(typeof(LogarithmicAttribute))]
+    class LogarithmicDrawer : PropertyDrawer
+    {
+        // Draw the property inside the given rect
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            // First get the attribute since it contains the range for the slider
+            var range = attribute as LogarithmicAttribute;
+
+            EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+
+            EditorGUI.BeginChangeCheck();
+            int newValue = EditorGUI.LogarithmicIntSlider(position, label, property.intValue, range.min, range.max, 2, 1, 1 << 30);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = Mathf.ClosestPowerOfTwo(newValue);
+
+            EditorGUI.showMixedValue = false;
+        }
+    }
+
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeVolumeBakingSet))]
     internal class ProbeVolumeBakingSetEditor : Editor
@@ -60,32 +80,10 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent skyOcclusionBackFaceCulling = new GUIContent("Backface Culling", "Enable backface culling for sky occlusion baking.");
             public static readonly GUIContent skyOcclusionShadingDirection = new GUIContent("Sky Direction", "In addition to sky occlusion, bake the most suitable direction to sample the ambient probe at runtime. Without it, surface normals would be used as a fallback and might lead to inaccuracies when updating the probes with the sky color.");
             public static readonly GUIContent cpuLightmapperNotSupportedWarning = new GUIContent("The Progressive CPU Lightmapper is not supported with sky occlusion. Use Progressive GPU lightmapper instead in Lightmapping settings.");
-            
-
 
             // Probe Settings section
             public static readonly GUIContent resetDilation = new GUIContent("Reset Dilation Settings");
             public static readonly GUIContent resetVirtualOffset = new GUIContent("Reset Virtual Offset Settings");
-        }
-
-        [CustomPropertyDrawer(typeof(ProbeVolumeBakingSet.LogarithmicAttribute))]
-        public class LogarithmicDrawer : PropertyDrawer
-        {
-            // Draw the property inside the given rect
-            public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-            {
-                // First get the attribute since it contains the range for the slider
-                var range = attribute as ProbeVolumeBakingSet.LogarithmicAttribute;
-
-                EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
-
-                EditorGUI.BeginChangeCheck();
-                int newValue = EditorGUI.LogarithmicIntSlider(position, label, property.intValue, range.min, range.max, 2, 1, 1 << 30);
-                if (EditorGUI.EndChangeCheck())
-                    property.intValue = Mathf.ClosestPowerOfTwo(newValue);
-
-                EditorGUI.showMixedValue = false;
-            }
         }
 
         static readonly string s_RenameScenarioUndoName = "Rename Baking Set Scenario";
@@ -234,7 +232,7 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.IndentLevelScope())
                 EditorGUILayout.PropertyField(m_ProbeVolumeBakingSettings);
-            
+
             EditorGUILayout.Space();
         }
 
@@ -247,7 +245,7 @@ namespace UnityEditor.Rendering
 
             EditorGUI.indentLevel++;
 
-            var lightmapper = ProbeReferenceVolume._GetLightingSettingsOrDefaultsFallback.Invoke().lightmapper;
+            var lightmapper = ProbeVolumeLightingTab.GetLightingSettings().lightmapper;
             if (lightmapper == LightingSettings.Lightmapper.ProgressiveCPU)
             {
                 EditorGUILayout.HelpBox(Styles.cpuLightmapperNotSupportedWarning.text, MessageType.Warning);

@@ -49,7 +49,9 @@ namespace UnityEngine.Rendering
             OverrideVirtualOffsetSettings,
             /// <summary>Override the dynamic sky shading direction for the probes within the adjustment volume.</summary>
             OverrideSkyDirection,
-            
+            /// <summary>Override the Lightmapper sample count for the probes within the adjustment volume.</summary>
+            OverrideSampleCount,
+
             /// <summary>Scale probe intensity.</summary>
             IntensityScale = 99, // make sure this appears last
         };
@@ -89,6 +91,30 @@ namespace UnityEngine.Rendering
         public Vector3 skyDirection = Vector3.zero;
 
         internal Vector3 skyShadingDirectionRotation = Vector3.zero;
+
+        /// <summary>Number of samples for direct lighting computations.</summary>
+        [Logarithmic(1, 1024), Tooltip("Number of samples for direct lighting computations.")]
+        public int directSampleCount = 32;
+
+        /// <summary>Number of samples for indirect lighting computations. This includes environment samples.</summary>
+        [Logarithmic(1, 8192), Tooltip("Number of samples for indirect lighting computations. This includes environment samples.")]
+        public int indirectSampleCount = 512;
+
+        /// <summary>Multiplier for the number of samples specified above.</summary>
+        [Min(0), Tooltip("Multiplier for the number of samples specified above.")]
+        public int sampleCountMultiplier = 4;
+
+        /// <summary>Maximum number of bounces for indirect lighting.</summary>
+        [Min(0), Tooltip("Maximum number of bounces for indirect lighting.")]
+        public int maxBounces = 2;
+
+        /// <summary>Controls the number of samples per probe for sky occlusion baking.</summary>
+        [Logarithmic(1, ProbeVolumeBakingSet.k_MaxSkyOcclusionBakingSamples)]
+        public int skyOcclusionSampleCount = 2048;
+
+        /// <summary>Controls the number of bounces per light path for sky occlusion baking.</summary>
+        [Range(0, 5)]
+        public int skyOcclusionMaxBounces = 2;
 
 #if UNITY_EDITOR
         /// <summary>

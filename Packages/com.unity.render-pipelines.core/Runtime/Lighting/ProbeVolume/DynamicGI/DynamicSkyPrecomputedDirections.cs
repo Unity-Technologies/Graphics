@@ -2,30 +2,24 @@ using RuntimeResources = UnityEngine.Rendering.ProbeReferenceVolume.RuntimeResou
 
 namespace UnityEngine.Rendering
 {
-    internal class DynamicSkyPrecomputedDirections
+    internal static class DynamicSkyPrecomputedDirections
     {
         const int NB_SKY_PRECOMPUTED_DIRECTIONS = 255;
 
-        ComputeBuffer m_DirectionsBuffer;
-        Vector3[] m_Directions;
+        static ComputeBuffer m_DirectionsBuffer = null;
+        static Vector3[] m_Directions = null;
 
-        public DynamicSkyPrecomputedDirections()
-        {
-            m_DirectionsBuffer = null;
-            m_Directions = null;
-        }
-
-        internal void GetRuntimeResources(ref RuntimeResources rr)
+        internal static void GetRuntimeResources(ref RuntimeResources rr)
         {
             rr.SkyPrecomputedDirections = m_DirectionsBuffer;
         }
 
-        internal Vector3[] GetPrecomputedDirections()
+        internal static Vector3[] GetPrecomputedDirections()
         {
             return m_Directions;
         }
 
-        internal void Allocate()
+        internal static void Initialize()
         {
             if (m_DirectionsBuffer == null)
             {
@@ -63,7 +57,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void Cleanup()
+        internal static void Cleanup()
         {
             CoreUtils.SafeRelease(m_DirectionsBuffer);
             m_DirectionsBuffer = null;

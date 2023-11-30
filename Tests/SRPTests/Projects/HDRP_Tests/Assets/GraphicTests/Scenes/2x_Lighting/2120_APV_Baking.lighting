@@ -7,8 +7,7 @@ LightingSettings:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 2120_APV_Baking
-  serializedVersion: 7
-  m_GIWorkflowMode: 1
+  serializedVersion: 8
   m_EnableBakedLightmaps: 1
   m_EnableRealtimeLightmaps: 0
   m_RealtimeEnvironmentLighting: 1
@@ -18,6 +17,8 @@ LightingSettings:
   m_UsingShadowmask: 0
   m_BakeBackend: 2
   m_LightmapMaxSize: 1024
+  m_LightmapSizeFixed: 0
+  m_UseMipmapLimits: 1
   m_BakeResolution: 40
   m_Padding: 2
   m_LightmapCompression: 3
@@ -37,9 +38,9 @@ LightingSettings:
   m_ForceUpdates: 0
   m_PVRCulling: 0
   m_PVRSampling: 1
-  m_PVRDirectSampleCount: 4
-  m_PVRSampleCount: 4
-  m_PVREnvironmentSampleCount: 4
+  m_PVRDirectSampleCount: 16
+  m_PVRSampleCount: 512
+  m_PVREnvironmentSampleCount: 512
   m_PVREnvironmentReferencePointCount: 2048
   m_LightProbeSampleCountMultiplier: 4
   m_PVRBounces: 2
@@ -58,6 +59,4 @@ LightingSettings:
   m_PVRFilteringAtrousPositionSigmaDirect: 0.5
   m_PVRFilteringAtrousPositionSigmaIndirect: 2
   m_PVRFilteringAtrousPositionSigmaAO: 1
-  m_PVRTiledBaking: 0
-  m_NumRaysToShootPerTexel: -1
   m_RespectSceneVisibilityWhenBakingGI: 0
