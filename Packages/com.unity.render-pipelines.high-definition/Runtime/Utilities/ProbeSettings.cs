@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 importance = 1,
                 multiplier = 1.0f,
                 weight = 1.0f,
-                lightLayer = RenderingLayerMask.LightLayerDefault,
+                lightLayer = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask,
                 fadeDistance = 10000f,
                 rangeCompressionFactor = 1.0f
             };

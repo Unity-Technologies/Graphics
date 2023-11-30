@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.timeMultiplier = 1.0f;
             waterSurface.scriptInteractions = false;
             waterSurface.cpuEvaluateRipples = false;
-            waterSurface.renderingLayerMask = (RenderingLayerMask)GraphicsSettings.defaultRenderingLayerMask;
+            waterSurface.renderingLayerMask = (RenderingLayerMask)(uint)UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
             // Simulation
             waterSurface.waterMask = null;

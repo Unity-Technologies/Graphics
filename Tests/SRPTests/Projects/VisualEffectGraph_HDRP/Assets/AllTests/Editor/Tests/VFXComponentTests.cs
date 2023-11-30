@@ -310,8 +310,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Check_VFXRenderer_DefaultRenderingLayerNames()
         {
-            //The content of default rendering layer names is retrieved by reflection.
-            var layerNames = VisualEffectEditor.RendererEditor.s_DefaultRenderingLayerNames;
+            var layerNames = RenderingLayerMask.GetDefinedRenderingLayerNames();
             Assert.IsNotNull(layerNames);
             Assert.IsTrue(layerNames.Length != 0);
             Assert.IsFalse(layerNames.Any(o => string.IsNullOrEmpty(o)));

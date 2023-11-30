@@ -683,6 +683,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ReadOnlySpan<ScriptableRenderer> renderers => m_Renderers;
 
+        static string[] s_Names;
+        static int[] s_Values;
+
 #if UNITY_EDITOR
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
 
@@ -1628,10 +1631,12 @@ namespace UnityEngine.Rendering.Universal
         public override string renderPipelineShaderTag => UniversalRenderPipeline.k_ShaderTagName;
 
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        public override string[] renderingLayerMaskNames => RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         /// <summary>Names used for display of rendering layer masks with prefix.</summary>
-        public override string[] prefixedRenderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames;
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        public override string[] prefixedRenderingLayerMaskNames => Array.Empty<string>();
 
         /// <summary>
         /// Names used for display of light layers.

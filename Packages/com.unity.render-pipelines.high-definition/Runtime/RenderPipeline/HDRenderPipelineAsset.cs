@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using System.Linq;
@@ -160,13 +161,17 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_VolumeProfile = value;
         }
 
+        static string[] s_Names;
+        static int[] s_Values;
+
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public override string[] renderingLayerMaskNames
-            => globalSettings.renderingLayerNames;
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        public override string[] renderingLayerMaskNames => UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
         public override string[] prefixedRenderingLayerMaskNames
-            => globalSettings.prefixedRenderingLayerNames;
+            => Array.Empty<string>();
 
         /// <summary>
         /// Names used for display of light layers.
@@ -183,7 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] renderingLayerNames => globalSettings.renderingLayerNames;
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        public string[] renderingLayerNames => UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         [SerializeField]
         internal VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();

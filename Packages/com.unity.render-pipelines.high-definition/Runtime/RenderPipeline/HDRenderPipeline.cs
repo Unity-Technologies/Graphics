@@ -758,10 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if UNITY_2020_2_OR_NEWER
-            m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
-            GraphicsSettings.defaultRenderingLayerMask = (uint)m_GlobalSettings.defaultRenderingLayerMask;
-#endif
+
             m_PreviousDefaultGateFitMode = GraphicsSettings.defaultGateFitMode;
             GraphicsSettings.defaultGateFitMode = Camera.GateFitMode.Vertical;
 
@@ -874,9 +871,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
-#if UNITY_2020_2_OR_NEWER
-            GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
-#endif
+
             GraphicsSettings.defaultGateFitMode = m_PreviousDefaultGateFitMode;
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 

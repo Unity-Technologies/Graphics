@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.HDRP
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specify the layer mask for the decals. Unity renders decals on all meshes where at least one Rendering Layer value matches.")]
-        private RenderingLayerMask decalLayer = RenderingLayerMask.DecalLayerDefault;
+        private RenderingLayerMask decalLayer = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
         private bool affectsAOAndHasMaskMap => affectAmbientOcclusion && useMaskMap;
         public override bool HasSorting() => (sort == SortActivationMode.On) || (sort == SortActivationMode.Auto);

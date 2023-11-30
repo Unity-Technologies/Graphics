@@ -52,7 +52,6 @@ namespace UnityEditor.Rendering.Universal
                 using (new ImguiLabelWidthGUIScope())
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
-                    RenderingLayerNamesSection.Draw(serialized, owner);
                     ShaderStrippingSection.Draw(serialized, owner);
                     MiscSection.Draw(serialized, owner);
 
@@ -63,32 +62,6 @@ namespace UnityEditor.Rendering.Universal
                 GUILayout.EndVertical();
                 GUILayout.EndHorizontal();
             });
-        }
-
-        static readonly CED.IDrawer RenderingLayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(
-                Styles.renderingLayersLabel,
-                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawRenderingLayerNames),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
-
-        static void DrawRenderingLayerNames(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            using (new EditorGUI.IndentLevelScope())
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                serialized.renderingLayerNameList.DoLayoutList();
-
-                if (changed.changed)
-                {
-                    serialized.serializedObject?.ApplyModifiedProperties();
-                    if (serialized.serializedObject?.targetObject is UniversalRenderPipelineGlobalSettings
-                        urpGlobalSettings)
-                        urpGlobalSettings.UpdateRenderingLayerNames();
-                }
-            }
         }
 
         static void OnContextClickRenderingLayerNames(

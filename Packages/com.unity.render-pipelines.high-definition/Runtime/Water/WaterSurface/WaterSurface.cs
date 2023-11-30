@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the rendering layers that affect the water surface.
         /// </summary>
         [Tooltip("Specifies the rendering layers that affect the water surface.")]
-        public RenderingLayerMask renderingLayerMask = RenderingLayerMask.Default;
+        public RenderingLayerMask renderingLayerMask = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
         /// <summary>
         /// Sets the debug mode for a given water surface.

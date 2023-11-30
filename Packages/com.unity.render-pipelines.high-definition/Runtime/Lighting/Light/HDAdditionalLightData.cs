@@ -1216,7 +1216,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Now the renderingLayerMask is used for shadow layers and not light layers
         [SerializeField, FormerlySerializedAs("lightlayersMask")]
-        RenderingLayerMask m_LightlayersMask = RenderingLayerMask.LightLayerDefault;
+        RenderingLayerMask m_LightlayersMask = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
         /// <summary>
         /// Controls which layer will be affected by this light
         /// </summary>

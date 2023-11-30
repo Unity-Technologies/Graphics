@@ -294,6 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask computeThicknessLayerMask;
 
         /// <summary>Names for rendering layers.</summary>
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
         public string[] renderingLayerNames
         {
             get { return (string[])HDRenderPipelineGlobalSettings.instance.renderingLayerNames.Clone(); }

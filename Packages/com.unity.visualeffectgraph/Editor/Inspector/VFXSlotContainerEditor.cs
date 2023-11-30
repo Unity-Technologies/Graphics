@@ -96,14 +96,11 @@ class VFXSlotContainerEditor : Editor
             }
             else if (fieldInfo.FieldType == typeof(uint) && fieldInfo.Name == "decalLayer")
             {
-                RenderPipelineAsset srpAsset = GraphicsSettings.currentRenderPipeline;
-                bool usingSRP = srpAsset != null;
-                if (!usingSRP || target == null)
+                if (!GraphicsSettings.isScriptableRenderPipelineEnabled || target == null)
                     continue;
-                var layerNames = srpAsset.prefixedRenderingLayerMaskNames;
 
                 var guiContent = CreateGUIContentWithTooltip(fieldInfo, prop);
-                prop.Value.uintValue = (uint)EditorGUILayout.MaskField(guiContent, (int)prop.Value.uintValue, layerNames);
+                prop.Value.uintValue = EditorGUILayout.RenderingLayerMaskField(guiContent, prop.Value.uintValue);
             }
             else if (fieldInfo.FieldType == typeof(int)
                         && rangeAttribute != null

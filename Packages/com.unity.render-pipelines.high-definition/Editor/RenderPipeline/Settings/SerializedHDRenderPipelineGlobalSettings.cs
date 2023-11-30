@@ -55,32 +55,6 @@ namespace UnityEditor.Rendering.HighDefinition
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
 
             InitializeRenderPipelineGraphicsSettingsProperties(serializedObject);
-
-            defaultRenderingLayerMask = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.defaultRenderingLayerMask);
-            renderingLayerNames = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.renderingLayerNames);
-            renderingLayerNamesList = new ReorderableList(serializedObject, renderingLayerNames, false, false, true, true)
-            {
-                drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
-                {
-                    rect.y += 2.5f;
-                    SerializedProperty element = renderingLayerNames.GetArrayElementAtIndex(index);
-                    EditorGUI.PropertyField(rect, element, EditorGUIUtility.TrTextContent($"Layer {index}"), true);
-
-                    if (element.stringValue == "")
-                    {
-                        element.stringValue = HDRenderPipelineGlobalSettings.GetDefaultLayerName(index);
-                        GUI.changed = true;
-                    }
-                },
-                onCanRemoveCallback = (ReorderableList list) => list.IsSelected(list.count - 1) && !list.IsSelected(0),
-                onCanAddCallback = (ReorderableList list) => list.count < 16,
-                onAddCallback = (ReorderableList list) =>
-                {
-                    int index = list.count;
-                    list.serializedProperty.arraySize = list.count + 1;
-                    list.serializedProperty.GetArrayElementAtIndex(index).stringValue = HDRenderPipelineGlobalSettings.GetDefaultLayerName(index);
-                },
-            };
         }
 
         private void InitializeRenderPipelineGraphicsSettingsProperties(SerializedObject serializedObject)

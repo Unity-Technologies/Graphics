@@ -52,32 +52,13 @@ namespace UnityEditor.Rendering.Universal
 
         internal static void DrawRenderingLayerMask(SerializedProperty property, GUIContent style)
         {
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            int renderingLayer = property.intValue;
-
-            string[] renderingLayerMaskNames = UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
-            int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
-            if (renderingLayerMaskNames.Length < maskCount && maskCount <= 32)
-            {
-                var newRenderingLayerMaskNames = new string[maskCount];
-                for (int i = 0; i < maskCount; ++i)
-                {
-                    newRenderingLayerMaskNames[i] = i < renderingLayerMaskNames.Length ? renderingLayerMaskNames[i] : $"Unused Layer {i}";
-                }
-                renderingLayerMaskNames = newRenderingLayerMaskNames;
-
-                EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the Universal Global Settings asset.", MessageType.Warning);
-            }
-
-            EditorGUI.BeginProperty(controlRect, style, property);
+            var renderingLayer = property.uintValue;
 
             EditorGUI.BeginChangeCheck();
-            renderingLayer = EditorGUI.MaskField(controlRect, style, renderingLayer, renderingLayerMaskNames);
+            renderingLayer = EditorGUILayout.RenderingLayerMaskField(style, renderingLayer);
 
             if (EditorGUI.EndChangeCheck())
-                property.uintValue = (uint)renderingLayer;
-
-            EditorGUI.EndProperty();
+                property.uintValue = renderingLayer;
         }
     }
 }

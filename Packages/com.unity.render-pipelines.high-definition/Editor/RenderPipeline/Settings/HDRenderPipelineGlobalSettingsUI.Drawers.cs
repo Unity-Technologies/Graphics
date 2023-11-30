@@ -236,77 +236,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #endregion // Misc Settings
 
-        #region Rendering Layer Names
-
-        static readonly CED.IDrawer LayerNamesSection = CED.Group(
-            CED.Group((serialized, owner) => CoreEditorUtils.DrawSectionHeader(Styles.renderingLayersLabel, documentationURL: Documentation.GetPageLink(DocumentationUrls.k_RenderingLayers))),
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            CED.Group(DrawLayerNamesSettings),
-            CED.Group((serialized, owner) => EditorGUILayout.Space())
-        );
-
-        static private bool m_ShowLayerNames = false;
-        static void DrawLayerNamesSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            if (HDRenderPipelineGlobalSettings.instance == null)
-                return;
-
-            var oldWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = Styles.labelWidth;
-
-            EditorGUI.BeginChangeCheck();
-            int value = EditorGUILayout.MaskField(Styles.defaultRenderingLayerMaskLabel, serialized.defaultRenderingLayerMask.intValue, HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                serialized.defaultRenderingLayerMask.intValue = value;
-                GraphicsSettings.defaultRenderingLayerMask = (uint)value;
-
-            }
-
-            EditorGUILayout.Space();
-            CoreEditorUtils.DrawSplitter();
-            m_ShowLayerNames = CoreEditorUtils.DrawHeaderFoldout(Styles.renderingLayerNamesLabel,
-                m_ShowLayerNames,
-                contextAction: pos => OnContextClickRenderingLayerNames(pos, serialized, section: 1)
-            );
-            if (m_ShowLayerNames)
-            {
-                EditorGUILayout.Space();
-                EditorGUI.BeginChangeCheck();
-                serialized.renderingLayerNamesList.DoLayoutList();
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serialized.serializedObject?.ApplyModifiedProperties();
-                    (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
-                }
-
-                EditorGUILayout.Space();
-            }
-            CoreEditorUtils.DrawSplitter();
-
-            EditorGUIUtility.labelWidth = oldWidth;
-        }
-
-        static void OnContextClickRenderingLayerNames(Vector2 position, SerializedHDRenderPipelineGlobalSettings serialized, int section = 0)
-        {
-            var menu = new GenericMenu();
-            menu.AddItem(section == 0 ? CoreEditorStyles.resetAllButtonLabel : CoreEditorStyles.resetButtonLabel, false, () =>
-            {
-                var globalSettings = (serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings);
-                Undo.RecordObject(globalSettings, "Reset rendering layer names");
-                globalSettings.ResetRenderingLayerNames();
-            });
-            menu.DropDown(new Rect(position, Vector2.zero));
-        }
-
-        #endregion
-
         static readonly CED.IDrawer Inspector = CED.Group(
             VolumeSection,
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             FrameSettingsSection,
-            CED.Group((serialized, owner) => EditorGUILayout.Space()),
-            LayerNamesSection,
             CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CustomPostProcessesSection,
             CED.Group((serialized, owner) => EditorGUILayout.Space()),

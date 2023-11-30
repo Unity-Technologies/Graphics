@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
@@ -24,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 6;
+        internal const int k_LastVersion = 7;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -70,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_RenderingLayerNames[index++] = asset.lightLayerName7;
 #pragma warning restore 618 // Obsolete warning
                 asset.m_AssetVersion = 3;
-                asset.UpdateRenderingLayerNames();
+                DecalProjector.UpdateAllDecalProperties();
             }
 
             if (asset.m_AssetVersion < 4)
@@ -102,6 +103,30 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_EnableRenderGraph = false;
 #pragma warning restore 618 // Type or member is obsolete
                 asset.m_AssetVersion = 6;
+            }
+
+            if (asset.m_AssetVersion < 7)
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (asset.m_RenderingLayerNames != null)
+                {
+                    for (int i = 1; i < asset.m_RenderingLayerNames.Length; i++)
+                    {
+                        var name = asset.m_RenderingLayerNames[i];
+                        if(string.IsNullOrWhiteSpace(name))
+                            continue;
+
+                        var currentLayerName = RenderingLayerMask.RenderingLayerToName(i);
+                        if (!string.IsNullOrWhiteSpace(currentLayerName))
+                            currentLayerName += $" - {name}";
+                        else
+                            currentLayerName = name;
+                        RenderPipelineEditorUtility.TrySetRenderingLayerName(i, currentLayerName);
+                    }
+                }
+
+#pragma warning restore 618 // Type or member is obsolete
+                asset.m_AssetVersion = 7;
             }
 
             // If the asset version has changed, means that a migration step has been executed
@@ -193,7 +218,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (RenderPipelineGlobalSettingsUtils.TryEnsure<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
-                if (currentInstance != null && currentInstance.m_AssetVersion != k_LastVersion)
+                if (currentInstance != null && !currentInstance.IsAtLastVersion())
                 {
                     UpgradeAsset(currentInstance.GetInstanceID());
                     AssetDatabase.SaveAssetIfDirty(currentInstance);
@@ -222,7 +247,7 @@ namespace UnityEngine.Rendering.Universal
         public override void Reset()
         {
             base.Reset();
-            UpdateRenderingLayerNames();
+            DecalProjector.UpdateAllDecalProperties();
         }
 
         internal static VolumeProfile GetOrCreateDefaultVolumeProfile(VolumeProfile defaultVolumeProfile)
@@ -254,62 +279,10 @@ namespace UnityEngine.Rendering.Universal
         internal VolumeProfile m_ObsoleteDefaultVolumeProfile;
 
         [SerializeField]
-        string[] m_RenderingLayerNames = new string[] { "Default" };
-        string[] renderingLayerNames
-        {
-            get
-            {
-                if (m_RenderingLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_RenderingLayerNames;
-            }
-        }
-        [System.NonSerialized]
-        string[] m_PrefixedRenderingLayerNames;
-        string[] prefixedRenderingLayerNames
-        {
-            get
-            {
-                if (m_PrefixedRenderingLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_PrefixedRenderingLayerNames;
-            }
-        }
-        /// <summary>Names used for display of rendering layer masks.</summary>
-        public string[] renderingLayerMaskNames => renderingLayerNames;
-        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
-        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
+        internal string[] m_RenderingLayerNames = new string[] { "Default" };
 
         [SerializeField]
         uint m_ValidRenderingLayers;
-        /// <summary>Valid rendering layers that can be used by graphics. </summary>
-        public uint validRenderingLayers {
-            get
-            {
-                if (m_PrefixedRenderingLayerNames == null)
-                    UpdateRenderingLayerNames();
-
-                return m_ValidRenderingLayers;
-            }
-        }
-
-        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
-        internal void UpdateRenderingLayerNames()
-        {
-            // Update prefixed
-            if (m_PrefixedRenderingLayerNames == null)
-                m_PrefixedRenderingLayerNames = new string[32];
-            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
-            {
-                uint renderingLayer = (uint)(1 << i);
-
-                m_ValidRenderingLayers = i < m_RenderingLayerNames.Length ? (m_ValidRenderingLayers | renderingLayer) : (m_ValidRenderingLayers & ~renderingLayer);
-                m_PrefixedRenderingLayerNames[i] = i < m_RenderingLayerNames.Length ? m_RenderingLayerNames[i] : $"Unused Layer {i}";
-            }
-
-            // Update decals
-            DecalProjector.UpdateAllDecalProperties();
-        }
 
         /// <summary>
         /// Names used for display of light layers with Layer's index as prefix.

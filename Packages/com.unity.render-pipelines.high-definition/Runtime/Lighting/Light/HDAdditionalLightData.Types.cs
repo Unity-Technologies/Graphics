@@ -97,13 +97,13 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderingLayer16 = 1 << 15,
 
         /// <summary>Default Layer for lights.</summary>
-        [HideInInspector]
+        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. @from(2023.1) ")]
         LightLayerDefault = RenderingLayer1,
         /// <summary>Default Layer for decals.</summary>
-        [HideInInspector]
+        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. @from(2023.1) ")]
         DecalLayerDefault = RenderingLayer9,
         /// <summary>Default rendering layers mask.</summary>
-        [HideInInspector]
+        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. @from(2023.1) ")]
         Default = LightLayerDefault | DecalLayerDefault,
         /// <summary>All layers enabled.</summary>
         [HideInInspector]

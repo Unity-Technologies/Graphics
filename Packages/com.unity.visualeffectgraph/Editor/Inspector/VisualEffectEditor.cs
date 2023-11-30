@@ -1226,24 +1226,6 @@ namespace UnityEditor.VFX
                 m_ProbeAnchor = m_SerializedRenderers.FindProperty("m_ProbeAnchor");
             }
 
-            public static readonly string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
-            private static string[] GetDefaultRenderingLayerNames()
-            {
-                //Find UnityEditor.RendererEditorBase.defaultPrefixedRenderingLayerNames by reflection to avoid any breakage due to an API change
-                var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
-                if (type != null)
-                {
-                    var property = type.GetProperty("defaultPrefixedRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
-                    if (property != null)
-                    {
-                        var invokeResult = property.GetMethod.Invoke(null, null);
-                        if (invokeResult != null && invokeResult is string[])
-                            return invokeResult as string[];
-                    }
-                }
-                return null;
-            }
-
             public SerializedObject SerializedRenderers => m_SerializedRenderers;
 
             public static readonly Action<GUIContent, SerializedProperty, GUIStyle, GUIStyle> s_fnGetSortingLayerField = GetSortingLayerField();
@@ -1357,42 +1339,23 @@ namespace UnityEditor.VFX
 
                 if (showAdditionnalCategory)
                 {
-                    if (m_RenderingLayerMask != null)
+                    if (m_RenderingLayerMask != null && GraphicsSettings.isScriptableRenderPipelineEnabled)
                     {
-                        string[] layerNames = null;
-                        var srpAsset = GraphicsSettings.currentRenderPipeline;
-                        if (srpAsset != null)
-                            layerNames = srpAsset.prefixedRenderingLayerMaskNames;
+                        var mask = m_Renderers[0].renderingLayerMask;
 
-                        if (layerNames == null)
-                            layerNames = s_DefaultRenderingLayerNames;
-
-                        if (layerNames != null)
+                        EditorGUI.BeginChangeCheck();
+                        mask = EditorGUILayout.RenderingLayerMaskField(Contents.renderingLayerMaskStyle, mask);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            var mask = (int)m_Renderers[0].renderingLayerMask;
-
-                            var rect = EditorGUILayout.GetControlRect();
-                            EditorGUI.showMixedValue = m_RenderingLayerMask.hasMultipleDifferentValues;
-                            EditorGUI.BeginProperty(rect, Contents.renderingLayerMaskStyle, m_RenderingLayerMask);
-                            EditorGUI.BeginChangeCheck();
-
-                            mask = EditorGUI.MaskField(rect, Contents.renderingLayerMaskStyle, mask, layerNames);
-
-                            if (EditorGUI.EndChangeCheck())
+                            Undo.RecordObjects(m_SerializedRenderers.targetObjects, "Set rendering layer mask");
+                            for (var i = 0; i < m_SerializedRenderers.targetObjects.Length; i++)
                             {
-                                Undo.RecordObjects(m_SerializedRenderers.targetObjects, "Set rendering layer mask");
-                                foreach (var t in m_SerializedRenderers.targetObjects)
-                                {
-                                    var r = t as VFXRenderer;
-                                    if (r != null)
-                                    {
-                                        r.renderingLayerMask = (uint)mask;
-                                        EditorUtility.SetDirty(t);
-                                    }
-                                }
+                                var r = m_SerializedRenderers.targetObjects[i] as VFXRenderer;
+                                if (r == null)
+                                    continue;
+                                r.renderingLayerMask = mask;
+                                EditorUtility.SetDirty(r);
                             }
-                            EditorGUI.EndProperty();
-                            EditorGUI.showMixedValue = false;
                         }
                     }
 

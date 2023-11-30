@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        RenderingLayerMask m_DecalLayerMask = RenderingLayerMask.DecalLayerDefault;
+        RenderingLayerMask m_DecalLayerMask = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
         /// <summary>
         /// The layer of the decal.
         /// </summary>

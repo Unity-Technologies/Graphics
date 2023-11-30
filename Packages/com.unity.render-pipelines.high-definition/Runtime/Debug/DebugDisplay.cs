@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
@@ -1077,28 +1078,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 };
 
+                var field = new DebugUI.BitField
                 {
-                    var field = new DebugUI.BitField
-                    {
-                        nameAndTooltip = LightingStrings.LightLayersFilterLayers,
-                        getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
-                        setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)value,
-                        enumType = typeof(RenderingLayerMask),
-                        isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers
-                    };
+                    nameAndTooltip = LightingStrings.LightLayersFilterLayers,
+                    getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
+                    setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)value,
+                    enumType = typeof(RenderingLayerMask),
+                    isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers
+                };
 
-                    for (int i = 0; i < HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames.Length; i++)
-                        field.enumNames[i + 1].text = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames[i];
-                    container.children.Add(field);
+                var renderingLayers = new List<string>();
+                for (int i = 0; i < 32; i++)
+                    renderingLayers.Add($"Unused Rendering Layer {i}");
+
+                var names = UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
+                for (int i = 0; i < names.Length; i++)
+                {
+                    var index = UnityEngine.RenderingLayerMask.NameToRenderingLayer(names[i]);
+                    renderingLayers[index] = names[i];
                 }
 
+                for (int i = 0; i < field.enumNames.Length - 1; i++)
+                    field.enumNames[i + 1].text = renderingLayers[i];
+
+                container.children.Add(field);
+
                 var layersColor = new DebugUI.Foldout() { nameAndTooltip = LightingStrings.LightLayersColor, flags = DebugUI.Flags.EditorOnly };
-                for (int i = 0; i < HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames.Length; i++)
+                for (int i = 0; i < renderingLayers.Count; i++)
                 {
                     int index = i;
                     layersColor.children.Add(new DebugUI.ColorField
                     {
-                        displayName = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerNames[i],
+                        displayName = renderingLayers[i],
                         flags = DebugUI.Flags.EditorOnly,
                         getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
                         setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value

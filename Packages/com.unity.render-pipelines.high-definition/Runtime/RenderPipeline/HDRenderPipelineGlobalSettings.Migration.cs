@@ -33,7 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderingPathFrameSettings,
             CustomPostProcessOrdersSettings,
             SetUpIncluderRenderPipelineAssetGraphicsSettings,
-            ToRenderPipelineGraphicsSettings
+            ToRenderPipelineGraphicsSettings,
+            RenderingLayerMask,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
@@ -43,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
-        private static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
+        static readonly MigrationDescription<Version, HDRenderPipelineGlobalSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
@@ -123,7 +124,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.decalLayerName6,
                     data.decalLayerName7,
                 };
-                data.m_PrefixedRenderingLayerNames = null;
 
                 data.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).SetEnabled(FrameSettingsField.RenderingLayerMaskBuffer, true);
 #pragma warning restore 618
@@ -165,13 +165,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_CustomPostProcessOrdersSettings.beforeTAACustomPostProcesses.AddRange(data.beforeTAACustomPostProcesses);
                 data.m_CustomPostProcessOrdersSettings.beforeTransparentCustomPostProcesses.AddRange(data.beforeTransparentCustomPostProcesses);
 #pragma warning restore 618
-            })
-            ,
-            MigrationStep.New(Version.SetUpIncluderRenderPipelineAssetGraphicsSettings, (HDRenderPipelineGlobalSettings data) => data.SetUpRPAssetIncluded())
-            ,
+            }),
+            MigrationStep.New(Version.SetUpIncluderRenderPipelineAssetGraphicsSettings, (HDRenderPipelineGlobalSettings data) => data.SetUpRPAssetIncluded()),
             MigrationStep.New(Version.ToRenderPipelineGraphicsSettings, (HDRenderPipelineGlobalSettings data) =>
             {
                 MigrateToRenderPipelineGraphicsSettings(data);
+            }),
+            MigrationStep.New(Version.RenderingLayerMask, (HDRenderPipelineGlobalSettings data) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                if (data.renderingLayerNames == null)
+                    return;
+                for (int i = 1; i < data.renderingLayerNames.Length; i++)
+                {
+                    var name = data.renderingLayerNames[i];
+                    if(string.IsNullOrWhiteSpace(name))
+                        continue;
+
+                    var currentLayerName = UnityEngine.RenderingLayerMask.RenderingLayerToName(i);
+                    if (!string.IsNullOrWhiteSpace(currentLayerName))
+                        currentLayerName += $" - {name}";
+                    else
+                        currentLayerName = name;
+                    RenderPipelineEditorUtility.TrySetRenderingLayerName(i, currentLayerName);
+                }
+#pragma warning restore 618 // Type or member is obsolete
             })
         );
         public bool Migrate()

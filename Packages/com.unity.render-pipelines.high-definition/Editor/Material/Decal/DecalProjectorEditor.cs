@@ -6,6 +6,7 @@ using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditorInternal.EditMode;
+using RenderingLayerMask = UnityEngine.RenderingLayerMask;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -722,7 +723,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     decalLayerEnabled = supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers;
                     using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                     {
-                        EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
+                        var mask = m_DecalLayerMask.uintValue;
+                        EditorGUI.BeginChangeCheck();
+                        mask = EditorGUILayout.RenderingLayerMaskField(k_DecalLayerMaskContent, mask);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            m_DecalLayerMask.intValue = unchecked((int) mask);
+                            EditorUtility.SetDirty(m_DecalLayerMask.serializedObject.targetObject);
+                        }
+                        if (RenderingLayerMask.GetLastDefinedRenderingLayerIndex() > 16)
+                            EditorGUILayout.HelpBox($"One or more of the Rendering Layers is defined outside of 16 limit. HDRP supports only 16 layers.", MessageType.Warning);
                     }
                 }
 

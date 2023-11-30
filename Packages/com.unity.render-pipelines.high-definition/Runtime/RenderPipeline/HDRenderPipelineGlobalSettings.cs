@@ -87,13 +87,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
-        /// <inheritdoc/>
-        public override void Reset()
-        {
-            base.Reset();
-            m_PrefixedRenderingLayerNames = null;
-        }
-
         public override void Initialize(RenderPipelineGlobalSettings source = null)
         {
             SetUpRPAssetIncluded();
@@ -178,51 +171,9 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion // Runtime Resources
 
         #region Rendering Layer Mask
-
         [SerializeField]
-        internal RenderingLayerMask defaultRenderingLayerMask = RenderingLayerMask.Default;
-
-        [SerializeField]
-        internal string[] renderingLayerNames = null;
-
-        [System.NonSerialized]
-        string[] m_PrefixedRenderingLayerNames;
-        internal string[] prefixedRenderingLayerNames
-        {
-            get
-            {
-                if (m_PrefixedRenderingLayerNames == null)
-                    UpdateRenderingLayerNames();
-                return m_PrefixedRenderingLayerNames;
-            }
-        }
-
-        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
-        internal void UpdateRenderingLayerNames()
-        {
-            if (renderingLayerNames == null)
-                renderingLayerNames = new string[1];
-            if (m_PrefixedRenderingLayerNames == null)
-                m_PrefixedRenderingLayerNames = new string[16];
-
-            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
-            {
-                if (i < renderingLayerNames.Length && renderingLayerNames[i] == null) renderingLayerNames[i] = GetDefaultLayerName(i);
-                m_PrefixedRenderingLayerNames[i] = i < renderingLayerNames.Length ? renderingLayerNames[i] : $"Unused Layer {i}";
-            }
-        }
-
-        internal void ResetRenderingLayerNames()
-        {
-            for (int i = 0; i < renderingLayerNames.Length; ++i)
-                renderingLayerNames[i] = GetDefaultLayerName(i);
-            UpdateRenderingLayerNames();
-        }
-
-        internal static string GetDefaultLayerName(int index)
-        {
-            return index == 0 ? "Default" : $"Layer {index}";
-        }
+        [Obsolete ("Kept For Migration")]
+        internal string[] renderingLayerNames = { "Default" };
 
         [SerializeField, Obsolete("Kept For Migration")] string lightLayerName0;
         [SerializeField, Obsolete("Kept For Migration")] string lightLayerName1;
