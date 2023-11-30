@@ -78,6 +78,10 @@ Shader "Hidden/PostProcessing/Uber"
         {
             float2 uv = i.texcoord;
 
+    /*        float2 testing = float2(1.0f, 1.0f);
+
+            float2 outie = float2(1.0f, 1.0f) + testing;*/
+
             //>>> Automatically skipped by the shader optimizer when not used
             float2 uvDistorted = Distort(i.texcoord);
             float2 uvStereoDistorted = Distort(i.texcoordStereo);
@@ -275,7 +279,7 @@ Shader "Hidden/PostProcessing/Uber"
         Pass
         {
             HLSLPROGRAM
-                #pragma exclude_renderers gles vulkan switch
+                #pragma exclude_renderers gles vulkan webgpu switch
 
                 #pragma multi_compile __ COLOR_GRADING_LDR_2D COLOR_GRADING_HDR_2D COLOR_GRADING_HDR_3D
                 #pragma multi_compile __ STEREO_INSTANCING_ENABLED STEREO_DOUBLEWIDE_TARGET
@@ -290,7 +294,7 @@ Shader "Hidden/PostProcessing/Uber"
         Pass
         {
             HLSLPROGRAM
-                #pragma only_renderers vulkan switch
+                #pragma only_renderers vulkan webgpu switch
 
                 #pragma multi_compile __ COLOR_GRADING_LDR_2D COLOR_GRADING_HDR_2D COLOR_GRADING_HDR_3D
                 #pragma multi_compile __ STEREO_DOUBLEWIDE_TARGET // disabled for Vulkan because of shader compiler issues in older Unity versions: STEREO_INSTANCING_ENABLED
