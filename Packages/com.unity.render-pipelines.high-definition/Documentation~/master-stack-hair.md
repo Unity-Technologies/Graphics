@@ -62,8 +62,10 @@ This model adds the following nodes in the Fragment shader:
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/smoothness-radial.md)]
 [!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
+
 </table>
 
 Change the [**Base Color** block](master-stack-hair.html#fragment-context) to define the color of the hair.
@@ -132,9 +134,11 @@ When you create a new Hair Master Stack, the Vertex Context contains the followi
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/vertex-position.md)]
 [!include[](snippets/shader-graph-blocks/vertex-normal.md)]
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
+
 </table>
 
 #### Relevant
@@ -147,8 +151,10 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
 [!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+
 </table>
 
 
@@ -167,6 +173,7 @@ When you create a new Hair Master Stack, the Fragment Context contains the follo
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/base-color.md)]
 [!include[](snippets/shader-graph-blocks/normal-tangent-space.md)]
 [!include[](snippets/shader-graph-blocks/bent-normal.md)]
@@ -181,6 +188,7 @@ When you create a new Hair Master Stack, the Fragment Context contains the follo
 [!include[](snippets/shader-graph-blocks/secondary-specular-tint.md)]
 [!include[](snippets/shader-graph-blocks/secondary-specular-shift.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]
+
 </table>
 
 #### Relevant
@@ -194,6 +202,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold.md)]
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold-depth-postpass.md)]
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold-depth-prepass.md)]
@@ -210,16 +219,24 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/cuticle-angle.md)]
 [!include[](snippets/shader-graph-blocks/strand-count-probe.md)]
 [!include[](snippets/shader-graph-blocks/strand-shadow-bias.md)]
+
 </table>
 
 ## Graph Settings
 
 ### Surface Options
+
 <table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
+<thead>
+  <tr>
+    <th>Property</th>
+    <th></th>
+    <th></th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+
 [!include[](snippets/shader-properties/surface-options/material-type-hair.md)]
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
 [!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
@@ -248,6 +265,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/conservative-depth-offset.md)]
 [!include[](snippets/shader-properties/surface-options/velocity.md)]
 [!include[](snippets/shader-properties/surface-options/tessellation.md)]
+
+</tbody>
 </table>
 
 ### Advanced Options
@@ -256,6 +275,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
 [!include[](snippets/shader-properties/advanced-options/override-baked-gi.md)]
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]

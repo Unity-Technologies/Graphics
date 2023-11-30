@@ -1,4 +1,6 @@
 <tr>
-<td>**UseEmissiveMap**</td>
-<td>Toggles whether the material uses the **EmissiveMap** property or the **Emissive** property to set the emissive color of its surface. Enable this checkbox to use the **EmissiveMap** property, disable this checkbox to use the **Emissive** property.</td>
+<td><strong>UseEmissiveMap</strong></td>
+<td></td>
+<td></td>
+<td>Toggles whether the material uses the <strong>EmissiveMap</strong> property or the <strong>Emissive</strong> property to set the emissive color of its surface. Enable this checkbox to use the <strong>EmissiveMap</strong> property, disable this checkbox to use the <strong>Emissive</strong> property.</td>
 </tr>

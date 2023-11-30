@@ -36,8 +36,10 @@ This section contains information on the blocks that this master stack material 
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/base-color.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
+
 </table>
 
 **Note**: The **Alpha** block controls the density of the fog. HDRP combines the alpha value with the [Local Volumetric Fog’s](Local-Volumetric-Fog.md) **Fog Distance** value to compute the fog.

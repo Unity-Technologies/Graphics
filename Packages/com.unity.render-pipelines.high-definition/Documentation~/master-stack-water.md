@@ -39,8 +39,10 @@ When you create a new Water Master Stack, the Vertex Context contains the follow
 <th>Description</th>
 <th>Setting Dependency</th>
 <th>Default Value</th>
+
 [!include[](snippets/shader-graph-blocks/vertex-position.md)]
 [!include[](snippets/shader-graph-blocks/vertex-normal.md)]
+
 <tr>
 <td><b>UV0</b></td>
 <td>Water properties packed into a UV coordinate set for the vertex context.</td>
@@ -71,6 +73,7 @@ When you create a new Water Master Stack, the Fragment Context contains the foll
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/normal-world-space.md)]
 [!include[](snippets/shader-graph-blocks/low-frequency-normal.md)]
 [!include[](snippets/shader-graph-blocks/tip-thickness.md)]

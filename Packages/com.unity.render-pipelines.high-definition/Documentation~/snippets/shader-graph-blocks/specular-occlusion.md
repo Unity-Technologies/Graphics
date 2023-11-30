@@ -1,6 +1,6 @@
 <tr>
-<td>**Specular Occlusion**</td>
+<td><strong>Specular Occlusion</strong></td>
 <td>A multiplier for the intensity of specular global illumination.</td>
-<td>**Specular Occlusion Mode** set to **Custom**</td>
+<td><strong>Specular Occlusion Mode</strong> set to <strong>Custom</strong></td>
 <td>1.0</td>
 </tr>
