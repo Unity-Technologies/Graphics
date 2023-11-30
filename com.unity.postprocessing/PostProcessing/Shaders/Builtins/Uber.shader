@@ -78,10 +78,6 @@ Shader "Hidden/PostProcessing/Uber"
         {
             float2 uv = i.texcoord;
 
-    /*        float2 testing = float2(1.0f, 1.0f);
-
-            float2 outie = float2(1.0f, 1.0f) + testing;*/
-
             //>>> Automatically skipped by the shader optimizer when not used
             float2 uvDistorted = Distort(i.texcoord);
             float2 uvStereoDistorted = Distort(i.texcoordStereo);
