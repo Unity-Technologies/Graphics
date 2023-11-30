@@ -78,7 +78,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		if (attributes.alive)
 		{
 			${VFXLoadAttributes:{(?!(alive|stripAlive))(\b\w)}}
-
+#if VFX_USE_OLDVELOCITY_CURRENT && VFX_USE_VELOCITY_CURRENT
+			attributes.oldVelocity = attributes.velocity;
+#endif
 #if HAS_STRIPS
             const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
             InitStripAttributes(index, attributes, stripData);
@@ -93,9 +95,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				${VFXProcessBlocks}
 			}
 
+			${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 			if (attributes.alive)
 			{
-				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
+				
 #if VFX_HAS_INDIRECT_DRAW
                 AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 #endif
@@ -108,7 +111,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			}
 			else
 			{
-				${VFXStoreAttributes:{alive|eventCount}}
+				${VFXStoreAttributes:{alive}}
 #if USE_DEAD_LIST && !VFX_USE_STRIPALIVE_CURRENT
 	            uint deadIndex;
 		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
@@ -147,6 +150,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 #else
 		${VFXLoadAttributes}
+#if VFX_USE_OLDVELOCITY_CURRENT && VFX_USE_VELOCITY_CURRENT
+		attributes.oldVelocity = attributes.velocity;
+#endif
+#if VFX_USE_CONTINUOUSCOLLISIONCOUNT_CURRENT
+		//attributes.continuousCollisionCount = 0;
+#endif
 #if HAS_STRIPS
         const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
         InitStripAttributes(index, attributes, stripData);

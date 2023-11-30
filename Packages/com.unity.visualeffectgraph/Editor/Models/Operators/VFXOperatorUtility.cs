@@ -734,6 +734,25 @@ namespace UnityEditor.VFX
             return condition;
         }
 
+        static public VFXExpression IsTRSMatrixUniformScaled(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+
+            var sqrLengthI = Dot(i, i);
+            var sqrLengthJ = Dot(j, j);
+            var sqrLengthK = Dot(k, k);
+
+            // Same check as in Matrix4x4.cpp
+            var maxSqrLength = Max3(sqrLengthI, sqrLengthJ, sqrLengthK);
+            var minSqrLength = Min3(sqrLengthI, sqrLengthJ, sqrLengthK);
+            var ratio = Sqrt(maxSqrLength) / Sqrt(minSqrLength);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, ratio, VFXValue.Constant(1.0f) + EpsilonExpression[VFXValueType.Float]);
+
+            return condition;
+        }
+
         static public VFXExpression Atan2(VFXExpression coord)
         {
             var components = ExtractComponents(coord).ToArray();

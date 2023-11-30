@@ -69,7 +69,7 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, true, true);
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, true);
 
             foreach (var attribute in attributes)
             {

@@ -7,7 +7,6 @@ namespace UnityEditor.VFX.Block
     class PositionTorusDeprecated : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Torus (deprecated)"); } }
-        protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
         {
@@ -20,29 +19,17 @@ namespace UnityEditor.VFX.Block
             [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
             public float ArcSequencer = 0.0f;
         }
-
-        public override IEnumerable<VFXNamedExpression> parameters
-        {
-            get
-            {
-                var allSlots = GetExpressionsFromSlots(this);
-                foreach (var p in allSlots.Where(e => e.name != "Thickness"))
-                    yield return p;
-
-                var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;
-                var majorRadius = allSlots.FirstOrDefault(o => o.name == "ArcTorus_majorRadius").exp;
-
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
-                yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(inputSlots[0][2].GetExpression() / inputSlots[0][1].GetExpression()), "r"); // Saturate can be removed once degenerated torus are correctly handled
-            }
-        }
-
+        
         protected override bool needDirectionWrite => true;
 
         public override void Sanitize(int version)
         {
-            var newPositionTorus = ScriptableObject.CreateInstance<PositionTorus>();
-            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionTorus, this);
+            var newPositionTorusV2 = ScriptableObject.CreateInstance<PositionTorusDeprecatedV2>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionTorusV2, this);
+
+            var newPositionTorus = ScriptableObject.CreateInstance<PositionShape>();
+            SanitizeHelper.MigrateBlockPositionToComposed(GetGraph(), GetParent().position, newPositionTorus, newPositionTorusV2, PositionShapeBase.Type.Torus);
+
             ReplaceModel(newPositionTorus, this);
         }
 

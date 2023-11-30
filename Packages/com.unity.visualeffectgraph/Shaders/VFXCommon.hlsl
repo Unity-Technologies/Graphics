@@ -224,6 +224,15 @@ float SampleSDF(VFXSampler3D s, float3 coords, float level = 0.0f)
 {
     return SampleTexture(s, coords, level).x;
 }
+float3 SampleSDFDerivativesFastComplete(VFXSampler3D s, float3 coords, float3 uvStep, float dist)
+{
+    float3 d;
+    // 3 taps
+    d.x = SampleSDF(s, coords + float3(uvStep.x, 0, 0));
+    d.y = SampleSDF(s, coords + float3(0, uvStep.y, 0));
+    d.z = SampleSDF(s, coords + float3(0, 0, uvStep.z));
+    return d - dist;
+}
 
 float3 SampleSDFDerivativesFast(VFXSampler3D s, float3 coords, float dist, float level = 0.0f)
 {
@@ -244,6 +253,17 @@ float3 SampleSDFDerivatives(VFXSampler3D s, float3 coords, float level = 0.0f)
     d.x = SampleSDF(s, coords + float3(kStep, 0, 0)) - SampleSDF(s, coords - float3(kStep, 0, 0));
     d.y = SampleSDF(s, coords + float3(0, kStep, 0)) - SampleSDF(s, coords - float3(0, kStep, 0));
     d.z = SampleSDF(s, coords + float3(0, 0, kStep)) - SampleSDF(s, coords - float3(0, 0, kStep));
+    return d;
+}
+
+//Sample derivatives with a step size derived from the texture dimensions.
+float3 SampleSDFUnscaledDerivatives(VFXSampler3D s, float3 coords, float3 uvStep, float level = 0.0f)
+{
+    float3 d;
+    // 6 taps
+    d.x = SampleSDF(s, coords + float3(uvStep.x, 0, 0)) - SampleSDF(s, coords - float3(uvStep.x, 0, 0));
+    d.y = SampleSDF(s, coords + float3(0, uvStep.y, 0)) - SampleSDF(s, coords - float3(0, uvStep.y, 0));
+    d.z = SampleSDF(s, coords + float3(0, 0, uvStep.z)) - SampleSDF(s, coords - float3(0, 0, uvStep.z));
     return d;
 }
 
@@ -586,6 +606,14 @@ float3x3 GetScaleMatrix(float3 scale)
         0, 0, scale.z);
 }
 
+float4x4 GetScaleMatrix44(float3 scale)
+{
+    return float4x4(scale.x, 0, 0, 0,
+        0, scale.y, 0, 0,
+        0, 0, scale.z, 0,
+        0, 0, 0, 1);
+}
+
 float3x3 GetRotationMatrix(float3 axis, float angle)
 {
     float2 sincosA;
@@ -894,3 +922,9 @@ uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint dispatchWidth)
 // Instancing Utils //
 //////////////////////
 #include "VFXInstancing.hlsl"
+
+///////////////////////////
+// Shape Distances Utils //
+///////////////////////////
+
+#include "VFXShapes.hlsl"

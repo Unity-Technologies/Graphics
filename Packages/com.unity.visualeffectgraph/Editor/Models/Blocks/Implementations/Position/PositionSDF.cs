@@ -5,24 +5,8 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionSDFProvider : VariantProvider
+    class PositionSDF : PositionShapeBase
     {
-        public override IEnumerable<Variant> GetVariants()
-        {
-            yield return new Variant(
-                "Set Position (Signed Distance Field)",
-                "Position/Position on shape",
-                typeof(PositionSDF),
-                Array.Empty<KeyValuePair<string, object>>());
-        }
-    }
-
-    [VFXHelpURL("Block-SetPosition(SignedDistanceField)")]
-    [VFXInfo(variantProvider = typeof(PositionSDFProvider))]
-    class PositionSDF : PositionBase
-    {
-        public override string name => "Set Position (Signed Distance Field)";
-
         public class InputProperties
         {
             [Tooltip("Sets the Signed Distance Field to sample from.")]
@@ -37,68 +21,58 @@ namespace UnityEditor.VFX.Block
             public float ArcSequencer = 0.0f;
         }
 
-        protected override bool needDirectionWrite { get { return true; } }
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies whether we want to kill particles whose position is off the desired surface or volume")]
-        public bool killOutliers = false;
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies the number of steps used by the block to project the particle on the surface of the SDF. This can impact performance, but can yield less outliers. "), Min(1u)]
-        public uint projectionSteps = 2u;
-
-        public override IEnumerable<VFXAttributeInfo> attributes
+        public override IEnumerable<VFXNamedExpression> GetParameters(PositionShape positionBase, List<VFXNamedExpression> allSlots)
         {
-            get
+            VFXExpression transform = null, sdf = null;
+            foreach (var e in allSlots)
             {
-                foreach (var attrib in base.attributes)
+                if (e.name == "FieldTransform")
                 {
-                    yield return attrib;
+                    transform = e.exp;
+                    yield return e;
                 }
-                if (killOutliers)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);
+
+                if (e.name == "SDF")
+                {
+                    sdf = e.exp;
+                    yield return e;
+                }
+
+                if (e.name == "ArcSequencer" ||
+                    e.name == "Thickness")
+                    yield return e;
             }
+
+            var extents = new VFXNamedExpression(new VFXExpressionExtractScaleFromMatrix(transform), "extents");
+            yield return new VFXNamedExpression(VFX.VFXOperatorUtility.Max3(extents.exp), "scalingFactor");
+            yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(transform), "InvFieldTransform");
+            var minDim = new VFXExpressionCastUintToFloat(VFX.VFXOperatorUtility.Min3(new VFXExpressionTextureHeight(sdf), new VFXExpressionTextureWidth(sdf), new VFXExpressionTextureDepth(sdf)));
+            var gradStep = VFXValue.Constant(0.01f);  //kStep used in SampleSDFDerivativesFast and SampleSDFDerivatives
+            var margin = VFXValue.Constant(0.5f) / minDim + gradStep + VFXValue.Constant(0.001f);
+            yield return new VFXNamedExpression(VFXValue.Constant(0.5f) - margin, "projectionRayWithMargin");
+            yield return new VFXNamedExpression(VFXValue.Constant(positionBase.projectionSteps), "n_steps");
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override string GetSource(PositionShape positionBase)
         {
-            get
+            string outSource = @"float cosPhi = 2.0f * RAND - 1.0f;";
+            if (positionBase.spawnMode == PositionBase.SpawnMode.Random)
+                outSource += @"float theta = TWO_PI * RAND;";
+            else
+                outSource += @"float theta = TWO_PI * ArcSequencer;";
+            switch (positionBase.positionMode)
             {
-                foreach (var p in GetExpressionsFromSlots(this))
-                    yield return p;
-
-                var transform = GetExpressionsFromSlots(this).First(o => o.name == "FieldTransform").exp;
-                var extents = new VFXNamedExpression(new VFXExpressionExtractScaleFromMatrix(transform), "extents");
-                yield return new VFXNamedExpression(VFX.VFXOperatorUtility.Max3(extents.exp), "scalingFactor");
-                yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(transform), "InvFieldTransform");
-                var SDFExpr = GetExpressionsFromSlots(this).First(o => o.name == "SDF").exp;
-                var minDim = new VFXExpressionCastUintToFloat(VFX.VFXOperatorUtility.Min3(new VFXExpressionTextureHeight(SDFExpr), new VFXExpressionTextureWidth(SDFExpr), new VFXExpressionTextureDepth(SDFExpr)));
-                var gradStep = VFXValue.Constant(0.01f);  //kStep used in SampleSDFDerivativesFast and SampleSDFDerivatives
-                var margin = VFXValue.Constant(0.5f) / minDim + gradStep + VFXValue.Constant(0.001f);
-                yield return new VFXNamedExpression(VFXValue.Constant(0.5f) - margin, "projectionRayWithMargin");
-                yield return new VFXNamedExpression(VFXValue.Constant(projectionSteps), "n_steps");
+                case (PositionBase.PositionMode.Surface):
+                    outSource += @" float Thickness = 0.0f;";
+                    break;
+                case (PositionBase.PositionMode.Volume):
+                    outSource += @" float Thickness = scalingFactor;";
+                    break;
+                case (PositionBase.PositionMode.ThicknessRelative):
+                    outSource += @" Thickness *= scalingFactor * 0.5f;";
+                    break;
             }
-        }
-
-        public override string source
-        {
-            get
-            {
-                string outSource = @"float cosPhi = 2.0f * RAND - 1.0f;";
-                if (spawnMode == SpawnMode.Random)
-                    outSource += @"float theta = TWO_PI * RAND;";
-                else
-                    outSource += @"float theta = TWO_PI * ArcSequencer;";
-                switch (positionMode)
-                {
-                    case (PositionMode.Surface):
-                        outSource += @" float Thickness = 0.0f;";
-                        break;
-                    case (PositionMode.Volume):
-                        outSource += @" float Thickness = scalingFactor;";
-                        break;
-                    case (PositionMode.ThicknessRelative):
-                        outSource += @" Thickness *= scalingFactor * 0.5f;";
-                        break;
-                }
-                outSource += @"
+            outSource += @"
 //Initialize position within texture bounds
 float2 sincosTheta;
 sincos(theta, sincosTheta.x, sincosTheta.y);
@@ -134,18 +108,17 @@ for(uint proj_step=0; proj_step < n_steps; proj_step++){
 position = wPos;
 direction = -worldNormal;
                         ";
-                if (killOutliers)
-                {
-                    outSource += @"
+            if (positionBase.killOutliers)
+            {
+                outSource += @"
 
  float dist = SampleSDF(SDF, coord);
  if (dist * scalingFactor > 0.01)
     alive = false;
 ";
-                }
-
-                return outSource;
             }
+
+            return outSource;
         }
     }
 }

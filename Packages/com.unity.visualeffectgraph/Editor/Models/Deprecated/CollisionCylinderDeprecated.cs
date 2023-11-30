@@ -46,40 +46,11 @@ bool collision = abs(dir.y) > halfHeight || sqrLength > cylinderRadius * cylinde
 
         public override void Sanitize(int version)
         {
-            var newCollisionCone = ScriptableObject.CreateInstance<CollisionCone>();
+            var newCollisionCone = ScriptableObject.CreateInstance<CollisionConeDeprecatedV2>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newCollisionCone, this);
-            ReplaceModel(newCollisionCone, this);
-        }
-
-        public override string source
-        {
-            get
-            {
-                string Source = @"
-float3 nextPos = position + velocity * deltaTime;
-float3 dir = nextPos - Cylinder_center;
-const float halfHeight = Cylinder_height * 0.5f + radius * colliderSign;
-const float cylinderRadius = Cylinder_radius + radius * colliderSign;
-float sqrLength = dot(dir.xz, dir.xz);
-";
-
-                Source += collisionTestSource;
-                Source += @"
-if (collision)
-{
-    float dist = sqrt(sqrLength);
-    float distToCap = colliderSign * (halfHeight - abs(dir.y));
-    float distToSide = colliderSign * (cylinderRadius - dist);
-
-    float3 n = colliderSign * float3(dir.xz / dist, sign(dir.y)).xzy;
-";
-
-                Source += normalAndPushSource;
-                Source += collisionResponseSource;
-                Source += @"
-}";
-                return Source;
-            }
+            var newCollisionConeShape = ScriptableObject.CreateInstance<CollisionShape>();
+            SanitizeHelper.MigrateBlockCollisionShapeToComposed(newCollisionConeShape, newCollisionCone, CollisionShapeBase.Type.Cone);
+            ReplaceModel(newCollisionConeShape, this);
         }
     }
 }

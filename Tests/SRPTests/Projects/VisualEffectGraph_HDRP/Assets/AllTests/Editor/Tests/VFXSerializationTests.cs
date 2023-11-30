@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
-
+using UnityEditor.VFX.Block;
 using UnityEditor.VFX.Block.Test;
 using UnityEditor.VFX.UI;
 
@@ -233,11 +233,12 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_sphere");
                 Assert.IsNotNull(initialize);
 
-                var sphereBlocks = initialize.children.OfType<Block.PositionSphere>().ToArray();
+                var sphereBlocks = initialize.children.OfType<Block.PositionShape>().Where(o => (PositionShapeBase.Type)o.GetSettingValue("shape") == PositionShapeBase.Type.Sphere).ToArray();
                 Assert.AreEqual(4, sphereBlocks.Length);
                 foreach (var block in sphereBlocks)
                 {
-                    Assert.AreEqual(3, block.inputSlots.Count);
+                    //N.B: PositionSphereDeprecatedV2 had only one dimension sequencer, it has been fixed with PositionShape
+                    Assert.AreEqual(4, block.inputSlots.Count);
 
                     if (block != sphereBlocks.Last())
                     {
@@ -245,7 +246,7 @@ namespace UnityEditor.VFX.Test
                         Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //radius
 
                         if (block == sphereBlocks.First())
-                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                            Assert.IsTrue(block.inputSlots[0][1].HasLink()); //arc
                     }
                     else
                     {
@@ -257,8 +258,10 @@ namespace UnityEditor.VFX.Test
                         Assert.AreEqual(5.0f, tArcSphere.arc);
                     }
 
-                    Assert.AreEqual(6.0f, block.inputSlots[1].value);
-                    Assert.AreEqual(0.7f, block.inputSlots[2].value);
+                    Assert.AreEqual(0.0f, block.inputSlots[1].value); //height sequencer
+                    Assert.IsTrue(block.inputSlots[1].HasLink());
+                    Assert.AreEqual(0.7f, block.inputSlots[2].value); //arc sequencer
+                    Assert.AreEqual(6.0f, block.inputSlots[3].value); //thickness
                 }
             }
 
@@ -267,7 +270,7 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_circle");
                 Assert.IsNotNull(initialize);
 
-                var circleBlock = initialize.children.OfType<Block.PositionCircle>().ToArray();
+                var circleBlock = initialize.children.OfType<Block.PositionShape>().Where(o => (PositionShapeBase.Type)o.GetSettingValue("shape") == PositionShapeBase.Type.Circle).ToArray();
                 Assert.AreEqual(4, circleBlock.Length);
                 foreach (var block in circleBlock)
                 {
@@ -290,9 +293,9 @@ namespace UnityEditor.VFX.Test
                         Assert.AreEqual(4.0f, tArcCircle.circle.radius);
                         Assert.AreEqual(5.0f, tArcCircle.arc);
                     }
-
-                    Assert.AreEqual(6.0f, block.inputSlots[1].value);
-                    Assert.AreEqual(0.7f, block.inputSlots[2].value);
+             
+                    Assert.AreEqual(0.7f, block.inputSlots[1].value);
+                    Assert.AreEqual(6.0f, block.inputSlots[2].value);
                 }
             }
 
@@ -301,7 +304,7 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_cone");
                 Assert.IsNotNull(initialize);
 
-                var coneBlocks = initialize.children.OfType<Block.PositionCone>().ToArray();
+                var coneBlocks = initialize.children.OfType<Block.PositionShape>().Where(o => (PositionShapeBase.Type)o.GetSettingValue("shape") == PositionShapeBase.Type.Cone).ToArray();
                 Assert.AreEqual(3, coneBlocks.Length);
                 foreach (var block in coneBlocks)
                 {
@@ -328,10 +331,10 @@ namespace UnityEditor.VFX.Test
                         Assert.AreEqual(6.0f, tArcCone.cone.height);
                         Assert.AreEqual(0.7f, tArcCone.arc);
                     }
-
-                    Assert.AreEqual(8.0f, block.inputSlots[1].value);
-                    Assert.AreEqual(0.9f, block.inputSlots[2].value);
-                    Assert.AreEqual(1.0f, block.inputSlots[3].value);
+                  
+                    Assert.AreEqual(0.9f, block.inputSlots[1].value);
+                    Assert.AreEqual(1.0f, block.inputSlots[2].value);
+                    Assert.AreEqual(8.0f, block.inputSlots[3].value);
                 }
             }
 
@@ -340,11 +343,11 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_torus");
                 Assert.IsNotNull(initialize);
 
-                var torusBlocks = initialize.children.OfType<Block.PositionTorus>().ToArray();
+                var torusBlocks = initialize.children.OfType<Block.PositionShape>().Where(o => (PositionShapeBase.Type)o.GetSettingValue("shape") == PositionShapeBase.Type.Torus).ToArray();
                 Assert.AreEqual(3, torusBlocks.Length);
                 foreach (var block in torusBlocks)
                 {
-                    Assert.AreEqual(3, block.inputSlots.Count);
+                    Assert.AreEqual(4, block.inputSlots.Count);
 
                     if (block != torusBlocks.Last())
                     {
@@ -353,7 +356,7 @@ namespace UnityEditor.VFX.Test
                         Assert.IsTrue(block.inputSlots[0][0][2].HasLink()); //minorRadius
 
                         if (block == torusBlocks.First())
-                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                            Assert.IsTrue(block.inputSlots[0][1].HasLink()); //arc
                     }
                     else
                     {
@@ -366,8 +369,9 @@ namespace UnityEditor.VFX.Test
                         Assert.AreEqual(0.6f, tArcTorus.arc);
                     }
 
-                    Assert.AreEqual(7.0f, block.inputSlots[1].value);
-                    Assert.AreEqual(0.8f, block.inputSlots[2].value);
+                    Assert.IsTrue(block.inputSlots[1].HasLink()); //height sequencer
+                    Assert.AreEqual(0.8f, block.inputSlots[2].value); //arc sequencer
+                    Assert.AreEqual(7.0f, block.inputSlots[3].value); //thickness
                 }
             }
 
@@ -376,7 +380,7 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "kill_sphere");
                 Assert.IsNotNull(initialize);
 
-                var sphereBlocks = initialize.children.OfType<Block.KillSphere>().ToArray();
+                var sphereBlocks = initialize.children.OfType<Block.CollisionBase>().Where(o => (CollisionBase.Behavior)o.GetSetting("behavior").value == CollisionBase.Behavior.Kill).ToArray();
                 Assert.AreEqual(3, sphereBlocks.Length);
                 foreach (var block in sphereBlocks)
                 {
@@ -403,11 +407,11 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "collision_sphere");
                 Assert.IsNotNull(initialize);
 
-                var sphereBlocks = initialize.children.OfType<Block.CollisionSphere>().ToArray();
+                var sphereBlocks = initialize.children.OfType<Block.CollisionShape>().Where(o => (Block.CollisionShapeBase.Type)o.GetSetting("shape").value == Block.CollisionShapeBase.Type.Sphere) .ToArray();
                 Assert.AreEqual(3, sphereBlocks.Length);
                 foreach (var block in sphereBlocks)
                 {
-                    Assert.AreEqual(6, block.inputSlots.Count);
+                    Assert.AreEqual(7, block.inputSlots.Count);
 
                     if (block != sphereBlocks.Last())
                     {
@@ -425,9 +429,10 @@ namespace UnityEditor.VFX.Test
 
                     Assert.AreEqual(0.2f, block.inputSlots[1].value);
                     Assert.AreEqual(0.3f, block.inputSlots[2].value);
-                    Assert.AreEqual(0.4f, block.inputSlots[3].value);
-                    Assert.AreEqual(0.5f, block.inputSlots[4].value);
-                    Assert.AreEqual(0.6f, block.inputSlots[5].value);
+                    Assert.AreEqual(0.0f, block.inputSlots[3].value); // Overridden bounce speed threshold
+                    Assert.AreEqual(0.4f, block.inputSlots[4].value);
+                    Assert.AreEqual(0.5f, block.inputSlots[5].value);
+                    Assert.AreEqual(0.6f, block.inputSlots[6].value);
                 }
             }
 
@@ -436,11 +441,11 @@ namespace UnityEditor.VFX.Test
                 var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "collision_cylinder");
                 Assert.IsNotNull(initialize);
 
-                var coneBlocks = initialize.children.OfType<Block.CollisionCone>().ToArray();
+                var coneBlocks = initialize.children.OfType<Block.CollisionShape>().Where(o => (Block.CollisionShapeBase.Type)o.GetSetting("shape").value == Block.CollisionShapeBase.Type.Cone).ToArray();
                 Assert.AreEqual(3, coneBlocks.Length);
                 foreach (var block in coneBlocks)
                 {
-                    Assert.AreEqual(6, block.inputSlots.Count);
+                    Assert.AreEqual(7, block.inputSlots.Count);
 
                     if (block != coneBlocks.Last())
                     {
@@ -462,9 +467,58 @@ namespace UnityEditor.VFX.Test
 
                     Assert.AreEqual(0.2f, block.inputSlots[1].value);
                     Assert.AreEqual(0.3f, block.inputSlots[2].value);
-                    Assert.AreEqual(0.4f, block.inputSlots[3].value);
-                    Assert.AreEqual(0.5f, block.inputSlots[4].value);
-                    Assert.AreEqual(0.6f, block.inputSlots[5].value);
+                    Assert.AreEqual(0.0f, block.inputSlots[3].value); // Overridden bounce speed threshold
+                    Assert.AreEqual(0.4f, block.inputSlots[4].value);
+                    Assert.AreEqual(0.5f, block.inputSlots[5].value);
+                    Assert.AreEqual(0.6f, block.inputSlots[6].value);
+                }
+            }
+        }
+
+        [Test]
+        public void Sanitize_Position_Block_Shape()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitizePositionShapeV2.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(2, graph.children.OfType<VFXBasicUpdate>().Count());
+
+            var updateRandom = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "Random");
+            var updateCustom = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "Custom");
+
+            Assert.IsNotNull(updateRandom);
+            Assert.IsNotNull(updateCustom);
+
+            Assert.AreEqual(6, updateRandom.children.Count());
+            Assert.AreEqual(6, updateCustom.children.Count());
+
+            var expectedOrder = new [] { PositionShapeBase.Type.OrientedBox, PositionShapeBase.Type.Sphere, PositionShapeBase.Type.Cone, PositionShapeBase.Type.Torus, PositionShapeBase.Type.Line, PositionShapeBase.Type.Circle };
+            for (int i = 0; i < 6; ++i)
+            {
+                var expectedShapeType = expectedOrder[i];
+                var randomBlock = updateRandom[i] as PositionShape;
+                var customBlock = updateCustom[i] as PositionShape;
+
+                Assert.IsNotNull(randomBlock);
+                Assert.IsNotNull(customBlock);
+
+                Assert.AreEqual(PositionBase.SpawnMode.Random, randomBlock.spawnMode);
+                if (expectedShapeType != PositionShapeBase.Type.OrientedBox)
+                    Assert.AreEqual(PositionBase.SpawnMode.Custom, customBlock.spawnMode);
+                Assert.AreEqual(expectedShapeType, customBlock.GetSettingValue("shape"));
+
+                if (expectedShapeType == PositionShapeBase.Type.Sphere ||
+                    expectedShapeType == PositionShapeBase.Type.Torus)
+                {
+                    var heightSequencer = customBlock.inputSlots.FirstOrDefault(o => o.name == "heightSequencer");
+                    Assert.IsNotNull(heightSequencer);
+                    Assert.IsTrue(heightSequencer.HasLink());
+
+                    var owner = heightSequencer.LinkedSlots.First().owner;
+                    Assert.IsTrue(owner is Operator.Random);
+
+                    var random = owner as Operator.Random;
+                    Assert.IsFalse(random.constant);
                 }
             }
         }

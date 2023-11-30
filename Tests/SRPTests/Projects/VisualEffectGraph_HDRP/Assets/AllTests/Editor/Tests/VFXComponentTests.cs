@@ -43,6 +43,11 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void CleanUp()
         {
+            Time.captureFramerate = 0;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 1.0f/60.0f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 1.0f/20.0f;
+            ShaderUtil.allowAsyncCompilation = true;
+
             VFXTestCommon.DeleteAllTemporaryGraph();
             GameObject.DestroyImmediate(m_mainObject);
             GameObject.DestroyImmediate(m_mainCamera);

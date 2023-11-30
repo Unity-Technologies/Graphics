@@ -1,59 +1,59 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXHelpURL("Block-CollideWithPlane")]
-    [VFXInfo(name = "Collide with Plane", category = "Collision")]
-    class CollisionPlane : CollisionBase
+    class CollisionPlane : CollisionShapeBase
     {
-        public override string name => "Collide with Plane";
-
         public class InputProperties
         {
             [Tooltip("Sets the plane with which particles can collide.")]
-            public Plane Plane = new Plane() { normal = Vector3.up };
+            public Plane Plane = new Plane() {normal = Vector3.up};
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override IEnumerable<VFXNamedExpression> GetParameters(CollisionBase collisionBase, IEnumerable<VFXNamedExpression> collisionBaseParameters)
         {
-            get
-            {
-                foreach (var p in base.parameters)
-                    yield return p;
+            foreach (var p in base.GetParameters(collisionBase, collisionBaseParameters))
+                yield return p;
 
-                VFXExpression sign = (mode == Mode.Solid) ? VFXValue.Constant(1.0f) : VFXValue.Constant(-1.0f);
-                VFXExpression position = inputSlots[0][0].GetExpression();
-                VFXExpression normal = inputSlots[0][1].GetExpression() * VFXOperatorUtility.CastFloat(sign, VFXValueType.Float3);
+            VFXExpression sign = (collisionBase.mode == CollisionBase.Mode.Solid)
+                ? VFXValue.Constant(1.0f)
+                : VFXValue.Constant(-1.0f);
+            VFXExpression position = collisionBase.inputSlots[0][0].GetExpression();
+            VFXExpression normal = collisionBase.inputSlots[0][1].GetExpression() *
+                                   VFXOperatorUtility.CastFloat(sign, VFXValueType.Float3);
 
-                List<VFXExpression> plane = VFXOperatorUtility.ExtractComponents(normal).ToList();
-                plane.Add(VFXOperatorUtility.Dot(position, normal));
+            var plane = new List<VFXExpression>(VFXOperatorUtility.ExtractComponents(normal));
+            plane.Add(VFXOperatorUtility.Dot(position, normal));
 
-                yield return new VFXNamedExpression(new VFXExpressionCombine(plane.ToArray()), "plane");
-            }
+            yield return new VFXNamedExpression(new VFXExpressionCombine(plane.ToArray()), "plane");
         }
 
-        public override string source
+        public override string GetSource(CollisionBase collisionBase)
         {
-            get
-            {
-                string Source = @"
-float3 nextPos = position + velocity * deltaTime;
-float3 n = plane.xyz; // plane.xyz is already multiplied by collider sign
+            string Source = @"
+hitNormal = plane.xyz; // plane.xyz is already multiplied by collider sign
 float w = plane.w;
-float distToPlane = dot(nextPos, n) - w - radius;
-if (distToPlane < 0.0f)
-{
-    position -= n * distToPlane;
-";
+float distA = dot(position, hitNormal) - w - radius;
+float distB = distA + dot(velocity, hitNormal) * deltaTime;
 
-                Source += collisionResponseSource;
-                Source += @"
-}";
-                return Source;
-            }
+if (distA > 0.0f && distB < 0.0f) // collision 
+{
+    hit = true;
+    tHit = saturate(distA / (distA - distB)); // point of intersection
+    hitPos = position + (tHit * deltaTime) * velocity;
+}
+else if (distA < VFX_EPSILON)  // Inside volume - (Plus an epsilon to improve stability)
+{
+    hit = true;
+    tHit = 0.0f;
+    hitPos = position - hitNormal * distA; // Teleport outside
+}
+";  
+
+            return Source;
         }
     }
 }

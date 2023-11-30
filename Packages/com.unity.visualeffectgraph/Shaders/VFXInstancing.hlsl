@@ -165,8 +165,7 @@ void AppendEventTotalCount(RWStructuredBuffer<uint> outputBuffer, uint totalCoun
     instanceActiveIndex = 0u;
     localInstancingBatchSize = 1u;
 #endif
-    uint dummy;
-    InterlockedAdd(outputBuffer[localInstancingBatchSize + instanceActiveIndex], totalCount, dummy);
+    InterlockedAdd(outputBuffer[localInstancingBatchSize + instanceActiveIndex], totalCount);
 }
 
 void AppendEventBuffer(RWStructuredBuffer<uint> outputBuffer, uint sourceIndex, uint outputCapacity, uint instanceActiveIndex)

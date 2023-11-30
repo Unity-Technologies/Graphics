@@ -1,30 +1,14 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.VFX;
+using static UnityEditor.VFX.Block.PositionBase;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionConeProvider : VariantProvider
+    sealed class PositionCone : PositionShapeBase
     {
-        public override IEnumerable<Variant> GetVariants()
-        {
-            yield return new Variant(
-                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Cone)",
-                "Position/Position on shape",
-                typeof(PositionCone),
-                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
-        }
-    }
-
-    [VFXHelpURL("Block-SetPosition(Cone)")]
-    [VFXInfo(variantProvider = typeof(PositionConeProvider))]
-    class PositionCone : PositionBase
-    {
-        [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
-        public HeightMode heightMode = HeightMode.Volume;
-
-        public override string name { get { return string.Format(base.name, "Arc Cone"); } }
-        protected override float thicknessDimensions { get { return 2.0f; } }
+        public override bool hasBase => true;
 
         public class InputProperties
         {
@@ -40,72 +24,53 @@ namespace UnityEditor.VFX.Block
             public float arcSequencer = 0.0f;
         }
 
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        public override IEnumerable<VFXNamedExpression> GetParameters(PositionShape positionBase, List<VFXNamedExpression> allSlots)
         {
-            get
+            VFXExpression baseRadius = null;
+            VFXExpression topRadius = null;
+            VFXExpression height = null;
+            VFXExpression transform = null;
+            VFXExpression thickness = null;
+
+            foreach (var slot in allSlots)
             {
-                var properties = PropertiesFromType(nameof(InputProperties));
+                if (slot.name.StartsWith("arcCone")
+                    || slot.name == nameof(CustomProperties.arcSequencer)
+                    || slot.name == nameof(CustomProperties.heightSequencer))
+                    yield return slot;
 
-                if (supportsVolumeSpawning)
-                {
-                    if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
-                        properties = properties.Concat(PropertiesFromType(nameof(ThicknessProperties)));
-                }
-
-                if (spawnMode == SpawnMode.Custom)
-                {
-                    var customProperties = PropertiesFromType(nameof(CustomProperties));
-                    if (heightMode == HeightMode.Base)
-                        customProperties = customProperties.Where(o => o.property.name != nameof(CustomProperties.heightSequencer));
-
-                    properties = properties.Concat(customProperties);
-                }
-
-                return properties;
+                if (slot.name == "arcCone_cone_baseRadius")
+                    baseRadius = slot.exp;
+                else if (slot.name == "arcCone_cone_topRadius")
+                    topRadius = slot.exp;
+                else if (slot.name == "arcCone_cone_height")
+                    height = slot.exp;
+                else if (slot.name == "arcCone_cone_transform")
+                    transform = slot.exp;
+                else if (slot.name == nameof(PositionShape.ThicknessProperties.Thickness))
+                    thickness = slot.exp;
             }
+
+            var tanSlope = (topRadius - baseRadius) / height;
+            var slope = new VFXExpressionATan(tanSlope);
+            yield return new VFXNamedExpression(CalculateVolumeFactor(positionBase.positionMode, baseRadius, thickness, 2.0f), "volumeFactor");
+            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
+
+
+            var invFinalTransform = VFXOperatorUtility.InverseTransposeTRS(transform);
+            yield return new VFXNamedExpression(invFinalTransform, "arcCone_cone_inverseTranspose");
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override string GetSource(PositionShape positionBase)
         {
-            get
-            {
-                var allSlots = GetExpressionsFromSlots(this);
+            string outSource = "";
 
-                foreach (var p in allSlots.Where(o => o.name != nameof(ThicknessProperties.Thickness)))
-                    yield return p;
+            if (positionBase.spawnMode == SpawnMode.Random)
+                outSource += @"float theta = arcCone_arc * RAND;";
+            else
+                outSource += @"float theta = arcCone_arc * arcSequencer;";
 
-                var baseRadius = allSlots.First(e => e.name == "arcCone_cone_baseRadius").exp;
-                var topRadius = allSlots.First(e => e.name == "arcCone_cone_topRadius").exp;
-                var height = allSlots.First(e => e.name == "arcCone_cone_height").exp;
-                var transform = allSlots.First(e => e.name == "arcCone_cone_transform").exp;
-
-                var tanSlope = (topRadius - baseRadius) / height;
-                var slope = new VFXExpressionATan(tanSlope);
-
-                var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, baseRadius, thickness.exp), "volumeFactor");
-
-                yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
-
-                var invFinalTransform = VFXOperatorUtility.InverseTransposeTRS(transform);
-                yield return new VFXNamedExpression(invFinalTransform, "arcCone_cone_inverseTranspose");
-            }
-        }
-
-        protected override bool needDirectionWrite => true;
-
-        public override string source
-        {
-            get
-            {
-                string outSource = "";
-
-                if (spawnMode == SpawnMode.Random)
-                    outSource += @"float theta = arcCone_arc * RAND;";
-                else
-                    outSource += @"float theta = arcCone_arc * arcSequencer;";
-
-                outSource += @"
+            outSource += @"
 float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);
 
 float2 sincosTheta;
@@ -113,16 +78,16 @@ sincos(theta, sincosTheta.x, sincosTheta.y);
 float2 pos = (sincosTheta * rNorm);
 ";
 
-                if (heightMode == HeightMode.Base)
-                {
-                    outSource += @"
+            if (positionBase.heightMode == HeightMode.Base)
+            {
+                outSource += @"
 float hNorm = 0.0f;
 ";
-                }
-                else if (spawnMode == SpawnMode.Random)
-                {
-                    float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
-                    outSource += $@"
+            }
+            else if (positionBase.spawnMode == SpawnMode.Random)
+            {
+                float distributionExponent = positionBase.positionMode == PositionMode.Surface ? 2.0f : 3.0f;
+                outSource += $@"
 float hNorm = 0.0f;
 if (abs(arcCone_cone_baseRadius - arcCone_cone_topRadius) > VFX_EPSILON)
 {{
@@ -135,26 +100,41 @@ if (abs(arcCone_cone_baseRadius - arcCone_cone_topRadius) > VFX_EPSILON)
 else
     hNorm = RAND; // Uniform distribution on cylinder
 ";
-                }
-                else
-                {
-                    outSource += @"
+            }
+            else
+            {
+                outSource += @"
 float hNorm = heightSequencer;
 ";
-                }
-
-                outSource += @"
-float3 finalPos = lerp(float3(pos * arcCone_cone_baseRadius, 0.0f), float3(pos * arcCone_cone_topRadius, arcCone_cone_height), hNorm);
-float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-finalPos = mul(arcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
-finalDir = mul(arcCone_cone_inverseTranspose, float4(finalDir.xzy, 0.0f)).xyz;
-finalDir = normalize(finalDir);
-";
-                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
-                outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition") + "\n";
-
-                return outSource;
             }
+
+            outSource += @"
+float3 finalPos = lerp(float3(pos * arcCone_cone_baseRadius, 0.0f), float3(pos * arcCone_cone_topRadius, arcCone_cone_height), hNorm);
+float3 currentAxisZ = float3(sincosTheta * sincosSlope.x, sincosSlope.y);
+float3 currentAxisY = float3(sincosTheta, -sincosSlope.x);
+
+finalPos = mul(arcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
+currentAxisY = mul(arcCone_cone_inverseTranspose, float4(currentAxisY.xzy, 0.0f)).xyz;
+currentAxisZ = mul(arcCone_cone_inverseTranspose, float4(currentAxisZ.xzy, 0.0f)).xyz;
+currentAxisY = normalize(currentAxisY);
+currentAxisZ = normalize(currentAxisZ);
+float3 currentAxisX = cross(currentAxisY, currentAxisZ);
+";
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Axes))
+            {
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisX", "currentAxisX", "blendAxes") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisY", "currentAxisY", "blendAxes") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisZ", "currentAxisZ", "blendAxes") + "\n";
+            }
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Direction))
+            {
+                outSource += string.Format(positionBase.composeDirectionFormatString, "currentAxisZ");
+            }
+
+            outSource += VFXBlockUtility.GetComposeString(positionBase.compositionPosition, "position", "finalPos", "blendPosition") + "\n";
+
+            return outSource;
         }
     }
 }

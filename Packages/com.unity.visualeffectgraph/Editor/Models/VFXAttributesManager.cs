@@ -51,10 +51,17 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute ParticleCountInStrip = new VFXAttribute("particleCountInStrip", VFXValueType.Uint32, "Outputs the total particle count within the current strip. This attribute is available in systems using the 'Particle Strip' data type.");
         public static readonly VFXAttribute SpawnIndexInStrip = new VFXAttribute("spawnIndexInStrip", VFXValueType.Uint32, "The spawn index of the particle within its strip. Contrary to the ‘particleIndexInStrip’ attribute that is, unique for each particle, the spawnIndexInStrip value can be similar between particles in different strips.");
         public static readonly VFXAttribute SpawnCount = new VFXAttribute("spawnCount", VFXValue.Constant(1.0f), "The number of particles that have been spawned in this frame. It can be read in the Initialize Context as source or in the Spawn Context as Current.");
+        public static readonly VFXAttribute HasCollisionEvent = new VFXAttribute("hasCollisionEvent", VFXValue.Constant(false), "Outputs true at particle collision");
+        public static readonly VFXAttribute CollisionEventNormal = new VFXAttribute("collisionEventNormal", VFXValue.Constant(Vector3.zero), "Outputs the collider normal at collision point at this frame. (0,0,0) if no collision", VFXVariadic.False, SpaceableType.Direction);
+        public static readonly VFXAttribute CollisionEventPosition = new VFXAttribute("collisionEventPosition", VFXValue.Constant(Vector3.zero), "Outputs the collision point at this frame. (0,0,0) if no collision", VFXVariadic.False, SpaceableType.Position);
+        public static readonly VFXAttribute CollisionEventCount = new VFXAttribute("collisionEventCount", VFXValueType.Uint32, "Outputs the number of total collisions detected by the particle since its birth");
+        //public static readonly VFXAttribute ContinuousCollisionCount = new VFXAttribute("continuousCollisionCount", VFXValueType.Uint32, "Outputs the number of continuous collision detected (i.e detected at each frame) by the particle");
+        public static readonly VFXAttribute OldVelocity = new VFXAttribute("oldVelocity", VFXValueType.Float3, "The velocity at the beginning of the context, before any force integration");
+
         // Internal as we don't want it to appear in the graph
         internal static readonly VFXAttribute StripAlive = new VFXAttribute("stripAlive", VFXValue.Constant(true), string.Empty); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
     }
-
+	
     class VFXAttributesManager : IVFXAttributesManager
     {
         private readonly List<VFXAttribute> m_CustomAttributes = new ();
@@ -100,11 +107,35 @@ namespace UnityEditor.VFX
             VFXAttribute.ParticleCountInStrip,
             VFXAttribute.SpawnIndexInStrip,
             VFXAttribute.SpawnCount,
+			VFXAttribute.HasCollisionEvent,
+			VFXAttribute.CollisionEventNormal,
+			VFXAttribute.CollisionEventPosition,
+            VFXAttribute.CollisionEventCount,
+            //VFXAttribute.ContinuousCollisionCount,
+            VFXAttribute.OldVelocity,
         };
 
-        private static readonly List<VFXAttribute> s_ReadOnlyAttributes = new () { VFXAttribute.Seed, VFXAttribute.ParticleId, VFXAttribute.ParticleIndexInStrip, VFXAttribute.SpawnTime, VFXAttribute.SpawnIndex, VFXAttribute.SpawnCount, VFXAttribute.StripIndex, VFXAttribute.ParticleCountInStrip, VFXAttribute.SpawnIndexInStrip };
+        private static readonly List<VFXAttribute> s_ReadOnlyAttributes = new ()
+        {
+            VFXAttribute.Seed,
+            VFXAttribute.ParticleId,
+            VFXAttribute.ParticleIndexInStrip,
+            VFXAttribute.SpawnTime,
+            VFXAttribute.SpawnIndex,
+            VFXAttribute.SpawnCount,
+            VFXAttribute.StripIndex,
+            VFXAttribute.ParticleCountInStrip,
+            VFXAttribute.SpawnIndexInStrip,
+            VFXAttribute.HasCollisionEvent,
+            VFXAttribute.CollisionEventNormal,
+            VFXAttribute.CollisionEventPosition,
+            VFXAttribute.CollisionEventCount,
+            //VFXAttribute.ContinuousCollisionCount,
+            VFXAttribute.OldVelocity
+        };
+
         private static readonly List<VFXAttribute> s_WriteOnlyAttributes = new () { VFXAttribute.EventCount };
-        private static readonly List<VFXAttribute> s_LocalOnlyAttributes = new () { VFXAttribute.EventCount, VFXAttribute.ParticleIndexInStrip, VFXAttribute.StripIndex, VFXAttribute.ParticleCountInStrip };
+        private static readonly List<VFXAttribute> s_LocalOnlyAttributes = new () { VFXAttribute.EventCount, VFXAttribute.ParticleIndexInStrip, VFXAttribute.StripIndex, VFXAttribute.ParticleCountInStrip, VFXAttribute.HasCollisionEvent, VFXAttribute.OldVelocity };
         private static readonly List<VFXAttribute> s_AffectingAABBAttributes = new () { VFXAttribute.Position, VFXAttribute.PivotX, VFXAttribute.PivotY, VFXAttribute.PivotZ, VFXAttribute.Size, VFXAttribute.ScaleX, VFXAttribute.ScaleY, VFXAttribute.ScaleZ, VFXAttribute.AxisX, VFXAttribute.AxisY, VFXAttribute.AxisZ, VFXAttribute.AngleX, VFXAttribute.AngleY, VFXAttribute.AngleZ, };
         private static readonly List<VFXAttribute> s_VariadicComponentsAttributes = new() { VFXAttribute.AngleX, VFXAttribute.AngleY, VFXAttribute.AngleZ, VFXAttribute.AngularVelocityX, VFXAttribute.AngularVelocityY, VFXAttribute.AngularVelocityZ, VFXAttribute.PivotX, VFXAttribute.PivotY, VFXAttribute.PivotZ, VFXAttribute.ScaleX, VFXAttribute.ScaleY, VFXAttribute.ScaleZ };
         private static readonly List<VFXAttribute> s_VariadicAttribute = new ()
