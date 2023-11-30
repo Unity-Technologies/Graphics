@@ -49,12 +49,13 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 
             float2 fullResTexelSize = _ScreenSize.zw;
             float2 halfResTexelSize = _Params.y * fullResTexelSize;
+            float2 lowResDRSScale = _Params.zw;
 
         #ifdef NEAREST_DEPTH
 
             // The following is an implementation of NVIDIA's http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/OpacityMappingSDKWhitePaper.pdf
 
-            float4 lowResDepths = GATHER_RED_TEXTURE2D_X(_LowResDepthTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize));
+            float4 lowResDepths = GATHER_RED_TEXTURE2D_X(_LowResDepthTexture, s_linear_clamp_sampler, ClampAndScaleUV(uv, halfResTexelSize, 0.5, lowResDRSScale));
 
             // Gather UVs
             float2 topLeftUV = uv - 0.5f * halfResTexelSize;
@@ -89,7 +90,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             if (countBelowThresh == NEIGHBOUR_SEARCH)
             {
                 // Bilinear.
-                return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize), 0);
+                return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUV(uv, halfResTexelSize, 0.5, lowResDRSScale), 0);
             }
             else
             {
@@ -99,12 +100,12 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 #else
                 // Important note! The reason we need to do ClampAndScaleUVForBilinear is because the candidate for nearestUV are going to be the ones
                 // used for bilinear. We are using the same UVs used for bilinear -hence the uv clamp for bilinear- it is just the filtering that is different.
-                return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_point_clamp_sampler, ClampAndScaleUVForBilinear(nearestUV), 0);
+                return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_point_clamp_sampler, ClampAndScaleUV(nearestUV, halfResTexelSize, 0.5, lowResDRSScale), 0);
 #endif
             }
         #else // BILINEAR
 
-            return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize), 0.0);
+            return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUV(uv, halfResTexelSize, 0.5, lowResDRSScale), 0.0);
 
         #endif
 

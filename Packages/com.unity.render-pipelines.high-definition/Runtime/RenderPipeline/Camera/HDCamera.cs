@@ -293,8 +293,42 @@ namespace UnityEngine.Rendering.HighDefinition
         private Camera m_parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
         internal Camera parentCamera { get { return m_parentCamera; } }
 
+        private Vector2 m_LowResHWDRSFactor = new Vector2(0.0f, 0.0f);
+
+        internal Vector2 lowResDrsFactor => DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() ? m_LowResHWDRSFactor : new Vector2(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
         internal float lowResScale = 0.5f;
         internal bool isLowResScaleHalf { get { return lowResScale == 0.5f; } }
+        internal Rect lowResViewport
+        {
+            get
+            {
+                return new Rect(
+                    0.0f, 0.0f,
+                    (float)Mathf.RoundToInt(((float)actualWidth) * lowResScale),
+                    (float)Mathf.RoundToInt(((float)actualHeight) * lowResScale));
+            }
+        }
+
+        static private Vector2 CalculateLowResHWDrsFactor(Vector2Int scaledSize, DynamicResolutionHandler resolutionHandler, float lowResFactor)
+        {
+            // This function fixes some float precision issues against the runtime + drs system + low res transparency (on hardware DRS only).
+            //
+            // In hardware DRS the actual size underneath can be different because the runtime does a computation the following way:
+            // finalLowRes = ceil(round(fullRes * lowResMultiplier) * drsPerc)
+            //
+            // meanwhile the SRP does it this way:
+            // finalLowRes = round(ceil(fullRes * drsPerc) * lowResMultiplier)
+            //
+            // Unfortunately changing this would cause quite a bit of unknowns all over since its a change required on RTHandle scaling.
+            // Its safer to fix it case by case for now, and this problem has only been seen on xb1 HW drs on low res transparent.
+            // In this case we compute the error between both factors, and plumb it as a new DRS scaler. This ultimately means that low res transparency has its own
+            // drs scale, which is used in TransparentUpsampling passes.
+            // 
+            Vector2Int originalLowResHWViewport = new Vector2Int(Mathf.RoundToInt((float)RTHandles.maxWidth * lowResFactor), Mathf.RoundToInt((float)RTHandles.maxHeight * lowResFactor));
+            Vector2Int lowResHWViewport = resolutionHandler.GetScaledSize(originalLowResHWViewport);
+            Vector2 lowResViewport = new Vector2(Mathf.RoundToInt((float)scaledSize.x * lowResFactor), Mathf.RoundToInt((float)scaledSize.y * lowResFactor));
+            return lowResViewport / (Vector2)lowResHWViewport;
+        }
 
         //Setting a parent camera also tries to use the parent's camera exposure textures.
         //One example is planar reflection probe volume being pre exposed.
@@ -985,13 +1019,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
             lowResScale = 0.5f;
+            m_LowResHWDRSFactor = Vector2.one;
             if (canDoDynamicResolution)
             {
-                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
+                Vector2Int originalSize = new Vector2Int(actualWidth, actualHeight);
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(originalSize);
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
                 globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField);
+
+                //setting up constants for low resolution rendering (i.e. transparent low res)
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
+                m_LowResHWDRSFactor = CalculateLowResHWDrsFactor(scaledSize, DynamicResolutionHandler.instance, lowResScale);
             }
 
             var screenWidth = actualWidth;

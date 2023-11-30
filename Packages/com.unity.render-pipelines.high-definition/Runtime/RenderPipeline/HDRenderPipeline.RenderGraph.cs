@@ -1198,6 +1198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesGlobal globalCB;
             public FrameSettings frameSettings;
             public RendererListHandle rendererList;
+            public Rect viewport;
         }
 
         TextureHandle RenderLowResTransparent(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle downsampledDepth, CullingResults cullingResults, RendererListHandle rendererList)
@@ -1208,6 +1209,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lowResScale = hdCamera.lowResScale;
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.rendererList = builder.UseRendererList(rendererList);
+                passData.viewport = hdCamera.lowResViewport;
                 builder.UseDepthBuffer(downsampledDepth, DepthAccess.ReadWrite);
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
                 var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true)
@@ -1219,6 +1221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f / data.lowResScale);
                         ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
+                        context.cmd.SetViewport(data.viewport);
                         DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings, data.rendererList);
 
                         UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
@@ -1254,7 +1257,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_UpsampleTransparency.EnableKeyword("NEAREST_DEPTH");
                 }
 
-                passData.shaderParams = new Vector4(hdCamera.lowResScale, 1.0f / hdCamera.lowResScale, 0.0f, 0.0f);
+                Vector2 lowResDrsFactor = hdCamera.lowResDrsFactor;
+                passData.shaderParams = new Vector4(hdCamera.lowResScale, 1.0f / hdCamera.lowResScale, lowResDrsFactor.x, lowResDrsFactor.y);
                 passData.upsampleMaterial = m_UpsampleTransparency;
                 passData.lowResTransparentBuffer = builder.ReadTexture(lowResTransparentBuffer);
                 passData.downsampledDepthBuffer = builder.ReadTexture(downsampledDepthBuffer);

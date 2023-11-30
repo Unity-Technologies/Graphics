@@ -1063,12 +1063,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class DownsampleDepthForLowResPassData
         {
             public bool useGatherDownsample;
-            public float sourceWidth;
-            public float sourceHeight;
             public float downsampleScale;
             public Material downsampleDepthMaterial;
             public TextureHandle depthTexture;
             public TextureHandle downsampledDepthBuffer;
+            public Rect viewport;
 
             // Data needed for potentially writing
             public Vector2Int mip0Offset;
@@ -1109,8 +1108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.computesMip1OfAtlas = computeMip1OfPyramid;
                 passData.downsampleScale = hdCamera.lowResScale;
-                passData.sourceWidth = hdCamera.actualWidth;
-                passData.sourceHeight = hdCamera.actualHeight;
+                passData.viewport = hdCamera.lowResViewport;
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
                 if (computeMip1OfPyramid)
                 {
@@ -1139,10 +1137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
                         }
 
-                        float destWidth = data.sourceWidth * data.downsampleScale;
-                        float destHeight = data.sourceHeight * data.downsampleScale;
-                        Rect targetViewport = new Rect(0.0f, 0.0f, destWidth, destHeight);
-                        context.cmd.SetViewport(targetViewport);
+                        context.cmd.SetViewport(data.viewport);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
 
                         if (data.computesMip1OfAtlas)
