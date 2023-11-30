@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Block-VariableRate")]
-    [VFXInfo(category = "Spawn")]
+    [VFXInfo(name = "Variable Spawn Rate", category = "Spawn")]
     class VFXSpawnerVariableRate : VFXAbstractSpawner
     {
         public override string name { get { return "Variable Spawn Rate"; } }

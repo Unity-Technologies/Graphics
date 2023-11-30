@@ -1,7 +1,7 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 
 // cleanup code
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
             var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
-            if (m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseFramebufferFetch)
                 ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
 
             // TODO: Cannot currently bind depth texture as read-only!
@@ -40,34 +40,51 @@ namespace UnityEngine.Rendering.Universal.Internal
         // ScriptableRenderPass
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref renderingData);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
+
+            m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData, lightData, shadowData);
         }
 
         private class PassData
         {
+            internal UniversalCameraData cameraData;
+            internal UniversalLightData lightData;
+            internal UniversalShadowData shadowData;
+
             internal TextureHandle color;
             internal TextureHandle depth;
             internal TextureHandle[] gbuffer;
-            internal RenderingData renderingData;
             internal DeferredLights deferredLights;
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer, ref RenderingData renderingData, FrameResources frameResources)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Deferred Lighting Pass", out var passData,
-                base.profilingSampler))
-            {
-                passData.color = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.depth = builder.UseTextureFragmentDepth(depth, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.deferredLights = m_DeferredLights;
-                passData.renderingData = renderingData;
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-                if (!m_DeferredLights.UseRenderPass)
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Deferred Lighting Pass", out var passData, base.profilingSampler))
+            {
+                passData.cameraData = cameraData;
+                passData.lightData = lightData;
+                passData.shadowData = shadowData;
+
+                passData.color = color;
+                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
+                passData.depth = depth;
+                builder.SetRenderAttachmentDepth(depth, AccessFlags.Write);
+                passData.deferredLights = m_DeferredLights;
+
+                if (!m_DeferredLights.UseFramebufferFetch)
                 {
                     for (int i = 0; i < gbuffer.Length; ++i)
                     {
                         if (i != m_DeferredLights.GBufferLightingIndex)
-                            builder.UseTexture(gbuffer[i], IBaseRenderGraphBuilder.AccessFlags.Read);
+                            builder.UseTexture(gbuffer[i], AccessFlags.Read);
                     }
                 }
                 else
@@ -77,24 +94,24 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         if (i != m_DeferredLights.GBufferLightingIndex)
                         {
-                            builder.UseTextureFragmentInput(gbuffer[i], idx, IBaseRenderGraphBuilder.AccessFlags.Read);
+                            builder.SetInputAttachment(gbuffer[i], idx, AccessFlags.Read);
                             idx++;
                         }
                     }
                 }
+
+                // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
+                if (renderGraph.NativeRenderPassesEnabled)
+                    GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    data.deferredLights.ExecuteDeferredPass(context.cmd, ref data.renderingData);
+                    data.deferredLights.ExecuteDeferredPass(context.cmd, data.cameraData, data.lightData, data.shadowData);
                 });
             }
-
-            // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
-            if (renderGraph.NativeRenderPassesEnabled)
-                GBufferPass.SetGlobalGBufferTextures(renderGraph, gbuffer, frameResources, ref m_DeferredLights);
         }
 
         // ScriptableRenderPass

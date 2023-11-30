@@ -1,0 +1,48 @@
+
+#pragma kernel MainCopyInstances
+
+//#pragma enable_d3d11_debug_symbols
+
+int _InputValidComponentCounts;
+int _InstanceOffset;
+int _InstanceCounts;
+int _OutputInstanceOffset;
+ByteAddressBuffer _ValidComponentIndices;
+ByteAddressBuffer _ComponentByteCounts;
+ByteAddressBuffer _InputComponentAddresses;
+ByteAddressBuffer _InputComponentInstanceIndexRanges;
+ByteAddressBuffer _OutputComponentAddresses;
+ByteAddressBuffer _OutputComponentInstanceIndexRanges;
+ByteAddressBuffer _InputBuffer;
+RWByteAddressBuffer _OutputBuffer;
+
+[numthreads(64,1,1)]
+void MainCopyInstances(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint) _InstanceCounts)
+        return;
+
+    uint instanceIndex = _InstanceOffset + dispatchThreadID.x;
+    uint instanceOutputIndex = _OutputInstanceOffset + dispatchThreadID.x;
+    
+    [loop]
+    for (int validComponentIndex = 0; validComponentIndex < _InputValidComponentCounts; ++validComponentIndex)
+    {
+        uint componentIndex = _ValidComponentIndices.Load(validComponentIndex << 2);
+        uint instanceInputIndexBegin = _InputComponentInstanceIndexRanges.Load(componentIndex * 8);
+        uint instanceInputIndexEnd = _InputComponentInstanceIndexRanges.Load(componentIndex * 8 + 4);
+        if (instanceIndex < instanceInputIndexBegin || instanceIndex >= instanceInputIndexEnd)
+            continue;
+        uint inputComponentAddress = _InputComponentAddresses.Load(componentIndex << 2);
+        uint outputComponentAddress = _OutputComponentAddresses.Load(componentIndex << 2);
+        uint componentByteSize = _ComponentByteCounts.Load(componentIndex << 2);
+        for (uint uintIndex = 0; uintIndex < componentByteSize / 4u; ++uintIndex)
+        {
+            uint byteOffsetInput = instanceIndex * componentByteSize + uintIndex * 4;
+            uint byteOffsetOutput = instanceOutputIndex * componentByteSize + uintIndex * 4;
+            uint inputAddress = inputComponentAddress + byteOffsetInput;
+            uint outputAddress = outputComponentAddress + byteOffsetOutput;
+            _OutputBuffer.Store(outputAddress, _InputBuffer.Load(inputAddress));
+        }
+    }
+}

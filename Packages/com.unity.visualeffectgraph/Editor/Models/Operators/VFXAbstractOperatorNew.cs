@@ -204,18 +204,7 @@ namespace UnityEditor.VFX
             return kExpectedTypeOrdering[minIndex];
         }
 
-        protected virtual string operatorName
-        {
-            get { return string.Empty; }
-        }
-
-        public override /*sealed*/ string libraryName
-        {
-            get
-            {
-                return operatorName;
-            }
-        }
+        protected virtual string operatorName => string.Empty;
 
         public override /*sealed*/ string name
         {

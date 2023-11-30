@@ -6,10 +6,10 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithPlane")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with Plane", category = "Collision")]
     class CollisionPlane : CollisionBase
     {
-        public override string name { get { return "Collide with Plane"; } }
+        public override string name => "Collide with Plane";
 
         public class InputProperties
         {

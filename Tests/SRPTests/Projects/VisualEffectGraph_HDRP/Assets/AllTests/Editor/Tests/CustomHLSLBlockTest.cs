@@ -11,6 +11,7 @@ using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
@@ -24,13 +25,13 @@ namespace UnityEditor.VFX.Test
             "  attributes.velocity = float3(0, 0, speed);\n" +
             "}";
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
         }
 
-        [TearDown]
+        [OneTimeTearDown]
         public void Cleanup()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
@@ -42,7 +43,7 @@ namespace UnityEditor.VFX.Test
         {
             // Arrange
             var blockName = "AutoTest";
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", defaultHlslCode);
             hlslBlock.SetSettingValue("m_BlockName", blockName);
 
@@ -79,7 +80,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var blockName = "AutoTest";
             var shaderInclude = CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_ShaderFile", shaderInclude);
             hlslBlock.SetSettingValue("m_BlockName", blockName);
 
@@ -109,7 +110,7 @@ namespace UnityEditor.VFX.Test
         public void Check_CustomHLSL_Block_Attribute_Access_Mode()
         {
             // Arrange
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", defaultHlslCode);
 
             // Act
@@ -141,7 +142,7 @@ namespace UnityEditor.VFX.Test
                     "/* 12 */ if (4 >= attributes.pivotY);\n" +
                 "}";
 
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             // Act
@@ -166,7 +167,7 @@ namespace UnityEditor.VFX.Test
                     "/* 03 */ attributes.velocity = attributes.targetPosition = float3(0, 0, 0);\n" +
                 "}";
 
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             // Act
@@ -200,7 +201,7 @@ namespace UnityEditor.VFX.Test
                     //"/* 11 */ --attributes.AngularVelocityY;\n" +
                 "}";
 
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var hlslBlock = CreateCustomHLSLBlock();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             // Act
@@ -459,11 +460,89 @@ namespace UnityEditor.VFX.Test
             // Assert
             Assert.AreEqual(1, includes.Length);
             Assert.AreEqual(includeFilePath, includes[0]);
+            // Delete test asset immediately because it won't compile because the included hlsl file do not exists
+            var path = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.DeleteAsset(path);
+        }
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_Compiles()
+        {
+            // Arrange
+            var hlslCode =
+                "void TestFunction(in VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "    attributes.position = float3(param, param, param);\n" +
+                "}";
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+
+            // Act
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            // Assert
+            Assert.Pass("No exception should be raised");
+        }
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_Use_CustomAttribute()
+        {
+            // Arrange
+            var hlslCode =
+                "void TestFunction(in VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "    attributes.position = attributes.custom * param;\n" +
+                "}";
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            Assert.IsTrue(graph.TryAddCustomAttribute("custom", VFXValueType.Float3, null, false, out var attribute));
+
+            // Act
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            // Assert
+            Assert.Pass("No exception should be raised");
+        }
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_Use_CustomAttribute_HLSL_File()
+        {
+            // Arrange
+            var hlslCode =
+                "void TestFunction(in VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "    attributes.position = attributes.custom * param;\n" +
+                "}";
+
+            Directory.CreateDirectory(VFXTestCommon.tempBasePath);
+            var hlslFilePath = $"{VFXTestCommon.tempBasePath}/mycode.hlsl";
+            File.WriteAllText(hlslFilePath, hlslCode);
+            AssetDatabase.ImportAsset(hlslFilePath);
+
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            var shaderInclude = AssetDatabase.LoadAssetAtPath<ShaderInclude>(hlslFilePath);
+            hlslBlock.SetSettingValue("m_ShaderFile", shaderInclude);
+
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            Assert.IsTrue(graph.TryAddCustomAttribute("custom", VFXValueType.Float3, null, false, out var attribute));
+
+            // Act
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            // Assert
+            Assert.Pass("No exception should be raised");
         }
 
         internal static ShaderInclude CreateShaderFile(string hlslCode, out string destinationPath)
         {
-            destinationPath = Path.Combine(VFXTestCommon.tempBasePath, Guid.NewGuid().ToString() + ".hlsl");
+            destinationPath = Path.Combine(VFXTestCommon.tempBasePath, Guid.NewGuid() + ".hlsl");
             Directory.CreateDirectory(VFXTestCommon.tempBasePath);
             File.WriteAllText(destinationPath, hlslCode);
             AssetDatabase.ImportAsset(destinationPath);
@@ -474,11 +553,12 @@ namespace UnityEditor.VFX.Test
 
         internal static void CheckErrorFeedback(VFXModel model, VFXErrorType errorType, string description, VFXModel expectedModel, string expectedError, VFXErrorType expectedErrorType, ref bool hasRegisteredError)
         {
+            if (hasRegisteredError)
+                return;
             // Assert
-            Assert.AreEqual(expectedModel, model);
-            Assert.AreEqual(expectedError, description);
-            Assert.AreEqual(expectedErrorType, errorType, "Wrong message type");
-            hasRegisteredError = true;
+            hasRegisteredError = expectedModel == model
+                                 && expectedError == description
+                                 && expectedErrorType == errorType;
         }
 
         internal static HLSLFunction GetFunction(VFXModel hlslOperator)
@@ -489,14 +569,25 @@ namespace UnityEditor.VFX.Test
 
         private void MakeSimpleGraphWithCustomHLSL(CustomHLSL hlslBlock, out VFXViewWindow view, out VFXGraph graph)
         {
-            graph = VFXTestCommon.MakeTemporaryGraph();
+            graph = VFXTestCommon.CreateGraph_And_System();
             view = VFXViewWindow.GetWindow(graph, true, true);
             view.LoadResource(graph.visualEffectResource);
 
-            var updateContext = (VFXBasicUpdate)VFXLibrary.GetContexts().Single(x => x.model is VFXBasicUpdate).CreateInstance();
+            var updateContext = (VFXBasicUpdate)VFXLibrary.GetContexts().Single(x => x.modelType == typeof(VFXBasicUpdate)).CreateInstance();
             updateContext.AddChild(hlslBlock);
             graph.AddChild(updateContext);
             view.graphView.OnSave();
+        }
+
+        private CustomHLSL CreateCustomHLSLBlock()
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            graph.AddChild(updateContext);
+            updateContext.AddChild(hlslBlock);
+
+            return hlslBlock;
         }
     }
 }

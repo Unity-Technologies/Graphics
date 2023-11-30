@@ -1,0 +1,200 @@
+.hot {
+    color: #ff2e2e
+}
+
+.medium {
+    color: #e3a98b;
+}
+
+.cold {
+    color: #00ff47;
+}
+
+.VFXAnchoredProfiler.graphElement {
+    font-size: 18px;
+    margin: 10px 0 0 0;
+    padding-left:0;
+    padding-right:0;
+}
+.VFXAnchoredProfiler > #node
+{
+    width: 280px;
+    background-color:rgba(37,37,37,0.5);
+    border-radius: 8px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+}
+
+.VFXAnchoredProfiler #header > #unity-content
+{
+    font-size: 12px;
+    margin: 0;
+    padding: 4px 4px 4px 6px;
+    background-color: rgba(0,0,0,0.5);
+    -unity-font-style: normal;
+}
+
+#header {
+    background-color: rgba(100, 100, 100, 0.5);
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+#header > Toggle {
+    margin: 8px;
+}
+
+#header > Toggle #unity-checkmark {
+    -unity-slice-left: 0;
+    -unity-slice-top: 0;
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/debug.png");
+}
+
+.VFXAnchoredProfiler.collapsed #header > Toggle #unity-checkmark {
+    width:18px;
+    height:18px;
+    margin:0;
+}
+
+#header > Toggle .unity-toggle__input > Label {
+    display: none;
+}
+
+#header > Toggle .unity-toggle__input:checked > Label {
+    display: flex;
+}
+
+#header > Toggle .unity-toggle__input:checked #unity-checkmark {
+    background-image : resource("GraphView/Nodes/NodeChevronDown@2x.png");
+}
+
+#header > Toggle .unity-toggle__input {
+    margin-right: 42px;
+}
+.VFXAnchoredProfiler #title #icon
+{
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Execution.png");
+    margin-right: 6px;
+}
+
+.VFXAnchoredProfiler.graphElement #user-label
+{
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding-left:0;
+    padding-right:0;
+    color: #c4c4c4;
+    min-height: 24px;
+    white-space:normal;
+}
+
+.VFXAnchoredProfiler.graphElement #user-label:hover
+{
+    border-color: rgba(68,192,255, 0.5);
+}
+
+.VFXAnchoredProfiler ColorPropertyRM .fieldContainer > *
+{
+    width: 56px;
+}
+
+#lock-button {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    width: 28px;
+    height: 28px;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 0;
+    opacity: 0.5;
+    background-size: 16px 16px;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/lock_unlocked.png");
+}
+
+#lock-button:hover {
+    opacity: 1;
+}
+
+.VFXAnchoredProfiler.locked #lock-button
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/lock_locked.png");
+}
+
+/* Collapsed state */
+.VFXAnchoredProfiler.collapsed > #node {
+    width: auto;
+}
+
+.VFXAnchoredProfiler.collapsed #lock-button {
+    display: none;
+    background-size: 22px 22px;
+    right: 6px;
+    top: 6px;
+    opacity:1;
+}
+.VFXAnchoredProfiler.collapsed.locked #lock-button {
+    display: flex;
+}
+.VFXAnchoredProfiler.collapsed #header {
+    border-radius: 4px;
+}
+
+.VFXAnchoredProfiler.collapsed.locked #header > Toggle > VisualElement {
+    margin: 4px 32px 4px 4px;
+}
+
+.VFXAnchoredProfiler.collapsed #header > Toggle > VisualElement {
+    margin: 4px 4px 4px 4px;
+}
+/*----------------*/
+
+/* Hidden state */
+.VFXAnchoredProfiler.hidden > #collapsed-node #node
+{
+    display: none;
+}
+/*----------------*/
+
+.VFXAnchoredProfiler > #collapsed-node
+{
+    display: none;
+}
+
+VFXSystemProfilerUI.collapsed > #collapsed-node > #lock-icon
+{
+    display: none;
+}
+
+VFXSystemProfilerUI.collapsed > #collapsed-node
+{
+    width: 60px;
+    height: 50px;
+    display: flex;
+    background-color: rgba(63,63,63,1.0);
+    border-radius: 10px;
+    flex-direction: row;
+    padding: 5px;
+    margin-top: 15px;
+}
+
+.VFXSystemProfiler > #node > #lock-button
+{
+    visibility: hidden;
+}
+
+.texture-slot {
+    margin-left: 12px;
+}

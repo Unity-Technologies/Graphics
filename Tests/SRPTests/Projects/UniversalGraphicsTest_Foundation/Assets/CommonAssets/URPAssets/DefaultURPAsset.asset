@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: DefaultURPAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 11
-  k_AssetPreviousVersion: 11
+  k_AssetVersion: 12
+  k_AssetPreviousVersion: 12
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -34,6 +34,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9a26b2a5c669cc1409605b459d1696ea, type: 2}
   - {fileID: 11400000, guid: 7ea39ebe5c005724080e9ffa68153bcc, type: 2}
   - {fileID: 11400000, guid: f6caeba8e73a4774fa061ede8461fc20, type: 2}
+  - {fileID: 11400000, guid: 1f0ec70d2f6284f04a23236fd067dec1, type: 2}
+  - {fileID: 11400000, guid: 81c60c102f7364ff7a219d5723b5a355, type: 2}
+  - {fileID: 11400000, guid: 458bd0c3cd85a465bb7a902869fb61eb, type: 2}
+  - {fileID: 11400000, guid: 7155e055dd29f9944927bdffff6eb366, type: 2}
+  - {fileID: 11400000, guid: 74a701ce533b14adb8f98f35425f3aeb, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -139,6 +144,10 @@ MonoBehaviour:
   m_PrefilterDBufferMRT1: 1
   m_PrefilterDBufferMRT2: 1
   m_PrefilterDBufferMRT3: 1
+  m_PrefilterSoftShadowsQualityLow: 0
+  m_PrefilterSoftShadowsQualityMedium: 0
+  m_PrefilterSoftShadowsQualityHigh: 0
+  m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 1
   m_PrefilterNativeRenderPass: 0
   m_ShaderVariantLogLevel: 0

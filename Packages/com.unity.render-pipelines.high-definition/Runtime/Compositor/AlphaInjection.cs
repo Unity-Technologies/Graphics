@@ -37,7 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (!HDRenderPipeline.isReady)
                 return;
 
-            m_Material = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.alphaInjectionPS);
+            var runtimeShaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            m_Material = CoreUtils.CreateEngineMaterial(runtimeShaders.alphaInjectionPS);
         }
 
         public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

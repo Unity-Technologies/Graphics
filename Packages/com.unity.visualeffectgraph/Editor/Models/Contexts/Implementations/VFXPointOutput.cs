@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputPoint")]
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle Point", category = "Output")]
     class VFXPointOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Output Particle Point"; } }

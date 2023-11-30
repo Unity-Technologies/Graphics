@@ -2713,7 +2713,7 @@ MonoBehaviour:
   sort: 0
   sortMode: 0
   revertSorting: 0
-  indirectDraw: 0
+  indirectDraw: 1
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0

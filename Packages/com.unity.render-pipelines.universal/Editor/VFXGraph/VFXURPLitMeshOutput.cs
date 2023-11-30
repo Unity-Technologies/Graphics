@@ -6,24 +6,17 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.URP
 {
-    [VFXInfo]
+    [VFXHelpURL("Context-OutputPrimitive")]
+    [VFXInfo(name = "Output Particle URP Lit Mesh", category = "Output")]
     class VFXURPLitMeshOutput : VFXAbstractParticleURPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(shaderName)
-                    ? $"Output Particle {shaderName} Mesh"
-                    : "Output Particle URP Lit Mesh";
-            }
-        }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
-        public override bool implementsMotionVector { get { return true; } }
+        public override string name => "Output Particle URP Lit Mesh";
+        public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleLitMesh");
+        public override VFXTaskType taskType => VFXTaskType.ParticleMeshOutput;
+        public override bool supportsUV => GetOrRefreshShaderGraphObject() == null;
+        public override bool implementsMotionVector => true;
 
-        public override CullMode defaultCullMode { get { return CullMode.Back; } }
+        public override CullMode defaultCullMode => CullMode.Back;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(1, 4), Tooltip("Specifies the number of different meshes (up to 4). Mesh per particle can be specified with the meshIndex attribute."), SerializeField]
         private uint MeshCount = 1;
@@ -42,9 +35,9 @@ namespace UnityEditor.VFX.URP
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
-                        features |= VFXOutputUpdate.Features.Sort;
                 }
+                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
+                    features |= VFXOutputUpdate.Features.Sort;
                 return features;
             }
         }

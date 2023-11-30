@@ -81,7 +81,9 @@ namespace UnityEngine.Rendering
             public int _L0L1rxOffset;
             public int _L1GryOffset;
             public int _L1BrzOffset;
-            public int _SharedOffset;
+            public int _ValidityOffset;
+            public int _SkyOcclusionOffset;
+            public int _SkyShadingDirectionOffset;
             public int _L2_0Offset;
             public int _L2_1Offset;
             public int _L2_2Offset;
@@ -91,8 +93,12 @@ namespace UnityEngine.Rendering
             public int _L0ProbeSize; // In bytes
             public int _L1Size;
             public int _L1ProbeSize; // In bytes
-            public int _SharedSize;
-            public int _SharedProbeSize; // In bytes
+            public int _ValiditySize;
+            public int _ValidityProbeSize; // In bytes
+            public int _SkyOcclusionSize;
+            public int _SkyOcclusionProbeSize; // In bytes
+            public int _SkyShadingDirectionSize;
+            public int _SkyShadingDirectionProbeSize; // In bytes
             public int _L2Size;
             public int _L2ProbeSize; // In bytes
 
@@ -578,7 +584,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
-                var cameraPositionCellSpace = (m_FrozenCameraPosition - m_Transform.posWS) / MaxBrickSize() - Vector3.one * 0.5f;
+                var cameraPositionCellSpace = m_FrozenCameraPosition / MaxBrickSize() - Vector3.one * 0.5f;
 
                 DynamicArray<Cell> bestUnloadedCells;
                 DynamicArray<Cell> worseLoadedCells;
@@ -735,7 +741,7 @@ namespace UnityEngine.Rendering
             }
 
             // Handle cell streaming for blending
-            if (enableScenarioBlending)
+            if (supportScenarioBlending)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.APVScenarioBlendingUpdate)))
                     UpdateBlendingCellStreaming(cmd);
@@ -1120,7 +1126,8 @@ namespace UnityEngine.Rendering
             {
                 var sharedDataAsset = m_CurrentBakingSet.cellSharedDataAsset;
                 cellStreamingDesc = sharedDataAsset.streamableCellDescs[cellIndex];
-                var sharedChunkSize = m_CurrentBakingSet.validityMaskChunkSize; // TODO: Replace with generic shared data size
+                var sharedChunkSize = m_CurrentBakingSet.sharedDataChunkSize;
+
                 request.cellSharedDataStreamingRequest.AddReadCommand(cellStreamingDesc.offset, sharedChunkSize * chunkCount, mappedBufferAddr);
                 mappedBufferAddr += (sharedChunkSize * chunkCount);
                 request.bytesWritten += request.cellSharedDataStreamingRequest.RunCommands(sharedDataAsset.OpenFile());
@@ -1176,7 +1183,7 @@ namespace UnityEngine.Rendering
 
         void AllocateScratchBufferPoolIfNeeded()
         {
-            if (m_DiskStreamingUseCompute)
+            if (m_SupportDiskStreaming)
             {
                 int shChunkSize = m_CurrentBakingSet.GetChunkGPUMemory(m_SHBands);
                 int maxSHChunkCount = m_CurrentBakingSet.maxSHChunkCount;
@@ -1192,7 +1199,7 @@ namespace UnityEngine.Rendering
                     if (m_ScratchBufferPool != null)
                         m_ScratchBufferPool.Cleanup();
 
-                    m_ScratchBufferPool = new ProbeVolumeScratchBufferPool(m_CurrentBakingSet, m_SHBands);
+                    m_ScratchBufferPool = new ProbeVolumeScratchBufferPool(m_CurrentBakingSet, m_SHBands, skyOcclusion, skyOcclusionShadingDirection);
                 }
             }
         }
@@ -1315,8 +1322,6 @@ namespace UnityEngine.Rendering
 
             using (new ProfilingScope(ProfilingSampler.Get(CoreProfileId.APVDiskStreamingUpdate)))
             {
-                Debug.Assert(m_DiskStreamingUseCompute);
-
                 AllocateScratchBufferPoolIfNeeded();
                 ProcessNewRequests();
                 UpdateActiveRequests(cmd);
@@ -1344,6 +1349,13 @@ namespace UnityEngine.Rendering
                         otherScenarioData.cellOptionalDataAsset.CloseFile();
                     }
                 }
+            }
+
+            // Debug flag to force unload/reload of cells to be able to debug streaming shader code.
+            if (probeVolumeDebug.debugStreaming)
+            {
+                if (m_ToBeLoadedCells.size == 0 && m_ActiveStreamingRequests.Count == 0)
+                    UnloadAllCells();
             }
         }
 

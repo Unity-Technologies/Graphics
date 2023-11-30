@@ -3,89 +3,99 @@
 
 Texture2D<float4> _FoamTexture;
 
-float SurfaceFoam(float2 _UV, float foamTime)
+float FoamErosion(float foamTime, float2 position, bool isSurfaceFoam = true, float lod = 0)
 {
-    float4 foamMasks = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, _UV * _FoamTiling);
+    float2 currentDirection = OrientationToDirection(_PatchOrientation[0]);
+
+#if defined(WATER_LOCAL_CURRENT)
+    currentDirection = SampleWaterGroup0CurrentMap(position);
+
+    // Apply the current orientation
+    float sinC, cosC;
+    sincos(_GroupOrientation[0], sinC, cosC);
+    currentDirection = float2(cosC * currentDirection.x - sinC * currentDirection.y, sinC * currentDirection.x + cosC * currentDirection.y);
+#endif
+
+    // Magic number for the foam speed to match current speed.
+    currentDirection *= 3.0f;
+    float2 lerpFactors = frac(_SimulationTime * 0.5f * _FoamCurrentInfluence + float2(0.0, 0.5));
+    float2 UVA = position - currentDirection * lerpFactors.x;
+    float2 UVB = position - currentDirection * lerpFactors.y;
+
+    float4 foamMasksA = float4(0,0,0,0);
+    float4 foamMasksB = float4(0,0,0,0);
+    float4 foamMasks = float4(0,0,0,0);
+
+    float lerpFactor = 0;
+
+    if(_FoamCurrentInfluence > 0)
+        lerpFactor = pow(cos(lerpFactors.x * PI), 2);
+
+
+    // We still use lodBias for surface foam but force the LOD for deep foam because we want it blurrier.
+    if	(isSurfaceFoam)
+    {
+        foamMasksA = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, UVA * _FoamTiling);
+        if (_FoamCurrentInfluence > 0)
+            foamMasksB = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, UVB * _FoamTiling);
+    }
+    else
+    {
+        foamMasksA = SAMPLE_TEXTURE2D_LOD(_FoamTexture, s_linear_repeat_sampler, UVA * _FoamTiling, lod);
+        if (_FoamCurrentInfluence > 0)
+            foamMasksB = SAMPLE_TEXTURE2D_LOD(_FoamTexture, s_linear_repeat_sampler, UVB * _FoamTiling, lod);
+    }
+
+    foamMasks = lerp(foamMasksA, foamMasksB, lerpFactor);
+
     float microDistanceField = foamMasks.r;
     float temporalNoise = foamMasks.g;
     float foamNoise = saturate(foamMasks.b);
     float macroDistanceField = foamMasks.a;
 
     foamTime = saturate(foamTime);
-    foamTime = pow(foamTime, 4.0);
+    float initialFoamTime = pow(foamTime, 32);
 
     // Time offsets
     float microDistanceFieldInfluenceMin = 0.05;
     float microDistanceFieldInfluenceMax = 0.6;
-    float microDistanceFieldInfluence = -lerp(microDistanceFieldInfluenceMin, microDistanceFieldInfluenceMax, foamTime);
-    foamTime += (2.0 * microDistanceField - 1.0) * microDistanceFieldInfluence;
+    float microDistanceFieldInfluence = lerp(microDistanceFieldInfluenceMin, microDistanceFieldInfluenceMax, foamTime);
 
     float temporalNoiseInfluenceMin = 0.1;
     float temporalNoiseInfluenceMax = 0.2;
-    float temporalNoiseInfluence = -lerp(temporalNoiseInfluenceMin, temporalNoiseInfluenceMax, foamTime);
-    foamTime += (2.0 * temporalNoise - 1.0) * temporalNoiseInfluence;
+    float temporalNoiseInfluence = lerp(temporalNoiseInfluenceMin, temporalNoiseInfluenceMax, foamTime);
 
-    // easy way to make sure the erosion is over (there are many time offsets)
-    foamTime = Remap(0.0, 1.0, 0.0, 2.2, saturate(foamTime));
-    foamTime = saturate(foamTime);
+    float erosion = saturate(temporalNoise * temporalNoiseInfluence + microDistanceField * microDistanceFieldInfluence);
 
-    // sharpness
-    float sharpnessMin = 0.1;
-    float sharpnessMax = 5.0;
-    float alpha = Remap(foamTime, 1.0f, 0.0f, 1.0f, macroDistanceField);
-    alpha = saturate(alpha * lerp(sharpnessMax, sharpnessMin, foamTime));
+    foamTime -= erosion;
+    foamTime = smoothstep(0.1,0.9,foamTime);
 
-    // detail in alpha
-    float distanceFieldInAlpha = lerp(macroDistanceField, microDistanceField, 0.5f);
-    distanceFieldInAlpha = 1.0f - 0.45f * distanceFieldInAlpha;
-    float noiseInAlpha = pow(foamNoise, 0.3f);
+    float alpha, distanceFieldInAlpha = 0;
 
-    // fade
-    float fadeOverTime = 1.0 - foamTime;
+    // thoses type of erosions is only used for surface foam
+    if (isSurfaceFoam)
+    {
+        // sharpness
+        float sharpnessMin = 0.1;
+        float sharpnessMax = 5.0;
+        alpha = Remap(foamTime, 1.0f, 0.0f, 1.0f, macroDistanceField);
+        alpha = saturate(alpha * lerp(sharpnessMax, sharpnessMin, foamTime));
 
-    return (alpha * distanceFieldInAlpha * noiseInAlpha * fadeOverTime * 0.5);
+        // detail in alpha
+        distanceFieldInAlpha = lerp(macroDistanceField, microDistanceField, 0.5);
+        distanceFieldInAlpha = 1.0f - 0.45*distanceFieldInAlpha;
+    }
+
+    // This is for the foam to disappear up to the end.
+    foamTime += initialFoamTime;
+
+    float fadeOverTime = saturate(1.0 - foamTime);
+
+    if (isSurfaceFoam)
+        return (alpha * distanceFieldInAlpha * foamNoise * fadeOverTime);
+    else
+        return fadeOverTime;
 }
 
-float DeepFoam(float2 _UV, float foamTime)
-{
-    float4 foamMasks = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, _UV * _FoamTiling);
-    float microDistanceField = foamMasks.r;
-    float temporalNoise = foamMasks.g;
-    float foamNoise = saturate(foamMasks.b);
-    float macroDistanceField = foamMasks.a;
-
-    float noOffsetedTime = foamTime;
-
-    foamTime = saturate(foamTime);
-    foamTime = pow(foamTime, 4.0);
-
-    // Time offsets
-    float microDistanceFieldInfluenceMin = 0.2;
-    float microDistanceFieldInfluenceMax = 0.4;
-    float microDistanceFieldInfluence = -lerp(microDistanceFieldInfluenceMin, microDistanceFieldInfluenceMax, foamTime);
-    foamTime += (2.0 * microDistanceField - 1.0) * microDistanceFieldInfluence;
-
-    float temporalNoiseInfluenceMin = 0.15;
-    float temporalNoiseInfluenceMax = 0.6;
-    float temporalNoiseInfluence = -lerp(temporalNoiseInfluenceMin, temporalNoiseInfluenceMax, foamTime);
-    foamTime += (2.0 * temporalNoise - 1.0) * temporalNoiseInfluence;
-
-    foamTime = Remap(0.0, 1.0, 0.0, 2.0, saturate(foamTime));
-
-    foamTime = saturate(10.0 * foamTime);
-
-    float alpha = Remap(foamTime, 1.0f, 0.0f, 1.0f, macroDistanceField);
-    alpha = saturate(alpha);
-
-    // detail in alpha
-    float distanceFieldInAlpha = lerp(macroDistanceField, microDistanceField, 0.5f);
-    distanceFieldInAlpha = 1.0f - distanceFieldInAlpha;
-    float noiseInAlpha = pow(foamNoise, 4.0f);
-
-    alpha *= noiseInAlpha * distanceFieldInAlpha * 18.0f;
-    alpha += lerp(temporalNoise, 0.0, saturate(noOffsetedTime * 2.0f));
-
-    return  alpha;
-}
 
 #endif // FOAM_UTILITIES_H_

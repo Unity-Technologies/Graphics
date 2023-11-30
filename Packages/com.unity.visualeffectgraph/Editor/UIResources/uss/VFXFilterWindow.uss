@@ -1,0 +1,337 @@
+#Header {
+    flex-direction: Row;
+    background-color: var(--unity-colors-inspector_titlebar-background);
+}
+
+#SearchField {
+    width: auto;
+    margin: 12px 8px;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+/* List of variant toggle */
+#ListVariantToggle {
+    align-self: Center;
+    width: 22px;
+    height: 22px;
+}
+
+#ListVariantToggle  > VisualElement {
+    align-self: center;
+    width: 16px;
+    height: 16px;
+    background-size: Contain;
+    -unity-background-image-tint-color: #505050;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-hidden.png");
+}
+
+.dark #ListVariantToggle  > VisualElement {
+    -unity-background-image-tint-color: #C2C2C2;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-hidden.png");
+}
+
+#ListVariantToggle:checked > VisualElement {
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-visible.png");
+}
+
+.dark #ListVariantToggle:checked > VisualElement {
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-visible.png");
+}
+
+#ListVariantToggle #unity-checkmark {
+    display: none;
+}
+
+/* Expand / collapse details panel toggle */
+#CollapseButton {
+    align-self: Center;
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
+}
+
+#Header Toggle:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+#Header Toggle:active {
+    background-color: var(--unity-colors-button-background-hover_pressed);
+}
+
+#CollapseButton > VisualElement{
+    align-self: center;
+    width: 16px;
+    height: 16px;
+    background-size: Contain;
+    background-image: var(--unity-icons-arrow_left);
+}
+
+#CollapseButton:checked > VisualElement{
+    background-image: var(--unity-icons-arrow_right);
+}
+
+#CollapseButton #unity-checkmark {
+    display: none;
+}
+/*--------------*/
+
+#ListOfNodesPanel {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 200px;
+}
+
+#ListOfNodes {
+    padding: 8px;
+    min-width: 200px;
+}
+
+#DetailsPanel {
+    min-width: 200px;
+}
+
+Label {
+    flex-grow: 1;
+    -unity-text-align: middle-left;
+}
+
+.unity-tree-view__item {
+    background-color: rgba(0,0,0,0);
+}
+
+.unity-tree-view__item-toggle {
+}
+
+.unity-tree-view__item:hover {
+    background-color: var(--unity-colors-highlight-background-hover);
+}
+
+.unity-tree-view__item:selected {
+    background-color: var(--unity-colors-highlight-background);
+}
+
+.node-name {
+    margin: 0;
+    padding: 0;
+    flex-grow: 0;
+}
+
+.node-name.last-node-name {
+    flex-grow: 1;
+}
+
+.node-name.highlighted {
+    -unity-font-style: bold;
+    color: #FACA61;
+}
+
+.treenode {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.category Image {
+    width: 16px;
+    height: 16px;
+    align-self: center;
+    margin-right: 4px;
+    background-image: resource("Icons/Project.png");
+}
+
+.dark .category Image {
+    background-image: resource("Icons/d_Project.png");
+}
+
+.category.favorite Image {
+    margin-right: 4px;
+    background-image: resource("Icons/Favorite_colored.png");
+}
+
+.dark .category.favorite Image {
+    background-image: resource("Icons/d_Favorite_colored.png");
+}
+
+.treenode Button {
+    align-self: center;
+    width: 16px;
+    height: 16px;
+    border-width: 0;
+    border-radius: 0;
+    margin-right: 4px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.treenode:hover Button {
+background-image: resource("Icons/Favorite.png");
+}
+
+.dark .treenode:hover Button {
+    background-image: resource("Icons/d_Favorite.png");
+}
+
+.has-sub-variant .node-name.last-node-name {
+    background-position-x: right;
+    background-size: 16px 16px;
+    -unity-background-image-tint-color: #656565;
+    background-image: var(--unity-icons-foldout);
+}
+
+.has-sub-variant:hover .node-name.last-node-name {
+    -unity-background-image-tint-color: white;
+    background-image: var(--unity-icons-foldout-pressed);
+}
+
+.treeleaf.favorite Button, .treeleaf Button:hover {
+    background-image: resource("Icons/Favorite_colored.png");
+}
+
+.dark .treeleaf.favorite Button, .treeleaf Button:hover {
+    background-image: resource("Icons/d_Favorite_colored.png");
+}
+
+Label.category {
+    align-self: center;
+    height: 16px;
+    padding-left: 20px;
+    background-position-x: left;
+    background-size: contain;
+    -unity-background-image-tint-color: #505050;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Folder.png");
+}
+
+.dark Label.category {
+    -unity-background-image-tint-color: #C2C2C2;
+}
+
+.favorite Label.category {
+    background-position-x: left;
+    background-size: contain;
+    -unity-background-image-tint-color: white;
+    background-image: resource("Icons/Favorite_colored.png");
+}
+
+.dark .favorite Label.category {
+    background-image: resource("Icons/d_Favorite_colored.png");
+}
+
+/* Details panel */
+
+#Breadcrumbs:disabled {
+    margin: 8px;
+    flex-grow: 1;
+    opacity: 1;
+}
+
+#Breadcrumbs BreadcrumbItem {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+#TitleAndDoc {
+    padding: 5px;
+    flex-grow: 0;
+    align-items: flex-start;
+    flex-direction: row;
+    background-color: var(--unity-colors-inspector_titlebar-background);
+}
+
+#HelpButton {
+    align-self: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-width: 0;
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: resource("Icons/_Help@2x.png");
+}
+
+.dark #HelpButton {
+    background-image: resource("Icons/d__Help@2x.png");
+}
+
+#HelpButton:hover {
+    background-color: var(--unity-colors-button-background-hover);
+}
+
+#HelpButton:disabled {
+    display: none;
+}
+
+#Title {
+    margin: 4px 0 4px 16px;
+    flex-grow: 0;
+    font-size: 14px;
+    -unity-font-style: bold;
+    display: none;
+}
+
+#Description {
+    flex-grow: 1;
+    flex-wrap: wrap;
+    white-space: normal;
+}
+
+#ListOfVariants {
+    padding: 8px;
+    display: none;
+}
+
+#CategoryLabel {
+    margin: 12px 8px 0px 8px;
+    flex-grow: 0;
+    flex-wrap: wrap;
+    white-space: normal;
+}
+
+#ColorFieldRow {
+    flex-direction: row;
+}
+
+#CategoryColorField {
+    flex-grow: 1;
+    margin: 8px;
+}
+
+#ResetButton {
+    margin: 0 8px 1px 0;
+    align-self: center;
+    width: 20px;
+    height: 20px;
+    background-size: 80% 80%;
+    background-image: resource("Icons/Refresh@2x.png");
+}
+
+.dark #ResetButton {
+    background-image: resource("Icons/d_Refresh@2x.png");
+}
+
+#NoSubvariantLabel {
+    margin-left: 8px;
+    align-self: center;
+    padding-left: 20px;
+    flex-wrap: wrap;
+    white-space: normal;
+    background-position-x: left;
+    background-size: 16px 16px;
+    background-image: var(--unity-icons-console_entry_info_small);
+}
+
+#Resizer {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    width: 12px;
+    height: 12px;
+    cursor: resize-up-left;
+    -unity-background-image-tint-color: #505050;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/resizer.png");
+}
+
+.dark #Resizer {
+    -unity-background-image-tint-color: #C2C2C2;
+}

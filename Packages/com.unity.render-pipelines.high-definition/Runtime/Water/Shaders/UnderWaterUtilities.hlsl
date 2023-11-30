@@ -13,7 +13,7 @@ StructuredBuffer<float> _WaterCameraHeightBuffer;
 
 float GetWaterCameraHeight()
 {
-    return _WaterCameraHeightBuffer[unity_StereoEyeIndex];
+    return _WaterCameraHeightBuffer[4 * unity_StereoEyeIndex];
 }
 
 StructuredBuffer<uint> _WaterLine;
@@ -126,7 +126,8 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
 }
 
 #if defined(_ENABLE_FOG_ON_TRANSPARENT) || defined(SUPPORT_WATER_ABSORPTION)
-// This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog
+// This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog (which
+// includes volumetric clouds combine pass)
 bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor, out float3 color, out float3 opacity)
 {
     color = opacity = 0;
@@ -136,7 +137,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
     float waterDepth = UNITY_RAW_FAR_CLIP_VALUE;
     bool underWater = IsUnderWater(posInput.positionSS.xy);
 
-#ifdef _ENABLE_FOG_ON_TRANSPARENT
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG_ON_TRANSPARENT)
     [branch]
     if (_PreRefractionPass != 0)
 #else
@@ -180,11 +181,11 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
 
             if (!hasWater) // caustics on pixels with water are applied during gbuffer pass
             {
-                #ifdef SUPPORT_WATER_CAUSTICS 
+                #ifdef SUPPORT_WATER_CAUSTICS
                 caustics = EvaluateSimulationCaustics(posInput.positionWS, distanceToSurface, posInput.positionNDC.xy);
                 #endif
 
-                #ifdef SUPPORT_WATER_CAUSTICS_SHADOW 
+                #ifdef SUPPORT_WATER_CAUSTICS_SHADOW
                 if (_DirectionalShadowIndex >= 0) // In case the user asked for shadow to explicitly be affected by shadows
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
@@ -215,7 +216,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
         opacity = 1 - caustics * absorptionTint;
 
         #ifdef _ENABLE_FOG_ON_TRANSPARENT
-        if (_PreRefractionPass == 0 || hasExcluder)
+        if (_PreRefractionPass == 0 && hasExcluder)
         {
             // If we are here, this means we are seing a transparent that is in front of an opaque with an excluder
             // Use case is a looking through a boat window from the exterior. We need to opacify the object to make underwater

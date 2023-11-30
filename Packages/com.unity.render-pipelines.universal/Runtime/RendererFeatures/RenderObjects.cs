@@ -1,12 +1,11 @@
-using System.Collections.Generic;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// The queue type for the objects to render.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
     public enum RenderQueueType
     {
         /// <summary>
@@ -24,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// The class for the render objects renderer feature.
     /// </summary>
     [ExcludeFromPreset]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
     [Tooltip("Render Objects simplifies the injection of additional render passes by exposing a selection of commonly used settings.")]
     [URPHelpURL("renderer-features/renderer-feature-render-objects")]
     public class RenderObjects : ScriptableRendererFeature

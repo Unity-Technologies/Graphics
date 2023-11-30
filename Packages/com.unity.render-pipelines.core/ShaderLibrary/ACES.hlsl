@@ -1,7 +1,7 @@
 #ifndef __ACES__
 #define __ACES__
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -231,12 +231,22 @@ half ACES_to_ACEScc(half x)
         return (log2(x) + 9.72) / 17.52;
 }
 
+half ACES_to_ACEScc_fast(half x)
+{
+    // x is clamped to [0, HALF_MAX], skip the <= 0 check
+    return (x < 0.00003051757) ? (log2(0.00001525878 + x * 0.5) + 9.72) / 17.52 : (log2(x) + 9.72) / 17.52;
+}
+
 half3 ACES_to_ACEScc(half3 x)
 {
     x = clamp(x, 0.0, HALF_MAX);
 
     // x is clamped to [0, HALF_MAX], skip the <= 0 check
-    return (x < 0.00003051757) ? (log2(0.00001525878 + x * 0.5) + 9.72) / 17.52 : (log2(x) + 9.72) / 17.52;
+    return half3(
+        ACES_to_ACEScc_fast(x.r),
+        ACES_to_ACEScc_fast(x.g),
+        ACES_to_ACEScc_fast(x.b)
+        );
 
     /*
     return half3(
@@ -723,7 +733,8 @@ static const half DIM_SURROUND_GAMMA = 0.9811;
 
 half3 darkSurround_to_dimSurround(half3 linearCV)
 {
-    half3 XYZ = mul(AP1_2_XYZ_MAT, linearCV);
+    // Extra conversions to float3/half3 are required to avoid floating-point precision issues on some platforms.
+    half3 XYZ = (half3)mul(AP1_2_XYZ_MAT, (float3)linearCV);
 
     half3 xyY = XYZ_2_xyY(XYZ);
     xyY.z = clamp(xyY.z, 0.0, HALF_MAX);
@@ -779,11 +790,6 @@ half roll_white_fwd(
     else
         o = -((t * a + b) * t + c);
     return o;
-}
-
-half3 linear_to_sRGB(half3 x)
-{
-    return (x <= 0.0031308 ? (x * 12.9232102) : 1.055 * pow(x, 1.0 / 2.4) - 0.055);
 }
 
 half3 linear_to_bt1886(half3 x, half gamma, half Lw, half Lb)

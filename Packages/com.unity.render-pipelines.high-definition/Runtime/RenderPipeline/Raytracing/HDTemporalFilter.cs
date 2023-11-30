@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -39,10 +39,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRuntimeResources rpResources)
+        public void Init(HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
-            m_TemporalFilterCS = rpResources.shaders.temporalFilterCS;
+            m_TemporalFilterCS = renderPipeline.runtimeShaders.temporalFilterCS;
 
             m_ValidateHistoryKernel = m_TemporalFilterCS.FindKernel("ValidateHistory");
 

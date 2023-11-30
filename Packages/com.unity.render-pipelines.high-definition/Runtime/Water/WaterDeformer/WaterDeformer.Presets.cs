@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -47,6 +47,15 @@ namespace UnityEngine.Rendering.HighDefinition
             waterDeformer.amplitude = 0.5f;
             waterDeformer.texture = null;
             waterDeformer.range = new Vector2(0.0f, 1.0f);
+        }
+
+        static internal void ApplyWaterMaterialDeformerPreset(WaterDeformer waterDeformer)
+        {
+            waterDeformer.regionSize = new Vector2(10f, 10.0f);
+            waterDeformer.resolution = new Vector2Int(256, 256);
+            waterDeformer.updateMode = CustomRenderTextureUpdateMode.OnLoad;
+            waterDeformer.amplitude = 1.0f;
+            waterDeformer.material = null;
         }
     }
 }

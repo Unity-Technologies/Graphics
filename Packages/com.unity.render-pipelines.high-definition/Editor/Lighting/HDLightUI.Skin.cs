@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent directionalIntensity = EditorGUIUtility.TrTextContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
             public readonly GUIContent punctualIntensity = EditorGUIUtility.TrTextContent("Intensity (Lumen)", "Luminous power of the Light in lumen.");
             public readonly GUIContent areaIntensity = EditorGUIUtility.TrTextContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
-            public readonly GUIContent lightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
+            public readonly GUIContent lightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.\nSetting this value to zero will disable the light.");
 
             public readonly GUIContent lightRadius = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highlight, and the softness of Ray Traced shadows.");
             public readonly GUIContent affectDiffuse = EditorGUIUtility.TrTextContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shapeWidthTube = EditorGUIUtility.TrTextContent("Length", "Length of the Tube Light.");
             public readonly GUIContent shapeWidthRect = EditorGUIUtility.TrTextContent("Size X", "Sets the width of the Rectangle Light.");
             public readonly GUIContent shapeHeightRect = EditorGUIUtility.TrTextContent("Size Y", "Sets the height of the Rectangle Light.");
+            public readonly GUIContent shapeRadiusDisc = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the Disc Light.");
             public readonly GUIContent barnDoorAngle = EditorGUIUtility.TrTextContent("Barn Door Angle", "Sets the angle of the Rectangle Light so that is behaves like a barn door.");
             public readonly GUIContent barnDoorLength = EditorGUIUtility.TrTextContent("Barn Door Length", "Sets the length for the barn door.");
             public readonly GUIContent aspectRatioPyramid = EditorGUIUtility.TrTextContent("Aspect ratio", "Controls the aspect ration of the Pyramid Light's projection. A value of 1 results in a square.");
@@ -75,15 +76,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent interactsWithSky = EditorGUIUtility.TrTextContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent angularDiameter = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk and affects the sharpness of shadows.");
-            public readonly GUIContent diameterMultiplier = EditorGUIUtility.TrTextContent("Diameter Multiplier", "Multiplier of the angular diameter of the celestial body to affect the size of the disk without impacting shadows.");
-            public readonly GUIContent diameterOverride = EditorGUIUtility.TrTextContent("Diameter Override", "Override of the angular diameter of the celestial body to affect the size of the disk without impacting shadows.");
-            public readonly GUIContent bodyType = EditorGUIUtility.TrTextContent("Body Type", "Controls wether the celestial body should be considered as a star or a moon.");
+
+            // Celestial Body
+            public readonly GUIContent diameterMultiplier = EditorGUIUtility.TrTextContent("Angular Diameter Multiplier", "Angular diameter used to render the celestial body in the sky without affecting the sharpness of shadows. This value is multiplied by the Angular Diameter set in the Shape section.");
+            public readonly GUIContent diameterOverride = EditorGUIUtility.TrTextContent("Angular Diameter", "Angular diameter used to render the celestial body in the sky without affecting the sharpness of shadows.");
+            public readonly GUIContent distance = EditorGUIUtility.TrTextContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. This value is only used for sorting.");
+            public readonly GUIContent surfaceColor = EditorGUIUtility.TrTextContent("Surface Color", "Texture of the surface of the celestial body.");
+            public readonly GUIContent shadingSource = EditorGUIUtility.TrTextContent("Shading", "Specify the light source used for shading of the Celestial Body.\nIt can either emit it's own light, receive it from a Light in the scene, or using manual settings.");
+            public readonly GUIContent sunLightOverride = EditorGUIUtility.TrTextContent("Sun Light Override", "Specifiy the Directional Light that should illuminate this Celestial Body.\nIf not specified, HDRP will use the directional light in the scene with the highest intensity.");
+            public readonly GUIContent sunColor = EditorGUIUtility.TrTextContent("Sun Color", "Color of the light source.");
+            public readonly GUIContent sunIntensity = EditorGUIUtility.TrTextContent("Sun Intensity", "Intensity of the light source.");
+            public readonly GUIContent phase = EditorGUIUtility.TrTextContent("Phase", "Controls the area of the surface illuminated by the Sun.");
+            public readonly GUIContent phaseRotation = EditorGUIUtility.TrTextContent("Phase Rotation", "Rotates the Light Source relatively to the Celestial Body.");
+            public readonly GUIContent earthshine = EditorGUIUtility.TrTextContent("Earthshine", "Intensity of the light reflected from the planet onto the Celestial Body.");
+            public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Intensity of the light emitted by the Celestial Body.");
             public readonly GUIContent flareSize = EditorGUIUtility.TrTextContent("Flare Size", "Size of the flare around the celestial body (in degrees).");
             public readonly GUIContent flareTint = EditorGUIUtility.TrTextContent("Flare Tint", "Tints the flare of the celestial body");
             public readonly GUIContent flareFalloff = EditorGUIUtility.TrTextContent("Flare Falloff", "The falloff rate of flare intensity as the angle from the light increases.");
-            public readonly GUIContent surfaceTexture = EditorGUIUtility.TrTextContent("Surface Texture", "2D (disk) texture of the surface of the celestial body. Acts like a multiplier.");
-            public readonly GUIContent surfaceTint = EditorGUIUtility.TrTextContent("Surface Tint", "Tints the surface of the celestial body");
-            public readonly GUIContent distance = EditorGUIUtility.TrTextContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. Primarily used for sorting.");
+            public readonly GUIContent flareMultiplier = EditorGUIUtility.TrTextContent("Flare Multiplier", "Multiplier applied on the flare intensity.");
+
 
             public readonly GUIContent shape = EditorGUIUtility.TrTextContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent enableSpotReflector = EditorGUIUtility.TrTextContent("Reflector", "When enabled, HDRP simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
@@ -135,8 +146,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent evsmLightLeakBias = EditorGUIUtility.TrTextContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = EditorGUIUtility.TrTextContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
             public readonly GUIContent evsmAdditionalBlurPasses = EditorGUIUtility.TrTextContent("Blur passes", "Increasing this will increase the softness of the shadow, but it will severely impact performance.");
-            public readonly GUIContent dirLightPCSSMaxBlockerDistance = EditorGUIUtility.TrTextContent("Max Blocker Distance", "Maximum distance of PCSS shadow blockers limiting blur filter kernel size, larger kernels may require more samples to avoid quality degradation.");
-            public readonly GUIContent dirLightPCSSMaxSamplingDistance = EditorGUIUtility.TrTextContent("Max Sampling Distance", "Maximum distance from the receiver PCSS shadow sampling occurs, lower to avoid light bleeding but may cause self-shadowing");
+            public readonly GUIContent dirLightPCSSMaxPenumbraSize = EditorGUIUtility.TrTextContent("Max Penumbra Size", "Maximum size (in world space) of PCSS shadow penumbra limiting blur filter kernel size, larger kernels may require more samples to avoid quality degradation.");
+            public readonly GUIContent dirLightPCSSMaxSamplingDistance = EditorGUIUtility.TrTextContent("Max Sampling Distance", "Maximum distance (in world space) from the receiver PCSS shadow sampling occurs, lower to avoid light bleeding but may cause self-shadowing");
             public readonly GUIContent dirLightPCSSMinFilterSizeTexels = EditorGUIUtility.TrTextContent("Min Filter", "Minimum filter size (in shadowmap texels) to avoid aliasing close to caster");
             public readonly GUIContent dirLightPCSSMinFilterMaxAngularDiameter = EditorGUIUtility.TrTextContent("Min Filter Max Angular Diameter", "Maximum angular diameter to reach minimum filter size, lower to avoid self-shadowing but may cause light bleeding");
             public readonly GUIContent dirLightPCSSBlockerSearchAngularDiameter = EditorGUIUtility.TrTextContent("Blocker Search Angular Diameter", "Angular diameter to use for blocker search, increase to avoid missing hidden close blockers but may cause self-shadowing");
@@ -150,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent maxDepthBias = EditorGUIUtility.TrTextContent("Max Depth Bias");
 
             // Layers
-            public readonly GUIContent unlinkLightAndShadowLayersText = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows seperately to lighting. When disabled, the Rendering Layer Mask property in the General section specifies the layers for both lighting and shadows.");
+            public readonly GUIContent unlinkLightAndShadowLayersText = EditorGUIUtility.TrTextContent("Custom Shadow Layers", "When enabled, you can use the Layer property below to specify the layers for shadows separately to lighting. When disabled, the Rendering Layer Mask property in the General section specifies the layers for both lighting and shadows.");
             public readonly GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layers", "Specifies the rendering layer mask to use for shadows.");
 
             // Settings
@@ -158,6 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Warnings
             public readonly string unsupportedLightShapeWarning = L10n.Tr("This light shape is not supported by Realtime Global Illumination.");
+            public readonly GUIContent areaLightVolumetricsWarning = EditorGUIUtility.TrTextContent("Area Light Volumetrics settings are only taken into account with Path Tracing.");
         }
 
         static Styles s_Styles = new Styles();

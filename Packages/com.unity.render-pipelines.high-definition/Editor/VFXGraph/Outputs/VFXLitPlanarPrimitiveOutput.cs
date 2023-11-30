@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
@@ -5,16 +6,29 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
+    class VFXLitPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
+            {
+                yield return new Variant(
+                    $"Lit Output Particle {primitive}",
+                    "Output",
+                    typeof(VFXLitPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
+            }
+        }
+    }
+
+    [VFXInfo(variantProvider = typeof(VFXLitPlanarPrimitiveOutputProvider))]
     class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
     {
         public override string name
         {
             get
             {
-                return !string.IsNullOrEmpty(shaderName)
-                ? $"Output Particle {shaderName} {primitiveType.ToString()}"
-                : "Output Particle HDRP Lit " + primitiveType.ToString();
+                return "Output Particle HDRP Lit " + primitiveType.ToString();
             }
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
@@ -39,7 +53,7 @@ namespace UnityEditor.VFX.HDRP
             get
             {
                 var properties = base.inputProperties;
-                if (normalBending && !GeneratesWithShaderGraph())
+                if (normalBending)
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
@@ -81,7 +95,7 @@ namespace UnityEditor.VFX.HDRP
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (normalBending && !GeneratesWithShaderGraph())
+            if (normalBending)
                 yield return slotExpressions.First(o => o.name == "normalBendingFactor");
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
@@ -94,7 +108,7 @@ namespace UnityEditor.VFX.HDRP
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                if (normalBending && !GeneratesWithShaderGraph())
+                if (normalBending)
                     yield return "USE_NORMAL_BENDING";
 
                 yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest

@@ -5,7 +5,8 @@
         "Unity.Postprocessing.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Testing.XR.Runtime",
-        "UnityEngine.TestTools.Graphics"
+        "UnityEngine.TestTools.Graphics",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

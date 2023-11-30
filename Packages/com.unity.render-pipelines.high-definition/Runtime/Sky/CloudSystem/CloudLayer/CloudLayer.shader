@@ -15,6 +15,7 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudSystem/CloudLayer/CloudLayerCommon.hlsl"
 
     struct Attributes
@@ -61,9 +62,26 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
     RenderOutput FragRender(Varyings input)
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float4 color = RenderClouds(input.positionCS.xy);
+        float3 V = GetSkyViewDirWS(input.positionCS.xy);
+        float4 color = RenderClouds(-V);
         color.rgb *= GetCurrentExposureMultiplier();
         RenderOutput output;
+
+        {
+            float linearDepth = IntersectSphere(_LowestAltitude(0), -V.y, _PlanetaryRadius).y;
+            float3 positionWS = -V * linearDepth;
+
+            // Compute pos inputs
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, positionWS);
+            posInput.linearDepth = linearDepth;
+            posInput.deviceDepth = UNITY_NEAR_CLIP_VALUE; // unused, just to avoid culling
+
+            // Apply atmospheric fog
+            float3 volColor, volOpacity;
+            EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+            color.xyz = color.xyz * (1 - volOpacity) + volColor * color.a;
+        }
+
         output.colorBuffer = color;
 
         #ifdef CLOUD_RENDER_OPACITY_MRT

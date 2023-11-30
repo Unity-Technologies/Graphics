@@ -3,10 +3,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithAABox")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with AABox", category = "Collision")]
     class CollisionAABox : CollisionBase
     {
-        public override string name { get { return "Collide with AABox"; } }
+        public override string name => "Collide with AABox";
 
         public class InputProperties
         {

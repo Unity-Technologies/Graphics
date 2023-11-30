@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.Experimental.GraphView;
-
+using UnityEditor.VFX.Block;
 using NodeID = System.UInt32;
 
 namespace UnityEditor.VFX.UI
@@ -266,7 +266,9 @@ namespace UnityEditor.VFX.UI
                     m_TargetController.useCount++;
                     m_TargetControllers = new List<VFXNodeController>();
                 }
+                CopyCustomAttributes<VFXOperatorController>(sourceView, controllers);
                 CopyPasteNodes();
+
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();
                 m_SourceControllersWithBlocks = m_SourceControllers.Concat(m_SourceControllers.OfType<VFXContextController>().SelectMany(t => t.blockControllers));
@@ -322,6 +324,7 @@ namespace UnityEditor.VFX.UI
                 targetContext.SetSettingValue("m_SuitableContexts", (VFXBlockSubgraphContext.ContextType)m_SourceBlockControllers.Select(t => t.model.compatibleContexts).Aggregate((t, s) => t & s));
                 m_TargetBlocks = new List<VFXBlockController>();
 
+                CopyCustomAttributes<VFXBlockController>(sourceView, controllers);
                 VFXPaste.PasteBlocks(m_TargetController, copyData, targetContext, 0, m_TargetBlocks);
                 VFXPaste.PasteStickyNotes(m_TargetController, copyData);
 
@@ -492,7 +495,7 @@ namespace UnityEditor.VFX.UI
 
                 for (int i = 0; i < newSourceInputs.Length; ++i)
                 {
-                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.model.type == newSourceInputs[i].portType));
+                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.modelType == newSourceInputs[i].portType).variant);
 
                     m_TargetController.LightApplyChanges();
 
@@ -622,7 +625,7 @@ namespace UnityEditor.VFX.UI
 
                 for (int i = 0; i < newSourceOutputs.Length; ++i)
                 {
-                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.model.type == newSourceOutputs[i].portType));
+                    VFXParameter newTargetParameter = m_TargetController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.variant.modelType == newSourceOutputs[i].portType).variant);
 
                     m_TargetController.LightApplyChanges();
 
@@ -740,6 +743,31 @@ namespace UnityEditor.VFX.UI
                     {
                         CreateAndLinkEvent(m_SourceControllers, m_TargetController, m_TargetControllers, kv.Value, kv.Key);
                     }
+                }
+            }
+
+            private void CopyCustomAttributes<T>(VFXView sourceView, IEnumerable<Controller> controllers) where T : VFXNodeController
+            {
+                // Only copy custom attributes which are used by nodes to convert
+                var attributeManager = sourceView.controller.graph.attributesManager;
+                var usedCustomAttributes = new HashSet<VFXAttribute>();
+                foreach (var controller in controllers.OfType<T>())
+                {
+                    if (controller.model is IVFXAttributeUsage attributeUsage)
+                    {
+                        foreach (var attribute in attributeUsage.usedAttributes)
+                        {
+                            if (attributeManager.IsCustom(attribute.name))
+                            {
+                                usedCustomAttributes.Add(attribute);
+                            }
+                        }
+                    }
+                }
+
+                foreach (var customAttribute in usedCustomAttributes)
+                {
+                    m_TargetController.graph.TryAddCustomAttribute(customAttribute.name, customAttribute.type, customAttribute.description, false, out _);
                 }
             }
         }

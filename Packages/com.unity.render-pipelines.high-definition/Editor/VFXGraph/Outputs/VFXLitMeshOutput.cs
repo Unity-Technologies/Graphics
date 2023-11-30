@@ -1,20 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
 using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle HDRP Lit Mesh", category = "Output")]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput
     {
         public override string name
         {
             get
             {
-                return !string.IsNullOrEmpty(shaderName)
-                ? $"Output Particle {shaderName} Mesh"
-                : "Output Particle HDRP Lit Mesh";
+                return "Output Particle HDRP Lit Mesh";
             }
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }

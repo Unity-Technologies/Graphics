@@ -67,12 +67,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var typeString in m_CustomPostProcessTypesAsString)
             {
-                var customPostProcessComponentType = Type.GetType(typeString);
-                if (customPostProcessComponentType == null)
-                    throw new ArgumentNullException($"{nameof(typeString)} is not a type");
+                if (string.IsNullOrEmpty(typeString))
+                    throw new ArgumentNullException($"{nameof(typeString)} is empty");
 
                 var type = Type.GetType(typeString);
-                if (typeof(CustomPostProcessVolumeComponent).IsAssignableFrom(type))
+                if (type != null && typeof(CustomPostProcessVolumeComponent).IsAssignableFrom(type))
                     m_CustomPostProcessTypes.Add(type);
             }
         }

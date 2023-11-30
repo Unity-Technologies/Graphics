@@ -418,9 +418,42 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0, 1)]
         public float deepLearningSuperSamplingSharpening = 0;
 
+        /// <summary>Allow FidelityFX Super Resolution (FSR2) on this camera.</summary>
+        [Tooltip("Allow FidelityFX Super Resolution (FSR2) on this camera.")]
+        public bool allowFidelityFX2SuperResolution = true;
+
+        /// <summary>If set to true, AMD FidelityFX 2.0 Super Resolution (FSR2) will utilize the Quality setting set on this camera instead of the one specified in the quality asset.</summary>
+        [Tooltip("If set to true, AMD FidelityFX 2.0 Super Resolution (FSR2) will utilize the Quality setting set on this camera instead of the one specified in the quality asset.")]
+        public bool fidelityFX2SuperResolutionUseCustomQualitySettings = false;
+
+        /// <summary>Selects a performance quality setting for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera of this project.</summary>
+        [Tooltip("Selects a performance quality setting for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera of this project.")]
+        public uint fidelityFX2SuperResolutionQuality = 0;
+
+        /// <summary>If set to true, AMD FidelityFX 2.0 Super Resolution (FSR2) will utilize the attributes (Optimal Settings and Sharpness) specified on this camera instead of the ones specified in the quality asset of this project.</summary>
+        [Tooltip("If set to true, AMD FidelityFX 2.0 Super Resolution (FSR2) will utilize the attributes (Optimal Settings and Sharpness) specified on this camera, instead of the ones specified in the quality asset of this project.")]
+        public bool fidelityFX2SuperResolutionUseCustomAttributes = false;
+
+        /// <summary>Sets the scale automatically for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera, depending on the values of quality settings.</summary>
+        [Tooltip("Sets the scale automatically for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera, depending on the values of quality settings.")]
+        public bool fidelityFX2SuperResolutionUseOptimalSettings = true;
+
+        /// <summary>Enables the Sharpening pass for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera.</summary>
+        [Tooltip("Enables the Sharpening pass for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera.")]
+        public bool fidelityFX2SuperResolutionEnableSharpening = false;
+
+        /// <summary>Sets the Sharpening value for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera.</summary>
+        [Tooltip("Sets the Sharpening value for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera.")]
+        [Range(0, 1)]
+        public float fidelityFX2SuperResolutionSharpening = 0;
+
         /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
         [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
+
+        /// internal state set by the runtime whether FSR2 is enabled or not on this camera, depending on the results of all other settings.
+        [ExcludeCopy]
+        internal bool cameraCanRenderFSR2 = false;
 
         /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>
         [Tooltip("If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.")]
@@ -665,6 +698,13 @@ namespace UnityEngine.Rendering.HighDefinition
             data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
             data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
 
+            data.allowFidelityFX2SuperResolution = allowFidelityFX2SuperResolution;
+            data.fidelityFX2SuperResolutionUseCustomQualitySettings = fidelityFX2SuperResolutionUseCustomQualitySettings;
+            data.fidelityFX2SuperResolutionQuality = fidelityFX2SuperResolutionQuality;
+            data.fidelityFX2SuperResolutionUseCustomAttributes = fidelityFX2SuperResolutionUseCustomAttributes;
+            data.fidelityFX2SuperResolutionUseOptimalSettings = fidelityFX2SuperResolutionUseOptimalSettings;
+            data.fidelityFX2SuperResolutionEnableSharpening = fidelityFX2SuperResolutionEnableSharpening;
+            data.fidelityFX2SuperResolutionSharpening = fidelityFX2SuperResolutionSharpening;
             data.fsrOverrideSharpness = fsrOverrideSharpness;
             data.fsrSharpness = fsrSharpness;
 

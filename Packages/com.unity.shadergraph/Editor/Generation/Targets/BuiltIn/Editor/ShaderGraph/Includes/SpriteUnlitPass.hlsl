@@ -28,7 +28,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     clip(color.a - surfaceDescription.AlphaClipThreshold);
 #endif
 
-#ifndef HAVE_VFX_MODIFICATION
+#if !defined(HAVE_VFX_MODIFICATION) && !defined(_DISABLE_COLOR_TINT)
     color *= unpacked.color;
 #endif
 

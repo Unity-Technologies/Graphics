@@ -26,6 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Materials and Compute shaders
         Material m_FoamMaterial;
+        
+        // The pass used in the WaterFoam.shader
+        int m_ShoreWaveFoamGenerationPass;
+        int m_OtherFoamGenerationPass;
+        int m_ReprojectionPass;
+        
         ComputeShader m_WaterFoamCS;
         int m_ReprojectFoamKernel;
         int m_PostProcessFoamKernel;
@@ -42,13 +48,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ActiveWaterFoam)
                 return;
 
-            m_FoamMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterFoamPS);
+            m_FoamMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.waterFoamPS);
             m_WaterFoamGeneratorDataCPU = new NativeArray<WaterGeneratorData>(k_MaxNumWaterFoamGenerators, Allocator.Persistent);
             m_WaterFoamGeneratorData = new ComputeBuffer(k_MaxNumWaterFoamGenerators, System.Runtime.InteropServices.Marshal.SizeOf<WaterGeneratorData>());
             m_FoamTextureAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize, 0, GraphicsFormat.R16G16_UNorm, name: "Water Foam Atlas", useMipMap: false);
-            m_WaterFoamCS = defaultResources.shaders.waterFoamCS;
+            m_WaterFoamCS = runtimeShaders.waterFoamCS;
             m_ReprojectFoamKernel = m_WaterFoamCS.FindKernel("ReprojectFoam");
             m_PostProcessFoamKernel = m_WaterFoamCS.FindKernel("PostProcessFoam");
+            
+            m_ShoreWaveFoamGenerationPass = m_FoamMaterial.FindPass("ShoreWaveFoamGeneration");
+            m_OtherFoamGenerationPass = m_FoamMaterial.FindPass("OtherFoamGeneration");
+            m_ReprojectionPass = m_FoamMaterial.FindPass("Reprojection");
         }
 
         void ReleaseWaterFoam()
@@ -84,6 +94,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!m_FoamTextureAtlas.ReserveSpace(foamGenerator.texture))
                         needRelayout = true;
                 }
+                else if (foamGenerator.type == WaterFoamGeneratorType.Material && foamGenerator.IsValidMaterial())
+                {
+                    if (!m_FoamTextureAtlas.ReserveSpace(foamGenerator.GetMaterialAtlasingId(), foamGenerator.resolution.x, foamGenerator.resolution.y))
+                        needRelayout = true;
+                }
             }
 
             // Ask for a relayout
@@ -100,6 +115,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Grab the current generator to process
                 WaterFoamGenerator currentGenerator = foamGenerators[generatorIdx];
 
+                // If this is a texture deformer without a texture skip it
+                if (currentGenerator.type == WaterFoamGeneratorType.Texture && currentGenerator.texture == null)
+                    continue;
+                if (currentGenerator.type == WaterFoamGeneratorType.Material && !currentGenerator.IsValidMaterial())
+                    continue;
+
                 // Generator properties
                 data.position = currentGenerator.transform.position;
                 data.type = (int)currentGenerator.type;
@@ -108,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.deepFoamDimmer = currentGenerator.deepFoamDimmer;
                 data.surfaceFoamDimmer = currentGenerator.surfaceFoamDimmer;
 
-                if (currentGenerator.type == WaterFoamGeneratorType.Texture && currentGenerator.texture != null)
+                if (currentGenerator.type == WaterFoamGeneratorType.Texture)
                 {
                     Texture tex = currentGenerator.texture;
                     if (!m_FoamTextureAtlas.IsCached(out var scaleBias, m_FoamTextureAtlas.GetTextureID(tex)) && outOfSpace)
@@ -116,6 +137,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_FoamTextureAtlas.NeedsUpdate(tex, false))
                         m_FoamTextureAtlas.BlitTexture(cmd, scaleBias, tex, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_FoamTextureAtlas.GetTextureID(tex));
+                    data.scaleOffset = scaleBias;
+                }
+                else if (currentGenerator.type == WaterFoamGeneratorType.Material)
+                {
+                    Material mat = currentGenerator.material;
+                    if (!m_FoamTextureAtlas.IsCached(out var scaleBias, currentGenerator.GetMaterialAtlasingId()) && outOfSpace)
+                        Debug.LogError($"No more space in the 2D Water Generator Altas to store the material {mat}. To solve this issue, increase the resolution of the Generator Atlas Size in the current HDRP asset.");
+
+                    {
+                        var size = (int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize;
+                        cmd.SetRenderTarget(m_FoamTextureAtlas.AtlasTexture);
+                        cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
+                        cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.FoamGenerator, MeshTopology.Triangles, 3, 1, currentGenerator.mpb);
+                    }
+
                     data.scaleOffset = scaleBias;
                 }
 
@@ -191,13 +227,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply an attenuation on the existing foam
                 CoreUtils.SetRenderTarget(cmd, tmpFoamBuffer);
-                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 2, MeshTopology.Triangles, 3, 1);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ReprojectionPass, MeshTopology.Triangles, 3, 1);
 
                 // Then we render the deformers and the generators
                 if (waterDeformers)
-                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ShoreWaveFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
                 if (foamGenerators)
-                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, 1, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_OtherFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators);
 
                 // To avoid the swap in swap out of the textures, we do this.
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_PostProcessFoamKernel, HDShaderIDs._WaterFoamBuffer, tmpFoamBuffer);

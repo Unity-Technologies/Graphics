@@ -98,7 +98,7 @@ namespace UnityEditor.VFX
             }
 
             if (!valid)
-                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
+                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect Shaders.");
 
             return valid;
         }

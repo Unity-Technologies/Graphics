@@ -1,0 +1,130 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolumeUploadDataCommon.hlsl"
+
+#pragma kernel UploadData
+
+#pragma multi_compile_local _ PROBE_VOLUMES_SHARED_DATA
+#pragma multi_compile_local _ PROBE_VOLUMES_SKY_OCCLUSION
+#pragma multi_compile_local _ PROBE_VOLUMES_SKY_SHADING_DIRECTION
+
+RWTexture3D<float4> _Out_L0_L1Rx;
+RWTexture3D<float4> _Out_L1G_L1Ry;
+RWTexture3D<float4> _Out_L1B_L1Rz;
+
+#ifdef PROBE_VOLUMES_SHARED_DATA
+
+RWTexture3D<float> _Out_Shared;
+
+#ifdef PROBE_VOLUMES_SKY_OCCLUSION
+
+RWTexture3D<float4> _Out_SkyOcclusionL0L1;
+
+#ifdef PROBE_VOLUMES_SKY_SHADING_DIRECTION
+
+RWTexture3D<float> _Out_SkyShadingDirectionIndices;
+
+#endif
+#endif
+#endif
+
+
+[numthreads(64, 1, 1)]
+void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint chunkIndex = dispatchThreadID.z;
+    uint chunkProbeIndex = dispatchThreadID.x * 4; // One thread processes 4 probes.
+
+    uint offsetL0_L1Rx = _L0L1rxOffset + chunkIndex * _L0Size + chunkProbeIndex * _L0ProbeSize; // 4 x 8 bytes probes.
+    uint offsetL1G_L1Ry = _L1GryOffset + chunkIndex * _L1Size + chunkProbeIndex * _L1ProbeSize; // 4 x 4 bytes probes.
+    uint offsetL1B_L1Rz = _L1BrzOffset + chunkIndex * _L1Size + chunkProbeIndex * _L1ProbeSize; // 4 x 4 bytes probes.
+    uint offsetValidity = _ValidityOffset + chunkIndex * _ValiditySize + chunkProbeIndex * _ValidityProbeSize; // 4 x 1 bytes probes.
+    uint offsetSkyOcclusion = _SkyOcclusionOffset + chunkIndex * _SkyOcclusionSize + chunkProbeIndex * _SkyOcclusionProbeSize; // 4 x 8 bytes probes.
+    uint offsetSkyShadingDirection = _SkyShadingDirectionOffset + chunkIndex * _SkyShadingDirectionSize + chunkProbeIndex * _SkyShadingDirectionProbeSize; // 4 x 1 bytes probes.
+
+    // We extract 4 probes at a time.
+    // This is driven by the minimum amount of data that we can load at once with a ByteAddressBuffer
+    // Shared data is currently 1 byte per probe so we can load at minimum 4 probes at a time with one ByteAddressBuffer.Load(uint)
+
+    // Extract L0L1Rx (fp16 encoded)
+    // 1 probe == 8 bytes => 2x2 probes encoded in 2x4 uint
+    float4 L0_L1Rx_probe_0, L0_L1Rx_probe_1, L0_L1Rx_probe_2, L0_L1Rx_probe_3;
+    ExtractFP16(_ScratchBuffer.Load4(offsetL0_L1Rx), L0_L1Rx_probe_0, L0_L1Rx_probe_1);
+    ExtractFP16(_ScratchBuffer.Load4(offsetL0_L1Rx + 16), L0_L1Rx_probe_2, L0_L1Rx_probe_3);
+
+    // Extract L1
+    // 1 probe == 4 bytes => 4 probes encoded in 4 uint (x2, once for each L1 texture)
+    float4 L1G_L1Ry_probe_0, L1G_L1Ry_probe_1, L1G_L1Ry_probe_2, L1G_L1Ry_probe_3;
+    ExtractByte(_ScratchBuffer.Load4(offsetL1G_L1Ry), L1G_L1Ry_probe_0, L1G_L1Ry_probe_1, L1G_L1Ry_probe_2, L1G_L1Ry_probe_3);
+    float4 L1B_L1Rz_probe_0, L1B_L1Rz_probe_1, L1B_L1Rz_probe_2, L1B_L1Rz_probe_3;
+    ExtractByte(_ScratchBuffer.Load4(offsetL1B_L1Rz), L1B_L1Rz_probe_0, L1B_L1Rz_probe_1, L1B_L1Rz_probe_2, L1B_L1Rz_probe_3);
+
+#ifdef PROBE_VOLUMES_SHARED_DATA
+    // Extract Shared Data. 1 probe == 1 byte => 4 probes encoded in 1 uint == 4 bytes
+    float4 shared_probe_0_3;
+    ExtractByte(_ScratchBuffer.Load(offsetValidity), shared_probe_0_3);
+
+#ifdef PROBE_VOLUMES_SKY_OCCLUSION
+    float4 SkyOcclusionL0L1_probe_0, SkyOcclusionL0L1_probe_1, SkyOcclusionL0L1_probe_2, SkyOcclusionL0L1_probe_3;
+    ExtractFP16(_ScratchBuffer.Load4(offsetSkyOcclusion), SkyOcclusionL0L1_probe_0, SkyOcclusionL0L1_probe_1);
+    ExtractFP16(_ScratchBuffer.Load4(offsetSkyOcclusion + 16), SkyOcclusionL0L1_probe_2, SkyOcclusionL0L1_probe_3);
+
+#ifdef PROBE_VOLUMES_SKY_SHADING_DIRECTION
+    float4 SkyShadingDirectionIndices_0_3;
+    ExtractByte(_ScratchBuffer.Load(offsetSkyShadingDirection), SkyShadingDirectionIndices_0_3);
+#endif
+#endif
+#endif
+
+    APVResourcesRW output;
+    LOAD_APV_RES_L1(output, _Out);
+
+    uint3 baseProbe;
+    uint3 loc;
+    uint3 probe1Offset;
+    uint3 probe2Offset;
+    uint3 probe3Offset;
+    getProbeLocationAndOffsets(chunkIndex, chunkProbeIndex, baseProbe, loc, probe1Offset, probe2Offset, probe3Offset);
+
+#ifdef PROBE_VOLUMES_SHARED_DATA
+    uint3 sharedDstChunk = _ScratchBuffer.Load4(_SharedDestChunksOffset + chunkIndex * 16).xyz; // *16 because 4 int per chunk.
+    uint3 sharedLoc = sharedDstChunk + baseProbe;
+#endif
+
+    _Out_L0_L1Rx[loc] = L0_L1Rx_probe_0;
+    _Out_L0_L1Rx[loc + probe1Offset] = L0_L1Rx_probe_1;
+    _Out_L0_L1Rx[loc + probe2Offset] = L0_L1Rx_probe_2;
+    _Out_L0_L1Rx[loc + probe3Offset] = L0_L1Rx_probe_3;
+
+    _Out_L1G_L1Ry[loc] = L1G_L1Ry_probe_0;
+    _Out_L1G_L1Ry[loc + probe1Offset] = L1G_L1Ry_probe_1;
+    _Out_L1G_L1Ry[loc + probe2Offset] = L1G_L1Ry_probe_2;
+    _Out_L1G_L1Ry[loc + probe3Offset] = L1G_L1Ry_probe_3;
+
+    _Out_L1B_L1Rz[loc] = L1B_L1Rz_probe_0;
+    _Out_L1B_L1Rz[loc + probe1Offset] = L1B_L1Rz_probe_1;
+    _Out_L1B_L1Rz[loc + probe2Offset] = L1B_L1Rz_probe_2;
+    _Out_L1B_L1Rz[loc + probe3Offset] = L1B_L1Rz_probe_3;
+
+#ifdef PROBE_VOLUMES_SHARED_DATA
+    _Out_Shared[sharedLoc] = shared_probe_0_3.x;
+    _Out_Shared[sharedLoc + probe1Offset] = shared_probe_0_3.y;
+    _Out_Shared[sharedLoc + probe2Offset] = shared_probe_0_3.z;
+    _Out_Shared[sharedLoc + probe3Offset] = shared_probe_0_3.w;
+
+#ifdef PROBE_VOLUMES_SKY_OCCLUSION
+    _Out_SkyOcclusionL0L1[sharedLoc] = SkyOcclusionL0L1_probe_0;
+    _Out_SkyOcclusionL0L1[sharedLoc + probe1Offset] = SkyOcclusionL0L1_probe_1;
+    _Out_SkyOcclusionL0L1[sharedLoc + probe2Offset] = SkyOcclusionL0L1_probe_2;
+    _Out_SkyOcclusionL0L1[sharedLoc + probe3Offset] = SkyOcclusionL0L1_probe_3;
+
+#ifdef PROBE_VOLUMES_SKY_SHADING_DIRECTION
+    _Out_SkyShadingDirectionIndices[sharedLoc] = SkyShadingDirectionIndices_0_3.x;
+    _Out_SkyShadingDirectionIndices[sharedLoc + probe1Offset] = SkyShadingDirectionIndices_0_3.y;
+    _Out_SkyShadingDirectionIndices[sharedLoc + probe2Offset] = SkyShadingDirectionIndices_0_3.z;
+    _Out_SkyShadingDirectionIndices[sharedLoc + probe3Offset] = SkyShadingDirectionIndices_0_3.w;
+#endif
+#endif
+#endif
+}

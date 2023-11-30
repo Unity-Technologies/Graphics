@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -100,7 +100,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             internal Material material;
 
             // used only by RG
-            internal CameraData cameraData;
+            internal UniversalCameraData cameraData;
             internal bool isTargetBackbuffer;
             internal TextureHandle colorTarget;
             internal TextureHandle depthTarget;
@@ -123,27 +123,28 @@ public class OutputTextureFeature : ScriptableRendererFeature
             }
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+            var resourceData = frameData.Get<UniversalResourceData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
 
             using (var builder = renderGraph.AddRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
-                builder.UseColorBuffer(renderer.activeColorTexture, 0);
+                builder.UseColorBuffer(resourceData.activeColorTexture, 0);
 
                 builder.AllowPassCulling(false);
 
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
-                passData.cameraData = renderingData.cameraData;
+                passData.cameraData = cameraData;
 
-                passData.isTargetBackbuffer = renderer.isActiveTargetBackBuffer;
-                passData.colorTarget = renderer.activeColorTexture;
-                passData.depthTarget = renderer.activeDepthTexture;
+                passData.isTargetBackbuffer = resourceData.isActiveTargetBackBuffer;
+                passData.colorTarget = resourceData.activeColorTexture;
+                passData.depthTarget = resourceData.activeDepthTexture;
 
                 builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
                 {
-                    CameraData cameraData = data.cameraData;
+                    UniversalCameraData cameraData = data.cameraData;
                     bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && data.isTargetBackbuffer);
                     bool yFlip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.colorTarget, data.depthTarget) && !isGameViewFinalTarget;
 

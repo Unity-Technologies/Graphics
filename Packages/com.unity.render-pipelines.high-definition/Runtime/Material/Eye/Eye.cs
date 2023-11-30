@@ -134,10 +134,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Eye() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
+        public override void Build(HDRenderPipeline renderPipeline)
         {
-            m_EyeCausticLUTTex = defaultResources.textures.eyeCausticLUT;
-
+            m_EyeCausticLUTTex = renderPipeline.runtimeTextures.eyeCausticLUT;
             m_EyeCausticLUT = new EyeCausticLUT();
         }
 

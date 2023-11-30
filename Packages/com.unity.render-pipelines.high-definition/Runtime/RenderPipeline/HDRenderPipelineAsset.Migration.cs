@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipelineAsset : IVersionable<HDRenderPipelineAsset.Version>, IMigratableAsset
     {
         // /!\ For each new version, you must now upgrade asset in HDRP_Runtime, HDRP_Performance and SRP_SmokeTest test project.
-        enum Version
+        internal enum Version
         {
             None,
             First,
@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CombinedPlanarAndCubemapReflectionAtlases,
             APVByDefault,
             MergeDitheringAndLODQualitySetting,
+            UpdatedUpscalers,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -295,14 +296,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         QualitySettings.enableLODCrossFade = true;
                     }
                 });
-
+            }),
 #pragma warning restore 618
+            MigrationStep.New(Version.UpdatedUpscalers, (HDRenderPipelineAsset data) => 
+            {
+                data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Clear();
+#pragma warning disable 618 // Type or member is obsolete
+                if(!data.m_RenderPipelineSettings.dynamicResolutionSettings.enableDLSS)
+                    return;
+
+                data.m_RenderPipelineSettings.dynamicResolutionSettings.enableDLSS = false;
+#pragma warning restore 618
+                data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Add(AdvancedUpscalers.DLSS);
             })
-            );
+        );
         #endregion
 
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        internal Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #pragma warning disable 618 // Type or member is obsolete

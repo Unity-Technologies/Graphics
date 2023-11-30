@@ -1,15 +1,12 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.Rendering;
+using Unity.Graphics.Tests;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using System.IO;
+using UnityEditor.SceneManagement;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace UnityEditor.Previews
 {
@@ -105,6 +102,26 @@ namespace UnityEditor.Previews
             {
                 AssetDatabase.DeleteAsset($"Assets/{folderName}");
             }
+        }
+
+
+        [UnityTest]
+        public IEnumerator AssetPreviewIsCorrect()
+        {
+            EditorSceneManager.OpenScene("Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit.unity"); // Ensure the opened scene doesn't have any error.
+
+            EditorApplication.EnterPlaymode();
+            yield return new WaitForDomainReload(); // Avoid errors on domain reload
+            while (!EditorApplication.isPlaying)
+                yield return null;
+            var threshold = 0.0005f;
+
+            yield return AssetPreviewTesting.CompareAssetPreview<Material>(
+                "Assets/GraphicTests/Common/Materials/LitMetallicEmissive.mat",
+                "Assets/ReferenceImages/Preview/LitMetallicEmissive.png",
+                threshold);
+
+            EditorApplication.ExitPlaymode();
         }
 
         private int GetLogEntryCount(string entry)

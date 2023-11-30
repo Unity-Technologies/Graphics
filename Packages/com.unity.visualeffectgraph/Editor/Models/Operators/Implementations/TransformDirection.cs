@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Transform(Direction)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Transform (Direction)", category = "Math/Geometry")]
     class TransformDirection : VFXOperator
     {
         public class InputProperties

@@ -10,10 +10,18 @@ namespace UnityEditor.VFX
 {
     class InitializeVariantProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
+        public override IEnumerable<Variant> GetVariants()
         {
-            {"dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray()}
-        };
+            foreach (var dataType in Enum.GetValues(typeof(VFXDataParticle.DataType)))
+            {
+                yield return new Variant(
+                    "Initialize " + ObjectNames.NicifyVariableName(dataType.ToString()),
+                    null,
+                    typeof(VFXBasicInitialize),
+                    new[] {new KeyValuePair<string, object>("dataType", dataType)}
+                );
+            }
+        }
     }
 
     [VFXHelpURL("Context-Initialize")]

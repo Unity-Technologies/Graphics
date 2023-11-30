@@ -27,12 +27,6 @@ namespace UnityEditor.VFX.HDRP
             ColorAndAlpha = Color | Alpha
         }
 
-        protected bool GeneratesWithShaderGraph()
-        {
-            return GetOrRefreshShaderGraphObject() != null &&
-                GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
-        }
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
         protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
@@ -250,7 +244,7 @@ namespace UnityEditor.VFX.HDRP
                 {
                     yield return "onlyAmbientLighting";
                     yield return "preserveSpecularLighting";
-                    yield return "excludeFromTAA";
+                    yield return "excludeFromTUAndAA";
                 }
             }
         }

@@ -14,6 +14,14 @@ public class BaseGraphicsTests
 {
     const int warmupTime = 5;
 
+#if UNITY_WEBGL || UNITY_ANDROID
+    [UnitySetUp]
+    public IEnumerator SetUp()
+    {
+        yield return RuntimeGraphicsTestCaseProvider.EnsureGetReferenceImageBundlesAsync();
+    }
+#endif
+
     [UnityTest, Category("Base")]
     [UseGraphicsTestCases]
     [Timeout(300 * 1000)]
@@ -29,6 +37,11 @@ public class BaseGraphicsTests
             Assert.Ignore("Ignoring this test because the scene is not under GraphicsTests folder, or not named with GraphicsTest");
         }
 
+        Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+#if UNITY_WEBGL || UNITY_ANDROID
+        RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
+#endif
+		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         var oldTimeScale = Time.timeScale;
         var currentRPAsset = GraphicsSettings.renderPipelineAsset;
         Time.timeScale = 0.0f;

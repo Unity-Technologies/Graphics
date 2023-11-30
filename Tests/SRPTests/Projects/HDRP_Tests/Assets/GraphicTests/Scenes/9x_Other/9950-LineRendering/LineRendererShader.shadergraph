@@ -30,10 +30,10 @@
             "m_Id": "d83c84c8d81048749f9a34b90edf0b7e"
         },
         {
-            "m_Id": "d2f6ffaf329d45c68c725a7b613c4167"
+            "m_Id": "cda98a9fe19a4f348da1e612c759142a"
         },
         {
-            "m_Id": "cda98a9fe19a4f348da1e612c759142a"
+            "m_Id": "caf0187ebb314b50a11d8662e543d3a3"
         }
     ],
     "m_GroupDatas": [],
@@ -57,7 +57,7 @@
     "m_VertexContext": {
         "m_Position": {
             "x": 0.0,
-            "y": 0.0
+            "y": -68.0
         },
         "m_Blocks": [
             {
@@ -68,6 +68,9 @@
             },
             {
                 "m_Id": "20134c5d470a40c0af6a6170eb373c52"
+            },
+            {
+                "m_Id": "caf0187ebb314b50a11d8662e543d3a3"
             }
         ]
     },
@@ -85,9 +88,6 @@
             },
             {
                 "m_Id": "d83c84c8d81048749f9a34b90edf0b7e"
-            },
-            {
-                "m_Id": "d2f6ffaf329d45c68c725a7b613c4167"
             }
         ]
     },
@@ -358,21 +358,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "8ce95636a71a42858c7e4bceaa8c5cfe",
-    "m_Id": 0,
-    "m_DisplayName": "Width",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "LineWidth",
-    "m_StageCapability": 2,
-    "m_Value": 1.5,
-    "m_DefaultValue": 1.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BlockNode",
     "m_ObjectId": "9b56994f71bb4a8b8bb0cbdfe40b58ef",
     "m_Group": {
@@ -417,6 +402,40 @@
     "m_ObjectId": "bfcc6e2c86414a76b2e148c163ec0b26",
     "m_EnableShadowMatte": false,
     "m_DistortionOnly": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "caf0187ebb314b50a11d8662e543d3a3",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "VertexDescription.Width",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "d46e7c73127e43878a425ee7acaf6f40"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "VertexDescription.Width"
 }
 
 {
@@ -472,6 +491,7 @@
     "m_BackThenFrontRendering": false,
     "m_TransparentDepthPrepass": false,
     "m_TransparentDepthPostpass": false,
+    "m_TransparentPerPixelSorting": false,
     "m_SupportLodCrossFade": false
 }
 
@@ -507,36 +527,17 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "d2f6ffaf329d45c68c725a7b613c4167",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.LineWidth",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "8ce95636a71a42858c7e4bceaa8c5cfe"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.LineWidth"
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "d46e7c73127e43878a425ee7acaf6f40",
+    "m_Id": 0,
+    "m_DisplayName": "Width",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Width",
+    "m_StageCapability": 1,
+    "m_Value": 0.07999999821186066,
+    "m_DefaultValue": 0.07999999821186066,
+    "m_Labels": []
 }
 
 {
@@ -597,7 +598,8 @@
     "m_TessellationShapeFactor": 0.75,
     "m_TessellationBackFaceCullEpsilon": -0.25,
     "m_TessellationMaxDisplacement": 0.009999999776482582,
-    "m_Version": 1,
+    "m_DebugSymbols": false,
+    "m_Version": 2,
     "inspectorFoldoutMask": 0
 }
 

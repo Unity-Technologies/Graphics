@@ -1,4 +1,4 @@
-# Reflection Probes
+# Understand reflection Probes
 
 A Reflection Probe acts in a similar way to a **Camera**. Each Reflection Probe captures a view of its surroundings and stores the results. Materials with reflective surfaces can use these results to produce accurate reflections of their surroundings that change as the Camera’s viewing angle changes. The view the Reflection Probe takes and the format of the result depends on the type of Reflection Probe.
 
@@ -9,13 +9,9 @@ The High Definition Render Pipeline (HDRP) allows you to use two different Refle
 
 ![](Images/ReflectionProbeIntro1.png)
 
-To create a **Reflection Probe** in the Unity Editor, select **GameObject > Light > Reflection Probe** or **Planar Reflection Probe**.
+For more information about how to use the reflection probe, see [Use reflection probes](Reflection-Probe-Usage.md).
 
-You can customize the behavior of a Reflection Probe in the Inspector. Both types of HDRP Reflection Probe are separate components, but share many of the same properties. For information on each Reflection Probe’s properties, see the [Reflection Probe](Reflection-Probe.md) and [Planar Reflection Probe](Planar-Reflection-Probe.md) documentation.
+For information about the reflection probe component properties, refer to [Reflection probe reference](Reflection-Probe.md)
 
-To make sure HDRP does not apply post-processing effects twice, once in a Reflection Probe's capture and once in a Camera's capture of the reflection, HDRP does not apply post-processing to the Reflection Probe capture.
-
-For more information about how to use the reflection probe, see [Reflection Probe Usage](Reflection-Probe-Usage.md).
-
-## Preset
-Presets of Reflection Probes are not supported on HDRP.
+## Limitations
+- HDRP does not support Reflection Probe presets. 

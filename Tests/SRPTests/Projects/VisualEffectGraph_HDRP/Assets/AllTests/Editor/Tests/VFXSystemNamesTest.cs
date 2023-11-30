@@ -127,10 +127,10 @@ namespace UnityEditor.VFX.Test
 
             // Act
             // Create a new system
-            var spawnerContext = viewController.AddVFXContext(new Vector2(0, 0), VFXLibrary.GetContexts().Single(o => o.name == "Spawn"));
-            var initializeContext = viewController.AddVFXContext(new Vector2(0, 200), VFXLibrary.GetContexts().Single(o => o.name == "Initialize Particle"));
-            var updateContext = viewController.AddVFXContext(new Vector2(0, 500), VFXLibrary.GetContexts().Single(o => o.name == "Update Particle"));
-            var outputContext = viewController.AddVFXContext(new Vector2(0, 700), VFXLibrary.GetContexts().Single(o => o.name == "Output Particle Quad"));
+            var spawnerContext = viewController.AddVFXContext(new Vector2(0, 0), VFXLibrary.GetContexts().Single(o => o.name == "Spawn").variant);
+            var initializeContext = viewController.AddVFXContext(new Vector2(0, 200), VFXLibrary.GetContexts().Single(o => o.name == "Initialize Particle").variant);
+            var updateContext = viewController.AddVFXContext(new Vector2(0, 500), VFXLibrary.GetContexts().Single(o => o.name == "Update Particle").variant);
+            var outputContext = viewController.AddVFXContext(new Vector2(0, 700), VFXLibrary.GetContexts().Single(o => o.name == "Output Particle Quad").variant);
 
             spawnerContext.LinkTo(initializeContext);
             initializeContext.LinkTo(updateContext);

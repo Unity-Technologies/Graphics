@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -31,17 +31,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Creates a new <c>CopyDepthPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
-        /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
+        /// <param name="copyDepthShader">The <c>Shader</c> to use for copying the depth.</param>
         /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
         /// <param name="copyToDepth">Controls whether it should do a copy to a depth format target.</param>
         /// <param name="copyResolvedDepth">Set to true if the source depth is MSAA resolved.</param>
+        /// <param name="customPassName">An optional custom profiling name to disambiguate multiple copy passes.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false)
+        public CopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false, string customPassName = null)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
+            base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : new ProfilingSampler(nameof(CopyDepthPass));
             m_PassData = new PassData();
             CopyToDepth = copyToDepth;
-            m_CopyDepthMaterial = copyDepthMaterial;
+            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthShader);
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
@@ -57,6 +58,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.source = source;
             this.destination = destination;
             this.MssaSamples = -1;
+        }
+
+        /// <summary>
+        /// Cleans up resources used by the pass.
+        /// </summary>
+        public void Dispose()
+        {
+            CoreUtils.Destroy(m_CopyDepthMaterial);
         }
 
         /// <inheritdoc />
@@ -84,8 +93,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal TextureHandle source;
             internal TextureHandle destination;
-            internal CommandBuffer cmd;
-            internal CameraData cameraData;
+            internal UniversalCameraData cameraData;
             internal Material copyDepthMaterial;
             internal int msaaSamples;
             internal bool copyResolvedDepth;
@@ -99,12 +107,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.msaaSamples = MssaSamples;
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
             m_PassData.copyToDepth = CopyToDepth;
+            m_PassData.cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var cmd = renderingData.commandBuffer;
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, ref renderingData.cameraData, this.source, this.destination);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (m_PassData.cameraData.xr.enabled)
+            {
+                if (m_PassData.cameraData.xr.supportsFoveatedRendering)
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+            }
+#endif
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source, this.destination);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, ref CameraData cameraData, RTHandle source, RTHandle destination)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, RTHandle destination)
         {
             var copyDepthMaterial = passData.copyDepthMaterial;
             var msaaSamples = passData.msaaSamples;
@@ -134,57 +150,55 @@ namespace UnityEngine.Rendering.Universal.Internal
                 switch (cameraSamples)
                 {
                     case 8:
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, true);
                         break;
 
                     case 4:
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
                     case 2:
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, true);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
                     // MSAA disabled, auto resolve supported or ms textures not supported
                     default:
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
                 }
 
                 if (copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
-                    cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
+                    cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, true);
                 else
-                    cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
-
+                    cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, false);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
                 // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
                 // 2) renderTexture starts UV at top
-                bool isGameViewFinalTarget = cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
+                bool isGameViewFinalTarget = passData.cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (cameraData.xr.enabled)
+                if (passData.cameraData.xr.enabled)
                 {
-                    if (cameraData.xr.supportsFoveatedRendering)
-                        cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-
-                    isGameViewFinalTarget |= new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, 0) == new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
+                    isGameViewFinalTarget |= new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, 0) == new RenderTargetIdentifier(passData.cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
                 }
 #endif
-                bool yflip = cameraData.IsHandleYFlipped(source) != cameraData.IsHandleYFlipped(destination);
+                bool yflip = passData.cameraData.IsHandleYFlipped(source) != passData.cameraData.IsHandleYFlipped(destination);
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
                 if (isGameViewFinalTarget)
-                    cmd.SetViewport(cameraData.pixelRect);
+                    cmd.SetViewport(passData.cameraData.pixelRect);
                 else
-                    cmd.SetViewport(new Rect(0, 0, cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
+                    cmd.SetViewport(new Rect(0, 0, passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height));
+
+                copyDepthMaterial.SetTexture(Shader.PropertyToID("_CameraDepthAttachment"), source);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
@@ -201,37 +215,66 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Sets up the Copy Depth pass for RenderGraph execution
         /// </summary>
-        /// <param name="renderGraph"></param>
-        /// <param name="destination"></param>
-        /// <param name="source"></param>
-        /// <param name="renderingData"></param>
+        /// <param name="renderGraph">The current RenderGraph used for recording and execution of a frame.</param>
+        /// <param name="frameData">The renderer settings containing rendering data of the current frame.</param>
+        /// <param name="destination"><c>TextureHandle</c> of the destination it will copy to.</param>
+        /// <param name="source"><c>TextureHandle</c> of the source it will copy from.</param>
         /// <param name="bindAsCameraDepth">If this is true, the destination texture is bound as _CameraDepthTexture after the copy pass</param>
-        /// <param name="passName"></param>
-        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, ref RenderingData renderingData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
+        /// <param name="passName">The pass name used for debug and identifying the pass.</param>
+        public void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle destination, TextureHandle source, bool bindAsCameraDepth = false, string passName = "Copy Depth")
+        {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            Render(renderGraph, destination, source, resourceData, cameraData, bindAsCameraDepth);
+        }
+
+        /// <summary>
+        /// Sets up the Copy Depth pass for RenderGraph execution
+        /// </summary>
+        /// <param name="renderGraph">The current RenderGraph used for recording and execution of a frame.</param>
+        /// <param name="destination"><c>TextureHandle</c> of the destination it will copy to.</param>
+        /// <param name="source"><c>TextureHandle</c> of the source it will copy from.</param>
+        /// <param name="resourceData">URP texture handles for the current frame.</param>
+        /// <param name="cameraData">Camera settings for the current frame.</param>
+        /// <param name="bindAsCameraDepth">If this is true, the destination texture is bound as _CameraDepthTexture after the copy pass</param>
+        /// <param name="passName">The pass name used for debug and identifying the pass.</param>
+        public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, UniversalResourceData resourceData, UniversalCameraData cameraData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
-            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraDepthAttachment", source, "Set Global CameraDepthAttachment");
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, base.profilingSampler))
             {
                 passData.copyDepthMaterial = m_CopyDepthMaterial;
                 passData.msaaSamples = MssaSamples;
-                passData.cameraData = renderingData.cameraData;
-                passData.cmd = renderingData.commandBuffer;
+                passData.cameraData = cameraData;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth;
+
                 if (CopyToDepth)
                 {
-                    // Wites depth using custom depth output
-                    passData.destination = builder.UseTextureFragmentDepth(destination, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    // Writes depth using custom depth output
+                    passData.destination = destination;
+                    builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
+
+#if UNITY_EDITOR
+                    // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
+                    if (cameraData.isSceneViewCamera)
+                        builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+#endif
                 }
                 else
                 {
                     // Writes depth as "grayscale color" output
-                    passData.destination = builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.destination = destination;
+                    builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
                 }
-                passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
+
+                passData.source = source;
+                builder.UseTexture(source, AccessFlags.Read);
+
+                if (bindAsCameraDepth && destination.IsValid())
+                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraDepthTexture"));
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
@@ -239,12 +282,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, ref data.cameraData, data.source, data.destination);
+                    ExecutePass(context.cmd, data, data.source, data.destination);
                 });
             }
-
-            if (bindAsCameraDepth)
-                RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", destination, "Set Global CameraDepthTexture");
         }
     }
 }

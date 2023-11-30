@@ -94,7 +94,7 @@ MonoBehaviour:
       maxEnvLightsOnScreen: 64
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
-      reflectionProbeTexCacheSize: 1073750016
+      reflectionProbeTexCacheSize: 2048
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
@@ -291,6 +291,8 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    macroBatcherSettings:
+      mode: 1
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 

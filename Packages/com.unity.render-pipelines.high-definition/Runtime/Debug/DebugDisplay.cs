@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
@@ -356,6 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int rtasDebugModeEnumIndex;
             internal int volumetricCloudsDebugModeEnumIndex;
             internal int lineRenderingDebugModeEnumIndex;
+            internal int lightClusterCategoryDebug;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -865,25 +866,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        DebugUI.Widget CreateMissingDebugShadersWarning()
-        {
-            return new DebugUI.MessageBox
-            {
-                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Runtime Debug Shaders\" option is enabled in HDRP Global Settings.",
-                style = DebugUI.MessageBox.Style.Warning,
-                isHiddenCallback = () =>
-                {
-#if UNITY_EDITOR
-                    return true;
-#else
-                    if (HDRenderPipelineGlobalSettings.instance != null)
-                        return !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
-                    return true;
-#endif
-                }
-            };
-        }
-
         static class MaterialStrings
         {
             public static readonly NameAndTooltip CommonMaterialProperties = new() { name = "Common Material Properties", tooltip = "Use the drop-down to select and debug a Material property to visualize on every GameObject on screen." };
@@ -904,7 +886,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterMaterialDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(CreateMissingDebugShadersWarning());
+            list.Add(new DebugUI.RuntimeDebugShadersMessageBox());
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.CommonMaterialProperties, getter = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setter = value => SetDebugViewCommonMaterialProperty((MaterialSharedProperty)value), autoEnum = typeof(MaterialSharedProperty), getIndex = () => (int)data.materialDebugSettings.debugViewMaterialCommonValue, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.debugViewMaterialCommonValue = (MaterialSharedProperty)value; } });
             list.Add(new DebugUI.EnumField { nameAndTooltip = MaterialStrings.Material, getter = () => (data.materialDebugSettings.debugViewMaterial[0]) == 0 ? 0 : data.materialDebugSettings.debugViewMaterial[1], setter = value => SetDebugViewMaterial(value), enumNames = MaterialDebugSettings.debugViewMaterialStrings, enumValues = MaterialDebugSettings.debugViewMaterialValues, getIndex = () => data.materialDebugSettings.materialEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialDebugSettings.materialEnumIndex = value; } });
             {
@@ -1090,6 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip RTASDebugView = new() { name = "Ray Tracing Acceleration Structure View", tooltip = "Use the drop-down to select a rendering view to display the ray tracing acceleration structure." };
             public static readonly NameAndTooltip RTASDebugMode = new() { name = "Ray Tracing Acceleration Structure Mode", tooltip = "Use the drop-down to select a rendering mode to display the ray tracing acceleration structure." };
             public static readonly NameAndTooltip VolumetricCloudsTooltip = new() { name = "Volumetric Clouds Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display the volumemtric clouds." };
+            public static readonly NameAndTooltip ClusterCategoryDebug = new() { name = "Light Category", tooltip = "Use the drop-down to select the light type in the cluster." };
 
             // Tile/Cluster debug
             public static readonly NameAndTooltip TileClusterDebug = new() { name = "Tile/Cluster Debug", tooltip = "Use the drop-down to select the Light type that you want to show the Tile/Cluster debug information for." };
@@ -1124,7 +1107,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(CreateMissingDebugShadersWarning());
+            list.Add(new DebugUI.RuntimeDebugShadersMessageBox());
             {
                 var shadows = new DebugUI.Container() { displayName = "Shadows" };
 
@@ -1434,6 +1417,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
+            list.Add(new DebugUI.Container
+            {
+                isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.LightCluster,
+                children =
+                {
+                    new DebugUI.EnumField { nameAndTooltip = LightingStrings.ClusterCategoryDebug, getter = () => (int)data.lightingDebugSettings.clusterLightCategory, setter = value => data.lightingDebugSettings.clusterLightCategory = (ClusterLightCategoryDebug)value, autoEnum = typeof(ClusterLightCategoryDebug), getIndex = () => data.lightClusterCategoryDebug, setIndex = value => data.lightClusterCategoryDebug = value },
+                }
+            });
+
+
             list.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.TileClusterDebug, getter = () => (int)data.lightingDebugSettings.tileClusterDebug, setter = value => data.lightingDebugSettings.tileClusterDebug = (TileClusterDebug)value, autoEnum = typeof(TileClusterDebug), getIndex = () => data.tileClusterDebugEnumIndex, setIndex = value => data.tileClusterDebugEnumIndex = value });
             {
                 list.Add(new DebugUI.Container()
@@ -1562,7 +1555,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var widgetList = new List<DebugUI.Widget>();
 
-            widgetList.Add(CreateMissingDebugShadersWarning());
+            widgetList.Add(new DebugUI.RuntimeDebugShadersMessageBox());
 
             widgetList.Add(
                 new DebugUI.EnumField { nameAndTooltip = RenderingStrings.FullscreenDebugMode, getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
@@ -1759,6 +1752,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
+            widgetList.Add(new DebugUI.Container
+            {
+                displayName = "HDR Output",
+                children =
+                {
+                    new DebugUI.MessageBox
+                    {
+                        displayName = "The values on the Rendering Debugger editor window might not be accurate. Please use the playmode debug UI (Ctrl+Backspace).",
+                        style = DebugUI.MessageBox.Style.Warning,
+                    },
+                    DebugDisplaySettingsHDROutput.CreateHDROuputDisplayTable()
+                }
+            });
+
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             widgetList.Add(nvidiaDebugView.CreateWidget());
 #endif
@@ -1766,19 +1773,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);
-
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.RegisterDebug(panel);
         }
 
         void UnregisterRenderingDebug()
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.UnRegisterDebug();
         }
 
         internal void RegisterDebug()
@@ -1786,6 +1785,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterMaterialDebug();
             RegisterLightingDebug();
             RegisterRenderingDebug();
+
             DebugManager.instance.RegisterData(this);
         }
 

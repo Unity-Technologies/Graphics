@@ -59,8 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetSubShaderDescriptor();
 
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
-            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
-            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
+            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
             if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
                 descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
@@ -290,7 +290,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             unchecked
             {
-                hash = hash * 23 + litData.materialTypeMask.GetHashCode();
+                // hash must be 0 by default when we create a ShaderGraph, otherwise it's dirty when opened for the first time.
+                int h = (int)litData.materialTypeMask - (int)HDLitData.MaterialTypeMask.Standard;
+                hash = hash * 23 + h;
             }
 
             return hash;

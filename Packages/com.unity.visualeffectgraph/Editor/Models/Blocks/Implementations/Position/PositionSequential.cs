@@ -2,26 +2,28 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
     class PositionSequentialVariantProvider : VariantProvider
     {
-        public override IEnumerable<Variant> ComputeVariants()
+        public override IEnumerable<Variant> GetVariants()
         {
             return new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional }
                 .Select(x => new Variant(
+                    $"Set position {x}",
+                    "Position/Position sequential",
+                    typeof(PositionSequential),
                     new[]
                     {
                         new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
                         new KeyValuePair<string, object>("shape", x)
-                    }, new[] { "position", VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) }));
+                    }));
         }
     }
 
     [VFXHelpURL("Block-SetPosition(Sequential)")]
-    [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(PositionSequentialVariantProvider))]
+    [VFXInfo(variantProvider = typeof(PositionSequentialVariantProvider))]
     class PositionSequential : VFXBlock
     {
         public enum SequentialShape

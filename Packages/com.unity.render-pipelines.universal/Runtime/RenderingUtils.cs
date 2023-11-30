@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using System.Diagnostics;
 
 namespace UnityEngine.Rendering.Universal
@@ -143,10 +143,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in RenderingData renderingData, RTHandle rTHandle)
+        //TODO FrameData: Merge these two SetScaleBiasRt() functions
+        internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in UniversalCameraData cameraData, RTHandle rTHandle)
         {
             // SetRenderTarget has logic to flip projection matrix when rendering to render texture. Flip the uv to account for that case.
-            CameraData cameraData = renderingData.cameraData;
             bool isCameraColorFinalTarget = (cameraData.cameraType == CameraType.Game && rTHandle.nameID == BuiltinRenderTextureType.CameraTarget && cameraData.camera.targetTexture == null);
             bool yflip = !isCameraColorFinalTarget;
             float flipSign = yflip ? -1.0f : 1.0f;
@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void FinalBlit(
             CommandBuffer cmd,
-            ref CameraData cameraData,
+            UniversalCameraData cameraData,
             RTHandle source,
             RTHandle destination,
             RenderBufferLoadAction loadAction,
@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
+        internal static void CreateRendererListWithRenderStateBlock(ScriptableRenderContext context, ref CullingResults cullResults, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererList rl)
         {
             RendererListParams param = new RendererListParams();
             unsafe
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // Create & schedule the RL
-                param = new RendererListParams(data.cullResults, ds, fs)
+                param = new RendererListParams(cullResults, ds, fs)
                 {
                     tagValues = tagValues,
                     stateBlocks = stateBlocks
@@ -357,13 +357,13 @@ namespace UnityEngine.Rendering.Universal
         static ShaderTagId[] s_ShaderTagValues = new ShaderTagId[1];
         static RenderStateBlock[] s_RenderStateBlocks = new RenderStateBlock[1];
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
-        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, RenderingData data, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
+        internal static void CreateRendererListWithRenderStateBlock(RenderGraph renderGraph, ref CullingResults cullResults, DrawingSettings ds, FilteringSettings fs, RenderStateBlock rsb, ref RendererListHandle rl)
         {
             s_ShaderTagValues[0] = ShaderTagId.none;
             s_RenderStateBlocks[0] = rsb;
             NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(s_ShaderTagValues, Allocator.Temp);
             NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(s_RenderStateBlocks, Allocator.Temp);
-            var param = new RendererListParams(data.cullResults, ds, fs)
+            var param = new RendererListParams(cullResults, ds, fs)
             {
                 tagValues = tagValues,
                 stateBlocks = stateBlocks,
@@ -667,7 +667,7 @@ namespace UnityEngine.Rendering.Universal
                 if (handle != null && handle.rt != null)
                 {
                     TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Explicit, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode, handle.name);
-                    UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(currentRTDesc, handle, Time.frameCount);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
                 }
 
                 if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
@@ -714,7 +714,7 @@ namespace UnityEngine.Rendering.Universal
                 if (handle != null && handle.rt != null)
                 {
                     TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Scale, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode);
-                    UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(currentRTDesc, handle, Time.frameCount);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
                 }
 
                 if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.Universal
                 if (handle != null && handle.rt != null)
                 {
                     TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Functor, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode);
-                    UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(currentRTDesc, handle, Time.frameCount);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
                 }
 
                 if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Resize the rthandle pool's max stale resource capacity. The default value is 16.
+        /// Resize the rthandle pool's max stale resource capacity. The default value is 32.
         /// Increasing the capacity may have a negative impact on the memory usage(dued to staled resources in pool).
         /// Increasing the capacity may improve runtime performance (by reducing the runtime RTHandle realloc count in multi view/multi camera setup).
         /// Setting capacity will purge the current pool. It is recommended to setup the capacity upfront and not changing it during the runtime.
@@ -795,6 +795,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Add stale rtHandle to pool so that it could be reused in the future.
+        /// For stale rtHandle failed to add to pool(could happen when pool is reaching its max stale resource capacity), the stale resource will be released.
+        /// </summary>
+        internal static void AddStaleResourceToPoolOrRelease(TextureDesc desc, RTHandle handle)
+        {
+            if (!UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(desc, handle, Time.frameCount))
+                RTHandles.Release(handle);
+        }
+
+        /// <summary>
         /// Creates <c>DrawingSettings</c> based on current the rendering state.
         /// </summary>
         /// <param name="shaderTagId">Shader pass tag to render.</param>
@@ -804,12 +814,32 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="DrawingSettings"/>
         static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            Camera camera = renderingData.cameraData.camera;
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
+
+            return CreateDrawingSettings(shaderTagId, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
+        /// </summary>
+        /// <param name="shaderTagId">Shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, UniversalRenderingData renderingData,
+            UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
+            Camera camera = cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
-                mainLightIndex = renderingData.lightData.mainLightIndex,
+                mainLightIndex = lightData.mainLightIndex,
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
 
                 // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
@@ -821,7 +851,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current rendering state.
         /// </summary>
-        /// /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
@@ -829,16 +859,52 @@ namespace UnityEngine.Rendering.Universal
         static public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
+            return CreateDrawingSettings(shaderTagIdList, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// </summary>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns></returns>
+        /// <seealso cref="DrawingSettings"/>
+        static public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+            UniversalRenderingData renderingData, UniversalCameraData cameraData,
+            UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
             if (shaderTagIdList == null || shaderTagIdList.Count == 0)
             {
                 Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), renderingData, cameraData, lightData, sortingCriteria);
             }
 
-            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
+            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], renderingData, cameraData, lightData, sortingCriteria);
             for (int i = 1; i < shaderTagIdList.Count; ++i)
                 settings.SetShaderPassName(i, shaderTagIdList[i]);
             return settings;
+        }
+
+        /// <summary>
+        /// Returns the scale bias vector to use for final blits to the backbuffer, based on scaling mode and y-flip platform requirements.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="cameraData"></param>
+        /// <returns></returns>
+        internal static Vector4 GetFinalBlitScaleBias(RTHandle source, RTHandle destination, UniversalCameraData cameraData)
+        {
+            Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+            var yflip = cameraData.IsRenderTargetProjectionMatrixFlipped(destination);
+            Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
+
+            return scaleBias;
         }
     }
 }

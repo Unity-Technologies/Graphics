@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Position(Depth)")]
-    [VFXInfo(category = "Sampling")]
+    [VFXInfo(name = "Position (Depth)", category = "Sampling")]
     class PositionDepth : VFXOperator
     {
         public enum PositionMode
@@ -86,12 +86,6 @@ namespace UnityEditor.VFX.Operator
             {
                 return "Position (Depth)";
             }
-        }
-
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
-        {
-            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
-                manager.RegisterError("PositionDepthOperatorUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

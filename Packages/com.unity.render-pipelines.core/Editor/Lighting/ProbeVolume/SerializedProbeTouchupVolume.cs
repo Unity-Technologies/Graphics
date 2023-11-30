@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering
         internal SerializedProperty virtualOffsetDistance;
         internal SerializedProperty geometryBias;
         internal SerializedProperty rayOriginBias;
+        internal SerializedProperty skyDirection;
 
         internal SerializedObject serializedObject;
 
@@ -31,6 +32,7 @@ namespace UnityEditor.Rendering
             virtualOffsetDistance = serializedObject.FindProperty("virtualOffsetDistance");
             geometryBias = serializedObject.FindProperty("geometryBias");
             rayOriginBias = serializedObject.FindProperty("rayOriginBias");
+            skyDirection = serializedObject.FindProperty("skyDirection");
         }
     }
 }

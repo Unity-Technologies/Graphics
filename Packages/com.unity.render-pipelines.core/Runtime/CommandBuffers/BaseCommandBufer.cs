@@ -1,13 +1,7 @@
 using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.RendererUtils;
-using System.Diagnostics.CodeAnalysis;
-using UnityEngine.Internal;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Render graph command buffer types inherit from this base class.
@@ -35,9 +29,21 @@ namespace UnityEngine.Experimental.Rendering
         internal protected void ThrowIfGlobalStateNotAllowed()
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (m_ExecutingPass != null && !m_ExecutingPass.allowGlobalState) throw new InvalidOperationException("Modifying global state from this command buffer is not allowed. Please ensure your render graph pass allows modifying global state.");
+            if (m_ExecutingPass != null && !m_ExecutingPass.allowGlobalState) throw new InvalidOperationException($"{m_ExecutingPass.name}: Modifying global state from this command buffer is not allowed. Please ensure your render graph pass allows modifying global state.");
 #endif
         }
+
+        /// <summary>
+        /// Checks if the Raster Command Buffer has set a valid render target.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if the there are no active render targets.</exception>
+        internal protected void ThrowIfRasterNotAllowed()
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (m_ExecutingPass != null && !m_ExecutingPass.HasRenderAttachments()) throw new InvalidOperationException($"{m_ExecutingPass.name}: Using raster commands from a pass with no active render targets is not allowed as it will use an undefined render target state. Please set-up the pass's render targets using SetRenderAttachments.");
+#endif
+        }
+
 
         // Validation when it is unknown if the texture will be read or written
         internal protected void ValidateTextureHandle(TextureHandle h)
@@ -53,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (SetRenderAttachment/SetRenderAttachmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }
@@ -69,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (SetRenderAttachment/SetRenderAttachmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }
@@ -90,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             if (m_ExecutingPass.IsAttachment(h))
             {
-                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (UseTextureFragment/UseTextureFragmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
+                throw new Exception("Pass '" + m_ExecutingPass.name + "' is using a texture as a fragment attachment (SetRenderAttachment/SetRenderAttachmentDepth) but is also trying to bind it as regular texture. Please fix this pass. ");
             }
 #endif
         }

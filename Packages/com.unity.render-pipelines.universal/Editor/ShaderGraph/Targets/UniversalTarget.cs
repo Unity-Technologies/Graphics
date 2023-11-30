@@ -116,6 +116,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
         public const string kPipelineTag = "UniversalPipeline";
+        public const string kComplexLitMaterialTypeTag = "\"UniversalMaterialType\" = \"ComplexLit\"";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
         public const string kAlwaysRenderMotionVectorsTag = "\"AlwaysRenderMotionVectors\" = \"true\"";
@@ -174,6 +175,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         bool m_ReceiveShadows = true;
+
+        [SerializeField]
+        bool m_DisableTint = false;
 
         [SerializeField]
         AdditionalMotionVectorMode m_AdditionalMotionVectorMode = AdditionalMotionVectorMode.None;
@@ -287,6 +291,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_AlphaClip;
             set => m_AlphaClip = value;
+        }
+
+        public bool disableTint
+        {
+            get => m_DisableTint;
+            set => m_DisableTint = value;
         }
 
         public bool castShadows
@@ -1662,6 +1672,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
         const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
         const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
+        const string kFoveatedRenderingKeywords = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
+        const string kFoveatedRendering = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
@@ -1676,6 +1688,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
+            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
+            { kFoveatedRendering, IncludeLocation.Pregraph },
         };
 
         public static readonly IncludeCollection DOTSPregraph = new IncludeCollection
@@ -1764,6 +1778,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { ShaderGraphPregraph },
+            { DOTSPregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -1775,6 +1790,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Pre-graph
             { CorePregraph },
             { ShaderGraphPregraph },
+            { DOTSPregraph },
 
             // Post-graph
             { CorePostgraph },
@@ -1892,6 +1908,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor EvaluateShMixed = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.EVALUATE_SH_MIXED,
+            referenceName = ShaderKeywordStrings.EVALUATE_SH_MIXED,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor EvaluateShVertex = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings.EVALUATE_SH_VERTEX,
+            referenceName = ShaderKeywordStrings.EVALUATE_SH_VERTEX,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
@@ -1987,6 +2021,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Shadows Soft",
             referenceName = "_SHADOWS_SOFT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ShadowsSoftLow = new KeywordDescriptor()
+        {
+            displayName = "Shadows Soft Low Quality",
+            referenceName = "_SHADOWS_SOFT_LOW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ShadowsSoftMedium = new KeywordDescriptor()
+        {
+            displayName = "Shadows Soft Medium Quality",
+            referenceName = "_SHADOWS_SOFT_MEDIUM",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ShadowsSoftHigh = new KeywordDescriptor()
+        {
+            displayName = "Shadows Soft High Quality",
+            referenceName = "_SHADOWS_SOFT_HIGH",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -2127,16 +2191,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor FoveatedRendering = new KeywordDescriptor()
-        {
-            displayName = "Foveated Rendering Non Uniform Raster",
-            referenceName = "_FOVEATED_RENDERING_NON_UNIFORM_RASTER",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-        };
-
         public static readonly KeywordDescriptor SceneSelectionPass = new KeywordDescriptor()
         {
             displayName = "Scene Selection Pass",
@@ -2198,6 +2252,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //       as well as a VS-based smooth LOD transition effect.
             //       These shaders need the LOD_FADE_CROSSFADE keyword in the VS
             //       to skip the VS-based effect. 
+            // Note: DOTS instancing uses a different instance index encoding
+            //       when crossfade is active, so all stages are affected by the
+            //       LOD_FADE_CROSSFADE keyword.
             scope = KeywordScope.Global
         };
 

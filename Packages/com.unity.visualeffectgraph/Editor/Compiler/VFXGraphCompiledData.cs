@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
         // 4: Bounds helper change
         // 5: HasAttributeBuffer flag
         // 6: needsComputeBounds needs Sanitization
-        // 7: changes in data serialization and additional mappings added to runtime data (graphValueOffset and parentSystemIndex) 
+        // 7: changes in data serialization and additional mappings added to runtime data (graphValueOffset and parentSystemIndex)
         public const uint compiledVersion = 7;
 
         public VFXGraphCompiledData(VFXGraph graph)
@@ -313,12 +313,12 @@ namespace UnityEditor.VFX
             public int systemIndex;
         }
 
-        private static VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout)
+        private static VFXCPUBufferData ComputeArrayOfStructureInitialData(IEnumerable<VFXLayoutElementDesc> layout, VFXGraph vfxGraph)
         {
             var data = new VFXCPUBufferData();
             foreach (var element in layout)
             {
-                var attribute = VFXAttribute.AllAttribute.FirstOrDefault(o => o.name == element.name);
+                vfxGraph.attributesManager.TryFind(element.name, out var attribute);
                 bool useAttribute = attribute.name == element.name;
                 if (element.type == VFXValueType.Boolean)
                 {
@@ -637,8 +637,9 @@ namespace UnityEditor.VFX
             VFXExpressionGraph graph,
             VFXCompiledData compiledData,
             ref SubgraphInfos subgraphInfos,
-            VFXSystemNames systemNames = null)
+            VFXGraph vfxGraph = null)
         {
+            var systemNames = vfxGraph != null ? vfxGraph.systemNames : null;
             var spawners = CollectSpawnersHierarchy(contexts, ref subgraphInfos);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
             {
@@ -648,7 +649,7 @@ namespace UnityEditor.VFX
                     capacity = 1u,
                     stride = graph.GlobalEventAttributes.First().offset.structure,
                     layout = graph.GlobalEventAttributes.ToArray(),
-                    initialData = ComputeArrayOfStructureInitialData(graph.GlobalEventAttributes)
+                    initialData = ComputeArrayOfStructureInitialData(graph.GlobalEventAttributes, vfxGraph)
                 });
             }
             foreach (var spawnContext in spawners)
@@ -839,7 +840,7 @@ namespace UnityEditor.VFX
                         if (task.doesGenerateShader)
                         {
                             var generatedContent = VFXCodeGenerator.Build(context, task, compilationMode, contextData, dependencies, enableShaderDebugSymbols);
-                            if (generatedContent != null)
+                            if (generatedContent != null && generatedContent.Length > 0)
                             {
                                 contextData.indexInShaderSource = outGeneratedCodeData.Count;
                                 outGeneratedCodeData.Add(new GeneratedCodeData()
@@ -907,7 +908,7 @@ namespace UnityEditor.VFX
 
                     var systemName = systemNames.GetUniqueSystemName(generated.context.GetData());
                     var contextLetter = generated.context.letter;
-                    var contextName = string.IsNullOrEmpty(generated.context.label) ? generated.context.libraryName : generated.context.label;
+                    var contextName = string.IsNullOrEmpty(generated.context.label) ? generated.context.name.Replace('\n', ' ') : generated.context.label;
 
                     var shaderName = string.Empty;
                     var fileName = string.Empty;
@@ -1243,12 +1244,12 @@ namespace UnityEditor.VFX
                     capacity = 1u,
                     layout = m_ExpressionGraph.GlobalEventAttributes.ToArray(),
                     stride = m_ExpressionGraph.GlobalEventAttributes.Any() ? m_ExpressionGraph.GlobalEventAttributes.First().offset.structure : 0u,
-                    initialData = ComputeArrayOfStructureInitialData(m_ExpressionGraph.GlobalEventAttributes)
+                    initialData = ComputeArrayOfStructureInitialData(m_ExpressionGraph.GlobalEventAttributes, m_Graph)
                 });
 
                 var contextSpawnToSpawnInfo = new Dictionary<VFXContext, SpawnInfo>();
                 var dataToSystemIndex = new Dictionary<VFXData, uint>();
-                FillSpawner(contextSpawnToSpawnInfo, dataToSystemIndex, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, compiledData, ref subgraphInfos, m_Graph.systemNames);
+                FillSpawner(contextSpawnToSpawnInfo, dataToSystemIndex, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, compiledData, ref subgraphInfos, m_Graph);
 
                 var eventDescs = new List<EventDesc>();
 

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: 200_SSAOURPAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 11
-  k_AssetPreviousVersion: 11
+  k_AssetVersion: 12
+  k_AssetPreviousVersion: 12
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -21,7 +21,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 590f3c2dabc9147698f7027e50b2ecd6, type: 2}
   - {fileID: 11400000, guid: 33768f1904a5640658411475990e6a10, type: 2}
   - {fileID: 11400000, guid: da4df2f1951704ee7aa560ed78d91c24, type: 2}
-  m_DefaultRendererIndex: 0
+  - {fileID: 11400000, guid: 0a008b3475c660b418856d896a1ff473, type: 2}
+  m_DefaultRendererIndex: 4
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
@@ -126,6 +127,10 @@ MonoBehaviour:
   m_PrefilterDBufferMRT1: 1
   m_PrefilterDBufferMRT2: 1
   m_PrefilterDBufferMRT3: 1
+  m_PrefilterSoftShadowsQualityLow: 0
+  m_PrefilterSoftShadowsQualityMedium: 0
+  m_PrefilterSoftShadowsQualityHigh: 0
+  m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 1
   m_PrefilterNativeRenderPass: 0
   m_ShaderVariantLogLevel: 0

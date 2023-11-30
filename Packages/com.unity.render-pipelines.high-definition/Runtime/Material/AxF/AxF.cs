@@ -199,9 +199,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
-        // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
-        Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA;
-
         Material m_preIntegratedFGDMaterial_Ward = null;
         Material m_preIntegratedFGDMaterial_CookTorrance = null;
         RenderTexture m_preIntegratedFGD_Ward = null;
@@ -215,14 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public AxF() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
+        public override void Build(HDRenderPipeline renderPipeline)
         {
             // Create Materials
-            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_WardPS);
+            m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.preIntegratedFGD_WardPS);
             if (m_preIntegratedFGDMaterial_Ward == null)
                 throw new Exception("Failed to create material for Ward BRDF pre-integration!");
 
-            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_CookTorrancePS);
+            m_preIntegratedFGDMaterial_CookTorrance = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.preIntegratedFGD_CookTorrancePS);
             if (m_preIntegratedFGDMaterial_CookTorrance == null)
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
@@ -243,27 +240,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_CookTorrance");
             m_preIntegratedFGD_CookTorrance.Create();
 
-            // LTC data
-
-            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-                wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Bilinear,
-                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
-            };
-
-            // Caution: This need to match order define in AxFLTCAreaLight
-            LTCAreaLight.LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, LTCAreaLight.s_LtcMatrixData_GGX);
-            // Warning: check /Material/AxF/AxFLTCAreaLight/LtcData.GGX2.cs: 5 columns are needed, the entries are NOT normalized!
-            // For now, we patch for this in LoadLUT, which should affect the loading of s_LtcGGXMatrixData for the rest of the materials
-            // (Lit, etc.)
-
-            m_LtcData.Apply();
-
-            // TODO BugFix:
-            // We still bind the original data for now, see AxFLTCAreaLight.hlsl: when using a local table, results differ,
-            // even if we patch the non-normalization error in the 8th column when calling the LTCInvMatrix loading routine (LoadLUT).
             LTCAreaLight.instance.Build();
         }
 
@@ -279,8 +255,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_preIntegratedFGDMaterial_CookTorrance = null;
             m_precomputedFGDTablesAreInit = false;
 
-            // LTC data
-            CoreUtils.Destroy(m_LtcData);
             LTCAreaLight.instance.Cleanup();
         }
 
@@ -317,8 +291,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(_PreIntegratedFGD_Ward, m_preIntegratedFGD_Ward);
             cmd.SetGlobalTexture(_PreIntegratedFGD_CookTorrance, m_preIntegratedFGD_CookTorrance);
 
-            // LTC Data
-            cmd.SetGlobalTexture(_AxFLtcData, m_LtcData);
             LTCAreaLight.instance.Bind(cmd);
         }
     }

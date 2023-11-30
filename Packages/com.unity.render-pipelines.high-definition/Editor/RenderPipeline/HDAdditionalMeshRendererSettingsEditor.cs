@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty rendererLODMode;
         public SerializedProperty rendererLODFixed;
         public SerializedProperty rendererLODCameraDistanceCurve;
+        public SerializedProperty rendererLODScreenCoverageCurve;
         public SerializedProperty shadingSampleFraction;
 
         public SerializedHDAdditionalMeshRendererSettings(SerializedObject serializedObject)
@@ -42,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             rendererLODFixed = serializedObject.Find((HDAdditionalMeshRendererSettings d) => d.rendererLODFixed);
             rendererGroup = serializedObject.Find((HDAdditionalMeshRendererSettings d) => d.rendererGroup);
             rendererLODCameraDistanceCurve = serializedObject.Find((HDAdditionalMeshRendererSettings d) => d.rendererLODCameraDistanceCurve);
+            rendererLODScreenCoverageCurve = serializedObject.Find((HDAdditionalMeshRendererSettings d) => d.rendererLODScreenCoverageCurve);
             shadingSampleFraction = serializedObject.Find((HDAdditionalMeshRendererSettings d) => d.shadingSampleFraction);
         }
 

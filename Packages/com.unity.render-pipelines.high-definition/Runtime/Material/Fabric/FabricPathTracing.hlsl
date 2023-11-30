@@ -212,6 +212,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         if (mtlData.isSubsurface)
         {
             BRDF::EvaluateLambert(mtlData, GetDiffuseNormal(mtlData), sampleDir, result.diffValue, result.diffPdf);
+            result.diffValue *= mtlData.bsdfData.ambientOcclusion; // Take into account AO the same way as in SampleMaterial
             return;
         }
     }
@@ -223,6 +224,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
             if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateLambert(mtlData, GetDiffuseNormal(mtlData), sampleDir, result.diffValue, result.diffPdf);
+                result.diffValue *= mtlData.bsdfData.ambientOcclusion; // Take into account AO the same way as in SampleMaterial
                 result.diffPdf *= mtlData.bsdfWeight[0];
             }
 
@@ -237,6 +239,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
             if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateBurley(mtlData, GetDiffuseNormal(mtlData), sampleDir, result.diffValue, result.diffPdf);
+                result.diffValue *= mtlData.bsdfData.ambientOcclusion; // Take into account AO the same way as in SampleMaterial
                 result.diffPdf *= mtlData.bsdfWeight[0];
             }
 
@@ -251,6 +254,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         {
             BTDF::EvaluateLambert(mtlData, GetDiffuseNormal(mtlData), sampleDir, result.diffValue, result.diffPdf);
             result.diffValue *= mtlData.bsdfData.transmittance;
+            result.diffValue *= mtlData.bsdfData.ambientOcclusion; // Take into account AO the same way as in SampleMaterial
             result.diffPdf *= mtlData.bsdfWeight[2];
 
             if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))

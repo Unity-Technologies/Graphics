@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 
@@ -168,150 +170,110 @@ namespace UnityEngine.Rendering.HighDefinition
             public float   visibility;
         };
 
-
         //-----------------------------------------------------------------------------
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
         private const int kDim = 64;
 
-        private ComputeShader m_PreIntegrationKernels;
-        private int m_ComputeForwardAttenuationKernel;
-        private int m_ComputeBackwardAttenuationKernel;
-        private int m_ComputeAzimuthalScatteringKernel;
-        private int m_ComputeLongitudinalScatteringKernel;
-
-        // X - Roughness
-        // Y - Theta
-        // Z - Absorption
-        private RenderTexture m_AttenuationLUT;
-        private bool m_AttenuationIsInit;
-
-        // X: Phi
-        // Y: Theta
-        // Z: Azimuthal Roughness
-        private RenderTexture m_AzimuthalScatteringLUT;
-        private bool m_AzimuthalScatteringIsInit;
-
-        // X:
-        // Y:
-        // Z:
-        private RenderTexture m_LongitudinalScatteringLUT;
-        private bool m_LongitudinalScatteringIsInit;
-
-        // NOTE: Since we re-use Hair.hlsl for both the BSDF pre-integration and at runtime, we need to maintain these two different binding
-        public static readonly int _HairAttenuationUAV            = Shader.PropertyToID("_HairAttenuationUAV");
         public static readonly int _HairAttenuation               = Shader.PropertyToID("_HairAttenuation");
-        public static readonly int _HairAzimuthalScatteringUAV    = Shader.PropertyToID("_HairAzimuthalScatteringUAV");
         public static readonly int _HairAzimuthalScattering       = Shader.PropertyToID("_HairAzimuthalScattering");
-        public static readonly int _HairLongitudinalScatteringUAV = Shader.PropertyToID("_HairLongitudinalScatteringUAV");
         public static readonly int _HairLongitudinalScattering    = Shader.PropertyToID("_HairLongitudinalScattering");
+
+        private Texture3D m_HairAttenuationLUT;
+        private Texture3D m_HairAzimuthalScatteringLUT;
+        private Texture3D m_HairLongitudinalScatteringLUT;
 
         public Hair() { }
 
-        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
+        public override void Build(HDRenderPipeline renderPipeline)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
 
-            // 4b * kDim^3 = ~1mb
-            m_AttenuationLUT = new RenderTexture(kDim, kDim, 0, GraphicsFormat.R16G16_SFloat)
-            {
-                dimension = TextureDimension.Tex3D,
-                volumeDepth = kDim,
-                enableRandomWrite = true,
-                hideFlags = HideFlags.HideAndDontSave,
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp,
-                name = CoreUtils.GetRenderTargetAutoName(kDim, kDim, 0, GraphicsFormat.R16G16_SFloat, "HairAttenuationLUT")
-            };
-            m_AttenuationLUT.Create();
+            m_HairAttenuationLUT            = renderPipeline.runtimeTextures.hairAttenuationLUT;
+            m_HairAzimuthalScatteringLUT    = renderPipeline.runtimeTextures.hairAzimuthalScatteringLUT;
+            m_HairLongitudinalScatteringLUT = renderPipeline.runtimeTextures.hairLongitudinalScatteringLUT;
+        }
 
-            // 8b * kDim^3 = ~2mb
-            m_AzimuthalScatteringLUT = new RenderTexture(kDim, kDim, 0, GraphicsFormat.R16G16B16A16_SFloat)
+        public override void BuildOffline(ref List<RenderTexture> generatedResourceList)
+        {
+            var lookupDescriptor = new RenderTextureDescriptor
             {
-                dimension = TextureDimension.Tex3D,
-                volumeDepth = kDim,
+                // All hair lookups are three-dimensional.
+                dimension         = TextureDimension.Tex3D,
+                width             = kDim,
+                height            = kDim,
+                volumeDepth       = kDim,
                 enableRandomWrite = true,
-                hideFlags = HideFlags.HideAndDontSave,
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp,
-                name = CoreUtils.GetRenderTargetAutoName(kDim, kDim, 0, GraphicsFormat.R16G16B16A16_SFloat, "HairAzimuthalScatteringLUT")
+                autoGenerateMips  = false,
+                msaaSamples       = 1,
+                depthBufferBits   = 0,
             };
-            m_AzimuthalScatteringLUT.Create();
 
-            // 8b * kDim^3 = ~2mb
-            m_LongitudinalScatteringLUT = new RenderTexture(kDim, kDim, 0, GraphicsFormat.R16G16B16A16_SFloat)
+            RenderTexture GetTemporaryHairMaterialRT(RenderTextureDescriptor baseDescriptor, string name, GraphicsFormat format)
             {
-                dimension = TextureDimension.Tex3D,
-                volumeDepth = kDim,
-                enableRandomWrite = true,
-                hideFlags = HideFlags.HideAndDontSave,
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp,
-                name = CoreUtils.GetRenderTargetAutoName(kDim, kDim, 0, GraphicsFormat.R16G16B16A16_SFloat, "HairLongitudinalScatteringUAV")
-            };
-            m_LongitudinalScatteringLUT.Create();
+                baseDescriptor.graphicsFormat = format;
 
-            m_PreIntegrationKernels = defaultResources.shaders.preIntegratedFiberScatteringCS;
-            {
-                m_ComputeForwardAttenuationKernel     = m_PreIntegrationKernels.FindKernel("ComputeAttenuationForward");
-                m_ComputeBackwardAttenuationKernel    = m_PreIntegrationKernels.FindKernel("ComputeAttenuationBackward");
-                m_ComputeAzimuthalScatteringKernel    = m_PreIntegrationKernels.FindKernel("ComputeAzimuthalScattering");
-                m_ComputeLongitudinalScatteringKernel = m_PreIntegrationKernels.FindKernel("ComputeLongitudinalScattering");
+                var rt = RenderTexture.GetTemporary(baseDescriptor);
+                {
+                    // Can't specify a name in a descriptor...
+                    // We want to label it since it governs the asset name.
+                    rt.name = name;
+
+                    // Async-readback will fail unless this is called.
+                    rt.Create();
+                }
+                return rt;
             }
+
+            var lutAttenuation            = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairAttenuationUAV",            GraphicsFormat.R16G16_SFloat);       // ~1mb
+            var lutAzimuthalScattering    = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairAzimuthalScatteringUAV",    GraphicsFormat.R16G16B16A16_SFloat); // ~2mb
+            var lutLongitudinalScattering = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairLongitudinalScatteringUAV", GraphicsFormat.R16G16B16A16_SFloat); // ~2mb
+
+            var kernels = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFiberScatteringCS;
+
+            void ComputeHairLookUpTable(string kernelName, RenderTexture resource)
+            {
+                var cmd = CommandBufferPool.Get();
+
+                var kernelID = kernels.FindKernel(kernelName);
+
+                cmd.SetComputeTextureParam(kernels, kernelID, resource.name, resource);
+
+                var dispatchSize = new[]
+                {
+                    // All the LUT kernels work in 8x8x8 work-groups.
+                    HDUtils.DivRoundUp(kDim, 8),
+                    HDUtils.DivRoundUp(kDim, 8),
+                    HDUtils.DivRoundUp(kDim, 8)
+                };
+                cmd.DispatchCompute(kernels, kernelID, dispatchSize[0], dispatchSize[1], dispatchSize[2]);
+
+                Graphics.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
+            ComputeHairLookUpTable("ComputeAttenuationForward",     lutAttenuation);
+            ComputeHairLookUpTable("ComputeAttenuationBackward",    lutAttenuation);
+            ComputeHairLookUpTable("ComputeAzimuthalScattering",    lutAzimuthalScattering);
+            ComputeHairLookUpTable("ComputeLongitudinalScattering", lutLongitudinalScattering);
+
+            // Write these look-up tables to disk.
+            generatedResourceList.Add(lutAttenuation);
+            generatedResourceList.Add(lutAzimuthalScattering);
+            generatedResourceList.Add(lutLongitudinalScattering);
         }
 
         public override void Cleanup()
         {
             PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Cleanup();
-
-            CoreUtils.Destroy(m_AttenuationLUT);
-            m_AttenuationLUT = null;
-
-            CoreUtils.Destroy(m_AzimuthalScatteringLUT);
-            m_AzimuthalScatteringLUT = null;
-
-            CoreUtils.Destroy(m_LongitudinalScatteringLUT);
-            m_LongitudinalScatteringLUT = null;
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
-
-            if (m_PreIntegrationKernels == null)
-                return;
-
-            if (!m_AttenuationIsInit)
-            {
-                // Forward attenuation
-                cmd.SetComputeTextureParam(m_PreIntegrationKernels, m_ComputeForwardAttenuationKernel, _HairAttenuationUAV, m_AttenuationLUT);
-                cmd.DispatchCompute(m_PreIntegrationKernels, m_ComputeForwardAttenuationKernel, HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8));
-
-                // Backward attenuation
-                cmd.SetComputeTextureParam(m_PreIntegrationKernels, m_ComputeBackwardAttenuationKernel, _HairAttenuationUAV, m_AttenuationLUT);
-                cmd.DispatchCompute(m_PreIntegrationKernels, m_ComputeBackwardAttenuationKernel, HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8));
-
-                m_AttenuationIsInit = true;
-            }
-
-            if (!m_AzimuthalScatteringIsInit)
-            {
-                cmd.SetComputeTextureParam(m_PreIntegrationKernels, m_ComputeAzimuthalScatteringKernel, _HairAzimuthalScatteringUAV, m_AzimuthalScatteringLUT);
-                cmd.DispatchCompute(m_PreIntegrationKernels, m_ComputeAzimuthalScatteringKernel, HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8));
-
-                m_AzimuthalScatteringIsInit = true;
-            }
-
-            if (!m_LongitudinalScatteringIsInit)
-            {
-                cmd.SetComputeTextureParam(m_PreIntegrationKernels, m_ComputeLongitudinalScatteringKernel, _HairLongitudinalScatteringUAV, m_LongitudinalScatteringLUT);
-                cmd.DispatchCompute(m_PreIntegrationKernels, m_ComputeLongitudinalScatteringKernel, HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8), HDUtils.DivRoundUp(kDim, 8));
-
-                m_LongitudinalScatteringIsInit = true;
-            }
         }
 
         public override void Bind(CommandBuffer cmd)
@@ -319,23 +281,9 @@ namespace UnityEngine.Rendering.HighDefinition
             PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Bind(cmd);
 
-            if (m_AttenuationLUT == null)
-            {
-                throw new Exception("Pre-Integrated Hair Fiber LUT not available!");
-            }
-            cmd.SetGlobalTexture(_HairAttenuation, m_AttenuationLUT);
-
-            if (m_AzimuthalScatteringLUT == null)
-            {
-                throw new Exception("Pre-Integrated Hair Fiber LUT not available!");
-            }
-            cmd.SetGlobalTexture(_HairAzimuthalScattering, m_AzimuthalScatteringLUT);
-
-            if (m_LongitudinalScatteringLUT == null)
-            {
-                throw new Exception("Pre-Integrated Hair Fiber LUT not available!");
-            }
-            cmd.SetGlobalTexture(_HairLongitudinalScattering, m_LongitudinalScatteringLUT);
+            cmd.SetGlobalTexture(_HairAttenuation, m_HairAttenuationLUT);
+            cmd.SetGlobalTexture(_HairAzimuthalScattering, m_HairAzimuthalScatteringLUT);
+            cmd.SetGlobalTexture(_HairLongitudinalScattering, m_HairLongitudinalScatteringLUT);
         }
     }
 }

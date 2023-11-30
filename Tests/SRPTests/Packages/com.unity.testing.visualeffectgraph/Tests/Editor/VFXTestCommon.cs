@@ -136,6 +136,34 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+        public static VisualEffectSubgraphBlock MakeTemporarySubGraphBlock()
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormat, guid).Replace("vfx", "vfxblock");
+            System.IO.Directory.CreateDirectory(tempBasePath);
+
+            VisualEffectAssetEditorUtility.CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, VisualEffectAssetEditorUtility.DoCreateNewSubgraphBlock>(tempFilePath, VisualEffectAssetEditorUtility.templateBlockSubgraphAssetName);
+            var projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
+            projectBrowser.EndRenaming();
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            return AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>(tempFilePath);
+        }
+
+        public static VisualEffectSubgraphOperator MakeTemporarySubGraphOperator()
+        {
+            var guid = System.Guid.NewGuid().ToString();
+            string tempFilePath = string.Format(tempFileFormat, guid).Replace("vfx", "vfxoperator");
+            System.IO.Directory.CreateDirectory(tempBasePath);
+
+            VisualEffectAssetEditorUtility.CreateVisualEffectSubgraph<VisualEffectSubgraphOperator, VisualEffectAssetEditorUtility.DoCreateNewSubgraphOperator>(tempFilePath, VisualEffectAssetEditorUtility.templateOperatorSubgraphAssetName);
+            var projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
+            projectBrowser.EndRenaming();
+
+            AssetDatabase.ImportAsset(tempFilePath);
+            return AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphOperator>(tempFilePath);
+        }
+
         public static VFXGraph CreateGraph_And_System()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
@@ -146,8 +174,8 @@ namespace UnityEditor.VFX.Test
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
 
-            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
-            var blockAttribute = blockAttributeDesc.CreateInstance();
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance();
             blockAttribute.SetSettingValue("attribute", "position");
             contextInitialize.AddChild(blockAttribute);
 
@@ -239,12 +267,12 @@ namespace UnityEditor.VFX.Test
                 return viewController.allChildren.OfType<VFXContextController>().Single(x => x.model == context);
             }
 
-            var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
-            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.StartsWith("Output Particle Quad"));
+            var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.Contains("Init"));
+            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.StartsWith("Output Particle Quad"));
             for (int i = 0; i < count; ++i)
             {
-                var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc);
-                var init = viewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc);
+                var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc.variant);
+                var init = viewController.AddVFXContext(new Vector2(i, i), contextInitializeDesc.variant);
 
                 var flowEdge = new VFXFlowEdgeController(GetContextController(output).flowInputAnchors.FirstOrDefault(), GetContextController(init).flowOutputAnchors.FirstOrDefault());
                 viewController.AddElement(flowEdge);

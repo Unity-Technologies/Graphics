@@ -9,18 +9,27 @@ namespace UnityEditor.VFX
 {
     class InlineTypeProvider : VariantProvider
     {
-        protected sealed override Dictionary<string, object[]> variants { get; } = new()
-        {
-            { "m_Type", GetValidTypes().Select(o => new SerializableType(o)).ToArray() }
-        };
-
         private static IEnumerable<Type> GetValidTypes()
         {
             return VFXLibrary.GetSlotsType().Where(x => VFXLibrary.GetAttributeFromSlotType(x)?.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty) != true);
         }
+
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var validType in GetValidTypes())
+            {
+                yield return new Variant(
+                    validType.UserFriendlyName(),
+                    "Inline",
+                    typeof(VFXInlineOperator),
+                    new [] { new KeyValuePair<string, object>("m_Type", new SerializableType(validType)) }
+                );
+
+            }
+        }
     }
 
-    [VFXInfo(category = "Inline", variantProvider = typeof(InlineTypeProvider))]
+    [VFXInfo(variantProvider = typeof(InlineTypeProvider))]
     class VFXInlineOperator : VFXOperator
     {
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]

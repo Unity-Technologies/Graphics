@@ -37,10 +37,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 public const string DLSSFeatureNotDetectedMsg = "Unity cannot detect NVIDIA Deep Learning Super Sampling and will use the Fallback Anti Aliasing Method instead.";
                 public const string DLSSNotEnabledInQualityAsset = "The quality asset in this project does not have NVIDIA Deep Learning Super Sampling (DLSS) enabled. DLSS will not be running on this camera.";
                 public static readonly GUIContent DLSSAllow = EditorGUIUtility.TrTextContent("Allow DLSS", "Allows DLSS for this camera. For the effect to be enabled, it must be set in the quality asset of this project.");
-                public static readonly GUIContent DLSSCustomQualitySettings = EditorGUIUtility.TrTextContent("Use Custom Quality", "");
-                public static readonly GUIContent DLSSUseCustomAttributes = EditorGUIUtility.TrTextContent("Use Custom Attributes", "");
+                public static readonly GUIContent DLSSCustomQualitySettings = EditorGUIUtility.TrTextContent("Use DLSS Custom Quality", "");
+                public static readonly GUIContent DLSSUseCustomAttributes = EditorGUIUtility.TrTextContent("Use DLSS Custom Attributes", "");
                 public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for this camera.");
+                public static readonly GUIContent FSR2Allow = EditorGUIUtility.TrTextContent("Allow FSR2", "Allows FSR2 for this camera. For the effect to be enabled, it must be set in the quality asset of this project.");
+                public static readonly GUIContent FSR2CustomQualitySettings = EditorGUIUtility.TrTextContent("Use FSR2 Custom Quality", "");
+                public static readonly GUIContent FSR2UseCustomAttributes = EditorGUIUtility.TrTextContent("Use FSR2 Custom Attributes", "");
                 public static GUIContent overrideSettingText { get; } = EditorGUIUtility.TrTextContent("", "If enabled, this camera setting will be used instead of the one specified in the quality asset of this project.");
+
+                public const string FSR2FeatureDetectedMsg = "Unity detected AMD Fidelity FX 2 Super Resolution and will ignore the Fallback Anti Aliasing Method.";
+                public const string FSR2FeatureNotDetectedMsg = "Unity cannot detect AMD Fidelity FX 2 Super Resolution and will use the Fallback Anti Aliasing Method instead.";
+                public const string FSR2NotEnabledInQualityAsset = "The quality asset in this project does not have Fidelity FX 2 Super Resolution (FSR2) enabled. FSR2 will not be running on this camera.";
+
             }
         }
     }

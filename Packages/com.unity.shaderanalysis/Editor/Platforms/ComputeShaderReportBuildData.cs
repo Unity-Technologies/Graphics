@@ -84,6 +84,7 @@ namespace UnityEditor.ShaderAnalysis
                 progress.SetNormalizedProgress(s * i, "Building compile units {0:D3} / {1:D3}", i + 1, c);
 
                 var compileOptions = ShaderAnalysisUtils.DefaultCompileOptions(kernel.defines, kernel.name, sourceDir);
+                compileOptions.generateExtraPerfData = filter.generateExtraPerfData;
 
                 foreach (var keywordSet in keywords)
                     foreach (var keyword in (HashSet<string>)keywordSet)
@@ -136,7 +137,7 @@ namespace UnityEditor.ShaderAnalysis
                 );
 
                 var perf = GetPerfReportAt(i);
-                program.AddPerformanceReport(-1, perf.rawReport, perf.parsedReport);
+                program.AddPerformanceReport(-1, perf.rawReport, perf.parsedReport, perf.compiledfile);
             }
 
             yield break;

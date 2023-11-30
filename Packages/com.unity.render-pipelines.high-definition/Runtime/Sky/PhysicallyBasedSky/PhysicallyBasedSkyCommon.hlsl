@@ -2,6 +2,7 @@
 #define UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
@@ -18,6 +19,19 @@ TEXTURE3D(_MultipleScatteringTexture);
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
     SAMPLER(s_linear_clamp_sampler);
 #endif
+
+#define _PlanetCenterPosition _PlanetCenterRadius.xyz // camera relative
+#define _GroundAlbedo _GroundAlbedo_PlanetRadius.xyz
+#define _PlanetUp _PlanetUpAltitude.xyz
+#define _CameraAltitude _PlanetUpAltitude.w
+
+#ifndef _PlanetaryRadius
+#define _PlanetaryRadius _PlanetCenterRadius.w
+#endif
+
+// To reduce banding at low sun angles on 32bits, we have to 'pre expose' ms values as they are very small
+#define MS_EXPOSURE 100.0f
+#define MS_EXPOSURE_INV 0.01f
 
 // Computes (a^2 - b^2) in a numerically stable way.
 float DifferenceOfSquares(float a, float b)
@@ -43,6 +57,24 @@ float3 AerosolScatter(float height)
 float AerosolPhase(float LdotV)
 {
     return _AerosolPhasePartConstant * CornetteShanksPhasePartVarying(_AerosolAnisotropy, -LdotV);
+}
+
+float OzoneDensity(float height)
+{
+    return saturate(1 - abs(height * _OzoneScaleOffset.x + _OzoneScaleOffset.y));
+}
+
+float3 AtmosphereExtinction(float height)
+{
+    const float densityMie      = exp(-height * _AerosolDensityFalloff);
+    const float densityRayleigh = exp(-height * _AirDensityFalloff);
+    const float densityOzone    = OzoneDensity(height);
+
+    float3 extinction = densityMie * _AerosolSeaLevelExtinction
+                      + densityRayleigh * _AirSeaLevelExtinction.xyz
+                      + densityOzone * _OzoneSeaLevelExtinction.xyz;
+
+    return max(extinction, FLT_MIN);
 }
 
 // For multiple scattering.
@@ -93,6 +125,34 @@ float2 IntersectSphere(float sphereRadius, float cosChi,
 float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
 {
     return IntersectSphere(sphereRadius, cosChi, radialDistance, rcp(radialDistance));
+}
+
+// O must be planet-relative.
+float2 IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
+{
+    const float A = _AtmosphericRadius;
+
+    float3 P = O;
+
+    N = normalize(P);
+    r = length(P);
+
+    float2 t = IntersectSphere(A, dot(N, -V), r);
+
+    if (t.y >= 0) // Success?
+    {
+        // If we are already inside, do not step back.
+        t.x = max(t.x, 0);
+
+        if (t.x > 0)
+        {
+            P = P + t.x * -V;
+            N = normalize(P);
+            r = A;
+        }
+    }
+
+    return t;
 }
 
 float2 IntersectRayCylinder(float3 cylAxis, float cylRadius,
@@ -243,6 +303,66 @@ float RescaledChapmanFunction(float z, float Z, float cosTheta)
     return ch;
 }
 
+// This is a very crude approximation, should be reworked
+// It estimates the result by integrating with 4 samples
+float ComputeOzoneOpticalDepth(float r, float cosTheta, float distAlongRay)
+{
+    const float  R = _PlanetaryRadius;
+
+    float2 tInner = IntersectSphere(_OzoneLayerStart, cosTheta, r);
+    float2 tOuter = IntersectSphere(_OzoneLayerEnd, cosTheta, r);
+    float tEntry, tEntry2, tExit, tExit2;
+
+    if (tInner.x < 0.0 && tInner.y >= 0.0) // Below the lower bound
+    {
+        // The ray starts at the intersection with the lower bound and ends at the intersection with the outer bound
+        tEntry = tInner.y;
+        tExit2 = tOuter.y;
+        tEntry2 = tExit = (tExit2 - tEntry) * 0.5f;
+    }
+    else // Inside or above the volume
+    {
+        // The ray starts at the intersection with the outer bound, or at 0 if we are inside
+        // The ray ends at the lower bound if we hit it, at the outer bound otherwise
+        tEntry = max(tOuter.x, 0.0f);
+        tExit = tInner.x >= 0.0 ? tInner.x : tOuter.y;
+
+        // If we hit the lower bound, we may intersect the volume a second time
+        if (tInner.x >= 0.0 && distAlongRay > tInner.y)
+        {
+            tEntry2 = tInner.y;
+            tExit2 = tOuter.y;
+        }
+        else
+        {
+            tExit2 = tExit;
+            tEntry2 = tExit = (tExit2 - tEntry) * 0.5f;
+        }
+    }
+
+    tExit = min(tExit, distAlongRay);
+    tExit2 = min(tExit2, distAlongRay);
+
+    float ozoneOD = 0.0f;
+    const uint count = 2;
+    float dt = max(tExit-tEntry, 0) * rcp(count);
+    float dt2 = max(tExit2-tEntry2, 0) * rcp(count);
+
+    [unroll]
+    for (uint i = 0; i < count; i++)
+    {
+        float t = lerp(tEntry, tExit, (i+0.5f) * rcp(count));
+        float t2 = lerp(tEntry2, tExit2, (i+0.5f) * rcp(count));
+        float h = sqrt(r*r + t * (2*r*cosTheta + t)) - R;
+        float h2 = sqrt(r*r + t2 * (2*r*cosTheta + t2)) - R;
+
+        ozoneOD += OzoneDensity(h) * dt;
+        ozoneOD += OzoneDensity(h2) * dt2;
+    }
+
+    return ozoneOD * 0.6f;
+}
+
 float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon)
 {
     const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
@@ -283,9 +403,12 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
         ch = ch_2 - ch;
     }
 
-    float2 optDepth = ch * H;
+    float ozone = aboveHorizon ? ComputeOzoneOpticalDepth(r, cosTheta, FLT_MAX) : 0.0f;
+    float3 optDepth = float3(ch * H, ozone);
 
-    return optDepth.x * _AirSeaLevelExtinction.xyz + optDepth.y * _AerosolSeaLevelExtinction;
+    return optDepth.x * _AirSeaLevelExtinction.xyz
+        + optDepth.y * _AerosolSeaLevelExtinction
+        + optDepth.z * _OzoneSeaLevelExtinction.xyz;
 }
 
 float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
@@ -293,6 +416,103 @@ float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
     float cosHor = ComputeCosineOfHorizonAngle(r);
 
     return ComputeAtmosphericOpticalDepth(r, cosTheta, cosTheta >= cosHor);
+}
+
+// Assumes the ray starts and ends inside atmosphere
+// O is in planet space
+float3 ComputeAtmosphericOpticalDepth(float3 O, float3 V, float distAlongRay)
+{
+    const float  R = _PlanetaryRadius;
+    const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
+    const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
+
+    const float  tFrag = distAlongRay;
+
+    float3 N = normalize(O);
+    float r = length(O);
+
+    float NdotV  = dot(N, V);
+    float cosChi = -NdotV;
+
+    float2 Z = R * n;
+    float r0 = r, cosChi0 = cosChi;
+
+    float r1 = 0, cosChi1 = 0;
+    float3 N1 = 0;
+
+    {
+        float3 P1 = O + tFrag * -V;
+
+        r1      = length(P1);
+        N1      = P1 * rcp(r1);
+        cosChi1 = dot(P1, -V) * rcp(r1);
+
+        // Potential swap.
+        cosChi0 = (cosChi1 >= 0) ? cosChi0 : -cosChi0;
+    }
+
+    float2 ch0, ch1 = 0;
+
+    {
+        float2 z0 = r0 * n;
+
+        ch0.x = RescaledChapmanFunction(z0.x, Z.x, cosChi0);
+        ch0.y = RescaledChapmanFunction(z0.y, Z.y, cosChi0);
+    }
+
+    {
+        float2 z1 = r1 * n;
+
+        ch1.x = ChapmanUpperApprox(z1.x, abs(cosChi1)) * exp(Z.x - z1.x);
+        ch1.y = ChapmanUpperApprox(z1.y, abs(cosChi1)) * exp(Z.y - z1.y);
+    }
+
+    // We may have swapped X and Y.
+    float2 ch = abs(ch0 - ch1);
+    float3 optDepth = float3(ch * H, ComputeOzoneOpticalDepth(r, cosChi, distAlongRay));
+
+    return optDepth.x * _AirSeaLevelExtinction.xyz
+        + optDepth.y * _AerosolSeaLevelExtinction
+        + optDepth.z * _OzoneSeaLevelExtinction.xyz;
+}
+
+// Evaluates transmittance to sun from a point at altitude r
+// cosTheta is the zenith angle
+float3 EvaluateSunColorAttenuation(float cosTheta, float r)
+{
+    float cosHoriz = ComputeCosineOfHorizonAngle(r);
+
+    if (cosTheta >= cosHoriz) // Above horizon
+    {
+        float3 opticalDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        return TransmittanceFromOpticalDepth(opticalDepth);
+    }
+    else
+    {
+       return 0;
+    }
+}
+
+// This function evaluates the sun color attenuation from the physically based sky
+float3 EvaluateSunColorAttenuation(float3 positionPS, float3 sunDirection)
+{
+    float r        = length(positionPS);
+    float cosTheta = dot(positionPS, sunDirection) * rcp(r); // Normalize
+
+    // Point can be below horizon due to precision issues
+    r = max(r, _PlanetaryRadius);
+    float cosHoriz = ComputeCosineOfHorizonAngle(r);
+
+    if (cosTheta >= cosHoriz) // Above horizon
+    {
+        float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        float3 opacity = 1 - TransmittanceFromOpticalDepth(oDepth);
+        return 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+    }
+    else
+    {
+       return 0;
+    }
 }
 
 // Map: [cos(120 deg), 1] -> [0, 1].
@@ -348,32 +568,32 @@ TexCoord4D ConvertPositionAndOrientationToTexCoords(float height, float NdotV, f
     return texCoord;
 }
 
-// O must be planet-relative.
-float2 IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
+float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
 {
-    const float A = _AtmosphericRadius;
+    // Remap t: (exp(10 k t) - 1) / (exp(10 k) - 1) = exp(x t) y - y.
+    t = exp(x * t) * y - y;
+    // Perform linear interpolation using the new value of t.
+    return lerp(A, B, t);
+}
 
-    float3 P = O;
+void AtmosphereArtisticOverride(float cosHor, float cosChi, inout float3 skyColor, inout float3 skyOpacity, bool precomputedColorDesaturate = false)
+{
+    if (!precomputedColorDesaturate)
+        skyColor = Desaturate(skyColor, _ColorSaturation);
+    skyOpacity = Desaturate(skyOpacity, _AlphaSaturation) * _AlphaMultiplier;
 
-    N = normalize(P);
-    r = length(P);
+    float horAngle = acos(cosHor);
+    float chiAngle = acos(cosChi);
 
-    float2 t = IntersectSphere(A, dot(N, -V), r);
+    // [start, end] -> [0, 1] : (x - start) / (end - start) = x * rcpLength - (start * rcpLength)
+    // TEMPLATE_3_REAL(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * rcpLength - startTimesRcpLength))
+    float start    = horAngle;
+    float end      = 0;
+    float rcpLen   = rcp(end - start);
+    float nrmAngle = Remap01(chiAngle, rcpLen, start * rcpLen);
+    // float angle = saturate((0.5 * PI) - acos(cosChi) * rcp(0.5 * PI));
 
-    if (t.y >= 0) // Success?
-    {
-        // If we are already inside, do not step back.
-        t.x = max(t.x, 0);
-
-        if (t.x > 0)
-        {
-            P = P + t.x * -V;
-            N = normalize(P);
-            r = A;
-        }
-    }
-
-    return t;
+    skyColor *= ExpLerp(_HorizonTint.rgb, _ZenithTint.rgb, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
 }
 
 #endif // UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED

@@ -306,6 +306,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2120_APV_Baking.unity
     guid: fc784678bf952de4482e78aea61ccdc8
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2121_APV_Baking_Sky_Occlusion.unity
+    guid: 7ade3d105a5eb453b96e65e54f9609f8
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2122_APV_Baking_Sky_Occlusion_And_Direction.unity
+    guid: 264a0ae5c6968478a9e86baddc77f843
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
   - enabled: 1
@@ -441,6 +447,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2406_Area_Rect_Shadow_PCSS.unity
     guid: 83ba1453f6583e241a881c38de7ef746
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2407_Area_Materials.unity
+    guid: 10f92fad9b64b46b491229d66ea503cf
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2501_LightLayers.unity
     guid: 100c0e304d8aba84186dcd9bf48e5b85
   - enabled: 1
@@ -491,6 +500,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3008_ShadowDebugMode.unity
     guid: 8c93fca0ef1024d9b9164ffe0ffd909e
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3009_MaterialOverrides.unity
+    guid: a469a947680f48644967493aba255270
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
@@ -639,6 +651,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4105_LensFlareScreenSpace.unity
     guid: d3f6736899b85bd47a2163d3af81ac0b
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4106_LensFlareDataDriven_Water_Occlusion.unity
+    guid: e6d0c14426cac7d428a86998b3610c1c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1
@@ -747,6 +762,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_Instancing.unity
     guid: 4229d44b837011e48b0f123903ea0ea5
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_InstancingAPIs.unity
+    guid: 301d73c05bd921a4da24eb950ef1ec00
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_InstancingMaterials.unity
+    guid: f2f6703023f374c6ca863b96155a3bcb
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_CustomInterpolators.unity
     guid: 52d6e6ba6f864c24f9ca8db904b542b0
   - enabled: 1
@@ -788,6 +809,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9007_CameraAlphaComposition.unity
     guid: 9bdb6076c41f9d64099cfd338b8f4c8b
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9008_AnimationFrustumCulling.unity
+    guid: ae8985d60efd64a4eabcad184745808a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9301_MotionVectorsOff-Forward-Dynamic.unity
     guid: 322dc5ea5f705a245acc44fd467164ef
@@ -885,6 +909,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9921_UnderWater.unity
     guid: 642f1a1637886b84bbebc5374aa46f6f
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9921_UnderWater_Back.unity
+    guid: 0ff149851c424c34eb6443049a646e78
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9930-ScreenCoordOverride.unity
     guid: dd3a50f35d082f84c84fe85bce8a792d
   - enabled: 1
@@ -899,11 +926,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9950-LineRendering.unity
     guid: 65ec8013d474e1a4e85d97b29e7302f0
+  m_configObjects: {}
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8301_Canvas.unity
     guid: 6fbea5cb60d394329b2ac2b4a3788d12
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9960-RPCRenderRequest.unity
     guid: 877ce1fd6af6ce444ad7df1b05f9b7e0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9970-ScreenSpaceUIOverlay.unity
+    guid: df8ad799e8a136e488cc1dc4c39a9c2c
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

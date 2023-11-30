@@ -54,7 +54,7 @@ MonoBehaviour:
     customBufferFormat: 48
     supportedLitShaderMode: 2
     planarReflectionResolution:
-      m_Values: 000100000004000000040000
+      m_Values: 000100000002000000040000
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
@@ -305,6 +305,8 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    gpuResidentDrawerSettings:
+      mode: 0
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 
@@ -336,6 +338,9 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
+  m_CompositorCustomVolumeComponentsList:
+    m_InjectionPoint: 1
+    m_CustomPostProcessTypesAsString: []
   m_Version: 24
   m_ObsoleteFrameSettings:
     overrides: 0

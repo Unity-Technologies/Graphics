@@ -121,6 +121,18 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfaceRenderingDeferred,
         WaterSurfaceRenderingWaterLine,
 
+        // High Quality Lines
+        LinesGeometrySetup,
+        LinesVertexSetup,
+        LinesSegmentSetup,
+        LinesShadingPrepare,
+        LinesShading,
+        LinesRasterizationSetup,
+        LinesBuildClusters,
+        LinesBinningStage,
+        LinesWorkQueue,
+        LinesFineRaster,
+
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
@@ -252,7 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DynamicExposure,
         ApplyExposure,
         TemporalAntialiasing,
-        DeepLearningSuperSamplingColorMask,
+        UpscalerColorMask,
+        FSR2,
         DeepLearningSuperSampling,
         DepthOfField,
         DepthOfFieldKernel,
@@ -294,9 +307,10 @@ namespace UnityEngine.Rendering.HighDefinition
         Sharpening,
         ContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
-        PrepareProbeVolumeList,
-        ProbeVolumeDebug,
         CustomPassBufferClearDebug,
+
+        // Temp
+        APVSamplingDebug,
 
         AOVExecute,
         AOVOutput,

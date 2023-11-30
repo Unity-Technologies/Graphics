@@ -192,11 +192,8 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        protected override RPInfo currentRP
-        {
-            get { return hdrpLitInfo; }
-        }
-        public override bool isLitShader { get => true; }
+        protected override VFXOldShaderGraphHelpers.RPInfo currentRP => VFXOldShaderGraphHelpers.hdrpLitInfo;
+        public override bool isLitShader => true;
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

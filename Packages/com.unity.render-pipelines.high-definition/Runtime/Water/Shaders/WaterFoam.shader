@@ -18,6 +18,8 @@ Shader "Hidden/HDRP/WaterFoam"
 
         Pass
         {
+			Name "ShoreWaveFoamGeneration"
+
             // This program doesn't require any culling or ztesting
             Cull   Off
             ZTest  Off
@@ -34,7 +36,7 @@ Shader "Hidden/HDRP/WaterFoam"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterDeformationUtilities.hlsl"
 
             #define SURFACE_FOAM_MUTLIPLIER 2.0
-            #define DEEP_FOAM_MUTLIPLIER 5.0
+            #define DEEP_FOAM_MUTLIPLIER 1.0
 
             struct Attributes
             {
@@ -99,7 +101,7 @@ Shader "Hidden/HDRP/WaterFoam"
                     float foamHeightThreshold = EvaluateWaveBlendAttenuation(deform, input.normalizedPos);
 
                     // Define where the foam appears on the wave
-                    float surfacefoamWaveLocation = saturate((waveData.position - 0.2) / 0.1) * (1.0 - saturate((waveData.position - 0.5) / 0.02));
+                    float surfacefoamWaveLocation = saturate((waveData.position - 0.1) / 0.1) * (1.0 - saturate((waveData.position - 0.5) / 0.02));
                     float deepFoamWaveLocation = saturate((waveData.position - 0.1) / 0.1) * (1.0 - saturate((waveData.position - 0.3) / 0.1));
 
                     // Define what amount of foam appears
@@ -124,6 +126,8 @@ Shader "Hidden/HDRP/WaterFoam"
 
         Pass
         {
+			Name "OtherFoamGeneration"
+
             // This program doesn't require any culling or ztesting
             Cull   Off
             ZTest  Off
@@ -140,8 +144,8 @@ Shader "Hidden/HDRP/WaterFoam"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/FoamGenerator/WaterFoamGenerator.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterDeformationUtilities.hlsl"
 
-            #define SURFACE_FOAM_MUTLIPLIER 5.0
-            #define DEEP_FOAM_MUTLIPLIER 3.0
+            #define SURFACE_FOAM_MUTLIPLIER 1.0
+            #define DEEP_FOAM_MUTLIPLIER 1.0
 
             struct Attributes
             {
@@ -192,9 +196,6 @@ Shader "Hidden/HDRP/WaterFoam"
                 // Grab the current deformer
                 WaterGeneratorData generator = _WaterGeneratorData[input.generatorID];
 
-                // Evaluate the perlin noise
-                float perlinNoise = 0.2 + saturate(DeformerNoise2D(input.positionWS * 0.25));
-
                 // Deformer specific code
                 float2 foamData = 0.0;
                 if (generator.type == WATERFOAMGENERATORTYPE_DISK)
@@ -213,8 +214,8 @@ Shader "Hidden/HDRP/WaterFoam"
                 }
 
                 // Apply the multipliers
-                foamData.x *= generator.surfaceFoamDimmer * SURFACE_FOAM_MUTLIPLIER * perlinNoise;
-                foamData.y *= generator.deepFoamDimmer * DEEP_FOAM_MUTLIPLIER * perlinNoise;
+                foamData.x *= generator.surfaceFoamDimmer * SURFACE_FOAM_MUTLIPLIER;
+                foamData.y *= generator.deepFoamDimmer * DEEP_FOAM_MUTLIPLIER;
 
                 return foamData * _DeltaTime;
             }
@@ -223,6 +224,7 @@ Shader "Hidden/HDRP/WaterFoam"
 
         Pass
         {
+            Name "Reprojection"
             // This program doesn't require any culling or ztesting
             Cull Off
             ZTest Off

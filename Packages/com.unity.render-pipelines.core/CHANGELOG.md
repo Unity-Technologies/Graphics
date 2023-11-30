@@ -6,8 +6,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added TYPED_TEXTURE[2D|2D_ARRAY|3D] macros to allow cross platform declaration of explicitly typed Texture[2D|2DArray|3D] resources.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [17.0.0] - 2023-09-26
+
+This version is compatible with Unity 2023.3.0a8.
+
+### Changed
+- Dumping in the temp folder the stripping of IRenderPipelineGraphicsSettings
+
+### Fixed
+- Fixed an issue in the Rendering Debugger where APV was not shown on editor when `Strip runtime debug shaders` was enabled in the global settings.
+- Fixed Stripping.meta corrupted metal file.
+- When changing the *Global Settings* asset, the UI was not being refreshed to and the old asset was being displayed.
+- Allowing buffer read through NRP RenderGraph API.
 
 ## [16.0.3] - 2023-07-04
 

@@ -1,0 +1,44 @@
+
+#pragma kernel MainUploadScatterInstances
+
+//#pragma enable_d3d11_debug_symbols
+
+int _InputValidComponentCounts;
+int _InputInstanceCounts;
+int _InputInstanceByteSize;
+ByteAddressBuffer _InputInstanceData;
+ByteAddressBuffer _InputInstanceIndices;
+ByteAddressBuffer _InputComponentOffsets;
+ByteAddressBuffer _InputValidComponentIndices;
+ByteAddressBuffer _InputComponentAddresses;
+ByteAddressBuffer _InputComponentByteCounts;
+ByteAddressBuffer _InputComponentInstanceIndexRanges;
+RWByteAddressBuffer _OutputBuffer;
+
+[numthreads(64,1,1)]
+void MainUploadScatterInstances(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint instanceOffset = dispatchThreadID.x;
+    if (instanceOffset >= (uint)_InputInstanceCounts)
+        return;
+
+    uint instanceIndex = _InputInstanceIndices.Load(instanceOffset << 2);
+
+    [loop]
+    for (int validComponentIndex = 0; validComponentIndex < _InputValidComponentCounts; ++validComponentIndex)
+    {
+        uint componentIndex = _InputValidComponentIndices.Load(validComponentIndex << 2);
+        uint instanceIndexBegin = _InputComponentInstanceIndexRanges.Load(componentIndex * 8);
+        uint instanceIndexEnd = _InputComponentInstanceIndexRanges.Load(componentIndex * 8 + 4);
+        if (instanceIndex < instanceIndexBegin || instanceIndex >= instanceIndexEnd)
+            continue;
+        uint inputComponentOffset = _InputComponentOffsets.Load(componentIndex << 2);
+        uint componentAddress = _InputComponentAddresses.Load(componentIndex << 2);
+        uint componentByteSize = _InputComponentByteCounts.Load(componentIndex << 2);
+        for (uint uintIndex = 0; uintIndex < componentByteSize / 4u; ++uintIndex)
+        {
+            uint outputAddress = componentAddress + instanceIndex * componentByteSize + uintIndex * 4;
+            _OutputBuffer.Store(outputAddress, _InputInstanceData.Load(instanceOffset * _InputInstanceByteSize + (inputComponentOffset + uintIndex) * 4));
+        }
+    }
+}

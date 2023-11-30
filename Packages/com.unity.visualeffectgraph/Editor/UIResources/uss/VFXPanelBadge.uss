@@ -1,0 +1,61 @@
+﻿#Badge
+{
+    flex-direction: row;
+    background-color: rgba(40,40,40,1);
+    height: 16px;
+    border-radius: 2px;
+    margin-right: 2px;
+    margin-left: 2px;
+    padding: 0 4px 0 14px;
+    font-size: 10px;
+    background-size: 10px 10px;
+    background-position-x: 2px;
+    -unity-text-align: middle-right;
+}
+
+#Badge.awake
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Awake.png");
+}
+#Badge.sleep
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Sleep.png");
+}
+
+#Badge.play
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_playBadge.png");
+}
+#Badge.pause
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_pauseBadge.png");
+}
+
+#Badge.visible
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Visible.png");
+}
+#Badge.culled
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Culled.png");
+}
+
+#Badge.stopped
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_stopBadge.png");
+}
+
+#Badge.position
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Position.png");
+}
+
+#Badge.rotation
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Rotation.png");
+}
+
+#Badge.age
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Age.png");
+}

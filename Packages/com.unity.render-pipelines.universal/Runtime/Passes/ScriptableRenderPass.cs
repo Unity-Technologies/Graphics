@@ -5,7 +5,7 @@ using System.ComponentModel;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -147,6 +147,15 @@ namespace UnityEngine.Rendering.Universal
         AfterRendering = 1000,
     }
 
+    /// <summary>
+    /// Framebuffer fetch events in Universal RP
+    /// </summary>
+    internal enum FramebufferFetchEvent
+    {
+        None = 0,
+        FetchGbufferInDeferred = 1
+    }
+
     internal static class RenderPassEventsEnumValues
     {
         // we cache the values in this array at construction time to avoid runtime allocations, which we would cause if we accessed valuesInternal directly
@@ -170,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    public abstract partial class ScriptableRenderPass
+    public abstract partial class ScriptableRenderPass: IRenderGraphRecorder
     {
         /// <summary>
         /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
@@ -268,6 +277,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
+        internal bool breakGBufferAndDeferredRenderPass { get; set; }
+
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -285,10 +296,10 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        static internal DebugHandler GetActiveDebugHandler(ref RenderingData renderingData)
+        static internal DebugHandler GetActiveDebugHandler(UniversalCameraData cameraData)
         {
-            var debugHandler = renderingData.cameraData.renderer.DebugHandler;
-            if ((debugHandler != null) && debugHandler.IsActiveForCamera(ref renderingData.cameraData))
+            var debugHandler = cameraData.renderer.DebugHandler;
+            if ((debugHandler != null) && debugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
                 return debugHandler;
             return null;
         }
@@ -313,6 +324,7 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
+            breakGBufferAndDeferredRenderPass = true;
             renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
@@ -614,13 +626,8 @@ namespace UnityEngine.Rendering.Universal
             Debug.LogWarning("Execute is not implemented, the pass " + this.ToString() + " won't be executed in the current render loop.");
         }
 
-        /// <summary>
-        /// Record the render graph pass. This is where custom rendering occurs. Specific details are left to the implementation
-        /// </summary>
-        /// <param name="renderGraph"></param>
-        /// <param name="frameResources"></param>
-        /// <param name="renderingData"></param>
-        public virtual void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
+        public virtual void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
         }
@@ -694,25 +701,68 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shaderTagId">Shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
-        /// <returns></returns>
+        /// <returns>Returns the draw settings created.</returns>
         /// <seealso cref="DrawingSettings"/>
         public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            return RenderingUtils.CreateDrawingSettings(shaderTagId, ref renderingData, sortingCriteria);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            return RenderingUtils.CreateDrawingSettings(shaderTagId, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current the rendering state.
+        /// </summary>
+        /// <param name="shaderTagId">Shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns>Returns the draw settings created.</returns>
+        /// <seealso cref="DrawingSettings"/>
+        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, UniversalRenderingData renderingData,
+            UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
+            return RenderingUtils.CreateDrawingSettings(shaderTagId, renderingData, cameraData, lightData, sortingCriteria);
         }
 
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current rendering state.
         /// </summary>
-        /// /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
         /// <param name="renderingData">Current rendering state.</param>
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
-        /// <returns></returns>
+        /// <returns>Returns the draw settings created.</returns>
         /// <seealso cref="DrawingSettings"/>
         public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, ref renderingData, sortingCriteria);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, universalRenderingData, cameraData, lightData, sortingCriteria);
+        }
+
+        /// <summary>
+        /// Creates <c>DrawingSettings</c> based on current rendering state.
+        /// </summary>
+        /// <param name="shaderTagIdList">List of shader pass tag to render.</param>
+        /// <param name="renderingData">Current rendering state.</param>
+        /// <param name="cameraData">Current camera state.</param>
+        /// <param name="lightData">Current light state.</param>
+        /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
+        /// <returns>Returns the draw settings created.</returns>
+        /// <seealso cref="DrawingSettings"/>
+        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+            UniversalRenderingData renderingData, UniversalCameraData cameraData,
+            UniversalLightData lightData, SortingCriteria sortingCriteria)
+        {
+            return RenderingUtils.CreateDrawingSettings(shaderTagIdList, renderingData, cameraData, lightData, sortingCriteria);
         }
 
         /// <summary>

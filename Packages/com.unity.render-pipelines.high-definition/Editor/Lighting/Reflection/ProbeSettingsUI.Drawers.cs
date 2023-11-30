@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         )
         {
             const ProbeSettingsFields lighting = ProbeSettingsFields.lightingLightLayer
+                | ProbeSettingsFields.importance
                 | ProbeSettingsFields.lightingMultiplier
                 | ProbeSettingsFields.lightingWeight
                 | ProbeSettingsFields.lightingFadeDistance;
@@ -38,6 +39,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         (property, label) => EditorGUILayout.PropertyField(property, label)
                     );
                 }
+                PropertyFieldWithoutToggle(ProbeSettingsFields.importance, serialized.importance, EditorGUIUtility.TrTextContent("Importance", "When reflection probes overlap, Unity uses Importance to determine which probe should take priority."), displayedFields.probe);
+                if (serialized.importance.intValue < 0 || serialized.importance.intValue > 32767)
+                    serialized.importance.intValue = Mathf.Clamp(serialized.importance.intValue, 0, 32767);
                 PropertyFieldWithoutToggle(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, EditorGUIUtility.TrTextContent("Multiplier", "Sets the multiplier value that reflective Materials apply to the results from the Reflection Probe."), displayedFields.probe);
                 PropertyFieldWithoutToggle(ProbeSettingsFields.lightingWeight, serialized.lightingWeight, EditorGUIUtility.TrTextContent("Weight", "Sets the weight of this Reflection Probe. When multiple Probes both affect the same area of a reflective Material, the Material uses the Weight of each Probe to determine their contribution to the reflective effect."), displayedFields.probe);
                 PropertyFieldWithoutToggle(ProbeSettingsFields.lightingFadeDistance, serialized.lightingFadeDistance, EditorGUIUtility.TrTextContent("Fade Distance", "Sets the distance from the camera at which reflections smoothly fadeout before HDRP cuts them completely."), displayedFields.probe);

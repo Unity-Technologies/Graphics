@@ -20,7 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent resourceLabel = EditorGUIUtility.TrTextContent("Resources");
             public static readonly GUIContent renderPipelineResourcesContent = EditorGUIUtility.TrTextContent("Player Resources", "Set of resources that need to be loaded when creating stand alone");
-            public static readonly GUIContent renderPipelineRayTracingResourcesContent = EditorGUIUtility.TrTextContent("Ray Tracing Resources", "Set of resources that need to be loaded when using ray tracing");
             public static readonly GUIContent renderPipelineEditorResourcesContent = EditorGUIUtility.TrTextContent("Editor Resources", "Set of resources that need to be loaded for working in editor");
 
             public static readonly GUIContent generalSettingsLabel = EditorGUIUtility.TrTextContent("Miscellaneous");

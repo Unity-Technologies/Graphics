@@ -20,7 +20,7 @@ Additional Post-Processing Data gives you access to Textures you can use with po
 
 ## Procedural Sky
 
-The [Procedural Sky](Override-Procedural-Sky.md) is a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](Volumes.md). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
+The Procedural Skyis a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](understand-volumes.md). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
 
 ## Particle System shader samples
 
@@ -30,13 +30,17 @@ This Sample includes various examples of lit and unlit particle effects.
 
 ![Material Samples](Images/MaterialSamples.png)
 
-This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.md), [Fabric Master Stack](master-stack-fabric.md), [Hair Master Stack](master-stack-hair.md), [Eye Shader](eye-shader.md) and [Decal Master Stack](master-stack-decal.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
+This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](lit-material.md), [Fabric Master Stack](fabric-master-stack-reference.md), [Hair Master Stack](hair-master-stack-reference.md), [Eye Shader](eye-master-stack-reference.md) and [Decal Master Stack](decal-master-stack-reference.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
 
 The Fabric, Hair and Eye Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
 
 In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup at a specific import scale factor. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is constructed and the UVs are setup.
 
-In the Transparency scenes, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
+## Transparent samples
+
+![Transparent Samples](Images/TransparentSamples.png)
+
+In the Transparency scene, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of this section, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
 
 ## Lens Flare samples
@@ -53,7 +57,7 @@ The [Lens Flare](shared/lens-flare/lens-flare-component.md) samples include the 
 ## Volumetric samples
 
 ![Volumetric Samples](Images/VolumetricSamples.png)
-The volumetric samples include a scene that contains multiple examples of [volumetric fog](Local-Volumetric-Fog.md). This scene includes the following:
+The volumetric samples include a scene that contains multiple examples of [volumetric fog](create-a-local-fog-effect.md). This scene includes the following:
 
 - 3D textures.
 - Procedural 3D noise subgraphs.
@@ -62,17 +66,20 @@ The volumetric samples include a scene that contains multiple examples of [volum
 ## Fullscreen samples
 ![Fullscreen Samples](Images/FullscreenSamples.png)
 
-This sample includes examples on how to create a [Fullscreen Shader](fullscreen-shader.md) and use it with a Custom Pass, Custom Post Process and Custom Render Target. The sample scene includes prefabs for the following effects:
+This sample includes examples on how to create a [Fullscreen Shader](create-a-fullscreen-material.md) and use it with a Custom Pass, Custom Post Process and Custom Render Target. The sample scene includes prefabs for the following effects:
 
-- Custom Pass : Edge Detection, Sobel Filter, Object Highlight, Night Vision, Speed Lines.
-- Custom Render Targets : Dynamic Custom HDRi for Night Sky, Animated Water Droplets.
-- Custom Post Process : Colorblindness Filter.
+- Custom Pass: Edge Detection, Sobel Filter, Object Highlight, Night Vision, Speed Lines.
+- Custom Render Targets: Dynamic Custom HDRi for Night Sky, Animated Water Droplets.
+- Custom Post Process: Colorblindness Filter.
 
-## Environment samples
+## Water samples
 
-![](Images/Water_samples.png)The Environment samples contain the following scenes you can use to test HDRP's [Water](WaterSystem.md) features: 
+![](Images/Water_samples.png)
+
+The Water samples contain the following scenes you can use to learn about HDRP's [Water](WaterSystem.md) features: 
 
 - Pool: Demonstrates ripples and buoyancy. 
-
-- River: Demonstrates current, water deformers, floating objects, and a water mask.
-- Ocean: Demonstrates waves, foam, and the water excluder.
+- Glacier: Demonstrates current, water deformers, floating objects, and a water mask.
+- Island: Demonstrates waves, foam, and the water excluder.
+- Rain: Demonstrates how to add pertubations to the normals using shader graph. 
+- Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md). 

@@ -92,10 +92,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedXRSettings xrSettings;
         public SerializedPostProcessingQualitySettings postProcessQualitySettings;
         public SerializedLightingQualitySettings lightingQualitySettings;
+        public SerializedGPUResidentDrawerSettings gpuResidentDrawerSettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
         public SerializedScalableSetting maximumLODLevel;
+
+        public SerializedProperty useBRGForDrawSubmission;
 
 #pragma warning disable 618 // Type or member is obsolete
         [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration")]
@@ -186,6 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));
             maximumLODLevel = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.maximumLODLevel));
             lightingQualitySettings = new SerializedLightingQualitySettings(root.Find((RenderPipelineSettings s) => s.lightingQualitySettings));
+            gpuResidentDrawerSettings = new SerializedGPUResidentDrawerSettings(root.Find((RenderPipelineSettings s) => s.gpuResidentDrawerSettings));
 
 #pragma warning disable 618 // Type or member is obsolete
             m_ObsoleteincreaseSssSampleCount = root.Find((RenderPipelineSettings s) => s.m_ObsoleteincreaseSssSampleCount);

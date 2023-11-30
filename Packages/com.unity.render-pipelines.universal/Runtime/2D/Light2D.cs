@@ -2,7 +2,7 @@ using System;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 #if UNITY_EDITOR
 using System.Linq;
 #endif

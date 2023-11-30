@@ -57,6 +57,7 @@
     color: rgb(153,153,153);
     height: 16px;
     margin-left:0;
+    margin-top: 0;
     padding-left: 1px;
     margin-bottom:0;
     padding-bottom:0;
@@ -328,3 +329,18 @@ DropdownField {
     margin: 0px;
     flex: 1 1;
 }
+ColorPropertyRM
+{
+    height: auto;
+}
+
+VFXColorField
+{
+    margin-right: 10px;
+    margin-bottom: 4px;
+}
+VFXColorField .colorcontainer
+{
+    margin-right: 24px;
+}
+

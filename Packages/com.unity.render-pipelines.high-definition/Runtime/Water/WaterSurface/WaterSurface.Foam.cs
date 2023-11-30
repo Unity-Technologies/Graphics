@@ -61,19 +61,30 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.
         /// </summary>
-        [Tooltip("Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.")]
+        [Range(0.0f, 1.0f)]
         public float foamPersistenceMultiplier = 0.5f;
+
+        /// <summary>
+        /// Specifies the influence of current on foam.
+        /// </summary>
+        [Range(0.0f, 1.0f)]
+        public float foamCurrentInfluence = 0.6f;
+
+        /// <summary>
+        /// Set the foam color.
+        /// </summary>
+        public Color foamColor = Color.white;
 
         /// <summary>
         /// Set the per meter tiling for the foam texture.
         /// </summary>
-        [Tooltip("Set the per meter tiling for the foam texture.")]
+        [Min(0.0f)]
         public float foamTextureTiling = 0.2f;
 
         /// <summary>
         /// Controls the surface foam smoothness.
         /// </summary>
-        [Tooltip("Controls the surface foam smoothness.")]
+        [Range(0.0f, 1.0f)]
         public float foamSmoothness = 0.3f;
 
         /// <summary>
@@ -84,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and choppiness values.
         /// </summary>
-        [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and choppiness values.")]
+        [Range(0.0f, 1.0f)]
         public float simulationFoamAmount = 0.3f;
 
         /// <summary>

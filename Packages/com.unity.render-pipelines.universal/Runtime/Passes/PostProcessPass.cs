@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -85,10 +85,10 @@ namespace UnityEngine.Rendering.Universal
 
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
-        
+
         // Support Screen Space Lens Flare post process effect
         bool m_SupportScreenSpaceLensFlare;
-        
+
         // Support Data Driven Lens Flare post process effect
         bool m_SupportDataDrivenLensFlare;
 
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableColorEncodingIfNeeded = enableColorEncoding;
-            m_UseSwapBuffer = false;
+            m_UseSwapBuffer = true;
         }
 
         /// <summary>
@@ -360,12 +360,12 @@ namespace UnityEngine.Rendering.Universal
             return desc;
         }
 
-        bool RequireSRGBConversionBlitToBackBuffer(ref CameraData cameraData)
+        bool RequireSRGBConversionBlitToBackBuffer(bool requireSrgbConversion)
         {
-            return cameraData.requireSrgbConversion && m_EnableColorEncodingIfNeeded;
+            return requireSrgbConversion && m_EnableColorEncodingIfNeeded;
         }
 
-        bool RequireHDROutput(ref CameraData cameraData)
+        bool RequireHDROutput(UniversalCameraData cameraData)
         {
             // If capturing, don't convert to HDR.
             // If not last in the stack, don't convert to HDR.
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.Universal
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref CameraData cameraData = ref renderingData.cameraData;
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             ref ScriptableRenderer renderer = ref cameraData.renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -389,12 +389,16 @@ namespace UnityEngine.Rendering.Universal
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
+            // Disable MotionBlur in EditMode, so that editing remains clear and readable.
+            // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
+            useMotionBlur = useMotionBlur && Application.isPlaying;
+
             // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
             if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
-                TemporalAA.ValidateAndWarn(ref cameraData);
+                TemporalAA.ValidateAndWarn(cameraData);
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
@@ -463,7 +467,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.SMAA)))
                 {
-                    DoSubpixelMorphologicalAntialiasing(ref cameraData, cmd, GetSource(), GetDestination());
+                    DoSubpixelMorphologicalAntialiasing(ref renderingData.cameraData, cmd, GetSource(), GetDestination());
                     Swap(ref renderer);
                 }
             }
@@ -490,7 +494,7 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
                 {
 
-                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref cameraData, source, destination, m_MotionVectors.rt);
+                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref renderingData.cameraData, source, destination, m_MotionVectors.rt);
                     Swap(ref renderer);
                 }
             }
@@ -501,7 +505,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
-                    DoMotionBlur(cmd, GetSource(), GetDestination(), m_MotionVectors, ref cameraData);
+                    DoMotionBlur(cmd, GetSource(), GetDestination(), m_MotionVectors, ref renderingData.cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -541,7 +545,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // We clamp the bloomMip value to avoid picking a mip that doesn't exist, since in URP you can set the number of maxIteration of the bloomPass.
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[maxBloomMip]);
+                        DoLensFlareScreenSpace(cameraData.camera, cmd, GetSource(), m_BloomMipUp[0], m_BloomMipUp[maxBloomMip]);
                     }
                 }
 
@@ -581,13 +585,13 @@ namespace UnityEngine.Rendering.Universal
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
-                SetupGrain(ref cameraData, m_Materials.uber);
-                SetupDithering(ref cameraData, m_Materials.uber);
+                SetupGrain(cameraData, m_Materials.uber);
+                SetupDithering(cameraData, m_Materials.uber);
 
-                if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
+                if (RequireSRGBConversionBlitToBackBuffer(cameraData.requireSrgbConversion))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-                bool requireHDROutput = RequireHDROutput(ref cameraData);
+                bool requireHDROutput = RequireHDROutput(cameraData);
                 if (requireHDROutput)
                 {
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
@@ -601,9 +605,9 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
-                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
-                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+                DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 // Done with Uber, blit it
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
@@ -648,7 +652,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (resolveToDebugScreen)
                     {
-                        debugHandler.BlitTextureToDebugScreenTexture(cmd, GetSource(), m_Materials.uber, 0);
+                        // Blit to the debugger texture instead of the camera target
+                        Blitter.BlitCameraTexture(cmd, GetSource(), debugHandler.DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                         renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                     }
                     else
@@ -658,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
                         RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                         var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
-                        RenderingUtils.FinalBlit(cmd, ref cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
+                        RenderingUtils.FinalBlit(cmd, cameraData, GetSource(), cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                         renderer.ConfigureCameraColorTarget(cameraTargetHandle);
                     }
                 }
@@ -947,7 +952,7 @@ namespace UnityEngine.Rendering.Universal
                 camera.transform.position,
                 gpuVP,
                 cmd,
-                false, false, null, null,
+                false, false, null, null, null,
                 ShaderConstants._FlareOcclusionTex, -1, ShaderConstants._FlareOcclusionIndex, ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 -1, ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4);
         }
@@ -976,10 +981,8 @@ namespace UnityEngine.Rendering.Universal
 
         #region LensFlareScreenSpace
 
-        void DoLensFlareScreenSpace(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RTHandle bloomTexture)
+        void DoLensFlareScreenSpace(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RTHandle originalBloomTexture, RTHandle screenSpaceLensFlareBloomMipTexture)
         {
-            cmd.SetGlobalTexture(ShaderConstants._LensFlareScreenSpaceBloomTexture, bloomTexture);
-
             int ratio = (int)m_LensFlareScreenSpace.resolution.value;
 
             int width = Mathf.Max(1, (int)m_Descriptor.width / ratio);
@@ -1000,7 +1003,8 @@ namespace UnityEngine.Rendering.Universal
                 (float)m_Descriptor.width,
                 (float)m_Descriptor.height,
                 m_LensFlareScreenSpace.tintColor.value,
-                bloomTexture,
+                originalBloomTexture,
+                screenSpaceLensFlareBloomMipTexture,
                 null, // We don't have any spectral LUT in URP
                 m_StreakTmpTexture,
                 m_StreakTmpTexture2,
@@ -1010,41 +1014,30 @@ namespace UnityEngine.Rendering.Universal
                     m_LensFlareScreenSpace.secondaryFlareIntensity.value,
                     m_LensFlareScreenSpace.warpedFlareIntensity.value),
                 new Vector4(
-                    Mathf.Pow(m_LensFlareScreenSpace.vignetteEffect.value, 0.25f),
+                    m_LensFlareScreenSpace.vignetteEffect.value,
                     m_LensFlareScreenSpace.startingPosition.value,
                     m_LensFlareScreenSpace.scale.value,
                     0), // Free slot, not used
                 new Vector4(
                     m_LensFlareScreenSpace.samples.value,
                     m_LensFlareScreenSpace.sampleDimmer.value,
-                    m_LensFlareScreenSpace.chromaticAbberationIntensity.value / 20f,
+                    m_LensFlareScreenSpace.chromaticAbberationIntensity.value,
                     0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
                 new Vector4(
                     m_LensFlareScreenSpace.streaksIntensity.value,
-                    m_LensFlareScreenSpace.streaksLength.value * 10,
-                    m_LensFlareScreenSpace.streaksOrientation.value / 90f,
+                    m_LensFlareScreenSpace.streaksLength.value,
+                    m_LensFlareScreenSpace.streaksOrientation.value,
                     m_LensFlareScreenSpace.streaksThreshold.value),
                 new Vector4(
                     ratio,
-                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.x,
-                    1.0f / m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                    m_LensFlareScreenSpace.warpedFlareScale.value.x,
+                    m_LensFlareScreenSpace.warpedFlareScale.value.y,
                     0), // Free slot, not used
                 cmd,
                 m_ScreenSpaceLensFlareResult,
-                ShaderConstants._LensFlareScreenSpaceBloomTexture,
-                ShaderConstants._LensFlareScreenSpaceResultTexture,
-                0, // No identifiers for SpectralLut Texture
-                ShaderConstants._LensFlareScreenSpaceStreakTex,
-                ShaderConstants._LensFlareScreenSpaceMipLevel,
-                ShaderConstants._LensFlareScreenSpaceTintColor,
-                ShaderConstants._LensFlareScreenSpaceParams1,
-                ShaderConstants._LensFlareScreenSpaceParams2,
-                ShaderConstants._LensFlareScreenSpaceParams3,
-                ShaderConstants._LensFlareScreenSpaceParams4,
-                ShaderConstants._LensFlareScreenSpaceParams5,
                 false);
 
-            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, bloomTexture);
+            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, originalBloomTexture);
         }
 
         #endregion
@@ -1423,7 +1416,7 @@ namespace UnityEngine.Rendering.Universal
 
 #region Film Grain
 
-        void SetupGrain(ref CameraData cameraData, Material material)
+        void SetupGrain(UniversalCameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
@@ -1441,7 +1434,7 @@ namespace UnityEngine.Rendering.Universal
 
 #region 8-bit Dithering
 
-        void SetupDithering(ref CameraData cameraData, Material material)
+        void SetupDithering(UniversalCameraData cameraData, Material material)
         {
             if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
@@ -1472,20 +1465,20 @@ namespace UnityEngine.Rendering.Universal
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref var cameraData = ref renderingData.cameraData;
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             var material = m_Materials.finalPass;
             material.shaderKeywords = null;
 
             PostProcessUtils.SetSourceSize(cmd, cameraData.renderer.cameraColorTargetHandle);
 
-            SetupGrain(ref cameraData, material);
-            SetupDithering(ref cameraData, material);
+            SetupGrain(renderingData.cameraData.universalCameraData, material);
+            SetupDithering(renderingData.cameraData.universalCameraData, material);
 
-            if (RequireSRGBConversionBlitToBackBuffer(ref cameraData))
+            if (RequireSRGBConversionBlitToBackBuffer(renderingData.cameraData.requireSrgbConversion))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
-            bool requireHDROutput = RequireHDROutput(ref cameraData);
+            bool requireHDROutput = RequireHDROutput(renderingData.cameraData.universalCameraData);
             if (requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
@@ -1497,9 +1490,9 @@ namespace UnityEngine.Rendering.Universal
                 SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
 
-            DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref cameraData);
-            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass && !resolveToDebugScreen);
+            DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+            bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, m_IsFinalPass && !resolveToDebugScreen);
 
             if (m_UseSwapBuffer)
                 m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
@@ -1657,7 +1650,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (resolveToDebugScreen)
             {
-                debugHandler.BlitTextureToDebugScreenTexture(cmd, sourceTex, material, 0);
+                // Blit to the debugger texture instead of the camera target
+                Blitter.BlitCameraTexture(cmd, sourceTex, debugHandler.DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, material, 0);
                 cameraData.renderer.ConfigureCameraTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
             }
             else
@@ -1665,7 +1659,7 @@ namespace UnityEngine.Rendering.Universal
                 // Get RTHandle alias to use RTHandle apis
                 RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                 var cameraTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
-                RenderingUtils.FinalBlit(cmd, ref cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
+                RenderingUtils.FinalBlit(cmd, cameraData, sourceTex, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, material, 0);
             }
         }
 
@@ -1682,6 +1676,7 @@ namespace UnityEngine.Rendering.Universal
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
+            public readonly Material[] bloomUpsample;
             public readonly Material temporalAntialiasing;
             public readonly Material scalingSetup;
             public readonly Material easu;
@@ -1710,6 +1705,10 @@ namespace UnityEngine.Rendering.Universal
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
                 lensFlareScreenSpace = Load(data.shaders.LensFlareScreenSpacePS);
+
+                bloomUpsample = new Material[k_MaxPyramidSize];
+                for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    bloomUpsample[i] = Load(data.shaders.bloomPS);
             }
 
             Material Load(Shader shader)
@@ -1743,6 +1742,9 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.Destroy(finalPass);
                 CoreUtils.Destroy(lensFlareDataDriven);
                 CoreUtils.Destroy(lensFlareScreenSpace);
+
+                for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    CoreUtils.Destroy(bloomUpsample[i]);
             }
         }
 
@@ -1802,17 +1804,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
             public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
-
-            public static readonly int _LensFlareScreenSpaceBloomTexture = Shader.PropertyToID("_BloomTexture");
-            public static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
-            public static readonly int _LensFlareScreenSpaceStreakTex = Shader.PropertyToID("_LensFlareScreenSpaceStreakTex");
-            public static readonly int _LensFlareScreenSpaceMipLevel = Shader.PropertyToID("_LensFlareScreenSpaceMipLevel");
-            public static readonly int _LensFlareScreenSpaceTintColor = Shader.PropertyToID("_LensFlareScreenSpaceTintColor");
-            public static readonly int _LensFlareScreenSpaceParams1 = Shader.PropertyToID("_LensFlareScreenSpaceParams1");
-            public static readonly int _LensFlareScreenSpaceParams2 = Shader.PropertyToID("_LensFlareScreenSpaceParams2");
-            public static readonly int _LensFlareScreenSpaceParams3 = Shader.PropertyToID("_LensFlareScreenSpaceParams3");
-            public static readonly int _LensFlareScreenSpaceParams4 = Shader.PropertyToID("_LensFlareScreenSpaceParams4");
-            public static readonly int _LensFlareScreenSpaceParams5 = Shader.PropertyToID("_LensFlareScreenSpaceParams5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 

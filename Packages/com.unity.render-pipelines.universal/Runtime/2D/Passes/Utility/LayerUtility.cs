@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering.Universal
         public List<Light2D> shadowLights;
         public List<ShadowCasterGroup2D> shadowCasters;
 
+        internal int[] activeBlendStylesIndices;
+
         public void InitRTIds(int index)
         {
             for (var i = 0; i < 4; i++)
@@ -176,12 +178,14 @@ namespace UnityEngine.Rendering.Universal
                 i = upperLayerInBatch + 1;
             }
 
+            SetupActiveBlendStyles();
+
             return s_LayerBatches;
         }
 
         public static void GetFilterSettings(Renderer2DData rendererData, ref LayerBatch layerBatch, short cameraSortingLayerBoundsIndex, out FilteringSettings filterSettings)
         {
-            filterSettings = new FilteringSettings();
+            filterSettings = FilteringSettings.defaultValue;
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
@@ -192,6 +196,40 @@ namespace UnityEngine.Rendering.Universal
                 upperBound = cameraSortingLayerBoundsIndex;
 
             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, upperBound);
+        }
+
+        static void SetupActiveBlendStyles()
+        {
+            // Calculate active blend styles to save on total light textures allocated
+            for (int i = 0; i < s_LayerBatches.Length; ++i)
+            {
+                ref var layer = ref s_LayerBatches[i];
+
+                // Determine number of blend styles used
+                int size = 0;
+                for (var blendStyleIndex = 0; blendStyleIndex < RendererLighting.k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                {
+                    var blendStyleMask = (uint)(1 << blendStyleIndex);
+                    var blendStyleUsed = (layer.lightStats.blendStylesUsed & blendStyleMask) > 0;
+
+                    if (blendStyleUsed)
+                        size++;
+                }
+
+                if (layer.activeBlendStylesIndices == null || layer.activeBlendStylesIndices.Length != size)
+                    layer.activeBlendStylesIndices = new int[size];
+
+                // Save indices so we don't have to copy the whole Light2DBlendStyle struct
+                var index = 0;
+                for (var blendStyleIndex = 0; blendStyleIndex < RendererLighting.k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                {
+                    var blendStyleMask = (uint)(1 << blendStyleIndex);
+                    var blendStyleUsed = (layer.lightStats.blendStylesUsed & blendStyleMask) > 0;
+
+                    if (blendStyleUsed)
+                        layer.activeBlendStylesIndices[index++] = blendStyleIndex;
+                }
+            }
         }
     }
 }

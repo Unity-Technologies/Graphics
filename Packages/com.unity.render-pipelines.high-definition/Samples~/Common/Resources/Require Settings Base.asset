@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13ddd1e3edf95f440af1f11977a8ffa9, type: 3}
+  m_Name: Require Settings Base
+  m_EditorClassIdentifier: 
+  m_requiredSettings:
+  - m_name: Water
+    m_description: Enable water rendering.
+    propertyPath: m_RenderPipelineSettings.supportWater
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 16
+    uiSubSectionInt: 8

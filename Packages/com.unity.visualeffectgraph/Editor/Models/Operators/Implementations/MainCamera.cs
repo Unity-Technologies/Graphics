@@ -3,7 +3,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-MainCamera")]
-    [VFXInfo(category = "BuiltIn")]
+    [VFXInfo(category = "Camera")]
     class MainCamera : VFXOperator
     {
         public class OutputProperties

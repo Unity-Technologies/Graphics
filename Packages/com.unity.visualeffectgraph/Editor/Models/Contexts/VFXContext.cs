@@ -72,11 +72,11 @@ namespace UnityEditor.VFX
             get { return m_Label; }
             set
             {
-                var invalidationCause = InvalidationCause.kUIChanged;
-                if (contextType == VFXContextType.Spawner && m_Label != value)
-                    invalidationCause = InvalidationCause.kSettingChanged;
-                m_Label = value;
-                Invalidate(invalidationCause);
+                if (m_Label != value)
+                {
+                    m_Label = value;
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
             }
         }
 
@@ -126,7 +126,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
         }
 
-        public bool doesGenerateShader { get { return codeGeneratorTemplate != null; } }
+        public virtual bool doesGenerateShader { get { return codeGeneratorTemplate != null; } }
         public virtual string codeGeneratorTemplate { get { return null; } }
         public virtual bool codeGeneratorCompute { get { return true; } }
         public virtual bool doesIncludeCommonCompute { get { return codeGeneratorCompute; } }
@@ -141,7 +141,6 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> additionalDefines { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
         public virtual IEnumerable<string> fragmentParameters { get { return Enumerable.Empty<string>(); } }
-        public virtual IEnumerable<string> vertexParameters { get { return Enumerable.Empty<string>(); } }
         public virtual bool usesMaterialVariantInEditMode { get { return false; } }
 
         public virtual VFXContextCompiledData PrepareCompiledData()
@@ -152,6 +151,7 @@ namespace UnityEditor.VFX
                 {
                     new VFXTask
                     {
+                        doesGenerateShader = doesGenerateShader,
                         templatePath = codeGeneratorTemplate,
                         type = taskType,
                         shaderType = codeGeneratorCompute ? VFXTaskShaderType.ComputeShader : VFXTaskShaderType.Shader,
@@ -713,6 +713,11 @@ namespace UnityEditor.VFX
             foreach (var block in activeFlattenedChildrenWithImplicit)
                 attributesInfos = attributesInfos.Concat(block.attributes);
             return attributesInfos;
+        }
+
+        public List<VFXData.TaskProfilingData> GetContextTaskIndices()
+        {
+            return GetData().GetContextTaskIndices(this);
         }
     }
 }

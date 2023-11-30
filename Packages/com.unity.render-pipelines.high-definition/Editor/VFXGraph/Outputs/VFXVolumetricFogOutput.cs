@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Serialization;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(experimental = true)]
+    [VFXInfo(name = "Output Particle HDRP Volumetric Fog", category = "Output", experimental = true)]
     class VFXVolumetricFogOutput : VFXAbstractParticleOutput
     {
         public override string name => "Output Particle HDRP Volumetric Fog";
@@ -208,7 +207,7 @@ namespace UnityEditor.VFX.HDRP
                 yield return nameof(sortMode);
                 yield return nameof(enableRayTracing);
                 yield return nameof(revertSorting);
-                yield return nameof(excludeFromTAA);
+                yield return nameof(excludeFromTUAndAA);
                 yield return nameof(computeCulling);
                 yield return nameof(vfxSystemSortPriority);
                 yield return nameof(sortingPriority);
@@ -329,6 +328,7 @@ namespace UnityEditor.VFX.HDRP
             // Volumetric output task need to be inserted before the output work
             compiledData.tasks.Insert(0, new VFXTask
             {
+                doesGenerateShader = true,
                 templatePath = VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXVolumetricFogUpdate",
                 additionalDefines = new string[] { "VFX_VOLUMETRIC_FOG_PASS_CLEAR", "HAVE_VFX_MODIFICATION" },
                 type = VFXTaskType.PerCameraUpdate,
@@ -339,6 +339,7 @@ namespace UnityEditor.VFX.HDRP
 
             compiledData.tasks.Insert(1, new VFXTask
             {
+                doesGenerateShader = true,
                 templatePath = VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXVolumetricFogUpdate",
                 additionalDefines = new string[] { "VFX_VOLUMETRIC_FOG_PASS_0", "HAVE_VFX_MODIFICATION" },
                 type = VFXTaskType.PerCameraUpdate,
@@ -349,6 +350,7 @@ namespace UnityEditor.VFX.HDRP
 
             compiledData.tasks.Insert(2, new VFXTask
             {
+                doesGenerateShader = true,
                 templatePath = VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXVolumetricFogUpdate",
                 additionalDefines = new string[] { "VFX_VOLUMETRIC_FOG_PASS_1", "HAVE_VFX_MODIFICATION" },
                 type = VFXTaskType.PerCameraUpdate,

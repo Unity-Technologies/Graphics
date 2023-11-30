@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         SphericalHarmonicsL2 m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
+        HDRenderPipeline m_RenderPipeline;
         bool m_UpdateRequired = false;
         bool m_StaticSkyUpdateRequired = false;
         int m_Resolution, m_LowResolution;
@@ -384,6 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         data.builtinParameters.commandBuffer = ctx.cmd;
                         data.skyRenderer.SetGlobalSkyData(ctx.cmd, data.builtinParameters);
+                        // TODO: set volumetric clouds shadow texture ?
                     });
                 }
             }
@@ -396,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_DefaultPreviewSky = ScriptableObject.CreateInstance<HDRISky>();
                 m_DefaultPreviewSky.hdriSky.overrideState = true;
-                m_DefaultPreviewSky.hdriSky.value = HDRenderPipeline.currentAsset?.renderPipelineResources?.textures?.defaultHDRISky;
+                m_DefaultPreviewSky.hdriSky.value = m_RenderPipeline.runtimeTextures.defaultHDRISky;
             }
 
             return m_DefaultPreviewSky;
@@ -404,18 +406,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        public void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray)
+        public void Build(HDRenderPipelineAsset hdAsset, HDRenderPipeline renderPipeline, IBLFilterBSDF[] iblFilterBSDFArray)
         {
+            m_RenderPipeline = renderPipeline;
             m_LowResolution = 16;
             m_Resolution = (int)hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             m_IBLFilterArray = iblFilterBSDFArray;
 
-            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.skyboxCubemapPS);
-            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubemapPS);
+            m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.skyboxCubemapPS);
+            m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.blitCubemapPS);
 
-            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.opaqueAtmosphericScatteringPS);
+            m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.opaqueAtmosphericScatteringPS);
 
-            m_ComputeAmbientProbeCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.ambientProbeConvolutionCS;
+            m_ComputeAmbientProbeCS = m_RenderPipeline.runtimeShaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuse");
             m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuseVolumetric");
             m_ComputeAmbientProbeCloudsKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionClouds");
@@ -835,11 +838,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render the volumetric clouds into the cubemap
             if (skyContext.volumetricClouds != null)
             {
-                // The volumetric clouds explicitly rely on the physically based sky. We need to make sure that the sun textures are properly bound.
-                // Unfortunately, the global binding happens too late, so we need to bind it here.
-                SetGlobalSkyData(renderGraph, skyContext, m_BuiltinParameters);
-                outputCubemap = HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_FacePixelCoordToViewDirMatrices,
-                    skyContext.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, cloudsProbeBuffer, outputCubemap);
+                HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_FacePixelCoordToViewDirMatrices, skyContext.volumetricClouds,
+                    skyContext.skyRenderer, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, cloudsProbeBuffer, outputCubemap);
             }
 
             // Generate mipmap for our cubemap
@@ -937,7 +937,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             SphericalHarmonicsL2 cachedAmbientProbe = new SphericalHarmonicsL2();
             // Release the old context if needed.
-            if (IsCachedContextValid(updateContext))
+            if (CachedContextNeedsCleanup(updateContext))
             {
                 ref var cachedContext = ref m_CachedSkyContexts[updateContext.cachedSkyRenderingContextId];
                 if (newHash != cachedContext.hash || updateContext.skySettings.GetSkyRendererType() != cachedContext.type)
@@ -1019,6 +1019,16 @@ namespace UnityEngine.Rendering.HighDefinition
             int id = skyContext.cachedSkyRenderingContextId;
             // When the renderer changes, the cached context is no longer valid so we sometimes need to check that.
             return id != -1 && (skyContext.skySettings.GetSkyRendererType() == m_CachedSkyContexts[id].type) && (m_CachedSkyContexts[id].hash != 0);
+        }
+
+        bool CachedContextNeedsCleanup(SkyUpdateContext skyContext)
+        {
+            if (skyContext.skySettings == null) // Sky set to None
+                return false;
+
+            int id = skyContext.cachedSkyRenderingContextId;
+            // When the renderer changes, the cached context is no longer valid but needs to be cleaned up to allow for proper refCounting.
+            return id != -1 && (m_CachedSkyContexts[id].hash != 0);
         }
 
         int ComputeSkyHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
@@ -1313,33 +1323,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.depthBuffer = builder.WriteTexture(depthBuffer);
                     passData.skyContext = skyContext;
-                    bool isCloudLayerUsed = false;
-                    if (passData.skyContext.HasClouds())
-                    {
-                        CloudLayer cloudLayer = passData.skyContext.cloudSettings as CloudLayer;
-                        if (cloudLayer)
-                        {
-                            isCloudLayerUsed = cloudLayer.active && cloudLayer.opacity.value > 0.0f;
-                        }
-                    }
-                    // Allocate only if the cloudLayer is used and at least one LensFlare request an occlusion with the CloudLayer
-                    if (isCloudLayerUsed && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
-                    {
-                        // Nice-to-have: analyze the asset, if a 16 bits for the Rendering use the alpha channel to back
-                        // the cloud occlusion instead of allocating a new texture
-                        TextureHandle cloudOpacity = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        {
-                            colorFormat = GraphicsFormat.R8_UNorm,
-                            clearBuffer = true,
-                            clearColor = Color.black,
-                            name = "Cloud Occlusion"
-                        });
-                        m_CloudOpacity = builder.WriteTexture(cloudOpacity);
-                    }
-                    else
-                    {
-                        m_CloudOpacity = TextureHandle.nullHandle;
-                    }
+
                     // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                     passData.renderSunDisk = hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value;
                     UpdateBuiltinParameters(ref passData.builtinParameters,
@@ -1347,37 +1331,81 @@ namespace UnityEngine.Rendering.HighDefinition
                         hdCamera,
                         m_CurrentSunLight,
                         m_CurrentDebugDisplaySettings);
-                    passData.cloudOpacityBuffer = m_CloudOpacity;
-
-                    if (skyContext.HasClouds())
-                    {
-                        ref var cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
-                        passData.builtinParameters.cloudAmbientProbe = cachedContext.renderingContext.cloudAmbientProbeBuffer;
-                    }
 
                     builder.SetRenderFunc(
                         (RenderSkyPassData data, RenderGraphContext ctx) =>
                         {
                             data.builtinParameters.colorBuffer = data.colorBuffer;
                             data.builtinParameters.depthBuffer = data.depthBuffer;
-                            data.builtinParameters.cloudOpacity = data.cloudOpacityBuffer;
                             data.builtinParameters.commandBuffer = ctx.cmd;
 
                             CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
 
                             data.skyContext.skyRenderer.DoUpdate(data.builtinParameters);
                             data.skyContext.skyRenderer.RenderSky(data.builtinParameters, renderForCubemap: false, renderSunDisk: data.renderSunDisk);
-
-                            if (data.skyContext.HasClouds())
-                            {
-                                using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.RenderClouds)))
-                                {
-                                    data.skyContext.cloudRenderer.DoUpdate(data.builtinParameters);
-                                    data.skyContext.cloudRenderer.RenderClouds(data.builtinParameters, false);
-                                }
-                            }
                         });
                 }
+            }
+        }
+
+        public void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            m_CloudOpacity = TextureHandle.nullHandle;
+
+            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky ||
+                // If the luxmeter is enabled, we don't render the sky
+                m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                return;
+
+            var skyContext = hdCamera.visualSky;
+            if (!skyContext.IsValid() || !skyContext.HasClouds())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Clouds", out var passData, ProfilingSampler.Get(HDProfileId.RenderClouds)))
+            {
+                // Allocate only if the cloudLayer is used and at least one LensFlare request an occlusion with the CloudLayer
+                CloudLayer cloudLayer = skyContext.cloudSettings as CloudLayer;
+                bool isCloudLayerUsed = cloudLayer != null && cloudLayer.opacity.value > 0.0f;
+                if (isCloudLayerUsed && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
+                {
+                    // Nice-to-have: analyze the asset, if a 16 bits for the Rendering use the alpha channel to store
+                    // the cloud occlusion instead of allocating a new texture
+                    m_CloudOpacity = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    {
+                        colorFormat = GraphicsFormat.R8_UNorm,
+                        clearBuffer = true,
+                        clearColor = Color.black,
+                        name = "Cloud Occlusion"
+                    }));
+                }
+
+                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.depthBuffer = builder.WriteTexture(depthBuffer);
+                passData.cloudOpacityBuffer = m_CloudOpacity;
+                passData.skyContext = skyContext;
+
+                UpdateBuiltinParameters(ref passData.builtinParameters,
+                    skyContext,
+                    hdCamera,
+                    m_CurrentSunLight,
+                    m_CurrentDebugDisplaySettings);
+
+                ref var cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                passData.builtinParameters.cloudAmbientProbe = cachedContext.renderingContext.cloudAmbientProbeBuffer;
+
+                builder.SetRenderFunc(
+                    (RenderSkyPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.builtinParameters.colorBuffer = data.colorBuffer;
+                        data.builtinParameters.depthBuffer = data.depthBuffer;
+                        data.builtinParameters.cloudOpacity = data.cloudOpacityBuffer;
+                        data.builtinParameters.commandBuffer = ctx.cmd;
+
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
+
+                        data.skyContext.cloudRenderer.DoUpdate(data.builtinParameters);
+                        data.skyContext.cloudRenderer.RenderClouds(data.builtinParameters, false);
+                    });
             }
         }
 
@@ -1613,8 +1641,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Happens sometime in the tests.
-            if (m_StandardSkyboxMaterial == null)
+            if (m_StandardSkyboxMaterial == null && HDRenderPipelineGlobalSettings.instance != null)
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.skyboxCubemapPS);
+
+            if (m_StandardSkyboxMaterial == null)
+                Debug.LogError("Unable to create the default Skybox material. Baking cancelled.");
 
             // It is possible that HDRP hasn't rendered any frame when clicking the bake lighting button.
             // This can happen when baked lighting debug are used for example and no other window with HDRP is visible.

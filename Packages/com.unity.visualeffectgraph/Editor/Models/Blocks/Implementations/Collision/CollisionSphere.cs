@@ -4,10 +4,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithSphere")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with Sphere", category = "Collision")]
     class CollisionSphere : CollisionBase
     {
-        public override string name { get { return "Collide with Sphere"; } }
+        public override string name => "Collide with Sphere";
 
         public class InputProperties
         {

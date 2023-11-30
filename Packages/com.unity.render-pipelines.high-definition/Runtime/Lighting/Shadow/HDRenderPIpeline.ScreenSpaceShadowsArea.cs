@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.screenSpaceShadowsCS = m_ScreenSpaceShadowsCS;
                 passData.screenSpaceShadowsRT = m_ScreenSpaceShadowsRT;
                 passData.screenSpaceShadowsFilterCS = m_ScreenSpaceShadowsFilterCS;
-                passData.scramblingTex = m_Asset.renderPipelineResources.textures.scramblingTex;
+                passData.scramblingTex = runtimeTextures.scramblingTex;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
                 // Input Buffers

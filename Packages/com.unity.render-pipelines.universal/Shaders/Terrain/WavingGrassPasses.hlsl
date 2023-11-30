@@ -265,6 +265,24 @@ GrassVertexDepthOnlyOutput DepthOnlyVertex(GrassVertexDepthOnlyInput v)
     return o;
 }
 
+GrassVertexDepthOnlyOutput DepthOnlyBillboardVertex(GrassVertexDepthOnlyInput v)
+{
+    GrassVertexDepthOnlyOutput o = (GrassVertexDepthOnlyOutput) 0;
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+    TerrainBillboardGrass (v.vertex, v.tangent.xy);
+
+    // wave amount defined by the grass height
+    float waveAmount = v.tangent.y;
+    o.color = TerrainWaveGrass (v.vertex, waveAmount, v.color);
+
+    InitializeVertData(v, o);
+
+    return o;
+}
+
 half4 DepthOnlyFragment(GrassVertexDepthOnlyOutput input) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);

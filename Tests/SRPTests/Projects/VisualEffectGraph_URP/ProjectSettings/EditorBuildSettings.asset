@@ -70,10 +70,13 @@ EditorBuildSettings:
     guid: 237617e9908930149bc849c4ac0b9b8e
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/019_CustomSimulate.unity
-    guid: ffbf1ce97ab782b43b4ec8f431e5a0ab
+    guid: ffbf1ce97ab782b43b4ec8f431e5a0ab	
   - enabled: 0
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/020_PrefabInstanciation.unity
     guid: 4fad57eaceb460845ade4ee59dd02745
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/024_StripIndirectAndSorting.unity
+    guid: 673d2dc917b35534896164975171c05f
   - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
@@ -119,6 +122,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/105_MotionVectors.unity
     guid: 5de9ddd5ce5b150408a504798854e72e
+  - enabled: 1
+    path: Assets/GraphicsTests/106_SampleSceneColorAndDepth.unity
+    guid: 001278b81ccf8004e96455183da29bc9
+  - enabled: 1
+    path: Assets/GraphicsTests/106_SampleSceneColorAndDepth_Custom.unity
+    guid: c7d2587d0a33fe54fa13d806367dad0e
   - enabled: 1
     path: Assets/GraphicsTests/Instancing/Instancing512.unity
     guid: 73939114e75ef4f4f8e9ffb3df23b104

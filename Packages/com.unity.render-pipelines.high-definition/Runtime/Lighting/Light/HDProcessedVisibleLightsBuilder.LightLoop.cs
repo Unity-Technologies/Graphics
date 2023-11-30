@@ -53,14 +53,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Size = cullResults.visibleLights.Length;
 
                     //TODO: this should be accelerated by a c++ API
-                    var defaultEntity = HDLightRenderDatabase.instance.GetDefaultLightEntity();
                     for (int i = 0; i < cullResults.visibleLights.Length; ++i)
                     {
                         Light light = cullResults.visibleLights[i].light;
                         int dataIndex = HDLightRenderDatabase.instance.FindEntityDataIndex(light);
                         if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
                         {
-                            //Shuriken lights bullshit: this happens because shuriken lights dont have the HDAdditionalLightData OnEnabled.
+                            //Shuriken lights thing: this happens because shuriken lights dont have the HDAdditionalLightData OnEnabled.
                             //Because of this, we have to forcefully create a light render entity on the rendering side. Horrible!!!
                             if (light.TryGetComponent<HDAdditionalLightData>(out var hdAdditionalLightData))
                             {
@@ -69,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             // This can happen if a scene is created via new asset creation vs proper scene creation dialog. In this situation we create a default additional light data.
                             // This is bad, but should happen *extremely* rarely and all the entities will 99.9% of the time end up in the branch above.
-                            else if (light != null && light.type == LightType.Directional)
+                            else
                             {
                                 var hdLightData = light.gameObject.AddComponent<HDAdditionalLightData>();
                                 if (hdLightData)
@@ -78,9 +77,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
                                 if (!hdLightData.lightEntity.valid)
                                     hdLightData.CreateHDLightRenderEntity(autoDestroy: true);
+
+                                // Make sure we have a valid data index
+                                dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(hdLightData.lightEntity);
                             }
-                            else
-                                dataIndex = HDLightRenderDatabase.instance.GetEntityDataIndex(defaultEntity);
                         }
 
                         m_VisibleLightEntityDataIndices[i] = dataIndex;
@@ -91,8 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 splitVisibleLightsAndIndicesBuffer.Clear();
-                UnsafeUtility.MemClear(visibleLightsAndIndicesBuffer.GetUnsafePtr(), visibleLightsAndIndicesBuffer.Length * UnsafeUtility.SizeOf<ShadowIndicesAndVisibleLightData>());
-                UnsafeUtility.MemClear(shadowCullingSplitBuffer.GetUnsafePtr(), shadowCullingSplitBuffer.Length * UnsafeUtility.SizeOf<HDShadowCullingSplit>());
+                shadowRequestValidityArray.SetBits(0, false, m_Size);
 
                 dynamicPointVisibleLightsAndIndices = default;
                 cachedPointVisibleLightsAndIndices = default;
@@ -151,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (additionalLightData.GetResolutionFromSettings(additionalLightData.GetShadowMapType(visibleLight.lightType), inShadowInitParameters) == 0)
                         continue;
 
-                    additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType);
+                    additionalLightData.ReserveShadowMap(hdCamera.camera, shadowManager, hdShadowSettings, inShadowInitParameters, visibleLight, entity->lightType, visibleLight.forcedVisible);
                 }
 
                 // Now that all the lights have requested a shadow resolution, we can layout them in the atlas

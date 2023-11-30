@@ -11,7 +11,8 @@
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
         "Unity.Rendering.Denoising.Runtime",
         "Unity.Timeline",
-        "Unity.VisualEffectGraph.Runtime"
+        "Unity.VisualEffectGraph.Runtime",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -45,6 +46,11 @@
             "name": "com.unity.modules.nvidia",
             "expression": "1.0.0",
             "define": "ENABLE_NVIDIA_MODULE"
+        },
+        {
+            "name": "com.unity.modules.amd",
+            "expression": "1.0.0",
+            "define": "ENABLE_AMD_MODULE"
         },
         {
             "name": "com.unity.mathematics",

@@ -122,7 +122,7 @@ namespace UnityEditor.VFX
                 throw new ArgumentNullException();
 
             if (m_ExpressionsData.SelectMany(o => o.Value).Any(o => o.name == name && o.id == id))
-                throw new ArgumentException(string.Format("{0}_{1} has been added twice: {2}", name, id, exp));
+                throw new ArgumentException($"{name}_{id} has been added twice: {exp}");
 
             var data = new Data();
             data.name = name;
@@ -130,16 +130,23 @@ namespace UnityEditor.VFX
 
             if (!m_ExpressionsData.ContainsKey(exp))
             {
-                m_ExpressionsData.Add(exp, new List<Data>());
+                m_ExpressionsData.Add(exp, new List<Data>() { data });
             }
+            else
+            {
+                m_ExpressionsData[exp].Add(data);
+            }
+        }
 
-            m_ExpressionsData[exp].Add(data);
+        public void AddExpression(VFXNamedExpression expression, int id)
+        {
+            AddExpression(expression.exp, expression.name, id);
         }
 
         public void AddExpressions(IEnumerable<VFXNamedExpression> expressions, int id)
         {
             foreach (var exp in expressions)
-                AddExpression(exp.exp, exp.name, id);
+                AddExpression(exp, id);
         }
 
         private readonly Dictionary<VFXExpression, List<Data>> m_ExpressionsData = new();

@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -19,10 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
+        public void Init(HDRPRayTracingResources rpRTResources)
         {
             m_ReflectionDenoiserCS = rpRTResources.reflectionDenoiserCS;
-            m_ReflectionFilterMapping = rpRTResources.reflectionFilterMapping;
+            m_ReflectionFilterMapping = rpRTResources.reflectionFilterMappingTexture;
 
             // Fetch all the kernels we shall be using
             s_TemporalAccumulationFullResKernel = m_ReflectionDenoiserCS.FindKernel("TemporalAccumulationFullRes");

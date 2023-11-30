@@ -72,6 +72,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool useBackgroundCloudOcclusion = false;
         /// <summary>
+        /// Enable Occlusion with Water
+        /// </summary>
+        public bool useWaterOcclusion = false;
+        /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
         [Min(0.0f)]

@@ -4,6 +4,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
+        internal bool apvIsEnabled = false;
+
         internal void RetrieveExtraDataFromProbeVolumeBake(ProbeReferenceVolume.ExtraDataActionInput input)
         {
             var hdProbes = GameObject.FindObjectsByType<HDProbe>(FindObjectsSortMode.None);
@@ -21,11 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeReferenceVolume.instance.retrieveExtraDataAction = null;
             ProbeReferenceVolume.instance.retrieveExtraDataAction += RetrieveExtraDataFromProbeVolumeBake;
-        }
-
-        bool IsAPVEnabled()
-        {
-            return m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
         }
 
         private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)

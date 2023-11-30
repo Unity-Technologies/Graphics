@@ -1,12 +1,7 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Tests/PerformanceTests/UIElements/Assets/Playmode/Bindings/UI/BindingsPanelSettings.asset.meta
 guid: 3d8692e58294538438ee83cf7fcd08c1
-NativeFormatImporter:
-========
-guid: 2df1842e136dae241a7682988997e4b2
 folderAsset: yes
 DefaultImporter:
->>>>>>>> 71ea808419ae0 ([RPW]Perform stripping of IRenderPipelineGraphicsSettings.):Packages/com.unity.render-pipelines.core/Runtime/Stripping.meta
   externalObjects: {}
   userData: 
   assetBundleName: 

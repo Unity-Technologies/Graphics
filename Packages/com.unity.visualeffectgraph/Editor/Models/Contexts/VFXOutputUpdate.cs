@@ -175,7 +175,7 @@ namespace UnityEditor.VFX
             {
 
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                foreach (var attribute in VFXAttribute.AllAttributeAffectingAABB)
+                foreach (var attribute in VFXAttributesManager.AffectingAABBAttributes)
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
 
                 if (HasFeature(Features.MultiMesh))

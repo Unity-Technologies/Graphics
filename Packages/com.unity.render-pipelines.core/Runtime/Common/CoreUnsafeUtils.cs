@@ -119,6 +119,8 @@ namespace UnityEngine.Rendering
         // Note: this is a workaround needed to circumvent some AOT issues when building for xbox
         internal struct UintKeyGetter : IKeyGetter<uint, uint>
         { public uint Get(ref uint v) { return v; } }
+        internal struct UlongKeyGetter : IKeyGetter<ulong, ulong>
+        { public ulong Get(ref ulong v) { return v; } }
 
 
         /// <summary>
@@ -153,8 +155,10 @@ namespace UnityEngine.Rendering
 
         private static void CalculateRadixParams(int radixBits, out int bitStates)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (radixBits != 2 && radixBits != 4 && radixBits != 8)
                 throw new Exception("Radix bits must be 2, 4 or 8 for uint radix sort.");
+#endif
             bitStates = 1 << radixBits;
         }
 
@@ -386,6 +390,18 @@ namespace UnityEngine.Rendering
         {
             fixed (uint* ptr = arr)
                 CoreUnsafeUtils.QuickSort<uint, uint, UintKeyGetter>(ptr, left, right);
+        }
+
+        /// <summary>
+        /// Quick Sort
+        /// </summary>
+        /// <param name="arr">ulong array.</param>
+        /// <param name="left">Left boundary.</param>
+        /// <param name="right">Left boundary.</param>
+        public static unsafe void QuickSort(ulong[] arr, int left, int right)
+        {
+            fixed (ulong* ptr = arr)
+                CoreUnsafeUtils.QuickSort<ulong, ulong, UlongKeyGetter>(ptr, left, right);
         }
 
         /// <summary>

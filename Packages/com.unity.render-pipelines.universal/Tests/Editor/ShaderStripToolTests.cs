@@ -21,6 +21,7 @@ namespace ShaderStrippingAndPrefiltering
             public VolumeFeatures volumeFeatures { get; set; }
 
             public bool isGLDevice { get; set; }
+            public bool stripSoftShadowQualityLevels { get; set; }
             public bool strip2DPasses { get; set; }
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }

@@ -25,6 +25,8 @@ public class DebugViewController_Editor : Editor
     SerializedProperty s_lightingClusterDistance;
     SerializedProperty s_lightingShadowDebugMode;
 
+    SerializedProperty s_lightingMaterialOverrideMode;
+
     public void OnEnable()
     {
         s_settingType = serializedObject.FindProperty("settingType");
@@ -43,6 +45,8 @@ public class DebugViewController_Editor : Editor
         s_lightingClusterDistance = serializedObject.FindProperty("lightingClusterDistance");
 
         s_lightingShadowDebugMode = serializedObject.FindProperty("lightingShadowDebugMode");
+
+        s_lightingMaterialOverrideMode = serializedObject.FindProperty("lightingMaterialOverrideMode");
     }
 
     public override void OnInspectorGUI()
@@ -90,6 +94,7 @@ public class DebugViewController_Editor : Editor
                         }
                     }
                     s_lightingShadowDebugMode.intValue = (int) (ShadowMapDebugMode) EditorGUILayout.EnumPopup(new GUIContent("Shadow Debug Mode"), (ShadowMapDebugMode)s_lightingShadowDebugMode.intValue);
+                    s_lightingMaterialOverrideMode.intValue = (int) (DebugViewController.MaterialOverride) EditorGUILayout.EnumFlagsField(new GUIContent("Material Override Mode"), (DebugViewController.MaterialOverride)s_lightingMaterialOverrideMode.intValue);
                     break;
 
                 case DebugViewController.SettingType.Rendering:

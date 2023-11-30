@@ -4,10 +4,10 @@ This page covers the process of how to use the RenderGraph API to write a render
 
 ### Initialization and cleanup of Render Graph
 
-To begin, your render pipeline needs to maintain at least one instance of [RenderGraph](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html). This is the main entry point for the API. You can use more than one instance of a render graph, but be aware that Unity does not share resources across `RenderGraph` instances so for optimal memory usage, only use one instance.
+To begin, your render pipeline needs to maintain at least one instance of [RenderGraph](../api/UnityEngine.Rendering.RenderGraphModule.RenderGraph.html). This is the main entry point for the API. You can use more than one instance of a render graph, but be aware that Unity does not share resources across `RenderGraph` instances so for optimal memory usage, only use one instance.
 
 ```c#
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 public class MyRenderPipeline : RenderPipeline
 {
@@ -30,22 +30,21 @@ To initialize a `RenderGraph` instance, call the constructor with an optional na
 
 ### Starting a render graph
 
-Before you add any render passes to the render graph, you first need to initialize the render graph. To do this, call the `RecordAndExecute` method. This method will return a disposable struct of type `RenderGraphExecution` that you can use with a scope. When the `RenderGraphExecution` struct exits the scope or its Dispose function is called, the render graph is executed.
-This pattern ensures that the render graph is always executed correctly even in the case of an exception during the recording of the graph.
-For details about this method's parameters, see the [API documentation](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html)
+Before you add any render passes to the render graph, you first need to initialize the render graph by calling the `BeginRecording` method. Once all the render passes have been added to the render graph, you can execute it by calling the `EndRecordingAndExecute` method.
+
+For details about the `BeginRecording` method's parameters, see the [API documentation](../api/UnityEngine.Rendering.RenderGraphModule.RenderGraph.html)
 
 ```c#
-var renderGraphParams = new RenderGraphExecuteParams()
+var renderGraphParams = new RenderGraphParameters()
 {
     scriptableRenderContext = renderContext,
     commandBuffer = cmd,
     currentFrameIndex = frameIndex
 };
 
-using (m_RenderGraph.RecordAndExecute(renderGraphParams))
-{
-    // Add your passes here
-}
+m_RenderGraph.BeginRecording(renderGraphParams);
+// Add your passes here
+m_RenderGraph.EndRecordingAndExecute();
 ```
 
 ### Creating resources for the render graph
@@ -69,7 +68,7 @@ public TextureHandle RenderGraph.ImportBackbuffer(RenderTargetIdentifier rt);
 public BufferHandle RenderGraph.ImportBuffer(ComputeBuffer computeBuffer);
 ```
 
-The main ways to create resources are described above, but there are variations of these functions. For the complete list, see the [API documentation](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html). Note that the specific function to use to import the camera back buffer is `RenderTargetIdentifier`.
+The main ways to create resources are described above, but there are variations of these functions. For the complete list, see the [API documentation](../api/UnityEngine.Rendering.RenderGraphModule.RenderGraph.html). Note that the specific function to use to import the camera back buffer is `RenderTargetIdentifier`.
 
 To create resources, each API requires a descriptor structure as a parameter. The properties in these structures are similar to the properties in the resources they represent (respectively [RTHandle](rthandle-system.md), [ComputeBuffer](https://docs.unity3d.com/ScriptReference/ComputeBuffer.html), and [RendererLists](../api/UnityEngine.Experimental.Rendering.RendererList.html)). However, some properties are specific to render graph textures.
 
@@ -154,6 +153,7 @@ For an overview of the `RenderGraphBuilder` APIs, see the below table. For more 
 | void SetRenderFunc<PassData>(RenderFunc<PassData> renderFunc) where PassData : class, new() | Set the rendering function for the render pass.              |
 | void EnableAsyncCompute(bool value)                                                         | Declares that the render pass runs on the asynchronous compute pipeline. |
 | void AllowPassCulling(bool value)                                                           | Specifies whether Unity should cull the render pass (default is true). This can be useful when the render pass has side effects and you never want the render graph system to cull. |
+| void EnableFoveatedRasterization(bool value)																	  | Declares that the render pass runs with foveated rendering feature enabled. |
 
 #### Rendering Code
 

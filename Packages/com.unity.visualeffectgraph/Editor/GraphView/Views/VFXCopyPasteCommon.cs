@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.UIElements;
 using System.Reflection;
+using UnityEditor.VFX.Block;
+using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.VFX;
+
 using UnityObject = UnityEngine.Object;
 using NodeID = System.UInt32;
 
@@ -133,6 +134,7 @@ namespace UnityEditor.VFX.UI
         {
             public int originalInstanceID;
             public string name;
+            public string category;
             public VFXSerializableObject value;
             public bool exposed;
             public VFXValueFilter valueFilter;
@@ -140,6 +142,7 @@ namespace UnityEditor.VFX.UI
             public VFXSerializableObject max;
             public string[] enumValue;
             public string tooltip;
+            public bool collapsed;
             public bool isOutput;
             public VFXSpace space;
             public ParameterNode[] nodes;
@@ -154,6 +157,15 @@ namespace UnityEditor.VFX.UI
         }
 
         [Serializable]
+        internal struct Attribute
+        {
+            public string name;
+            public VFXValueType type;
+            public string description;
+            public bool canDuplicate;
+        }
+
+        [Serializable]
         protected class SerializableGraph
         {
             public Rect bounds;
@@ -165,6 +177,9 @@ namespace UnityEditor.VFX.UI
             public Data[] datas;
 
             public Parameter[] parameters;
+            public Parameter[] parameterNodes;
+            public Attribute[] attributes;
+            public string[] categories;
 
             public DataEdge[] dataEdges;
             public FlowEdge[] flowEdges;

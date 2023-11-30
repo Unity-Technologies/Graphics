@@ -31,7 +31,7 @@
 
         // Keywords
     #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-    #pragma multi_compile_fragment _ _SHADOWS_SOFT
+    #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
     #pragma multi_compile _DECAL_NORMAL_BLEND_LOW _DECAL_NORMAL_BLEND_MEDIUM _DECAL_NORMAL_BLEND_HIGH
     #pragma multi_compile _ _DECAL_LAYERS
     #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -41,6 +41,11 @@
     #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
+
+    #if _RENDER_PASS_ENABLED
+    #define GBUFFER4 1
+    FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
+    #endif
 
     struct ps_input
     {
@@ -118,9 +123,15 @@
 #else
         fragmentOutput.GBuffer3 = 0;
 #endif
-
-    #if OUTPUT_SHADOWMASK
-        fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    #if _RENDER_PASS_ENABLED
+        fragmentOutput.GBuffer4 = inputData.positionCS.xy;
+        #if OUTPUT_SHADOWMASK
+            fragmentOutput.GBuffer5 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+        #endif
+    #else
+        #if OUTPUT_SHADOWMASK
+            fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+        #endif
     #endif
     }
 

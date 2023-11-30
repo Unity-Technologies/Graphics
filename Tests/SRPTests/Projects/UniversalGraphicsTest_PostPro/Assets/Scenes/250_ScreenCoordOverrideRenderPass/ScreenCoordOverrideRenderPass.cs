@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -45,11 +45,12 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         internal TextureHandle targetTex;
     }
 
-    public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+    public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
-        UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
+        var resourceData = frameData.Get<UniversalResourceData>();
+        var cameraData = frameData.Get<UniversalCameraData>();
 
-        var camDesc = renderingData.cameraData.cameraTargetDescriptor;
+        var camDesc = cameraData.cameraTargetDescriptor;
         TextureDesc desc = new TextureDesc(camDesc.width, camDesc.height);//renderingData.cameraData.cameraTargetDescriptor;
 
         desc.dimension = camDesc.dimension;
@@ -66,9 +67,11 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
         using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit to TempTex", out var passData))
         {
-            var target = renderer.activeColorTexture;
-            passData.tempTex = builder.UseTextureFragment(tempTex, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-            passData.targetTex = builder.UseTexture(target, IBaseRenderGraphBuilder.AccessFlags.Read);
+            var target = resourceData.activeColorTexture;
+            passData.tempTex = tempTex;
+            builder.SetRenderAttachment(tempTex, 0, AccessFlags.Write);
+            passData.targetTex = target;
+            builder.UseTexture(target, AccessFlags.Read);
 
             builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
             {
@@ -77,9 +80,11 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         }
         using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit to TargetTex", out var passData))
         {
-            var target = renderer.activeColorTexture;
-            passData.targetTex = builder.UseTextureFragment(target, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-            passData.tempTex = builder.UseTexture(tempTex, IBaseRenderGraphBuilder.AccessFlags.Read);
+            var target = resourceData.activeColorTexture;
+            passData.targetTex = target;
+            builder.SetRenderAttachment(target, 0, AccessFlags.Write);
+            passData.tempTex = tempTex;
+            builder.UseTexture(tempTex, AccessFlags.Read);
 
             builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
             {

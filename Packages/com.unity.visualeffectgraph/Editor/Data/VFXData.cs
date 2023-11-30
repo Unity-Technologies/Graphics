@@ -469,7 +469,7 @@ namespace UnityEditor.VFX
                     local = true;
                 if (!writtenInInit && (key & 0xAAAAAAAA) == 0) // no write mask
                     local = true;
-                if (VFXAttribute.AllAttributeLocalOnly.Contains(attribute))
+                if (VFXAttributesManager.LocalOnlyAttributes.Contains(attribute))
                     local = true;
 
                 if (local)
@@ -657,6 +657,20 @@ namespace UnityEditor.VFX
         [NonSerialized]
         protected HashSet<VFXData> m_DependenciesOutNotCompilable = new HashSet<VFXData>();
 
+        [NonSerialized]
+        protected Dictionary<VFXContext, List<TaskProfilingData>> m_ContextsToTaskIndex = new Dictionary<VFXContext, List<TaskProfilingData>>();
+
+        internal struct TaskProfilingData
+        {
+            internal int taskIndex;
+            internal string taskName;
+        }
+        public List<TaskProfilingData> GetContextTaskIndices(VFXContext context)
+        {
+            if (m_ContextsToTaskIndex.TryGetValue(context, out List<TaskProfilingData> taskIndices))
+                return taskIndices;
+            return new List<TaskProfilingData>();
+        }
         [NonSerialized]
         protected uint m_Layer;
     }

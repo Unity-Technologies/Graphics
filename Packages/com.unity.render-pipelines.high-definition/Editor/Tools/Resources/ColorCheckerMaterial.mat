@@ -63,6 +63,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
+    - _DstBlend2: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
     - _Face_Camera: 0
@@ -72,6 +73,7 @@ Material:
     - _MaterialTypeMask: 2
     - _NumberOfFields: 64
     - _OpaqueCullMode: 2
+    - _PerPixelSorting: 0
     - _QueueControl: 1
     - _QueueOffset: 0
     - _RayTracing: 0
@@ -117,6 +119,7 @@ Material:
     - _Gradient_Color_A: {r: 0.9529411, g: 0.9529411, b: 0.9490196, a: 1}
     - _Gradient_Color_B: {r: 0.20392156, g: 0.20392156, b: 0.20392156, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &3937316406529346900
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -129,7 +132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 7
+  version: 9
 --- !u!114 &9214507695027985507
 MonoBehaviour:
   m_ObjectHideFlags: 11

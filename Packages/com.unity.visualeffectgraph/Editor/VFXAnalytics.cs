@@ -15,11 +15,30 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    internal interface IEditorAnalytics
+    interface IEditorAnalytics
     {
         bool enabled { get; }
         bool CanBeSent(VFXAnalytics.UsageEventData data);
         AnalyticsResult SendAnalytic(IAnalytic analytic);
+    }
+
+    interface IBuildReport
+    {
+        IEnumerable<string> packedAssetsInfoPath { get; }
+        BuildSummary summary { get; }
+    }
+
+    class BuildReportWrapper : IBuildReport
+    {
+        private readonly BuildReport m_BuildReport;
+
+        public BuildReportWrapper(BuildReport buildReport)
+        {
+            m_BuildReport = buildReport;
+        }
+
+        public IEnumerable<string> packedAssetsInfoPath => m_BuildReport.packedAssets.SelectMany(x => x.contents).Select(x => x.sourceAssetPath);
+        public BuildSummary summary => m_BuildReport.summary;
     }
 
     class EditorAnalyticsWrapper : IEditorAnalytics
@@ -311,22 +330,29 @@ namespace UnityEditor.VFX
 
         public void OnPostprocessBuild(BuildReport report)
         {
+            OnPostprocessBuildInternal(new BuildReportWrapper(report));
+        }
+
+        private void OnPostprocessBuildInternal(IBuildReport report)
+        {
             try
             {
                 if (m_EditorAnalytics.enabled)
                 {
-                    var assets = report.packedAssets
-                        .SelectMany(x => x.contents)
-                        .Select(x => x.sourceAssetPath)
-                        .Where(x => string.Compare(Path.GetExtension(x), ".vfx", StringComparison.OrdinalIgnoreCase) == 0)
-                        .Distinct()
-                        .ToArray();
+                    var assetsCount = 0;
+                    foreach (var sourceAssetPath in report.packedAssetsInfoPath.Distinct())
+                    {
+                        if (sourceAssetPath.EndsWith(".vfx", StringComparison.OrdinalIgnoreCase))
+                        {
+                            assetsCount++;
+                        }
+                    }
 
                     var data = new UsageEventData
                     {
                         event_kind = EventKind.ProjectBuild.ToString(),
                         build_target = report.summary.platform.ToString(),
-                        nb_vfx_assets = assets.Length,
+                        nb_vfx_assets = assetsCount,
                         nb_vfx_opened = 0,
                     };
 
@@ -339,6 +365,7 @@ namespace UnityEditor.VFX
                 Debug.LogError($"Analytics could not log project build event\n{e.Message}");
             }
         }
+
 
         // Uncomment for testing purpose
         /*

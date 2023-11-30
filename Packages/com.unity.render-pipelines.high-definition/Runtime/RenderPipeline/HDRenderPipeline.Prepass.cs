@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -29,21 +29,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
-            m_MSAAResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
-            m_MSAAResolveMaterialDepthOnly = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.depthValuesPS);
+            m_MSAAResolveMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.depthValuesPS);
+            m_MSAAResolveMaterialDepthOnly = CoreUtils.CreateEngineMaterial(runtimeShaders.depthValuesPS);
             m_MSAAResolveMaterialDepthOnly.EnableKeyword("_DEPTH_ONLY");
-            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cameraMotionVectorsPS);
-            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.decalNormalBufferPS);
-            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
-            m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
+            m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.cameraMotionVectorsPS);
+            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.decalNormalBufferPS);
+            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(runtimeShaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(runtimeShaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
             m_ComputeThicknessOpaqueMaterial = new Material[m_MaxXRViewsCount];
             m_ComputeThicknessTransparentMaterial = new Material[m_MaxXRViewsCount];
             for (int viewId = 0; viewId < m_MaxXRViewsCount; ++viewId)
             {
-                m_ComputeThicknessOpaqueMaterial[viewId] = CoreUtils.CreateEngineMaterial(defaultResources.shaders.ComputeThicknessPS);
+                m_ComputeThicknessOpaqueMaterial[viewId] = CoreUtils.CreateEngineMaterial(runtimeShaders.ComputeThicknessPS);
                 m_ComputeThicknessOpaqueMaterial[viewId].SetInt(HDShaderIDs._ViewId, viewId);
-                m_ComputeThicknessTransparentMaterial[viewId] = CoreUtils.CreateEngineMaterial(defaultResources.shaders.ComputeThicknessPS);
+                m_ComputeThicknessTransparentMaterial[viewId] = CoreUtils.CreateEngineMaterial(runtimeShaders.ComputeThicknessPS);
                 m_ComputeThicknessTransparentMaterial[viewId].SetInt(HDShaderIDs._ViewId, viewId);
             }
             m_ComputeThicknessReindexMap = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)HDComputeThickness.computeThicknessMaxLayer, sizeof(uint));
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DBufferOutput = new DBufferOutput();
             m_DBufferOutput.mrt = new TextureHandle[(int)Decal.DBufferMaterial.Count];
 
-            m_GPUCopy = new GPUCopy(defaultResources.shaders.copyChannelCS);
+            m_GPUCopy = new GPUCopy(runtimeShaders.copyChannelCS);
         }
 
         void CleanupPrepass()
@@ -1089,7 +1089,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.resolveOnly = resolveOnly;
                 // With MSAA, the following features require a copy of the stencil, if none are active, no need to do the resolve.
                 passData.resolveIsNecessary = (GetFeatureVariantsEnabled(hdCamera.frameSettings) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(transparent: true)) && MSAAEnabled;
-                passData.resolveStencilCS = defaultResources.shaders.resolveStencilCS;
+                passData.resolveStencilCS = runtimeShaders.resolveStencilCS;
                 passData.inputDepth = builder.ReadTexture(output.depthBuffer);
                 passData.coarseStencilBuffer = builder.WriteBuffer(
                     renderGraph.CreateBuffer(new BufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
@@ -1329,12 +1329,11 @@ namespace UnityEngine.Rendering.HighDefinition
         class DownsampleDepthForLowResPassData
         {
             public bool useGatherDownsample;
-            public float sourceWidth;
-            public float sourceHeight;
             public float downsampleScale;
             public Material downsampleDepthMaterial;
             public TextureHandle depthTexture;
             public TextureHandle downsampledDepthBuffer;
+            public Rect viewport;
 
             // Data needed for potentially writing
             public Vector2Int mip0Offset;
@@ -1375,8 +1374,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.computesMip1OfAtlas = computeMip1OfPyramid;
                 passData.downsampleScale = hdCamera.lowResScale;
-                passData.sourceWidth = hdCamera.actualWidth;
-                passData.sourceHeight = hdCamera.actualHeight;
+                passData.viewport = hdCamera.lowResViewport;
                 passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
                 if (computeMip1OfPyramid)
                 {
@@ -1405,10 +1403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
                         }
 
-                        float destWidth = data.sourceWidth * data.downsampleScale;
-                        float destHeight = data.sourceHeight * data.downsampleScale;
-                        Rect targetViewport = new Rect(0.0f, 0.0f, destWidth, destHeight);
-                        context.cmd.SetViewport(targetViewport);
+                        context.cmd.SetViewport(data.viewport);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
 
                         if (data.computesMip1OfAtlas)

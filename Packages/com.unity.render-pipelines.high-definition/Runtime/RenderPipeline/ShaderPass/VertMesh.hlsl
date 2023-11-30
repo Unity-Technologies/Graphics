@@ -190,7 +190,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     output.positionPredisplacementRWS = positionRWS;
 #endif
     // For tessellation we evaluate the tessellation factor from vertex shader then interpolate it in Hull Shader
-    // Note: For unknow reason evaluating the tessellationFactor directly in Hull shader cause internal compiler issue for both Metal and Vulkan (Unity issue) when use with shadergraph
+    // Note: For unknown reason evaluating the tessellationFactor directly in Hull shader cause internal compiler issue for both Metal and Vulkan (Unity issue) when use with shadergraph
     // so we prefer this version to be compatible with all platforms, have same code for non shader graph and shader graph version and also it should be faster.
     output.tessellationFactor = GetTessellationFactor(input);
     output.normalWS = normalWS;
@@ -230,6 +230,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 #endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;
+#endif
+#if (defined(VARYINGS_NEED_INSTANCEID) || defined(VARYINGS_DS_NEED_INSTANCEID)) && !UNITY_ANY_INSTANCING_ENABLED
+    output.instanceID = input.instanceID;
 #endif
 
 #if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)
@@ -300,11 +303,14 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;
 #endif
+#if defined(VARYINGS_NEED_INSTANCEID) && !UNITY_ANY_INSTANCING_ENABLED
+    output.instanceID = input.instanceID;
+#endif
 
 #if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)
     GatherDiffuseGIData(input.normalWS, input.tangentWS, input.positionRWS, output.diffuseGIData0, output.diffuseGIData1, output.diffuseGIData2);
 #endif
-    // Call is last to deal with 'not completly initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
+    // Call is last to deal with 'not completely initialize warning'. We don't want to ZeroInitialize the output struct to be able to detect issue.
 #ifdef USE_CUSTOMINTERP_SUBSTRUCT
     // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
     VertMeshTesselationCustomInterpolation(input, output);

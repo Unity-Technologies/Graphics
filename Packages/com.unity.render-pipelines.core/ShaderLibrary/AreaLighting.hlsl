@@ -4,42 +4,10 @@
 #define APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
 #define APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
 
-// Not normalized by the factor of 1/TWO_PI.
-real3 ComputeEdgeFactor(real3 V1, real3 V2)
-{
-    real  V1oV2 = dot(V1, V2);
-    real3 V1xV2 = cross(V1, V2);
-#if 0
-    return normalize(V1xV2) * acos(V1oV2));
-#else
-    // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
-    // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
-    // Maximum relative error: 2.6855360216340534 * 10^-6. Intensities up to 1000 are artifact-free.
-    real x = abs(V1oV2);
-    real y = 1.5707921083647782 + x * (-0.9995697178013095 + x * (0.778026455830408 + x * (-0.6173111361273548 + x * (0.4202724111150622 + x * (-0.19452783598217288 + x * 0.04232040013661036)))));
-
-    if (V1oV2 < 0)
-    {
-        // Undo range reduction.
-        const float epsilon = 1e-5f;
-        y = PI * rsqrt(max(epsilon, saturate(1 - V1oV2 * V1oV2))) - y;
-    }
-
-    return V1xV2 * y;
-#endif
-}
-
-// Not normalized by the factor of 1/TWO_PI.
-// Ref: Improving radiosity solutions through the use of analytically determined form-factors.
-real IntegrateEdge(real3 V1, real3 V2)
-{
-    // 'V1' and 'V2' are represented in a coordinate system with N = (0, 0, 1).
-    return ComputeEdgeFactor(V1, V2).z;
-}
 
 // 'sinSqSigma' is the sine^2 of the half-angle subtended by the sphere (aperture) as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
-// N.b.: this function accounts for horizon clipping.
+// This function performs horizon clipping.
 real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 {
 #ifdef APPROXIMATE_SPHERE_LIGHT_NUMERICALLY
@@ -124,20 +92,82 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 #endif
 }
 
-// This function does not check whether light's contribution is 0.
-real3 PolygonFormFactor(real4x3 L)
+// The output is *not* normalized by the factor of 1/TWO_PI (this is done by the PolygonFormFactor function).
+real3 ComputeEdgeFactor(real3 V1, real3 V2)
 {
-    L[0] = SafeNormalize(L[0]);
-    L[1] = SafeNormalize(L[1]);
-    L[2] = SafeNormalize(L[2]);
-    L[3] = SafeNormalize(L[3]);
+    real subtendedAngle;
 
+    real  V1oV2  = dot(V1, V2);
+    real3 V1xV2  = cross(V1, V2);               // Plane normal (tangent to the unit sphere)
+    real  sqLen  = saturate(1 - V1oV2 * V1oV2); // length(V1xV2) = abs(sin(angle))
+    real  rcpLen = rsqrt(max(FLT_MIN, sqLen));  // Make sure it is finite
+#if 0
+    real y = rcpLen * acos(V1oV2);
+#else
+    // Let y[x_] = ArcCos[x] / Sqrt[1 - x^2].
+    // Range reduction: since ArcCos[-x] == Pi - ArcCos[x], we only need to consider x on [0, 1].
+    real x = abs(V1oV2);
+    // Limit[y[x], x -> 1] == 1,
+    // Limit[y[x], x -> 0] == Pi/2.
+    // The approximation is exact at the endpoints of [0, 1].
+    // Max. abs. error on [0, 1] is 1.33e-6 at x = 0.0036.
+    // Max. rel. error on [0, 1] is 8.66e-7 at x = 0.0037.
+    real y = HALF_PI + x * (-0.99991 + x * (0.783393 + x * (-0.649178 + x * (0.510589 + x * (-0.326137 + x * (0.137528 + x * -0.0270813))))));
+
+    if (V1oV2 < 0)
+    {
+        y = rcpLen * PI - y;
+    }
+
+#endif
+
+    return V1xV2 * y;
+}
+
+// Input: 3-5 vertices in the coordinate frame centered at the shaded point.
+// Output: signed vector irradiance.
+// No horizon clipping is performed.
+real3 PolygonFormFactor(real4x3 L, real3 L4, uint n)
+{
+    // The length cannot be zero since we have already checked
+    // that the light has a non-zero effective area,
+    // and thus its plane cannot pass through the origin.
+    L[0] = normalize(L[0]);
+    L[1] = normalize(L[1]);
+    L[2] = normalize(L[2]);
+
+    switch (n)
+    {
+        case 3:
+            L[3] = L[0];
+            break;
+        case 4:
+            L[3] = normalize(L[3]);
+            L4   = L[0];
+            break;
+        case 5:
+            L[3] = normalize(L[3]);
+            L4   = normalize(L4);
+            break;
+    }
+
+    // If the magnitudes of a pair of edge factors are
+    // nearly the same, catastrophic cancellation may occur:
+    // https://en.wikipedia.org/wiki/Catastrophic_cancellation
+    // For the same reason, the value of the cross product of two
+    // nearly collinear vectors is prone to large errors.
+    // Therefore, the algorithm is inherently numerically unstable
+    // for area lights that shrink to a line (or a point) after
+    // projection onto the unit sphere.
     real3 F  = ComputeEdgeFactor(L[0], L[1]);
           F += ComputeEdgeFactor(L[1], L[2]);
           F += ComputeEdgeFactor(L[2], L[3]);
-          F += ComputeEdgeFactor(L[3], L[0]);
+    if (n >= 4)
+          F += ComputeEdgeFactor(L[3], L4);
+    if (n == 5)
+          F += ComputeEdgeFactor(L4, L[0]);
 
-    return INV_TWO_PI * F;
+    return INV_TWO_PI * F; // The output may be projected onto the tangent plane (F.z) to yield signed irradiance.
 }
 
 // See "Real-Time Area Lighting: a Journey from Research to Production", slide 102.
@@ -162,12 +192,13 @@ real PolygonIrradianceFromVectorFormFactor(float3 F)
 }
 
 // Expects non-normalized vertex positions.
-real PolygonIrradiance(real4x3 L)
+// Output: F is the signed vector irradiance.
+real PolygonIrradiance(real4x3 L, out real3 F)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    real3 F = PolygonFormFactor(L);
+    F = PolygonFormFactor(L, real3(0,0,1), 4); // Before horizon clipping.
 
-    return PolygonIrradianceFromVectorFormFactor(F);
+    return PolygonIrradianceFromVectorFormFactor(F); // Accounts for the horizon.
 #else
     // 1. ClipQuadToHorizon
 
@@ -281,137 +312,124 @@ real PolygonIrradiance(real4x3 L)
 
     if (n == 0) return 0;
 
-    // 2. Project onto sphere
-    L[0] = normalize(L[0]);
-    L[1] = normalize(L[1]);
-    L[2] = normalize(L[2]);
+    // 2. Integrate
+    F = PolygonFormFactor(L, L4, n); // After the horizon clipping.
 
-    switch (n)
-    {
-        case 3:
-            L[3] = L[0];
-            break;
-        case 4:
-            L[3] = normalize(L[3]);
-            L4   = L[0];
-            break;
-        case 5:
-            L[3] = normalize(L[3]);
-            L4   = normalize(L4);
-            break;
-    }
-
-    // 3. Integrate
-    real sum = 0;
-    sum += IntegrateEdge(L[0], L[1]);
-    sum += IntegrateEdge(L[1], L[2]);
-    sum += IntegrateEdge(L[2], L[3]);
-    if (n >= 4)
-        sum += IntegrateEdge(L[3], L4);
-    if (n == 5)
-        sum += IntegrateEdge(L4, L[0]);
-
-    sum *= INV_TWO_PI; // Normalization
-
-    sum = max(sum, 0.0);
-
-    return isfinite(sum) ? sum : 0.0;
+    // 3. Compute irradiance
+    return max(0, F.z);
 #endif
 }
 
-real LineFpo(real tLDDL, real lrcpD, real rcpD)
+// This function assumes that inputs are well-behaved, e.i.
+// that the line does not pass through the origin and
+// that the light is (at least partially) above the surface.
+float I_diffuse_line(float3 C, float3 A, float hl)
 {
-    // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + (rcpD * rcpD) * FastATan(lrcpD);
+    // Solve C.z + h * A.z = 0.
+    float h = -C.z * rcp(A.z);  // May be Inf, but never NaN
+
+    // Clip the line segment against the z-plane if necessary.
+    float h2 = (A.z >= 0) ? max( hl, h)
+                          : min( hl, h); // P2 = C + h2 * A
+    float h1 = (A.z >= 0) ? max(-hl, h)
+                          : min(-hl, h); // P1 = C + h1 * A
+
+    // Normalize the tangent.
+    float  as = dot(A, A);      // |A|^2
+    float  ar = rsqrt(as);      // 1/|A|
+    float  a  = as * ar;        // |A|
+    float3 T  = A * ar;         // A/|A|
+
+    // Orthogonal 2D coordinates:
+    // P(n, t) = n * N + t * T.
+    float  tc = dot(T, C);      // C = n * N + tc * T
+    float3 P0 = C - tc * T;     // P(n, 0) = n * N
+    float  ns = dot(P0, P0);    // |P0|^2
+
+    float nr = rsqrt(ns);       // 1/|P0|
+    float n  = ns * nr;         // |P0|
+    float Nz = P0.z * nr;       // N.z = P0.z/|P0|
+
+    // P(n, t) - C = P0 + t * T - P0 - tc * T
+    // = (t - tc) * T = h * A = (h * a) * T.
+    float t2 = tc + h2 * a;     // P2.t
+    float t1 = tc + h1 * a;     // P1.t
+    float s2 = ns + t2 * t2;    // |P2|^2
+    float s1 = ns + t1 * t1;    // |P1|^2
+    float mr = rsqrt(s1 * s2);  // 1/(|P1|*|P2|)
+    float r2 = s1 * (mr * mr);  // 1/|P2|^2
+    float r1 = s2 * (mr * mr);  // 1/|P1|^2
+
+    // I = (i1 + i2 + i3) / Pi.
+    // i1 =  N.z * (P2.t / |P2|^2 - P1.t / |P1|^2).
+    // i2 = -T.z * (P2.n / |P2|^2 - P1.n / |P1|^2).
+    // i3 =  N.z * ArcCos[Dot[P1, P2] / (|P1| * |P2|)] / |P0|.
+    float i12 = (Nz * t2 - (T.z * n)) * r2
+              - (Nz * t1 - (T.z * n)) * r1;
+    // Guard against numerical errors.
+    float dt  = min(1, (ns + t1 * t2) * mr);
+    float i3  = acos(dt) * (Nz * nr); // angle * cos(θ) / r^2
+
+    // Guard against numerical errors.
+    return INV_PI * max(0, i12 + i3);
 }
 
-real LineFwt(real tLDDL, real l)
+// Computes 1 / length(mul(transpose(inverse(invM)), normalize(ortho))).
+float ComputeLineWidthFactor(float3x3 invM, float3 ortho, float orthoSq)
 {
-    // Compute: l * ((l / d) / (d * d + l * l)).
-    return l * tLDDL;
+    // transpose(inverse(invM)) = 1 / determinant(invM) * cofactor(invM).
+    // Take into account the sparsity of the matrix:
+    // {{a,0,b},
+    //  {0,c,0},
+    //  {d,0,1}}
+    float a = invM[0][0];
+    float b = invM[0][2];
+    float c = invM[1][1];
+    float d = invM[2][0];
+
+    float  det = c * (a - b * d);
+    float3 X   = float3(c * (ortho.x - d * ortho.z),
+                            (ortho.y * (a - b * d)),
+                        c * (-b * ortho.x + a * ortho.z));  // mul(cof, ortho)
+
+    // 1 / length(1/s * X) = abs(s) / length(X).
+    return abs(det) * rsqrt(dot(X, X) * orthoSq) * orthoSq; // rsqrt(x^2) * x^2 = x
 }
 
-// Computes the integral of the clamped cosine over the line segment.
-// 'l1' and 'l2' define the integration interval.
-// 'tangent' is the line's tangent direction.
-// 'normal' is the direction orthogonal to the tangent. It is the shortest vector between
-// the shaded point and the line, pointing away from the shaded point.
-real LineIrradiance(real l1, real l2, real3 normal, real3 tangent)
+float I_ltc_line(float3x3 invM, float3 center, float3 axis, float halfLength)
 {
-    real d      = length(normal);
-    real l1rcpD = l1 * rcp(d);
-    real l2rcpD = l2 * rcp(d);
-    real tLDDL1 = l1rcpD / (d * d + l1 * l1);
-    real tLDDL2 = l2rcpD / (d * d + l2 * l2);
-    real intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
-    real intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
-    return intP0 * normal.z + intWt * tangent.z;
-}
+    float3 ortho   = cross(center, axis);
+    float  orthoSq = dot(ortho, ortho);
 
-// Computes 1.0 / length(mul(ortho, transpose(inverse(invM)))).
-real ComputeLineWidthFactor(real3x3 invM, real3 ortho)
-{
-    // transpose(inverse(M)) = (1.0 / determinant(M)) * cofactor(M).
-    // Take into account that m12 = m21 = m23 = m32 = 0 and m33 = 1.
-    real    det = invM._11 * invM._22 - invM._22 * invM._31 * invM._13;
-    real3x3 cof = {invM._22, 0.0, -invM._22 * invM._31,
-                   0.0, invM._11 - invM._13 * invM._31, 0.0,
-                   -invM._13 * invM._22, 0.0, invM._11 * invM._22};
+    // Check whether the line passes through the origin.
+    bool quit = (orthoSq == 0);
 
-    // 1.0 / length(mul(V, (1.0 / s * M))) = abs(s) / length(mul(V, M)).
-    return abs(det) / length(mul(ortho, cof));
-}
+    // Check whether the light is entirely below the surface.
+    // We must test twice, since a linear transformation
+    // may bring the light above the surface (a side-effect).
+    quit = quit || (center.z + halfLength * abs(axis.z) <= 0);
 
-// For line lights.
-real LTCEvaluate(real3 P1, real3 P2, real3 B, real3x3 invM)
-{
-    real result = 0.0;
-    // Inverse-transform the endpoints.
-    P1 = mul(P1, invM);
-    P2 = mul(P2, invM);
+    // Transform into the diffuse configuration.
+    // This is a sparse matrix multiplication.
+    // Pay attention to the multiplication order
+    // (in case your matrices are transposed).
+    float3 C = mul(invM, center);
+    float3 A = mul(invM, axis);
 
-    // Terminate the algorithm if both points are below the horizon.
-    if (!(P1.z <= 0.0 && P2.z <= 0.0))
+    // Check whether the light is entirely below the surface.
+    // We must test twice, since a linear transformation
+    // may bring the light below the surface (as expected).
+    quit = quit || (C.z + halfLength * abs(A.z) <= 0);
+
+    float result = 0;
+
+    if (!quit)
     {
-        real width = ComputeLineWidthFactor(invM, B);
+        float w = ComputeLineWidthFactor(invM, ortho, orthoSq);
 
-        if (P1.z > P2.z)
-        {
-            // Convention: 'P2' is above 'P1', with the tangent pointing upwards.
-            Swap(P1, P2);
-        }
-
-        // Recompute the length and the tangent in the new coordinate system.
-        real  len = length(P2 - P1);
-        real3 T   = normalize(P2 - P1);
-
-        // Clip the part of the light below the horizon.
-        if (P1.z <= 0.0)
-        {
-            // P = P1 + t * T; P.z == 0.
-            real t = -P1.z / T.z;
-            P1 = real3(P1.xy + t * T.xy, 0.0);
-
-            // Set the length of the visible part of the light.
-            len -= t;
-        }
-
-        // Compute the normal direction to the line, s.t. it is the shortest vector
-        // between the shaded point and the line, pointing away from the shaded point.
-        // Can be interpreted as a point on the line, since the shaded point is at the origin.
-        real  proj = dot(P1, T);
-        real3 P0   = P1 - proj * T;
-
-        // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
-        real l1 = proj;
-        real l2 = l1 + len;
-
-        // Integrate the clamped cosine over the line segment.
-        real irradiance = LineIrradiance(l1, l2, P0, T);
-
-        // Guard against numerical precision issues.
-        result = max(INV_PI * width * irradiance, 0.0);
+        result = I_diffuse_line(C, A, halfLength) * w;
     }
+
     return result;
 }
 

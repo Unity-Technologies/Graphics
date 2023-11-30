@@ -23,26 +23,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-	#if HAS_STRIPS
-	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 1;
-	uint index = id / vertexPerStripCount;
-	${VFXInitInstancing}
-	
-	const StripData stripData = GetStripDataFromStripIndex(index, instanceIndex);
-	uint relativeIndexInStrip = (id % vertexPerStripCount + 1) >> 1; // relative index of particle in strip
-
-	uint maxEdgeIndex = relativeIndexInStrip - (id & 1) + 1;
-	if (maxEdgeIndex >= stripData.nextIndex)
-		return o;
-
-	index = GetParticleIndex(relativeIndexInStrip, stripData);
-	#else
 	uint index = id >> 1;
-	#endif
 
-	#if !HAS_STRIPS
 	${VFXInitInstancing}
-	#endif
+
 	${VFXLoadGraphValues}
 
 	ContextData contextData = instancingContextData[instanceActiveIndex];

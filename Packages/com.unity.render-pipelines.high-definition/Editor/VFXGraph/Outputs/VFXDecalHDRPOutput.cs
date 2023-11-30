@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle HDRP Lit Decal", category = "Output")]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
         public override string name

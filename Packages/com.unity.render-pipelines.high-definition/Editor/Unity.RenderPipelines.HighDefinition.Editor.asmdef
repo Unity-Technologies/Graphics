@@ -8,12 +8,14 @@
         "Unity.RenderPipelines.Core.Runtime.Shared",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Editor.Shared",
+        "Unity.Mathematics",
         "Unity.ugui",
         "Unity.ugui.Editor",
         "Unity.VisualEffectGraph.Editor",
         "Unity.PackageManagerDocTools.Editor",
         "Unity.Rendering.Denoising.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime",
+        "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -39,6 +41,11 @@
             "name": "com.unity.modules.nvidia",
             "expression": "1.0.0",
             "define": "ENABLE_NVIDIA_MODULE"
+        },
+        {
+            "name": "com.unity.modules.amd",
+            "expression": "1.0.0",
+            "define": "ENABLE_AMD_MODULE"
         },
         {
             "name": "com.unity.sensorsdk",

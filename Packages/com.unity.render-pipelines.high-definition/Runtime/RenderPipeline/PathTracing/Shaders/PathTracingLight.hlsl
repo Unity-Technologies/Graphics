@@ -24,10 +24,11 @@
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
-#define MAX_LOCAL_LIGHT_COUNT 16
+#define MAX_LOCAL_LIGHT_COUNT SHADEROPTIONS_PATH_TRACING_MAX_LIGHT_COUNT
 #define MAX_DISTANT_LIGHT_COUNT 4
 
 #define DELTA_PDF 1000000.0
+#define DOT_PRODUCT_EPSILON 0.001
 
 #define SAMPLE_SOLID_ANGLE
 
@@ -51,7 +52,7 @@ struct LightList
 #endif
 };
 
-bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
+bool IsAreaLightActive(LightData lightData, float3 position, float3 normal)
 {
     float3 lightToPosition = position - lightData.positionRWS;
 
@@ -60,6 +61,10 @@ bool IsRectAreaLightActive(LightData lightData, float3 position, float3 normal)
     if (Length2(lightToPosition) > Sq(lightData.range))
         return false;
 #endif
+
+    // If this is  tube light, we're done
+    if (lightData.lightType == GPULIGHTTYPE_TUBE)
+        return true;
 
     // Check that the shading position is in front of the light
     float lightCos = dot(lightToPosition, lightData.forward);
@@ -78,16 +83,19 @@ bool IsPointLightActive(LightData lightData, float3 position, float3 normal)
 {
     float3 lightToPosition = position - lightData.positionRWS;
 
+    if(lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+    {
 #ifndef USE_LIGHT_CLUSTER
-    // Check light range first
-    if (Length2(lightToPosition) > Sq(lightData.range))
-        return false;
+        // Check light range first
+        if (Length2(lightToPosition) > Sq(lightData.range))
+            return false;
 #endif
 
-    // Check that at least part of the light is above the tangent plane
-    float lightTangentDist = dot(normal, lightToPosition);
-    if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
-        return false;
+        // Check that at least part of the light is above the tangent plane
+        float lightTangentDist = dot(normal, lightToPosition);
+        if (lightTangentDist * abs(lightTangentDist) > lightData.size.x)
+            return false;
+    }
 
     // If this is an omni-directional point light, we're done
     if (lightData.lightType == GPULIGHTTYPE_POINT)
@@ -127,13 +135,10 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
                           bool withPoint = true, bool withArea = true, bool withDistant = true,
                           float3 lightPosition = FLT_MAX)
 {
-    LightList list;
+    LightList list = (LightList)0;
     uint i;
 
     // First take care of local lights (point, area)
-    list.localCount = 0;
-    list.localPointCount = 0;
-
     if (withPoint || withArea)
     {
         uint localPointCount, localCount;
@@ -151,8 +156,8 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
             localCount = 0;
         }
 #else
-        localPointCount = _PunctualLightCountRT;
-        localCount = _PunctualLightCountRT + _AreaLightCountRT;
+        localPointCount = _WorldPunctualLightCount;
+        localCount = _WorldPunctualLightCount + _WorldAreaLightCount;
 #endif
 
         // Do we have an imposed local light (identificed by position), for volumetric scattering?
@@ -166,7 +171,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
     #ifdef USE_LIGHT_CLUSTER
                 const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
     #else
-                const LightData lightData = _LightDatasRT[i];
+                const LightData lightData = _WorldLightDatas[i];
     #endif
 
                 if (forceLightPosition && any(lightPosition - lightData.positionRWS))
@@ -187,13 +192,13 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = REN
     #ifdef USE_LIGHT_CLUSTER
                 const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
     #else
-                const LightData lightData = _LightDatasRT[i];
+                const LightData lightData = _WorldLightDatas[i];
     #endif
 
                 if (forceLightPosition && any(lightPosition - lightData.positionRWS))
                     continue;
 
-                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsAreaLightActive(lightData, position, normal))
                     list.localIndex[list.localCount++] = i;
             }
         }
@@ -233,7 +238,7 @@ LightData GetLocalLightData(LightList list, uint i)
 #ifdef USE_LIGHT_CLUSTER
     return FetchClusterLightIndex(list.cellIndex, list.localIndex[i]);
 #else
-    return _LightDatasRT[list.localIndex[i]];
+    return _WorldLightDatas[list.localIndex[i]];
 #endif
 }
 
@@ -292,26 +297,38 @@ uint PickLightType(LightList list, inout float theSample)
     return PTLIGHT_SKY;
  }
 
-float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
+float3 GetPunctualEmission(LightData lightData, float3 position, float3 outgoingDir, float dist)
 {
     float3 emission = lightData.color;
 
     // Punctual attenuation
     float4 distances = float4(dist, Sq(dist), rcp(dist), -dist * dot(outgoingDir, lightData.forward));
+    if(lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        //Note that we won't use GetPunctualLightVectors for non-Box cases to avoid calling ModifyDistancesForFillLighting
+        //We ensure the distances z and w coordinates are the same as for GetPunctualLightVectors for Box lights
+        distances.z = 1.0;
+        distances.w = dist;
+    }
     emission *= PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        emission *= EvaluateCookie_Punctual(context, lightData, -dist * outgoingDir).rgb;
+        float3 lightToSample = - dist * outgoingDir;
+        if(lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+        {
+            lightToSample = position - lightData.positionRWS;
+        }
+        emission *= EvaluateCookie_Punctual(context, lightData, lightToSample).rgb;
     }
 #endif
 
     return emission;
 }
 
-float3 GetDirectionalEmission(DirectionalLightData lightData, float3 position)
+float3 GetDirectionalEmission(DirectionalLightData lightData, float3 positionRWS)
 {
     float3 emission = lightData.color;
 
@@ -320,27 +337,14 @@ float3 GetDirectionalEmission(DirectionalLightData lightData, float3 position)
 #else
     // Physical sky emission color code, adapted from EvaluateLight_Directional()
     if (asint(lightData.distanceFromCamera) >= 0)
-    {
-        float r        = distance(position, _PlanetCenterPosition.xyz);
-        float cosHoriz = ComputeCosineOfHorizonAngle(r);
-        float cosTheta = dot(_PlanetCenterPosition.xyz - position, lightData.forward) * rcp(r); // Normalize
-
-        if (cosTheta < cosHoriz) // Below horizon
-            return 0.0;
-
-        float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
-        float3 transm  = TransmittanceFromOpticalDepth(oDepth);
-        float3 opacity = 1.0 - transm;
-
-        emission.rgb *= 1.0 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
-    }
+        emission *= EvaluateSunColorAttenuation(positionRWS - _PlanetCenterPosition, -lightData.forward);
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (lightData.cookieMode != COOKIEMODE_NONE)
     {
         LightLoopContext context;
-        float3 lightToSample = position - lightData.positionRWS;
+        float3 lightToSample = positionRWS - lightData.positionRWS;
         emission *= EvaluateCookie_Directional(context, lightData, lightToSample);
     }
 #endif
@@ -372,6 +376,279 @@ float3 GetLightTransmission(float3 transmission, float shadowOpacity)
     return lerp(float3(1.0, 1.0, 1.0), transmission, shadowOpacity);
 }
 
+bool SampleRectAreaLight(LightList lightList, LightData lightData,
+                         float3 inputSample,
+                         float3 position,
+                         float3 normal,
+                         bool isSpherical,
+                     out float3 outgoingDir,
+                     out float3 value,
+                     out float pdf,
+                     out float dist)
+{
+    // The lights have already been filtered for "IsActive" in CreateLightList
+    /*
+    if (!IsAreaLightActive(lightData, position, normal))
+        return false;
+    */
+
+    // Initialize out values
+    outgoingDir = 0;
+    value = 0;
+    pdf = 0;
+    dist = 0;
+
+    float3 lightCenter = lightData.positionRWS;
+
+#ifndef SAMPLE_SOLID_ANGLE
+    // Generate a point on the surface of the light
+    float centerU = inputSample.x - 0.5;
+    float centerV = inputSample.y - 0.5;
+    float3 lightSamplePos = lightCenter + centerU * lightData.size.x * lightData.right + centerV * lightData.size.y * lightData.up;
+
+    // And the corresponding direction
+    outgoingDir = lightSamplePos - position;
+    float sqDist = Length2(outgoingDir);
+    dist = sqrt(sqDist);
+    outgoingDir /= dist;
+
+    if (!isSpherical && dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON)
+        return false;
+
+    float cosTheta = -dot(outgoingDir, lightData.forward);
+    if (cosTheta < DOT_PRODUCT_EPSILON)
+        return false;
+
+    float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+
+    value = GetAreaEmission(lightData, centerU, centerV, sqDist);
+    pdf = GetLocalLightWeight(lightList) * sqDist / (lightArea * cosTheta);
+#else
+    // Solid angle sampling
+    float u = inputSample.x;
+    float v = inputSample.y;
+
+    SphQuad squad;
+    lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
+    lightCenter = lightCenter - 0.5 * lightData.size.y * lightData.up;
+    SphQuadInit(lightCenter, lightData.size.x * lightData.right, lightData.size.y * lightData.up, position, squad);
+
+    // Generate sample
+    // TODO: Move this validity check into the common quad initialization function
+    if (squad.S < 0.00001 || isnan(squad.S))
+        return false;
+
+    // 1. compute ’cu’
+    float au = u * squad.S + squad.k;
+    float fu = (cos(au) * squad.b0 - squad.b1) / sin(au);
+    float cu = 1 / sqrt(fu * fu + squad.b0sq);// *(fu > 0 ? +1 : -1);
+    cu = (fu > 0.0f) ? cu : -cu;
+    cu = clamp(cu, -1, 1); // avoid NaNs
+
+    // 2. compute ’xu’
+    float xu = -(cu * squad.z0) / sqrt(1 - cu * cu);
+    xu = clamp(xu, squad.x0, squad.x1); // avoid Infs
+
+    // 3. compute ’yv’
+    float d = sqrt(xu * xu + squad.z0sq);
+    float h0 = squad.y0 / sqrt(d * d + squad.y0sq);
+    float h1 = squad.y1 / sqrt(d * d + squad.y1sq);
+    float hv = h0 + v * (h1 - h0);
+    float hv2 = hv * hv;
+    float eps = 0.0001;
+    float yv = (hv2 < 1.0 - eps) ? (hv * d) / sqrt(1.0 - hv2) : squad.y1;
+
+    // 4. transform (xu,yv,z0) to world coords
+    float3 lightSamplePos = (squad.o + xu * squad.x + yv * squad.y + squad.z0 * squad.z);
+
+    // TODO: We should use this function, but we need xu and yv below for cookie evaluation
+    // float3 lightSamplePos = SphQuadSample(squad, u, v);
+
+    outgoingDir = lightSamplePos - position;
+    float sqDist = Length2(outgoingDir);
+    dist = sqrt(sqDist);
+    outgoingDir /= dist;
+
+    u = (xu - squad.x0)/(squad.x1 - squad.x0) - 0.5;
+    v = (yv - squad.y0)/(squad.y1 - squad.y0) - 0.5;
+    value = GetAreaEmission(lightData, u, v, sqDist); // TODO: add rcpPdf term here from lightlist when that PR lands
+    pdf = GetLocalLightWeight(lightList) / squad.S;
+
+    if (!isSpherical && dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON)
+        return false;
+
+    float cosTheta = -dot(outgoingDir, lightData.forward);
+    if (cosTheta < DOT_PRODUCT_EPSILON)
+        return false;
+#endif
+
+    return true;
+}
+
+bool SampleTubeAreaLight(LightList lightList, LightData lightData,
+                         float3 inputSample,
+                         float3 position,
+                         float3 normal,
+                         bool isSpherical,
+                     out float3 outgoingDir,
+                     out float3 value,
+                     out float pdf,
+                     out float dist)
+{
+    float3 lightCenter = lightData.positionRWS;
+    float lightLength = lightData.size.x;
+
+    // Generate a point on the line
+    // TODO : equiangular sampling might be better than just uniformly sampling along the line.
+    float centerU = inputSample.x - 0.5;
+    float3 lightSamplePos = lightCenter + centerU * lightLength * lightData.right;
+
+    // And the corresponding direction
+    outgoingDir = lightSamplePos - position;
+    float sqDist = Length2(outgoingDir);
+    dist = sqrt(sqDist);
+    outgoingDir /= dist;
+
+    if (!isSpherical && dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON)
+        return false;
+
+    float sinTheta = abs(dot(outgoingDir, lightData.right));
+    if (sinTheta > sqrt(1.0-DOT_PRODUCT_EPSILON*DOT_PRODUCT_EPSILON))
+        return false;
+    float cosTheta = sqrt(1.0-sinTheta*sinTheta);
+
+    // The multiplication by 2 is explained by the fact that we are dealing with a tube, although with radius -> 0
+    // So the energy coming to a point is actually coming from the half arc of the tube facing the point.
+    // This means the total intensity is multiplied by Integral{-PI/2 to PI/2, cos phi} = 2, phi being the
+    // angle of the tube surface normal along that half arc. This is empirically verified by comparing visual
+    // lighting intensities between the rasterized and path traced versions of the tube area light.
+    value = GetAreaEmission(lightData, centerU, 0, sqDist) * 2 * cosTheta / sqDist;
+    pdf = GetLocalLightWeight(lightList) / lightLength;
+
+    // Multiply both value and pdf by DELTA_PDF to give more MIS weight for the light,
+    // as the line light is ignored in EvaluateLight due to its inifinitesimal surface.
+    value *= DELTA_PDF;
+    pdf *= DELTA_PDF;
+
+    return true;
+}
+
+float2 GetDiscAreaLightCookieUV(LightData lightData, float3 posOnDisk)
+{
+    float lightDiameter = 2*lightData.size.x;
+    float centerU = dot(posOnDisk, lightData.right) / (lightDiameter * Length2(lightData.right));
+    float centerV = dot(posOnDisk, lightData.up) / (lightDiameter * Length2(lightData.up));
+    return float2(centerU, centerV);
+}
+
+bool SampleDiscAreaLight(LightList lightList, LightData lightData,
+                         float3 inputSample,
+                         float3 position,
+                         float3 normal,
+                         bool isSpherical,
+                     out float3 outgoingDir,
+                     out float3 value,
+                     out float pdf,
+                     out float dist)
+{
+    float3 lightCenter = lightData.positionRWS;
+    float3 lightSamplePos;
+    float3 lightNormal; // This is ignored
+    float4x4 lightToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightCenter, 1.0));
+    float lightRadius = lightData.size.x;
+
+    SampleDisk(inputSample.xy, lightToWorld, lightRadius, pdf, lightSamplePos, lightNormal);
+
+    // And the corresponding direction
+    outgoingDir = lightSamplePos - position;
+    float sqDist = Length2(outgoingDir);
+    dist = sqrt(sqDist);
+    outgoingDir /= dist;
+
+    if (!isSpherical && dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON)
+        return false;
+
+    float cosTheta = -dot(outgoingDir, lightData.forward);
+    if (cosTheta < DOT_PRODUCT_EPSILON)
+        return false;
+
+    float3 diskPos = lightSamplePos-lightCenter;
+    float2 centerUV = GetDiscAreaLightCookieUV(lightData, diskPos);
+
+    value = GetAreaEmission(lightData, centerUV.x, centerUV.y, sqDist);
+    // 1/(Light area) has already been taken into account in the pdf returned by SampleDisk
+    pdf *= GetLocalLightWeight(lightList) * sqDist / cosTheta;
+
+    return true;
+}
+
+bool SamplePunctualLight(LightList lightList, LightData lightData,
+                         float3 inputSample,
+                         float3 position,
+                         float3 normal,
+                         bool isSpherical,
+                     out float3 outgoingDir,
+                     out float3 value,
+                     out float pdf,
+                     out float dist)
+{
+    // Direction from shading point to light position
+    outgoingDir = lightData.positionRWS - position;
+    float sqDist = Length2(outgoingDir);
+    dist = sqrt(sqDist);
+    outgoingDir /= dist;
+
+    if (lightData.size.x > 0.0) // Stores the square radius
+    {
+        float3x3 localFrame = GetLocalFrame(outgoingDir);
+        SampleCone(inputSample.xy, sqrt(1.0 / (1.0 + lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
+
+        outgoingDir = outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2];
+        pdf = min(rcp(pdf), DELTA_PDF);
+    }
+    else
+    {
+        // DELTA_PDF represents 1 / area, where the area is infinitesimal
+        pdf = DELTA_PDF;
+    }
+
+    if(lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        outgoingDir = -lightData.forward;
+        dist = dot(outgoingDir, lightData.positionRWS - position);
+    }
+
+    if (!isSpherical && dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON)
+        return false;
+
+    value = GetPunctualEmission(lightData, position, outgoingDir, dist) * pdf;
+    pdf = GetLocalLightWeight(lightList) * pdf;
+
+    return true;
+}
+
+void SampleDistanceLight(LightList lightList, DirectionalLightData lightData,
+                         float3 inputSample,
+                         float3 position,
+                     out float3 outgoingDir,
+                     out float3 value,
+                     out float pdf)
+{
+    if (lightData.angularDiameter > 0.0)
+    {
+        SampleCone(inputSample.xy, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
+        value = GetDirectionalEmission(lightData, position) / pdf;
+        pdf = GetDistantLightWeight(lightList) / pdf;
+        outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
+    }
+    else
+    {
+        value = GetDirectionalEmission(lightData, position) * DELTA_PDF;
+        pdf = GetDistantLightWeight(lightList) * DELTA_PDF;
+        outgoingDir = -lightData.forward;
+    }
+}
+
 bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,
@@ -396,122 +673,27 @@ bool SampleLights(LightList lightList,
         // Pick a local light from the list
         LightData lightData = GetLocalLightData(lightList, inputSample.z);
 
-        if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
+        switch (lightData.lightType)
         {
-            if (!IsRectAreaLightActive(lightData, position, normal))
+        case GPULIGHTTYPE_RECTANGLE:
+            if (!SampleRectAreaLight(lightList, lightData, inputSample, position, normal, isSpherical, outgoingDir, value, pdf, dist))
                 return false;
+            break;
 
-            float3 lightCenter = lightData.positionRWS;
-
-#ifndef SAMPLE_SOLID_ANGLE
-            // Generate a point on the surface of the light
-            float centerU = inputSample.x - 0.5;
-            float centerV = inputSample.y - 0.5;
-            float3 samplePos = lightCenter + centerU * lightData.size.x * lightData.right + centerV * lightData.size.y * lightData.up;
-
-            // And the corresponding direction
-            outgoingDir = samplePos - position;
-            float sqDist = Length2(outgoingDir);
-            dist = sqrt(sqDist);
-            outgoingDir /= dist;
-
-            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
+        case GPULIGHTTYPE_TUBE:
+            if (!SampleTubeAreaLight(lightList, lightData, inputSample, position, normal, isSpherical, outgoingDir, value, pdf, dist))
                 return false;
+            break;
 
-            float cosTheta = -dot(outgoingDir, lightData.forward);
-            if (cosTheta < 0.001)
+        case GPULIGHTTYPE_DISC:
+            if (!SampleDiscAreaLight(lightList, lightData, inputSample, position, normal, isSpherical, outgoingDir, value, pdf, dist))
                 return false;
+            break;
 
-            float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-
-            value = GetAreaEmission(lightData, centerU, centerV, sqDist);
-            pdf = GetLocalLightWeight(lightList) * sqDist / (lightArea * cosTheta);
-#else
-            // Solid angle sampling
-            float u = inputSample.x;
-            float v = inputSample.y;
-
-            SphQuad squad;
-            lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
-            lightCenter = lightCenter - 0.5 * lightData.size.y * lightData.up;
-            SphQuadInit(lightCenter, lightData.size.x * lightData.right, lightData.size.y * lightData.up, position, squad);
-
-            // Generate sample
-            // TODO: Move this validity check into the common quad initialization function
-            if (squad.S < 0.00001 || isnan(squad.S))
+        default:
+            if (!SamplePunctualLight(lightList, lightData, inputSample, position, normal, isSpherical, outgoingDir, value, pdf, dist))
                 return false;
-
-            // 1. compute ’cu’
-            float au = u * squad.S + squad.k;
-            float fu = (cos(au) * squad.b0 - squad.b1) / sin(au);
-            float cu = 1 / sqrt(fu * fu + squad.b0sq);// *(fu > 0 ? +1 : -1);
-            cu = (fu > 0.0f) ? cu : -cu;
-            cu = clamp(cu, -1, 1); // avoid NaNs
-
-            // 2. compute ’xu’
-            float xu = -(cu * squad.z0) / sqrt(1 - cu * cu);
-            xu = clamp(xu, squad.x0, squad.x1); // avoid Infs
-
-            // 3. compute ’yv’
-            float d = sqrt(xu * xu + squad.z0sq);
-            float h0 = squad.y0 / sqrt(d * d + squad.y0sq);
-            float h1 = squad.y1 / sqrt(d * d + squad.y1sq);
-            float hv = h0 + v * (h1 - h0);
-            float hv2 = hv * hv;
-            float eps = 0.0001;
-            float yv = (hv2 < 1.0 - eps) ? (hv * d) / sqrt(1.0 - hv2) : squad.y1;
-
-            // 4. transform (xu,yv,z0) to world coords
-            float3 samplePos = (squad.o + xu * squad.x + yv * squad.y + squad.z0 * squad.z);
-
-            // TODO: We should use this function, but we need xu and yv below for cookie evaluation
-            // float3 samplePos = SphQuadSample(squad, u, v);
-
-            outgoingDir = samplePos - position;
-            float sqDist = Length2(outgoingDir);
-            dist = sqrt(sqDist);
-            outgoingDir /= dist;
-
-            u = (xu - squad.x0)/(squad.x1 - squad.x0) - 0.5;
-            v = (yv - squad.y0)/(squad.y1 - squad.y0) - 0.5;
-            value = GetAreaEmission(lightData, u, v, sqDist); // TODO: add rcpPdf term here from lightlist when that PR lands
-            pdf = GetLocalLightWeight(lightList) / squad.S;
-
-            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
-                return false;
-
-            float cosTheta = -dot(outgoingDir, lightData.forward);
-            if (cosTheta < 0.001)
-                return false;
-#endif
-        }
-        else // Punctual light
-        {
-            // Direction from shading point to light position
-            outgoingDir = lightData.positionRWS - position;
-            float sqDist = Length2(outgoingDir);
-            dist = sqrt(sqDist);
-            outgoingDir /= dist;
-
-            if (lightData.size.x > 0.0) // Stores the square radius
-            {
-                float3x3 localFrame = GetLocalFrame(outgoingDir);
-                SampleCone(inputSample.xy, sqrt(1.0 / (1.0 + lightData.size.x / sqDist)), outgoingDir, pdf); // computes rcpPdf
-
-                outgoingDir = outgoingDir.x * localFrame[0] + outgoingDir.y * localFrame[1] + outgoingDir.z * localFrame[2];
-                pdf = min(rcp(pdf), DELTA_PDF);
-            }
-            else
-            {
-                // DELTA_PDF represents 1 / area, where the area is infinitesimal
-                pdf = DELTA_PDF;
-            }
-
-            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
-                return false;
-
-            value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
-            pdf = GetLocalLightWeight(lightList) * pdf;
+            break;
         }
 
         if (isVolume)
@@ -536,19 +718,7 @@ bool SampleLights(LightList lightList,
             // Pick a distant light from the list
             DirectionalLightData lightData = GetDistantLightData(lightList, inputSample.z);
 
-            if (lightData.angularDiameter > 0.0)
-            {
-                SampleCone(inputSample.xy, cos(lightData.angularDiameter * 0.5), outgoingDir, pdf); // computes rcpPdf
-                value = GetDirectionalEmission(lightData, position) / pdf;
-                pdf = GetDistantLightWeight(lightList) / pdf;
-                outgoingDir = normalize(outgoingDir.x * normalize(lightData.right) + outgoingDir.y * normalize(lightData.up) - outgoingDir.z * lightData.forward);
-            }
-            else
-            {
-                value = GetDirectionalEmission(lightData, position) * DELTA_PDF;
-                pdf = GetDistantLightWeight(lightList) * DELTA_PDF;
-                outgoingDir = -lightData.forward;
-            }
+            SampleDistanceLight(lightList, lightData, inputSample, position, outgoingDir, value, pdf);
 
             if (isVolume)
             {
@@ -571,7 +741,7 @@ bool SampleLights(LightList lightList,
             shadowOpacity = 1.0;
         }
 
-        if (!isSpherical && (dot(normal, outgoingDir) < 0.001))
+        if (!isSpherical && (dot(normal, outgoingDir) < DOT_PRODUCT_EPSILON))
             return false;
 
         dist = FLT_INF;
@@ -584,8 +754,83 @@ bool SampleLights(LightList lightList,
     return any(value) && any(pdf);
 }
 
+void EvaluateRectAreaLight(LightList lightList,
+                           LightData lightData,
+                           float3 rayOrigin,
+                           float3 rayDirection,
+                           float t,
+                           float cosTheta,
+                           float3 hitPosition, // Hit position is relative to lightCenter
+                     inout float3 value,
+                     inout float pdf)
+{
+    // Then check if we are within the rectangle bounds
+    float centerU = dot(hitPosition, lightData.right) / (lightData.size.x * Length2(lightData.right));
+    float centerV = dot(hitPosition, lightData.up) / (lightData.size.y * Length2(lightData.up));
+    if (abs(centerU) < 0.5 && abs(centerV) < 0.5)
+    {
+        float3 lightCenter = lightData.positionRWS;
+        float t2 = Sq(t);
+        float3 lightValue = GetAreaEmission(lightData, centerU, centerV, t2);
+#ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
+        ApplyFogAttenuation(rayOrigin, rayDirection, t, lightValue);
+#endif
+
+#ifndef SAMPLE_SOLID_ANGLE
+        float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+        value += lightValue;
+        pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
+#else
+        float3 position = rayOrigin;
+
+        SphQuad squad;
+        lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
+        lightCenter = lightCenter - 0.5 * lightData.size.y * lightData.up;
+        SphQuadInit(lightCenter, lightData.size.x * lightData.right, lightData.size.y * lightData.up, position, squad);
+
+        // TODO: Move this validity check into the common quad initialization function
+        if (!(squad.S < 0.00001 || isnan(squad.S)))
+        {
+            value += lightValue;
+            pdf += GetLocalLightWeight(lightList) / squad.S;
+        }
+#endif
+    }
+}
+
+void EvaluateDiscAreaLight(LightList lightList,
+                           LightData lightData,
+                           float3 rayOrigin,
+                           float3 rayDirection,
+                           float t,
+                           float cosTheta,
+                           float3 hitPosition, // Hit position is relative to lightCenter
+                     inout float3 value,
+                     inout float pdf)
+{
+    float lightRadius = lightData.size.x;
+    float lightRadiusSquared = lightRadius*lightRadius;
+
+    // Then check if we are within the disc bounds
+    if (Length2(hitPosition) < lightRadiusSquared)
+    {
+        float2 centerUV = GetDiscAreaLightCookieUV(lightData, hitPosition);
+        float t2 = Sq(t);
+        float3 lightValue = GetAreaEmission(lightData, centerUV.x, centerUV.y, t2);
+#ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
+        ApplyFogAttenuation(rayOrigin, rayDirection, t, lightValue);
+#endif
+
+        float lightArea = PI * lightRadiusSquared;
+        value += lightValue;
+        pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
+    }
+}
+
 void EvaluateLights(LightList lightList,
-                    RayDesc rayDescriptor,
+                    float3 rayOrigin,
+                    float3 rayDirection,
+                    float  rayHit,
                     out float3 value,
                     out float pdf)
 {
@@ -598,47 +843,28 @@ void EvaluateLights(LightList lightList,
     for (i = lightList.localPointCount; i < lightList.localCount; i++)
     {
         LightData lightData = GetLocalLightData(lightList, i);
+        // Similarly, tube lights are line shaped so have no surface so neglect them as well
+        if (lightData.lightType == GPULIGHTTYPE_TUBE)
+            continue;
 
-        float t = rayDescriptor.TMax;
-        float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
+        float t = rayHit;
+        float cosTheta = -dot(rayDirection, lightData.forward);
         float3 lightCenter = lightData.positionRWS;
 
         // Check if we hit the light plane, at a distance below our tMax (coming from indirect computation)
-        if (cosTheta > 0.0 && IntersectPlane(rayDescriptor.Origin, rayDescriptor.Direction, lightCenter, lightData.forward, t))
+        if (cosTheta > 0.0 && IntersectPlane(rayOrigin, rayDirection, lightCenter, lightData.forward, t))
         {
-            if (t < rayDescriptor.TMax)
+            if (t < rayHit)
             {
-                float3 hitVec = rayDescriptor.Origin + t * rayDescriptor.Direction - lightCenter;
+                float3 hitVec = rayOrigin + t * rayDirection - lightCenter;
 
-                // Then check if we are within the rectangle bounds
-                float centerU = dot(hitVec, lightData.right) / (lightData.size.x * Length2(lightData.right));
-                float centerV = dot(hitVec, lightData.up) / (lightData.size.y * Length2(lightData.up));
-                if (abs(centerU) < 0.5 && abs(centerV) < 0.5)
+                if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
                 {
-                    float t2 = Sq(t);
-                    float3 lightValue = GetAreaEmission(lightData, centerU, centerV, t2);
-#ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-                    ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, t, lightValue);
-#endif
-#ifndef SAMPLE_SOLID_ANGLE
-                    float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-                    value += lightValue;
-                    pdf += GetLocalLightWeight(lightList) * t2 / (lightArea * cosTheta);
-#else
-                    float3 position = rayDescriptor.Origin;
-
-                    SphQuad squad;
-                    lightCenter = lightCenter - 0.5 * lightData.size.x * lightData.right;
-                    lightCenter = lightCenter - 0.5 * lightData.size.y * lightData.up;
-                    SphQuadInit(lightCenter, lightData.size.x * lightData.right, lightData.size.y * lightData.up, position, squad);
-
-                    // TODO: Move this validity check into the common quad initialization function
-                    if (!(squad.S < 0.00001 || isnan(squad.S)))
-                    {
-                        value += lightValue;
-                        pdf += GetLocalLightWeight(lightList) / squad.S;
-                    }
-#endif
+                    EvaluateRectAreaLight(lightList, lightData, rayOrigin, rayDirection, t, cosTheta, hitVec, value, pdf);
+                }
+                else
+                {
+                    EvaluateDiscAreaLight(lightList, lightData, rayOrigin, rayDirection, t, cosTheta, hitVec, value, pdf);
                 }
             }
         }
@@ -649,15 +875,15 @@ void EvaluateLights(LightList lightList,
     {
         DirectionalLightData lightData = GetDistantLightData(lightList, i);
 
-        if (lightData.angularDiameter > 0.0 && rayDescriptor.TMax >= FLT_INF)
+        if (lightData.angularDiameter > 0.0 && rayHit >= FLT_INF)
         {
             float cosHalfAngle = cos(lightData.angularDiameter * 0.5);
-            float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
+            float cosTheta = -dot(rayDirection, lightData.forward);
             if (cosTheta >= cosHalfAngle)
             {
-                float3 lightValue = GetDirectionalEmission(lightData, rayDescriptor.Direction);
+                float3 lightValue = GetDirectionalEmission(lightData, rayDirection);
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-                ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, lightValue);
+                ApplyFogAttenuation(rayOrigin, rayDirection, lightValue);
 #endif
                 float rcpPdf = TWO_PI * (1.0 - cosHalfAngle);
                 value += lightValue / rcpPdf;
@@ -667,12 +893,12 @@ void EvaluateLights(LightList lightList,
     }
 
     // Then sky light
-    if (lightList.skyCount && rayDescriptor.TMax >= FLT_INF)
+    if (lightList.skyCount && rayHit >= FLT_INF)
     {
-        float3 skyValue = GetSkyValue(rayDescriptor.Direction);
+        float3 skyValue = GetSkyValue(rayDirection);
         pdf += GetSkyLightWeight(lightList) * GetSkyPDFFromValue(skyValue);
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
-        ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, skyValue);
+        ApplyFogAttenuation(rayOrigin, rayDirection, skyValue);
 #endif
         value += skyValue;
     }
@@ -696,7 +922,7 @@ bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirectio
     return tMin < tMax;
 }
 
-bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+bool GetAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
 {
     if (lightData.volumetricLightDimmer < 0.001)
         return false;
@@ -705,6 +931,10 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
 
     if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
         return false;
+
+    // If this is  tube light, we're done
+    if (lightData.lightType == GPULIGHTTYPE_TUBE)
+        return true;
 
     float LdotD = dot(lightData.forward, rayDirection);
     float t = -dot(lightData.forward, lightToRayOrigin) / LdotD;
@@ -751,8 +981,11 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 
     float3 lightToRayOrigin = rayOrigin - lightData.positionRWS;
 
-    if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
-        return false;
+    if (lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
+            return false;
+    }
 
     // This is just a point light (no spot cone angle)
     if (lightData.lightType == GPULIGHTTYPE_POINT)
@@ -768,28 +1001,11 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 
     if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
     {
-        // Compute intersections with planes x=-1 and x=1
-        float tx1 = (-1.0 - localOrigin.x) / localDirection.x;
-        float tx2 = (1.0 - localOrigin.x) / localDirection.x;
-        Sort(tx1, tx2);
+        float tStart = 0;
+        float tEnd = rcp(FLT_EPS);
+        IntersectRayAABB(localOrigin, (localDirection), float3(-1, -1, 0), float3(1,1,lightData.range),
+            tStart, tEnd, tMin, tMax);
 
-        // Compute intersections with planes y=-1 and y=1
-        float ty1 = (-1.0 - localOrigin.y) / localDirection.y;
-        float ty2 = (1.0 - localOrigin.y) / localDirection.y;
-        Sort(ty1, ty2);
-
-        // Compute intersection with plane z=0
-        float tz = -localOrigin.z / localDirection.z;
-
-        float t1 = max(tx1, ty1);
-        float t2 = min(tx2, ty2);
-
-        // Check validity of the intersections (we want them only in front of the light)
-        bool t1Valid = localOrigin.z + t1 * localDirection.z > 0.0;
-        bool t2Valid = localOrigin.z + t2 * localDirection.z > 0.0;
-
-        tMin = t1Valid ? max(t1, tMin) : tz;
-        tMax = t2Valid ? min(t2, tMax) : tz;
     }
     else if (lightData.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
     {
@@ -848,10 +1064,10 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 //     float tLightMin, tLightMax;
 
 //     // First process point lights
-//     uint i = 0, n = _PunctualLightCountRT, localCount = 0;
+//     uint i = 0, n = _WorldPunctualLightCount, localCount = 0;
 //     for (; i < n; i++)
 //     {
-//         if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         if (GetPointLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
 //         {
 //             tMin = min(tMin, tLightMin);
 //             tMax = max(tMax, tLightMax);
@@ -860,10 +1076,10 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 //     }
 
 //     // Then area lights
-//     n += _AreaLightCountRT;
+//     n += _WorldAreaLightCount;
 //     for (; i < n; i++)
 //     {
-//         if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         if (GetAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
 //         {
 //             tMin = min(tMin, tLightMin);
 //             tMax = max(tMax, tLightMax);
@@ -897,12 +1113,14 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     float wLight, wSum = 0.0;
 
     // First process point lights
-    uint i = 0, n = _PunctualLightCountRT, localCount = 0;
+    uint i = 0, n = 0, localCount = 0;
+
+    n += _WorldPunctualLightCount;
     for (; i < n; i++)
     {
-        if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        if (GetPointLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
-            wLight = GetLocalLightWeight(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax);
+            wLight = GetLocalLightWeight(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax);
 
             if (wLight > 0.0)
             {
@@ -911,7 +1129,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
 
                 if (inputSample < wLight)
                 {
-                    lightPosition = _LightDatasRT[i].positionRWS;
+                    lightPosition = _WorldLightDatas[i].positionRWS;
                     lightWeight = wLight;
                     tMin = tLightMin;
                     tMax = tLightMax;
@@ -931,12 +1149,12 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     }
 
     // Then area lights
-    n += _AreaLightCountRT;
+    n += _WorldAreaLightCount;
     for (; i < n; i++)
     {
-        if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+        if (GetAreaLightInterval(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
-            wLight = GetLocalLightWeight(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax);
+            wLight = GetLocalLightWeight(_WorldLightDatas[i], rayOrigin, rayDirection, tLightMin, tLightMax);
 
             if (wLight > 0.0)
             {
@@ -945,7 +1163,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
 
                 if (inputSample < wLight)
                 {
-                    lightPosition = _LightDatasRT[i].positionRWS;
+                    lightPosition = _WorldLightDatas[i].positionRWS;
                     lightWeight = wLight;
                     tMin = tLightMin;
                     tMax = tLightMax;

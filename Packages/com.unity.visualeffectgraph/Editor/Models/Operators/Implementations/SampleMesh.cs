@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -10,23 +9,30 @@ namespace UnityEditor.VFX.Operator
 {
     class SampleMeshProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected virtual string nameTemplate { get; } = "Sample {0}";
+        protected virtual Type operatorType { get; } = typeof(SampleMesh);
+
+        public override IEnumerable<Variant> GetVariants()
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "source", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray() },
-                };
-            }
+            yield return new Variant(
+                string.Format(nameTemplate, "Mesh"),
+                "Sampling",
+                operatorType,
+                new[] { new KeyValuePair<string, object>("source", SampleMesh.SourceType.Mesh) });
+
+            yield return new Variant(
+                string.Format(nameTemplate, "Skinned Mesh"),
+                "Sampling",
+                operatorType,
+                new[] { new KeyValuePair<string, object>("source", SampleMesh.SourceType.SkinnedMeshRenderer) });
         }
     }
 
     [VFXHelpURL("Operator-SampleMesh")]
-    [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
+    [VFXInfo(variantProvider = typeof(SampleMeshProvider))]
     class SampleMesh : VFXOperator
     {
-        override public string name
+        public override string name
         {
             get
             {

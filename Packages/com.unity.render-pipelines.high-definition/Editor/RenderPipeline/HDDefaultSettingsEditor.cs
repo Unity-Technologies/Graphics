@@ -54,9 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (settings.volumeProfile != VolumeManager.instance.globalDefaultProfile)
                 {
-                    var globalSettings = HDRenderPipelineGlobalSettings.instance;
-                    var defaultValuesAsset = globalSettings != null ? globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile : null;
-                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(settings.volumeProfile, defaultValuesAsset);
+                    var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(HDRenderPipelineGlobalSettings.instance.volumeProfile, defaultValuesAsset);
                     DestroyDefaultVolumeProfileEditor();
                 }
                 else
@@ -89,7 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition
         void CreateDefaultVolumeProfileEditor()
         {
             Debug.Assert(VolumeManager.instance.isInitialized);
-            Debug.Assert(m_DefaultVolumeProfileEditor == null);
             Debug.Assert(m_DefaultVolumeProfileEditorRoot.childCount == 0);
 
             var volumeProfile = m_SerializedHDRenderPipelineGlobalSettings.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
@@ -148,46 +146,54 @@ namespace UnityEditor.Rendering.HighDefinition
             return section;
         }
 
-         void DrawVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized)
-         {
-             using var indentLevelScope = new EditorGUI.IndentLevelScope();
-             using var changeScope = new EditorGUI.ChangeCheckScope();
+        void DrawVolumeSection(SerializedHDRenderPipelineGlobalSettings serialized)
+        {
+            using var indentLevelScope = new EditorGUI.IndentLevelScope();
+            using var changeScope = new EditorGUI.ChangeCheckScope();
 
-             var oldWidth = EditorGUIUtility.labelWidth;
-             EditorGUIUtility.labelWidth = HDRenderPipelineGlobalSettingsUI.Styles.defaultVolumeLabelWidth;
+            var oldWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = HDRenderPipelineGlobalSettingsUI.Styles.defaultVolumeLabelWidth;
 
-             var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+            bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
+            var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
+            VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
+                serialized.defaultVolumeProfile,
+                HDRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileAssetLabel,
+                getOrCreateVolumeProfile: () =>
+                {
+                    var globalSettings = serialized.serializedObject.targetObject as HDRenderPipelineGlobalSettings;
+                    var volumeProfile = globalSettings.volumeProfile;
+                    if (volumeProfile == null)
+                    {
+                        volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
+                            .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile);
+                    }
+                    return volumeProfile;
+                },
+                ref expanded
+            );
+            m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
 
-             bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
-             var previousDefaultVolumeProfileAsset = serialized.defaultVolumeProfile.objectReferenceValue;
-             VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
-                 serialized.defaultVolumeProfile,
-                 HDRenderPipelineGlobalSettingsUI.Styles.defaultVolumeProfileAssetLabel,
-                 getOrCreateVolumeProfile: () => globalSettings.GetOrCreateDefaultVolumeProfile(),
-                 ref expanded
-             );
-             m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
+            EditorGUIUtility.labelWidth = oldWidth;
 
-             EditorGUIUtility.labelWidth = oldWidth;
+            if (changeScope.changed && defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
+            {
+                var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+                if (previousDefaultVolumeProfileAsset == null)
+                {
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(defaultVolumeProfileAsset,
+                        defaultValuesAsset);
+                }
+                else
+                {
+                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
+                    if (!confirmed)
+                        serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
+                }
 
-             if (changeScope.changed && defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
-             {
-                 var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-                 if (previousDefaultVolumeProfileAsset == null)
-                 {
-                     VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(defaultVolumeProfileAsset,
-                         defaultValuesAsset);
-                 }
-                 else
-                 {
-                     bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
-                     if (!confirmed)
-                         serialized.defaultVolumeProfile.objectReferenceValue = previousDefaultVolumeProfileAsset;
-                 }
-
-                 DestroyDefaultVolumeProfileEditor();
-                 CreateDefaultVolumeProfileEditor();
-             }
+                DestroyDefaultVolumeProfileEditor();
+                CreateDefaultVolumeProfileEditor();
+            }
         }
 
         static void OnVolumeProfileSectionContextClick(
@@ -199,12 +205,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             VolumeProfileUtils.OnVolumeProfileContextClick(position, globalSettings.volumeProfile, defaultVolumeProfileEditor.allEditors,
                 overrideStateOnReset: true,
-                defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/VolumeProfile_Default.asset",
+                defaultVolumeProfilePath: VolumeUtils.GetDefaultNameForVolumeProfile(GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile),
                 onNewVolumeProfileCreated: volumeProfile =>
                 {
                     Undo.RecordObject(globalSettings, "Set Global Settings Volume Profile");
                     globalSettings.volumeProfile = volumeProfile;
-                    var defaultValuesAsset = globalSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+                    var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
                     VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(volumeProfile, defaultValuesAsset);
                     EditorUtility.SetDirty(globalSettings);
                 },

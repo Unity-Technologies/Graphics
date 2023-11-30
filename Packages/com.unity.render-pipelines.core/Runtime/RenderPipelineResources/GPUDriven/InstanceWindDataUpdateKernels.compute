@@ -1,0 +1,83 @@
+#pragma kernel WindDataCopyHistoryMain
+
+uint _WindDataQueueCount;
+
+int _WindVectorAddress;
+int _WindGlobalAddress;
+int _WindBranchAddress;
+int _WindBranchTwitchAddress;
+int _WindBranchWhipAddress;
+int _WindBranchAnchorAddress;
+int _WindBranchAdherencesAddress;
+int _WindTurbulencesAddress;
+int _WindLeaf1RippleAddress;
+int _WindLeaf1TumbleAddress;
+int _WindLeaf1TwitchAddress;
+int _WindLeaf2RippleAddress;
+int _WindLeaf2TumbleAddress;
+int _WindLeaf2TwitchAddress;
+int _WindFrondRippleAddress;
+int _WindAnimationAddress;
+int _WindVectorHistoryAddress;
+int _WindGlobalHistoryAddress;
+int _WindBranchHistoryAddress;
+int _WindBranchTwitchHistoryAddress;
+int _WindBranchWhipHistoryAddress;
+int _WindBranchAnchorHistoryAddress;
+int _WindBranchAdherencesHistoryAddress;
+int _WindTurbulencesHistoryAddress;
+int _WindLeaf1RippleHistoryAddress;
+int _WindLeaf1TumbleHistoryAddress;
+int _WindLeaf1TwitchHistoryAddress;
+int _WindLeaf2RippleHistoryAddress;
+int _WindLeaf2TumbleHistoryAddress;
+int _WindLeaf2TwitchHistoryAddress;
+int _WindFrondRippleHistoryAddress;
+int _WindAnimationHistoryAddress;
+
+ByteAddressBuffer _WindDataUpdateIndexQueue;
+RWByteAddressBuffer _WindDataBuffer;
+
+[numthreads(64, 1, 1)]
+void WindDataCopyHistoryMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= _WindDataQueueCount)
+        return;
+
+    uint instanceIndex = _WindDataUpdateIndexQueue.Load(dispatchThreadID.x << 2);
+    uint instanceByteOffset = instanceIndex * 16;
+
+    uint4 windVector = _WindDataBuffer.Load4(_WindVectorAddress + instanceByteOffset);
+    uint4 windGlobal = _WindDataBuffer.Load4(_WindGlobalAddress + instanceByteOffset);
+    uint4 windBranch = _WindDataBuffer.Load4(_WindBranchAddress + instanceByteOffset);
+    uint4 windBranchTwitch = _WindDataBuffer.Load4(_WindBranchTwitchAddress + instanceByteOffset);
+    uint4 windBranchWhip = _WindDataBuffer.Load4(_WindBranchWhipAddress + instanceByteOffset);
+    uint4 windBranchAnchor = _WindDataBuffer.Load4(_WindBranchAnchorAddress + instanceByteOffset);
+    uint4 windBranchAdherences = _WindDataBuffer.Load4(_WindBranchAdherencesAddress + instanceByteOffset);
+    uint4 windTurbulences = _WindDataBuffer.Load4(_WindTurbulencesAddress + instanceByteOffset);
+    uint4 windLeaf1Ripple = _WindDataBuffer.Load4(_WindLeaf1RippleAddress + instanceByteOffset);
+    uint4 windLeaf1Tumble = _WindDataBuffer.Load4(_WindLeaf1TumbleAddress + instanceByteOffset);
+    uint4 windLeaf1Twitch = _WindDataBuffer.Load4(_WindLeaf1TwitchAddress + instanceByteOffset);
+    uint4 windLeaf2Ripple = _WindDataBuffer.Load4(_WindLeaf2RippleAddress + instanceByteOffset);
+    uint4 windLeaf2Tumble = _WindDataBuffer.Load4(_WindLeaf2TumbleAddress + instanceByteOffset);
+    uint4 windLeaf2Twitch = _WindDataBuffer.Load4(_WindLeaf2TwitchAddress + instanceByteOffset);
+    uint4 windFrondRipple = _WindDataBuffer.Load4(_WindFrondRippleAddress + instanceByteOffset);
+    uint4 windAnimation = _WindDataBuffer.Load4(_WindAnimationAddress + instanceByteOffset);
+
+    _WindDataBuffer.Store4(_WindVectorHistoryAddress + instanceByteOffset, windVector);
+    _WindDataBuffer.Store4(_WindGlobalHistoryAddress + instanceByteOffset, windGlobal);
+    _WindDataBuffer.Store4(_WindBranchHistoryAddress + instanceByteOffset, windBranch);
+    _WindDataBuffer.Store4(_WindBranchTwitchHistoryAddress + instanceByteOffset, windBranchTwitch);
+    _WindDataBuffer.Store4(_WindBranchWhipHistoryAddress + instanceByteOffset, windBranchWhip);
+    _WindDataBuffer.Store4(_WindBranchAnchorHistoryAddress + instanceByteOffset, windBranchAnchor);
+    _WindDataBuffer.Store4(_WindBranchAdherencesHistoryAddress + instanceByteOffset, windBranchAdherences);
+    _WindDataBuffer.Store4(_WindTurbulencesHistoryAddress + instanceByteOffset, windTurbulences);
+    _WindDataBuffer.Store4(_WindLeaf1RippleHistoryAddress + instanceByteOffset, windLeaf1Ripple);
+    _WindDataBuffer.Store4(_WindLeaf1TumbleHistoryAddress + instanceByteOffset, windLeaf1Tumble);
+    _WindDataBuffer.Store4(_WindLeaf1TwitchHistoryAddress + instanceByteOffset, windLeaf1Twitch);
+    _WindDataBuffer.Store4(_WindLeaf2RippleHistoryAddress + instanceByteOffset, windLeaf2Ripple);
+    _WindDataBuffer.Store4(_WindLeaf2TumbleHistoryAddress + instanceByteOffset, windLeaf2Tumble);
+    _WindDataBuffer.Store4(_WindLeaf2TwitchHistoryAddress + instanceByteOffset, windLeaf2Twitch);
+    _WindDataBuffer.Store4(_WindFrondRippleHistoryAddress + instanceByteOffset, windFrondRipple);
+    _WindDataBuffer.Store4(_WindAnimationHistoryAddress + instanceByteOffset, windAnimation);
+}

@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: a1661416573514b4a90c5621cb3d564e
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Orient Face Camera
+    category: Learning Templates
+    description: Whether the output is set to quads, meshes, or even strips, we often
+      want to control how the geometry is instantiated on a particle. Should it face
+      the camera? What is the forward and/or up-axis? The Orient Block helps us to
+      easily orient our particles with its various modes. In this example, we're
+      using the Face Camera Position mode, which will ensure that the particles are
+      always facing the Camera position.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: f3ff69036f241894985f257fb3924148, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

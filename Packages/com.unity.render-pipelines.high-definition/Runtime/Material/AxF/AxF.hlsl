@@ -11,7 +11,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFPreIntegratedFGD.hlsl"
 
 // Add support for LTC Area Lights
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFLTCAreaLight/AxFLTCAreaLight.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 
 //-----------------------------------------------------------------------------
 //
@@ -1573,9 +1573,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 
         // And the area lights LTC inverse transform:
         // todo_modes todo_pseudorefract: commented, cant use undercoat like that.
-        //float2   UV = LTCGetSamplingUV(NdotV_UnderCoat, preLightData.iblPerceptualRoughness[lobeIndex]);
-        float2   UV = LTCGetSamplingUV(NdotV_Clearcoat, preLightData.iblPerceptualRoughness[lobeIndex]);
-        preLightData.ltcTransformSpecularCT[lobeIndex] = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE);
+        preLightData.ltcTransformSpecularCT[lobeIndex] = SampleLtcMatrix(preLightData.iblPerceptualRoughness[lobeIndex], NdotV_Clearcoat, LTCLIGHTINGMODEL_COOK_TORRANCE);
 #endif
     }
 
@@ -1611,10 +1609,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 
     // We will override this with the coat transform if we just want the BTF term in LTC lights
     // todo_modes todo_pseudorefract: cant use undercoat like that:
-    //float2 UV = LTCGetSamplingUV(NdotV_UnderCoat, FLAKES_PERCEPTUAL_ROUGHNESS);
-    float2 UV = LTCGetSamplingUV(NdotV_Clearcoat, FLAKES_PERCEPTUAL_ROUGHNESS);
-    IFNOT_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX));
-
+    IFNOT_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = SampleLtcMatrix(FLAKES_PERCEPTUAL_ROUGHNESS, NdotV_Clearcoat, LTCLIGHTINGMODEL_GGX));
 #endif//#ifdef _AXF_BRDF_TYPE_SVBRDF
 
 
@@ -1627,44 +1622,41 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     preLightData.orthoBasisViewNormal[1] = cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]);
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    // UVs for sampling the LUTs
-    // todo_modes todo_pseudorefract: cant use undercoat like that
-    //float2  UV = LTCGetSamplingUV(NdotV_UnderCoat, preLightData.iblPerceptualRoughness);
-
-    float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, preLightData.iblPerceptualRoughness);
 
     // Load diffuse LTC & FGD
     if (AXF_SVBRDF_BRDFTYPE_DIFFUSETYPE)
     {
-        preLightData.ltcTransformDiffuse = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_OREN_NAYAR);
+        // todo_modes todo_pseudorefract: cant use undercoat like that
+        preLightData.ltcTransformDiffuse = SampleLtcMatrix(preLightData.iblPerceptualRoughness, NdotV_Clearcoat, LTCLIGHTINGMODEL_OREN_NAYAR);
     }
     else
     {
         preLightData.ltcTransformDiffuse = k_identity3x3;   // Lambert
     }
 
-    // Load specular LTC & FGD
+    uint bsdfIndex;
+
     switch (AXF_SVBRDF_BRDFTYPE_SPECULARTYPE)
     {
+    case 0:
+        bsdfIndex = LTCLIGHTINGMODEL_WARD;
+        break;
+    case 3:
+        bsdfIndex = LTCLIGHTINGMODEL_GGX;
+        break;
+    default: // COOK-TORRANCE, BLINN-PHONG, PHONG, or missing
+        bsdfIndex = LTCLIGHTINGMODEL_COOK_TORRANCE;
+        break;
+    }
+
+    // Load specular LTC & FGD
     // Warning: all these LTC_MATRIX_INDEX_ are the same for now, and fitted for GGX, hence the code
     // above that selected the UVs all used a preLightData.iblPerceptualRoughness value that used a
     // conversion formula for Beckmann NDF (exp) based BRDFs
     // (see switch (AXF_SVBRDF_BRDFTYPE_SPECULARTYPE) above and usage of PerceptualRoughnessBeckmannToGGX)
     //
-    case 0: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_WARD); break;
-    case 2: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE); break;
-    case 3: preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX); break;
-    case 1: // BLINN-PHONG
-    case 4: // PHONG;
-    {
-        preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_COOK_TORRANCE);
-        break;
-    }
-
-    default:    // @TODO
-        preLightData.ltcTransformSpecular = 0;
-        break;
-    }
+    // todo_modes todo_pseudorefract: cant use undercoat like that
+    preLightData.ltcTransformSpecular = SampleLtcMatrix(preLightData.iblPerceptualRoughness, NdotV_Clearcoat, bsdfIndex);
 
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
@@ -1681,8 +1673,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     preLightData.coatPartLambdaV = 0;
     if (HasClearcoat())
     {
-        float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, CLEAR_COAT_PERCEPTUAL_ROUGHNESS);
-        preLightData.ltcTransformClearcoat = LTCSampleMatrix(UV, LTCLIGHTINGMODEL_GGX);
+        preLightData.ltcTransformClearcoat = SampleLtcMatrix(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, NdotV_Clearcoat, LTCLIGHTINGMODEL_GGX);
 #if defined(_AXF_BRDF_TYPE_CAR_PAINT)
         IF_FLAKES_JUST_BTF(preLightData.ltcTransformFlakes = preLightData.ltcTransformClearcoat);
 #endif
@@ -2184,160 +2175,96 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
-// AREA LIGHTS
+// EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-// ------ HELPERS ------
-
-// Computes the best light direction given an initial light direction
-// The direction will be projected onto the area light's plane and clipped by the rectangle's bounds, the resulting normalized vector is returned
-//
-//  lightPositionRWS, the rectangular area light's position in local space (i.e. relative to the point currently being lit)
-//  lightWS, the light direction in world-space
-//
-float3  ComputeBestLightDirection_Rectangle(float3 lightPositionRWS, float3 lightWS, LightData lightData)
-{
-    float   halfWidth = lightData.size.x * 0.5;
-    float   halfHeight = lightData.size.y * 0.5;
-
-    float   t = dot(lightPositionRWS, lightData.forward) / dot(lightWS, lightData.forward);                  // Distance until we intercept the light plane following light direction
-    float3  hitPosLS = t * lightWS;                                                                             // Position of intersection with light plane
-    float2  hitPosTS = float2(dot(hitPosLS, lightData.right), dot(hitPosLS, lightData.up));               // Same but in tangent space
-    hitPosTS = clamp(hitPosTS, float2(-halfWidth, -halfHeight), float2(halfWidth, halfHeight));   // Clip to rectangle
-    hitPosLS = lightWS + hitPosTS.x * lightData.right + hitPosTS.y * lightData.up;                              // Recompose clipped intersection
-    return normalize(hitPosLS);                                                                               // Now use that direction as best light vector
-}
-
-// Computes the best light direction given an initial light direction
-// The direction will be projected onto the area light's line and clipped by the segment's bounds, the resulting normalized vector is returned
-//
-//  lightPositionRWS, the linear area light's position in local space (i.e. relative to the point currently being lit)
-//  lightWS, the light direction in world-space
-//
-float3  ComputeBestLightDirection_Line(float3 lightPositionRWS, float3 lightWS, LightData lightData)
-{
-
-    return lightWS;
-
-    //    float   len = lightData.size.x;
-    //    float3  T   = lightData.right;
-    //
-    //
-    //    float   t = dot(lightPositionRWS, lightData.forward) / dot(lightWS, lightData.forward);                  // Distance until we intercept the light plane following light direction
-    //    float3  hitPosLS = t * lightWS;                                                                             // Position of intersection with light plane
-    //    float2  hitPosTS = float2(dot(hitPosLS, lightData.right), dot(hitPosLS, lightData.up));               // Same but in tangent space
-    //            hitPosTS = clamp(hitPosTS, float2(-halfWidth, -halfHeight), float2(halfWidth, halfHeight));   // Clip to rectangle
-    //    hitPosLS = lightWS + hitPosTS.x * lightData.right + hitPosTS.y * lightData.up;                              // Recompose clipped intersection
-    //    return normalize(hitPosLS);                                                                               // Now use that direction as best light vector
-}
-
-// Expects non-normalized vertex positions.
-// Same as regular PolygonIrradiance found in AreaLighting.hlsl except I need the form factor F
-// (cf. http://blog.selfshadow.com/publications/s2016-advances/s2016_ltc_rnd.pdf pp. 92 for an explanation on the meaning of that sphere approximation)
-real PolygonIrradiance(real4x3 L, out float3 F)
-{
-    UNITY_UNROLL
-        for (uint i = 0; i < 4; i++)
-        {
-            L[i] = normalize(L[i]);
-        }
-
-    F = 0.0;
-
-    UNITY_UNROLL
-        for (uint edge = 0; edge < 4; edge++)
-        {
-            real3 V1 = L[edge];
-            real3 V2 = L[(edge + 1) % 4];
-
-            F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
-        }
-
-    // Clamp invalid values to avoid visual artifacts.
-    real f2 = saturate(dot(F, F));
-    real sinSqSigma = min(sqrt(f2), 0.999);
-    real cosOmega = clamp(F.z * rsqrt(f2), -1, 1);
-
-    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
-}
-
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
-//-----------------------------------------------------------------------------
-
-DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData,
-                                    BSDFData bsdfData, BuiltinData builtinData)
+DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
+    float3 V, PositionInputs posInput,
+    PreLightData preLightData, LightData lightData,
+    BSDFData bsdfData, BuiltinData builtinData)
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    float3  positionWS = posInput.positionWS;
+    const bool isRectLight = lightData.lightType == GPULIGHTTYPE_RECTANGLE; // static
 
-    float  len = lightData.size.x;
-    float3 T = lightData.right;
-
-    float3 unL = lightData.positionRWS - positionWS;
-
-    // Pick the major axis of the ellipsoid.
-    float3 axis = lightData.right;
-
-    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
-    // TODO: This could be precomputed.
-    float range          = lightData.range;
-    float invAspectRatio = saturate(range / (range + (0.5 * len)));
-
-    // Compute the light attenuation.
-    float intensity = EllipsoidalDistanceAttenuation(unL, axis, invAspectRatio,
-                                                     lightData.rangeAttenuationScale,
-                                                     lightData.rangeAttenuationBias);
-
-    // Terminate if the shaded point is too far away.
-    if (intensity != 0.0)
+#if SHADEROPTIONS_BARN_DOOR
+    if (isRectLight)
     {
-        lightData.diffuseDimmer  *= intensity;
-        lightData.specularDimmer *= intensity;
+        RectangularLightApplyBarnDoor(lightData, posInput.positionWS);
+    }
+#endif
 
-        // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-        lightData.positionRWS -= positionWS;
+    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
+    float3 unL = lightData.positionRWS - posInput.positionWS;
 
-        // TODO: some of this could be precomputed.
-        float3 P1 = lightData.positionRWS - T * (0.5 * len);
-        float3 P2 = lightData.positionRWS + T * (0.5 * len);
+    // These values could be precomputed on CPU to save VGPR or ALU.
+    float halfLength = lightData.size.x * 0.5;
+    float halfHeight = lightData.size.y * 0.5; // = 0 for a line light
 
-        // Rotate the endpoints into the local coordinate system.
-        P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
-        P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
+    float intensity = PillowWindowing(unL, lightData.right, lightData.up, halfLength, halfHeight,
+                                      lightData.rangeAttenuationScale, lightData.rangeAttenuationBias);
 
-        // Compute the binormal in the local coordinate system.
-        float3 B = normalize(cross(P1, P2));
+    // Make sure the light is front-facing (and has a non-zero effective area).
+    intensity *= (isRectLight && dot(unL, lightData.forward) >= 0) ? 0 : 1;
 
-        float ltcValue;
+    bool isVisible = true;
+
+    // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
+    // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
+#ifndef SKIP_RASTERIZED_AREA_SHADOWS
+    if (isRectLight && intensity > 0)
+    {
+        SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+        lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+
+        isVisible = Max3(lightData.color.r, lightData.color.g, lightData.color.b) > 0;
+    }
+#endif
+
+    // Terminate if the shaded point is occluded or is too far away.
+    if (isVisible && intensity > 0)
+    {
+        // Rotate the light vectors into the local coordinate system.
+        float3 center = mul(preLightData.orthoBasisViewNormal, unL);
+        float3 right  = mul(preLightData.orthoBasisViewNormal, lightData.right);
+        float3 up     = mul(preLightData.orthoBasisViewNormal, lightData.up);
+
+        float4 ltcValue;
 
     #if defined(_AXF_BRDF_TYPE_SVBRDF)
 
+        float diffusePerceptualRoughness = AXF_SVBRDF_BRDFTYPE_DIFFUSETYPE ? preLightData.iblPerceptualRoughness : 1.0;
+
         // Evaluate the diffuse part
-        // Polygon irradiance in the transformed configuration.
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
-        ltcValue *= lightData.diffuseDimmer;
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+        ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                    // LTC light cookies appear broken unless diffuse roughness is set to 1.
+                                    transpose(preLightData.ltcTransformDiffuse), /*diffusePerceptualRoughness*/ 1.0f,
+                                    lightData.cookieMode, lightData.cookieScaleOffset);
+
+        ltcValue.a *= intensity * lightData.diffuseDimmer;
+
+        lighting.diffuse = preLightData.diffuseFGD * ltcValue.rgb * ltcValue.a;
 
         // Evaluate the specular part
-        // Polygon irradiance in the transformed configuration.
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
-        ltcValue *= lightData.specularDimmer;
-        lighting.specular = preLightData.specularFGD * ltcValue;
+        ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                    transpose(preLightData.ltcTransformSpecular), bsdfData.perceptualRoughness,
+                                    lightData.cookieMode, lightData.cookieScaleOffset);
+
+        ltcValue.a *= intensity * lightData.specularDimmer;
+
+        lighting.specular = preLightData.specularFGD * ltcValue.rgb * ltcValue.a;
 
     #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
         // Use Lambert for diffuse
-        ltcValue = LTCEvaluate(P1, P2, B, k_identity3x3);    // No transform: Lambert uses identity
-        ltcValue *= lightData.diffuseDimmer;
-        lighting.diffuse = ltcValue; // no FGD, lambert gives 1
-        lighting.diffuse *= preLightData.singleBRDFColor; // the BRDF specular flipflop color table also applies to diffuse
+        ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                    k_identity3x3, 1.0,
+                                    lightData.cookieMode, lightData.cookieScaleOffset);
+
+        ltcValue.a *= intensity * lightData.diffuseDimmer;
+
+        lighting.diffuse = preLightData.singleBRDFColor * ltcValue.rgb * ltcValue.a; // the BRDF specular flipflop color table also applies to diffuse
 
         //
         // Evaluate multi-lobes Cook-Torrance
@@ -2345,11 +2272,16 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         //
         for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
         {
+            ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                        transpose(preLightData.ltcTransformSpecularCT[lobeIndex]), RoughnessToPerceptualRoughness(bsdfData.roughness[lobeIndex]),
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
+            ltcValue.a *= intensity * lightData.specularDimmer;
+
             float coeff = GetLTCAreaLightDimmer() * _CarPaint2_CTCoeffs[lobeIndex];
-            ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecularCT[lobeIndex]);
-            lighting.specular += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * ltcValue;
+
+            lighting.specular += GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * ltcValue.rgb * (ltcValue.a * coeff);
         }
-        lighting.specular *= lightData.specularDimmer;
 
         // Sample flakes as tiny mirrors
         // (update1: this is not really doing that, more like applying a BTF on a
@@ -2358,256 +2290,52 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         // (See also #define FLAKES_JUST_BTF, which makes us use the coat ltc transform and no FGD,
         // - in that case calculated irradiance should be the same as clearcoat, should be optimized)
         // todo_dir NdotV wrong
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformFlakes);
-        ltcValue *= lightData.specularDimmer;
+        ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                    transpose(preLightData.ltcTransformFlakes), FLAKES_PERCEPTUAL_ROUGHNESS,
+                                    lightData.cookieMode, lightData.cookieScaleOffset);
 
-        lighting.specular += ltcValue * preLightData.singleFlakesComponent;
+        ltcValue.a *= intensity * lightData.specularDimmer;
 
-    #endif //...carpaint
+        lighting.specular += preLightData.singleFlakesComponent * ltcValue.rgb * ltcValue.a;
+
+    #endif // carpaint
 
         // Evaluate the clear-coat
         if (HasClearcoat())
         {
-            // Use the complement of FGD value as an approximation of what is transmitted past the undercoat
-            float3 clearcoatT = 1.0 - preLightData.coatFGD;
-            lighting.diffuse *= clearcoatT;
-            lighting.specular *= clearcoatT;
+            ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                        transpose( preLightData.ltcTransformClearcoat), CLEAR_COAT_PERCEPTUAL_ROUGHNESS,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
 
-            // Add clearcoat contribution
-            ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformClearcoat);
-            ltcValue *= lightData.specularDimmer;
-            lighting.specular += preLightData.coatFGD * ltcValue * bsdfData.clearcoatColor;
+            ltcValue.a *= intensity * lightData.specularDimmer;
+
+            // Use the complement of FGD value as an approximation of what is transmitted past the undercoat
+            lighting.diffuse *= 1.0 - preLightData.coatFGD;
+            lighting.specular = lerp(lighting.specular, bsdfData.clearcoatColor * ltcValue.rgb * ltcValue.a, preLightData.coatFGD);
         }
 
         // Save ALU by applying 'lightData.color' only once.
-        lighting.diffuse *= lightData.color;
+        lighting.diffuse  *= lightData.color;
         lighting.specular *= lightData.color;
 
     #ifdef DEBUG_DISPLAY
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
         {
+            ltcValue = EvaluateLTC_Area(isRectLight, center, right, up, halfLength, halfHeight,
+                                        k_identity3x3, 1.0f,
+                                        lightData.cookieMode, lightData.cookieScaleOffset);
+
+            ltcValue.a *= intensity * lightData.diffuseDimmer;
+
             // Only lighting, not BSDF
-            // Apply area light on lambert then multiply by PI to cancel Lambert
-            lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
-            lighting.diffuse *= PI * lightData.diffuseDimmer;
+            lighting.diffuse  = lightData.color * ltcValue.rgb * ltcValue.a;
+            // Apply area light on Lambert then multiply by PI to cancel Lambert
+            lighting.diffuse *= PI;
         }
     #endif
     }
 
     return lighting;
-}
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
-//-----------------------------------------------------------------------------
-
-// #define ELLIPSOIDAL_ATTENUATION
-
-float3 GetLTCValueWithCookieApplied(LightData lightData, float4x3 transformedL)
-{
-    float3 formFactor;
-    float3 ltcValue;
-#ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    formFactor = PolygonFormFactor(transformedL);
-    ltcValue = PolygonIrradianceFromVectorFormFactor(formFactor);
-#else
-    ltcValue = PolygonIrradiance(transformedL);
-#endif
-    // Only apply cookie if there is one
-    if ( lightData.cookieMode != COOKIEMODE_NONE)
-    {
-        // Compute the cookie data for the specular term
-#ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-        formFactor =  PolygonFormFactor(transformedL);
-#endif
-        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, transformedL, formFactor);
-    }
-    return ltcValue;
-}
-
-DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData,
-                                    BSDFData bsdfData, BuiltinData builtinData)
-{
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 positionWS = posInput.positionWS;
-
-#if SHADEROPTIONS_BARN_DOOR
-    // Apply the barn door modification to the light data
-    RectangularLightApplyBarnDoor(lightData, positionWS);
-#endif
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    float3 unL = lightData.positionRWS - positionWS;
-
-    // Check if all the light points are not completely back-facing
-    if (dot(lightData.forward, unL) < FLT_EPS)
-    {
-        // Rotate the light direction into the light space.
-        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
-        unL = mul(unL, transpose(lightToWorld));
-
-        // TODO: This could be precomputed.
-        float halfWidth  = lightData.size.x * 0.5;
-        float halfHeight = lightData.size.y * 0.5;
-
-        // Define the dimensions of the attenuation volume.
-        // TODO: This could be precomputed.
-        float  range      = lightData.range;
-        float3 invHalfDim = rcp(float3(range + halfWidth,
-                                       range + halfHeight,
-                                       range));
-
-        // Compute the light attenuation.
-    #ifdef ELLIPSOIDAL_ATTENUATION
-        // The attenuation volume is an axis-aligned ellipsoid s.t.
-        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-        float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim,
-                                                         lightData.rangeAttenuationScale,
-                                                         lightData.rangeAttenuationBias);
-    #else
-        // The attenuation volume is an axis-aligned box s.t.
-        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-        float intensity = BoxDistanceAttenuation(unL, invHalfDim,
-                                                 lightData.rangeAttenuationScale,
-                                                 lightData.rangeAttenuationBias);
-    #endif
-
-        // Terminate if the shaded point is too far away.
-        if (intensity != 0.0)
-        {
-            lightData.diffuseDimmer  *= intensity;
-            lightData.specularDimmer *= intensity;
-
-            // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-            lightData.positionRWS -= positionWS;
-
-            float4x3 lightVerts;
-
-            // TODO: some of this could be precomputed.
-            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
-            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
-            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
-            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
-
-            // Rotate the endpoints into the local coordinate system.
-            lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
-
-            float3 ltcValue;
-
-
-        #if defined(_AXF_BRDF_TYPE_SVBRDF)
-
-            // Evaluate the diffuse part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LD = mul(lightVerts, preLightData.ltcTransformDiffuse); // identity for Lambert
-            ltcValue = GetLTCValueWithCookieApplied(lightData, LD);
-            ltcValue *= lightData.diffuseDimmer;
-            lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-
-            // Evaluate the specular part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecular);
-            ltcValue = GetLTCValueWithCookieApplied(lightData, LS);
-            ltcValue *= lightData.specularDimmer;
-            lighting.specular = preLightData.specularFGD * ltcValue;
-
-
-        #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
-
-            // Evaluate the diffuse part
-            // Polygon irradiance in the transformed configuration.
-            float4x3 LD = lightVerts; //mul(lightVerts, preLightData.ltcTransformDiffuse); identity for Lambert
-            ltcValue = GetLTCValueWithCookieApplied(lightData, LD);
-            ltcValue *= lightData.diffuseDimmer;
-            lighting.diffuse = ltcValue; // diffuseFGD = 1 for Lambert
-            lighting.diffuse *= preLightData.singleBRDFColor;  // the BRDF specular flipflop color table also applies to diffuse
-
-            //
-            // Evaluate multi-lobes Cook-Torrance
-            // Each CT lobe samples the environment with the appropriate roughness
-            //
-            for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
-            {
-                float4x3 LS = mul(lightVerts, preLightData.ltcTransformSpecularCT[lobeIndex]);
-                ltcValue = GetLTCValueWithCookieApplied(lightData, LS);
-                ltcValue *= lightData.specularDimmer;
-
-                float coeff = GetLTCAreaLightDimmer() * _CarPaint2_CTCoeffs[lobeIndex];
-                ltcValue *= coeff;
-
-                lighting.specular += ltcValue * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex);
-            }
-
-            // Sample flakes as tiny mirrors
-            // TODO_dir NdotV wrong
-            // (See also #define FLAKES_JUST_BTF, which makes us use the coat ltc transform and no FGD,
-            // - in that case calculated irradiance should be the same as clearcoat, should be optimized)
-            float4x3 LS = mul(lightVerts, preLightData.ltcTransformFlakes);
-            ltcValue = GetLTCValueWithCookieApplied(lightData, LS);
-            ltcValue *= lightData.specularDimmer;
-            lighting.specular += ltcValue * preLightData.singleFlakesComponent;
-
-
-        #endif // carpaint
-
-
-            // Evaluate the clear-coat
-            if (HasClearcoat())
-            {
-                // Use the complement of FGD value as an approximation of what is transmitted past the undercoat
-                float3 clearcoatT = 1.0 - preLightData.coatFGD;
-                lighting.diffuse *= clearcoatT;
-                lighting.specular *= clearcoatT;
-
-                // Then add clearcoat contribution
-                float4x3 LSCC = mul(lightVerts, preLightData.ltcTransformClearcoat);
-                ltcValue = GetLTCValueWithCookieApplied(lightData, LSCC);
-                ltcValue *= lightData.specularDimmer;
-                lighting.specular += preLightData.coatFGD * ltcValue * bsdfData.clearcoatColor;
-            }
-
-            // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
-            // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
-            // Note: use geomNormalWS instead of normalWS ?
-            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.geomNormalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
-            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
-
-            // Save ALU by applying 'lightData.color' only once.
-            lighting.diffuse *= lightData.color;
-            lighting.specular *= lightData.color;
-
-        #ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-            {
-                // Only lighting, not BSDF
-                // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-                lighting.diffuse *= PI * lightData.diffuseDimmer;
-            }
-        #endif
-        }
-    }
-
-    return lighting;
-}
-
-DirectLighting  EvaluateBSDF_Area(LightLoopContext lightLoopContext,
-    float3 viewWS, PositionInputs posInput,
-    PreLightData preLightData, LightData lightData,
-    BSDFData bsdfData, BuiltinData builtinData)
-{
-
-    if (lightData.lightType == GPULIGHTTYPE_TUBE)
-    {
-        return EvaluateBSDF_Line(lightLoopContext, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
-    }
-    else
-    {
-        return EvaluateBSDF_Rect(lightLoopContext, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
-    }
 }
 
 //-----------------------------------------------------------------------------

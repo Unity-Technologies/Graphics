@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
-using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(experimental = true)]
+    [VFXInfo(name = "Output Particle HDRP Lit Cube", category = "Output", experimental = true)]
     class VFXLitCubeOutput : VFXAbstractParticleHDRPLitOutput
     {
         public override string name => "Output Particle HDRP Lit Cube";

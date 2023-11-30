@@ -65,6 +65,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ProbeSettings.mode == ProbeSettings.Mode.Realtime)
                 cubeProbe.renderDynamicObjects = true;
 #endif
+
+            // Also update the importance
+            cubeProbe.importance = importance;
         }
 
         internal bool ReflectionProbeIsEnabled()

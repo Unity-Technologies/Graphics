@@ -19,10 +19,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             ValueChangedCallback valueChangedCallback,
             string fieldToDraw,
             string labelName,
-            int indentLevel = 0)
+            int indentLevel = 0,
+            string tooltip = null)
         {
             label = PropertyDrawerUtils.CreateLabel(labelName, indentLevel);
             var propertyRow = new PropertyRow(label);
+            propertyRow.tooltip = tooltip;
             textField = new TextField(512, false, false, ' ') { isDelayed = true };
             propertyRow.Add(textField,
                 textField =>

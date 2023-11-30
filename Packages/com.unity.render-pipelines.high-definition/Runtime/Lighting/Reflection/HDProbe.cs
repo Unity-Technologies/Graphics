@@ -627,6 +627,9 @@ namespace UnityEngine.Rendering.HighDefinition
         { get => m_ProbeSettings.lighting.lightLayer; set => m_ProbeSettings.lighting.lightLayer = value; }
         /// <summary>This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1</summary>
         public uint lightLayersAsUInt => lightLayers < 0 ? (uint)RenderingLayerMask.Everything : (uint)lightLayers;
+        /// <summary>Importance value for sorting the probes (higher values display over lower ones).</summary>
+        public int importance
+        { get => m_ProbeSettings.lighting.importance; set => m_ProbeSettings.lighting.importance = Mathf.Clamp(value, 0, 32767); }
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier
         { get => m_ProbeSettings.lighting.multiplier; set => m_ProbeSettings.lighting.multiplier = value; }

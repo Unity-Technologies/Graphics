@@ -47,6 +47,12 @@ namespace UnityEditor.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CoatSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "CoatSmoothness", "Coat Smoothness", "SURFACEDESCRIPTION_COATSMOOTHNESS",
                 new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor MapRightTopBack = new BlockFieldDescriptor(SurfaceDescription.name, "RightTopBack", "Right Top Back", "SURFACEDESCRIPTION_MAP_RTBK",
+                new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor MapLeftBottomFront = new BlockFieldDescriptor(SurfaceDescription.name, "LeftBottomFront", "Left Bottom Front", "SURFACEDESCRIPTION_MAP_LBTF",
+                new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor AbsorptionStrength = new BlockFieldDescriptor(SurfaceDescription.name, "AbsorptionStrength", "Color Absorption Strength", "SURFACEDESCRIPTION_COLOR_ABSORPTION_STRENGTH",
+                new FloatControl(0.5f), ShaderStage.Fragment);
         }
 
         [GenerateBlocks]

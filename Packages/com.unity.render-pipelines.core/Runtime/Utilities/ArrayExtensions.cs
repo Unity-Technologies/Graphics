@@ -1,5 +1,8 @@
 using System;
+using System.Threading;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Assertions;
 using UnityEngine.Jobs;
 
 namespace UnityEngine.Rendering
@@ -59,6 +62,29 @@ namespace UnityEngine.Rendering
             }
 
             Array.Resize<T>(ref array, capacity);
+        }
+
+        /// <summary>
+        /// Fills an array with the same value.
+        /// </summary>
+        /// <typeparam name="T">The type of the array</typeparam>
+        /// <param name="array">Target array to fill</param>
+        /// <param name="value">Value to fill</param>
+        /// <param name="startIndex">Start index to fill</param>
+        /// <param name="length">The number of entries to write, or -1 to fill until the end of the array</param>
+        public static void FillArray<T>(this ref NativeArray<T> array, in T value, int startIndex = 0, int length = -1) where T : unmanaged
+        {
+            Assert.IsTrue(startIndex >= 0);
+
+            unsafe
+            {
+                T* ptr = (T*)array.GetUnsafePtr<T>();
+
+                int endIndex = length == -1 ? array.Length : startIndex + length;
+
+                for (int i = startIndex; i < endIndex; ++i)
+                    ptr[i] = value;
+            }
         }
     }
 }

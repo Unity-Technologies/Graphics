@@ -6,7 +6,7 @@ using UnityEngine.Rendering.RendererUtils;
 using CoreRendererList = UnityEngine.Rendering.RendererList;
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     internal enum RendererListHandleType
     {

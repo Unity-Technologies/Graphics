@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Use this struct to set up a new Render Pass.
@@ -256,6 +256,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void AllowPassCulling(bool value)
         {
             m_RenderPass.AllowPassCulling(value);
+        }
+
+        /// <summary>
+        /// Enable foveated rendering for this pass.
+        /// </summary>
+        /// <param name="value">True to enable foveated rendering.</param>
+        public void EnableFoveatedRasterization(bool value)
+        {
+            m_RenderPass.EnableFoveatedRasterization(value);
         }
 
         /// <summary>

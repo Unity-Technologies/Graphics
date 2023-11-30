@@ -6,16 +6,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    class VelocityBaseProvider : VariantProvider
-    {
-        public override IEnumerable<Variant> ComputeVariants()
-        {
-            return Enum.GetValues(typeof(AttributeCompositionMode))
-                .OfType<AttributeCompositionMode>()
-                .Select(x => new Variant(new[] { new KeyValuePair<string, object>("composition", x) }, new[] { "velocity", VFXBlockUtility.GetNameString(x) }));
-        }
-    }
-
     abstract class VelocityBase : VFXBlock
     {
         public enum SpeedMode

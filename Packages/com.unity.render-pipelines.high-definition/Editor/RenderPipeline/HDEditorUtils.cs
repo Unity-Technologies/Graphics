@@ -24,6 +24,19 @@ namespace UnityEditor.Rendering.HighDefinition
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
         internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
 
+        internal static bool NeedsToBeIncludedInBuild(HDRenderPipelineAsset hdRenderPipelineAsset)
+        {
+            var labelList = AssetDatabase.GetLabels(hdRenderPipelineAsset);
+            foreach (string item in labelList)
+            {
+                if (item == HDUtils.k_HdrpAssetBuildLabel)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
             => (
             AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
@@ -209,11 +222,20 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawRenderingLayerMask(Rect rect, int renderingLayer, GUIContent label = null, bool allowHelpBox = true)
         {
             string[] renderingLayerMaskNames = HDRenderPipelineGlobalSettings.instance.renderingLayerNames;
-            int value = EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
+            int value = 0;
+            if (renderingLayerMaskNames.Length != 0)
+            {
+                value = EditorGUI.MaskField(rect, label ?? GUIContent.none, renderingLayer, renderingLayerMaskNames);
 
-            int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
-            if (allowHelpBox && renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
-                EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
+                int maskCount = (int)Mathf.Log(renderingLayer, 2) + 1;
+                if (allowHelpBox && renderingLayerMaskNames.Length < maskCount && maskCount <= 16)
+                    EditorGUILayout.HelpBox($"One or more of the Rendering Layers is not defined in the HDRP Global Settings asset.", MessageType.Warning);
+            }
+            else
+            {
+                if (allowHelpBox)
+                    EditorGUILayout.HelpBox("No rendering layers specified in the HDRenderPipelineGlobalSettings. Add at least one entry to the Rendering Layer Names list.", MessageType.Error);
+            }
 
             return value;
         }
@@ -300,6 +322,142 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorUtils.Highlight("Project Settings", propertyPath);
                 GUIUtility.ExitGUI();
             });
+        }
+
+        internal static void GlobalSettingsHelpBox(string message, MessageType type, FrameSettingsField field, string displayName)
+        {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
+                var attribute = OverridableFrameSettingsArea.GetFieldAttribute(field);
+
+                SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
+                FrameSettingsPropertyDrawer.Expand(FrameSettingsRenderType.Camera, attribute.group);
+                CoreEditorUtils.Highlight("Project Settings", displayName, HighlightSearchMode.Auto);
+                GUIUtility.ExitGUI();
+            });
+        }
+
+        static void OpenRenderingDebugger(string panelName)
+        {
+            var k_DebugWindowType = Type.GetType("UnityEditor.Rendering.DebugWindow,Unity.RenderPipelines.Core.Editor");
+            var window = EditorWindow.GetWindow(k_DebugWindowType);
+            window.titleContent = new GUIContent("Rendering Debugger");
+            window.Show();
+
+            if (panelName != null)
+            {
+                var manager = UnityEngine.Rendering.DebugManager.instance;
+                manager.RequestEditorWindowPanelIndex(manager.FindPanelIndex(panelName));
+            }
+        }
+
+        static void HighlightInDebugger(HDCamera hdCamera, FrameSettingsField field, string displayName)
+        {
+            OpenRenderingDebugger(hdCamera.camera.name);
+
+            // Doesn't work for some reason
+            //CoreEditorUtils.Highlight("Rendering Debugger", displayName, HighlightSearchMode.Auto);
+            //GUIUtility.ExitGUI();
+        }
+
+        internal static void FrameSettingsHelpBox(HDCamera hdCamera, FrameSettingsField field, string displayName)
+        {
+            var data = HDUtils.TryGetAdditionalCameraDataOrDefault(hdCamera.camera);
+            var defaults = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+
+            var type = MessageType.Warning;
+            var attribute = OverridableFrameSettingsArea.GetFieldAttribute(field);
+
+            bool disabledInGlobal = !defaults.IsEnabled(field);
+            bool disabledByCamera = data.renderingPathCustomFrameSettingsOverrideMask.mask[(uint)field] &&
+                !data.renderingPathCustomFrameSettings.IsEnabled(field);
+            bool disabledByDependency = !attribute.dependencies.All(hdCamera.frameSettings.IsEnabled);
+
+            var historyContainer = hdCamera.camera.cameraType == CameraType.SceneView ? FrameSettingsHistory.sceneViewFrameSettingsContainer : HDUtils.TryGetAdditionalCameraDataOrDefault(hdCamera.camera);
+            bool disabledByDebug = FrameSettingsHistory.enabled && !historyContainer.frameSettingsHistory.debug.IsEnabled(field) && historyContainer.frameSettingsHistory.sanitazed.IsEnabled(field);
+
+            var textBase = $"The FrameSetting required to render this effect in the {(hdCamera.camera.cameraType == CameraType.SceneView ? "Scene" : "Game")} view ";
+
+            if (disabledByDebug)
+                CoreEditorUtils.DrawFixMeBox(textBase + "is disabled in the Rendering Debugger.", type, "Open", () => HighlightInDebugger(hdCamera, field, displayName));
+            else if (disabledByCamera)
+                CoreEditorUtils.DrawFixMeBox(textBase + "is disabled on a Camera.", type, "Open", () => EditorUtility.OpenPropertyEditor(hdCamera.camera));
+            else if (disabledInGlobal)
+                GlobalSettingsHelpBox(textBase + "is disabled in the HDRP Global Settings.", type, field, displayName);
+            else if (disabledByDependency)
+                GlobalSettingsHelpBox(textBase + "depends on a disabled FrameSetting.", type, field, displayName);
+        }
+
+        internal static HDCamera[] GetDisplayedCameras()
+        {
+            HashSet<HDCamera> visibleCamera = new();
+
+            foreach (SceneView sceneView in SceneView.sceneViews)
+            {
+                if (!sceneView.hasFocus) continue;
+                visibleCamera.Add(HDCamera.GetOrCreate(sceneView.camera));
+            }
+
+            var assembly = typeof(EditorWindow).Assembly;
+            var type = assembly.GetType("UnityEditor.GameView");
+            var targetDisplayProp = type.GetProperty("targetDisplay");
+
+            foreach (EditorWindow gameView in Resources.FindObjectsOfTypeAll(type))
+            {
+                if (!gameView.hasFocus) continue;
+
+                var targetDisplay = (int)targetDisplayProp.GetValue(gameView);
+                foreach (var camera in HDCamera.GetHDCameras())
+                {
+                    if (camera.camera.cameraType == CameraType.Game && camera.camera.targetDisplay == targetDisplay)
+                        visibleCamera.Add(camera);
+                }
+            }
+
+            return visibleCamera.ToArray();
+        }
+
+        internal static bool EnsureFrameSetting(FrameSettingsField field, string displayName)
+        {
+            foreach (var camera in GetDisplayedCameras())
+            {
+                if (!camera.frameSettings.IsEnabled(field))
+                {
+                    FrameSettingsHelpBox(camera, field, displayName);
+                    EditorGUILayout.Space();
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static bool EnsureVolumeAndFrameSetting<T>(Func<T, string> volumeValidator, FrameSettingsField field, string displayName) where T : UnityEngine.Rendering.VolumeComponent
+        {
+            var cameras = GetDisplayedCameras();
+
+            foreach (var camera in cameras)
+            {
+                var errorString = volumeValidator(camera.volumeStack.GetComponent<T>());
+                if (!string.IsNullOrEmpty(errorString))
+                {
+                    EditorGUILayout.HelpBox(errorString, MessageType.Warning);
+                    EditorGUILayout.Space();
+                    return false;
+                }
+            }
+
+            foreach (var camera in cameras)
+            {
+                if (!camera.frameSettings.IsEnabled(field))
+                {
+                    FrameSettingsHelpBox(camera, field, displayName);
+                    EditorGUILayout.Space();
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 

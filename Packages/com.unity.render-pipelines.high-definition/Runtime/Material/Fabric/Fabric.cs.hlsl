@@ -5,26 +5,6 @@
 #ifndef FABRIC_CS_HLSL
 #define FABRIC_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData:  static fields
-//
-#define DEBUGVIEW_FABRIC_SURFACEDATA_MATERIAL_FEATURES (1300)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_BASE_COLOR (1301)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_OCCLUSION (1302)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL (1303)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE (1304)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL (1305)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1306)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_SMOOTHNESS (1307)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_AMBIENT_OCCLUSION (1308)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_TINT (1309)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH (1310)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK (1311)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS (1312)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK (1313)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT (1314)
-#define DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY (1315)
-
-//
 // UnityEngine.Rendering.HighDefinition.Fabric+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL (1)
@@ -55,25 +35,25 @@
 #define DEBUGVIEW_FABRIC_BSDFDATA_ROUGHNESS_B (1368)
 #define DEBUGVIEW_FABRIC_BSDFDATA_ANISOTROPY (1369)
 
-// Generated from UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData
-// PackingRules = Exact
-struct SurfaceData
-{
-    uint materialFeatures;
-    float3 baseColor;
-    float specularOcclusion;
-    float3 normalWS;
-    float3 geomNormalWS;
-    float perceptualSmoothness;
-    float ambientOcclusion;
-    float3 specularColor;
-    uint diffusionProfileHash;
-    float subsurfaceMask;
-    float thickness;
-    float3 transmissionMask;
-    float3 tangentWS;
-    float anisotropy;
-};
+//
+// UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData:  static fields
+//
+#define DEBUGVIEW_FABRIC_SURFACEDATA_MATERIAL_FEATURES (1300)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_BASE_COLOR (1301)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_OCCLUSION (1302)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL (1303)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE (1304)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL (1305)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1306)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_SMOOTHNESS (1307)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_AMBIENT_OCCLUSION (1308)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_TINT (1309)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH (1310)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK (1311)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS (1312)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK (1313)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT (1314)
+#define DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY (1315)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Fabric+BSDFData
 // PackingRules = Exact
@@ -99,65 +79,25 @@ struct BSDFData
     float anisotropy;
 };
 
-//
-// Debug functions
-//
-void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+// Generated from UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData
+// PackingRules = Exact
+struct SurfaceData
 {
-    switch (paramId)
-    {
-        case DEBUGVIEW_FABRIC_SURFACEDATA_MATERIAL_FEATURES:
-            result = GetIndexColor(surfacedata.materialFeatures);
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_BASE_COLOR:
-            result = surfacedata.baseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_OCCLUSION:
-            result = surfacedata.specularOcclusion.xxx;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL:
-            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_SMOOTHNESS:
-            result = surfacedata.perceptualSmoothness.xxx;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_AMBIENT_OCCLUSION:
-            result = surfacedata.ambientOcclusion.xxx;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_TINT:
-            result = surfacedata.specularColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH:
-            result = GetIndexColor(surfacedata.diffusionProfileHash);
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK:
-            result = surfacedata.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS:
-            result = surfacedata.thickness.xxx;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK:
-            result = surfacedata.transmissionMask;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT:
-            result = surfacedata.tangentWS * 0.5 + 0.5;
-            break;
-        case DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY:
-            result = surfacedata.anisotropy.xxx;
-            break;
-    }
-}
+    uint materialFeatures;
+    float3 baseColor;
+    float specularOcclusion;
+    float3 normalWS;
+    float3 geomNormalWS;
+    float perceptualSmoothness;
+    float ambientOcclusion;
+    float3 specularColor;
+    uint diffusionProfileHash;
+    float subsurfaceMask;
+    float thickness;
+    float3 transmissionMask;
+    float3 tangentWS;
+    float anisotropy;
+};
 
 //
 // Debug functions
@@ -226,6 +166,66 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_FABRIC_BSDFDATA_ANISOTROPY:
             result = bsdfdata.anisotropy.xxx;
+            break;
+    }
+}
+
+//
+// Debug functions
+//
+void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+        case DEBUGVIEW_FABRIC_SURFACEDATA_MATERIAL_FEATURES:
+            result = GetIndexColor(surfacedata.materialFeatures);
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_BASE_COLOR:
+            result = surfacedata.baseColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_OCCLUSION:
+            result = surfacedata.specularOcclusion.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL:
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_SMOOTHNESS:
+            result = surfacedata.perceptualSmoothness.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_SPECULAR_TINT:
+            result = surfacedata.specularColor;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_DIFFUSION_PROFILE_HASH:
+            result = GetIndexColor(surfacedata.diffusionProfileHash);
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_SUBSURFACE_MASK:
+            result = surfacedata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_THICKNESS:
+            result = surfacedata.thickness.xxx;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_TRANSMISSION_MASK:
+            result = surfacedata.transmissionMask;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_TANGENT:
+            result = surfacedata.tangentWS * 0.5 + 0.5;
+            break;
+        case DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY:
+            result = surfacedata.anisotropy.xxx;
             break;
     }
 }

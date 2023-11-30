@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -48,14 +48,17 @@ public class KeepFrameFeature : ScriptableRendererFeature
         // Because RenderGraph has to calculate internally how resources are used we must be aware of 2
         // distinct timelines inside this method: one for recording resource usage and one for recording draw commands.
         // It is important to scope resources correctly as global state may change between the execution times of each.
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (renderingData.cameraData.camera.cameraType != CameraType.Game)
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            if (cameraData.camera.cameraType != CameraType.Game)
                 return;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Copy Frame Pass", out var passData))
             {
-                TextureHandle source = ((UniversalRenderer)renderingData.cameraData.renderer).activeColorTexture;
+                TextureHandle source = resourceData.activeColorTexture;
 
                 // When using the RenderGraph API the lifetime and ownership of resources is managed by the render graph system itself.
                 // This allows for optimal resource usage and other optimizations to be done automatically for the user.
@@ -66,8 +69,9 @@ public class KeepFrameFeature : ScriptableRendererFeature
                 if (!source.IsValid() || !destination.IsValid())
                     return;
 
-                passData.source = builder.UseTexture(source, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.source = source;
+                builder.UseTexture(source, AccessFlags.Read);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -122,13 +126,16 @@ public class KeepFrameFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
             TextureHandle oldFrameTextureHandle = renderGraph.ImportTexture(m_Handle);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Old Frame Pass", out var passData))
             {
-                TextureHandle destination = ((UniversalRenderer)renderingData.cameraData.renderer).activeColorTexture;
+                TextureHandle destination = resourceData.activeColorTexture;
 
                 if (!oldFrameTextureHandle.IsValid() || !destination.IsValid())
                     return;
@@ -137,8 +144,8 @@ public class KeepFrameFeature : ScriptableRendererFeature
                 passData.source = oldFrameTextureHandle;
                 passData.name = m_TextureName;
 
-                builder.UseTexture(oldFrameTextureHandle, IBaseRenderGraphBuilder.AccessFlags.Read);
-                builder.UseTextureFragment(destination, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.UseTexture(oldFrameTextureHandle, AccessFlags.Read);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
                 // Normally global state modifications are not allowed when using RenderGraph and will result in errors.
                 // In the exceptional cases where this is intentional we must let the RenderGraph API know by calling

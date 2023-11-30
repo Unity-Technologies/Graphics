@@ -337,3 +337,16 @@ VFXContextUI ColorPropertyRM .fieldContainer > *
 {
     width: 56px;
 }
+
+VFXContextUI .subtitle
+{
+    align-self:center;
+    font-size:16px;
+    color: #8F8F8F;
+}
+
+VFXContextUI .subtitle.empty
+{
+    display:None;
+}
+

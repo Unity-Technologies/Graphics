@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-BitwiseComplement")]
-    [VFXInfo(category = "Bitwise")]
+    [VFXInfo(name = "Complement", category = "Bitwise")]
     class BitwiseComplement : VFXOperator
     {
         override public string name { get { return "Complement"; } }

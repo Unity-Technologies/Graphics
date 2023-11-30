@@ -18,11 +18,13 @@ public class SetWaterTime : MonoBehaviour
 
     void Update()
     {
+#if UNITY_EDITOR
         if (UnityEditor.ShaderUtil.anythingCompiling)
         {
             firstFrame = Time.frameCount;
             return;
         }
+#endif
 
         if (Time.frameCount - firstFrame == frameCount)
         {

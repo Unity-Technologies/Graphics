@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Volume(Sphere)")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(name = "Volume (Sphere)", category = "Math/Geometry")]
     class SphereVolume : VFXOperator
     {
         public class InputProperties

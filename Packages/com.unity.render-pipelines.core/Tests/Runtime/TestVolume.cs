@@ -3,7 +3,7 @@
 namespace UnityEngine.Rendering.Tests
 {
     [Serializable]
-    public class TestVolume : VolumeComponent
+    class TestVolume : VolumeComponent
     {
         public static readonly float k_DefaultValue = 123.0f;
         public static readonly float k_OverrideValue = 456.0f;

@@ -1,13 +1,14 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class DrawNormal2DPass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Normals2DPass");
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Normals");
+        static readonly string k_NormalPass = "Normal2D Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_NormalPass);
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
 
         private class PassData
@@ -22,34 +23,36 @@ namespace UnityEngine.Rendering.Universal
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
-            {
-                cmd.ClearRenderTarget(RTClearFlags.Color, RendererLighting.k_NormalClearColor, 1, 0);
-                cmd.DrawRendererList(passData.rendererList);
-            }
+            cmd.DrawRendererList(passData.rendererList);
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources)
+        public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex)
         {
             if (!layerBatch.lightStats.useNormalMap)
                 return;
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
+            Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_NormalPass, out var passData, m_ProfilingSampler))
             {
-                var filterSettings = new FilteringSettings();
+                var filterSettings = FilteringSettings.defaultValue;
                 filterSettings.renderQueueRange = RenderQueueRange.all;
                 filterSettings.layerMask = -1;
                 filterSettings.renderingLayerMask = 0xFFFFFFFF;
                 filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
 
-                var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
+                var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
                 var sortSettings = drawSettings.sortingSettings;
-                RendererLighting.GetTransparencySortingMode(rendererData, renderingData.cameraData.camera, ref sortSettings);
+                RendererLighting.GetTransparencySortingMode(rendererData, cameraData.camera, ref sortSettings);
                 drawSettings.sortingSettings = sortSettings;
 
                 builder.AllowPassCulling(false);
-                builder.UseTextureFragment(resources.GetTexture(Renderer2DResource.NormalsTexture), 0);
-                builder.UseTextureFragmentDepth(resources.GetTexture(Renderer2DResource.IntermediateDepth), IBaseRenderGraphBuilder.AccessFlags.Write);
+
+                builder.SetRenderAttachment(universal2DResourceData.normalsTexture[batchIndex], 0);
+                builder.SetRenderAttachmentDepth(universal2DResourceData.intermediateDepth, AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

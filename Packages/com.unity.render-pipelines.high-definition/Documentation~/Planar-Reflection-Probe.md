@@ -1,4 +1,4 @@
-# Planar Reflection Probe
+# Planar Reflection Probe reference
 
 The Planar Reflection Probe component is one of the types of [Reflection Probe](Reflection-Probes-Intro.md) that the High Definition Render Pipeline (HDRP) provides to help you create reactive and accurate reflective Materials.
 
@@ -46,11 +46,11 @@ The following properties control the method that the Planar Reflection Probe use
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
 | **Field Of View Mode**     | Defines the mode to use when computing the field of view. |
-| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](Volumes.md) settings to fill empty background areas.<br />&#8226; **Color** uses the **Background Color** setting to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
+| **Clear Mode**             | Defines how to fill empty background areas of the RenderTexture this Probe captures.<br />&#8226; **Sky** uses the sky defined by the current [Volume](understand-volumes.md) settings to fill empty background areas.<br />&#8226; **Color** uses the **Background Color** setting to fill empty background areas.<br />&#8226; **None** reuses the previous value for each pixel that doesn’t represent a reflected GameObject, instead of filling in empty areas of the RenderTexture. |
 | **Background Color**       | The color to fill empty background areas of the RenderTexture if you set the **Clear Mode** to **Background**. |
 | **Clear Depth**            | Choose whether the Planar Reflection Probe clears the Depth Buffer or not. |
 | **Volume Layer Mask**      | A LayerMask that defines which Volumes affect this Planar Reflection Probe’s capture. |
-| **Volume Anchor Override** | Set the Transform that the [Volume](Volumes.md) system uses to handle the position of this Planar Reflection Probe. For example, if you want this Planar Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Planar Reflection Probe. |
+| **Volume Anchor Override** | Set the Transform that the [Volume](understand-volumes.md) system uses to handle the position of this Planar Reflection Probe. For example, if you want this Planar Reflection Probe to match post-processing effects with the view Camera, set this property to the view Camera’s Transform. The Volume system then uses the Camera’s position to process which Volume affects this Planar Reflection Probe. |
 | **Use Occlusion Culling**  | Enables [Occlusion Culling](<https://docs.unity3d.com/Manual/OcclusionCulling.html>) for this Planar Reflection Probe. |
 | **Culling Mask**           | A LayerMask that defines which Layers to include in the reflection. GameObjects on the Layers included in this LayerMask appear in the reflection. |
 | **Clipping Planes - Near** | The closest point relative to the Planar Reflection Probe that the Probe captures reflections. |
@@ -59,8 +59,8 @@ The following properties control the method that the Planar Reflection Probe use
 | **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
 | **Resolution**             | Set the resolution of this Planar Reflection Probe. Use the drop-down to select which quality mode to derive the resolution from. If you select Custom, set the resolution, measured in pixels, in the input field. A higher resolution increases the fidelity of planar reflection at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. The resolution can be set to 0 to prevent the probe from being rendered for certain quality levels. |
 | **Rough Reflections**      | Disable the checkbox to tell HDRP to use this Planar Reflection Probe as a mirror. If you do this, the receiving surface must be perfectly smooth or the reflection result is not accurate. If you want perfect reflection, disabling this option can be useful because it means HDRP does not need to process rough refraction and thus decreases the resource intensity of the effect.|
-| **Mirror Position**        | Offsets the position of the mirror from the Transform Position.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
-| **Range Compression Factor**  | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
+| **Mirror Position**        | Offsets the position of the mirror from the Transform Position.<br/>This property only appears when you enable [additional properties](expose-all-additional-properties.md) for this section. |
+| **Range Compression Factor**  | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](expose-all-additional-properties.md) for this section. |
 
 ### Render Settings
 
@@ -69,6 +69,7 @@ The following properties control extra behavior options for fine-tuning the beha
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
 | **Light Layer**   | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
+| **Importance**    | A value that indicates the relative priority of this Reflection Probe for sorting. Unity renders probes with a higher value on top of those with a lower value. Default value for **Planar Reflection Probes** is 64 so they are displayed on top of **Reflection Probes**. |
 | **Multiplier**    | A multiplier that HDRP applies to the RenderTexture captured by the Planar Reflection Probe. Higher multiplier values make the queried RenderTexture brighter, and lower multiplier values make the queried RenderTexture darker. |
 | **Weight**        | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
 | **Fade Distance** | The distance, in meters, from the camera at which reflections begin to smoothly fade out before they disappear completely. |

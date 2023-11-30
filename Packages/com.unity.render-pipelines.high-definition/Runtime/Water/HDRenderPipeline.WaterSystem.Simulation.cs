@@ -1,6 +1,5 @@
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -292,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Time = totalTime;
 
                 #if UNITY_EDITOR
-                if (EditorApplication.isPaused)
+                if (UnityEditor.EditorApplication.isPaused)
                     delta = 0.0f;
                 #endif
 
@@ -361,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterBandResolution = m_Asset.currentPlatformRenderPipelineSettings.waterSimulationResolution;
 
             // Simulation shader and kernels
-            m_WaterSimulationCS = m_Asset.renderPipelineResources.shaders.waterSimulationCS;
+            m_WaterSimulationCS = runtimeShaders.waterSimulationCS;
             m_InitializePhillipsSpectrumKernel = m_WaterSimulationCS.FindKernel("InitializePhillipsSpectrum");
             m_EvaluateDispersionKernel = m_WaterSimulationCS.FindKernel("EvaluateDispersion");
             m_EvaluateNormalsKernel = m_WaterSimulationCS.FindKernel("EvaluateNormals");
@@ -371,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EvaluateInstanceDataInfiniteKernel = m_WaterSimulationCS.FindKernel("EvaluateInstanceDataInfinite");
 
             // FFT shader and kernels
-            m_FourierTransformCS = m_Asset.renderPipelineResources.shaders.fourierTransformCS;
+            m_FourierTransformCS = runtimeShaders.fourierTransformCS;
             GetFFTKernels(m_FourierTransformCS, m_WaterBandResolution, out m_RowPassTi_Kernel, out m_ColPassTi_Kernel);
 
             // Allocate all the RTHanles required for the water simulation

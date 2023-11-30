@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEditor;
 
 namespace UnityEngine.Rendering
@@ -39,7 +39,15 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Based on size
         /// </summary>
-        Size
+        Size,
+        /// <summary>
+        /// Based on spherical harmonics sky occlusion
+        /// </summary>
+        SkyOcclusionSH,
+        /// <summary>
+        /// Based on shading direction
+        /// </summary>
+        SkyDirection
     }
 
     enum ProbeSamplingDebugUpdate
@@ -85,7 +93,7 @@ namespace UnityEngine.Rendering
         public bool displayIndexFragmentation;
         public int otherStateIndex = 0;
         public bool verboseStreamingLog;
-
+        public bool debugStreaming = false;
 
         public ProbeVolumeDebug()
         {
@@ -190,7 +198,7 @@ namespace UnityEngine.Rendering
         Material m_ProbeSamplingDebugMaterial; // Used to draw probe sampling information (quad with weight, arrow, locator)
         Material m_ProbeSamplingDebugMaterial02; // Used to draw probe sampling information (shaded probes)
 
-        Texture m_displayNumbersTexture;
+        Texture m_DisplayNumbersTexture;
 
         internal static ProbeSamplingDebugData probeSamplingDebugData = new ProbeSamplingDebugData();
 
@@ -214,11 +222,12 @@ namespace UnityEngine.Rendering
         ///  Render Probe Volume related debug
         /// </summary>
         /// <param name="camera">The <see cref="Camera"/></param>
-        public void RenderDebug(Camera camera)
+        /// <param name="exposureTexture">Texture containing the exposure value for this frame.</param>
+        public void RenderDebug(Camera camera, Texture exposureTexture)
         {
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
-                DrawProbeDebug(camera);
+                DrawProbeDebug(camera, exposureTexture);
             }
         }
 
@@ -302,48 +311,54 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        void InitializeDebug(in ProbeVolumeSystemParameters parameters)
+        bool TryCreateDebugRenderData()
+        {
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<ProbeVolumeDebugResources>(out var debugResources))
+                return false;
+
+            m_DebugMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeDebugShader);
+            m_DebugMaterial.enableInstancing = true;
+
+            // Probe Sampling Debug Mesh : useful to show additional information concerning probe sampling for a specific fragment
+            // - Arrow : Debug fragment position and normal
+            // - Locator : Debug sampling position
+            // - 8 Quads : Debug probes weights
+            m_DebugProbeSamplingMesh = debugResources.probeSamplingDebugMesh;
+            m_DebugProbeSamplingMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 9999999.9f); // dirty way of disabling culling (objects spawned at (0.0, 0.0, 0.0) but vertices moved in vertex shader)
+            m_ProbeSamplingDebugMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeSamplingDebugShader);
+            m_ProbeSamplingDebugMaterial02 = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeDebugShader);
+            m_ProbeSamplingDebugMaterial02.enableInstancing = true;
+
+            probeSamplingDebugData.positionNormalBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vector4)));
+
+            m_DisplayNumbersTexture = debugResources.numbersDisplayTex;
+
+            m_DebugOffsetMesh = Resources.GetBuiltinResource<Mesh>("pyramid.fbx");
+            m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeOffsetDebugShader);
+            m_DebugOffsetMaterial.enableInstancing = true;
+            m_DebugFragmentationMaterial = CoreUtils.CreateEngineMaterial(debugResources.probeVolumeFragmentationDebugShader);
+
+            // Hard-coded colors for now.
+            Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
+
+            subdivisionDebugColors[0] = ProbeVolumeDebugColorPreferences.s_DetailSubdivision;
+            subdivisionDebugColors[1] = ProbeVolumeDebugColorPreferences.s_MediumSubdivision;
+            subdivisionDebugColors[2] = ProbeVolumeDebugColorPreferences.s_LowSubdivision;
+            subdivisionDebugColors[3] = ProbeVolumeDebugColorPreferences.s_VeryLowSubdivision;
+            subdivisionDebugColors[4] = ProbeVolumeDebugColorPreferences.s_SparseSubdivision;
+            subdivisionDebugColors[5] = ProbeVolumeDebugColorPreferences.s_SparsestSubdivision;
+            subdivisionDebugColors[6] = ProbeVolumeDebugColorPreferences.s_DetailSubdivision;
+
+            return true;
+        }
+
+        void InitializeDebug()
         {
 #if UNITY_EDITOR
             SceneView.duringSceneGui += SceneGUI; // Used to get click and keyboard event on scene view for Probe Sampling Debug
 #endif
-            if (parameters.supportsRuntimeDebug)
-            {
-                m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
-                m_DebugMaterial.enableInstancing = true;
-
-                // Probe Sampling Debug Mesh : usefull to show additional information concerning probe sampling for a specific fragment
-                // - Arrow : Debug fragment position and normal
-                // - Locator : Debug sampling position
-                // - 8 Quads : Debug probes weights
-                m_DebugProbeSamplingMesh = parameters.probeSamplingDebugMesh;
-                m_DebugProbeSamplingMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 9999999.9f); // dirty way of disabling culling (objects spawned at (0.0, 0.0, 0.0) but vertices moved in vertex shader)
-                m_ProbeSamplingDebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeSamplingDebugShader);
-                m_ProbeSamplingDebugMaterial02 = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
-                m_ProbeSamplingDebugMaterial02.enableInstancing = true;
-
-                probeSamplingDebugData.positionNormalBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2, System.Runtime.InteropServices.Marshal.SizeOf(typeof(Vector4)));
-
-                m_displayNumbersTexture = parameters.probeSamplingDebugTexture;
-
-                m_DebugOffsetMesh = Resources.GetBuiltinResource<Mesh>("pyramid.fbx");
-                m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
-                m_DebugOffsetMaterial.enableInstancing = true;
-                m_DebugFragmentationMaterial = CoreUtils.CreateEngineMaterial(parameters.fragmentationDebugShader);
-
-                // Hard-coded colors for now.
-                Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
-
-                subdivisionDebugColors[0] = ProbeVolumeDebugColorPreferences.s_DetailSubdivision;
-                subdivisionDebugColors[1] = ProbeVolumeDebugColorPreferences.s_MediumSubdivision;
-                subdivisionDebugColors[2] = ProbeVolumeDebugColorPreferences.s_LowSubdivision;
-                subdivisionDebugColors[3] = ProbeVolumeDebugColorPreferences.s_VeryLowSubdivision;
-                subdivisionDebugColors[4] = ProbeVolumeDebugColorPreferences.s_SparseSubdivision;
-                subdivisionDebugColors[5] = ProbeVolumeDebugColorPreferences.s_SparsestSubdivision;
-                subdivisionDebugColors[6] = ProbeVolumeDebugColorPreferences.s_DetailSubdivision;
-            }
-
-            RegisterDebug(parameters);
+            if (TryCreateDebugRenderData())
+                RegisterDebug();
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnClearLightingdata;
@@ -371,12 +386,12 @@ namespace UnityEngine.Rendering
             ClearDebugData();
         }
 
-        void RegisterDebug(ProbeVolumeSystemParameters parameters)
+        void RegisterDebug()
         {
             void RefreshDebug<T>(DebugUI.Field<T> field, T value)
             {
                 UnregisterDebug(false);
-                RegisterDebug(parameters);
+                RegisterDebug();
             }
 
             const float kProbeSizeMin = 0.05f, kProbeSizeMax = 10.0f;
@@ -384,22 +399,68 @@ namespace UnityEngine.Rendering
 
             var widgetList = new List<DebugUI.Widget>();
 
-            var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Cells", tooltip = "Draw Cells used for loading and streaming.", getter = () => probeVolumeDebug.drawCells, setter = value => probeVolumeDebug.drawCells = value, onValueChanged = RefreshDebug });
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Display Bricks", tooltip = "Display Subdivision bricks.", getter = () => probeVolumeDebug.drawBricks, setter = value => probeVolumeDebug.drawBricks = value, onValueChanged = RefreshDebug });
-#if UNITY_EDITOR
-            subdivContainer.children.Add(new DebugUI.BoolField { displayName = "Live Subdivision Preview", tooltip = "Enable a preview of Probe Volume data in the Scene without baking. Can impact Editor performance.", getter = () => probeVolumeDebug.realtimeSubdivision, setter = value => probeVolumeDebug.realtimeSubdivision = value, onValueChanged = RefreshDebug });
-            if (probeVolumeDebug.realtimeSubdivision)
+            widgetList.Add(new DebugUI.RuntimeDebugShadersMessageBox());
+
+            var subdivContainer = new DebugUI.Container()
             {
-                var cellUpdatePerFrame = new DebugUI.IntField { displayName = "Cell Updates Per Frame", tooltip = "The number of Cells, bricks, and probe positions updated per frame. Higher numbers can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 };
-                var delayBetweenUpdates = new DebugUI.FloatField { displayName = "Update Frequency", tooltip = "Delay in seconds between updates to Cell, Brick, and Probe positions if Live Subdivision Preview is enabled.", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 };
-                subdivContainer.children.Add(new DebugUI.Container { children = { cellUpdatePerFrame, delayBetweenUpdates } });
+                displayName = "Subdivision Visualization",
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return false;
+#else
+                    return false; // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
+#endif
+                }
+            };
+            subdivContainer.children.Add(new DebugUI.BoolField 
+            { 
+                displayName = "Display Cells",
+                tooltip = "Draw Cells used for loading and streaming.",
+                getter = () => probeVolumeDebug.drawCells,
+                setter = value => probeVolumeDebug.drawCells = value,
+                onValueChanged = RefreshDebug
+            });
+            subdivContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Display Bricks",
+                tooltip = "Display Subdivision bricks.",
+                getter = () => probeVolumeDebug.drawBricks,
+                setter = value => probeVolumeDebug.drawBricks = value,
+                onValueChanged = RefreshDebug
+            });
+
+#if UNITY_EDITOR
+            if(probeVolumeDebug.drawCells || probeVolumeDebug.drawBricks)
+            {
+                subdivContainer.children.Add(new DebugUI.BoolField
+                {
+                    displayName = "Live Subdivision Preview",
+                    tooltip = "Enable a preview of Probe Volume data in the Scene without baking. Can impact Editor performance.",
+                    getter = () => probeVolumeDebug.realtimeSubdivision,
+                    setter = value => probeVolumeDebug.realtimeSubdivision = value,
+                });
+
+                var realtimeSubdivisonChildContainer = new DebugUI.Container()
+                {
+                    isHiddenCallback = () => !probeVolumeDebug.realtimeSubdivision
+                };
+                realtimeSubdivisonChildContainer.children.Add(new DebugUI.IntField { displayName = "Cell Updates Per Frame", tooltip = "The number of Cells, bricks, and probe positions updated per frame. Higher numbers can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 });
+                realtimeSubdivisonChildContainer.children.Add(new DebugUI.FloatField { displayName = "Update Frequency", tooltip = "Delay in seconds between updates to Cell, Brick, and Probe positions if Live Subdivision Preview is enabled.", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 });
+                subdivContainer.children.Add(realtimeSubdivisonChildContainer);
             }
 #endif
 
             subdivContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw debug visualization for Cells and Bricks. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionViewCullingDistance, setter = value => probeVolumeDebug.subdivisionViewCullingDistance = value, min = () => 0.0f });
+            widgetList.Add(subdivContainer);
 
-            var probeContainer = new DebugUI.Container() { displayName = "Probe Visualization" };
+            widgetList.Add(new DebugUI.RuntimeDebugShadersMessageBox());
+
+            var probeContainer = new DebugUI.Container()
+            {
+                displayName = "Probe Visualization"
+            };
+
             probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", tooltip = "Render the debug view showing probe positions. Use the shading mode to determine which type of lighting data to visualize.", getter = () => probeVolumeDebug.drawProbes, setter = value => probeVolumeDebug.drawProbes = value, onValueChanged = RefreshDebug });
             if (probeVolumeDebug.drawProbes)
             {
@@ -413,20 +474,38 @@ namespace UnityEngine.Rendering
                     autoEnum = typeof(DebugProbeShadingMode),
                     getIndex = () => (int)probeVolumeDebug.probeShading,
                     setIndex = value => probeVolumeDebug.probeShading = (DebugProbeShadingMode)value,
-                    onValueChanged = RefreshDebug
                 });
                 probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Debug Size", tooltip = "The size of probes shown in the debug view.", getter = () => probeVolumeDebug.probeSize, setter = value => probeVolumeDebug.probeSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
-                if (probeVolumeDebug.probeShading == DebugProbeShadingMode.SH || probeVolumeDebug.probeShading == DebugProbeShadingMode.SHL0 || probeVolumeDebug.probeShading == DebugProbeShadingMode.SHL0L1)
-                    probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Exposure Compensation", tooltip = "Modify the brightness of probe visualizations. Decrease this number to make very bright probes more visible.", getter = () => probeVolumeDebug.exposureCompensation, setter = value => probeVolumeDebug.exposureCompensation = value });
+
+                var exposureCompensation = new DebugUI.FloatField
+                {
+                    displayName = "Exposure Compensation",
+                    tooltip = "Modify the brightness of probe visualizations. Decrease this number to make very bright probes more visible.",
+                    getter = () => probeVolumeDebug.exposureCompensation,
+                    setter = value => probeVolumeDebug.exposureCompensation = value,
+                    isHiddenCallback = () =>
+                    {
+                        return probeVolumeDebug.probeShading switch
+                        {
+                            DebugProbeShadingMode.SH => false,
+                            DebugProbeShadingMode.SHL0 => false,
+                            DebugProbeShadingMode.SHL0L1 => false,
+                            DebugProbeShadingMode.SkyOcclusionSH => false,
+                            DebugProbeShadingMode.SkyDirection => false,
+                            _ => true
+                        };
+                    }
+                };
+                probeContainerChildren.children.Add(exposureCompensation);
 
                 probeContainerChildren.children.Add(new DebugUI.IntField
                 {
                     displayName = "Max Subdivisions Displayed",
                     tooltip = "The highest (most dense) probe subdivision level displayed in the debug view.",
                     getter = () => probeVolumeDebug.maxSubdivToVisualize,
-                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1),
+                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, GetMaxSubdivision() - 1),
                     min = () => 0,
-                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision() - 1,
+                    max = () => GetMaxSubdivision() - 1,
                 });
 
                 probeContainerChildren.children.Add(new DebugUI.IntField
@@ -436,7 +515,7 @@ namespace UnityEngine.Rendering
                     getter = () => probeVolumeDebug.minSubdivToVisualize,
                     setter = (v) => probeVolumeDebug.minSubdivToVisualize = Mathf.Max(v, 0),
                     min = () => 0,
-                    max = () => ProbeReferenceVolume.instance.GetMaxSubdivision() - 1,
+                    max = () => GetMaxSubdivision() - 1,
                 });
 
 
@@ -454,16 +533,16 @@ namespace UnityEngine.Rendering
                     probeSamplingDebugData.update = ProbeSamplingDebugUpdate.Once;
                     probeSamplingDebugData.forceScreenCenterCoordinates = true;
                 },
-                onValueChanged = RefreshDebug
             });
 
-            if (probeVolumeDebug.drawProbeSamplingDebug)
+            var drawProbeSamplingDebugChildren = new DebugUI.Container()
             {
-                var probeContainerChildren = new DebugUI.Container();
-                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Debug Size", tooltip = "The size of gizmos shown in the debug view.", getter = () => probeVolumeDebug.probeSamplingDebugSize, setter = value => probeVolumeDebug.probeSamplingDebugSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
-                probeContainerChildren.children.Add(new DebugUI.BoolField { displayName = "Debug With Sampling Noise", tooltip = "Enable Sampling Noise for this debug view. It should be enabled for accuracy but it can make results more difficult to read", getter = () => probeVolumeDebug.debugWithSamplingNoise, setter = value =>{probeVolumeDebug.debugWithSamplingNoise = value;}, onValueChanged = RefreshDebug });
-                probeContainer.children.Add(probeContainerChildren);
-            }
+                isHiddenCallback = () => !probeVolumeDebug.drawProbeSamplingDebug
+            };
+
+            drawProbeSamplingDebugChildren.children.Add(new DebugUI.FloatField { displayName = "Debug Size", tooltip = "The size of gizmos shown in the debug view.", getter = () => probeVolumeDebug.probeSamplingDebugSize, setter = value => probeVolumeDebug.probeSamplingDebugSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
+            drawProbeSamplingDebugChildren.children.Add(new DebugUI.BoolField { displayName = "Debug With Sampling Noise", tooltip = "Enable Sampling Noise for this debug view. It should be enabled for accuracy but it can make results more difficult to read", getter = () => probeVolumeDebug.debugWithSamplingNoise, setter = value => { probeVolumeDebug.debugWithSamplingNoise = value; }, onValueChanged = RefreshDebug });
+            probeContainer.children.Add(drawProbeSamplingDebugChildren);
 
             probeContainer.children.Add(new DebugUI.BoolField
             {
@@ -480,36 +559,39 @@ namespace UnityEngine.Rendering
                         var searchDistance = CellSize(0) * MinBrickSize() / ProbeBrickPool.kBrickCellCount * m_CurrentBakingSet.settings.virtualOffsetSettings.searchMultiplier + m_CurrentBakingSet.settings.virtualOffsetSettings.outOfGeoOffset;
                         probeVolumeDebug.probeSize = Mathf.Min(probeVolumeDebug.probeSize, Mathf.Clamp(searchDistance, kProbeSizeMin, kProbeSizeMax));
                     }
-                },
-                onValueChanged = RefreshDebug
+                } 
             });
-            if (probeVolumeDebug.drawVirtualOffsetPush)
+            var voOffset = new DebugUI.FloatField
             {
-                var voOffset = new DebugUI.FloatField { displayName = "Debug Size", tooltip = "Modify the size of the arrows used in the virtual offset debug visualization.", getter = () => probeVolumeDebug.offsetSize, setter = value => probeVolumeDebug.offsetSize = value, min = () => kOffsetSizeMin, max = () => kOffsetSizeMax };
-                probeContainer.children.Add(new DebugUI.Container { children = { voOffset } });
-            }
+                displayName = "Debug Size",
+                tooltip = "Modify the size of the arrows used in the virtual offset debug visualization.",
+                getter = () => probeVolumeDebug.offsetSize,
+                setter = value => probeVolumeDebug.offsetSize = value,
+                min = () => kOffsetSizeMin,
+                max = () => kOffsetSizeMax,
+                isHiddenCallback = () => !probeVolumeDebug.drawVirtualOffsetPush
+            };
+            probeContainer.children.Add(new DebugUI.Container { children = { voOffset } });
 
             probeContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw probe debug visualizations. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.probeCullingDistance, setter = value => probeVolumeDebug.probeCullingDistance = value, min = () => 0.0f });
+            widgetList.Add(probeContainer);
 
-            if (parameters.supportsRuntimeDebug)
+            var streamingContainer = new DebugUI.Container()
             {
-                // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
-                if (Application.isEditor)
-                    widgetList.Add(subdivContainer);
-
-                widgetList.Add(probeContainer);
-            }
-
-            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
+                displayName = "Streaming",
+                isHiddenCallback = () => !(gpuStreamingEnabled || diskStreamingEnabled)
+            };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", tooltip = "Stop Unity from streaming probe data in or out of GPU memory.", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Streaming Score", getter = () => probeVolumeDebug.displayCellStreamingScore, setter = value => probeVolumeDebug.displayCellStreamingScore = value });
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Maximum cell streaming", tooltip = "Enable streaming as many cells as possible every frame.", getter = () => instance.loadMaxCellsPerFrame, setter = value => instance.loadMaxCellsPerFrame = value, onValueChanged = RefreshDebug });
-            if (!instance.loadMaxCellsPerFrame)
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Maximum cell streaming", tooltip = "Enable streaming as many cells as possible every frame.", getter = () => instance.loadMaxCellsPerFrame, setter = value => instance.loadMaxCellsPerFrame = value});
+
+            var maxCellStreamingContainerChildren = new DebugUI.Container()
             {
-                var maxCellStreamingContainerChildren = new DebugUI.Container();
-                maxCellStreamingContainerChildren.children.Add(new DebugUI.IntField { displayName = "Loaded Cells Per Frame", tooltip = "Determines the maximum number of Cells Unity streams per frame. Loading more Cells per frame can impact performance.", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 1, max = () => kMaxCellLoadedPerFrame });
-                streamingContainer.children.Add(maxCellStreamingContainerChildren);
-            }
+                isHiddenCallback = () => instance.loadMaxCellsPerFrame
+            };
+            maxCellStreamingContainerChildren.children.Add(new DebugUI.IntField { displayName = "Loaded Cells Per Frame", tooltip = "Determines the maximum number of Cells Unity streams per frame. Loading more Cells per frame can impact performance.", getter = () => instance.numberOfCellsLoadedPerFrame, setter = value => instance.SetNumberOfCellsLoadedPerFrame(value), min = () => 1, max = () => kMaxCellLoadedPerFrame });
+            streamingContainer.children.Add(maxCellStreamingContainerChildren);
+
             // Those are mostly for internal dev purpose.
             if (Debug.isDebugBuild)
             {
@@ -518,14 +600,12 @@ namespace UnityEngine.Rendering
                 indexDefragContainerChildren.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
                 streamingContainer.children.Add(indexDefragContainerChildren);
                 streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Verbose Log", getter = () => probeVolumeDebug.verboseStreamingLog, setter = value => probeVolumeDebug.verboseStreamingLog = value });
+                streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Debug Streaming", getter = () => probeVolumeDebug.debugStreaming, setter = value => probeVolumeDebug.debugStreaming = value });
             }
 
-            if (parameters.supportGPUStreaming || parameters.supportDiskStreaming)
-            {
-                widgetList.Add(streamingContainer);
-            }
+            widgetList.Add(streamingContainer);
 
-            if (parameters.supportScenarios && parameters.scenarioBlendingShader != null && parameters.blendingMemoryBudget != 0 && m_CurrentBakingSet != null)
+            if (supportScenarioBlending && m_CurrentBakingSet != null)
             {
                 var blendingContainer = new DebugUI.Container() { displayName = "Scenario Blending" };
                 blendingContainer.children.Add(new DebugUI.IntField { displayName = "Number Of Cells Blended Per Frame", getter = () => instance.numberOfCellsBlendedPerFrame, setter = value => instance.numberOfCellsBlendedPerFrame = value, min = () => 0 });
@@ -574,7 +654,7 @@ namespace UnityEngine.Rendering
                     enumValues = m_DebugScenarioValues,
                     getIndex = () =>
                     {
-                        RefreshScenarioNames(ProbeVolumeSceneData.GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
+                        RefreshScenarioNames(GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
                         probeVolumeDebug.otherStateIndex = 0;
                         if (!string.IsNullOrEmpty(m_CurrentBakingSet.otherScenario))
@@ -673,8 +753,7 @@ namespace UnityEngine.Rendering
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
         {
             var cellSize = MaxBrickSize();
-            var originWS = GetTransform().posWS;
-            Vector3 cellCenterWS = cellPosition * cellSize + originWS + Vector3.one * (cellSize / 2.0f);
+            Vector3 cellCenterWS = cellPosition * cellSize + Vector3.one * (cellSize / 2.0f);
 
             // We do coarse culling with cell, finer culling later.
             float distanceRoundedUpWithCellSize = Mathf.CeilToInt(probeVolumeDebug.probeCullingDistance / cellSize) * cellSize;
@@ -686,7 +765,7 @@ namespace UnityEngine.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
-        void DrawProbeDebug(Camera camera)
+        void DrawProbeDebug(Camera camera, Texture exposureTexture)
         {
             if (!enabledBySRP || !isInitialized)
                 return;
@@ -717,7 +796,7 @@ namespace UnityEngine.Rendering
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator01Color", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator02Color", new Vector4(0.3f, 0.3f, 0.3f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
-                m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_displayNumbersTexture);
+                m_ProbeSamplingDebugMaterial.SetTexture("_NumbersTex", m_DisplayNumbersTexture);
                 m_ProbeSamplingDebugMaterial.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
                 m_ProbeSamplingDebugMaterial.SetInt("_ForceDebugNormalViewBias", 0); // Add a secondary locator to show intermediate position (with no Anti-Leak) when Anti-Leak is active
 
@@ -728,17 +807,17 @@ namespace UnityEngine.Rendering
             }
 
             // Sanitize the min max subdiv levels with what is available
-            int minAvailableSubdiv = ProbeReferenceVolume.instance.cells.Count > 0 ? ProbeReferenceVolume.instance.GetMaxSubdivision()-1 : 0;
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            int minAvailableSubdiv = cells.Count > 0 ? GetMaxSubdivision()-1 : 0;
+            foreach (var cell in cells.Values)
             {
                 minAvailableSubdiv = Mathf.Min(minAvailableSubdiv, cell.desc.minSubdiv);
             }
 
-            probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, ProbeReferenceVolume.instance.GetMaxSubdivision() - 1);
-            m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, GetMaxSubdivision() - 1);
+            m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == GetMaxSubdivision() - 1;
             probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
 
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in cells.Values)
             {
                 if (ShouldCullCell(cell.desc.position, camera.transform, m_DebugFrustumPlanes))
                     continue;
@@ -759,6 +838,7 @@ namespace UnityEngine.Rendering
                     props.SetInt("_MinAllowedSubdiv", probeVolumeDebug.minSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", m_CurrentBakingSet.settings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
+                    props.SetTexture("_ExposureTexture", exposureTexture);
 
                     if (probeVolumeDebug.drawProbes)
                     {
@@ -790,7 +870,7 @@ namespace UnityEngine.Rendering
         internal void ResetDebugViewToMaxSubdiv()
         {
             if (m_MaxSubdivVisualizedIsMaxAvailable)
-                probeVolumeDebug.maxSubdivToVisualize = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+                probeVolumeDebug.maxSubdivToVisualize = GetMaxSubdivision() - 1;
         }
 
         void ClearDebugData()
@@ -803,7 +883,7 @@ namespace UnityEngine.Rendering
             if (cell.debugProbes != null)
                 return cell.debugProbes;
 
-            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            int maxSubdiv = GetMaxSubdivision() - 1;
 
             if (!cell.data.bricks.IsCreated || cell.data.bricks.Length == 0 || !cell.data.probePositions.IsCreated || !cell.loaded)
                 return null;

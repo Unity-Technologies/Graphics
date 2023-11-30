@@ -1,13 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -15,12 +8,13 @@ namespace UnityEditor.Rendering.HighDefinition
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public override int Priority => 100;
-        private HDRenderPipelineRuntimeResources m_Resources;
+        private HDRenderPipelineRuntimeResources.ShaderResources m_ShaderResources;
+        private HDRenderPipelineRuntimeMaterials m_MaterialResources;
 
         public CommonShaderPreprocessor()
         {
-            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
-            m_Resources = globalSettings.renderPipelineResources;
+            m_ShaderResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            m_MaterialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -32,25 +26,32 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove water if disabled
             if (!settings.supportWater)
             {
-                
-                if (shader == m_Resources.shaders.waterCausticsPS ||
-                    shader == m_Resources.shaders.waterFoamPS ||
-                    shader == m_Resources.shaders.waterPS ||
-                    shader == m_Resources.materials.waterExclusionMaterial.shader)
+                if (shader == m_ShaderResources.opaqueAtmosphericScatteringPS)
+                {
+                    if (inputData.shaderKeywordSet.IsEnabled(m_SupportWater) ||
+                        inputData.shaderKeywordSet.IsEnabled(m_SupportWaterCaustics) ||
+                        inputData.shaderKeywordSet.IsEnabled(m_SupportWaterCausticsShadow))
+                        return true;
+                }
+
+                if (shader == m_ShaderResources.waterCausticsPS ||
+                    shader == m_ShaderResources.waterFoamPS ||
+                    shader == m_ShaderResources.waterPS ||
+                    shader == m_MaterialResources.waterExclusionMaterial.shader)
                     return true;
             }
-            
+
             // If Screen Space Lens Flare is disabled, strip all the shaders
             if (!settings.supportScreenSpaceLensFlare)
             {
-                if (shader == m_Resources.shaders.lensFlareScreenSpacePS)
+                if (shader == m_ShaderResources.lensFlareScreenSpacePS)
                     return true;
             }
-            
+
             // If Data Driven Lens Flare is disabled, strip all the shaders (the preview shader LensFlareDataDrivenPreview.shader in Core will not be stripped)
             if (!settings.supportDataDrivenLensFlare)
             {
-                if (shader == m_Resources.shaders.lensFlareDataDrivenPS)
+                if (shader == m_ShaderResources.lensFlareDataDrivenPS)
                     return true;
             }
 
@@ -105,40 +106,29 @@ namespace UnityEditor.Rendering.HighDefinition
             // we allow user to make explicit request for it and it bypass other request
             if (m_StripDebugVariants && !settings.supportRuntimeAOVAPI)
             {
-                if (shader == m_Resources.shaders.debugDisplayLatlongPS ||
-                    shader == m_Resources.shaders.debugViewMaterialGBufferPS ||
-                    shader == m_Resources.shaders.debugViewTilesPS ||
-                    shader == m_Resources.shaders.debugFullScreenPS ||
-                    shader == m_Resources.shaders.debugColorPickerPS ||
-                    shader == m_Resources.shaders.debugExposurePS ||
-                    shader == m_Resources.shaders.debugHDRPS ||
-                    shader == m_Resources.shaders.debugLightVolumePS ||
-                    shader == m_Resources.shaders.debugBlitQuad ||
-                    shader == m_Resources.shaders.debugViewVirtualTexturingBlit ||
-                    shader == m_Resources.shaders.debugWaveformPS ||
-                    shader == m_Resources.shaders.debugVectorscopePS ||
-                    shader == m_Resources.shaders.debugLocalVolumetricFogAtlasPS)
+                if (shader == m_ShaderResources.debugDisplayLatlongPS ||
+                    shader == m_ShaderResources.debugViewMaterialGBufferPS ||
+                    shader == m_ShaderResources.debugViewTilesPS ||
+                    shader == m_ShaderResources.debugFullScreenPS ||
+                    shader == m_ShaderResources.debugColorPickerPS ||
+                    shader == m_ShaderResources.debugExposurePS ||
+                    shader == m_ShaderResources.debugHDRPS ||
+                    shader == m_ShaderResources.debugLightVolumePS ||
+                    shader == m_ShaderResources.debugBlitQuad ||
+                    shader == m_ShaderResources.debugViewVirtualTexturingBlit ||
+                    shader == m_ShaderResources.debugWaveformPS ||
+                    shader == m_ShaderResources.debugVectorscopePS ||
+                    shader == m_ShaderResources.debugLocalVolumetricFogAtlasPS)
                     return true;
 
                 if (inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                     return true;
             }
 
-            // Remove APV debug if disabled
-            if (m_StripDebugVariants || !settings.supportProbeVolume)
-            {
-                if (shader == m_Resources.shaders.probeVolumeDebugShader ||
-                    shader == m_Resources.shaders.probeVolumeFragmentationDebugShader ||
-                    shader == m_Resources.shaders.probeVolumeSamplingDebugShader ||
-                    shader == m_Resources.shaders.probeVolumeOffsetDebugShader)
-                    return true;
-            }
-
-
             if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
-                if (shader == m_Resources.shaders.deferredPS ||
-                    shader == m_Resources.shaders.deferredTilePS)
+                if (shader == m_ShaderResources.deferredPS ||
+                    shader == m_ShaderResources.deferredTilePS)
                     return true;
             }
 
@@ -147,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!settings.supportSubsurfaceScattering)
             {
-                if (shader == m_Resources.shaders.combineLightingPS)
+                if (shader == m_ShaderResources.combineLightingPS)
                     return true;
                 // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
                 if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering))
@@ -156,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!settings.lightLoopSettings.supportFabricConvolution)
             {
-                if (shader == m_Resources.shaders.charlieConvolvePS)
+                if (shader == m_ShaderResources.charlieConvolvePS)
                     return true;
             }
 
@@ -214,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
             }
 
-            if (!shadowInitParams.supportScreenSpaceShadows && shader == m_Resources.shaders.screenSpaceShadowPS)
+            if (!shadowInitParams.supportScreenSpaceShadows && shader == m_ShaderResources.screenSpaceShadowPS)
                 return true;
 
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
@@ -306,168 +296,6 @@ namespace UnityEditor.Rendering.HighDefinition
                  return true;
 
             return false;
-        }
-    }
-
-    // Build preprocessor to find all potentially used HDRP assets.
-    class ShaderBuildPreprocessor : IPreprocessBuildWithReport
-    {
-        private static List<HDRenderPipelineAsset> _hdrpAssets;
-        private static Dictionary<int, ComputeShader> s_ComputeShaderCache;
-        private static bool s_PlayerNeedRaytracing;
-
-        public static List<HDRenderPipelineAsset> hdrpAssets
-        {
-            get
-            {
-                if (_hdrpAssets == null || _hdrpAssets.Count == 0)
-                    GetAllValidHDRPAssets(EditorUserBuildSettings.activeBuildTarget);
-                return _hdrpAssets;
-            }
-        }
-
-
-        public static Dictionary<int, ComputeShader> computeShaderCache
-        {
-            get
-            {
-                if (s_ComputeShaderCache == null)
-                    BuilRaytracingComputeList();
-                return s_ComputeShaderCache;
-            }
-        }
-
-        public static bool playerNeedRaytracing
-        {
-            get
-            {
-                return s_PlayerNeedRaytracing;
-            }
-        }
-
-        public static void BuilRaytracingComputeList()
-        {
-            if (s_ComputeShaderCache != null)
-                s_ComputeShaderCache.Clear();
-            else
-                s_ComputeShaderCache = new Dictionary<int, ComputeShader>();
-
-            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
-                return;
-
-            if (HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources == null)
-                return;
-
-            foreach (var fieldInfo in HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
-            {
-                ComputeShader computeshader;
-                computeshader = fieldInfo.GetValue(HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources) as ComputeShader;
-
-                if (computeshader != null)
-                {
-                    s_ComputeShaderCache.Add(computeshader.GetInstanceID(), computeshader);
-                }
-            }
-        }
-
-        static void GetAllValidHDRPAssets(BuildTarget buildTarget)
-        {
-            s_PlayerNeedRaytracing = false;
-
-            if (HDRenderPipeline.currentAsset == null)
-                return;
-
-            if (_hdrpAssets != null)
-                _hdrpAssets.Clear();
-            else
-                _hdrpAssets = new List<HDRenderPipelineAsset>();
-
-            // Here we want the HDRP Assets that are actually used at runtime.
-            // An SRP asset is included if:
-            // 1. It is set in an enabled quality level
-            // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
-            //   AND at least one quality level does not have SRP override
-            // Fetch all SRP overrides in all enabled quality levels for this platform
-            buildTarget.TryGetRenderPipelineAssets<HDRenderPipelineAsset>(_hdrpAssets);
-
-            // Get all enabled scenes path in the build settings.
-            var scenesPaths = EditorBuildSettings.scenes
-                .Where(s => s.enabled)
-                .Select(s => s.path);
-
-            // Find all HDRP assets that are dependencies of the scenes.
-            var depsArray = AssetDatabase.GetDependencies(scenesPaths.ToArray());
-            HashSet<string> depsHash = new HashSet<string>(depsArray);
-
-            var guidRenderPipelineAssets = AssetDatabase.FindAssets("t:HDRenderPipelineAsset");
-
-            for (int i = 0; i < guidRenderPipelineAssets.Length; ++i)
-            {
-                var curGUID = guidRenderPipelineAssets[i];
-                var curPath = AssetDatabase.GUIDToAssetPath(curGUID);
-                if (depsHash.Contains(curPath))
-                {
-                    _hdrpAssets.Add(AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(curPath));
-                }
-            }
-
-            // Add the HDRP assets that are in the Resources folders.
-            // Do not call this function below because it cause the issue https://fogbugz.unity3d.com/f/cases/1417508/
-            // Users will need to rely on label instead.
-            //_hdrpAssets.AddRange(Resources.LoadAll<HDRenderPipelineAsset>(""));
-
-            // Add the HDRP assets that are labeled to be included
-            _hdrpAssets.AddRange(
-                AssetDatabase.FindAssets("t:HDRenderPipelineAsset l:" + HDEditorUtils.HDRPAssetBuildLabel)
-                    .Select(s => AssetDatabase.LoadAssetAtPath<HDRenderPipelineAsset>(AssetDatabase.GUIDToAssetPath(s)))
-            );
-
-            // Discard duplicate entries
-            using (HashSetPool<HDRenderPipelineAsset>.Get(out var uniques))
-            {
-                foreach (var hdrpAsset in _hdrpAssets)
-                    uniques.Add(hdrpAsset);
-                _hdrpAssets.Clear();
-                _hdrpAssets.AddRange(uniques);
-            }
-
-            // Prompt a warning if we find 0 HDRP Assets.
-            if (_hdrpAssets.Count == 0)
-            {
-                if (!Application.isBatchMode)
-                {
-                    if (!EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
-                        throw new UnityEditor.Build.BuildFailedException("Build canceled");
-                }
-                else
-                {
-                    Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
-                }
-            }
-            else
-            {
-                // Take the opportunity to know if we need raytracing at runtime
-                foreach (var hdrpAsset in _hdrpAssets)
-                {
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
-                        s_PlayerNeedRaytracing = true;
-                }
-            }
-
-            Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
-                _hdrpAssets.Count,
-                _hdrpAssets
-                    .Select(a => a.name)
-                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}")
-                ));
-
-        }
-
-        public int callbackOrder { get { return 0; } }
-
-        public void OnPreprocessBuild(BuildReport report)
-        {
-            GetAllValidHDRPAssets(EditorUserBuildSettings.activeBuildTarget);
         }
     }
 }

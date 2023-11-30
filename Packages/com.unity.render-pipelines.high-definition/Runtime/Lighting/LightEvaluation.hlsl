@@ -89,9 +89,84 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, flo
     return SampleCookie2D(saturate(hitUV), cookieScaleOffset, mipLevel);
 }
 
-float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+// Helper function for rectangular area lights.
+// Input: 'ltcVerts' must be inversely transformed in such a way that the transformed BRDF becomes uniform (diffuse).
+// Returns unassociated (non-premultiplied) color with alpha (irradiance).
+// The calling code must perform alpha-compositing.
+float4 EvaluateLTC_Rect(float4x3 ltcVerts, float perceptualRoughness, int cookieMode, float4 cookieScaleOffset)
 {
-    return SampleAreaLightCookie(cookieScaleOffset, L, F, 1.0f);
+    float4 ltcValue;
+    float3 formFactor;
+
+    // Polygon irradiance in the transformed configuration.
+    ltcValue.a   = PolygonIrradiance(ltcVerts, formFactor);
+    ltcValue.rgb = float3(1,1,1);
+
+    if (cookieMode != COOKIEMODE_NONE)
+    {
+        ltcValue.rgb = SampleAreaLightCookie(cookieScaleOffset, ltcVerts, formFactor, perceptualRoughness);
+    }
+
+    return ltcValue;
+}
+
+float4 EvaluateLTC_Area(bool isRectLight, float3 center, float3 right, float3 up, float halfLength, float halfHeight,
+                        float3x3 invM, float perceptualRoughness, int cookieMode, float4 cookieScaleOffset)
+{
+    float3 ortho   = cross(center, right);
+    float  orthoSq = dot(ortho, ortho);
+
+    // Check whether the light is in a vertical orientation.
+    bool quit = (orthoSq == 0);
+
+    // Check whether the light is entirely below the surface.
+    // We must test twice, since a linear transformation
+    // may bring the light above the surface (a side-effect).
+    quit = quit || (center.z + halfLength * abs(right.z) + halfHeight * abs(up.z) <= 0);
+
+    float4 ltcValue = float4(1, 1, 1, 0);
+
+    if (!quit)
+    {
+        // Perform a sparse matrix multiplication.
+        float3 C = mul(invM, center);
+        float3 A = mul(invM, right);
+        float3 B = mul(invM, up);
+
+        // Check whether the light is entirely below the surface.
+        // We must test twice, since a linear transformation
+        // may bring the light below the surface (as expected).
+        if (C.z + halfLength * abs(A.z) + halfHeight * abs(B.z) > 0)
+        {
+            if (isRectLight)
+            {
+                float4x3 lightVerts;
+
+                lightVerts[0] = C - halfLength * A - halfHeight  * B; // LL
+                lightVerts[1] = lightVerts[0] + (2 * halfHeight) * B; // UL
+                lightVerts[2] = lightVerts[1] + (2 * halfLength) * A; // UR
+                lightVerts[3] = lightVerts[2] - (2 * halfHeight) * B; // LR
+
+                float3 formFactor;
+
+                // Polygon irradiance in the transformed configuration.
+                ltcValue.a = PolygonIrradiance(lightVerts, formFactor);
+
+                if (cookieMode != COOKIEMODE_NONE)
+                {
+                    ltcValue.rgb = SampleAreaLightCookie(cookieScaleOffset, lightVerts, formFactor, perceptualRoughness);
+                }
+            }
+            else // Line light
+            {
+                float w = ComputeLineWidthFactor(invM, ortho, orthoSq);
+
+                ltcValue.a = I_diffuse_line(C, A, halfLength) * w;
+            }
+        }
+    }
+
+    return ltcValue;
 }
 
 // This function transforms a rectangular area light according the the barn door inputs defined by the user.
@@ -186,20 +261,15 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
                                  DirectionalLightData light)
 {
     float4 color = float4(light.color, 1.0);
-
     float3 L = -light.forward;
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.
     {
-        // TODO: should probably unify height attenuation somehow...
-        float  cosZenithAngle = max(L.y, 0.001f);
-        float  fragmentHeight = posInput.positionWS.y;
-        float3 oDepth = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
-        // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
-        float3 transm = TransmittanceFromOpticalDepth(oDepth);
-        color.rgb *= transm;
+        float cosZenithAngle = max(dot(L, _PlanetUp), 0.001f);
+        float fragmentHeight = dot(posInput.positionWS, _PlanetUp);
+        color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                          _HeightFogExponents, cosZenithAngle, fragmentHeight);
     }
 #endif
 
@@ -210,34 +280,8 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 #else
     // Use scalar or integer cores (more efficient).
     bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
-
     if (interactsWithSky)
-    {
-        // TODO: should probably unify height attenuation somehow...
-        // TODO: Not sure it's possible to precompute cam rel pos since variables
-        // in the two constant buffers may be set at a different frequency?
-        float3 X = GetAbsolutePositionWS(posInput.positionWS);
-        float3 C = _PlanetCenterPosition.xyz;
-
-        float r        = distance(X, C);
-        float cosHoriz = ComputeCosineOfHorizonAngle(r);
-        float cosTheta = dot(X - C, L) * rcp(r); // Normalize
-
-        if (cosTheta >= cosHoriz) // Above horizon
-        {
-            float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
-            // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
-            float3 transm  = TransmittanceFromOpticalDepth(oDepth);
-            float3 opacity = 1 - transm;
-            color.rgb *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
-        }
-        else
-        {
-            // return 0; // Kill the light. This generates a warning, so can't early out. :-(
-           color = 0;
-        }
-    }
-
+        color.xyz *= EvaluateSunColorAttenuation(posInput.positionWS - _PlanetCenterPosition, L);
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
@@ -248,12 +292,6 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
         color.rgb *= cookie;
     }
-#endif
-
-#ifndef LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
-    // Apply the volumetric cloud shadow if relevant
-    if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
-        color.rgb *= EvaluateVolumetricCloudsShadows(lightLoopContext, light, posInput.positionWS);
 #endif
 
     return color;
@@ -280,12 +318,20 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
     #ifdef SHADOWS_SHADOWMASK
         float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-        float fade = saturate(distanceCamToPixel2 * light.cascadesBorderFadeScaleBias.x + light.cascadesBorderFadeScaleBias.y);
 
-        // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
-        // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
-        // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
-        shadow = shadow - fade + fade * shadowMask;
+        int shadowSplitIndex = lightLoopContext.shadowContext.shadowSplitIndex;
+        if (shadowSplitIndex < 0)
+        {
+            shadow = shadowMask;
+        }
+        else if (shadowSplitIndex == int(_CascadeShadowCount) - 1)
+        {
+            float fade = lightLoopContext.shadowContext.fade;
+            // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
+            // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
+            // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
+            shadow = shadow - fade + fade * shadowMask;
+        }
 
         // See comment in EvaluateBSDF_Punctual
         shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
@@ -431,8 +477,8 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     // Height fog attenuation.
     // TODO: add an if()?
     {
-        float cosZenithAngle = L.y;
-        float fragmentHeight = posInput.positionWS.y;
+        float cosZenithAngle = dot(L, _PlanetUp);
+        float fragmentHeight = dot(posInput.positionWS, _PlanetUp);
         color.a *= TransmittanceHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                                           _HeightFogExponents, cosZenithAngle,
                                           fragmentHeight, distances.x);

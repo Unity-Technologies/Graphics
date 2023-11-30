@@ -58,9 +58,12 @@
 #define TEXTURECUBE_SHADOW(textureName)       TEXTURECUBE(textureName)
 #define TEXTURECUBE_ARRAY_SHADOW(textureName) TEXTURECUBE_ARRAY(textureName)
 
-#define RW_TEXTURE2D(type, textureName)       RWTexture2D<type> textureName
-#define RW_TEXTURE2D_ARRAY(type, textureName) RWTexture2DArray<type> textureName
-#define RW_TEXTURE3D(type, textureName)       RWTexture3D<type> textureName
+#define TYPED_TEXTURE2D(type, textureName)       Texture2D<type> textureName
+#define TYPED_TEXTURE2D_ARRAY(type, textureName) Texture2DArray<type> textureName
+#define TYPED_TEXTURE3D(type, textureName)       Texture3D<type> textureName
+#define RW_TEXTURE2D(type, textureName)          RWTexture2D<type> textureName
+#define RW_TEXTURE2D_ARRAY(type, textureName)    RWTexture2DArray<type> textureName
+#define RW_TEXTURE3D(type, textureName)          RWTexture3D<type> textureName
 
 #define SAMPLER(samplerName)                  SamplerState samplerName
 #define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
@@ -149,4 +152,5 @@
 #define GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2)           textureName.GatherBlue(samplerName, coord2)
 #define GATHER_ALPHA_TEXTURE2D(textureName, samplerName, coord2)          textureName.GatherAlpha(samplerName, coord2)
 
-#define PLATFORM_SUPPORTS_NATIVE_RENDERPASS
+// WebGPU does not support native RenderPass.
+//#define PLATFORM_SUPPORTS_NATIVE_RENDERPASS

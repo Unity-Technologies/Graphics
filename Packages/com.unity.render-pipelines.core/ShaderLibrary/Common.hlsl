@@ -1,7 +1,7 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -118,7 +118,7 @@
 // The including shader should define whether half
 // precision is suitable for its needs.  The shader
 // API (for now) can indicate whether half is possible.
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #define HAS_HALF 1
 #else
 #define HAS_HALF 0
@@ -134,7 +134,7 @@
 #define REAL_IS_HALF 0
 #endif // Do we have half?
 
-#if REAL_IS_HALF || (defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL) && (defined(UNITY_COMPILER_HLSL) || defined(UNITY_COMPILER_DXC)))
+#if REAL_IS_HALF
 #define half min16float
 #define half2 min16float2
 #define half3 min16float3
@@ -166,9 +166,6 @@
 #define REAL_MIN HALF_MIN
 #define REAL_MAX HALF_MAX
 #define REAL_EPS HALF_EPS
-#define TEMPLATE_1_REAL TEMPLATE_1_HALF
-#define TEMPLATE_2_REAL TEMPLATE_2_HALF
-#define TEMPLATE_3_REAL TEMPLATE_3_HALF
 
 #else
 
@@ -189,9 +186,6 @@
 #define REAL_MIN FLT_MIN
 #define REAL_MAX FLT_MAX
 #define REAL_EPS FLT_EPS
-#define TEMPLATE_1_REAL TEMPLATE_1_FLT
-#define TEMPLATE_2_REAL TEMPLATE_2_FLT
-#define TEMPLATE_3_REAL TEMPLATE_3_FLT
 
 #endif // REAL_IS_HALF
 
@@ -244,6 +238,11 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+
+#if !defined(SHADER_API_PS5)
+#define PushMarker(str)
+#define PopMarker()
+#endif
 
 #ifdef SHADER_API_XBOXONE // TODO: to move in .nda package in 21.1
 #define PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
@@ -490,7 +489,7 @@ void ToggleBit(inout uint data, uint offset)
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
-    TEMPLATE_1_REAL(WaveReadLaneFirst, scalarValue, return scalarValue)
+    TEMPLATE_1_FLT_HALF(WaveReadLaneFirst, scalarValue, return scalarValue)
     TEMPLATE_1_INT(WaveReadLaneFirst, scalarValue, return scalarValue)
 #endif
 
@@ -503,13 +502,13 @@ void ToggleBit(inout uint data, uint offset)
 #endif // INTRINSIC_MAD24
 
 #ifndef INTRINSIC_MINMAX3
-    TEMPLATE_3_REAL(Min3, a, b, c, return min(min(a, b), c))
+    TEMPLATE_3_FLT_HALF(Min3, a, b, c, return min(min(a, b), c))
     TEMPLATE_3_INT(Min3, a, b, c, return min(min(a, b), c))
-    TEMPLATE_3_REAL(Max3, a, b, c, return max(max(a, b), c))
+    TEMPLATE_3_FLT_HALF(Max3, a, b, c, return max(max(a, b), c))
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
-TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
+TEMPLATE_3_FLT_HALF(Avg3, a, b, c, return (a + b + c) * 0.33333333)
 
 // Important! Quad functions only valid in pixel shaders!
     float2 GetQuadOffset(int2 screenPos)
@@ -674,7 +673,7 @@ real RadToDeg(real rad)
 }
 
 // Square functions for cleaner code
-TEMPLATE_1_REAL(Sq, x, return (x) * (x))
+TEMPLATE_1_FLT_HALF(Sq, x, return (x) * (x))
 TEMPLATE_1_INT(Sq, x, return (x) * (x))
 
 bool IsPower2(uint x)
@@ -750,7 +749,7 @@ uint FastLog2(uint x)
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive or 0 and avoid inf/NAN.
 // Note: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx pow(0, >0) == 0
-TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
+TEMPLATE_2_FLT_HALF(PositivePow, base, power, return pow(abs(base), power))
 
 // SafePositivePow: Same as pow(x,y) but considers x always positive and never exactly 0 such that
 // SafePositivePow(0,y) will numerically converge to 1 as y -> 0, including SafePositivePow(0,0) returning 1.
@@ -784,11 +783,11 @@ TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 //
 // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
 TEMPLATE_2_FLT(SafePositivePow, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
-TEMPLATE_2_ONLY_HALF(SafePositivePow, base, power, return pow(max(abs(base), half(HALF_EPS)), power))
+TEMPLATE_2_HALF(SafePositivePow, base, power, return pow(max(abs(base), min16float(HALF_EPS)), power))
 
 // Helpers for making shadergraph functions consider precision spec through the same $precision token used for variable types
 TEMPLATE_2_FLT(SafePositivePow_float, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
-TEMPLATE_2_HALF(SafePositivePow_half, base, power, return pow(max(abs(base), half(HALF_EPS)), power))
+TEMPLATE_2_HALF(SafePositivePow_half, base, power, return pow(max(abs(base), min16float(HALF_EPS)), power))
 
 float Eps_float() { return FLT_EPS; }
 float Min_float() { return FLT_MIN; }
@@ -804,9 +803,8 @@ bool NearlyEqual(float a, float b, float epsilon)
     return abs(a - b) / (abs(a) + abs(b)) < epsilon;
 }
 
-TEMPLATE_2_REAL(NearlyEqual_Real, a, b, return abs(a - b) / (abs(a) + abs(b)) < real(REAL_EPS))
-TEMPLATE_2_FLT(NearlyEqual_Float, a, b, return abs(a - b) / (abs(a) + abs(b)) < real(FLT_EPS))
-TEMPLATE_2_HALF(NearlyEqual_Half, a, b, return abs(a - b) / (abs(a) + abs(b)) < real(HALF_EPS))
+TEMPLATE_2_FLT(NearlyEqual_Float, a, b, return abs(a - b) / (abs(a) + abs(b)) < float(FLT_EPS))
+TEMPLATE_2_HALF(NearlyEqual_Half, a, b, return abs(a - b) / (abs(a) + abs(b)) < min16float(HALF_EPS))
 
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
@@ -847,10 +845,10 @@ real3 Orthonormalize(real3 tangent, real3 normal)
 }
 
 // [start, end] -> [0, 1] : (x - start) / (end - start) = x * rcpLength - (start * rcpLength)
-TEMPLATE_3_REAL(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * rcpLength - startTimesRcpLength))
+TEMPLATE_3_FLT_HALF(Remap01, x, rcpLength, startTimesRcpLength, return saturate(x * rcpLength - startTimesRcpLength))
 
 // [start, end] -> [1, 0] : (end - x) / (end - start) = (end * rcpLength) - x * rcpLength
-TEMPLATE_3_REAL(Remap10, x, rcpLength, endTimesRcpLength, return saturate(endTimesRcpLength - x * rcpLength))
+TEMPLATE_3_FLT_HALF(Remap10, x, rcpLength, endTimesRcpLength, return saturate(endTimesRcpLength - x * rcpLength))
 
 // Remap: [0.5 / size, 1 - 0.5 / size] -> [0, 1]
 real2 RemapHalfTexelCoordTo01(real2 coord, real2 size)
@@ -994,7 +992,7 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     #define MIP_COUNT_SUPPORTED 1
 #endif
     // TODO: Bug workaround, switch defines GLCORE when it shouldn't
-#if ((defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_VULKAN) || defined(SHADER_API_WEBGPU)) && !defined(SHADER_STAGE_COMPUTE)
+#if ((defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_VULKAN)) && !defined(SHADER_STAGE_COMPUTE)
     // OpenGL only supports textureSize for width, height, depth
     // textureQueryLevels (GL_ARB_texture_query_levels) needs OpenGL 4.3 or above and doesn't compile in compute shaders
     // tex.GetDimensions converted to textureQueryLevels
@@ -1231,6 +1229,20 @@ float DecodeLogarithmicDepth(float d, float4 encodingParams)
 {
     // TODO: optimize to exp2(d * y + log2(x)).
     return encodingParams.x * exp2(d * encodingParams.y);
+}
+
+// Use an infinite far plane
+// https://chaosinmotion.com/2010/09/06/goodbye-far-clipping-plane/
+// 'depth' is the linear depth (view-space Z position)
+float EncodeInfiniteDepth(float depth, float near)
+{
+    return saturate(near / depth);
+}
+
+// 'z' is the depth encoded in the depth buffer (1 at near plane, 0 at far plane)
+float DecodeInfiniteDepth(float z, float near)
+{
+    return near / max(z, FLT_EPS);
 }
 
 real4 CompositeOver(real4 front, real4 back)
@@ -1634,7 +1646,7 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 }
 
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
-TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
+TEMPLATE_1_FLT(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
 #if SHADER_API_MOBILE || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller

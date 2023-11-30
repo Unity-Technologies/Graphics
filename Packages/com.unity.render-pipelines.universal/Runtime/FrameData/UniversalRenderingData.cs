@@ -1,7 +1,11 @@
 namespace UnityEngine.Rendering.Universal
 {
-    class UniversalRenderingData : ContextItem
+    /// <summary>
+    /// Contains the data for general renderer settings.
+    /// </summary>
+    public class UniversalRenderingData : ContextItem
     {
+        // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
         internal CommandBuffer commandBuffer;
 
         /// <summary>
@@ -24,12 +28,21 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public PerObjectData perObjectData;
 
+        /// <summary>
+        /// The Rendering mode used by the renderer in the current frame.
+        /// Note that this may sometimes be different from what is set in the Renderer asset,
+        /// for example when the hardware not capable of deferred rendering or when doing wireframe rendering.
+        /// </summary>
+        public RenderingMode renderingMode { get; internal set; }
+
+        /// <inheritdoc/>
         public override void Reset()
         {
             commandBuffer = default;
             cullResults = default;
             supportsDynamicBatching = default;
             perObjectData = default;
+            renderingMode = default;
         }
     }
 }

@@ -1,1 +1,11 @@
-area: RP Foundation
+rule1:
+  area: RP Foundation
+
+rule2:
+  when:
+    path:
+      - ^.*ComponentSingleton.*$
+      - ^.*CoreAttributes.*$
+      - ^.*IAdditionalData.*$
+      - ^.*Reload.*$
+  area: RP Workflow

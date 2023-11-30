@@ -10,7 +10,5 @@ jobs:
       - .yamato/all-urp_template.yml#URP_Template_<TRACK>
     triggers:
         recurring:
-          -  branch: master
-             frequency: 1 * * ?
-        allow_on:
-          - trunk
+          - branch: master
+            frequency: 23 ? * 7 # At 11pm every Saturday

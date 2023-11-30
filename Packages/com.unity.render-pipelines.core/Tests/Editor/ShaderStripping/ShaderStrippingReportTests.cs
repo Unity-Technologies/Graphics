@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
         [Test, TestCaseSource(nameof(s_StrippedShaderInputs))]
         public void JSONOutput(Shader[] shaders, uint steps, float variantsOutMultiplier)
         {
-            string fileName = $"{string.Join("_", shaders.Select(s => s.name))}_{steps}_{variantsOutMultiplier}.json".Replace("/", "_");
+            string fileName = $"{string.Join("_", shaders.Select(s => s.name))}_{steps}_{variantsOutMultiplier.ToString(System.Globalization.CultureInfo.InvariantCulture)}.json".Replace("/", "_");
             string path = Path.GetFullPath(Path.Combine(k_ShaderResultsDirectory, fileName));
 
             PerformFakeReport(shaders, steps, variantsOutMultiplier);

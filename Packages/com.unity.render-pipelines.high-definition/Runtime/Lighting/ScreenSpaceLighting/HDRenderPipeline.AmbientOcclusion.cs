@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(parameters.runAsync);
 
                 passData.parameters = parameters;
-                passData.gtaoCS = defaultResources.shaders.GTAOCS;
+                passData.gtaoCS = runtimeShaders.GTAOCS;
                 passData.gtaoCS.shaderKeywords = null;
 
                 if (parameters.temporalAccumulation)
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
 
-                passData.spatialDenoiseAOCS = defaultResources.shaders.GTAOSpatialDenoiseCS;
+                passData.spatialDenoiseAOCS = runtimeShaders.GTAOSpatialDenoiseCS;
                 passData.spatialDenoiseAOCS.shaderKeywords = null;
                 if (parameters.temporalAccumulation)
                     passData.spatialDenoiseAOCS.EnableKeyword("TO_TEMPORAL");
@@ -332,14 +332,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 float scaleFactor = parameters.fullResolution ? 1.0f : 0.5f;
 
                 passData.parameters = parameters;
-                passData.temporalDenoiseAOCS = defaultResources.shaders.GTAOTemporalDenoiseCS;
+                passData.temporalDenoiseAOCS = runtimeShaders.GTAOTemporalDenoiseCS;
                 passData.temporalDenoiseAOCS.shaderKeywords = null;
                 if (parameters.fullResolution)
                     passData.temporalDenoiseAOCS.EnableKeyword("FULL_RES");
                 else
                     passData.temporalDenoiseAOCS.EnableKeyword("HALF_RES");
                 passData.denoiseKernelTemporal = passData.temporalDenoiseAOCS.FindKernel("TemporalDenoise");
-                passData.copyHistoryAOCS = defaultResources.shaders.GTAOCopyHistoryCS;
+                passData.copyHistoryAOCS = runtimeShaders.GTAOCopyHistoryCS;
                 passData.denoiseKernelCopyHistory = passData.copyHistoryAOCS.FindKernel("GTAODenoise_CopyHistory");
                 passData.historyReady = m_AOHistoryReady;
 
@@ -402,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(parameters.runAsync);
 
                 passData.parameters = parameters;
-                passData.upsampleAndBlurAOCS = defaultResources.shaders.GTAOBlurAndUpsample;
+                passData.upsampleAndBlurAOCS = runtimeShaders.GTAOBlurAndUpsample;
                 if (parameters.temporalAccumulation)
                     passData.upsampleAOKernel = passData.upsampleAndBlurAOCS.FindKernel(parameters.bilateralUpsample ? "BilateralUpsampling" : "BoxUpsampling");
                 else

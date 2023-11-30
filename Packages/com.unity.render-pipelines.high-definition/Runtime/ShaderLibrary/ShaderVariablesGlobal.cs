@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PBRSky = 2,
         RayTracing = 3,
         RayTracingLightLoop = 4,
-        RayTracingEnvLightReflectionData = 5,
+        WorldEnvLightReflectionData = 5,
         APV = APVConstantBufferRegister.GlobalRegister,
     }
 
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(6, typeof(Vector4))]
         public fixed float _ShadowFrustumPlanes[6 * 4];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
-        // TAA Frame Index ranges from 0 to 7.
+        // TAA Frame Index ranges from 0 to 1023.
         public Vector4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
 
         // Current jitter strength (0 if TAA is disabled)
@@ -121,6 +121,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _LastTimeParameters;         // { t, sin(t), cos(t) }
 
         // Volumetric lighting / Fog.
+        public Vector4 _PlanetCenterRadius;
+        public Vector4 _PlanetUpAltitude;
         public int _FogEnabled;
         public int _PBRFogEnabled;
         public int _EnableVolumetricFog;
@@ -183,6 +185,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _PunctualLightCount;
         public uint _AreaLightCount;
         public uint _EnvLightCount;
+
+        public uint _WorldDirectionalLightCount;
+        public uint _WorldPunctualLightCount;
+        public uint _WorldAreaLightCount;
+        public uint _WorldEnvLightCount;
 
         public int _EnvLightSkyEnabled;
         public uint _CascadeShadowCount;
@@ -285,5 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _EnableComputeThickness;
         public float _VolumetricCloudsFallBackValue;
         public Vector4 _VolumetricCloudsShadowOriginToggle;
+
+        public Vector4 _ColorPyramidUvScaleAndLimitPrevFrame;
     }
 }

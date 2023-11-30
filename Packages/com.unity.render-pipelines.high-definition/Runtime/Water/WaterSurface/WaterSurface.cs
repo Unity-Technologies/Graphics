@@ -214,6 +214,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Min(0.0f), Tooltip("Sets the range at which the tessellation factor reaches zero.")]
         public float tessellationFactorFadeRange = 1850.0f;
+
+#if UNITY_EDITOR
+        static internal bool IsWaterMaterial(Material material)
+        {
+            return material.shader.FindSubshaderTagValue(0, (ShaderTagId)"ShaderGraphTargetId").name == "WaterSubTarget";
+        }
+#endif
         #endregion
 
         #region Water Refraction
@@ -724,6 +731,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             foamArea = foamAreaSize;
             return FoamBuffer();
+        }
+
+        /// <summary>
+        /// Function that returns the deformation buffer for the water surface. If the feature is disabled or the resource is not available the function returns null.
+        /// </summary>
+        /// <seealso cref="WaterSurface.deformationAreaSize"/>
+        /// <seealso cref="WaterSurface.deformationAreaOffset"/>
+        /// <returns>A single channgel texture that holds the surface deformation of the water surface.</returns>
+        public Texture GetDeformationBuffer()
+        {
+            return deformation ? deformationBuffer : null;
         }
     }
 }

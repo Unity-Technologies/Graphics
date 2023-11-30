@@ -7,7 +7,8 @@
         "GUID:15fc0a57446b3144c949da3e2b9737a9",
         "GUID:ab67fb10353d84448ac887a7367cbda8",
         "GUID:41524c21c95e5fe4dbc5b48bd21995a4",
-        "GUID:caccfbdb442cdc64fa722b4c5585521f"
+        "GUID:caccfbdb442cdc64fa722b4c5585521f",
+        "GUID:2665a8d13d1b3f18800f46e256720795"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -31,6 +32,11 @@
             "name": "com.unity.2d.animation",
             "expression": "10.0.0-pre.1",
             "define": "USING_2DANIMATION"
+        },
+        {
+            "name": "com.unity.visualeffectgraph",
+            "expression": "0.0.1",
+            "define": "VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER"
         }
     ],
     "noEngineReferences": false

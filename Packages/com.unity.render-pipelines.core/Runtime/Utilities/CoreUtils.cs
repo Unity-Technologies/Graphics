@@ -210,6 +210,23 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static GraphicsBuffer m_EmptyBuffer;
+        /// <summary>
+        /// Empty 4-Byte buffer resource usable as a dummy.
+        /// </summary>
+        public static GraphicsBuffer emptyBuffer
+        {
+            get
+            {
+                if (m_EmptyBuffer == null || !m_EmptyBuffer.IsValid())
+                {
+                    m_EmptyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+                }
+
+                return m_EmptyBuffer;
+            }
+        }
+
         static Texture3D m_BlackVolumeTexture;
         /// <summary>
         /// Black 3D texture.
@@ -798,7 +815,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false, dynamicResExplicit: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -813,7 +830,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false, dynamicResExplicit: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -828,11 +845,12 @@ namespace UnityEngine.Rendering
         /// <param name="enableMSAA">True if the texture is multisampled.</param>
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
+        /// <param name="dynamicResExplicit">True if the texture uses dynamic resolution with explicit resize control.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
-        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false, bool dynamicResExplicit = false)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes, dynamicResExplicit);
 
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes, bool dynamicResExplicit)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -851,7 +869,10 @@ namespace UnityEngine.Rendering
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
 
             if (dynamicRes)
-                result = string.Format("{0}_{1}", result, "dynamic");
+                result = string.Format("{0}_{1}", result, "Dynamic");
+
+            if (dynamicResExplicit)
+                result = string.Format("{0}_{1}", result, "DynamicExplicit");
 
             return result;
         }
@@ -931,6 +952,19 @@ namespace UnityEngine.Rendering
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        /// <summary>
+        /// Draws a full screen triangle.
+        /// </summary>
+        /// <param name="commandBuffer">RasterCommandBuffer used for rendering commands.</param>
+        /// <param name="material">Material used on the full screen triangle.</param>
+        /// <param name="properties">Optional material property block for the provided material.</param>
+        /// <param name="shaderPassId">Index of the material pass.</param>
+        public static void DrawFullScreen(RasterCommandBuffer commandBuffer, Material material,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            DrawFullScreen(commandBuffer.m_WrappedCommandBuffer, material, properties, shaderPassId);
         }
 
         /// <summary>
@@ -1503,9 +1537,10 @@ namespace UnityEngine.Rendering
         /// <param name="rendererList">Renderer List to render.</param>
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
-
+#endif
             cmd.DrawRendererList(rendererList);
         }
 

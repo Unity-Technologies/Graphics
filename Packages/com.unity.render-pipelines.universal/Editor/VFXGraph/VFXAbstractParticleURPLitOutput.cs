@@ -66,12 +66,6 @@ namespace UnityEditor.VFX.URP
             CustomCurve,
         }
 
-        private readonly string[] kWorkflowModeToName = new string[]
-        {
-            nameof(StandardProperties),
-            nameof(SpecularColorProperties)
-        };
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
         protected MaterialType materialType = MaterialType.Standard;
 
@@ -307,7 +301,7 @@ namespace UnityEditor.VFX.URP
 
         protected override bool bypassExposure { get { return false; } }
 
-        protected override RPInfo currentRP => urpLitInfo;
+        protected override VFXOldShaderGraphHelpers.RPInfo currentRP => VFXOldShaderGraphHelpers.urpLitInfo;
 
         public override bool isLitShader => true;
 
@@ -365,8 +359,12 @@ namespace UnityEditor.VFX.URP
                 {
                     if (materialType == MaterialType.Standard)
                     {
-                        properties = properties.Concat(PropertiesFromType(nameof(URPLitInputProperties)));
-                        properties = properties.Concat(PropertiesFromType(kWorkflowModeToName[(int)workflowMode]));
+                        if(useSmoothness)
+                            properties = properties.Concat(PropertiesFromType(nameof(URPLitInputProperties)));
+                        if(useMetallic)
+                            properties = properties.Concat(PropertiesFromType(nameof(StandardProperties)));
+                        if(useSpecular)
+                            properties = properties.Concat(PropertiesFromType(nameof(SpecularColorProperties)));
                     }
                     else if(materialType == MaterialType.SixWaySmokeLit)
                         properties = properties.Concat(sixWayMapsProperties);
@@ -688,7 +686,7 @@ namespace UnityEditor.VFX.URP
                 else if ((colorMode & ColorMode.Emissive) != 0)
                     yield return nameof(useEmissive);
 
-                yield return nameof(excludeFromTAA);
+                yield return nameof(excludeFromTUAndAA);
             }
         }
 

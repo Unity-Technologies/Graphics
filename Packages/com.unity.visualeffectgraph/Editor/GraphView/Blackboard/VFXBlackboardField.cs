@@ -1,102 +1,152 @@
-using System;
-using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.VFX;
+using UnityEngine.Profiling;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
-using System.Collections.Generic;
-using UnityEditor;
-using System.Linq;
-using System.Text;
-using UnityEditor.Graphs;
-using UnityEditor.SceneManagement;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlackboardField : BlackboardField, IControlledElement<VFXParameterController>
+    class VFXBlackboardField : VFXBlackboardFieldBase, IControlledElement
     {
-        public VFXBlackboardRow owner
-        {
-            get; set;
-        }
+        private readonly Label m_TypeLabel;
+        private readonly Pill m_Pill;
 
-        public VFXBlackboardField() : base()
+        public VFXBlackboardRow owner { get; set; }
+
+        public VFXBlackboardField(PropertyItem propertyItem) : base($"prop:{propertyItem.title}")
         {
+            this.AddStyleSheetPath(Blackboard.StyleSheetPath);
+
+            PropertyItem = propertyItem;
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
             RegisterCallback<MouseCaptureOutEvent>(OnMouseHover);
+            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
             RegisterCallback<MouseDownEvent>(OnMouseDown);
 
-            this.Q<Pill>().AddManipulator(new ContextualMenuManipulator(PillBuildContextualMenu));
+            capabilities |= Capabilities.Deletable;
+            m_Pill = new Pill();
+            Add(m_Pill);
+            m_Label = m_Pill.Q<Label>();
+            m_Pill.pickingMode = PickingMode.Ignore;
+            m_Pill.Q<Label>().pickingMode = PickingMode.Ignore;
+            m_Pill.Q<TemplateContainer>().pickingMode = PickingMode.Ignore;
+
+            m_TypeLabel = new Label { name = "typeLabel" };
+            m_TypeLabel.pickingMode = PickingMode.Ignore;
+            Add(m_TypeLabel);
+            m_TextField = new TextField { name = "textField"};
+            Add(m_TextField);
+            m_TextField.style.display = DisplayStyle.None;
+
+            m_TextField.RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed, TrickleDown.TrickleDown);
+            m_TextField.RegisterCallback<FocusOutEvent>(OnEditTextSucceed, TrickleDown.TrickleDown);
+
+            ClearClassList();
+            AddToClassList("blackboardField");
         }
 
-        void PillBuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Duplicate %d", (a) => Duplicate(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Delete", (a) => Delete(), DropdownMenuAction.AlwaysEnabled);
+        public override IParameterItem item => PropertyItem;
+        public PropertyItem PropertyItem { get; }
 
-            evt.StopPropagation();
-        }
+        Controller IControlledElement.controller => controller;
+        public VFXParameterController controller => owner.controller;
 
-        public void Duplicate()
+        public void OnControllerChanged(ref ControllerChangedEvent e)
         {
-            GetFirstAncestorOfType<VFXView>().DuplicateBlackboardFieldSelection();
         }
-
-        void Delete()
-        {
-            if (selected)
-                GetFirstAncestorOfType<VFXView>().DeleteSelection();
-            else
-                GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this });
-        }
-
-        Controller IControlledElement.controller
-        {
-            get { return owner.controller; }
-        }
-        public VFXParameterController controller
-        {
-            get { return owner.controller; }
-        }
-        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) { }
 
         public void SelfChange()
         {
-            if (controller.isOutput)
-                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/output-dot.png");
-            else if (controller.exposed)
-                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/exposed-dot.png");
-            else
-                icon = null;
+            text = controller.exposedName;
+            m_TypeLabel.text = controller.portType != null ? controller.portType.UserFriendlyName() : "null";
 
-            if ((!controller.isOutput && !controller.model.outputSlots.Any(t => t.HasLink(true))) || (controller.isOutput && !controller.model.inputSlots.Any(t => t.HasLink(true))))
-                AddToClassList("unused");
+            if (controller.isOutput)
+                m_Pill.icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/output-dot.png");
+            else if (controller.exposed)
+                m_Pill.icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/exposed-dot.png");
             else
+                m_Pill.icon = null;
+
+            m_Pill.tooltip = controller.model.tooltip;
+
+            var isUsed = false;
+            var slots = controller.isOutput ? controller.model.inputSlots : controller.model.outputSlots;
+            foreach (var slot in slots)
+            {
+                if (slot.HasLink(true))
+                {
+                    isUsed = true;
+                    break;
+                }
+            }
+
+            if (isUsed)
                 RemoveFromClassList("unused");
+            else
+                AddToClassList("unused");
+        }
+
+        public override void OpenTextEditor()
+        {
+            base.OpenTextEditor();
+            m_TypeLabel.style.display = DisplayStyle.None;
+            m_Pill.style.display = DisplayStyle.None;
+        }
+
+        protected override void OnEditTextSucceed(FocusOutEvent evt)
+        {
+            if (controller.exposedName != m_TextField.value)
+            {
+                controller.exposedName = m_TextField.value;
+            }
+            base.OnEditTextSucceed(evt);
+        }
+
+        protected override void CleanupNameField()
+        {
+            base.CleanupNameField();
+            m_Pill.style.display = DisplayStyle.Flex;
+            m_TypeLabel.style.display = DisplayStyle.Flex;
+        }
+
+        private void OnDetachFromPanel(DetachFromPanelEvent evt)
+        {
+            if (GetView() is {} view)
+            {
+                UpdateHover(view, false);
+            }
         }
 
         void OnMouseHover(EventBase evt)
         {
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-            if (view != null)
+            Profiler.BeginSample("VFXBlackboardField.OnMouseOver");
+            try
             {
-                foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
+                if (panel.GetCapturingElement(PointerId.mousePointerId) != null)
+                    return;
+                if (GetView() is {} view)
                 {
-                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    UpdateHover(view, evt.eventTypeId == MouseEnterEvent.TypeId());
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
+        }
+
+        void UpdateHover(VFXView view, bool isHovered)
+        {
+            view.Query<VFXParameterUI>().ForEach(parameter =>
+            {
+                if (parameter.controller.parentController == controller)
+                {
+                    if (isHovered)
                         parameter.AddToClassList("hovered");
                     else
                         parameter.RemoveFromClassList("hovered");
                 }
-            }
-        }
-
-        void OnMouseDown(MouseDownEvent e)
-        {
-            if (e.button != (int)MouseButton.LeftMouse)
-                e.StopPropagation();
+            });
         }
     }
 }

@@ -1,0 +1,7 @@
+Welcome to the [Lens_Flare](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@14.0/manual/shared/lens-flare/lens-flare-component.html) Samples.
+
+This sample contains 25 Lens Flare presets that are available in LensFlareSamples/LensFlarePresets. They can be assigned to the *Lens *Flare *Data property of a *Lens *Flare *(SRP) component. 
+This scene contains a script that will assign the presets onto the point light to easily browse through them.
+
+Enter play mode to see how they look !
+

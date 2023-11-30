@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -418,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
             {
                 bool useInputTexture = !inputTexture.Equals(outputTexture);
-                passData.accumulationCS = m_Asset.renderPipelineResources.shaders.accumulationCS;
+                passData.accumulationCS = runtimeShaders.accumulationCS;
                 passData.accumulationKernel = passData.accumulationCS.FindKernel("KMain");
                 passData.subFrameManager = m_SubFrameManager;
                 passData.needExposure = needExposure;

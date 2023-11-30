@@ -40,12 +40,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var originalSG = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.waterPS;
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(originalSG), pathName);
+                var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.waterPS;
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), pathName);
             }
         }
 
-        [MenuItem("Assets/Create/Shader Graph/HDRP/Water Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 7)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Water Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 6)]
         static void CreateWaterGraphCopy()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewWaterShaderGraph>(), "Water Shader Graph.shadergraph", null, null);

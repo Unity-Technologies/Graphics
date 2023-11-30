@@ -385,6 +385,15 @@ namespace UnityEditor.ShaderGraph
         internal delegate void SaveGraphDelegate(Shader shader, object context);
         internal static SaveGraphDelegate onSaveGraph;
 
+
+        #region SubData
+
+        [SerializeField]
+        internal List<JsonData<AbstractShaderGraphDataExtension>> m_SubDatas = new List<JsonData<AbstractShaderGraphDataExtension>>();
+        public DataValueEnumerable<AbstractShaderGraphDataExtension> SubDatas => m_SubDatas.SelectValue();
+
+        #endregion
+
         #region Targets
 
         // Serialized list of user-selected active targets, sorted in displayName order (to maintain deterministic serialization order)
@@ -1033,7 +1042,7 @@ namespace UnityEditor.ShaderGraph
             outputEdges.Add(edge);
         }
 
-        IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
+        IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef, bool assumeBatchSafety = false)
         {
             var fromNode = fromSlotRef.node;
             var toNode = toSlotRef.node;
@@ -1049,10 +1058,13 @@ namespace UnityEditor.ShaderGraph
             // do now allow a connection as toNode will then
             // have an edge to fromNode creating a cycle.
             // if this is parsed it will lead to an infinite loop.
-            var dependentNodes = new List<AbstractMaterialNode>();
-            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, toNode);
-            if (dependentNodes.Contains(fromNode))
-                return null;
+            if (!assumeBatchSafety) // This may not be that helpful.
+            {
+                var dependentNodes = new List<AbstractMaterialNode>();
+                NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, toNode);
+                if (dependentNodes.Contains(fromNode))
+                    return null;
+            }
 
             var fromSlot = fromNode.FindSlot<MaterialSlot>(fromSlotRef.slotId);
             var toSlot = toNode.FindSlot<MaterialSlot>(toSlotRef.slotId);
@@ -1079,7 +1091,10 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Add(newEdge);
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
-            NodeUtils.ReevaluateActivityOfConnectedNodes(toNode);
+            if (!assumeBatchSafety)
+            {
+                NodeUtils.ReevaluateActivityOfConnectedNodes(toNode);
+            }
 
             //Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
             return newEdge;
@@ -1952,11 +1967,13 @@ namespace UnityEditor.ShaderGraph
             messageManager?.ClearNodesFromProvider(this, node.ToEnumerable());
         }
 
+        internal bool replaceInProgress = false;
         public void ReplaceWith(GraphData other)
         {
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
+            replaceInProgress = true;
             m_GraphPrecision = other.m_GraphPrecision;
             m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
@@ -2073,7 +2090,7 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var edge in other.edges)
             {
-                ConnectNoValidate(edge.outputSlot, edge.inputSlot);
+                ConnectNoValidate(edge.outputSlot, edge.inputSlot, true);
             }
 
             outputNode = other.outputNode;
@@ -2097,6 +2114,7 @@ namespace UnityEditor.ShaderGraph
             // Active blocks
             var activeBlocks = GetActiveBlocksForAllActiveTargets();
             UpdateActiveBlocks(activeBlocks);
+            replaceInProgress = false;
             ValidateGraph();
         }
 

@@ -4,7 +4,7 @@
 
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -86,11 +86,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Manually initialize resources needed to render the debug draw.
         /// </summary>
-        /// <param name="defaultResources">Editor resources which contains the gpuInlineDebugDrawerLine shader.</param>
-        static public void Initialize(HDRenderPipelineEditorResources defaultResources)
+        public static void Initialize()
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
-            m_LineMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.gpuInlineDebugDrawerLine);
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorShaders>(out var defaultShaders))
+            {
+                Debug.LogWarning($"Unable to initialize {nameof(GPUInlineDebugDrawer)} due to missing {nameof(HDRenderPipelineEditorShaders)}");
+                return;
+            }
+
+            m_LineMaterial = CoreUtils.CreateEngineMaterial(defaultShaders.gpuInlineDebugDrawerLine);
             m_LineMaterial.SetOverrideTag("RenderType", "Transparent");
             m_LineWSNoDepthTestPassID = m_LineMaterial.FindPass("LineWSNoDepthTest");
             m_LineCSNoDepthTestPassID = m_LineMaterial.FindPass("LineCSNoDepthTest");
@@ -117,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Manually release resources.
         /// </summary>
-        static public void Dispose()
+        public static void Dispose()
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
             void TryFreeBuffer(ref GraphicsBuffer resource)
@@ -185,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mousePosition = new Vector2(Mathf.Round(Event.current.mousePosition.x), Mathf.Round(cam.actualHeight - 1 - Event.current.mousePosition.y));
 
                 builder.SetRenderFunc(
-                    (GPUInlineDebugDrawerData data, Experimental.Rendering.RenderGraphModule.RenderGraphContext ctx) =>
+                    (GPUInlineDebugDrawerData data, Rendering.RenderGraphModule.RenderGraphContext ctx) =>
                     {
                         ((GraphicsBuffer)data.lineWSBuffer).SetCounterValue(0u);
                         ((GraphicsBuffer)data.lineCSBuffer).SetCounterValue(0u);

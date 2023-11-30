@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler
+namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     /// <summary>
     /// A fixed-size array that can contain up to maximum render target attachment amount of items.
@@ -33,10 +33,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         /// <exception cref="ArgumentException">Thrown if the amount of elements is less than 0 or more than MaxAttachments</exception>
         public FixedAttachmentArray(int numAttachments)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (numAttachments < 0 || numAttachments > MaxAttachments)
             {
                 throw new ArgumentException($"FixedAttachmentArray - numAttachments must be in range of [0, {MaxAttachments}[");
             }
+#endif
             a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = new DataType();
             activeAttachments = numAttachments;
         }
@@ -92,9 +94,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         /// <exception cref="IndexOutOfRangeException">If the maximum amount of elements (MaxAttachments) is reached.</exception>
         public int Add(in DataType data)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if ((uint)activeAttachments >= MaxAttachments)
                 throw new IndexOutOfRangeException($"A FixedAttachmentArray can only contain {MaxAttachments} items.");
-
+#endif
             int index = activeAttachments;
             unsafe
             {
@@ -118,10 +121,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassC
         {
             get
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if ((uint)index >= MaxAttachments)
                     throw new IndexOutOfRangeException($"FixedAttachmentArray - index must be in range of [0, {MaxAttachments}[");
                 if ((uint)index >= activeAttachments)
                     throw new IndexOutOfRangeException($"FixedAttachmentArray - index must be in range of [0, {activeAttachments}[");
+#endif
                 unsafe
                 {
                     fixed (FixedAttachmentArray<DataType>* self = &this)

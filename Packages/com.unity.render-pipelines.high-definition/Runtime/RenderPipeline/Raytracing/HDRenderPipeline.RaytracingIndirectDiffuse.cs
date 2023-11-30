@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitRayTracedIndirectDiffuse()
         {
-            ComputeShader indirectDiffuseShaderCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            ComputeShader indirectDiffuseShaderCS = rayTracingResources.indirectDiffuseRayTracingCS;
 
             // Grab all the kernels we shall be using
             m_RaytracingIndirectDiffuseFullResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseFullRes");
@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raySteps = settings.maxMixedRaySteps;
             deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
+            deferredParameters.transparent = false;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
@@ -76,10 +77,10 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.mipChainBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
-            deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;
-            deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
-            deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
-            deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
+            deferredParameters.rayMarchingCS = rayTracingResources.rayMarchingCS;
+            deferredParameters.gBufferRaytracingRT = rayTracingResources.gBufferRayTracingRT;
+            deferredParameters.deferredRaytracingCS = rayTracingResources.deferredRayTracingCS;
+            deferredParameters.rayBinningCS = rayTracingResources.rayBinningCS;
 
             // Make a copy of the previous values that were defined in the CB
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
@@ -133,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.fullResolution = fullResolution;
 
                 // Grab the right kernel
-                passData.directionGenCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.directionGenCS = rayTracingResources.indirectDiffuseRayTracingCS;
                 passData.dirGenKernel = fullResolution ? m_RaytracingIndirectDiffuseFullResKernel : m_RaytracingIndirectDiffuseHalfResKernel;
 
                 // Grab the additional parameters
@@ -214,12 +215,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewCount = hdCamera.viewCount;
 
                 // Grab the right kernel
-                passData.upscaleCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+                passData.upscaleCS = rayTracingResources.indirectDiffuseRayTracingCS;
                 passData.upscaleKernel = fullResolution ? m_IndirectDiffuseUpscaleFullResKernel : m_IndirectDiffuseUpscaleHalfResKernel;
 
                 // Grab the additional parameters
                 passData.blueNoiseTexture = GetBlueNoiseManager().textureArray16RGB;
-                passData.scramblingTexture = m_Asset.renderPipelineResources.textures.scramblingTex;
+                passData.scramblingTexture = runtimeTextures.scramblingTex;
 
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
@@ -285,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Trace the rays and evaluate the lighting
             DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera, fullResolution);
-            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
+            RayTracingDefferedLightLoopOutput lightloopOutput = DeferredLightingRT(renderGraph, hdCamera, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
 
             rtgiResult = UpscaleRTGI(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.normalBuffer, lightloopOutput.lightingBuffer, directionBuffer, fullResolution);
 
@@ -307,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int sampleCount;
             public float clampValue;
             public int bounceCount;
-            public int lodBias;
+            public float lodBias;
             public int rayMiss;
             public int lastBounceFallbackHierarchy;
             public float ambientProbeDimmer;
@@ -324,6 +325,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public TextureHandle rayCountTexture;
             public TextureHandle outputBuffer;
+
+            public bool enableDecals;
         }
 
         TextureHandle QualityRTGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture)
@@ -350,20 +353,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
 
                 // Grab the additional parameters
-                if (IsAPVEnabled())
+                if (apvIsEnabled)
                 {
                     if(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
                     {
-                        passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingL1RT;
+                        passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRayTracingL1RT;
                     }
                     else
                     {
-                        passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingL2RT;
+                        passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRaytracingL2RT;
                     }
                 }
                 else
                 {
-                    passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingOffRT;
+                    passData.indirectDiffuseRT = rayTracingResources.indirectDiffuseRayTracingOffRT;
                 }
 
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
@@ -380,6 +383,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
+
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
                     (TraceQualityRTGIPassData data, RenderGraphContext ctx) =>
@@ -427,6 +432,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
                         CoreUtils.SetKeyword(ctx.cmd, "MULTI_BOUNCE_INDIRECT", data.bounceCount > 1);
+
+                        if (data.enableDecals)
+                            DecalSystem.instance.SetAtlas(ctx.cmd);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.indirectDiffuseRT, m_RayGenIndirectDiffuseIntegrationName, (uint)data.texWidth, (uint)data.texHeight, (uint)data.viewCount);

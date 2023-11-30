@@ -35,7 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int shadowLightCount = processedVisibleLights.shadowLightCount;
             int maxShadowSplitCount = shadowLightCount * HDShadowUtils.k_MaxShadowSplitCount;
-            int sortKeyCount = processedVisibleLights.sortedLightCounts;
             int visibleLightCount = cullingResult.visibleLights.Length;
             NativeArray<HDProcessedVisibleLight> processedLights = processedVisibleLights.processedEntities.GetSubArray(0, visibleLightCount);
             NativeArray<int> splitBufferOffset = new NativeArray<int>(1, Allocator.TempJob);
@@ -77,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cubeMapFaces = cubemapFaces,
                 visibleLights = cullingResult.visibleLights,
                 processedLights = processedLights,
-                sortKeys = processedVisibleLights.sortKeys.GetSubArray(0, sortKeyCount),
+                sortKeys = processedVisibleLights.sortKeys,
                 visibleLightEntityDataIndices = processedVisibleLights.visibleLightEntityDataIndices,
                 additionalLightDataUpdateInfos = lightRenderDatabase.additionalLightDataUpdateInfos,
                 shadowResolutionRequestStorage = shadowManager.shadowResolutionRequestStorage.AsArray(),
@@ -89,9 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 usesReversedZBuffer = SystemInfo.usesReversedZBuffer,
                 shadowNearPlaneOffset = QualitySettings.shadowNearPlaneOffset,
                 shadowManagerRequestCount = shadowManager.GetShadowRequestCount(),
+                sortedLightCount = processedVisibleLights.sortedLightCounts,
                 invalidDataIndex = HDLightRenderDatabase.InvalidDataIndex,
 
                 inOutSplitBufferOffset = splitBufferOffset,
+                outShadowRequestValidityArray = processedVisibleLights.shadowRequestValidityArray,
                 outHDSplitBuffer = hdSplitBuffer,
                 outSplitBuffer = outSplitBuffer,
                 outPerLightShadowCullingInfos = outPerLightShadowCullingInfos,
@@ -172,9 +173,11 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly] public bool usesReversedZBuffer;
             [ReadOnly] public float shadowNearPlaneOffset;
             [ReadOnly] public int shadowManagerRequestCount;
+            [ReadOnly] public int sortedLightCount;
             [ReadOnly] public int invalidDataIndex;
 
             public NativeArray<int> inOutSplitBufferOffset;
+            public NativeBitArray outShadowRequestValidityArray;
             public NativeArray<HDShadowCullingSplit> outHDSplitBuffer;
             public NativeArray<ShadowSplitData> outSplitBuffer;
             public NativeArray<LightShadowCasterCullingInfo> outPerLightShadowCullingInfos;
@@ -224,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (indicesAndPreambleMarker.Auto())
                 {
-                    for (int sortKeyIndex = 0; sortKeyIndex < sortKeys.Length; sortKeyIndex++)
+                    for (int sortKeyIndex = 0; sortKeyIndex < sortedLightCount; sortKeyIndex++)
                     {
                         uint sortKey = sortKeys[sortKeyIndex];
 
@@ -263,7 +266,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         ref ShadowIndicesAndVisibleLightData bufferElement = ref visibleLightsAndIndicesBufferPtr[lightIndex];
-                        bufferElement.willRenderShadowMap = true;
                         bufferElement.additionalLightUpdateInfo = lightUpdateInfo;
                         bufferElement.visibleLight = visibleLights[lightIndex];
                         bufferElement.dataIndex = dataIndex;
@@ -274,6 +276,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         bufferElement.splitCount = splitCount;
                         bufferElement.isSplitValidArray = isSplitValidArray;
                         bufferElement.shadowRequestCount = shadowRequestCount;
+
+                        outShadowRequestValidityArray.Set(sortKeyIndex, true);
 
                         bool hasCachedComponent = lightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
 
@@ -352,15 +356,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (lightBucketingMarker.Auto())
                 {
-                    for (int sortKeyIndex = 0; sortKeyIndex < sortKeys.Length; sortKeyIndex++)
+                    for (int sortKeyIndex = 0; sortKeyIndex < sortedLightCount; sortKeyIndex++)
                     {
                         uint sortKey = sortKeys[sortKeyIndex];
-                        int lightIndex = (int)(sortKey & 0xFFFF);
-
-                        ref ShadowIndicesAndVisibleLightData readData = ref visibleLightsAndIndicesBufferPtr[lightIndex];
-                        if (!readData.willRenderShadowMap)
+                        if (!outShadowRequestValidityArray.IsSet(sortKeyIndex))
                             continue;
 
+                        int lightIndex = (int)(sortKey & 0xFFFF);
+                        ref ShadowIndicesAndVisibleLightData readData = ref visibleLightsAndIndicesBufferPtr[lightIndex];
                         ref HDAdditionalLightDataUpdateInfo lightUpdateInfo = ref readData.additionalLightUpdateInfo;
                         LightType lightType = readData.lightType;
                         bool hasCachedComponent = lightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;

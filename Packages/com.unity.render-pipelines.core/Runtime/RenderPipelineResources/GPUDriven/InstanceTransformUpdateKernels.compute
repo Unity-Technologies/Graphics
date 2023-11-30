@@ -1,0 +1,256 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceData/InstanceTransformUpdateDefs.cs.hlsl"
+
+#pragma kernel ScatterInitTransformMain
+#pragma kernel ScatterUpdateTransformMain
+#pragma kernel ScatterUpdateMotionMain
+#pragma kernel ScatterUpdateProbesMain
+
+#pragma multi_compile_local _ PROCESS_BOUNDING_SPHERES
+
+int _TransformUpdateQueueCount;
+int _TransformUpdateOutputL2WVec4Offset;
+int _TransformUpdateOutputW2LVec4Offset;
+int _TransformUpdateOutputPrevL2WVec4Offset;
+int _TransformUpdateOutputPrevW2LVec4Offset;
+int _BoundingSphereOutputVec4Offset;
+
+StructuredBuffer<TransformUpdatePacket> _TransformUpdateDataQueue;
+ByteAddressBuffer _TransformUpdateIndexQueue;
+StructuredBuffer<float4> _BoundingSphereDataQueue;
+RWByteAddressBuffer _OutputTransformBuffer;
+
+float4x4 UnpackMatrix(float4 p1, float4 p2, float4 p3)
+{
+    return float4x4(
+        p1.x, p1.w, p2.z, p3.y,
+        p1.y, p2.x, p2.w, p3.z,
+        p1.z, p2.y, p3.x, p3.w,
+        0.0,  0.0,  0.0,  1.0
+    );
+}
+
+float4 PackMatrix0(float4x4 m) { return m._m00_m10_m20_m01; }
+float4 PackMatrix1(float4x4 m) { return m._m11_m21_m02_m12; }
+float4 PackMatrix2(float4x4 m) { return m._m22_m03_m13_m23; }
+
+float3x3 Inverse3x3(float3x3 m)
+{
+    float3 row0 = m[0];
+    float3 row1 = m[1];
+    float3 row2 = m[2];
+
+    float3 col0 = cross(row1, row2);
+    float3 col1 = cross(row2, row0);
+    float3 col2 = cross(row0, row1);
+
+    float det = dot(row0, col0);
+
+    return transpose(float3x3(col0, col1, col2)/det);
+}
+
+float4x4 AffineInverse3D(float4x4 m)
+{
+    float3x3 R = (float3x3)m;
+    float3 T = m._m03_m13_m23;
+
+    float3x3 invR = Inverse3x3(R);
+    float3 invT = -mul(invR, T);
+
+    return float4x4(
+        invR._m00, invR._m01, invR._m02, invT.x,
+        invR._m10, invR._m11, invR._m12, invT.y,
+        invR._m20, invR._m21, invR._m22, invT.z,
+        0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+[numthreads(64, 1, 1)]
+void ScatterInitTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
+        return;
+
+    uint queueIndex = dispatchThreadID.x;
+    uint queueByteIndex = queueIndex << 2;
+    uint outputIndex = _TransformUpdateIndexQueue.Load(queueByteIndex);
+
+    uint byteOutputL2WOffset = _TransformUpdateOutputL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputW2LOffset = _TransformUpdateOutputW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevL2WOffset = _TransformUpdateOutputPrevL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevW2LOffset = _TransformUpdateOutputPrevW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+
+    TransformUpdatePacket l2wUpdatePacket = _TransformUpdateDataQueue[queueIndex * 2];
+    TransformUpdatePacket l2wPrevUpdatePacket = _TransformUpdateDataQueue[queueIndex * 2 + 1];
+
+    float4x4 l2w = UnpackMatrix(l2wUpdatePacket.localToWorld0, l2wUpdatePacket.localToWorld1, l2wUpdatePacket.localToWorld2);
+    float4x4 l2wPrev = UnpackMatrix(l2wPrevUpdatePacket.localToWorld0, l2wPrevUpdatePacket.localToWorld1, l2wPrevUpdatePacket.localToWorld2);
+
+    float4x4 w2l = AffineInverse3D(l2w);
+    float4x4 w2lPrev = AffineInverse3D(l2wPrev);
+
+#ifdef PROCESS_FLIP_GPUDRIVEN_WINDING
+    UpdateInstanceFlipWindingFlag(l2w, outputIndex);
+#endif
+
+    // initialize current transforms
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 0, asuint(PackMatrix0(l2w)));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 16, asuint(PackMatrix1(l2w)));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 32, asuint(PackMatrix2(l2w)));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 0, asuint(PackMatrix0(w2l)));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 16, asuint(PackMatrix1(w2l)));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 32, asuint(PackMatrix2(w2l)));
+
+    // initialize previous transforms
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 0, asuint(PackMatrix0(l2wPrev)));
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 16, asuint(PackMatrix1(l2wPrev)));
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 32, asuint(PackMatrix2(l2wPrev)));
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 0, asuint(PackMatrix0(w2lPrev)));
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 16, asuint(PackMatrix1(w2lPrev)));
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 32, asuint(PackMatrix2(w2lPrev)));
+
+#ifdef PROCESS_BOUNDING_SPHERES
+    uint byteOutputBoundingSphereOffset = _BoundingSphereOutputVec4Offset * 4 + outputIndex * 4 * 4;
+    float4 updateSphereValue = _BoundingSphereDataQueue[queueIndex];
+    _OutputTransformBuffer.Store4(byteOutputBoundingSphereOffset, asuint(updateSphereValue));
+#endif
+}
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateTransformMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
+        return;
+
+    uint queueIndex = dispatchThreadID.x;
+    uint queueByteIndex = queueIndex << 2;
+    uint outputIndex = _TransformUpdateIndexQueue.Load(queueByteIndex);
+
+    uint byteOutputL2WOffset = _TransformUpdateOutputL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputW2LOffset = _TransformUpdateOutputW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevL2WOffset = _TransformUpdateOutputPrevL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevW2LOffset = _TransformUpdateOutputPrevW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+
+    // copy the current world transform to the previous one
+    uint4 prevLocalToWorld0 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 0);
+    uint4 prevLocalToWorld1 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 16);
+    uint4 prevLocalToWorld2 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 32);
+    uint4 prevWorldToLocal0 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 0);
+    uint4 prevWorldToLocal1 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 16);
+    uint4 prevWorldToLocal2 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 32);
+
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 0, prevLocalToWorld0);
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 16, prevLocalToWorld1);
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 32, prevLocalToWorld2);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 0, prevWorldToLocal0);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 16, prevWorldToLocal1);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 32, prevWorldToLocal2);
+
+    TransformUpdatePacket updatePacket = _TransformUpdateDataQueue[queueIndex];
+
+    float4x4 l2w = UnpackMatrix(updatePacket.localToWorld0, updatePacket.localToWorld1, updatePacket.localToWorld2);
+    float4x4 w2l = AffineInverse3D(l2w);
+
+#ifdef PROCESS_FLIP_GPUDRIVEN_WINDING
+    UpdateInstanceFlipWindingFlag(l2w, outputIndex);
+#endif
+
+    // update current world transform
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 0,  asuint(PackMatrix0(l2w)));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 16, asuint(PackMatrix1(l2w)));
+    _OutputTransformBuffer.Store4(byteOutputL2WOffset + 32, asuint(PackMatrix2(l2w)));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 0,  asuint(PackMatrix0(w2l)));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 16, asuint(PackMatrix1(w2l)));
+    _OutputTransformBuffer.Store4(byteOutputW2LOffset + 32, asuint(PackMatrix2(w2l)));
+
+#ifdef PROCESS_BOUNDING_SPHERES
+    uint byteOutputBoundingSphereOffset = _BoundingSphereOutputVec4Offset * 4 + outputIndex * 4 * 4;
+    float4 updateSphereValue = _BoundingSphereDataQueue[queueIndex];
+    _OutputTransformBuffer.Store4(byteOutputBoundingSphereOffset, asuint(updateSphereValue));
+#endif
+}
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateMotionMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_TransformUpdateQueueCount)
+        return;
+
+    uint queueIndex = dispatchThreadID.x;
+    uint queueByteIndex = queueIndex << 2;
+    uint outputIndex = _TransformUpdateIndexQueue.Load(queueByteIndex);
+
+    uint byteOutputL2WOffset = _TransformUpdateOutputL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputW2LOffset = _TransformUpdateOutputW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevL2WOffset = _TransformUpdateOutputPrevL2WVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+    uint byteOutputPrevW2LOffset = _TransformUpdateOutputPrevW2LVec4Offset * 4 + outputIndex * 4 * 4 * 3;
+
+    // copy the current world transform to the previous one
+    uint4 prevLocalToWorld0 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 0);
+    uint4 prevLocalToWorld1 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 16);
+    uint4 prevLocalToWorld2 = _OutputTransformBuffer.Load4(byteOutputL2WOffset + 32);
+    uint4 prevWorldToLocal0 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 0);
+    uint4 prevWorldToLocal1 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 16);
+    uint4 prevWorldToLocal2 = _OutputTransformBuffer.Load4(byteOutputW2LOffset + 32);
+
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 0, prevLocalToWorld0);
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 16, prevLocalToWorld1);
+    _OutputTransformBuffer.Store4(byteOutputPrevL2WOffset + 32, prevLocalToWorld2);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 0, prevWorldToLocal0);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 16, prevWorldToLocal1);
+    _OutputTransformBuffer.Store4(byteOutputPrevW2LOffset + 32, prevWorldToLocal2);
+}
+
+int _ProbeUpdateQueueCount;
+int _SHUpdateVec4Offset;
+int _ProbeOcclusionUpdateVec4Offset;
+
+StructuredBuffer<SHUpdatePacket> _ProbeUpdateDataQueue;
+StructuredBuffer<float4> _ProbeOcclusionUpdateDataQueue;
+ByteAddressBuffer _ProbeUpdateIndexQueue;
+RWByteAddressBuffer _OutputProbeBuffer;
+
+struct SHProperties
+{
+    float4 SHAr;
+    float4 SHAg;
+    float4 SHAb;
+    float4 SHBr;
+    float4 SHBg;
+    float4 SHBb;
+    float4 SHC;
+};
+
+SHProperties UnpackShUpdate(SHUpdatePacket sh)
+{
+    SHProperties p;
+    p.SHAr = float4(sh.shr3, sh.shr1, sh.shr2, sh.shr0 - sh.shr6);//GetSHA(sh, 0);
+    p.SHAg = float4(sh.shg3, sh.shg1, sh.shg2, sh.shg0 - sh.shg6);//GetSHA(sh, 1);
+    p.SHAb = float4(sh.shb3, sh.shb1, sh.shb2, sh.shb0 - sh.shb6);//GetSHA(sh, 2);
+    p.SHBr = float4(sh.shr4, sh.shr5, sh.shr6 * 3.0f, sh.shr7);//GetSHB(sh, 0);
+    p.SHBg = float4(sh.shg4, sh.shg5, sh.shg6 * 3.0f, sh.shg7);//GetSHB(sh, 1);
+    p.SHBb = float4(sh.shb4, sh.shb5, sh.shb6 * 3.0f, sh.shb7);//GetSHB(sh, 2);
+    p.SHC = float4(sh.shr8, sh.shg8, sh.shb8, 1.0);//GetSHC(sh);
+    return p;
+}
+
+[numthreads(64, 1, 1)]
+void ScatterUpdateProbesMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= (uint)_ProbeUpdateQueueCount)
+            return;
+
+    uint outputIndex = _ProbeUpdateIndexQueue.Load(dispatchThreadID.x << 2);
+    SHUpdatePacket updatePacket = _ProbeUpdateDataQueue[dispatchThreadID.x];
+    SHProperties sh = UnpackShUpdate(updatePacket);
+    float4 occlusionData = _ProbeOcclusionUpdateDataQueue[dispatchThreadID.x];
+    uint bytesPerSH = 8 * 4 * 4;
+    uint baseSHOffset = outputIndex * bytesPerSH;
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 0 * 16, asuint(sh.SHAr));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 1 * 16, asuint(sh.SHAg));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 2 * 16, asuint(sh.SHAb));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 3 * 16, asuint(sh.SHBr));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 4 * 16, asuint(sh.SHBg));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 5 * 16, asuint(sh.SHBb));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 6 * 16, asuint(sh.SHC));
+    _OutputProbeBuffer.Store4(_SHUpdateVec4Offset * 4 + baseSHOffset + 7 * 16, asuint(occlusionData));
+}

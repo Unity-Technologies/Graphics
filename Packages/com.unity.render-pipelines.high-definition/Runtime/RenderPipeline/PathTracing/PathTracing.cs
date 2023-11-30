@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 
 #if UNITY_EDITOR
@@ -33,6 +33,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Always disables sky importance sampling.
         /// </summary>
         Off
+    }
+
+    /// <summary>
+    /// Options for noise index calculation per sample in path tracing.
+    /// </summary>
+    public enum SeedMode
+    {
+
+        /// <summary>
+        /// The non repeating mode bases the seed on the camera frame count. This avoids screen-based artefacts when using Path Tracing with the Recorder package. 
+        /// </summary>
+        NonRepeating,
+
+        /// <summary>
+        /// The repeating mode resets the seed to zero when the accumulation of samples resets. This allows for easier debugging through deterministic behavior per frame.
+        /// </summary>
+        Repeating,
+        
+        /// <summary>
+        /// The custom mode allows you to choose the seed through a script by setting the customSeed parameter on the PathTracing volume override.
+        /// </summary>
+        Custom
     }
 
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
@@ -74,6 +96,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public SkyImportanceSamplingParameter(SkyImportanceSamplingMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="SeedMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class SeedModeParameter : VolumeParameter<SeedMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="SeedModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public SeedModeParameter(SeedMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -159,6 +196,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
         public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
 
+
+        /// <summary>
+        /// Defines the mode used to calculate the noise index.
+        /// </summary>
+        [Tooltip("Defines the mode used to calculate the noise index used per path tracing sample.")]
+        public SeedModeParameter seedMode = new SeedModeParameter(SeedMode.NonRepeating);
+
+        /// <summary>
+        /// Defines the noise index to be used in the custom SeedMode. This value should be set through a script and is ignored in other modes.
+        /// </summary>
+        [HideInInspector]
+        public IntParameter customSeed = new IntParameter(0);
+
         /// <summary>
         /// Default constructor for the path tracing volume component.
         /// </summary>
@@ -183,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
         int m_SkyHash = -1;
+        int m_DebugMaterialOverrideHash = -1;
         bool m_RenderSky = true;
 
         TextureHandle m_FrameTexture;       // Stores the per-pixel results of path tracing for one frame
@@ -433,10 +484,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 isSceneDirty = true;
             }
 
-            // Check lights dirtiness
-            if (m_CacheLightCount != m_RayTracingLights.lightCount)
+            // Check debug material override dirtiness
+            int debugMaterialOverrideHash = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.ComputeOverrideHash();
+            if (debugMaterialOverrideHash != m_DebugMaterialOverrideHash)
             {
-                m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
+                m_DebugMaterialOverrideHash = debugMaterialOverrideHash;
+                isSceneDirty = true;
+            }
+
+            // Check lights dirtiness
+            if (m_CacheLightCount != m_WorldLights.totalLighttCount)
+            {
+                m_CacheLightCount = (uint)m_WorldLights.totalLighttCount;
                 isSceneDirty = true;
             }
 
@@ -514,10 +573,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render Path Tracing Frame", out var passData))
             {
 #if ENABLE_SENSOR_SDK
-                passData.shader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT;
+                passData.shader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : rayTracingResources.pathTracingRT;
                 passData.prepareDispatchRays = hdCamera.prepareDispatchRays;
 #else
-                passData.shader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT;
+                passData.shader = rayTracingResources.pathTracingRT;
 #endif
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
@@ -532,6 +591,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightCluster = RequestLightCluster();
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
+                // This doesn't actually do anything in the path tracing shaders
                 passData.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
                 passData.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
 #if NO_RAY_RECURSION
@@ -540,7 +600,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
 #endif
                 passData.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
-                passData.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)cameraData.currentIteration;
+                int seed = m_PathTracingSettings.seedMode == SeedMode.Repeating ? (int)cameraData.currentIteration : (((int)hdCamera.GetCameraFrameCount() - 1) % m_PathTracingSettings.maximumSamples.max);
+                passData.shaderVariablesRaytracingCB._RaytracingSampleIndex = m_PathTracingSettings.seedMode == SeedMode.Custom ? m_PathTracingSettings.customSeed.value : seed;
 
                 passData.skyReflection = m_SkyManager.GetSkyReflection(hdCamera);
                 passData.skyBG = builder.ReadTexture(m_SkyBGTexture);
@@ -577,7 +638,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // LightLoop data
                         ctx.cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, data.lightCluster.GetCluster());
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, data.lightCluster.GetLightDatas());
 
                         // Global sky data
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
@@ -648,12 +708,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Prepares data (CDF) to be able to importance sample the sky afterwards
         void RenderSkySamplingData(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS)
+            if (!rayTracingResources.pathTracingSkySamplingDataCS)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderSkySamplingPassData>("Render Sky Sampling Data for Path Tracing", out var passData))
             {
-                passData.shader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS;
+                passData.shader = rayTracingResources.pathTracingSkySamplingDataCS;
                 passData.k0 = passData.shader.FindKernel("ComputeCDF");
                 passData.k1 = passData.shader.FindKernel("ComputeMarginal");
                 passData.size = m_skySamplingSize;
@@ -690,7 +750,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
+            if (!rayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
                 return TextureHandle.nullHandle;
 
             var motionVector = TextureHandle.nullHandle;
@@ -725,6 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
+            // Set up the subframe manager for correct accumulation in case of multiframe accumulation  
             // Check if the camera has a valid history buffer and if not reset the accumulation.
             // This can happen if a script disables and re-enables the camera (case 1337843).
             if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
@@ -740,7 +801,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // When recording, as be bypass dirtiness checks which update camData, we need to indicate whether we want to render a sky or not
+                // When recording, as we bypass dirtiness checks which update camData, we need to indicate whether we want to render a sky or not
                 camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
                 m_SubFrameManager.SetCameraData(camID, camData);
             }

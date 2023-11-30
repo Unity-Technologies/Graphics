@@ -171,9 +171,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsPBRFogEnabled(HDCamera hdCamera)
         {
             var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            // For now PBR fog (coming from the PBR sky) is disabled until we improve it
-            return false;
-            //return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
+            var pbrSky = hdCamera.volumeStack.GetComponent<PhysicallyBasedSky>();
+            var fs = hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
+            return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && pbrSky.atmosphericScattering.value && fs;
         }
 
         static float ScaleHeightFromLayerDepth(float d)
@@ -200,6 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
 
+            cb._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
+
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) || !fogSettings.enabled.value)
             {
                 UpdateShaderVariablesGlobalCBNeutralParameters(ref cb);
@@ -215,7 +217,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
 
             cb._FogEnabled = 1;
-            cb._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
             cb._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
             cb._MaxFogDistance = maxFogDistance.value;
 
@@ -233,11 +234,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._HeightFogBaseExtinction = extinction;
 
             float crBaseHeight = baseHeight.value;
-
             if (ShaderConfig.s_CameraRelativeRendering != 0)
-            {
-                crBaseHeight -= hdCamera.camera.transform.position.y;
-            }
+                crBaseHeight -= cb._PlanetUpAltitude.w;
 
             float layerDepth = Mathf.Max(0.01f, maximumHeight.value - baseHeight.value);
             float H = ScaleHeightFromLayerDepth(layerDepth);

@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-CollideWithDepthBuffer")]
-    [VFXInfo(category = "Collision")]
+    [VFXInfo(name = "Collide with Depth Buffer", category = "Collision")]
     class CollisionDepth : CollisionBase
     {
         enum SurfaceThickness
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies the thickness mode for the colliding surface. It can have an infinite thickness, or be set to a custom value.")]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
-        public override string name { get { return "Collide with Depth Buffer"; } }
+        public override string name => "Collide with Depth Buffer";
 
         public class ThicknessProperties
         {
@@ -31,13 +31,6 @@ namespace UnityEditor.VFX.Block
         }
 
         protected override bool allowInvertedCollision { get { return false; } }
-
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
-        {
-            base.GenerateErrors(manager);
-            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
-                manager.RegisterError("CollisionDepthUnavailableWithoutHDRP", VFXErrorType.Warning, "Depth collision is currently only supported in the High Definition Render Pipeline (HDRP).");
-        }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

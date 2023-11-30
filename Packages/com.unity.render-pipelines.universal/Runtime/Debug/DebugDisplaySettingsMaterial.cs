@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.Universal
             public SettingsPanel(DebugDisplaySettingsMaterial data)
                 : base(data)
             {
-                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+                AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
 
                 AddWidget(new DebugUI.Foldout
                 {

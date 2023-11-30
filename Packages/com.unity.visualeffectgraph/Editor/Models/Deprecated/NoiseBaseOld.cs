@@ -117,16 +117,6 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override public string libraryName
-        {
-            get
-            {
-                if (type == NoiseType.Curl)
-                    return noiseName + " Curl Noise";
-                return noiseName + " Noise";
-            }
-        }
-
         protected abstract string noiseName { get; }
 
         protected override IEnumerable<string> filteredOutSettings

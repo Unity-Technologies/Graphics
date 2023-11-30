@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.Universal
                 // Foldout header
                 EditorGUI.BeginChangeCheck();
                 SerializedProperty activeProperty = serializedRendererFeaturesEditor.FindProperty("m_Active");
-                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(pos, index), null, null, helpURL);
+                bool displayContent = CoreEditorUtils.DrawHeaderToggle(EditorGUIUtility.TrTextContent(title, tooltip), renderFeatureProperty, activeProperty, pos => OnContextClick(rendererFeatureObjRef, pos, index), null, null, helpURL);
                 hasChangedProperties |= EditorGUI.EndChangeCheck();
 
                 // ObjectEditor
@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(pos, index));
+                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(rendererFeatureObjRef, pos, index));
                 m_FalseBool.boolValue = false; // always make sure false bool is false
                 EditorGUILayout.HelpBox(Styles.MissingFeature.tooltip, MessageType.Error);
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))
@@ -207,7 +207,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private void OnContextClick(Vector2 position, int id)
+        private void OnContextClick(Object rendererFeatureObject, Vector2 position, int id)
         {
             var menu = new GenericMenu();
 
@@ -221,7 +221,8 @@ namespace UnityEditor.Rendering.Universal
             else
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
 
-            AddShowAdditionalPropertiesMenuItem(ref menu, id);
+            if(rendererFeatureObject?.GetType() == typeof(FullScreenPassRendererFeature))
+                AddShowAdditionalPropertiesMenuItem(rendererFeatureObject as FullScreenPassRendererFeature, ref menu, id);
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
@@ -229,14 +230,9 @@ namespace UnityEditor.Rendering.Universal
             menu.DropDown(new Rect(position, Vector2.zero));
         }
 
-        private void AddShowAdditionalPropertiesMenuItem(ref GenericMenu menu, int id)
+        private void AddShowAdditionalPropertiesMenuItem(FullScreenPassRendererFeature fullScreenFeature, ref GenericMenu menu, int id)
         {
-            if (m_Editors[id] != null && m_Editors[id].GetType() == typeof(FullScreenPassRendererFeatureEditor))
-            {
-                var featureReference = m_Editors[id] as FullScreenPassRendererFeatureEditor;
-                bool additionalPropertiesAreCurrentlyOn = featureReference.showAdditionalProperties;
-                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), additionalPropertiesAreCurrentlyOn, () => featureReference.showAdditionalProperties = !additionalPropertiesAreCurrentlyOn);
-            }
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), fullScreenFeature.showAdditionalProperties, () => fullScreenFeature.showAdditionalProperties = !fullScreenFeature.showAdditionalProperties);
         }
 
         internal void AddComponent(string type)

@@ -23,6 +23,7 @@ class Renderer2DTests
         m_BaseCameraData.SetRenderer(2);    // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
         m_BaseCameraData.renderType = CameraRenderType.Base;
         m_BaseCameraData.renderPostProcessing = false;
+        m_BaseCamera.targetTexture = new RenderTexture(m_BaseCamera.pixelWidth, m_BaseCamera.pixelHeight, 24);
 
         m_OverlayObj = new GameObject();
         m_OverlayCamera = m_OverlayObj.AddComponent<Camera>();

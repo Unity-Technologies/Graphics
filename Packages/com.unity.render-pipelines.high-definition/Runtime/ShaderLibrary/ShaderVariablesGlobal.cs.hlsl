@@ -46,6 +46,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 unity_DeltaTime;
     float4 _TimeParameters;
     float4 _LastTimeParameters;
+    float4 _PlanetCenterRadius;
+    float4 _PlanetUpAltitude;
     int _FogEnabled;
     int _PBRFogEnabled;
     int _EnableVolumetricFog;
@@ -100,6 +102,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _PunctualLightCount;
     uint _AreaLightCount;
     uint _EnvLightCount;
+    uint _WorldDirectionalLightCount;
+    uint _WorldPunctualLightCount;
+    uint _WorldAreaLightCount;
+    uint _WorldEnvLightCount;
     int _EnvLightSkyEnabled;
     uint _CascadeShadowCount;
     int _DirectionalShadowIndex;
@@ -168,6 +174,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableComputeThickness;
     float _VolumetricCloudsFallBackValue;
     float4 _VolumetricCloudsShadowOriginToggle;
+    float4 _ColorPyramidUvScaleAndLimitPrevFrame;
 CBUFFER_END
 
 

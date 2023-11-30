@@ -8,14 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shader Graphs_Shore Foam Water System
-  m_Shader: {fileID: -6465566751694194690, guid: 83411d32d5fac824c80df55eca8f1bc8,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 83411d32d5fac824c80df55eca8f1bc8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _MATERIAL_AFFECTS_ALBEDO
   - _MATERIAL_AFFECTS_MASKMAP
-  - _MATERIAL_AFFECTS_NORMAL
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -59,11 +57,11 @@ Material:
     m_Floats:
     - _AffectAlbedo: 1
     - _AffectMetal: 0
-    - _AffectNormal: 1
+    - _AffectNormal: 0
     - _AffectSmoothness: 1
     - _Contrast: 3
     - _DecalColorMask0: 15
-    - _DecalColorMask1: 15
+    - _DecalColorMask1: 0
     - _DecalColorMask2: 3
     - _DecalColorMask3: 0
     - _DecalMeshBiasType: 0
@@ -79,6 +77,7 @@ Material:
     - _Tiling_and_Offset: {r: 20, g: 20, b: 0, a: 0}
     - _Vector4: {r: 40, g: 40, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &4487198186264715375
 MonoBehaviour:
   m_ObjectHideFlags: 11

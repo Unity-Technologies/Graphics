@@ -38,6 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static readonly string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
         static readonly string kShaderPass = $"{HDUtils.GetHDRenderPipelinePath()}/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl";
         static readonly string kPBRSkyRendering = $"{HDUtils.GetHDRenderPipelinePath()}/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRendering.hlsl";
+        static readonly string kPBRSkyEvaluation = $"{HDUtils.GetHDRenderPipelinePath()}/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyEvaluation.hlsl";
 
         PBRSkyData m_SkyData;
 
@@ -90,6 +91,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor GroundSmoothness = new BlockFieldDescriptor(kMaterial, "GroundSmoothness", "Ground Smoothness", "", new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SpaceColor = new BlockFieldDescriptor(kMaterial, "SpaceColor", "Space Color", "", new ColorControl(Color.black, true), ShaderStage.Fragment);
         }
+
+        public static KeywordDescriptor LocalSky = new KeywordDescriptor
+        {
+            displayName = "Local Sky",
+            referenceName = "LOCAL_SKY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
@@ -245,12 +256,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     StructFields.Attributes.vertexID,
                 },
 
+                keywords = new KeywordCollection { { LocalSky } },
                 renderStates = GetRenderState(cubemap),
                 pragmas = new PragmaCollection
                 {
                     { Pragma.Target(ShaderModel.Target45) },
                     { Pragma.Vertex("Vert") },
                     { Pragma.Fragment(cubemap ? "FragBaking" : "Frag") },
+                    { Pragma.EditorSyncCompilation },
                 },
                 includes = new IncludeCollection
                 {
@@ -260,6 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { kFunctions, IncludeLocation.Pregraph },
                     { kShaderPass, IncludeLocation.Pregraph },
                     { kPBRSkyRendering, IncludeLocation.Pregraph },
+                    { kPBRSkyEvaluation, IncludeLocation.Pregraph },
                     { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 },
             };
@@ -275,8 +289,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var original = HDRenderPipeline.currentAsset.renderPipelineResources.materials.pbrSkyMaterial;
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(original), pathName);
+                var material = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>().pbrSkyMaterial;
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(material), pathName);
             }
         }
 

@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     // RendererList is a different case so not represented here.
     internal enum RenderGraphResourceType
@@ -26,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         uint m_Value;
         int m_Version; // A freshly created resource always starts at version 0 the first write should bring it to v1
-
+        
         static uint s_CurrentValidBit = 1 << 16;
         static uint s_SharedResourceValidBit = 0x7FFF << 16;
 
@@ -98,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public bool Equals(ResourceHandle hdl)
         {
-            return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version;
+            return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version && hdl.type == this.type;
         }
     }
 

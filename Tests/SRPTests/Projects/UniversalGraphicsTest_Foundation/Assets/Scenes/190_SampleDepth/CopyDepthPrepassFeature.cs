@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
@@ -16,7 +16,6 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
     [SerializeField]
     [Reload("Shaders/Utils/CopyDepth.shader")]
     private Shader m_CopyDepthPS;
-    private Material[] m_CopyDepthMaterials;
     private ThreeCopyDepths copyDepthPasses;
     private const int k_NumOfMaterials = 3;
 
@@ -46,12 +45,12 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
 
     private bool Init()
     {
-        if (!GetMaterials())
+        if (m_CopyDepthPS == null)
             return false;
 
         if (copyDepthPasses == null)
         {
-            copyDepthPasses = new ThreeCopyDepths(ref m_CopyDepthMaterials);
+            copyDepthPasses = new ThreeCopyDepths(ref m_CopyDepthPS);
             copyDepthPasses.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
         }
 
@@ -60,40 +59,8 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
 
     protected override void Dispose(bool disposing)
     {
-        DestroyMaterials();
         copyDepthPasses.Dispose();
         copyDepthPasses = null;
-    }
-
-    private void DestroyMaterials()
-    {
-        for (int i = 0; i < m_CopyDepthMaterials.Length; i++)
-            CoreUtils.Destroy(m_CopyDepthMaterials[i]);
-
-        m_CopyDepthMaterials = null;
-    }
-
-    private bool GetMaterials()
-    {
-        if (m_CopyDepthPS == null)
-            return false;
-
-        if (m_CopyDepthMaterials != null && m_CopyDepthMaterials.Length != k_NumOfMaterials)
-            DestroyMaterials();
-
-        if (m_CopyDepthMaterials == null)
-            m_CopyDepthMaterials = new Material[k_NumOfMaterials];
-
-        bool allMaterialsAreReady = true;
-        for (int i = 0; i < k_NumOfMaterials; i++)
-        {
-            if (m_CopyDepthMaterials[i] == null)
-                m_CopyDepthMaterials[i] = CoreUtils.CreateEngineMaterial(m_CopyDepthPS);
-
-            allMaterialsAreReady &= m_CopyDepthMaterials[i] != null;
-        }
-
-        return allMaterialsAreReady;
     }
 }
 
@@ -105,11 +72,11 @@ internal class ThreeCopyDepths : ScriptableRenderPass
     private RTHandle m_Depth1;
     private RTHandle m_Depth2;
 
-    public ThreeCopyDepths(ref Material[] copyDepthMaterials)
+    public ThreeCopyDepths(ref Shader copyDepthShader)
     {
-        m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterials[0], copyToDepth: true);
-        m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterials[1], copyToDepth: true, copyResolvedDepth: true);
-        m_CopyDepthPass3 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterials[2], copyToDepth: true, copyResolvedDepth: true);
+        m_CopyDepthPass1 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true);
+        m_CopyDepthPass2 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true);
+        m_CopyDepthPass3 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true);
     }
 
     public void SetupForNonRGPath(ScriptableRenderer renderer, RenderTextureDescriptor cameraTextureDescriptor)
@@ -137,27 +104,34 @@ internal class ThreeCopyDepths : ScriptableRenderPass
         renderer.EnqueuePass(m_CopyDepthPass3);
     }
 
-    public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+    public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
-        UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
-        var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
+        UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+        UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+        var depthDesc = cameraData.cameraTargetDescriptor;
         depthDesc.graphicsFormat = GraphicsFormat.None;
-        depthDesc.depthStencilFormat =  renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
+        depthDesc.depthStencilFormat =  cameraData.cameraTargetDescriptor.depthStencilFormat;
         depthDesc.msaaSamples = 1;
 
-        TextureHandle activeDepth = renderer.activeDepthTexture;
+        TextureHandle activeDepth = resourceData.activeDepthTexture;
         TextureHandle copiedDepth1 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "CopiedDepth1", false);
         TextureHandle copiedDepth2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "CopiedDepth2", false);
 
-        m_CopyDepthPass1.Render(renderGraph, copiedDepth1, activeDepth, ref renderingData, false, "First Copy");
-        m_CopyDepthPass1.Render(renderGraph, copiedDepth2, copiedDepth1, ref renderingData, false, "Second Copy");
-        m_CopyDepthPass1.Render(renderGraph, activeDepth, copiedDepth2,  ref renderingData, false, "Third Copy");
+        m_CopyDepthPass1.Render(renderGraph, copiedDepth1, activeDepth, resourceData, cameraData, false, "First Copy");
+        m_CopyDepthPass2.Render(renderGraph, copiedDepth2, copiedDepth1, resourceData, cameraData, false, "Second Copy");
+        m_CopyDepthPass3.Render(renderGraph, activeDepth, copiedDepth2, resourceData, cameraData, false, "Third Copy");
     }
 
     public void Dispose()
     {
         m_Depth1?.Release();
         m_Depth2?.Release();
+
+        m_CopyDepthPass1?.Dispose();
+        m_CopyDepthPass2?.Dispose();
+        m_CopyDepthPass3?.Dispose();
+
         m_CopyDepthPass1 = null;
         m_CopyDepthPass2 = null;
         m_CopyDepthPass3 = null;

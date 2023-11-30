@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(name = "Output Event", category = "Event")]
     class VFXOutputEvent : VFXContext
     {
         [VFXSetting, SerializeField, Delayed]
@@ -39,12 +38,20 @@ namespace UnityEditor.VFX
                 var parents = new HashSet<VFXContext>();
                 CollectParentsContextRecursively(this, parents);
 
+                var attributeManager = GetGraph().attributesManager;
                 //Detect all attribute used in source spawner & consider as read source from them
                 //This can be done using VFXDataSpawner after read attribute from spawn feature merge (require to be sure that the order of compilation is respected)
                 foreach (var block in parents.SelectMany(o => o.children).OfType<VFX.Block.VFXSpawnerSetAttribute>())
                 {
                     var attributeName = block.GetSetting("attribute");
-                    yield return new VFXAttributeInfo(VFXAttribute.Find((string)attributeName.value), VFXAttributeMode.ReadSource);
+                    if (attributeManager.TryFind((string)attributeName.value, out var attribute))
+                    {
+                        yield return new VFXAttributeInfo(attribute, VFXAttributeMode.ReadSource);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Could not find attribute {attributeName}");
+                    }
                 }
             }
         }

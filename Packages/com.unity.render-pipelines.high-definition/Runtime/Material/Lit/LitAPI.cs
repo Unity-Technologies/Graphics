@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
             BaseLitAPI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
+            bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS, excludeFromTUAndAA: excludeFromTUAndAA);
             BaseLitAPI.SetupDisplacement(material);
 
             if (material.HasProperty(kNormalMapSpace))

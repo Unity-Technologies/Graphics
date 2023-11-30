@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 
@@ -8,7 +9,7 @@ using UnityEngine.Rendering.RendererUtils;
 using CoreRendererList = UnityEngine.Rendering.RendererList;
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
-namespace UnityEngine.Experimental.Rendering.RenderGraphModule
+namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Basic properties of a RTHandle needed by the render graph compiler. It is not always possible to derive these
@@ -172,8 +173,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             var texResource = GetTextureResource(handle.handle);
             var resource = texResource.graphicsResource;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (resource == null && !texResource.imported)
                 throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+#endif
 
             return resource;
         }
@@ -219,8 +222,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             var bufferResource = GetBufferResource(handle.handle);
             var resource = bufferResource.graphicsResource;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (resource == null)
                 throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+#endif
 
             return resource;
         }
@@ -232,8 +237,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             var accelStructureResource = GetRayTracingAccelerationStructureResource(handle.handle);
             var resource = accelStructureResource.graphicsResource;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (resource == null)
                 throw new InvalidOperationException("Trying to use a acceleration structure ({accelStructureResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+#endif
 
             return resource;
         }
@@ -291,11 +298,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckHandleValidity(RenderGraphResourceType type, int index)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             var resources = m_RenderGraphResources[(int)type].resourceArray;
             if (index == 0)
                 throw new ArgumentException($"Trying to access resource of type {type} with an null resource index.");
             if (index >= resources.size)
                 throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+#endif
         }
 
         internal void IncrementWriteCount(in ResourceHandle res)
@@ -443,8 +452,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     // RTHandle wrapping a  regular 2D texture we can't render to that
                 }
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 else if (rt.m_NameID != emptyId)
                 {
+
                     // RTHandle wrapping a RenderTargetIdentifier
                     throw new Exception("Invalid import, you are importing a texture handle that wraps a RenderTargetIdentifier. The render graph can't know the properties of these textures so please use the ImportTexture overload that takes a RenderTargetInfo argument instead.");
                 }
@@ -452,6 +463,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     throw new Exception("Invalid render target handle: RT, External texture and NameID are all null or zero.");
                 }
+#endif
             }
 
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
@@ -504,13 +516,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 // Anything else is an error and should take the overload not taking a RenderTargetInfo
                 else
                 {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     throw new Exception("Invalid import, you are importing a texture handle that isn't wrapping a RenderTargetIdentifier. You cannot use the overload taking RenderTargetInfo as the graph will automatically determine the texture properties based on the passed in handle.");
-
+#endif
                 }
             }
             else
             {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 throw new Exception("Invalid import, null handle.");
+#endif
             }
 
             var handle = new TextureHandle(newHandle);
@@ -559,11 +574,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void RefreshSharedTextureDesc(TextureHandle texture, in TextureDesc desc)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle.index))
             {
                 throw new InvalidOperationException($"Trying to refresh texture {texture} that is not a shared resource.");
             }
-
+#endif
             var texResource = GetTextureResource(texture.handle);
             texResource.ReleaseGraphicsResource();
             texResource.desc = desc;
@@ -572,8 +588,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void ReleaseSharedTexture(TextureHandle texture)
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (texture.handle.index == 0 || texture.handle.index >= texResources.sharedResourcesCount+1)
                 throw new InvalidOperationException("Tried to release a non shared texture.");
+#endif
 
             // Decrement if we release the last one.
             if (texture.handle.index == (texResources.sharedResourcesCount))
@@ -617,12 +636,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void GetRenderTargetInfo(ResourceHandle res, out RenderTargetInfo outInfo)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (res.IsValid() == false || res.iType != (int)RenderGraphResourceType.Texture)
             {
                 outInfo = new RenderTargetInfo();
                 throw new ArgumentException("Invalid Resource Handle passed to GetRenderTargetInfo");
             }
-
+#endif
             // You can never have enough ways to reference a render target...
             // This function is just perfect and certainly not full of legacy if's and but's
 
@@ -679,10 +699,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     // so we just say we don't know what this rt is and rely on the user passing in the info to us.
                     var desc = GetTextureResourceDesc(res);
                     outInfo = new RenderTargetInfo();
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.colorFormat == GraphicsFormat.None)
                     {
                         throw new Exception("Invalid imported texture. A RTHandle wrapping an RenderTargetIdentifier was imported without providing valid RenderTargetInfo.");
                     }
+#endif
                     outInfo.width = desc.width;
                     outInfo.height = desc.height;
                     outInfo.volumeDepth = desc.slices;
@@ -784,10 +806,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }
 
-        internal RendererListHandle CreateUIOverlayRendererList(ScriptableRenderContext context, in Camera camera)
+        internal RendererListHandle CreateUIOverlayRendererList(ScriptableRenderContext context, in Camera camera, in UISubset uiSubset)
         {
             RendererListLegacyResource resource = new RendererListLegacyResource();
-            resource.rendererList = context.CreateUIOverlayRendererList(camera);
+            resource.rendererList = context.CreateUIOverlayRendererList(camera, uiSubset);
             int newHandle = m_RendererListLegacyResources.Add(resource);
             return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }
@@ -1002,7 +1024,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void ValidateRendererListDesc(in CoreRendererListDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-
             if (!desc.IsValid())
             {
                 throw new ArgumentException("Renderer List descriptor is not valid.");
@@ -1053,10 +1074,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         rendererListResource.isActive = true;
                         break;
                     }
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                     default:
                     {
                         throw new ArgumentException("Invalid RendererListHandle: RendererListHandleType is not recognized.");
                     }
+#endif
                 }
 
             }

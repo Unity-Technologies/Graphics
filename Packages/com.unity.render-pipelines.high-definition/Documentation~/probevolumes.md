@@ -9,6 +9,7 @@ Probe Volumes make [Light Probes](https://docs.unity3d.com/Manual/LightProbes.ht
 | [Display and adjust Probe Volumes](probevolumes-showandadjust.md)  | How to visualize and adjust the structure of Probe Volumes. |
 | [Fix issues with Probe Volumes](probevolumes-fixissues.md)  | How to reduce light leaks and seams in your lighting result. |
 | [Streaming](probevolumes-streaming.md)   | How Probe Volumes stream lighting data to provide lighting for large open worlds. |
+| [Sky Occlusion](probevolumes-skyocclusion.md)   | How to use Sky Occlusion with Probe Volumes for dynamic sky lighting. |
 | [Settings and properties related to Probe Volumes](probevolumes-settings.md) | Learn about Probe Volume settings. |
 
 ## Additional resources

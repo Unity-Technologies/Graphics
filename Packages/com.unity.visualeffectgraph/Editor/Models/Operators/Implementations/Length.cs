@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Length")]
-    [VFXInfo(category = "Math/Vector")]
+    [VFXInfo(category = "Math/Vector", synonyms = new []{ "norm", "magnitude" })]
     class Length : VFXOperatorNumericUniform
     {
         public class InputProperties
@@ -18,8 +18,7 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        public override string libraryName { get { return "Length"; } }
-        public override string name { get { return "Length"; } }
+        public override string name => "Length";
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptIntegerAndDirection; } }
 

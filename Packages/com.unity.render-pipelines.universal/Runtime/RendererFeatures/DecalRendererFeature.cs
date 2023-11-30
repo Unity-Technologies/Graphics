@@ -148,7 +148,6 @@ namespace UnityEngine.Rendering.Universal
                 m_DecalEntityManager.UpdateDecalEntityData(decalProjector.decalEntity, decalProjector);
         }
 
-
         private void OnAllDecalPropertyChange()
         {
             m_DecalEntityManager.UpdateAllDecalEntitiesData();
@@ -165,6 +164,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The class for the decal renderer feature.
     /// </summary>
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
     [URPHelpURL("renderer-feature-decal")]
@@ -191,7 +191,6 @@ namespace UnityEngine.Rendering.Universal
         private bool m_RecreateSystems;
 
         private DecalPreviewPass m_DecalPreviewPass;
-        private Material m_CopyDepthMaterial;
 
         // Entities
         private DecalEntityManager m_DecalEntityManager;
@@ -368,7 +367,7 @@ namespace UnityEngine.Rendering.Universal
             if (Application.platform == RuntimePlatform.WebGLPlayer)
                 return false;
 #endif
-            return !GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
+            return !PlatformAutoDetect.isShaderAPIMobileDefined;
         }
 
         private bool RecreateSystemsIfNeeded(ScriptableRenderer renderer, in CameraData cameraData)
@@ -382,8 +381,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_DBufferSettings = GetDBufferSettings();
             m_ScreenSpaceSettings = GetScreenSpaceSettings();
-
-            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_CopyDepthPS);
 
             m_DBufferClearMaterial = CoreUtils.CreateEngineMaterial(m_DBufferClear);
 
@@ -430,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
                 case DecalTechnique.DBuffer:
                     // the RenderPassEvent needs to be RenderPassEvent.AfterRenderingPrePasses + 1, so we are sure that if depth priming is enabled
                     // this copy happens after the primed depth is copied, so the depth texture is available
-                    m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, m_CopyDepthMaterial, false, universalRenderer.renderingModeActual != RenderingMode.Deferred);
+                    m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, m_CopyDepthPS, false, universalRenderer.renderingModeActual != RenderingMode.Deferred);
                     m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
 
                     m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
@@ -485,6 +482,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            if (UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
+                return;
+
             if (renderingData.cameraData.cameraType == CameraType.Preview)
             {
                 renderer.EnqueuePass(m_DecalPreviewPass);
@@ -542,6 +542,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
+            if (renderer.cameraColorTargetHandle == null)
+                return;
+
             if (m_Technique == DecalTechnique.DBuffer)
             {
                 m_DBufferRenderPass.Setup(renderingData.cameraData);
@@ -568,7 +571,7 @@ namespace UnityEngine.Rendering.Universal
                     m_CopyDepthPass.MssaSamples = 1;
                 }
             }
-            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseRenderPass)
+            else if (m_Technique == DecalTechnique.GBuffer && m_DeferredLights.UseFramebufferFetch)
             {
                 // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
                 m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
@@ -579,7 +582,8 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_DBufferRenderPass?.Dispose();
-            CoreUtils.Destroy(m_CopyDepthMaterial);
+            m_CopyDepthPass?.Dispose();
+
             CoreUtils.Destroy(m_DBufferClearMaterial);
 
             if (m_DecalEntityManager != null)

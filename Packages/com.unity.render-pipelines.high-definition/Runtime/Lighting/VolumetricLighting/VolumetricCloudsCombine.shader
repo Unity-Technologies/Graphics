@@ -15,19 +15,22 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsDef.cs.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
         // For refraction sorting, clouds are considered pre-refraction transparents
+        // Atmospheric scattering is computed while tracing
         #define _TRANSPARENT_REFRACTIVE_SORT
         #define _ENABLE_FOG_ON_TRANSPARENT
         #define _BlendMode BLENDMODE_ALPHA
+        #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
         TEXTURE2D_X(_CameraColorTexture);
         TEXTURE2D_X(_VolumetricCloudsLightingTexture);
+        TEXTURE2D_X(_VolumetricCloudsDepthTexture);
         TEXTURECUBE(_VolumetricCloudsTexture);
-        float4x4 _PixelCoordToViewDirWS;
         int _Mipmap;
 
         struct Attributes
@@ -62,7 +65,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             ZWrite Off
 
             // If this is a background pixel, we want the cloud value, otherwise we do not.
-            Blend  One SrcAlpha, Zero One
+            Blend One OneMinusSrcAlpha, Zero One
 
             HLSLPROGRAM
 
@@ -70,8 +73,26 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+                // Read cloud data
+                float4 outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                outColor.a = 1.0f - outColor.a;
+
+                float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
+                float linearDepth = DecodeInfiniteDepth(deviceDepth, _CloudNearPlane);
+
+                float3 V = GetSkyViewDirWS(input.positionCS.xy);
+                float3 positionWS = GetCameraPositionWS() - linearDepth * V;
+
+                // Compute pos inputs
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, positionWS);
+                posInput.linearDepth = linearDepth;
+
+                // Apply fog
+                float3 volColor, volOpacity;
+                EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+
                 // Composite the result via hardware blending.
-                return LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                return ApplyFogOnTransparent(outColor, volColor, volOpacity);
             }
             ENDHLSL
         }
@@ -142,10 +163,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             Blend  Off
 
             HLSLPROGRAM
+
             float4 Frag(Varyings input) : SV_Target
             {
                 // Points towards the camera
-                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
+                float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy * (float)_Mipmap);
                 // Fetch the clouds
                 return SAMPLE_TEXTURECUBE_LOD(_VolumetricCloudsTexture, s_linear_clamp_sampler, viewDirWS, _Mipmap);
             }
@@ -164,7 +186,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Construct the view direction
-                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
+                float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy * (float)_Mipmap);
                 // Fetch the clouds
                 float4 clouds = SAMPLE_TEXTURECUBE_LOD(_VolumetricCloudsTexture, s_linear_clamp_sampler, viewDirWS, _Mipmap);
                 // Inverse the exposure
@@ -190,7 +212,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Construct the view direction
-                float3 viewDirWS = -normalize(mul(float4(input.positionCS.xy * (float)_Mipmap, 1.0, 1.0), _PixelCoordToViewDirWS).xyz);
+                float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy * (float)_Mipmap);
                 // Fetch the clouds
                 float4 clouds = SAMPLE_TEXTURECUBE_LOD(_VolumetricCloudsTexture, s_linear_clamp_sampler, viewDirWS, _Mipmap);
                 // Inverse the exposure
@@ -211,14 +233,14 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             ZWrite Off
 
             // If this is a background pixel, we want the cloud value, otherwise we do not.
-            Blend  One OneMinusSrcAlpha
+            Blend  One OneMinusSrcAlpha, Zero One
 
             Blend 1 One OneMinusSrcAlpha // before refraction
             Blend 2 One OneMinusSrcAlpha // before refraction alpha
 
             HLSLPROGRAM
 
-            TEXTURE2D_X(_VolumetricCloudsDepthTexture);
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
 
             void Frag(Varyings input
                 , out float4 outColor : SV_Target0
@@ -229,15 +251,20 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
-                float cloudDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
                 outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
                 outColor.a = 1.0f - outColor.a;
 
-                // Compute pos inputs
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, cloudDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-                float3 V = -normalize(posInput.positionWS);
+                float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
+                float linearDepth = DecodeInfiniteDepth(deviceDepth, _CloudNearPlane);
 
-                // Apply atmospheric fog or water absorption
+                float3 V = GetSkyViewDirWS(input.positionCS.xy);
+                float3 positionWS = GetCameraPositionWS() - linearDepth * V;
+
+                // Compute pos inputs
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, positionWS);
+                posInput.linearDepth = linearDepth;
+                posInput.deviceDepth = saturate(ConvertCloudDepth(positionWS));
+
                 outColor = ComputeFog(posInput, V, outColor);
 
                 // Sort clouds with refractive objects

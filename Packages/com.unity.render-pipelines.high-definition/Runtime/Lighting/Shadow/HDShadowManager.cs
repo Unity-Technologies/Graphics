@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 // TODO @ SHADERS: Enable as many of the rules (currently commented out) as make sense
@@ -601,6 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public const int k_DirectionalShadowCascadeCount = 4;
         public const int k_MinShadowMapResolution = 16;
+        public const int k_OffscreenShadowMapResolution = 64;
         public const int k_MaxShadowMapResolution = 16384;
 
         List<HDShadowData>          m_ShadowDatas = new List<HDShadowData>();
@@ -686,7 +687,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void InitShadowManager(HDRenderPipelineRuntimeResources renderPipelineResources, HDShadowInitParameters initParams, RenderGraph renderGraph, Shader clearShader)
+        public void InitShadowManager(HDRenderPipeline renderPipeline, HDShadowInitParameters initParams, RenderGraph renderGraph)
         {
             m_DirectionalShadowData = default;
             m_CascadeCount = 0;
@@ -702,8 +703,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (initParams.maxShadowRequests == 0)
                 return;
 
-            m_ClearShadowMaterial = CoreUtils.CreateEngineMaterial(clearShader);
-            m_BlitShadowMaterial = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.shadowBlitPS);
+            m_ClearShadowMaterial = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.shadowClearPS);
+            m_BlitShadowMaterial = CoreUtils.CreateEngineMaterial(renderPipeline.runtimeShaders.shadowBlitPS);
 
             // Prevent the list from resizing their internal container when we add shadow requests
             m_ShadowDatas.Capacity = Math.Max(initParams.maxShadowRequests, m_ShadowDatas.Capacity);
@@ -728,9 +729,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GlobalShaderVariables = new ConstantBuffer<ShaderVariablesGlobal>();
 
-            HDShadowAtlas.HDShadowAtlasInitParameters punctualAtlasInitParams = new HDShadowAtlas.HDShadowAtlasInitParameters(renderPipelineResources, renderGraph, useSharedTexture: false, initParams.punctualLightShadowAtlas.shadowAtlasResolution,
-                initParams.punctualLightShadowAtlas.shadowAtlasResolution, HDShaderIDs._ShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, m_GlobalShaderVariables);
-            punctualAtlasInitParams.name = "Shadow Map Atlas";
+            var punctualAtlasInitParams = new HDShadowAtlas.HDShadowAtlasInitParameters(
+                renderPipeline,
+                renderGraph,
+                useSharedTexture: false,
+                initParams.punctualLightShadowAtlas.shadowAtlasResolution,
+                initParams.punctualLightShadowAtlas.shadowAtlasResolution,
+                HDShaderIDs._ShadowmapAtlas,
+                m_ClearShadowMaterial,
+                initParams.maxShadowRequests,
+                initParams, m_GlobalShaderVariables)
+            {
+                name = "Shadow Map Atlas"
+            };
 
             if (m_Atlas != null)
                 m_Atlas.DisposeNativeCollections();

@@ -16,6 +16,23 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("List of diffusion profiles used inside the volume.")]
         [SerializeField]
         public DiffusionProfileSettingsParameter diffusionProfiles = new DiffusionProfileSettingsParameter(default(DiffusionProfileSettings[]));
+
+        internal int Length => diffusionProfiles.value == null ? 0 : diffusionProfiles.value.Length;
+
+        internal DiffusionProfileSettings[] ToArray()
+        {
+            return diffusionProfiles.value ?? Array.Empty<DiffusionProfileSettings>();
+        }
+
+        internal void ReplaceWithArray(DiffusionProfileSettings[] profileSettingsArray)
+        {
+            profileSettingsArray ??= Array.Empty<DiffusionProfileSettings>();
+
+            if (profileSettingsArray.Length >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT)
+                throw new IndexOutOfRangeException($"The length {profileSettingsArray.Length} of {nameof(profileSettingsArray)} exceeds the limit {DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT}");
+
+            diffusionProfiles.value = profileSettingsArray;
+        }
     }
 
     /// <summary>
@@ -31,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // We allocate once an array with max size, and store the ammount of slots used here.
         internal DiffusionProfileSettings[] accumulatedArray = null;
         internal int accumulatedCount = 0;
+        private DiffusionProfileSettings m_DefaultDiffusionProfileSettings = null;
 
         /// <summary>
         /// Creates a new <see cref="DiffusionProfileSettingsParameter"/> instance.
@@ -39,7 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public DiffusionProfileSettingsParameter(DiffusionProfileSettings[] value, bool overrideState = true)
             : base(value, overrideState) { }
-
 
         // Perform custom interpolation: We want to accumulate profiles instead of replacing them
 
@@ -86,9 +103,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             accumulatedCount = 0;
 
-            var defaultDiffusionProfile = HDRenderPipelineGlobalSettings.instance != null ?
-                HDRenderPipelineGlobalSettings.instance.renderPipelineResources.assets.defaultDiffusionProfile : null;
-            m_Value[accumulatedCount++] = defaultDiffusionProfile;
+            if (m_DefaultDiffusionProfileSettings == null)
+            {
+                m_DefaultDiffusionProfileSettings = GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>(out var assets) ?
+                    assets.defaultDiffusionProfile : null;
+            }
+
+            m_Value[accumulatedCount++] = m_DefaultDiffusionProfileSettings;
 
             if (to != null)
             {

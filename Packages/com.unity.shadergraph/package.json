@@ -1,11 +1,11 @@
 {
   "name": "com.unity.shadergraph",
   "description": "The Shader Graph package adds a visual Shader editing tool to Unity. You can use this tool to create Shaders in a visual way instead of writing code. Specific render pipelines can implement specific graph features. Currently, both the High Definition Rendering Pipeline and the Universal Rendering Pipeline support Shader Graph.",
-  "version": "17.0.0",
+  "version": "17.0.1",
   "unity": "2023.3",
   "displayName": "Shader Graph",
   "dependencies": {
-    "com.unity.render-pipelines.core": "17.0.0",
+    "com.unity.render-pipelines.core": "17.0.1",
     "com.unity.searcher": "4.9.2"
   },
   "samples": [
@@ -13,6 +13,11 @@
       "displayName": "Procedural Patterns",
       "description": "This collection of assets showcase various procedural techniques possible with Shader Graph. Use them in your project or edit them to create other procedural pattens. Patterns: Bacteria, Brick, Dots, Grid, Herringbone, Hex Lattice, Houndstooth, Smooth Wave, Spiral, Stripes, Truchet, Whirl, Zig Zag",
       "path": "Samples~/ProceduralPatterns"
+    },
+    {
+      "displayName": "Node Reference",
+      "description": "This set of Shader Graph assets provides reference material for the nodes available in the Shader Graph node library. Each graph contains a description for a specific node, examples of how it can be used, and useful tips. Some example assets also show a break-down of the math that the node is doing. You can use these samples along with the documentation to learn more about the behavior of individual nodes.",
+      "path": "Samples~/NodeReference"
     }
   ]
 }

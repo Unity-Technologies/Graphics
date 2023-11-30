@@ -281,6 +281,7 @@
         #define UNITY_SETUP_INSTANCE_ID(input) {\
             DEFAULT_UNITY_SETUP_INSTANCE_ID(input);\
             SetupDOTSVisibleInstancingData();\
+            UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES();\
             UNITY_SETUP_DOTS_SH_COEFFS;\
             UNITY_SETUP_DOTS_RENDER_BOUNDS; }
     #endif

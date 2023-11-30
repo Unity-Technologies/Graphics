@@ -1,21 +1,35 @@
 #if HAS_VFX_GRAPH
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
 using UnityEngine;
 
 namespace UnityEditor.VFX.URP
 {
-    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
+    class VFXURPPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
+            {
+                yield return new Variant(
+                    $"Output Particle URP Lit {primitive}",
+                    "Output",
+                    typeof(VFXURPLitPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
+            }
+        }
+    }
+
+    [VFXHelpURL("Context-OutputPrimitive")]
+    [VFXInfo(variantProvider = typeof(VFXURPPlanarPrimitiveOutputProvider))]
     class VFXURPLitPlanarPrimitiveOutput : VFXAbstractParticleURPLitOutput
     {
         public override string name
         {
             get
             {
-                return !string.IsNullOrEmpty(shaderName)
-                    ? $"Output Particle {shaderName} {primitiveType.ToString()}"
-                    : "Output Particle URP Lit " + primitiveType.ToString();
+                return "Output Particle URP Lit " + primitiveType.ToString();
             }
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }

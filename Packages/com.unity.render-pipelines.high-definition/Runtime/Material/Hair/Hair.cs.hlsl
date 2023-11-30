@@ -5,6 +5,13 @@
 #ifndef HAIR_CS_HLSL
 #define HAIR_CS_HLSL
 //
+// UnityEngine.Rendering.HighDefinition.Hair+MaterialFeatureFlags:  static fields
+//
+#define MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY (1)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER (2)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_CINEMATIC (4)
+
+//
 // UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
 //
 #define DEBUGVIEW_HAIR_BSDFDATA_MATERIAL_FEATURES (1450)
@@ -46,13 +53,6 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_DISTRIBUTION_NORMALIZATION_FACTOR (1486)
 #define DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE (1487)
 #define DEBUGVIEW_HAIR_BSDFDATA_VISIBILITY (1488)
-
-//
-// UnityEngine.Rendering.HighDefinition.Hair+MaterialFeatureFlags:  static fields
-//
-#define MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY (1)
-#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER (2)
-#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_CINEMATIC (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+SurfaceData:  static fields

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 13
   hdPluginSubTargetMaterialVersions:
     m_Keys: []
     m_Values: 
@@ -88,6 +88,14 @@ Material:
     - _Erode: 0.75
     - _Erode_On_Border: 0.75
     - _Float: 0.47
+    - _FogVolumeAlphaBlendOp: 0
+    - _FogVolumeBlendMode: 1
+    - _FogVolumeColorBlendOp: 0
+    - _FogVolumeDstAlphaBlend: 1
+    - _FogVolumeDstColorBlend: 1
+    - _FogVolumeFogDistanceProperty: 1
+    - _FogVolumeSrcAlphaBlend: 1
+    - _FogVolumeSrcColorBlend: 1
     - _Main_Noise_Tiling: 0.5
     - _OpaqueCullMode: 2
     - _Pow: 0.96
@@ -115,10 +123,12 @@ Material:
     m_Colors:
     - _Clouds_Color: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 0}
-    - _Color_Border: {r: 0.8, g: 0.8, b: 0.8, a: 0}
+    - _Color_Border: {r: 0.563071, g: 0.64994293, b: 0.6886792, a: 0}
     - _Color_Dense: {r: 0.8867924, g: 0.8867924, b: 0.8867924, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FogVolumeSingleScatteringAlbedo: {r: 1, g: 1, b: 1, a: 1}
     - _Tiling: {r: 0.16, g: 0.1, b: 0.1, a: 0}
     - _Wind_DIrection: {r: 1, g: -0.1, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

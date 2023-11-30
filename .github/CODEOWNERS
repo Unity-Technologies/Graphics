@@ -1,5 +1,7 @@
 # Code Ownership File
 
+/com.unity.postprocessing/ @BenGraterUnity
+
 # Universal RP Team
 /Packages/com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team
 /Tests/SRPTests/Packages/com.unity.testing.urp-upgrade/ @Unity-Technologies/universal-rp-team

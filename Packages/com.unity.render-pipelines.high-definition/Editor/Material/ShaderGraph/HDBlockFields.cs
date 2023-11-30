@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor CustomVelocity = new BlockFieldDescriptor(VertexDescription.name, "CustomVelocity", "Velocity", "VERTEXDESCRIPTION_CUSTOMVELOCITY",
                 new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Vertex);
 
+            public static BlockFieldDescriptor Width = new BlockFieldDescriptor(VertexDescription.name, "Width", "Width", "VERTEXDESCRIPTION_WIDTH", new FloatControl(0.08f), ShaderStage.Vertex);
+
             // TODO: In the future we may have proper ShaderStage for tessellation, this will need to be revisit then
             public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(VertexDescription.name, "TessellationFactor", "Tessellation Factor", "VERTEXDESCRIPTION_TESSELLATIONFACTOR",
                 new FloatControl(1.0f), ShaderStage.Vertex);
@@ -198,12 +200,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor IridescenceCoatFixupTIRClamp = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceCoatFixupTIRClamp", "Iridescence Coat Fixup TIR Clamp", "SURFACEDESCRIPTION_IRIDESCENCECOATFIXUPTIRCLAMP",
                 new FloatControl(0.0f), ShaderStage.Fragment);
-
-            // --------------------------------------------------
-            // Line Rendering
-
-            public static BlockFieldDescriptor LineWidth = new BlockFieldDescriptor(SurfaceDescription.name, "LineWidth",
-                "Width", "SURFACEDESCRIPTION_WIDTH", new FloatControl(1.0f), ShaderStage.Fragment);
         }
     }
 }

@@ -210,6 +210,14 @@ StructuredBuffer<uint> _ThicknessReindexMap;
         #endif //SAMPLE_TEXTURE2D_ARRAY_BIAS
     #endif //PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
 
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_ARRAY_GRAD
+        #ifdef SAMPLE_TEXTURE2D_ARRAY_GRAD
+            #undef SAMPLE_TEXTURE2D_ARRAY_GRAD
+            #define SAMPLE_TEXTURE2D_ARRAY_GRAD(textureName, samplerName, coord2, index, dpdx, dpdy)\
+                PLATFORM_SAMPLE_TEXTURE2D_ARRAY_GRAD(textureName, samplerName, coord2, index, (dpdx * _GlobalMipBiasPow2), (dpdy * _GlobalMipBiasPow2))
+        #endif
+    #endif //PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
+
     //2d texture cube arrays bias manipulation
     #ifdef PLATFORM_SAMPLE_TEXTURECUBE_BIAS
         #ifdef  SAMPLE_TEXTURECUBE
@@ -595,15 +603,15 @@ float4 UnpackVTFeedbackWithAlpha(float4 feedbackWithAlpha)
 #undef unity_MatrixPreviousM
 #undef unity_MatrixPreviousMI
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
-    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
-    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
-    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
-    UNITY_DOTS_INSTANCED_PROP(SH,       unity_SHCoefficients)
-    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4,   unity_LightmapST)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4,   unity_LightmapIndex)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float4,   unity_DynamicLightmapST)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_MatrixPreviousM)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(SH,       unity_SHCoefficients)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(uint2,    unity_EntityId)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()

@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false, false),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false),
                 defines = HDShaderPasses.GenerateDefines(GetBlendModeDefine(fogVolumeData.blendMode), TargetsVFX(), false),
                 renderStates = GetRenderState(fogVolumeData.blendMode),
                 includes = FogVolumeIncludes.Voxelize,
@@ -213,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { GetAttributes() },
                     { Varyings },
                 }, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false, false),
+                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false, false),
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
                 renderStates = GetRenderState(LocalVolumetricFogBlendingMode.Additive), // We can't change the blend mode in ShaderGraph
                 includes = FogVolumeIncludes.Preview,

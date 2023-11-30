@@ -39,6 +39,7 @@ $Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2
 $Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
 $Attributes.color: #define ATTRIBUTES_NEED_COLOR
 $Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
+$Attributes.instanceID: #define ATTRIBUTES_NEED_INSTANCEID
 $VertexDescriptionInputs.TimeParameters: #define GRAPH_VERTEX_USES_TIME_PARAMETERS_INPUT
 $VertexDescription.Normal: #define FEATURES_GRAPH_VERTEX_NORMAL_OUTPUT
 $VertexDescription.Tangent: #define FEATURES_GRAPH_VERTEX_TANGENT_OUTPUT
@@ -58,6 +59,7 @@ $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
 $Varyings.shadowCoord: #define VARYINGS_NEED_SHADOW_COORD
 $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
+$Varyings.instanceID: #define VARYINGS_NEED_INSTANCEID
 $Varyings.diffuseGIData0: #define VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 $Universal.UseLegacySpriteBlocks: #define UNIVERSAL_USELEGACYSPRITEBLOCKS

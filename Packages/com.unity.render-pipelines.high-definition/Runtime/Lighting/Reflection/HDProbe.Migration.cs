@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
             PlanarResolutionScalability,
             /// <summary>Version Step.</summary>
             UpdateMSAA,
+            /// <summary>Version Step.</summary>
+            AddProbeImportance,
         }
 
         /// <summary>
@@ -90,6 +92,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.UpdateMSAA, (HDProbe data) =>
             {
                 FrameSettings.MigrateMSAA(ref data.m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings, ref data.m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettingsOverrideMask);
+            }),
+            MigrationStep.New(Version.AddProbeImportance, (HDProbe data) =>
+            {
+                data.m_ProbeSettings.lighting.importance = (data.m_ProbeSettings.type == ProbeSettings.ProbeType.PlanarProbe)? 64 : 1;
             })
         );
 

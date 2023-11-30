@@ -20,6 +20,23 @@ namespace UnityEditor.Rendering.Universal
             m_Editor = editor;
         }
 
+        internal bool RendererFeatureSupported(Type rendererFeatureType)
+        {
+            Type rendererType = m_Editor.target.GetType();
+
+            SupportedOnRendererAttribute rendererFilterAttribute = Attribute.GetCustomAttribute(rendererFeatureType, typeof(SupportedOnRendererAttribute)) as SupportedOnRendererAttribute;
+            if (rendererFilterAttribute != null)
+            {
+                bool foundEditor = false;
+                for (int i = 0; i < rendererFilterAttribute.rendererTypes.Length && !foundEditor; i++)
+                    foundEditor = rendererFilterAttribute.rendererTypes[i] == rendererType;
+
+                return foundEditor;
+            }
+
+            return true;
+        }
+
         public void CreateComponentTree(List<FilterWindow.Element> tree)
         {
             tree.Add(new FilterWindow.GroupElement(0, "Renderer Features"));
@@ -27,6 +44,11 @@ namespace UnityEditor.Rendering.Universal
             var data = m_Editor.target as ScriptableRendererData;
             foreach (var type in types)
             {
+                // Check to see if the current renderer feature can be used with the current renderer. If the attribute isn't found then its compatible with everything.
+
+                if (!RendererFeatureSupported(type))
+                    continue;
+
                 if (data.DuplicateFeatureCheck(type))
                 {
                     continue;
@@ -69,6 +91,5 @@ namespace UnityEditor.Rendering.Universal
 
             return path;
         }
-
     }
 }

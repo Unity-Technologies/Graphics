@@ -87,7 +87,7 @@ When you use MSAA, be aware of the following:
   * Normal Buffer patch up by Decals. It mean Decal which affect material's normal won't affect Screen space reflection (SSR). This isn't a problem as the effect is disabled, see 1.
 * MSAA doesn't affect the following features. HDRP doesn't disable these effects, it just doesn't process MSAA for them:
   * [Post-processing](Post-Processing-Main.md).
-  * [Subsurface scattering](Subsurface-Scattering.md).
+  * [Subsurface scattering](skin-and-diffusive-surfaces-subsurface-scattering.md).
   * Low Resolution Transparency.
 * Ray tracing doesn't support MSAA. If you use ray tracing in your project, you are unable to use MSAA.
 * The Water System is not compatible with MSAA. If enable the water system in your project, you are unable to use MSAA.

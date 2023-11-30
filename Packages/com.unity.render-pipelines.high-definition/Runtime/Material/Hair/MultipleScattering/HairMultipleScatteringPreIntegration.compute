@@ -79,7 +79,6 @@ void COMPUTE_HAIR_ATTENUATION (uint3 dispatchThreadID : SV_DispatchThreadID)
     float3 UVW = float3(((float3)dispatchThreadID + 0.5) / DIM);
 
     // Configure a theoretical hair fiber to evaluate the average attenuation.
-    // SurfaceData surfaceData = ConfigureFiberSurface(float3(0.2289961, 0.3141261, 0.5849056), UVW.x);
     SurfaceData surfaceData = ConfigureFiberSurface(UVW.z, UVW.x);
 
     // Use the conversion from the surface data to compute all of the per-lobe bsdf information.

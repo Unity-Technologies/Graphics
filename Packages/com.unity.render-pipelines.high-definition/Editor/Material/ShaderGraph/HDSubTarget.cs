@@ -199,6 +199,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
                 passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
 
+                if (systemData.debugSymbols && Unsupported.IsDeveloperMode())
+                {
+                    passDescriptor.pragmas = new PragmaCollection
+                    {
+                        passDescriptor.pragmas,
+                        Pragma.DebugSymbols
+                    };
+                }
+
                 CollectPassKeywords(ref passDescriptor);
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);

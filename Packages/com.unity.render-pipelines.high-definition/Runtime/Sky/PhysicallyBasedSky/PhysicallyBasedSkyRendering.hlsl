@@ -10,38 +10,24 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
+StructuredBuffer<CelestialBodyData> _CelestialBodyDatas;
+
 float3 _PBRSkyCameraPosPS;
 int _RenderSunDisk;
 
-float ComputeMoonPhase(DirectionalLightData moon, DirectionalLightData sun, float3 V, float2 uv)
+float ComputeMoonPhase(CelestialBodyData moon, float3 V)
 {
-    float3 N, L;
-    if (moon.bodyType == 1)
-    {
-        float3 M = moon.forward.xyz * moon.distanceFromCamera;
+    float3 M = moon.forward.xyz * moon.distanceFromCamera;
 
-        float radialDistance = moon.distanceFromCamera, rcpRadialDistance = rcp(radialDistance);
-        float radius = tan(0.5 * moon.skyAngularDiameter) * radialDistance;
-        float2 t = IntersectSphere(radius, dot(moon.forward.xyz, -V), radialDistance, rcpRadialDistance);
+    float radialDistance = moon.distanceFromCamera, rcpRadialDistance = rcp(radialDistance);
+    float2 t = IntersectSphere(moon.radius, dot(moon.forward.xyz, -V), radialDistance, rcpRadialDistance);
 
-        N = normalize(M - t.x * V);
-        L = sun.forward.xyz;
-    }
-    else
-    {
-        float2 rotDirX = float2(moon.phaseAngleSinCos.x, -moon.phaseAngleSinCos.y);
-        float2 rotDirY = float2(moon.phaseAngleSinCos.y,  moon.phaseAngleSinCos.x);
-        uv = float2(dot(rotDirX, uv), dot(rotDirY, uv));
+    float3 N = normalize(M - t.x * V);
 
-        float d = sqrt(1 - uv.y * uv.y - uv.x * uv.x);
-        N = float3(d, uv.x, uv.y);
-        L = float3(moon.phaseSinCos.y, 0, moon.phaseSinCos.x);
-    }
-
-    return saturate(-dot(N, L));
+    return saturate(-dot(N, moon.sunDirection));
 }
 
-float ComputeEarthshine(DirectionalLightData moon, DirectionalLightData sun)
+float ComputeEarthshine(CelestialBodyData moon)
 {
     // Approximate earthshine: sun light reflected from earth
     // cf. A Physically-Based Night Sky Model
@@ -51,7 +37,7 @@ float ComputeEarthshine(DirectionalLightData moon, DirectionalLightData sun)
     //float earthshine = 1.0f - sin(0.5f * earthPhase) * tan(0.5f * earthPhase) * log(rcp(tan(0.25f * earthPhase)));
 
     // Cheaper approximation of the above (https://www.desmos.com/calculator/11ny6d5j1b)
-    float sinPhase = sqrt(dot(sun.forward.xyz, -moon.forward.xyz) + 1) * INV_SQRT2;
+    float sinPhase = sqrt(max(1 - dot(moon.sunDirection, moon.forward), 0.0f)) * INV_SQRT2;
     float earthshine = 1.0f - sinPhase * sqrt(sinPhase);
 
     return earthshine * moon.earthshine;
@@ -63,72 +49,48 @@ float3 RenderSunDisk(inout float tFrag, float tExit, float3 V)
 
     // Intersect and shade emissive celestial bodies.
     // Unfortunately, they don't write depth.
-    for (uint i = 0; i < _DirectionalLightCount; i++)
+    for (uint i = 0; i < _CelestialBodyCount; i++)
     {
-        DirectionalLightData light = _DirectionalLightDatas[i];
-
-        // Use scalar or integer cores (more efficient).
-        bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+        CelestialBodyData light = _CelestialBodyDatas[i];
 
         // Celestial body must be outside the atmosphere (request from Pierre D).
         float lightDist = max(light.distanceFromCamera, tExit);
 
-        if (interactsWithSky && asint(light.skyAngularDiameter) != 0 && lightDist < tFrag)
+        if (asint(light.angularRadius) != 0 && lightDist < tFrag)
         {
             // We may be able to see the celestial body.
             float3 L = -light.forward.xyz;
 
             float LdotV    = -dot(L, V);
-            float rad      = acos(LdotV);
-            float radInner = 0.5 * light.skyAngularDiameter;
+            float radInner = light.angularRadius;
 
-            if (LdotV >= light.flareCosOuter)
+            if (LdotV >= light.flareCosInner) // Sun disk.
             {
-                // Sun flare is visible. Sun disk may or may not be visible.
-                // Assume uniform emission.
-                float solidAngle = TWO_PI * (1 - light.flareCosInner);
-                float3 color = light.color.rgb * rcp(solidAngle);
+                tFrag = lightDist;
+                float3 color = light.surfaceColor;
 
-                if (LdotV >= light.flareCosInner) // Sun disk.
+                if (light.type != 0)
+                    color *= ComputeMoonPhase(light, V) * INV_PI + ComputeEarthshine(light); // Lambertian BRDF
+
+                if (light.surfaceTextureScaleOffset.x > 0)
                 {
-                    tFrag = lightDist;
-
-                    float2 uv = 0;
-                    if (light.bodyType == 2 || light.surfaceTextureScaleOffset.x > 0)
-                    {
-                        // The cookie code de-normalizes the axes.
-                        float2 proj   = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
-                        float2 angles = float2(FastASin(-proj.x), FastASin(proj.y));
-                        uv = angles * rcp(radInner);
-                    }
-
-                    uint sunIndex = max(_DirectionalShadowIndex, 0);
-                    if ((light.bodyType == 1 && sunIndex != i) || light.bodyType == 2)
-                    {
-                        DirectionalLightData sun = _DirectionalLightDatas[sunIndex];
-                        float earthshine = sunIndex != i ? ComputeEarthshine(light, sun) : 0.0f;
-                        float3 sunColor = (sunIndex == i ? rcp(solidAngle) : 1.0f) * sun.color.rgb;;
-                        color = (ComputeMoonPhase(light, sun, V, uv) * INV_PI + earthshine) * sunColor;
-                    }
-
-                    if (light.surfaceTextureScaleOffset.x > 0)
-                    {
-                        color *= SampleCookie2D(uv * 0.5 + 0.5, light.surfaceTextureScaleOffset);
-                    }
-
-                    color *= light.surfaceTint;
-                    radiance = color;
-                }
-                else // Flare region.
-                {
-                    float r = max(0, rad - radInner);
-                    float w = saturate(1 - r * rcp(light.flareSize));
-
-                    color *= light.flareTint;
-                    color *= SafePositivePow(w, light.flareFalloff);
-                    radiance += color;
+                    float2 proj   = float2(dot(V, light.right), dot(V, light.up));
+                    float2 angles = float2(FastASin(proj.x), FastASin(-proj.y));
+                    float2 uv = angles * rcp(radInner) * 0.5 + 0.5;
+                    color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
                 }
 
+                radiance = color;
+            }
+            else if (LdotV >= light.flareCosOuter) // Flare region.
+            {
+                float rad = acos(LdotV);
+                float r   = max(0, rad - radInner);
+                float w   = saturate(1 - r * rcp(light.flareSize));
+
+                float3 color = light.flareColor;
+                color *= SafePositivePow(w, light.flareFalloff);
+                radiance += color;
             }
         }
     }

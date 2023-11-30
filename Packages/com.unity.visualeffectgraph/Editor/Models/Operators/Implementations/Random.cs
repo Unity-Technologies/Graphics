@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-RandomNumber")]
-    [VFXInfo(category = "Random")]
+    [VFXInfo(name = "Random Number", category = "Random")]
     class Random : VFXOperator
     {
         public class InputProperties

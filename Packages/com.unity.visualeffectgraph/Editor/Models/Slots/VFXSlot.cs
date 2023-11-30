@@ -16,7 +16,6 @@ namespace UnityEditor.VFX
             kInput,
             kOutput,
         }
-
         public Direction direction { get { return m_Direction; } }
         public VFXProperty property { get { return m_Property; } }
         public override string name { get { return m_Property.name; } }
@@ -405,7 +404,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify = true)
         {
             CopyValue(dst, src, notify);
             CopyLinks(dst, src, notify);

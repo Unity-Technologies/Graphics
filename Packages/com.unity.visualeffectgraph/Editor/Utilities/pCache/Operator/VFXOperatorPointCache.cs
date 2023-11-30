@@ -6,7 +6,7 @@ using UnityEditor.Experimental.VFX.Utility;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Utility")]
+    [VFXInfo(name = "Point Cache", category = "Utility")]
     class VFXOperatorPointCache : VFXOperator
     {
         private bool m_IsPointCacheAssetMissing;

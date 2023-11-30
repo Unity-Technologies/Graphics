@@ -1,9 +1,8 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using Unity.Collections;
 using UnityEngine.Rendering.RendererUtils;
 
@@ -533,13 +532,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
-            if (Fog.IsVolumetricFogEnabled(hdCamera) || VolumetricCloudsRequireMaxZ(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
                     //TODO: move the entire vbuffer to hardware DRS mode. When Hardware DRS is enabled we will save performance
                     // on these buffers, however the final vbuffer will be wasting resolution. This requires a bit of more work to optimize.
-                    passData.generateMaxZCS = defaultResources.shaders.maxZCS;
+                    passData.generateMaxZCS = runtimeShaders.maxZCS;
                     passData.generateMaxZCS.shaderKeywords = null;
                     bool planarReflection = hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null;
                     CoreUtils.SetKeyword(passData.generateMaxZCS, "PLANAR_OBLIQUE_DEPTH", planarReflection);
@@ -758,9 +757,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportVolumetrics)
                 return;
 
-            m_VolumeVoxelizationCS = defaultResources.shaders.volumeVoxelizationCS;
-            m_VolumetricLightingCS = defaultResources.shaders.volumetricLightingCS;
-            m_VolumetricLightingFilteringCS = defaultResources.shaders.volumetricLightingFilteringCS;
+            m_VolumeVoxelizationCS = runtimeShaders.volumeVoxelizationCS;
+            m_VolumetricLightingCS = runtimeShaders.volumetricLightingCS;
+            m_VolumetricLightingFilteringCS = runtimeShaders.volumetricLightingFilteringCS;
 
             m_PackedCoeffs = new Vector4[7];
             m_PhaseZH = new ZonalHarmonicsL2();
@@ -1150,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         passData.vfxDebugRendererList = builder.UseRendererList(renderGraph.CreateRendererList(vfxDebugFogRenderListDesc));
                     }
-                    passData.volumetricMaterialCS = defaultResources.shaders.volumetricMaterialCS;
+                    passData.volumetricMaterialCS = runtimeShaders.volumetricMaterialCS;
                     passData.computeRenderingParametersKernel = passData.volumetricMaterialCS.FindKernel("ComputeVolumetricMaterialRenderingParameters");
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.globalIndirectBuffer = LocalVolumetricFogManager.manager.globalIndirectBuffer;
@@ -1261,11 +1260,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle maxZBuffer;
             public TextureHandle historyBuffer;
             public TextureHandle feedbackBuffer;
-            public BufferHandle bigTileLightListBuffer;
+            public BufferHandle bigTileVolumetricLightListBuffer;
             public GraphicsBuffer volumetricAmbientProbeBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, BufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, BufferHandle bigTileVolumetricLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1316,7 +1315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.lightListCB = m_ShaderVariablesLightListCB;
 
                     if (passData.tiledLighting)
-                        passData.bigTileLightListBuffer = builder.ReadBuffer(bigTileLightListBuffer);
+                        passData.bigTileVolumetricLightListBuffer = builder.ReadBuffer(bigTileVolumetricLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
@@ -1345,7 +1344,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         (VolumetricLightingPassData data, RenderGraphContext ctx) =>
                         {
                             if (data.tiledLighting)
-                                ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileLightListBuffer);
+                                ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileVolumetricLightListBuffer);
 
                             ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._MaxZMaskTexture, data.maxZBuffer);  // Read
 
@@ -1397,9 +1396,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return renderGraph.ImportTexture(HDUtils.clearTexture3DRTH);
         }
-
-        internal Shader GetDefaultFogVolumeShader()
-            => defaultResources.shaderGraphs.defaultFogVolumeShader;
 
         void PrepareAndPushVolumetricCBufferForVFXUpdate(CommandBuffer cmd, HDCamera hdCamera)
         {

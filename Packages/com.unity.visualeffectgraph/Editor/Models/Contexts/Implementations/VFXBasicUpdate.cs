@@ -117,7 +117,7 @@ namespace UnityEditor.VFX
     }
 
     [VFXHelpURL("Context-Update")]
-    [VFXInfo]
+    [VFXInfo(name = "Update Particle")]
     class VFXBasicUpdate : VFXContext
     {
         public enum VFXIntegrationMode
@@ -167,7 +167,7 @@ namespace UnityEditor.VFX
                 if (particleData && (particleData.NeedsComputeBounds(this) || particleData.NeedsSharedAabbBuffer()))
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                    foreach (var attribute in VFXAttribute.AllAttributeAffectingAABB)
+                    foreach (var attribute in VFXAttributesManager.AffectingAABBAttributes)
                         yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
                 }
 

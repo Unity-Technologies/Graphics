@@ -46,6 +46,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        private Shader GetShaderForIndex(FGDIndex index)
+        {
+            if (HDRenderPipelineGlobalSettings.instance == null)
+            {
+                Debug.LogError($"Invalid resources to get shader for {index}.");
+                return null;
+            }
+
+            var shaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+
+            switch (index)
+            {
+                case FGDIndex.FGD_GGXAndDisneyDiffuse: return shaders.preIntegratedFGD_GGXDisneyDiffusePS;
+                case FGDIndex.FGD_CharlieAndFabricLambert: return shaders.preIntegratedFGD_CharlieFabricLambertPS;
+                case FGDIndex.FGD_Marschner: return shaders.preIntegratedFGD_MarschnerPS;
+                default: Debug.LogError($"Unable to get shader for index: {index}."); break;
+            }
+
+            return null;
+        }
+
         public void Build(FGDIndex index)
         {
             Debug.Assert(index != FGDIndex.Count);
@@ -53,44 +74,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_refCounting[(int)index] == 0)
             {
+                Shader pixelShader = GetShaderForIndex(index);
                 int res = (int)FGDTexture.Resolution;
-
-                switch (index)
+                m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(pixelShader);
+                m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32)
                 {
-                    case FGDIndex.FGD_GGXAndDisneyDiffuse:
-                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFGD_GGXDisneyDiffusePS);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
-                        m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
-                        m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
-                        m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "preIntegratedFGD_GGXDisneyDiffuse");
-                        m_PreIntegratedFGD[(int)index].Create();
-                        break;
-
-                    case FGDIndex.FGD_CharlieAndFabricLambert:
-                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFGD_CharlieFabricLambertPS);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
-                        m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
-                        m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
-                        m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "preIntegratedFGD_CharlieFabricLambert");
-                        m_PreIntegratedFGD[(int)index].Create();
-                        break;
-
-                    case FGDIndex.FGD_Marschner:
-                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.preIntegratedFGD_MarschnerPS);
-                        m_PreIntegratedFGD[(int)index] = new RenderTexture(res, res, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
-                        m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
-                        m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
-                        m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "preIntegratedFGD_Marschner");
-                        m_PreIntegratedFGD[(int)index].Create();
-                        break;
-
-                    default:
-                        break;
-                }
-
+                    hideFlags = HideFlags.HideAndDontSave,
+                    filterMode = FilterMode.Bilinear,
+                    wrapMode = TextureWrapMode.Clamp,
+                    name = CoreUtils.GetRenderTargetAutoName(res, res, 1, GraphicsFormat.A2B10G10R10_UNormPack32, $"preIntegrated{index}")
+                };
+                m_PreIntegratedFGD[(int)index].Create();
                 m_isInit[(int)index] = false;
             }
 

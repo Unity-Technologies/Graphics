@@ -1,6 +1,7 @@
 #ifndef RAY_TRACING_COMMON_HLSL
 #define RAY_TRACING_COMMON_HLSL
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 
 #if SHADER_API_GAMECORE_XBOXSERIES

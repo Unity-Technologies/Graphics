@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
+using UnityEngine.Rendering;
 
 internal class RenderGraphDebugger : IRenderGraphDebugger
 {
     public bool captureNextGraph;
 
     internal static RenderGraphDebugger instance;
+
     static RenderGraphDebugger()
     {
         instance = new RenderGraphDebugger();
@@ -21,7 +21,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
         if (captureNextGraph)
         {
             var view = RenderGraphWindow.OpenGraphVisualizer();
-            CollectGraphDebugData(graph.contextData, graph.graph.m_ResourcesForDebugOnly, view);
+            CollectGraphDebugData(graph.contextData, graph.graph, view);
             view.UpdateNodeVisualisation();
             captureNextGraph = false;
         }
@@ -34,99 +34,186 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
         Fetch //Used with fetch ops
     }
 
-    private static RenderGraphWindow debugWindow;
-    static void CollectGraphDebugData(CompilerContextData ctx,
-        RenderGraphResourceRegistry resources, RenderGraphView view)
+    // Actual values of global variables when a certain pass executes
+    class PassGlobalState
     {
-        //loop over all passes to add them and their resources to the graph
-        foreach (ref var pass in ctx.passData)
+        public PassGlobalState() { }
+        public PassGlobalState(PassGlobalState copyFrom)
         {
+            values = new DynamicArray<ValueTuple<int, ResourceHandle>>(copyFrom.values);
+        }
+
+        public void SetGlobalValue(int shaderPropertyId, ResourceHandle value)
+        {
+            if (TryFind(shaderPropertyId, out var index))
+            {
+                values[index].Item2 = value;
+            }
+            else
+            {
+                values.Add(ValueTuple.Create(shaderPropertyId, value));
+            }
+        }
+
+        public ResourceHandle GetGlobalValue(int shaderPropertyId)
+        {
+            if (TryFind(shaderPropertyId, out var index))
+            {
+                return values[index].Item2;
+            }
+            return new ResourceHandle();
+        }
+
+        public bool IsUsedAsGlobal(ResourceHandle h)
+        {
+            for (int i = 0; i < values.size; i++)
+            {
+                if (h.index == values[i].Item2.index)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool TryFind(int shaderPropertyId, out int idx)
+        {
+            for (int i = 0; i < values.size; i++)
+            {
+                if (shaderPropertyId == values[i].Item1)
+                {
+                    idx = i;
+                    return true;
+                }
+            }
+            idx = -1;
+            return false;
+        }
+
+        DynamicArray<ValueTuple<int, ResourceHandle>> values = new DynamicArray<ValueTuple<int, ResourceHandle>>();
+    }
+
+
+    private static RenderGraphWindow debugWindow;
+
+    static void CollectGraphDebugData(CompilerContextData ctx,
+        NativePassCompiler.RenderGraphInputInfo inputInfo, RenderGraphView view)
+    {
+        var resources = inputInfo.m_ResourcesForDebugOnly;
+
+        // Derive the state of the global variables at each pass
+        List<PassGlobalState> passGlobals = new List<PassGlobalState>(ctx.passData.Length);
+        for (var i = 0; i < ctx.passData.Length; i++)
+            passGlobals.Add(null);
+        passGlobals[0] = new PassGlobalState();// first pass has empty globals set
+
+        for (var i = 0; i < ctx.passData.Length; i++)
+        {
+            ref readonly var pass = ref ctx.passData.ElementAt(i);
+            if (pass.passId == ctx.passData.Length-1) continue; // last pass doesn't matter
+            var nextGlobalState = new PassGlobalState(passGlobals[pass.passId]);
+            var globals = inputInfo.m_RenderPasses[pass.passId].setGlobalsList;
+            foreach (var g in globals)
+            {
+                nextGlobalState.SetGlobalValue(g.Item2, g.Item1.handle);
+            }
+
+            passGlobals[pass.passId + 1] = nextGlobalState;
+        }
+
+        //loop over all passes to add them and their resources to the graph
+        for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
+        {
+            ref var pass = ref ctx.passData.ElementAt(passIndex);
             RenderGraphWindow.PassDebugData passDebug = new RenderGraphWindow.PassDebugData
             {
                 allocations = new List<string>(),
                 releases = new List<string>(),
                 lastWrites = new List<string>(),
                 tag = pass.tag,
-                width = pass.FragmentInfoWidth,
-                height = pass.FragmentInfoHeight,
-                samples = pass.FragmentInfoSamples,
-                hasDepth = pass.FragmentInfoHasDepth,
+                width = pass.fragmentInfoWidth,
+                height = pass.fragmentInfoHeight,
+                samples = pass.fragmentInfoSamples,
+                hasDepth = pass.fragmentInfoHasDepth,
                 asyncCompute = pass.asyncCompute,
                 syncList = "",
                 isCulled = pass.culled
             };
 
             //loop inputs. last/first to have an input are the passes that allocate/release
-            foreach (ref var res in pass.Inputs(ctx))
+            foreach (ref readonly var input in pass.Inputs(ctx))
             {
-                var pointTo = ctx.UnversionedResourceData(res.resource);
-                var pointToVer = ctx.VersionedResourceData(res.resource);
+                var inputResource = input.resource;
+                ref var pointTo = ref ctx.UnversionedResourceData(inputResource);
+                ref var pointToVer = ref ctx.VersionedResourceData(inputResource);
 
-                var name = pointTo.name + " V" + res.resource.version;
-
-                if (pointTo.firstUsePassID == pass.passId)
-                {
-                    passDebug.allocations.Add(pointTo.name);
-                }
-
-                if (pointTo.lastUsePassID == pass.passId)
-                {
-                    passDebug.releases.Add(pointTo.name);
-                }
+                var unversionedName = pointTo.GetName(ctx, inputResource);
+                var versionedName = unversionedName + " V" + inputResource.version;
 
                 if (pointTo.lastWritePassID == pass.passId)
                 {
-                    passDebug.lastWrites.Add(pointTo.name);
+                    passDebug.lastWrites.Add(unversionedName);
                 }
 
-                var wPass = ctx.passData[pointToVer.writePass];
+                var wPass = ctx.passData[pointToVer.writePassId];
                 if (wPass.asyncCompute != pass.asyncCompute)
                 {
-                    passDebug.syncList += name + "\\l";
+                    passDebug.syncList += versionedName + "\\l";
                 }
 
                 if (!pointToVer.written)
                 {
-                    var resourceName = pointTo.name;
-                    var resourceVersionName = resourceName + " v" + res.resource.version;
-                    var resourceDesc = resources.GetTextureResourceDesc(res.resource);
+                    var resourceDesc = resources.GetTextureResourceDesc(inputResource);
 
-                    ref readonly var resourceData = ref ctx.UnversionedResourceData(res.resource);
+                    ref readonly var resourceData = ref ctx.UnversionedResourceData(inputResource);
 
                     var info = new RenderTargetInfo();
                     try
                     {
-                        resources.GetRenderTargetInfo(res.resource, out info);
+                        resources.GetRenderTargetInfo(inputResource, out info);
                     }
-                    catch (Exception) { }
+                    catch (Exception)
+                    {
+                    }
 
                     RenderGraphWindow.ResourceDebugData data = new RenderGraphWindow.ResourceDebugData
                     {
-                        height = pass.FragmentInfoHeight,
-                        width = pass.FragmentInfoWidth,
-                        samples = pass.FragmentInfoSamples,
+                        height = pass.fragmentInfoHeight,
+                        width = pass.fragmentInfoWidth,
+                        samples = pass.fragmentInfoSamples,
                         clearBuffer = resourceDesc.clearBuffer,
                         isImported = pointTo.isImported,
                         format = info.format,
                         bindMS = resourceDesc.bindTextureMS,
                         isMemoryless = resourceData.memoryLess,
                     };
-                    view.AddResource(name, resourceName, data);
+                    view.AddResource(versionedName, unversionedName, data);
                 }
             }
 
-            if (pass.numFragments > 0 && pass.NativePassIndex >= 0)
+            foreach (ref readonly var released in pass.LastUsedResources(ctx))
             {
-                ref var nativePass = ref ctx.nativePassData[pass.NativePassIndex];
+                ref var pointTo = ref ctx.UnversionedResourceData(released);
+                string name = pointTo.GetName(ctx, released);
+                passDebug.releases.Add(name);
+            }
+
+            foreach (ref readonly var allocated in pass.FirstUsedResources(ctx))
+            {
+                ref var pointTo = ref ctx.UnversionedResourceData(allocated);
+                string name = pointTo.GetName(ctx, allocated);
+                passDebug.releases.Add(name);
+            }
+
+            if (pass.numFragments > 0 && pass.nativePassIndex >= 0)
+            {
+                ref var nativePass = ref ctx.nativePassData.ElementAt(pass.nativePassIndex);
 
                 passDebug.nativeRPInfo = $"Attachment Dimensions: {nativePass.width}x{nativePass.height}x{nativePass.samples}\n";
-
                 passDebug.nativeRPInfo += "\nAttachments:\n";
                 for (int i = 0; i < nativePass.attachments.size; i++)
                 {
-                    var pointTo = ctx.UnversionedResourceData(nativePass.attachments[i].handle);
-                    var name = pointTo.name + " V" + nativePass.attachments[i].handle.version;
-
+                    var name = ctx.GetResourceVersionedName(nativePass.attachments[i].handle);
                     passDebug.nativeRPInfo +=
                         $"Attachment {name} Load:{nativePass.attachments[i].loadAction} Store: {nativePass.attachments[i].storeAction} \n";
                 }
@@ -135,7 +222,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     passDebug.nativeRPInfo += $"\nPass Break Reasoning:\n";
                     if (nativePass.breakAudit.breakPass >= 0)
                     {
-                        passDebug.nativeRPInfo += $"Failed to merge {ctx.passData[nativePass.breakAudit.breakPass].name} into this native pass.\n";
+                        passDebug.nativeRPInfo += $"Failed to merge {ctx.GetPassName(nativePass.breakAudit.breakPass)} into this native pass.\n";
                     }
                     var reason = PassBreakAudit.BreakReasonMessages[(int)nativePass.breakAudit.reason];
                     passDebug.nativeRPInfo += reason + "\n";
@@ -144,14 +231,12 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 passDebug.nativeRPInfo += "\nLoad Reasoning:\n";
                 for (int i = 0; i < nativePass.attachments.size; i++)
                 {
-                    var pointTo = ctx.UnversionedResourceData(nativePass.attachments[i].handle);
-                    var name = pointTo.name + " V" + nativePass.attachments[i].handle.version;
-
+                    var name = ctx.GetResourceVersionedName(nativePass.attachments[i].handle);
                     var loadReason = LoadAudit.LoadReasonMessages[(int)nativePass.loadAudit[i].reason];
                     var passName = "";
                     if (nativePass.loadAudit[i].passId >= 0)
                     {
-                        passName = ctx.passData[nativePass.loadAudit[i].passId].name;
+                        passName = ctx.GetPassName(nativePass.loadAudit[i].passId);
                     }
                     loadReason = loadReason.Replace("{pass}", passName);
 
@@ -161,14 +246,12 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 passDebug.nativeRPInfo += "\nStore Reasoning:\n";
                 for (int i = 0; i < nativePass.attachments.size; i++)
                 {
-                    var pointTo = ctx.UnversionedResourceData(nativePass.attachments[i].handle);
-                    var name = pointTo.name + " V" + nativePass.attachments[i].handle.version;
-
+                    var name = ctx.GetResourceVersionedName(nativePass.attachments[i].handle);
                     var storeReason = StoreAudit.StoreReasonMessages[(int)nativePass.storeAudit[i].reason];
                     var passName = "";
                     if (nativePass.storeAudit[i].passId >= 0)
                     {
-                        passName = ctx.passData[nativePass.storeAudit[i].passId].name;
+                        passName = ctx.GetPassName(nativePass.storeAudit[i].passId);
                     }
                     storeReason = storeReason.Replace("{pass}", passName);
 
@@ -179,7 +262,7 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                         var msaaPassName = "";
                         if (nativePass.storeAudit[i].msaaPassId >= 0)
                         {
-                            msaaPassName = ctx.passData[nativePass.storeAudit[i].msaaPassId].name;
+                            msaaPassName = ctx.GetPassName(nativePass.storeAudit[i].msaaPassId);
                         }
                         msaaStoreReason = storeReason.Replace("{pass}", msaaPassName);
                     }
@@ -196,33 +279,37 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 }
             }
 
-            view.AddPass(pass.identifier, pass.name, passDebug);
+            view.AddPass(pass.identifier, ctx.GetPassName(pass.passId), passDebug);
         }
 
         //After all passes and resources have been added to the graph -> register connections.
-        foreach (ref var pass in ctx.passData)
+        for (int passIndex = 0; passIndex < ctx.passData.Length; passIndex++)
         {
-            foreach (ref var res in pass.Inputs(ctx))
+            ref var pass = ref ctx.passData.ElementAt(passIndex);
+            foreach (ref readonly var input in pass.Inputs(ctx))
             {
-                var pointTo = ctx.UnversionedResourceData(res.resource);
-                var name = pointTo.name + " V" + res.resource.version;
-                ref var pointToVer = ref ctx.VersionedResourceData(res.resource);
+                var inputResource = input.resource;
+                var resourceName = ctx.GetResourceName(inputResource);
+                var resourceVersionedName = ctx.GetResourceVersionedName(inputResource);
+                ref var pointToVer = ref ctx.VersionedResourceData(inputResource);
 
                 var use = InputUsageType.Texture;
                 if (pass.type == RenderGraphPassType.Raster)
                 {
-                    foreach (var f in pass.Fragments(ctx))
+                    foreach (ref readonly var fragment in pass.Fragments(ctx))
                     {
-                        if (f.resource.index == res.resource.index)
+                        var fragmentResource = fragment.resource;
+                        if (fragmentResource.index == inputResource.index)
                         {
                             use = InputUsageType.Raster;
                             break;
                         }
                     }
 
-                    foreach (var f in pass.FragmentInputs(ctx))
+                    foreach (ref readonly var fragmentInput in pass.FragmentInputs(ctx))
                     {
-                        if (f.resource.index == res.resource.index)
+                        var fragmentInputResource = fragmentInput.resource;
+                        if (fragmentInputResource.index == inputResource.index)
                         {
                             use = InputUsageType.Fetch;
                             break;
@@ -230,11 +317,15 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                     }
                 }
 
-                var prevPass = ctx.passData[pointToVer.writePass];
+                ref var prevPass = ref ctx.passData.ElementAt(pointToVer.writePassId);
+
+                string passName = ctx.GetPassName(pass.passId);
+                string prevPassName = ctx.GetPassName(pointToVer.writePassId);
+
                 PassBreakAudit mergeResult;
-                if (prevPass.NativePassIndex >= 0)
+                if (prevPass.nativePassIndex >= 0)
                 {
-                    mergeResult = NativePassData.TryMerge(ctx, prevPass.NativePassIndex, pass.passId, true);
+                    mergeResult = NativePassData.CanMerge(ctx, prevPass.nativePassIndex, pass.passId);
                 }
                 else
                 {
@@ -246,8 +337,8 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                 switch (mergeResult.reason)
                 {
                     case (PassBreakReason.Merged):
-                        if (pass.NativePassIndex == prevPass.NativePassIndex &&
-                            pass.MergeState != PassMergeState.None)
+                        if (pass.nativePassIndex == prevPass.nativePassIndex &&
+                            pass.mergeState != PassMergeState.None)
                         {
                             mergeMessage = "Passes are merged";
                         }
@@ -255,31 +346,28 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
                         {
                             mergeMessage = "Passes can be merged but are not recorded consecutively.";
                         }
+
                         break;
 
                     case PassBreakReason.TargetSizeMismatch:
                         mergeMessage = "Passes have different sizes/samples.\n"
-                                       + prevPass.name + ": " +
-                                       prevPass.FragmentInfoWidth + "x" + prevPass.FragmentInfoHeight + "x" + prevPass.FragmentInfoSamples + ". \n"
-                                       + pass.name + ": " +
-                                       pass.FragmentInfoWidth + "x" + pass.FragmentInfoHeight + "x" + pass.FragmentInfoSamples + ".";
-                        break;
-
-                    case PassBreakReason.DepthBufferUseMismatch:
-                        mergeMessage = "Some passes use a depth buffer and some not. " + prevPass.name + ": " +
-                                       prevPass.FragmentInfoHasDepth + ". \n" + pass.name + ": " + pass.FragmentInfoHasDepth + '.';
+                                       + prevPassName + ": " +
+                                       prevPass.fragmentInfoWidth + "x" + prevPass.fragmentInfoHeight + "x" + prevPass.fragmentInfoSamples + ". \n"
+                                       + passName + ": " +
+                                       pass.fragmentInfoWidth + "x" + pass.fragmentInfoHeight + "x" + pass.fragmentInfoSamples + ".";
                         break;
 
                     case PassBreakReason.NextPassReadsTexture:
-                        mergeMessage = "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
+                        mergeMessage =
+                            "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
                         break;
 
                     case PassBreakReason.NonRasterPass:
-                        mergeMessage = pass.name + " is not a raster pass but " + pass.type;
+                        mergeMessage = passName + " is not a raster pass but " + pass.type;
                         break;
 
                     case PassBreakReason.DifferentDepthTextures:
-                        mergeMessage = prevPass.name + " uses a different depth buffer than " + pass.name;
+                        mergeMessage = prevPassName + " uses a different depth buffer than " + passName;
                         break;
 
                     case PassBreakReason.AttachmentLimitReached:
@@ -296,28 +384,23 @@ internal class RenderGraphDebugger : IRenderGraphDebugger
 
                 if (pointToVer.written)
                 {
-                    view.AddConnection(prevPass.identifier, pass.identifier, name, pointTo.name, mergeMessage, use);
+                    bool isGlobal = passGlobals[pass.passId].IsUsedAsGlobal(inputResource);
+                    view.AddConnection(prevPass.identifier, pass.identifier, resourceVersionedName, resourceName, mergeMessage, use, isGlobal);
                 }
             }
         }
 
         //Register merged passes
-        foreach (ref var nrp in ctx.nativePassData)
+        for (int i = 0; i < ctx.nativePassData.Length; i++)
         {
+            ref var nrp = ref ctx.nativePassData.ElementAt(i);
             string passes = "";
-            foreach (var pass in nrp.GraphPasses(ctx))
-            {
+
+            foreach (ref readonly var pass in nrp.GraphPasses(ctx))
                 passes += pass.identifier + '|';
-            }
 
             if (passes.Length > 1)
                 view.AddNRP(passes.Substring(0, passes.Length - 1));
         }
-    }
-
-    static internal void ShowRenderGraphDebugger()
-    {
-        //instance.captureNextGraph = true;
-        RenderGraphWindow.OpenGraphVisualizer();
     }
 }

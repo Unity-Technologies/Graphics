@@ -167,7 +167,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         class ToolbarRadio : UIElements.Toolbar, INotifyValueChanged<int>
         {
+            [Obsolete("UxmlFactory is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
             public new class UxmlFactory : UxmlFactory<ToolbarRadio, UxmlTraits> { }
+            [Obsolete("UxmlTraits is deprecated and will be removed. Use UxmlElementAttribute instead.", false)]
             public new class UxmlTraits : Button.UxmlTraits { }
 
             List<ToolbarToggle> radios = new List<ToolbarToggle>();

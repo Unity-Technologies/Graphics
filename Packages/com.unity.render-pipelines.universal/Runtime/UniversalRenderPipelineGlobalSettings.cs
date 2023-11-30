@@ -22,29 +22,17 @@ namespace UnityEngine.Rendering.Universal
 
         #region Version system
 
-        private const int k_LastVersion = 5;
+        internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
+
+        internal const int k_LastVersion = 5;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
-        int m_AssetVersion = k_LastVersion;
+        internal int m_AssetVersion = k_LastVersion;
 #pragma warning restore CS0414
 
-        public void OnBeforeSerialize()
-        {
-        }
-
-        public void OnAfterDeserialize()
-        {
 #if UNITY_EDITOR
-            if (m_AssetVersion != k_LastVersion)
-            {
-                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
-            }
-#endif
-        }
-
-#if UNITY_EDITOR
-        static void UpgradeAsset(int assetInstanceID)
+        internal static void UpgradeAsset(int assetInstanceID)
         {
             if (EditorUtility.InstanceIDToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
                     return;
@@ -126,7 +114,10 @@ namespace UnityEngine.Rendering.Universal
             if (RenderPipelineGlobalSettingsUtils.TryEnsure<UniversalRenderPipelineGlobalSettings, UniversalRenderPipeline>(ref currentInstance, defaultPath, canCreateNewAsset))
             {
                 if (currentInstance != null && currentInstance.m_AssetVersion != k_LastVersion)
+                {
                     UpgradeAsset(currentInstance.GetInstanceID());
+                    AssetDatabase.SaveAssetIfDirty(currentInstance);
+                }
 
                 return currentInstance;
             }
@@ -214,7 +205,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         uint m_ValidRenderingLayers;
         /// <summary>Valid rendering layers that can be used by graphics. </summary>
-        public uint validRenderingLayers => m_ValidRenderingLayers;
+        public uint validRenderingLayers {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+
+                return m_ValidRenderingLayers;
+            }
+        }
 
         /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
         internal void UpdateRenderingLayerNames()
@@ -232,6 +231,17 @@ namespace UnityEngine.Rendering.Universal
 
             // Update decals
             DecalProjector.UpdateAllDecalProperties();
+        }
+
+        [SerializeField] private bool m_EnableRenderGraph;
+        public bool enableRenderGraph
+        {
+            get => m_EnableRenderGraph;
+            set
+            {
+                m_EnableRenderGraph = value;
+                UniversalRenderPipeline.asset.OnEnableRenderGraphChanged();
+            }
         }
 
         /// <summary>
@@ -282,6 +292,8 @@ namespace UnityEngine.Rendering.Universal
 
         #endregion
 
+#pragma warning disable 618
+#pragma warning disable 612
         #region APV
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
@@ -295,6 +307,8 @@ namespace UnityEngine.Rendering.Universal
             apvScenesData.SetParentObject(this);
             return apvScenesData;
         }
+#pragma warning restore 612
+#pragma warning restore 618
 
         #endregion
     }

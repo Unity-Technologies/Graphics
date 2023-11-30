@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class VolumeProfileFactory
     {
-        [MenuItem("Assets/Create/Volume Profile", priority = 201)]
+        [MenuItem("Assets/Create/Rendering/Volume Profile", priority = 201)]
         static void CreateVolumeProfile()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
@@ -71,6 +71,7 @@ namespace UnityEditor.Rendering
                     for (int i = 0; i < sourceComponent.parameters.Count; i++)
                         profileComponent.parameters[i].overrideState = sourceComponent.parameters[i].overrideState;
                     VolumeProfileUtils.CopyValuesToComponent(sourceComponent, profileComponent, true);
+                    AssetDatabase.AddObjectToAsset(profileComponent, profile);
                 }
             }
 

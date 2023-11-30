@@ -32,10 +32,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
 
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_3 __
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
+
             #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
 
             struct Attributes

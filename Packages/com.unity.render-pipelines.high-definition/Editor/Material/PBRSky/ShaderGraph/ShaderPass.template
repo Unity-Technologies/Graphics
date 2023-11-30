@@ -109,12 +109,9 @@ void RenderGround(inout SurfaceDescriptionInputs input, SurfaceDescription surfa
         float partLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, roughness);
 
         // Shade the ground.
-        for (uint i = 0; i < _DirectionalLightCount; i++)
+        for (uint i = 0; i < _CelestialLightCount; i++)
         {
-            DirectionalLightData light = _DirectionalLightDatas[i];
-
-            // Use scalar or integer cores (more efficient).
-            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+            CelestialBodyData light = _CelestialBodyDatas[i];
 
             float3 L    = -light.forward.xyz;
             float NdotL = dot(N, L);
@@ -122,12 +119,17 @@ void RenderGround(inout SurfaceDescriptionInputs input, SurfaceDescription surfa
             GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
             float3 intensity  = light.color.rgb;
-            float3 irradiance = SampleGroundIrradianceTexture(NdotL);
+            #ifdef LOCAL_SKY
+                intensity *= SampleGroundIrradianceTexture(NdotL);
+            #else
+                float3 opticalDepth = ComputeAtmosphericOpticalDepth(_PlanetaryRadius, NdotL, true);
+                intensity *= TransmittanceFromOpticalDepth(opticalDepth) * saturate(NdotL);
+            #endif
 
             float DV       = DV_SmithJointGGX(NdotH, abs(NdotL), clampedNdotV, roughness, partLambdaV);
             float specular = F0 * DV;
 
-            input.radiance += (diffuse + specular) * (irradiance * intensity); // Scale from unit intensity to light's intensity
+            input.radiance += (diffuse + specular) * intensity;
         }
     }
 }
@@ -144,14 +146,17 @@ float3 RenderSky(Varyings varyings)
 
     float3 skyColor = 0, skyOpacity = 0;
 
+    float3 V = -input.WorldSpaceViewDirection;
+    float distAlongRay = input.tFrag;
+    bool renderSunDisk = input.renderSunDisk != 0;
+
+    #ifdef LOCAL_SKY
     if (input.intersectAtmosphere != 0)
-    {
-        float3 V = -input.WorldSpaceViewDirection;
-        float3 O = _PBRSkyCameraPosPS + _PlanetCenterPosition.xyz;
-        float distAlongRay = input.tFrag;
-        bool renderSunDisk = input.renderSunDisk != 0;
-        EvaluatePbrAtmosphere(O, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
-    }
+        EvaluatePbrAtmosphere(_PBRSkyCameraPosPS, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
+    #else
+    if (!input.hitGround)
+        EvaluateDistantAtmosphere(-V, skyColor, skyOpacity);
+    #endif
 
     skyColor += input.radiance * (1 - skyOpacity);
     return skyColor * _IntensityMultiplier;

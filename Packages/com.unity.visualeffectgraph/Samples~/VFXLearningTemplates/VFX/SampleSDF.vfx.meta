@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 835e76cc0c1f8e54581052d7c111c058
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Sample Signed Distance Field
+    category: Learning Templates
+    description: 'A signed distance field (SDF) is a technique used to efficiently
+      represent the shape and contours of 2D or 3D objects. It allows us to calculate
+      the distance from any point in space to the nearest point on the object''s
+      surface. This VFX demonstrates how to sample an SDF to have particles crawling
+      on the surface of a mesh. '
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: a3c11027cf8e8584b96716d5079df100, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

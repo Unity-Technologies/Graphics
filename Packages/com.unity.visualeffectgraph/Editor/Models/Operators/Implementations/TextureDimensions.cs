@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-GetTextureDimensions")]
-    [VFXInfo(category = "Sampling")]
+    [VFXInfo(name = "Get Texture Dimensions", category = "Sampling")]
     class TextureDimensions : VFXOperatorDynamicType
     {
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -31,8 +31,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override public string name { get { return "Get " + GetOperandType().Name + " Dimensions"; } }
-        override public string libraryName { get { return "Get Texture Dimensions"; } }
+        public override string name => "Get " + GetOperandType().Name + " Dimensions";
 
         public override IEnumerable<Type> validTypes => new[]
         {

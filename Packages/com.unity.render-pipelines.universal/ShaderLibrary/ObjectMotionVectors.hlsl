@@ -11,12 +11,9 @@
 #pragma multi_compile_instancing
 #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-//--------------------------------------
+//-------------------------------------
 // Other pragmas
-#pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
-// Marc-André Loyer: Metal's Foveated Rendering code relies on shader compiler changes to be able to set the needed data
-// for "non-uniform <==> Linear rasterizer" UV-space transformations, but this is not currently supported with DXC.
-#pragma never_use_dxc metal
+#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
 // -------------------------------------
 // Includes
@@ -68,9 +65,9 @@ Varyings vert(Attributes input)
 
     const VertexPositionInputs vertexInput = GetVertexPositionInputs(input.position.xyz);
 
-#if _ALPHATEST_ON
-    output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
-#endif
+    #if defined(_ALPHATEST_ON)
+        output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+    #endif
 
     // Jittered. Match the frame.
     output.positionCS = vertexInput.positionCS;
@@ -96,13 +93,13 @@ float4 frag(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if _ALPHATEST_ON
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
-#endif
+    #if defined(_ALPHATEST_ON)
+        Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+    #endif
 
-#ifdef LOD_FADE_CROSSFADE
-    LODFadeCrossFade(input.positionCS);
-#endif
+    #if defined(LOD_FADE_CROSSFADE)
+        LODFadeCrossFade(input.positionCS);
+    #endif
 
     return float4(CalcNdcMotionVectorFromCsPositions(input.positionCSNoJitter, input.previousPositionCSNoJitter), 0, 0);
 }

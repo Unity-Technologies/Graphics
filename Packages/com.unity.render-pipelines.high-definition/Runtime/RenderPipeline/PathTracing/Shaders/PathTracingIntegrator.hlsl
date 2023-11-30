@@ -1,6 +1,8 @@
 #ifndef UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 #define UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 
+#define ENABLE_MATERIAL_AMBIENT_OCCLUSION
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
@@ -31,48 +33,6 @@ float3 GetSkyValue(PathPayload payload, float3 direction)
     return GetSkyValue(direction);
 }
 
-#ifdef _ENABLE_SHADOW_MATTE
-
-// Compute scalar visibility for shadow mattes, between 0 and 1
-float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
-{
-    // Select active types of lights
-    bool withPoint = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_PUNCTUAL;
-    bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
-    bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
-
-    LightList lightList = CreateLightList(position, normal, RENDERING_LAYERS_MASK, withPoint, withArea, withDistant);
-
-    RayDesc ray;
-    ray.Origin = position + normal * _RayTracingRayBias;
-    ray.TMin = 0.0;
-
-    // By default, full visibility
-    float visibility = 1.0;
-
-    // We will ignore value and pdf here, as we only want to catch occluders (no distance falloffs, cosines, etc.)
-    float3 value;
-    float pdf, shadowOpacity;
-
-    if (SampleLights(lightList, inputSample, ray.Origin, normal, false, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
-    {
-        // Shoot a transmission ray (to mark it as such, purposedly set remaining depth to an invalid value)
-        PathPayload payload;
-        payload.segmentID = SEGMENT_ID_TRANSMISSION;
-        ray.TMax -= _RayTracingRayBias;
-        payload.value = 1.0;
-
-        // FIXME: For the time being, we choose not to apply any back/front-face culling for shadows, will possibly change in the future
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                 RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, payload);
-
-        visibility = Luminance(GetLightTransmission(payload.value, shadowOpacity));
-    }
-
-    return visibility;
-}
-
-#endif // _ENABLE_SHADOW_MATTE
 
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
@@ -109,8 +69,11 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, payload.cone, isVisible);
 
-    // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    // Check if we want to add direct and emissive lighting for current depth (relative to min depth)
+    bool minDepthAllowsEmissive = payload.segmentID >= _RaytracingMinRecursion - 1;
+    bool minDepthAllowsDirect = payload.segmentID + 1 >= _RaytracingMinRecursion - 1;
+    // Check if we want to send more rays after the segment that was just traced
+    bool haveReachedMaxDepth = payload.segmentID + 1 > _RaytracingMaxRecursion - 1;
 
     // Get our world space shading position
     float3 shadingPosition = fragInput.positionRWS;
@@ -123,6 +86,17 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
+#ifdef ENABLE_MATERIAL_AMBIENT_OCCLUSION
+    // If this is the first segment, then there hasn't been any bounces yet
+    if (payload.segmentID == 0)
+    {
+        // Disable AO for direct lighting
+        bsdfData.ambientOcclusion = 1.0;
+    }
+#else
+    bsdfData.ambientOcclusion = 1.0;
+#endif
+
     // Take care of AOV data right away
     GetAOVData(bsdfData, aovData);
     WriteAOVData(aovData, shadingPosition, payload);
@@ -131,8 +105,13 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
     bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
 
-    // And reset the payload value, which will store our final radiance result for this path depth
-    payload.value = computeDirect ? builtinData.emissiveColor : 0.0;
+    // Reset the payload value, which will store our final radiance result for this path depth
+    payload.value = minDepthAllowsEmissive ? builtinData.emissiveColor : 0.0;
+
+    // If we have reached the maximum recursion depth, we want to stop the path
+    if (haveReachedMaxDepth)
+        return;
+
 
     // Initialize our material data (this will alter the bsdfData to suit path tracing, and choose between BSDF or SSS evaluation)
     MaterialData mtlData;
@@ -145,197 +124,175 @@ void ComputeSurfaceScattering(inout PathPayload payload : SV_RayPayload, Attribu
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
+        payload.lightListParams = float4(lightNormal, builtinData.renderingLayers);
 
+        // Compute absorption along the just traced segment. PSA: absorption needs to be handled differently for thin vs other refraction models.
+        #ifndef _REFRACTION_THIN 
+        float3 segmentAbsorption = GetMaterialAbsorption(mtlData, surfaceData, RayTCurrent(), IsBelow(mtlData, -1 * WorldRayDirection()));
+        #else
+        float3 segmentAbsorption = float3(1, 1, 1);
+        #endif 
+
+        // multiply the absorption along the just traced segment into the throughput for the next segments 
+        payload.throughput *= segmentAbsorption;
+        // and into the emission 
+        payload.value *= segmentAbsorption;
+
+        //  Sampling for new surface interaction 
         float pdf, shadowOpacity;
         float3 value;
         MaterialResult mtlResult;
 
-        RayDesc ray;
-        ray.Origin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RayTracingRayBias;
-        ray.TMin = 0.0;
+        // Next Event Estimation
+        float3 sampleRayOrigin = shadingPosition + mtlData.bsdfData.geomNormalWS * _RayTracingRayBias;
+        float3 sampleRayDirection;
+        float sampleDistance;
 
-        PathPayload shadowPayload;
-
-        // Light sampling
-        if (computeDirect)
+        if (minDepthAllowsDirect)
         {
-            if (SampleLights(lightList, inputSample.xyz, ray.Origin, lightNormal, false, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
+            if (SampleLights(lightList, inputSample.xyz, sampleRayOrigin, lightNormal, false, sampleRayDirection, value, pdf, sampleDistance, shadowOpacity))
             {
-                EvaluateMaterial(mtlData, ray.Direction, mtlResult);
-
+                EvaluateMaterial(mtlData, sampleRayDirection, mtlResult);
                 value *= (mtlResult.diffValue + mtlResult.specValue) / pdf;
                 if (Luminance(value) > 0.001)
                 {
-                    #ifndef _PATH_TRACED_DUAL_SCATTERING
-                    // Shoot a transmission ray
-                    shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
-                #else
-                    shadowPayload.segmentID = SEGMENT_ID_DUAL_SCATTERING_VIS;
-                #endif
-
-                    shadowPayload.value = 1.0;
-                    ray.TMax -= _RayTracingRayBias;
-
-                    // FIXME: For the time being, there is no front/back face culling for shadows
-                    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                             RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
-
-                    // Add direct light sampling contribution
+                    // When leaving a solid object, include absorption for Light Sampling
+                    // When shading a thin object, don't
+                    value *= segmentAbsorption;
                     float misWeight = PowerHeuristic(pdf, mtlResult.diffPdf + mtlResult.specPdf);
-                    payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity) * misWeight;
+                    #ifdef _PATH_TRACED_DUAL_SCATTERING
+                    SetPathTracingFlag(payload, PATHTRACING_FLAG_DUAL_SCATTERING_VIS);
+                    #endif
+                    // Store the information relating to the sample in the payload so the main loop can trace the shadow ray
+                    PushLightSampleQuery(sampleRayOrigin, sampleRayDirection, sampleDistance - _RayTracingRayBias, value * misWeight, shadowOpacity, payload);
                 }
             }
         }
 
         // Material sampling
-        if (SampleMaterial(mtlData, inputSample.xyz, ray.Direction, mtlResult))
+        if (SampleMaterial(mtlData, inputSample.xyz, sampleRayDirection, mtlResult))
         {
             // Compute overall material value and pdf
             pdf = mtlResult.diffPdf + mtlResult.specPdf;
             value = (mtlResult.diffValue + mtlResult.specValue) / pdf;
-
             payload.throughput *= value;
+            payload.materialSamplePdf = pdf;
+
+            // Compute absorption if we refract through a thin surface
+            #ifndef _REFRACTION_THIN 
+            float3 interfaceAbsorption = float3(1, 1, 1);
+            #else
+            float3 interfaceAbsorption = GetMaterialAbsorption(mtlData, surfaceData, RayTCurrent(), IsBelow(mtlData, sampleRayDirection));
+            #endif 
 
             // Apply Russian roulette to our path (might be too aggressive)
             const float rrThreshold = 0.2 + 0.1 * _RaytracingMaxRecursion;
             float rrFactor, rrValue = Luminance(payload.throughput);
 
-            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !payload.segmentID))
+            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !payload.segmentID)) 
             {
                 // If the ray goes straight forward, set alpha accordingly
-                if (dot(WorldRayDirection(), ray.Direction) > 0.999)
+                if (dot(WorldRayDirection(), sampleRayDirection) > 0.999)
                     payload.alpha = 1.0 - rrFactor;
 
-                bool isSampleBelow = IsBelow(mtlData, ray.Direction);
+                bool isSampleBelow = IsBelow(mtlData, sampleRayDirection);
 
-                ray.Origin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RayTracingRayBias, isSampleBelow);
-                ray.TMax = FLT_INF;
+                sampleRayOrigin = shadingPosition + GetPositionBias(mtlData.bsdfData.geomNormalWS, _RayTracingRayBias, isSampleBelow);
 
-                // Prepare our shadow payload with all required information
-                shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
-                shadowPayload.rayTHit = FLT_INF;
+                // Adjust the path parameters to prepare for the next segment
+                payload.throughput *= rrFactor * interfaceAbsorption;
+                payload.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, payload.maxRoughness);
+                payload.cone.spreadAngle = payload.cone.spreadAngle + roughnessToSpreadAngle(payload.maxRoughness);
 
-                // Shoot a ray returning nearest tHit, both to shadow direct lighting and optimize the continuation ray in the same direction
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
-                bool hit = shadowPayload.rayTHit < FLT_INF;
-
-                // Compute material absorption (typically, tinted refraction), and throw in the Russian roulette compensation
-                float3 absorption = rrFactor * GetMaterialAbsorption(mtlData, surfaceData, shadowPayload.rayTHit, isSampleBelow);
-
-                if (computeDirect)
-                {
-                    // Use the hit distance to know which lights are visible
-                    ray.TMax = shadowPayload.rayTHit + _RayTracingRayBias;
-                    float3 lightValue;
-                    float lightPdf;
-                    EvaluateLights(lightList, ray, lightValue, lightPdf);
-
-                    // Add direct material sampling contribution
-                    value *= absorption;
-                    float misWeight = PowerHeuristic(pdf, lightPdf);
-                    payload.value += value * lightValue * misWeight;
-
-                    // Add sky contribution separately, if not doing sky sampling
-                    if (!IsSkySamplingEnabled() && !hit)
-                    {
-                        float3 skyValue = GetSkyValue(ray.Direction);
-                        ApplyFogAttenuation(ray.Origin, ray.Direction, skyValue);
-                        payload.value += value * skyValue;
-                    }
-                }
-
-                // If we have a hit, we want to prepare our payload for a continuation ray
-                if (hit)
-                {
-                    // Apply aborption to the throughput
-                    payload.throughput *= absorption;
-
-                    // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
-                    payload.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, payload.maxRoughness);
-
-                    // To perform texture filtering, we maintain a footprint of the pixel
-                    payload.cone.spreadAngle = payload.cone.spreadAngle + roughnessToSpreadAngle(payload.maxRoughness);
-
-                    // Update the actual continuation ray parameters
-                    SetContinuationRay(ray.Origin, ray.Direction, shadowPayload.rayTHit, payload);
-                }
+                PushMaterialSampleQuery(sampleRayOrigin, sampleRayDirection, payload);
             }
         }
     }
 
 #else // SHADER_UNLIT
 
-    payload.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
-
-    #ifdef _ENABLE_SHADOW_MATTE
-    if (computeDirect)
-    {
-        float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
-
-        // Shadow color's alpha has a slightly different meaning depending on whether the surface is transparent or opaque
-        #ifdef _SURFACE_TYPE_TRANSPARENT
-        float3 shadowColor = surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier();
-        builtinData.opacity = lerp(surfaceData.shadowTint.a, builtinData.opacity, visibility);
-        #else
-        float3 shadowColor = lerp(payload.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
-        #endif
-
-        payload.value = lerp(shadowColor, payload.value, visibility);
-    }
-    #endif // _ENABLE_SHADOW_MATTE
-
+    // Set the flag for Unlit
+    SetPathTracingFlag(payload, PATHTRACING_FLAG_UNLIT_MODEL);
     // Get the closest thing we have to a shading normal in the Unlit model
     float3 shadingNormal = fragInput.tangentToWorld[2];
-
-    // Grab AOV data for Unlit
+    // Set AOV data for Unlit
     aovData.albedo = surfaceData.color;
     aovData.normal = shadingNormal;
     WriteAOVData(aovData, shadingPosition, payload);
 
-    #ifdef _SURFACE_TYPE_TRANSPARENT
-    if (builtinData.opacity < 1.0)
+    // Compute the base value for Unlit 
+    float3 finalShadowValue = minDepthAllowsEmissive ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+
+    // If we have reached the maximum recursion depth, we want to stop the path
+    if (haveReachedMaxDepth)
     {
-        // Simulate opacity blending by simply continuing along the current ray
-        PathPayload shadowPayload;
-        shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
-        shadowPayload.rayTHit = FLT_INF;
-
-        float bias = dot(WorldRayDirection(), shadingNormal) > 0.0 ? _RayTracingRayBias : -_RayTracingRayBias;
-
-        RayDesc ray;
-        ray.Origin = shadingPosition + bias * shadingNormal;
-        ray.Direction = WorldRayDirection();
-        ray.TMin = 0.0;
-        ray.TMax = FLT_INF;
-
-        // Shoot a ray returning nearest tHit, to decide if we fetch the sky value or fire a continuation ray in the same direction
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
-        bool hit = shadowPayload.rayTHit < FLT_INF;
-
-        if (computeDirect)
-        {
-            payload.value *= builtinData.opacity;
-            if (!hit)
-            {
-                float3 skyValue = GetSkyValue(payload, ray.Direction);
-                ApplyFogAttenuation(ray.Origin, ray.Direction, skyValue);
-                payload.value += (1.0 - builtinData.opacity) * skyValue;
-            }
-        }
-
-        if (hit)
-        {
-            // Update our payload to fire a continuation ray
-            payload.throughput *= 1.0 - builtinData.opacity;
-            SetContinuationRay(ray.Origin, ray.Direction, shadowPayload.rayTHit, payload);
-        }
-
-        // Set alpha to the opacity value
-        payload.alpha = builtinData.opacity;
+        payload.value = finalShadowValue;
+        return;
     }
-    #endif
 
+    // If shadow mattes are enabled, compute the shadow color
+    #ifdef _ENABLE_SHADOW_MATTE
+    float3 shadowColor = float3(0, 0, 0);
+
+    if (minDepthAllowsDirect)
+    {
+        // Shadow color's alpha has a slightly different meaning depending on whether the surface is transparent or opaque
+    #ifdef _SURFACE_TYPE_TRANSPARENT
+        SetPathTracingFlag(payload, PATHTRACING_FLAG_INTERPOLATE_OPACITY);
+        payload.lightSampleShadowOpacityAndShadowTint.y = surfaceData.shadowTint.a;
+        shadowColor = surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier();
+    #else // _SURFACE_TYPE_TRANSPARENT
+        shadowColor = lerp(finalShadowValue, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
+    #endif // _SURFACE_TYPE_TRANSPARENT
+    }
+    #endif // _ENABLE_SHADOW_MATTE
+
+
+    // In case the surface is transparent, set the ray direction for continued path tracing
+    #ifdef _SURFACE_TYPE_TRANSPARENT
+    // Simulate opacity blending by simply continuing along the current ray -- we don't actually sample anything, but we put the parameters into the material sample to continue path tracing
+    float bias = dot(WorldRayDirection(), shadingNormal) > 0.0 ? _RayTracingRayBias : -_RayTracingRayBias;
+    // Don't touch MIS sample pdf, as the ray will be continued; the original value remains relevant.     
+    PushMaterialSampleQuery(shadingPosition + bias * shadingNormal, WorldRayDirection(), payload);
+
+    // We can only make sure the ray is needed once we have the correct opacity value, which depends on the visibility calculation. This needs to happen in the main loop.
+    payload.alpha = builtinData.opacity;
+    #endif // _SURFACE_TYPE_TRANSPARENT 
+
+    // Finally, if shadow mattes are enabled, set the shadow ray to be traced in the main loop 
+    #ifdef _ENABLE_SHADOW_MATTE
+    if(minDepthAllowsDirect)
+    {
+        // Select active types of lights
+        bool withPoint = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_PUNCTUAL;
+        bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
+        bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
+
+        float3 sampleRayOrigin = fragInput.positionRWS + surfaceData.normalWS * _RayTracingRayBias;
+        float3 sampleRayDirection;
+        float sampleDistance;
+
+        // We will ignore value and pdf here, as we only want to catch occluders (no distance falloffs, cosines, etc.)
+        float3 ignoredValue;
+        float pdf, shadowOpacity;
+
+        LightList lightList = CreateLightList(fragInput.positionRWS, surfaceData.normalWS, RENDERING_LAYERS_MASK, withPoint, withArea, withDistant);
+        if (SampleLights(lightList, inputSample.xyz, sampleRayOrigin, surfaceData.normalWS, false, sampleRayDirection, ignoredValue, pdf, sampleDistance, shadowOpacity))
+        {
+            // Store the information relating to the sample in the payload so the main loop can trace the shadow ray
+            PushLightSampleQueryUnlit(sampleRayOrigin, sampleRayDirection, sampleDistance - _RayTracingRayBias, finalShadowValue, shadowOpacity, shadowColor, payload);
+        }
+    }
+    else
+    {
+        // otherwise simply add the computed value to the final result 
+        payload.value = finalShadowValue;
+    }
+    #else // otherwise always add the computed value to the final result 
+    payload.value = finalShadowValue;
+    #endif // _ENABLE_SHADOW_MATTE
 #endif // SHADER_UNLIT
+
 }
 
 // Generic function that handles one scattering event (a vertex along the full path), can be either:
@@ -348,7 +305,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     payload.rayTHit = RayTCurrent();
     payload.alpha = 1.0;
 
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    bool minDepthAllowsEmissive = payload.segmentID >= _RaytracingMinRecursion - 1;
     bool sampleVolume = false;
 
     float4 inputSample = 0.0;
@@ -363,7 +320,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     inputSample = GetSample4D(payload.pixelCoord, _RaytracingSampleIndex, 4 * payload.segmentID);
 
     // For the time being, we test for volumetric scattering only on camera rays
-    if (!payload.segmentID && computeDirect)
+    if (!payload.segmentID && minDepthAllowsEmissive)
         sampleVolume = SampleVolumeScatteringPosition(payload.pixelCoord, inputSample.w, payload.rayTHit, volSurfPdf, sampleLocalLights, lightPosition);
 
     if (sampleVolume)
@@ -371,7 +328,7 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
     else
         ComputeSurfaceScattering(payload, attributeData, inputSample);
 
-    computeDirect &= !sampleVolume;
+    minDepthAllowsEmissive &= !sampleVolume;
 
 #else // HAS_LIGHTLOOP
 
@@ -380,13 +337,16 @@ void ClosestHit(inout PathPayload payload : SV_RayPayload, AttributeData attribu
 #endif // HAS_LIGHTLOOP
 
     // Apply volumetric attenuation (beware of passing the right distance to the shading point)
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), sampleVolume ? payload.rayTHit : RayTCurrent(),
-                        payload.value, payload.alpha, payload.throughput, computeDirect);
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.rayTHit, payload.value, payload.lightSampleShadowColor, payload.alpha,
+                        payload.lightSampleShadowOpacityAndShadowTint.y, payload.throughput, payload.lightSampleValue, minDepthAllowsEmissive);
+
 
     // Apply the volume/surface PDF
     payload.value /= volSurfPdf;
     payload.alpha /= volSurfPdf;
+    payload.lightSampleShadowOpacityAndShadowTint.y /= volSurfPdf;
     payload.throughput /= volSurfPdf;
+    payload.lightSampleValue /= volSurfPdf;
 }
 
 [shader("anyhit")]
@@ -421,7 +381,7 @@ void AnyHit(inout PathPayload payload : SV_RayPayload, AttributeData attributeDa
 
 #endif // _ALPHATEST_ON
 
-    if      (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
+    if (payload.segmentID == SEGMENT_ID_NEAREST_HIT )
     {
         // We just need the nearest hit distance here
         payload.rayTHit = min(payload.rayTHit, RayTCurrent());

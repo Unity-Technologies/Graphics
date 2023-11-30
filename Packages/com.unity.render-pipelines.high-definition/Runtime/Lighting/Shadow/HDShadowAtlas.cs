@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal struct HDShadowAtlasInitParameters
         {
-            internal HDRenderPipelineRuntimeResources renderPipelineResources;
+            internal HDRenderPipeline renderPipeline;
             internal RenderGraph renderGraph;
             internal bool useSharedTexture;
             internal int width;
@@ -30,10 +30,10 @@ namespace UnityEngine.Rendering.HighDefinition
             internal RenderTextureFormat format;
             internal ConstantBuffer<ShaderVariablesGlobal> cb;
 
-            internal HDShadowAtlasInitParameters(HDRenderPipelineRuntimeResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
+            internal HDShadowAtlasInitParameters(HDRenderPipeline renderPipeline, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
                                                  Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
             {
-                this.renderPipelineResources = renderPipelineResources;
+                this.renderPipeline = renderPipeline;
                 this.renderGraph = renderGraph;
                 this.useSharedTexture = useSharedTexture;
                 this.width = width;
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         string m_IntermediateSummedAreaName;
         string m_SummedAreaName;
         int m_AtlasShaderID;
-        HDRenderPipelineRuntimeResources m_RenderPipelineResources;
+        HDRenderPipeline m_RenderPipeline;
 
         // Moment shadow data
         BlurAlgorithm m_BlurAlgorithm;
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AtlasShaderID = initParams.atlasShaderID;
             m_ClearMaterial = initParams.clearMaterial;
             m_BlurAlgorithm = initParams.blurAlgorithm;
-            m_RenderPipelineResources = initParams.renderPipelineResources;
+            m_RenderPipeline = initParams.renderPipeline;
             m_IsACacheForShadows = initParams.isShadowCache;
 
             m_GlobalConstantBuffer = initParams.cb;
@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<EVSMBlurMomentsPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMaps)))
             {
-                passData.evsmShadowBlurMomentsCS = m_RenderPipelineResources.shaders.evsmBlurCS;
+                passData.evsmShadowBlurMomentsCS = m_RenderPipeline.runtimeShaders.evsmBlurCS;
                 passData.shadowRequests = m_ShadowRequests;
                 passData.isRenderingOnACache = m_IsACacheForShadows;
                 passData.atlasTexture = builder.ReadTexture(inputAtlas);
@@ -601,7 +601,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.shadowRequests = m_ShadowRequests;
                 passData.isRenderingOnACache = m_IsACacheForShadows;
-                passData.imShadowBlurMomentsCS = m_RenderPipelineResources.shaders.momentShadowsCS;
+                passData.imShadowBlurMomentsCS = m_RenderPipeline.runtimeShaders.momentShadowsCS;
                 passData.atlasTexture = builder.ReadTexture(atlasTexture);
                 passData.momentAtlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
                 passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)

@@ -29,5 +29,13 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
             get => m_AlphaClip;
             set => m_AlphaClip = value;
         }
+
+        [SerializeField]
+        bool m_DisableTint = false;
+        public bool disableTint
+        {
+            get => m_DisableTint;
+            set => m_DisableTint = value;
+        }
     }
 }

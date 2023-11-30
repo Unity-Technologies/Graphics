@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int raySteps;
             public float nearClipPlane;
             public float farClipPlane;
+            public bool transparent;
 
             // Camera data
             public int width;
@@ -137,6 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Data textures
             public Texture skyTexture;
+
+            public bool enableDecals;
         }
 
         static void BinRays(CommandBuffer cmd, in DeferredLightingRTParameters config, RTHandle directionBuffer, int texWidth, int texHeight)
@@ -175,10 +178,21 @@ namespace UnityEngine.Rendering.HighDefinition
             int numTilesRayBinY = (texHeight + (8 - 1)) / 8;
 
             // Prepass textures
+            if (data.parameters.transparent)
+            {
+                // Use the transparent pre-pass depth for ray start position, and do not filter using stencil
+                cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._InputDepthTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Depth);
+                cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, 0);
+            }
+            else
+            {
+                // Use the depth pyramid for ray start position (since it is already bound for hit testing), filter pixels using stencil
+                cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._InputDepthTexture, data.depthPyramid);
+                cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
+            }
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthTexture, data.depthPyramid);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
             cmd.SetComputeTextureParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-            cmd.SetComputeIntParam(data.parameters.rayMarchingCS, HDShaderIDs._DeferredStencilBit, (int)StencilUsage.RequiresDeferredLighting);
             cmd.SetComputeBufferParam(data.parameters.rayMarchingCS, marchingKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.parameters.mipChainBuffer);
 
             // Bind the input parameters
@@ -213,7 +227,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle distanceBuffer;
         }
 
-        RayTracingDefferedLightLoopOutput DeferredLightingRT(RenderGraph renderGraph, in DeferredLightingRTParameters parameters,
+        RayTracingDefferedLightLoopOutput DeferredLightingRT(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            in DeferredLightingRTParameters parameters,
             TextureHandle directionBuffer,
             in PrepassOutput prepassOutput,
             Texture skyTexture,
@@ -266,6 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
                 passData.distanceBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" }));
+
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 
                 builder.SetRenderFunc(
                     (DeferredLightingRTRPassData data, RenderGraphContext ctx) =>
@@ -341,6 +359,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Only compute diffuse lighting if required
                         CoreUtils.SetKeyword(ctx.cmd, "MINIMAL_GBUFFER", data.parameters.diffuseLightingOnly);
+
+                        if (data.enableDecals)
+                        {
+                            DecalSystem.instance.SetAtlas(ctx.cmd);
+                            data.parameters.lightCluster.BindLightClusterData(ctx.cmd);
+                        }
 
                         if (data.parameters.rayBinning)
                         {

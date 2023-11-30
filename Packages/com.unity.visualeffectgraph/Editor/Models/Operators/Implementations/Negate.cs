@@ -1,7 +1,7 @@
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Negate")]
-    [VFXInfo(category = "Math/Arithmetic")]
+    [VFXInfo(name = "Negate (-x)", category = "Math/Arithmetic", synonyms = new []{ "opposite" })]
     class Negate : VFXOperatorNumericUniform
     {
         public class InputProperties

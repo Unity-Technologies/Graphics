@@ -62,6 +62,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
+
+        Material integrateHDRISkyMaterial
+        {
+            get
+            {
+                if (m_IntegrateHDRISkyMaterial == null)
+                {
+                    var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS;
+                    m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(shader);
+                }
+
+                return m_IntegrateHDRISkyMaterial;
+            }
+        }
+
         Texture2D m_ReadBackTexture;
 
         public override void OnEnable()
@@ -102,12 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_RectLightShadow = Unpack(o.Find(x => x.rectLightShadow));
             m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
 
-
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
-            if (HDRenderPipelineGlobalSettings.instance?.renderPipelineResources != null)
-            {
-                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
-            }
             m_ReadBackTexture = new Texture2D(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
         }
 
@@ -123,21 +133,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public void GetUpperHemisphereLuxValue()
         {
             // null material can happen when no HDRP asset was present at startup
-            if (m_IntegrateHDRISkyMaterial == null)
-            {
-                if (HDRenderPipeline.isReady)
-                    m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
-                else
-                    return;
-            }
+            if (integrateHDRISkyMaterial == null)
+                return;
 
             Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
             if (hdri == null)
                 return;
 
-            m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
+            integrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
 
-            Graphics.Blit(Texture2D.whiteTexture, m_IntensityTexture.rt, m_IntegrateHDRISkyMaterial);
+            Graphics.Blit(Texture2D.whiteTexture, m_IntensityTexture.rt, integrateHDRISkyMaterial);
 
             // Copy the rendertexture containing the lux value inside a Texture2D
             RenderTexture.active = m_IntensityTexture.rt;

@@ -1,32 +1,172 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 
+using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.VFX.Block;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.Experimental;
 
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
+    interface IParameterItem
     {
-        VFXViewController m_Controller;
-        bool m_CanEdit;
+        VFXGraph graph { get; set; }
+        string title { get; set; }
+        // This property is used to add an extra margin below the last item (done in css)
+        bool isLast { get; set; }
+        bool isExpanded { get; set; }
+        int index { get; set; }
+        int id { get; set; }
+        bool canRename { get; }
+        ISelectable selectable { get; set; }
+        bool Accept(IParameterItem item);
+    }
 
-        Controller IControlledElement.controller
+    interface IParameterCategory
+    {
+        bool isRoot { get; }
+    }
+
+    class ParameterItem : IParameterItem
+    {
+        protected ParameterItem(string title, int id,  bool isExpanded)
         {
-            get { return m_Controller; }
+            this.title = title;
+            this.id = id;
+            this.isExpanded = isExpanded;
         }
+
+        public VFXGraph graph { get; set; }
+        public virtual string title { get; set; }
+        public bool isLast { get; set; }
+        public bool isExpanded { get; set; }
+
+        public int index { get; set; }
+        public int id { get; set; }
+        public virtual bool canRename => true;
+        public ISelectable selectable { get; set; }
+
+        public virtual bool Accept(IParameterItem item) => false;
+    }
+
+    class PropertyCategory : ParameterItem, IParameterCategory
+    {
+        public PropertyCategory(string title, int id, bool isRoot, bool isExpanded) : base(title, id, isExpanded)
+        {
+            this.isRoot = isRoot;
+        }
+        public bool isRoot { get; }
+        public override bool canRename => !isRoot;
+
+        public override bool Accept(IParameterItem item)
+        {
+            return item is PropertyItem;
+        }
+    }
+
+    class PropertyItem : ParameterItem
+    {
+        public PropertyItem(VFXParameterController controller, int id) : base(null, id, false)
+        {
+            this.controller = controller;
+        }
+        public VFXParameterController controller { get; }
+
+        public override string title => controller.exposedName;
+    }
+
+    class OutputCategory : PropertyCategory
+    {
+        public const string Label = "Output";
+        public OutputCategory(bool isExpanded, int id) : base(Label, id, false, isExpanded) { }
+    }
+
+    class AttributeItem : ParameterItem
+    {
+        public AttributeItem(string name, CustomAttributeUtility.Signature type, int id, string description, bool isExpanded, bool isEditable, IEnumerable<string> subgraphUse) : base(name, id, false)
+        {
+            this.title = name;
+            this.type = type;
+            this.description = description;
+            this.isEditable = isEditable;
+            this.subgraphUse = subgraphUse?.ToArray();
+            this.isBuiltIn = VFXAttributesManager.ExistsBuiltInOnly(name);
+            this.isReadOnly = Array.FindIndex(VFXAttributesManager.GetBuiltInNamesAndCombination(false, false, true, false).ToArray(), x => x == name) != -1;
+            this.isExpanded = isExpanded;
+        }
+
+        public CustomAttributeUtility.Signature type { get; set; }
+        public bool isEditable { get; }
+        public string[] subgraphUse { get; }
+        public bool isBuiltIn { get; }
+        public bool isReadOnly { get; }
+        public string description { get; set; }
+        public override bool canRename => !isBuiltIn && isEditable;
+    }
+
+    class AttributeCategory : ParameterItem, IParameterCategory
+    {
+        public AttributeCategory(string title, int id, bool isRoot, bool isExpanded) : base(title, id, isExpanded)
+        {
+            this.isRoot = isRoot;
+        }
+        public bool isRoot { get; }
+        public override bool canRename => false;
+    }
+
+    class CustomAttributeCategory : AttributeCategory
+    {
+        public const string Title = "Custom Attributes";
+        public CustomAttributeCategory(int id, bool isExpanded) : base("Custom Attributes", id, false, isExpanded) { }
+    }
+
+    class VFXBlackboard : Blackboard, IVFXMovable, IControlledElement<VFXViewController>
+    {
+        [Flags]
+        enum ViewMode
+        {
+            Properties = 0x1,
+            Attributes = 0x2,
+            All = Properties | Attributes,
+        }
+
+        const string PropertiesCategoryTitle = "Properties";
+        const string BuiltInAttributesCategoryTitle = "Built-in Attributes";
+        const string AttributesCategoryTitle = "Attributes";
+
+        static readonly Rect defaultRect = new Rect(100, 100, 300, 500);
+        static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        readonly VFXView m_View;
+        readonly Button m_AddButton;
+        readonly List<TreeViewItemData<IParameterItem>> m_ParametersController = new ();
+
+        VFXViewController m_Controller;
+        Image m_VCSStatusImage;
+        TreeView m_Treeview;
+        Label m_PathLabel;
+        TextField m_PathTextField;
+        bool m_CanEdit;
+        bool m_IsChangingSelection;
+        ViewMode m_ViewMode;
+        List<string> m_pendingSelectionItems = new ();
+
+        Controller IControlledElement.controller => m_Controller;
+
         public VFXViewController controller
         {
-            get { return m_Controller; }
+            get => m_Controller;
             set
             {
                 if (m_Controller != value)
                 {
+                    m_pendingSelectionItems.Clear();
                     if (m_Controller != null)
                     {
                         m_Controller.UnregisterHandler(this);
@@ -37,126 +177,534 @@ namespace UnityEditor.VFX.UI
                     if (m_Controller != null)
                     {
                         m_Controller.RegisterHandler(this);
+                        Update(true);
                     }
-
                     m_AddButton.SetEnabled(m_Controller != null);
                 }
             }
         }
 
-        new void Clear()
+        private bool isPropertiesCategoryExpanded
         {
-            m_DefaultCategory.Clear();
-            if (m_OutputCategory != null)
-                m_OutputCategory.Clear();
-
-            foreach (var cat in m_Categories)
-            {
-                cat.Value.RemoveFromHierarchy();
-            }
-            m_Categories.Clear();
+            get => EditorPrefs.GetBool("VFXBlackboard.isPropertiesCategoryExpanded");
+            set => EditorPrefs.SetBool("VFXBlackboard.isPropertiesCategoryExpanded", value);
         }
 
-        readonly VFXView m_View;
-        readonly Button m_AddButton;
-        readonly VisualElement m_ContentContainer;
-        Image m_VCSStatusImage;
+        private bool isOutputCategoryExpanded
+        {
+            get => EditorPrefs.GetBool("VFXBlackboard.isOutputCategoryExpanded");
+            set => EditorPrefs.SetBool("VFXBlackboard.isOutputCategoryExpanded", value);
+        }
+
+        private bool isAttributesCategoryExpanded
+        {
+            get => EditorPrefs.GetBool("VFXBlackboard.isAttributesCategoryExpanded");
+            set => EditorPrefs.SetBool("VFXBlackboard.isAttributesCategoryExpanded", value);
+        }
+
+        private bool isBuiltInAttributesCategoryExpanded
+        {
+            get => EditorPrefs.GetBool("VFXBlackboard.isBuiltInAttributesCategoryExpanded");
+            set => EditorPrefs.SetBool("VFXBlackboard.isBuiltInAttributesCategoryExpanded", value);
+        }
+
+        private bool isCustomAttributesCategoryExpanded
+        {
+            get => EditorPrefs.GetBool("VFXBlackboard.isCustomAttributesCategoryExpanded");
+            set => EditorPrefs.SetBool("VFXBlackboard.isCustomAttributesCategoryExpanded", value);
+        }
+
+        new void Clear()
+        {
+            m_ParametersController.Clear();
+            m_Treeview.SetRootItems(m_ParametersController);
+            m_Treeview.Rebuild();
+        }
 
         public VFXBlackboard(VFXView view)
         {
             m_View = view;
-            editTextRequested = OnEditName;
-            addItemRequested = OnAddItem;
+            m_ViewMode = ViewMode.All;
+            addItemRequested = OnAddItemButton;
 
-            this.scrollable = true;
+            this.scrollable = false;
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, defaultRect));
 
-            m_DefaultCategory = new VFXBlackboardCategory() { title = "parameters" };
-            Add(m_DefaultCategory);
-            m_DefaultCategory.headerVisible = false;
+            m_Treeview = new TreeView
+            {
+                reorderable = true,
+                selectionType = SelectionType.Multiple,
+                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight
+            };
+
+            m_Treeview.canStartDrag += OnCanDragStart;
+            m_Treeview.dragAndDropUpdate += OnDragAndDropUpdate;
+            m_Treeview.handleDrop += OnHandleDrop;
+            m_Treeview.setupDragAndDrop += OnSetupDragAndDrop;
+
+            m_Treeview.makeItem += MakeItem;
+            m_Treeview.bindItem += BindItem;
+            m_Treeview.unbindItem += UnbindItem;
+            m_Treeview.selectionChanged += OnSelectionChanged;
+            // Trickle down because on macOS the context menu is opened on PointerDown event which stop the event propagation
+            m_Treeview.RegisterCallback<PointerDownEvent>(OnTreeViewPointerDown, TrickleDown.TrickleDown);
+            Add(m_Treeview);
+
+            var tabsContainer = new VisualElement { name = "tabsContainer" };
+            var allTab = new Toggle { text = "All", value = true };
+            var propertiesTab = new Toggle { text = "Properties" };
+            var attributesTab = new Toggle { text = "Attributes" };
+            tabsContainer.Add(new VisualElement { name = "bottomBorder" });
+            tabsContainer.Add(allTab);
+            tabsContainer.Add(propertiesTab);
+            tabsContainer.Add(attributesTab);
+            tabsContainer.Add(new VisualElement { name = "spacer" });
+            allTab.RegisterCallback<ChangeEvent<bool>, ViewMode>(OnTabChanged, ViewMode.All);
+            propertiesTab.RegisterCallback<ChangeEvent<bool>, ViewMode>(OnTabChanged, ViewMode.Properties);
+            attributesTab.RegisterCallback<ChangeEvent<bool>, ViewMode>(OnTabChanged, ViewMode.Attributes);
+            Insert(0, tabsContainer);
 
             styleSheets.Add(VFXView.LoadStyleSheet("VFXBlackboard"));
 
-            RegisterCallback<MouseDownEvent>(OnMouseClick);
-            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-            RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+            RegisterCallback<FocusInEvent>(OnGetFocus);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             focusable = true;
-
-            m_ContentContainer = this.Q<VisualElement>("contentContainer");
 
             m_AddButton = this.Q<Button>(name: "addButton");
             m_AddButton.style.width = 27;
             m_AddButton.style.height = 27;
             m_AddButton.SetEnabled(false);
 
-            m_DragIndicator = new VisualElement();
-
-
-            m_DragIndicator.name = "dragIndicator";
-            m_DragIndicator.style.position = PositionType.Absolute;
-            hierarchy.Add(m_DragIndicator);
-
-            SetDragIndicatorVisible(false);
-
             Resizer resizer = this.Query<Resizer>();
+            resizer.RemoveFromHierarchy();
 
-            hierarchy.Add(new UnityEditor.Experimental.GraphView.ResizableElement());
+            hierarchy.Insert(0, new ResizableElement());
 
             style.position = PositionType.Absolute;
 
-            m_PathLabel = hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
+            var labelContainer = this.Q<VisualElement>("labelContainer");
+            m_PathLabel = labelContainer.Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownSubTitle);
 
-            m_PathTextField = new TextField { visible = false };
-            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); }, TrickleDown.TrickleDown);
+            m_PathTextField = new TextField();
+            m_PathTextField.style.display = DisplayStyle.None;
+            m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnEditPathTextFinished, TrickleDown.TrickleDown);
             m_PathTextField.Q(TextField.textInputUssName).RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed, TrickleDown.TrickleDown);
-            hierarchy.Add(m_PathTextField);
-
-            resizer.RemoveFromHierarchy();
+            labelContainer.Add(m_PathTextField);
 
             if (s_LayoutManual != null)
                 s_LayoutManual.SetValue(this, false);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+        }
 
-            // Workaround: output category is in a scrollview which can lead to get the Add button invisible (moved out of the visible viewport of the scrollviewer)
-            var scrollView = this.Q<ScrollView>();
-            if (scrollView != null)
+        private void OnGetFocus(FocusInEvent evt)
+        {
+            m_View.SetBoardToFront(this);
+        }
+
+        private void OnTreeViewPointerDown(PointerDownEvent evt)
+        {
+            if (evt.button == (int)MouseButton.RightMouse && evt.clickCount == 1 && evt.target is VFXBlackboardFieldBase field)
             {
-                scrollView.RegisterCallback<GeometryChangedEvent, ScrollView>(OnGeometryChanged, scrollView);
-                scrollView.horizontalScroller.valueChanged += x => OnOutputCategoryScrollChanged(scrollView);
+                if (!m_Treeview.selectedItems.Contains(field.item))
+                {
+                    m_Treeview.SetSelectionById(field.item.id);
+                }
             }
         }
 
+        private StartDragArgs OnSetupDragAndDrop(SetupDragAndDropArgs arg)
+        {
+            var startArgs = arg.startDragArgs;
+            var items = arg.selectedIds.Select(x => m_Treeview.GetItemDataForId<IParameterItem>(x)).ToList();
+            items.ForEach(x => x.graph = controller.graph);
+            startArgs.SetGenericData("DragSelection", items);
+            return startArgs;
+        }
+
+        private void OnSelectionChanged(IEnumerable<object> selectedItems)
+        {
+            if (m_IsChangingSelection)
+                return;
+
+            var newSelection = selectedItems.ToArray();
+            if (newSelection.Length > 0)
+            {
+                try
+                {
+                    m_IsChangingSelection = true;
+                    m_View.ClearSelectionFast();
+                    foreach (var item in newSelection)
+                    {
+                        if (item is IParameterItem parameterItem)
+                        {
+                            if (parameterItem.selectable != null)
+                            {
+                                AddToSelection(parameterItem.selectable);
+                            }
+                            else
+                            {
+                                m_pendingSelectionItems.Add(parameterItem.title);
+                                m_Treeview.ScrollToItemById(parameterItem.id);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    m_IsChangingSelection = false;
+                }
+            }
+        }
+
+        private DragVisualMode OnHandleDrop(HandleDragAndDropArgs arg)
+        {
+            if (arg.parentId < 0)
+            {
+                return DragVisualMode.Rejected;
+            }
+
+            var fieldId = new List<int>();
+            var childIndex = arg.childIndex;
+            // Reorder
+            if (arg.dropPosition == DragAndDropPosition.BetweenItems)
+            {
+                // Moving a property
+                if (m_Treeview.selectedItem is PropertyItem)
+                {
+                    foreach (var currentItem in m_Treeview.selectedItems.OfType<PropertyItem>())
+                    {
+                        fieldId.Add(currentItem.id);
+                        var parentCategory = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId) as PropertyCategory;
+                        if (parentCategory.isRoot)
+                        {
+                            currentItem.controller.model.category = string.Empty;
+                            if (currentItem.controller.isOutput)
+                            {
+                                currentItem.controller.model.SetSettingValue("m_Exposed", true);
+                            }
+                            currentItem.controller.isOutput = false;
+                        }
+                        else if (parentCategory is OutputCategory)
+                        {
+                            currentItem.controller.model.category = string.Empty;
+                            currentItem.controller.isOutput = true;
+                            currentItem.controller.model.SetSettingValue("m_Exposed", false);
+                        }
+                        else
+                        {
+                            currentItem.controller.model.category = parentCategory.title;
+                        }
+
+                        controller.SetParametersOrder(currentItem.controller, arg.childIndex);
+                    }
+                }
+                // Moving a category
+                else if (m_Treeview.selectedItem is PropertyCategory category)
+                {
+                    var parentItem = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId);
+                    if (arg.parentId < 0 || parentItem is PropertyCategory { isRoot: true } and not OutputCategory)
+                    {
+                        var categoryInfo = controller.graph.UIInfos.categories.SingleOrDefault(x => x.name == category.title);
+                        var index = controller.graph.UIInfos.categories.IndexOf(categoryInfo);
+                        controller.MoveCategory(category.title, index);
+                        fieldId.Add(category.id);
+                        var propertiesTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0);
+                        var lastNoCategoryChildIndex = propertiesTreeviewItem.children.TakeWhile(x => x.data is PropertyItem).Count();
+                        childIndex = Math.Max(childIndex, lastNoCategoryChildIndex);
+                    }
+                }
+            }
+            // Change category
+            else if (m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId) is PropertyCategory propertyCategory)
+            {
+                foreach (var currentItem in m_Treeview.selectedItems.OfType<PropertyItem>())
+                {
+                    fieldId.Add(currentItem.id);
+                    if (currentItem.controller.isOutput && propertyCategory is not OutputCategory)
+                    {
+                        currentItem.controller.model.category = FilterOutReservedCategoryName(propertyCategory.title);
+                        currentItem.controller.isOutput = false;
+                        currentItem.controller.exposed = true;
+                    }
+                    else if (propertyCategory is OutputCategory && currentItem.controller.isOutput == false)
+                    {
+                        currentItem.controller.model.category = string.Empty;
+                        currentItem.controller.isOutput = true;
+                        currentItem.controller.exposed = false;
+                    }
+                    else
+                    {
+                        var category = FilterOutReservedCategoryName(propertyCategory.title);
+                        m_View.controller.ChangeCategory(currentItem.controller.model, category);
+                    }
+
+                    // Moving to the root "Properties" category. We want to move the item as last parameter, but above the first category
+                    if (string.Compare(propertyCategory.title, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        var propertiesTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0);
+                        childIndex = propertiesTreeviewItem.children.TakeWhile(x => x.data is PropertyItem).Count();
+                    }
+                }
+            }
+
+            if (fieldId.Count > 0)
+            {
+                foreach (var id in fieldId)
+                {
+                    m_Treeview.viewController.Move(id, arg.parentId, childIndex, true);
+                }
+
+                UpdateLastCategoryItem(arg.parentId);
+                m_Treeview.ClearSelection();
+
+                return DragVisualMode.Move;
+            }
+
+            return DragVisualMode.Rejected;
+        }
+
+        // Mark last item with a uss class is usefull to give an extra bottom margin to last item
+        private void UpdateLastCategoryItem(int id)
+        {
+            var parentData = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.id == id);
+            if (parentData.hasChildren)
+            {
+                var childItems = parentData.children.Where(x => x.data is PropertyItem or AttributeItem).ToArray();
+                for (var i = 0; i < childItems.Length; i++)
+                {
+                    var child = childItems[i];
+                    if (i == childItems.Length - 1)
+                    {
+                        child.data.isLast = true;
+                        m_Treeview.GetRootElementForId(child.id)?.AddToClassList("last");
+                    }
+                    else
+                    {
+                        m_Treeview.GetRootElementForId(child.id)?.RemoveFromClassList("last");
+                        child.data.isLast = false;
+                    }
+                }
+            }
+        }
+
+        private DragVisualMode OnDragAndDropUpdate(HandleDragAndDropArgs arg)
+        {
+            m_Treeview.ReleaseMouse();
+
+            var parentItem = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId);
+
+            if (arg.dropPosition == DragAndDropPosition.OverItem)
+            {
+                foreach (var selectedItem in m_Treeview.selectedItems)
+                {
+                    if (selectedItem is PropertyItem)
+                    {
+                        return DragVisualMode.Move;
+                    }
+
+                    if (selectedItem is PropertyCategory { isRoot: false })
+                    {
+                        return parentItem.Accept(selectedItem as IParameterItem) ? DragVisualMode.Move : DragVisualMode.Rejected;
+                    }
+                }
+            }
+            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory && m_Treeview.selectedItems.All(x => x is PropertyItem or PropertyCategory))
+            {
+                return DragVisualMode.Move;
+            }
+            else if (arg.dropPosition == DragAndDropPosition.OutsideItems)
+            {
+                return DragVisualMode.Move;
+            }
+
+            return DragVisualMode.Rejected;
+        }
+
+        private bool OnCanDragStart(CanStartDragArgs arg)
+        {
+            return m_Treeview.selectedItems.Any(x => x is PropertyItem or AttributeItem);
+        }
+
+        private void OnTabChanged(ChangeEvent<bool> evt, ViewMode viewMode)
+        {
+            if (evt.newValue)
+            {
+                var tabsContainer = this.Q<VisualElement>("tabsContainer");
+                tabsContainer.Query<Toggle>().ForEach(x => { x.value = x == evt.target; });
+                m_ViewMode = viewMode;
+                Update(true);
+            }
+        }
+
+        private void UnbindItem(VisualElement element, int index)
+        {
+            element.parent.parent.RemoveFromClassList("category");
+            element.parent.parent.RemoveFromClassList("sub-category");
+            element.parent.parent.RemoveFromClassList("collapsed");
+            element.parent.parent.RemoveFromClassList("root");
+            element.parent.parent.RemoveFromClassList("item");
+            element.parent.parent.RemoveFromClassList("last");
+            element.parent.parent.RemoveFromClassList("built-in");
+            element.parent.parent.RemoveFromClassList("sub-graph");
+            element.ClearClassList();
+            element.Clear();
+        }
+
+        private void BindItem(VisualElement element, int index)
+        {
+            element.SetEnabled(m_CanEdit);
+            var item = m_Treeview.GetItemDataForIndex<IParameterItem>(index);
+            item.index = index;
+            item.id = m_Treeview.viewController.GetIdForIndex(index);
+            var rootElement = element.parent.parent;
+            if (!item.isExpanded)
+                rootElement.AddToClassList("collapsed");
+
+            // This is a hack to put the expand/collapse button above the item so that we can interact with it
+            var toggle = rootElement.Q<Toggle>();
+            toggle.BringToFront();
+            element.AddToClassList("blackboardRowContainer");
+            switch (item)
+            {
+                case PropertyCategory category when m_ViewMode.HasFlag(ViewMode.Properties):
+                {
+                    rootElement.AddToClassList(category.isRoot ? "category" : "sub-category");
+                    var blackboardCategory = new VFXBlackboardCategory(category) { title = item.title };
+                    category.selectable = blackboardCategory;
+                    element.Add(blackboardCategory);
+                    break;
+                }
+                case PropertyItem parameterItem when m_ViewMode.HasFlag(ViewMode.Properties):
+                    if (string.IsNullOrEmpty(parameterItem.controller.model.category) && !parameterItem.controller.isOutput)
+                    {
+                        // This is to set a smaller indentation
+                        element.AddToClassList("no-category");
+                    }
+                    rootElement.AddToClassList("item");
+                    var bbRow = new VFXBlackboardRow(parameterItem, parameterItem.controller);
+                    parameterItem.selectable = bbRow.field;
+                    element.Add(bbRow);
+                    break;
+                case AttributeCategory category when m_ViewMode.HasFlag(ViewMode.Attributes):
+                {
+                    rootElement.AddToClassList(category.isRoot ? "category" : "sub-category");
+                    var propertyRow = new VFXBlackboardCategory(category) { title = item.title };
+                    category.selectable = propertyRow;
+                    element.Add(propertyRow);
+                    break;
+                }
+                case AttributeItem attributeItem when m_ViewMode.HasFlag(ViewMode.Attributes):
+                    rootElement.AddToClassList("item");
+                    var attributeRow = new VFXBlackboardAttributeRow(attributeItem);
+                    attributeItem.selectable = attributeRow.field;
+                    element.Add(attributeRow);
+                    if (!attributeItem.isEditable)
+                    {
+                        rootElement.AddToClassList(attributeItem.subgraphUse?.Length > 0 ? "sub-graph" : "built-in");
+                    }
+                    break;
+            }
+
+            if (m_pendingSelectionItems.Contains(item.title))
+            {
+                m_Treeview.AddToSelection(index);
+                m_pendingSelectionItems.Remove(item.title);
+            }
+            toggle.RegisterCallback<ChangeEvent<bool>, IParameterItem>(OnToggleExpandRow, item);
+            rootElement.AddToClassList(item.isLast ? "last" : null);
+        }
+
+        private void OnToggleExpandRow(ChangeEvent<bool> evt, IParameterItem item)
+        {
+            if (evt.target is Toggle toggle)
+            {
+                if (toggle.value)
+                {
+                    toggle.parent.RemoveFromClassList("collapsed");
+                }
+                else
+                {
+                    toggle.parent.AddToClassList("collapsed");
+                }
+
+                item.isExpanded = toggle.value;
+                if (item is OutputCategory)
+                {
+                    isOutputCategoryExpanded = evt.newValue;
+                }
+                else if (item is PropertyCategory category)
+                {
+                    if (category.isRoot)
+                        isPropertiesCategoryExpanded = evt.newValue;
+                    else
+                        m_View.controller.SetCategoryExpanded(category.title, evt.newValue);
+                }
+                else if (item is AttributeCategory attributeCategory)
+                {
+                    switch (attributeCategory.title)
+                    {
+                        case AttributesCategoryTitle:
+                            isAttributesCategoryExpanded = evt.newValue;
+                            break;
+                        case BuiltInAttributesCategoryTitle:
+                            isBuiltInAttributesCategoryExpanded = evt.newValue;
+                            break;
+                        case CustomAttributeCategory.Title:
+                            isCustomAttributesCategoryExpanded = evt.newValue;
+                            break;
+                    }
+                }
+            }
+        }
+
+        private VisualElement MakeItem() => new VisualElement();
+
         public void LockUI()
         {
+            if (!m_CanEdit)
+            {
+                return;
+            }
+
             CreateVCSImageIfNeeded();
 
             m_VCSStatusImage.style.display = DisplayStyle.Flex;
-            m_ContentContainer.SetEnabled(false);
             m_CanEdit = false;
             m_AddButton.tooltip = "Check out to modify";
             UpdateSubtitle();
+            // We need to refresh the treeview items to enable them
+            m_Treeview.RefreshItems();
         }
 
         public void UnlockUI()
         {
+            if (m_CanEdit)
+            {
+                return;
+            }
+
             if (m_VCSStatusImage != null)
             {
                 m_VCSStatusImage.style.display = DisplayStyle.None;
             }
 
-            m_ContentContainer.SetEnabled(true);
             m_CanEdit = true;
-            m_AddButton.tooltip = "Click to add a property";
+            m_AddButton.tooltip = "Click to add a property or attribute";
             UpdateSubtitle();
+            // We need to refresh the treeview items to enable them
+            m_Treeview.RefreshItems();
         }
 
-        void CreateVCSImageIfNeeded()
+        public void AddPendingSelection(string itemName)
+        {
+            m_pendingSelectionItems.Add(itemName);
+        }
+
+        private void CreateVCSImageIfNeeded()
         {
             if (m_VCSStatusImage == null)
             {
@@ -173,25 +721,168 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void UpdateSubtitle()
+        private void UpdateSubtitle()
         {
-            m_PathLabel.text = m_CanEdit
-                ? (controller != null && controller.graph != null ? controller.graph.categoryPath : null)
-                : "Check out to modify";
+            m_PathLabel.style.display = DisplayStyle.None;
+
+            if (controller != null && controller.graph != null)
+            {
+                var hasCategory = !string.IsNullOrEmpty(controller.graph.categoryPath);
+                var isSubgraph = controller.graph.visualEffectResource.isSubgraph;
+
+                if (hasCategory)
+                {
+                    m_PathLabel.style.display = DisplayStyle.Flex;
+                    m_PathLabel.text = controller.graph.categoryPath;
+                    m_PathLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
+                }
+                else if (isSubgraph)
+                {
+                    m_PathLabel.style.display = DisplayStyle.Flex;
+                    m_PathLabel.text = "Enter subgraph category path here";
+                    m_PathLabel.style.unityFontStyleAndWeight = FontStyle.Italic;
+                }
+
+                if (!m_CanEdit)
+                {
+                    m_PathLabel.tooltip = "Check out to modify";
+                }
+            }
         }
 
-        public string AddCategory(string initialName)
+        public void AddCategory(string initialName)
         {
-            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, new HashSet<string>(m_Categories.Keys));
+            var categories = m_Controller.graph.UIInfos.categories.Select(x => x.name).ToHashSet();
+            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, categories);
 
             controller.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
             controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
-            controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            m_Controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+
+            var parentId = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0).id;
+            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
+            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, new PropertyCategory(newCategoryName, newId, false, false)), parentId, -1, true);
+
+            isPropertiesCategoryExpanded = true;
+            ExpandItem(PropertiesCategoryTitle);
+            OpenTextEditor<VFXBlackboardCategory>(newCategoryName);
+        }
+
+        public string DuplicateCategory(string category, string[] parametersToDuplicate = null)
+        {
+            // Create treeview item first so that duplicated category's parameters (if any) will find the parent category
+            var newCategoryName = VFXParameterController.MakeNameUnique(category, controller.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>());
+            var parentId = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.children.Any(x => string.Compare(x.data.title, category, StringComparison.OrdinalIgnoreCase) == 0)).id;
+            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
+            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, new PropertyCategory(newCategoryName, newId, false, true)), parentId, -1, true);
+            m_View.DuplicateBlackBoardCategory(category, null, parametersToDuplicate);
+            m_Treeview.ExpandItem(newId, false);
+            m_Treeview.selectedIndex = m_Treeview.viewController.GetIndexForId(newId);
 
             return newCategoryName;
         }
 
-        DropdownMenuAction.Status GetContextualMenuStatus()
+        public void RemoveCategory(string categoryName)
+        {
+            var treeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, categoryName, StringComparison.OrdinalIgnoreCase) == 0);
+            m_Treeview.TryRemoveItem(treeviewItem.id);
+        }
+
+        public void AddParameter(VFXParameterController parameterController, bool notify = false)
+        {
+            var categoryName = string.IsNullOrEmpty(parameterController.model.category)
+                ? parameterController.isOutput ? OutputCategory.Label : PropertiesCategoryTitle
+                : parameterController.model.category;
+            var parentData = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, categoryName, StringComparison.OrdinalIgnoreCase) == 0);
+
+            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
+            var newData = new PropertyItem(parameterController, newId);
+
+            var childIndex = -1;
+            // When adding to the root "Properties" category we want to insert the item as last parameter, but above the first category
+            if (string.Compare(categoryName, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                var propertiesTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0);
+                childIndex = propertiesTreeviewItem.children.TakeWhile(x => x.data is PropertyItem).Count();
+            }
+
+            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, newData), parentData.id, childIndex, notify);
+            if (notify)
+            {
+                UpdateLastCategoryItem(parentData.id);
+            }
+
+            isPropertiesCategoryExpanded = true;
+            ExpandItem(PropertiesCategoryTitle);
+            if (!string.IsNullOrEmpty(categoryName))
+            {
+                ExpandItem(categoryName);
+                m_View.controller.SetCategoryExpanded(categoryName, true);
+            }
+        }
+
+        public string DuplicateParameter(VFXBlackboardField parameterField)
+        {
+            var newController = m_View.DuplicateBlackboardField(parameterField);
+
+            var parentTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.children.Any(x => x.data == parameterField.PropertyItem));
+
+            var lastParentChild = parentTreeviewItem.children.LastOrDefault(x => x.data is PropertyItem);
+            var insertIndex = lastParentChild.data == null ? -1 : m_Treeview.viewController.GetIndexForId(lastParentChild.id);
+            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
+            var parameterData = new PropertyItem(newController, newId) { isLast = true };
+
+            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, parameterData), parentTreeviewItem.id, insertIndex, true);
+            UpdateLastCategoryItem(parentTreeviewItem.id);
+            m_Treeview.selectedIndex = m_Treeview.viewController.GetIndexForId(newId);
+            return newController.exposedName;
+        }
+
+        public bool RemoveParameter(IParameterItem parameterItem)
+        {
+            if (m_View.TryRemoveParameter(((PropertyItem)parameterItem).controller))
+            {
+                var treeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.data == parameterItem);
+                return m_Treeview.TryRemoveItem(treeviewItem.id);
+            }
+
+            return false;
+        }
+
+        public string DuplicateAttribute(VFXBlackboardAttributeField attributeField)
+        {
+            var newAttribute = m_Controller.graph.DuplicateCustomAttribute(attributeField.attribute.title);
+
+            var parentTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, CustomAttributeCategory.Title, StringComparison.OrdinalIgnoreCase) == 0);
+
+            var lastParentChild = parentTreeviewItem.children.LastOrDefault(x => x.data is AttributeItem);
+            var insertIndex = lastParentChild.data == null ? -1 : m_Treeview.viewController.GetIndexForId(lastParentChild.id);
+            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
+            var attributeData = new AttributeItem(newAttribute.name, CustomAttributeUtility.GetSignature(newAttribute.type), newId, newAttribute.description, false, true, null) { isLast = true };
+            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, attributeData), parentTreeviewItem.id, insertIndex, true);
+            UpdateLastCategoryItem(parentTreeviewItem.id);
+            m_Treeview.selectedIndex = m_Treeview.viewController.GetIndexForId(newId);
+
+            return newAttribute.name;
+        }
+
+        public bool RemoveCustomAttribute(IParameterItem attributeItem)
+        {
+            if (m_View.TryRemoveCustomAttribute(attributeItem.title))
+            {
+                var treeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => x.data == attributeItem);
+                return m_Treeview.TryRemoveItem(treeviewItem.id);
+            }
+
+            return false;
+        }
+
+        private IEnumerable<TreeViewItemData<IParameterItem>> GetDataRecursive(TreeViewItemData<IParameterItem> data)
+        {
+            return new[] { data }.Union(data.children.SelectMany(GetDataRecursive));
+        }
+
+        private DropdownMenuAction.Status GetContextualMenuStatus()
         {
             //Use m_AddButton state which relies on locked & controller status
             return m_AddButton.enabledSelf && m_CanEdit
@@ -199,55 +890,100 @@ namespace UnityEditor.VFX.UI
                 : DropdownMenuAction.Status.Disabled;
         }
 
-        void OnOutputCategoryScrollChanged(ScrollView scrollView)
+        private void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            OnGeometryChanged(null, scrollView);
-        }
-
-        void OnGeometryChanged(GeometryChangedEvent evt, ScrollView scrollView)
-        {
-            if (scrollView != null)
+            if (m_ViewMode.HasFlag(ViewMode.Properties) && this.HasItemOfType<PropertyItem>(x => true))
             {
-                var addOutputButton = scrollView.Q<Button>("addOutputButton");
-                if (addOutputButton != null)
-                {
-                    addOutputButton.style.left = -scrollView.horizontalScroller.highValue + scrollView.horizontalScroller.value;
-                }
+                evt.menu.AppendAction("Select All Properties", (a) => SelectAllProperties(), (a) => GetContextualMenuStatus());
+                evt.menu.AppendAction("Select Unused Properties", (a) => SelectUnusedProperties(),(a) => GetContextualMenuStatus());
+            }
+
+            if (m_ViewMode.HasFlag(ViewMode.Attributes) && this.HasItemOfType<AttributeItem>(x => !x.isBuiltIn))
+            {
+                if (m_ViewMode.HasFlag(ViewMode.Properties))
+                    evt.menu.AppendSeparator(string.Empty);
+                evt.menu.AppendAction("Select All Custom Attributes", (a) => SelectAllCustomAttributes(), (a) => GetContextualMenuStatus());
+                evt.menu.AppendAction("Select Unused Custom Attributes", (a) => SelectUnusedCustomAttributes(),(a) => GetContextualMenuStatus());
             }
         }
 
-        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        private bool HasItemOfType<T>(Func<T,bool> predicate) where T: IParameterItem
         {
-            evt.menu.AppendAction("Select All", (a) => SelectAll(), (a) => GetContextualMenuStatus());
-            evt.menu.AppendAction("Select Unused", (a) => SelectUnused(), (a) => GetContextualMenuStatus());
+            return m_ParametersController.SelectMany(GetDataRecursive).Where(x => x.data is T).Any(x => predicate((T)x.data));
         }
 
-        void SelectAll()
+        private void SelectAllCustomAttributes()
         {
             m_View.ClearSelection();
-            this.Query<BlackboardField>().ForEach(t => m_View.AddToSelection(t));
+            m_Treeview.ClearSelection();
+            // Expand categories so child elements can be selected
+            var categoriesToExpand = new []{ AttributesCategoryTitle, CustomAttributeCategory.Title };
+            this.Query<VFXBlackboardCategory>()
+                .Where(x => categoriesToExpand.Contains(x.title))
+                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
+
+            this.Query<VFXBlackboardAttributeField>()
+                .Where(x => !x.attribute.isBuiltIn)
+                .ForEach(x => m_Treeview.AddToSelection(x.attribute.index));
         }
 
-        void SelectUnused()
+        private void SelectUnusedCustomAttributes()
         {
             m_View.ClearSelection();
+            m_Treeview.ClearSelection();
+
+            // Expand categories so child elements can be selected
+            var categoriesToExpand = new []{ AttributesCategoryTitle, CustomAttributeCategory.Title };
+            this.Query<VFXBlackboardCategory>()
+                .Where(x => categoriesToExpand.Contains(x.title))
+                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
+
+            var unused = m_View.controller.graph.GetUnusedCustomAttributes().ToArray();
+            this.Query<VFXBlackboardAttributeField>()
+                .Where(x => unused.Contains(x.attribute.title))
+                .ForEach(x => m_Treeview.AddToSelection(x.attribute.index));
+        }
+
+        private void SelectAllProperties()
+        {
+            m_View.ClearSelection();
+            m_Treeview.ClearSelection();
+            // Expand categories so child elements can be selected
+            var categoriesToExpand = controller.parameterControllers.Select(x => x.model.category).Distinct().Concat(new []{ PropertiesCategoryTitle });
+            this.Query<VFXBlackboardCategory>()
+                .Where(x => categoriesToExpand.Contains(x.title))
+                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
+
+            this.Query<VFXBlackboardField>().ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
+        }
+
+        private void SelectUnusedProperties()
+        {
+            m_View.ClearSelection();
+            m_Treeview.ClearSelection();
 
             var unused = unusedParameters.ToList();
-            this.Query<BlackboardField>().Where(t => unused.Contains(t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model)).ForEach(t => m_View.AddToSelection(t));
+            // Expand categories so child elements can be selected
+            var categoriesToExpand = unused.Select(x => x.category).Distinct().Concat(new []{ PropertiesCategoryTitle });
+            this.Query<VFXBlackboardCategory>()
+                .Where(x => categoriesToExpand.Contains(x.title))
+                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
+            this.Query<VFXBlackboardField>()
+                .Where(x => unused.Contains(x.controller.model))
+                .ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
         }
 
         IEnumerable<VFXParameter> unusedParameters
         {
             get
             {
-                return controller.graph.children.OfType<VFXParameter>().Where(t => !(t.isOutput ? t.inputSlots : t.outputSlots).Any(s => s.HasLink(true)));
+                return controller.parameterControllers
+                    .Select(x => x.model)
+                    .Where(t => !(t.isOutput ? t.inputSlots : t.outputSlots).Any(s => s.HasLink(true)));
             }
         }
 
-        Label m_PathLabel;
-        TextField m_PathTextField;
-
-        void OnMouseDownSubTitle(MouseDownEvent evt)
+        private void OnMouseDownSubTitle(MouseDownEvent evt)
         {
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse && m_CanEdit && controller != null)
             {
@@ -257,29 +993,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void StartEditingPath()
+        private void StartEditingPath()
         {
-            m_PathTextField.visible = true;
-
+            m_PathTextField.style.display = DisplayStyle.Flex;
             m_PathTextField.value = m_PathLabel.text;
-            m_PathTextField.style.position = PositionType.Absolute;
-            var rect = m_PathLabel.ChangeCoordinatesTo(this, new Rect(Vector2.zero, m_PathLabel.layout.size));
-            m_PathTextField.style.left = rect.xMin;
-            m_PathTextField.style.top = rect.yMin;
-            m_PathTextField.style.width = rect.width;
+            m_PathLabel.style.display = DisplayStyle.None;
+
             m_PathTextField.style.fontSize = 11;
-            m_PathTextField.style.marginLeft = 0;
-            m_PathTextField.style.marginRight = 0;
-            m_PathTextField.style.marginTop = 0;
-            m_PathTextField.style.marginBottom = 0;
-
-            m_PathLabel.visible = false;
-
             m_PathTextField.Q("unity-text-input").Focus();
             m_PathTextField.SelectAll();
         }
 
-        void OnPathTextFieldKeyPressed(KeyDownEvent evt)
+        private void OnPathTextFieldKeyPressed(KeyDownEvent evt)
         {
             switch (evt.keyCode)
             {
@@ -290,185 +1015,32 @@ namespace UnityEditor.VFX.UI
                 case KeyCode.KeypadEnter:
                     m_PathTextField.Q("unity-text-input").Blur();
                     break;
-                default:
-                    break;
             }
         }
 
-        void OnEditPathTextFinished()
+        private void OnEditPathTextFinished(FocusOutEvent evt)
         {
-            m_PathLabel.visible = true;
-            m_PathTextField.visible = false;
+            m_PathTextField.style.display = DisplayStyle.None;
+            m_PathLabel.style.display = DisplayStyle.Flex;
 
-            var newPath = m_PathTextField.text;
-
-            controller.graph.categoryPath = newPath;
-            m_PathLabel.text = newPath;
+            controller.graph.categoryPath = m_PathTextField.text;
+            UpdateSubtitle();
         }
 
-        static System.Reflection.PropertyInfo s_LayoutManual = typeof(VisualElement).GetProperty("isLayoutManual", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
-        void OnKeyDown(KeyDownEvent e)
+        private void OnKeyDown(KeyDownEvent e)
         {
             if (e.keyCode == KeyCode.F2)
             {
-                var graphView = GetFirstAncestorOfType<VFXView>();
-
-                var field = graphView.selection.OfType<VFXBlackboardField>().FirstOrDefault();
-                if (field != null)
+                if (m_Treeview.selectedItem is IParameterItem { canRename: true } item && item.selectable is IBlackBoardElementWithTitle elementWithTitle)
                 {
-                    field.OpenTextEditor();
-                }
-                else
-                {
-                    var category = graphView.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
-
-                    if (category != null)
-                    {
-                        category.OpenTextEditor();
-                    }
+                    elementWithTitle.OpenTextEditor();
                 }
             }
-        }
-
-        private void SetDragIndicatorVisible(bool visible)
-        {
-            if (visible && (m_DragIndicator.parent == null))
+            // Prevent graph canvas framing
+            else if (e.keyCode == KeyCode.F)
             {
-                hierarchy.Add(m_DragIndicator);
-                m_DragIndicator.visible = true;
+                e.StopPropagation();
             }
-            else if ((visible == false) && (m_DragIndicator.parent != null))
-            {
-                hierarchy.Remove(m_DragIndicator);
-            }
-        }
-
-        VisualElement m_DragIndicator;
-
-
-        int InsertionIndex(Vector2 pos)
-        {
-            VisualElement owner = contentContainer != null ? contentContainer : this;
-            Vector2 localPos = this.ChangeCoordinatesTo(owner, pos);
-
-            if (owner.ContainsPoint(localPos))
-            {
-                int defaultCatIndex = IndexOf(m_DefaultCategory);
-
-                for (int i = defaultCatIndex + 1; i < childCount; ++i)
-                {
-                    VFXBlackboardCategory cat = ElementAt(i) as VFXBlackboardCategory;
-                    if (cat == null)
-                    {
-                        return i;
-                    }
-
-                    Rect rect = cat.layout;
-
-                    if (localPos.y <= (rect.y + rect.height / 2))
-                    {
-                        return i;
-                    }
-                }
-                return childCount;
-            }
-            return -1;
-        }
-
-        int m_InsertIndex;
-
-        void OnDragUpdatedEvent(DragUpdatedEvent e)
-        {
-            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-
-            if (selection == null)
-            {
-                SetDragIndicatorVisible(false);
-                return;
-            }
-
-            if (selection.Any(t => !(t is VFXBlackboardCategory)))
-            {
-                SetDragIndicatorVisible(false);
-                return;
-            }
-
-            Vector2 localPosition = e.localMousePosition;
-
-            m_InsertIndex = InsertionIndex(localPosition);
-
-            if (m_InsertIndex != -1)
-            {
-                float indicatorY = 0;
-
-                if (m_InsertIndex == childCount)
-                {
-                    if (childCount > 0)
-                    {
-                        VisualElement lastChild = this[childCount - 1];
-
-                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.resolvedStyle.marginBottom)).y;
-                    }
-                    else
-                    {
-                        indicatorY = this.contentRect.height;
-                    }
-                }
-                else
-                {
-                    VisualElement childAtInsertIndex = this[m_InsertIndex];
-
-                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.resolvedStyle.marginTop)).y;
-                }
-
-                SetDragIndicatorVisible(true);
-
-                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
-
-                DragAndDrop.visualMode = DragAndDropVisualMode.Move;
-            }
-            else
-            {
-                SetDragIndicatorVisible(false);
-            }
-            e.StopPropagation();
-        }
-
-        public int GetCategoryIndex(VFXBlackboardCategory cat)
-        {
-            return IndexOf(cat) - IndexOf(m_DefaultCategory) - 1;
-        }
-
-        void OnDragPerformEvent(DragPerformEvent e)
-        {
-            SetDragIndicatorVisible(false);
-            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-            if (selection == null)
-            {
-                return;
-            }
-
-            var category = selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
-            if (category == null)
-            {
-                return;
-            }
-
-            if (m_InsertIndex != -1)
-            {
-                if (m_InsertIndex > IndexOf(category))
-                    --m_InsertIndex;
-                controller.MoveCategory(category.title, m_InsertIndex - IndexOf(m_DefaultCategory) - 1);
-            }
-
-            SetDragIndicatorVisible(false);
-            e.StopPropagation();
-        }
-
-        void OnDragLeaveEvent(DragLeaveEvent e)
-        {
-            SetDragIndicatorVisible(false);
         }
 
         public void ValidatePosition()
@@ -476,31 +1048,69 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
         }
 
-        static readonly Rect defaultRect = new Rect(100, 100, 300, 500);
-
-        void OnMouseClick(MouseDownEvent e)
+        private void OnAddParameter(object parameter)
         {
-            m_View.SetBoardToFront(this);
+            var descriptor = (VFXModelDescriptorParameters)parameter;
+            var newParam = m_Controller.AddVFXParameter(Vector2.zero, descriptor.variant);
+
+            var categoryName = string.Empty;
+            switch (m_Treeview.selectedItem)
+            {
+                case OutputCategory:
+                    newParam.isOutput = true;
+                    break;
+                case PropertyCategory { isRoot: false } category:
+                    categoryName = category.title;
+                    break;
+                case PropertyItem propertyItem:
+                    var parentId = m_Treeview.GetParentIdForIndex(propertyItem.index);
+                    var parent = m_Treeview.GetItemDataForId<IParameterItem>(parentId);
+                    categoryName = parent.title;
+                    newParam.isOutput = parent is OutputCategory;
+                    break;
+            }
+
+            newParam.category = FilterOutReservedCategoryName(categoryName);
+            if (!newParam.isOutput)
+            {
+                newParam.SetSettingValue("m_Exposed", true);
+            }
+
+            // We must delay because the VFXParameterController will be added on new graph update
+            EditorApplication.delayCall += () => AddParameterIfNeeded(newParam, m_Controller);
         }
 
-        void OnAddParameter(object parameter)
+        private void AddParameterIfNeeded(VFXParameter parameter, VFXViewController vfxViewController)
         {
-            var selectedCategory = m_View.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
-            VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
-            if (selectedCategory != null && newParam != null)
-                newParam.category = selectedCategory.title;
+            // Check if parameter has not already been added by an Update because of a postprocess
+            if (m_ParametersController.SelectMany(GetDataRecursive).All(x => string.Compare(parameter.exposedName, x.data.title, StringComparison.OrdinalIgnoreCase) != 0))
+            {
+                AddParameter(vfxViewController.GetParameterController(parameter), true);
+            }
 
-            newParam.SetSettingValue("m_Exposed", true);
+            OpenTextEditor<VFXBlackboardField>(parameter.exposedName);
         }
 
-        void OnAddOutputParameter(object parameter)
+        private void OnAddCustomAttribute(object parameter)
         {
-            var selectedCategory = m_View.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
-            VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
-            newParam.isOutput = true;
+            var newName = m_Controller.graph.attributesManager.FindUniqueName("CustomAttribute");
+            if (m_Controller.graph.TryAddCustomAttribute(newName, (VFXValueType)parameter, string.Empty, false, out var newCustomAttribute))
+            {
+                var parentTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, CustomAttributeCategory.Title, StringComparison.OrdinalIgnoreCase) == 0);
+                var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
+                var newData = new AttributeItem(newCustomAttribute.name, CustomAttributeUtility.GetSignature(newCustomAttribute.type), newId, string.Empty, false, true, null) { isLast = true };
+                m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, newData), parentTreeviewItem.id);
+                UpdateLastCategoryItem(parentTreeviewItem.id);
+            }
+
+            isAttributesCategoryExpanded = true;
+            ExpandItem(AttributesCategoryTitle);
+            isCustomAttributesCategoryExpanded = true;
+            ExpandItem(CustomAttributeCategory.Title);
+            OpenTextEditor<VFXBlackboardAttributeField>(newCustomAttribute.name);
         }
 
-        private static IEnumerable<VFXModelDescriptor> GetSortedParameters()
+        private static IEnumerable<VFXModelDescriptorParameters> GetSortedParameters()
         {
             foreach (var desc in VFXLibrary.GetParameters().OrderBy(o => o.name))
             {
@@ -513,53 +1123,60 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnAddItem(Blackboard bb)
+        void OnAddItemButton(Blackboard bb)
         {
             if (!m_CanEdit)
             {
                 return;
             }
 
-            GenericMenu menu = new GenericMenu();
+            var menu = new GenericMenu();
 
-            if (!(controller.model.subgraph is VisualEffectSubgraphOperator))
+            // Properties
+            if (m_ViewMode.HasFlag(ViewMode.Properties))
             {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Category"), false, OnAddCategory);
-                menu.AddSeparator(string.Empty);
+                menu.AddItem(EditorGUIUtility.TrTextContent("Property/Category"), false, OnAddCategory);
+                menu.AddSeparator("Property/");
+                var parameters = GetSortedParameters().ToArray();
+                foreach (var parameter in parameters)
+                {
+                    menu.AddItem(EditorGUIUtility.TextContent($"Property/{parameter.name}"), false, OnAddParameter, parameter);
+                }
             }
 
-            foreach (var parameter in GetSortedParameters())
+            // Attributes
+            if (m_ViewMode.HasFlag(ViewMode.Attributes))
             {
-                menu.AddItem(EditorGUIUtility.TextContent(parameter.name), false, OnAddParameter, parameter);
+                foreach (var type in Enum.GetValues(typeof(CustomAttributeUtility.Signature)).Cast<CustomAttributeUtility.Signature>())
+                {
+                    menu.AddItem(EditorGUIUtility.TextContent($"Attribute/{type.ToString()}"), false, OnAddCustomAttribute, CustomAttributeUtility.GetValueType(type));
+                }
             }
 
             menu.ShowAsContext();
         }
 
-        public void SetCategoryName(VFXBlackboardCategory cat, string newName)
+        public void SetCategoryName(VFXBlackboardCategory cat, string newTitle)
         {
-            if (TryGetValidName(newName, out var validName))
+            if (TryGetValidCategoryName(ref newTitle))
             {
-                int index = GetCategoryIndex(cat);
-
-                bool succeeded = controller.SetCategoryName(index, validName);
-
-                if (succeeded)
+                if (controller.RenameCategory(cat.title, newTitle))
                 {
-                    m_Categories.Remove(cat.title);
-                    cat.title = validName;
-                    m_Categories.Add(validName, cat);
+                    cat.title = newTitle;
+                    cat.category.title = newTitle;
+                    return;
                 }
             }
+
+            cat.title = cat.category.title;
         }
 
-        bool TryGetValidName(string name, out string validName)
+        private bool TryGetValidCategoryName(ref string candidateName)
         {
-            validName = string.IsNullOrEmpty(name)
-                ? "Untitled"
-                : name;
+            candidateName = candidateName.Trim();
+            candidateName = FilterOutReservedCategoryName(candidateName);
 
-            return validName.Trim().Length > 0;
+            return candidateName.Length > 0;
         }
 
         void OnAddCategory()
@@ -567,175 +1184,267 @@ namespace UnityEditor.VFX.UI
             AddCategory("new category");
         }
 
-        void OnEditName(Blackboard bb, VisualElement element, string value)
+        public VFXBlackboardRow GetRowFromController(VFXParameterController parameterController)
         {
-            if (element is VFXBlackboardField)
+            return m_Treeview.Query<VFXBlackboardRow>().Where(x => x.controller == parameterController).First();
+        }
+
+        public VisualElement GetAttributeRowFromName(string attributeName)
+        {
+            return m_Treeview.Query<VFXBlackboardAttributeRow>().Where(x => x.attribute.title == attributeName).First();
+        }
+
+        public IEnumerable<VFXBlackboardAttributeRow> GetAttributeRowsFromNames(string[] attributeNames)
+        {
+            return m_Treeview.Query<VFXBlackboardAttributeRow>().Where(x => attributeNames.Any(y => VFXAttributeHelper.IsMatching(y, x.attribute.title, true))).ToList();
+        }
+
+        public void OnControllerChanged(ref ControllerChangedEvent e)
+        {
+            switch (e.change)
             {
-                (element as VFXBlackboardField).controller.exposedName = value;
+                case VFXViewController.Change.destroy:
+                    title = null;
+                    break;
+                case VFXViewController.Change.assetName when e.controller == controller:
+                    title = controller.name;
+                    break;
             }
         }
 
-        public void OnMoveParameter(IEnumerable<VFXBlackboardRow> rows, VFXBlackboardCategory category, int index)
+        public void UpdateSelection()
         {
-            //TODO sort elements
-            foreach (var row in rows)
-            {
-                if (category == m_DefaultCategory || category == m_OutputCategory)
-                    controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory);
-                else
-                    controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory ? "" : category.title);
-            }
-        }
-
-        public void SetCategoryExpanded(VFXBlackboardCategory category, bool expanded)
-        {
-            if (category == m_OutputCategory)
-            {
-                m_OutputCategory.expanded = !m_OutputCategory.expanded;
-
-                PlayerPrefs.SetInt("VFX.blackboard.outputexpanded", m_OutputCategory.expanded ? 1 : 0);
-            }
-            else
-                controller.SetCategoryExpanded(category.title, expanded);
-        }
-
-        VFXBlackboardCategory m_DefaultCategory;
-        VFXBlackboardCategory m_OutputCategory;
-        Dictionary<string, VFXBlackboardCategory> m_Categories = new Dictionary<string, VFXBlackboardCategory>();
-
-
-        public VFXBlackboardRow GetRowFromController(VFXParameterController controller)
-        {
-            VFXBlackboardCategory cat = null;
-            VFXBlackboardRow row = null;
-            if (string.IsNullOrEmpty(controller.model.category))
-            {
-                row = m_DefaultCategory.GetRowFromController(controller);
-            }
-            else if (m_Categories.TryGetValue(controller.model.category, out cat))
-            {
-                row = cat.GetRowFromController(controller);
-            }
-
-            return row;
-        }
-
-        void OnAddOutputParameterMenu()
-        {
-            GenericMenu menu = new GenericMenu();
-
-            foreach (var parameter in GetSortedParameters())
-            {
-                VFXParameter model = parameter.model as VFXParameter;
-
-                var type = model.type;
-                if (type == typeof(GPUEvent))
-                    continue;
-
-                menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddOutputParameter, parameter);
-            }
-
-            menu.ShowAsContext();
-        }
-
-        Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
-        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
-        {
-            if (e.change == VFXViewController.Change.destroy)
-            {
-                title = null;
-                return;
-            }
-
-            if (e.controller != controller && !(e.controller is VFXParameterController)) //optim : reorder only is only the order has changed
+            if (m_IsChangingSelection)
                 return;
 
-            if (e.controller == controller && e.change == VFXViewController.Change.assetName)
+            try
             {
-                title = controller.name;
-                return;
-            }
-
-            if (controller.model.subgraph is VisualEffectSubgraphOperator && m_OutputCategory == null)
-            {
-                m_OutputCategory = new VFXBlackboardCategory() { title = "Output" };
-                m_OutputCategory.headerVisible = true;
-                m_OutputCategory.expanded = PlayerPrefs.GetInt("VFX.blackboard.outputexpanded", 0) != 0;
-                Add(m_OutputCategory);
-
-                var addOutputButton = new Button() { name = "addOutputButton", text = "+" };
-                addOutputButton.clicked += OnAddOutputParameterMenu;
-                var sectionHeader = m_OutputCategory.Q("sectionHeader");
-                var spacer = new VisualElement();
-                spacer.style.flexGrow = 1;
-                sectionHeader.Add(spacer);
-                sectionHeader.Add(addOutputButton);
-
-                m_OutputCategory.AddToClassList("output");
-            }
-            else if (!(controller.model.subgraph is VisualEffectSubgraphOperator) && m_OutputCategory != null)
-            {
-                Remove(m_OutputCategory);
-                m_OutputCategory = null;
-            }
-
-            var actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => !t.isOutput && string.IsNullOrEmpty(t.model.category)));
-            m_DefaultCategory.SyncParameters(actualControllers);
-
-            var orderedCategories = controller.graph.UIInfos.categories;
-            var newCategories = new List<VFXBlackboardCategory>();
-
-            if (orderedCategories != null)
-            {
-                foreach (var catModel in controller.graph.UIInfos.categories)
+                m_IsChangingSelection = true;
+                m_Treeview.ClearSelection();
+                foreach (var selectedField in m_View.selection.OfType<VFXBlackboardFieldBase>().ToArray())
                 {
-                    VFXBlackboardCategory cat = null;
-                    if (!m_Categories.TryGetValue(catModel.name, out cat))
+                    m_Treeview.AddToSelection(selectedField.item.index);
+                }
+            }
+            finally
+            {
+                m_IsChangingSelection = false;
+            }
+        }
+
+        public override void ClearSelection()
+        {
+            // Do nothing!!
+        }
+
+        public void EmptySelection()
+        {
+            m_Treeview.ClearSelection();
+            m_pendingSelectionItems.Clear();
+        }
+
+        public void Update(bool force = false)
+        {
+            if (controller == null || controller.graph == null || m_View.controller == null || (!force && m_ParametersController.Count > 0))
+                return;
+
+            Profiler.BeginSample("VFXBlackboard.Update");
+            try
+            {
+                var groupId = 0;
+                m_ParametersController.Clear();
+
+                /////////////
+                // Properties
+                if (m_ViewMode.HasFlag(ViewMode.Properties))
+                {
+                    var groupedParameterByCategory = new Dictionary<string, List<VFXParameterController>>();
+                    var categoryInfos = controller.graph.UIInfos.categories;
+                    for (var i = 0; i < categoryInfos.Count; i++)
                     {
-                        cat = new VFXBlackboardCategory() { title = catModel.name };
-                        cat.SetSelectable();
-                        m_Categories.Add(catModel.name, cat);
+                        groupedParameterByCategory[categoryInfos[i].name] = new List<VFXParameterController>();
                     }
-                    m_ExpandedStatus[catModel.name] = !catModel.collapsed;
 
-                    newCategories.Add(cat);
+                    // Parameters with no category
+                    groupedParameterByCategory[string.Empty] = new List<VFXParameterController>();
+
+                    // Add an empty output category for subgraph operators if there's no output property yet
+                    if (controller.model.subgraph is VisualEffectSubgraphOperator)
+                    {
+                        groupedParameterByCategory[OutputCategory.Label] = new List<VFXParameterController>();
+                    }
+
+                    var parameterControllers = controller.parameterControllers.ToArray();
+                    for (var i = 0; i < parameterControllers.Length; i++)
+                    {
+                        var parameterController = parameterControllers[i];
+                        var category = parameterController.isOutput
+                            ? OutputCategory.Label
+                            : parameterController.model.category ?? string.Empty;
+                        groupedParameterByCategory[category].Add(parameterController);
+                    }
+
+                    // Add all parameters (with or without category and also output parameters)
+                    var categoryItems = new List<TreeViewItemData<IParameterItem>>();
+                    foreach (var pair in groupedParameterByCategory.OrderBy(x => SortCategory(x.Key, x.Value)))
+                    {
+                        categoryItems.AddRange(CreateParameterItem(ref groupId, pair.Key, pair.Value));
+                    }
+
+                    m_ParametersController.Add(new TreeViewItemData<IParameterItem>(groupId, new PropertyCategory(PropertiesCategoryTitle, groupId++, true, isPropertiesCategoryExpanded), categoryItems));
                 }
 
-                foreach (var category in m_Categories.Keys.Except(orderedCategories.Select(t => t.name)).ToArray())
+                /////////////
+                // Attributes
+                if (m_ViewMode.HasFlag(ViewMode.Attributes))
                 {
-                    m_Categories[category].RemoveFromHierarchy();
-                    m_Categories.Remove(category);
-                    m_ExpandedStatus.Remove(category);
+                    var builtInAttributes = VFXAttributesManager
+                        .GetBuiltInAttributesOrCombination(true, false, true, true)
+                        .Except(new []{ VFXAttribute.EventCount })
+                        .OrderBy(x => x.name).ToArray();
+                    var builtInAttributesItems = new List<TreeViewItemData<IParameterItem>>(builtInAttributes.Length);
+                    for (var i = 0; i < builtInAttributes.Length; i++)
+                    {
+                        var attribute = builtInAttributes[i];
+                        builtInAttributesItems.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeItem(attribute.name, CustomAttributeUtility.GetSignature(attribute.type), groupId++, attribute.description, false, false, null)));
+                    }
+
+                    var builtInAttributesRoot = new TreeViewItemData<IParameterItem>(groupId, new AttributeCategory(BuiltInAttributesCategoryTitle, groupId++, false, isBuiltInAttributesCategoryExpanded), builtInAttributesItems);
+
+                    var customAttributes = m_View.controller.graph.customAttributes.ToArray();
+                    var customAttributesItems = new List<TreeViewItemData<IParameterItem>>(customAttributes.Length);
+                    for (var i = 0; i < customAttributes.Length; i++)
+                    {
+                        var customAttribute = customAttributes[i];
+                        customAttributesItems.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeItem(customAttribute.attributeName, customAttribute.type, groupId++, customAttribute.description, customAttribute.isExpanded, !customAttribute.isReadOnly, customAttribute.usedInSubgraphs)));
+                    }
+
+                    var customAttributesRoot = new TreeViewItemData<IParameterItem>(groupId, new CustomAttributeCategory(groupId++, isCustomAttributesCategoryExpanded), customAttributesItems);
+                    if (customAttributesRoot.hasChildren)
+                    {
+                        customAttributesRoot.children.Last().data.isLast = true;
+                    }
+
+                    var allAttributes = new List<TreeViewItemData<IParameterItem>> { customAttributesRoot, builtInAttributesRoot };
+                    m_ParametersController.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeCategory(AttributesCategoryTitle, groupId++, true, isAttributesCategoryExpanded), allAttributes));
+                }
+
+                m_Treeview.SetRootItems(m_ParametersController);
+                UpdateSelection();
+                m_Treeview.RefreshItems();
+                UpdateSubtitle();
+                SynchronizeExpandState();
+                if (m_pendingSelectionItems.Count > 0)
+                {
+                    var lastItemToSelect = m_ParametersController.SelectMany(GetDataRecursive).LastOrDefault(x => m_pendingSelectionItems.Contains(x.data.title));
+                    if (lastItemToSelect.data != null)
+                    {
+                        m_Treeview.ScrollToItemById(lastItemToSelect.id);
+                    }
+                    else
+                    {
+                        m_pendingSelectionItems.Clear();
+                    }
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
+        }
+
+        private int SortCategory(string category, List<VFXParameterController> parameters)
+        {
+            switch (category)
+            {
+                case "":
+                    return 0;
+                case OutputCategory.Label:
+                    return 1;
+                default:
+                    return m_View.controller.GetCategoryIndex(category) + 2;
+            }
+        }
+
+        private void SynchronizeExpandState()
+        {
+            bool needRefresh = false;
+            foreach(var id in m_Treeview.viewController.GetAllItemIds())
+            {
+                var item = m_Treeview.GetItemDataForId<IParameterItem>(id);
+                if (item is not IParameterCategory)
+                {
+                    continue;
+                }
+
+                var isCurrentlyExpanded = m_Treeview.IsExpanded(id);
+                var hasChildren = m_Treeview.viewController.HasChildren(id);
+                if (item.isExpanded && !isCurrentlyExpanded && hasChildren)
+                {
+                    needRefresh = true;
+                    m_Treeview.viewController.ExpandItem(id, false, false);
+                }
+                else if (!item.isExpanded && isCurrentlyExpanded)
+                {
+                    needRefresh = false;
+                    m_Treeview.viewController.CollapseItem(id, false);
+                }
+
+                if (item.isExpanded && hasChildren && m_Treeview.GetRootElementForId(id) is { } root)
+                {
+                    root.RemoveFromClassList("collapsed");
                 }
             }
 
-            var prevCat = m_DefaultCategory;
-
-            foreach (var cat in newCategories)
+            if (needRefresh)
             {
-                if (cat.parent == null)
-                    Insert(IndexOf(prevCat) + 1, cat);
-                else
-                    cat.PlaceInFront(prevCat);
-                prevCat = cat;
+                m_Treeview.RefreshItems();
             }
-            if (m_OutputCategory != null)
-                m_OutputCategory.PlaceInFront(prevCat);
+        }
 
-            foreach (var cat in newCategories)
+        private void OpenTextEditor<T>(string itemName) where T : VisualElement, IBlackBoardElementWithTitle
+        {
+            var item = m_ParametersController
+                .SelectMany(GetDataRecursive)
+                .Select(x => x.data)
+                .Single(x => string.Compare(x.title, itemName, StringComparison.OrdinalIgnoreCase) == 0);
+            m_Treeview.ScrollToItemById(item.id);
+
+            var field = m_Treeview.Query<T>().Where(x => x.text == itemName).First();
+            if (field != null)
             {
-                actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.model.category == cat.title && !t.isOutput));
-                cat.SyncParameters(actualControllers);
-                cat.expanded = m_ExpandedStatus[cat.title];
+                field.OpenTextEditor();
+                m_Treeview.ScrollTo(field);
+                m_Treeview.selectedIndex = item.index;
             }
+        }
 
-            if (m_OutputCategory != null)
+        private IEnumerable<TreeViewItemData<IParameterItem>> CreateParameterItem(ref int groupId, string category, List<VFXParameterController> parameterControllers)
+        {
+            var isOutput = string.Compare(category, OutputCategory.Label, StringComparison.OrdinalIgnoreCase) == 0;
+            var hasCategory = !string.IsNullOrEmpty(category);
+            var id = hasCategory ? groupId + 1 : groupId;
+            var items = parameterControllers
+                .OrderBy(x => x.model.order)
+                .Select(x => new TreeViewItemData<IParameterItem>(id, new PropertyItem(x, id++)))
+                .ToList();
+            if (items.LastOrDefault() is { data: not null } last)
             {
-                var outputControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.isOutput));
-                m_OutputCategory.SyncParameters(outputControllers);
+                last.data.isLast = true;
+            }
+            if (hasCategory)
+            {
+                m_View.controller.GetCategoryExpanded(category, out var isExpanded);
+                var data = !isOutput
+                    ? new PropertyCategory(category, id, false, isExpanded)
+                    : new OutputCategory(isOutputCategoryExpanded, id);
+                var categoryItem = new[] { new TreeViewItemData<IParameterItem>(groupId, data, items) };
+                groupId = id;
+                return categoryItem;
             }
 
-            UpdateSubtitle();
+            groupId = id;
+            return items;
         }
 
         public override void UpdatePresenterPosition()
@@ -748,11 +1457,33 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
 
-        public void ForceUpdate()
+        public void UpdateCustomAttribute(string oldName, string newName)
         {
-            this.Query<PropertyRM>()
-                .ToList()
-                .ForEach(x => x.ForceUpdate());
+            var attributeRow = (VFXBlackboardAttributeRow)GetAttributeRowFromName(oldName);
+            if (attributeRow != null && controller.graph.attributesManager.TryFind(newName, out var attribute))
+            {
+                attributeRow.Update(attribute.name, attribute.type, attribute.description);
+            }
+        }
+
+        private void ExpandItem(string itemName)
+        {
+            var treeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, itemName) == 0);
+            m_Treeview.viewController.ExpandItem(treeviewItem.id, false, true);
+        }
+
+        private string FilterOutReservedCategoryName(string category)
+        {
+            switch (category)
+            {
+                case PropertiesCategoryTitle:
+                case BuiltInAttributesCategoryTitle:
+                case OutputCategory.Label:
+                case CustomAttributeCategory.Title:
+                    return string.Empty;
+            }
+
+            return category;
         }
     }
 }

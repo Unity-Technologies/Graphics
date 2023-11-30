@@ -7,7 +7,8 @@
         "Unity.RenderPipelines.Core.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Unity.GraphicTests.Performance.RPCore.Runtime"
+        "Unity.GraphicTests.Performance.RPCore.Runtime",
+        "com.unity.cliprojectsetup"
     ],
     "includePlatforms": [
         "Editor"
@@ -22,6 +23,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.oculus",
+            "expression": "0.0.1",
+            "define": "XR_SDK;OCULUS_SDK"
+        }
+    ],
     "noEngineReferences": false
 }

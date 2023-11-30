@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering
             m_Settings = settings;
             m_DisposablePanels = panels;
 
+            m_Settings.Add(new DebugDisplaySettingsRenderGraph());
+
             Action<IDebugDisplaySettingsData> onExecute = (data) =>
             {
                 IDebugDisplaySettingsPanelDisposable disposableSettingsPanel = data.CreatePanel();
@@ -58,8 +60,6 @@ namespace UnityEngine.Rendering
             };
 
             m_Settings.ForEach(onExecute);
-
-            RegisterRenderGraphDebug();
         }
 
         /// <summary>
@@ -84,25 +84,8 @@ namespace UnityEngine.Rendering
 
                 m_DisposablePanels = null;
             }
-            UnregisterRenderGraphDebug();
 
             debugManager.UnregisterData(this);
-        }
-
-        static string k_PanelRenderGraph = "RenderGraph";
-        void RegisterRenderGraphDebug()
-        {
-            var panel = DebugManager.instance.GetPanel(k_PanelRenderGraph, true);
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.RegisterDebug(panel);
-        }
-        void UnregisterRenderGraphDebug()
-        {
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-
-            foreach (var graph in renderGraphs)
-                graph.UnRegisterDebug();
         }
 
         #region IDebugData

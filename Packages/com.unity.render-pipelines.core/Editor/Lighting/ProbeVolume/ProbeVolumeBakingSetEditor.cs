@@ -18,6 +18,13 @@ namespace UnityEditor.Rendering
         SerializedProperty m_FreezePlacement;
         SerializedProperty m_ProbeVolumeBakingSettings;
         SerializedProperty m_LightingScenarios;
+        SerializedProperty m_SkyOcclusion;
+        SerializedProperty m_SkyOcclusionBakingSamples;
+        SerializedProperty m_SkyOcclusionBakingBounces;
+        SerializedProperty m_SkyOcclusionAverageAlbedo;
+        SerializedProperty m_SkyOcclusionBackFaceCulling;
+        SerializedProperty m_SkyOcclusionShadingDirection;
+
         ProbeVolumeBakingSet bakingSet => target as ProbeVolumeBakingSet;
 
         static class Styles
@@ -25,6 +32,7 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent scenariosTitle = new GUIContent("Lighting Scenarios");
             public static readonly GUIContent placementTitle = new GUIContent("Probe Placement");
             public static readonly GUIContent settingsTitle = new GUIContent("Probe Invalidity Settings");
+            public static readonly GUIContent skyOcclusionSettingsTitle = new GUIContent("Sky Occlusion Bake Settings");
 
             public static readonly GUIContent keepSamePlacement = new GUIContent("Probe Positions", "If set to Don't Recalculate, probe positions are not recalculated when baking. Allows baking multiple Scenarios that include small differences in Scene geometry.");
             public static readonly string[] placementOptions = new string[] { "Recalculate", "Don't Recalculate" };
@@ -39,15 +47,45 @@ namespace UnityEditor.Rendering
             public static readonly string msgProbeFreeze = "Some scene(s) in this Baking Set are not currently loaded in the Hierarchy. Set Probe Positions to Don't Recalculate to not break compatibility with already baked scenarios.";
             public static readonly GUIContent maxDistanceBetweenProbes = new GUIContent("Max Probe Spacing", "Maximum distance between probes, in meters. Determines the number of bricks in a streamable unit.");
             public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Probe Spacing", "Minimum distance between probes, in meters.");
-            public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
+            public static readonly string simplificationLevelsHighWarning = " Using this many brick sizes will result in high memory usage and can cause instabilities.";
             public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
             public static readonly GUIContent minRendererVolumeSize = new GUIContent("Min Renderer Size", "The smallest Renderer size to consider when placing probes.");
             public static readonly GUIContent renderersLayerMask = new GUIContent("Layer Mask", "Specify Layers to use when generating probe positions.");
             public static readonly GUIContent rendererFilterSettings = new GUIContent("Renderer Filter Settings");
 
+            public static readonly GUIContent skyOcclusion = new GUIContent("Enable Sky Occlusion", "When occlusion is baked, probe volumes can react to sky lighting changes at runtime. This will increase the memory footprint for probe volumes.");
+            public static readonly GUIContent skyOcclusionBakingSamples = new GUIContent("Samples", "Control the number of samples used for sky occlusion baking. Increasing this value may improve the quality but increases the time required for baking to complete.");
+            public static readonly GUIContent skyOcclusionBakingBounces = new GUIContent("Bounces", "Control the number of bounces used for sky occlusion baking.");
+            public static readonly GUIContent skyOcclusionAverageAlbedo = new GUIContent("Albedo Override", "Bounced lighting for sky occlusion does not take material properties such as color and roughness into account. Thus a single color is applied to all materials. The colors range from 0 (black) to 1 (white).");
+            public static readonly GUIContent skyOcclusionBackFaceCulling = new GUIContent("Backface Culling", "Enable backface culling for sky occlusion baking.");
+            public static readonly GUIContent skyOcclusionShadingDirection = new GUIContent("Sky Direction", "In addition to sky occlusion, bake the most suitable direction to sample the ambient probe at runtime. Without it, surface normals would be used as a fallback and might lead to inaccuracies when updating the probes with the sky color.");
+            public static readonly GUIContent cpuLightmapperNotSupportedWarning = new GUIContent("The Progressive CPU Lightmapper is not supported with sky occlusion. Use Progressive GPU lightmapper instead in Lightmapping settings.");
+            
+
+
             // Probe Settings section
             public static readonly GUIContent resetDilation = new GUIContent("Reset Dilation Settings");
             public static readonly GUIContent resetVirtualOffset = new GUIContent("Reset Virtual Offset Settings");
+        }
+
+        [CustomPropertyDrawer(typeof(ProbeVolumeBakingSet.LogarithmicAttribute))]
+        public class LogarithmicDrawer : PropertyDrawer
+        {
+            // Draw the property inside the given rect
+            public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+            {
+                // First get the attribute since it contains the range for the slider
+                var range = attribute as ProbeVolumeBakingSet.LogarithmicAttribute;
+
+                EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+
+                EditorGUI.BeginChangeCheck();
+                int newValue = EditorGUI.LogarithmicIntSlider(position, label, property.intValue, range.min, range.max, 2, 1, 1 << 30);
+                if (EditorGUI.EndChangeCheck())
+                    property.intValue = Mathf.ClosestPowerOfTwo(newValue);
+
+                EditorGUI.showMixedValue = false;
+            }
         }
 
         static readonly string s_RenameScenarioUndoName = "Rename Baking Set Scenario";
@@ -61,8 +99,14 @@ namespace UnityEditor.Rendering
             m_FreezePlacement = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.freezePlacement));
             m_ProbeVolumeBakingSettings = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.settings));
             m_LightingScenarios = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.m_LightingScenarios));
+			m_SkyOcclusion = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusion));
+            m_SkyOcclusionBakingSamples = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBakingSamples));
+            m_SkyOcclusionBakingBounces = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBakingBounces));
+            m_SkyOcclusionAverageAlbedo = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionAverageAlbedo));
+            m_SkyOcclusionBackFaceCulling = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBackFaceCulling));
+            m_SkyOcclusionShadingDirection = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionShadingDirection));
 
-            if (ProbeReferenceVolume.instance.enableScenarioBlending)
+            if (ProbeReferenceVolume.instance.supportScenarioBlending)
             {
                 hasPendingScenarioUpdate = true;
                 Lightmapping.lightingDataCleared += UpdateScenarioStatuses;
@@ -157,13 +201,13 @@ namespace UnityEditor.Rendering
 
                 SimplificationLevelsSlider();
 
-                int levels = m_SimplificationLevels.intValue + 1;
+                int levels = ProbeVolumeBakingSet.GetMaxSubdivision(m_SimplificationLevels.intValue);
                 MessageType helpBoxType = MessageType.Info;
-                string helpBoxText = $"Probe Volumes can use a maximum of {levels} subdivision levels.";
-                if (levels == 5)
+                string helpBoxText = $"Baked Probe Volume data will contain up-to {levels} different sizes of Brick.";
+                if (levels == 6)
                 {
                     helpBoxType = MessageType.Warning;
-                    helpBoxText += "\n" + Styles.simplificationLevelsHighWarning;
+                    helpBoxText += Styles.simplificationLevelsHighWarning;
                 }
                 EditorGUILayout.HelpBox(helpBoxText, helpBoxType);
 
@@ -190,7 +234,37 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.IndentLevelScope())
                 EditorGUILayout.PropertyField(m_ProbeVolumeBakingSettings);
+            
+            EditorGUILayout.Space();
+        }
 
+        void SkyOcclusionSettings()
+        {
+            if(!SupportedRenderingFeatures.active.skyOcclusion)
+                return;
+            if (!ProbeVolumeLightingTab.Foldout(Styles.skyOcclusionSettingsTitle, ProbeVolumeLightingTab.Expandable.SettingsSkyOcclusion, true))
+                return;
+
+            EditorGUI.indentLevel++;
+
+            var lightmapper = ProbeReferenceVolume._GetLightingSettingsOrDefaultsFallback.Invoke().lightmapper;
+            if (lightmapper == LightingSettings.Lightmapper.ProgressiveCPU)
+            {
+                EditorGUILayout.HelpBox(Styles.cpuLightmapperNotSupportedWarning.text, MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(m_SkyOcclusion, Styles.skyOcclusion);
+
+                using (new EditorGUI.DisabledScope(!m_SkyOcclusion.boolValue))
+                {
+                    EditorGUILayout.PropertyField(m_SkyOcclusionBakingSamples, Styles.skyOcclusionBakingSamples);
+                    EditorGUILayout.PropertyField(m_SkyOcclusionBakingBounces, Styles.skyOcclusionBakingBounces);
+                    EditorGUILayout.PropertyField(m_SkyOcclusionAverageAlbedo, Styles.skyOcclusionAverageAlbedo);
+                    EditorGUILayout.PropertyField(m_SkyOcclusionShadingDirection, Styles.skyOcclusionShadingDirection);
+                    EditorGUILayout.PropertyField(m_SkyOcclusionBackFaceCulling, Styles.skyOcclusionBackFaceCulling);
+                }
+            }
             EditorGUILayout.Space();
         }
 
@@ -201,6 +275,7 @@ namespace UnityEditor.Rendering
             ProbePlacementGUI();
             LightingScenariosGUI();
             ProbeSettingsGUI();
+            SkyOcclusionSettings();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -270,9 +345,9 @@ namespace UnityEditor.Rendering
             if (scenario == ProbeReferenceVolume.instance.lightingScenario)
                 return;
 
-            Undo.RegisterCompleteObjectUndo(ProbeReferenceVolume.instance.sceneData.parentAsset, "Change active scenario");
-            ProbeReferenceVolume.instance.SetActiveScenario(scenario, false);
-            EditorUtility.SetDirty(ProbeReferenceVolume.instance.sceneData.parentAsset);
+            Undo.RegisterCompleteObjectUndo(bakingSet, "Change active scenario");
+            bakingSet.SetActiveScenario(scenario, false);
+            EditorUtility.SetDirty(bakingSet);
             SceneView.RepaintAll();
         }
 

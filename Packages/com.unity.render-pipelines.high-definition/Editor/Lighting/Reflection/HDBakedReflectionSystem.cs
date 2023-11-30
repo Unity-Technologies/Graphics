@@ -680,7 +680,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     );
                     HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                     Checkout(targetFile);
-                    HDTextureUtilities.WriteTextureFileToDisk(probeRT, targetFile);
+                    HDTextureUtilities.WriteTextureToDisk(probeRT, targetFile);
                     break;
                 }
                 case ProbeSettings.ProbeType.PlanarProbe:
@@ -701,7 +701,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     );
                     HDBakingUtilities.CreateParentDirectoryIfMissing(targetFile);
                     Checkout(targetFile);
-                    HDTextureUtilities.WriteTextureFileToDisk(probeRT, targetFile);
+                    HDTextureUtilities.WriteTextureToDisk(probeRT, targetFile);
                     var renderData = new HDProbe.RenderData(cameraSettings, cameraPositionSettings);
                     var targetRenderDataFile = targetFile + ".renderData";
                     Checkout(targetRenderDataFile);

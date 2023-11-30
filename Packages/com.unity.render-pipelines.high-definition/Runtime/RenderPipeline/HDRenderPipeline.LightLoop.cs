@@ -1,11 +1,13 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        private static LocalKeyword s_BigTileVolumetricLightListKeyword;
+
         struct LightingBuffers
         {
             public TextureHandle sssBuffer;
@@ -83,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int bigTilePrepassKernel;
             public bool runBigTilePrepass;
             public int numBigTilesX, numBigTilesY;
+            public bool supportsVolumetric;
 
             // FPTL
             public ComputeShader buildPerTileLightListShader;
@@ -134,6 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Big Tile
             public BufferHandle bigTileLightList;
+            public BufferHandle bigTileVolumetricLightList;
 
             // Cluster
             public BufferHandle perVoxelOffset;
@@ -174,7 +178,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // to changes to the inner workings of the lists.
                 // Also, we clear all the lists and to be resilient to changes in pipeline.
                 if (data.runBigTilePrepass)
+                {
                     ClearLightList(data, cmd, data.output.bigTileLightList);
+                    if (data.supportsVolumetric)
+                        ClearLightList(data, cmd, data.output.bigTileVolumetricLightList);
+                }
                 if (data.canClearLightList) // This can happen when we dont have a GPULight list builder and a light list instantiated.
                     ClearLightList(data, cmd, data.output.lightList);
                 ClearLightList(data, cmd, data.output.perVoxelOffset);
@@ -210,6 +218,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (data.runLightList && data.runBigTilePrepass)
             {
                 cmd.SetComputeBufferParam(data.bigTilePrepassShader, data.bigTilePrepassKernel, HDShaderIDs.g_vLightList, data.output.bigTileLightList);
+                cmd.SetKeyword(data.bigTilePrepassShader, s_BigTileVolumetricLightListKeyword, data.supportsVolumetric);
+                if (data.supportsVolumetric)
+                    cmd.SetComputeBufferParam(data.bigTilePrepassShader, data.bigTilePrepassKernel, HDShaderIDs.g_vVolumetricLightList, data.output.bigTileVolumetricLightList);
                 cmd.SetComputeBufferParam(data.bigTilePrepassShader, data.bigTilePrepassKernel, HDShaderIDs.g_vBoundsBuffer, data.AABBBoundsBuffer);
                 cmd.SetComputeBufferParam(data.bigTilePrepassShader, data.bigTilePrepassKernel, HDShaderIDs._LightVolumeData, data.lightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(data.bigTilePrepassShader, data.bigTilePrepassKernel, HDShaderIDs.g_data, data.convexBoundsBuffer);
@@ -501,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
             // Clear light lsts
-            passData.clearLightListCS = defaultResources.shaders.clearLightListsCS;
+            passData.clearLightListCS = runtimeShaders.clearLightListsCS;
             passData.clearLightListKernel = passData.clearLightListCS.FindKernel("ClearList");
 
             // Screen space AABB
@@ -514,6 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.bigTilePrepassKernel = s_GenListPerBigTileKernel;
             passData.numBigTilesX = (w + 63) / 64;
             passData.numBigTilesY = (h + 63) / 64;
+            passData.supportsVolumetric = currentAsset.currentPlatformRenderPipelineSettings.supportVolumetrics;
 
             // Fptl
             passData.runFPTL = hdCamera.frameSettings.fptl && tileAndClusterData.hasTileBuffers;
@@ -622,7 +634,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrBigTilesY = (m_MaxCameraHeight + 63) / 64;
                 var nrBigTiles = nrBigTilesX * nrBigTilesY * m_MaxViewCount;
                 passData.output.bigTileLightList = builder.WriteBuffer(
-                    renderGraph.CreateBuffer(new BufferDesc(InternalLightCullingDefs.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint)) { name = "BigTiles" }));
+                    renderGraph.CreateBuffer(new BufferDesc(InternalLightCullingDefs.s_MaxNrBigTileLightsPlusOne * nrBigTiles / 2, sizeof(uint)) { name = "BigTiles" }));
+                if (passData.supportsVolumetric)
+                {
+                    passData.output.bigTileVolumetricLightList = builder.WriteBuffer(
+                        renderGraph.CreateBuffer(new BufferDesc(InternalLightCullingDefs.s_MaxNrBigTileLightsPlusOne * nrBigTiles / 2, sizeof(uint)) { name = "BigTiles For Volumetric" }));
+                }
             }
 
             // Cluster buffers
@@ -1183,7 +1200,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrRoughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (cb._SsrRoughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
             cb._SsrRoughnessFadeRcpLength = (roughnessFadeLength != 0) ? (1.0f / roughnessFadeLength) : 0;
             cb._SsrEdgeFadeRcpLength = Mathf.Min(1.0f / settings.screenFadeDistance.value, float.MaxValue);
-            cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
             cb._SsrDepthPyramidMaxMip = hdCamera.depthBufferMipChainInfo.mipLevelCount - 1;
             if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 3)
@@ -1392,7 +1408,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRBias, data.roughnessBiasFactor);
 
-                                data.blueNoise.BindDitheredRNGData1SPP(ctx.cmd);
+                                BlueNoise.BindDitheredTextureSet(ctx.cmd, data.blueNoise.DitheredTextureSet1SPP());
 
                                 ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 
@@ -1592,7 +1608,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayTracingEnabled = RayTracedContactShadowsRequired() && GetRayTracingState();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    passData.contactShadowsRTS = m_GlobalSettings.renderPipelineRayTracingResources.contactShadowRayTracingRT;
+                    passData.contactShadowsRTS = rayTracingResources.contactShadowRayTracingRT;
                     passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
 
                     passData.actualWidth = hdCamera.actualWidth;

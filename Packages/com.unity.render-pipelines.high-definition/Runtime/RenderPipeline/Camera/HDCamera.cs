@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -274,12 +274,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             isFirstFrame = true;
             cameraFrameCount = 0;
+            taaFrameIndex = 0;
             resetPostProcessingHistory = true;
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
+
+            // Reset the volumetric cloud offset animation data
+            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
+            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
+            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
 
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
@@ -358,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Generic structure that captures various history validity states.
+        /// Generic structure that captures various history validity states.
         /// </summary>
         internal struct HistoryEffectValidity
         {
@@ -369,14 +375,35 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        // Struct that lists the data required to perform the volumetric clouds animation
+        /// Struct that holds volumetric clouds animation data accumulated over time
         /// </summary>
         internal struct VolumetricCloudsAnimationData
         {
-            public float lastTime;
             public Vector2 cloudOffset;
             public float verticalShapeOffset;
             public float verticalErosionOffset;
+        }
+
+        // This property allows us to track the volumetric cloud animation data
+        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
+
+        internal struct PlanetData
+        {
+            internal float radius;
+            internal Vector3 center;
+            internal RenderingSpace renderingSpace;
+
+            internal void Set(Vector3 cameraPos, VisualEnvironment visualEnv)
+            {
+                renderingSpace = visualEnv.renderingSpace.value;
+                radius = visualEnv.planetRadius.value * 1000.0f;
+                if (renderingSpace == RenderingSpace.Camera)
+                    center = new Vector3(cameraPos.x, cameraPos.y - radius, cameraPos.z);
+                else if (visualEnv.centerMode.value == VisualEnvironment.PlanetMode.Automatic)
+                    center = new Vector3(0, -radius, 0);
+                else
+                    center = visualEnv.planetCenter.value * 1000.0f;
+            }
         }
 
 #if ENABLE_SENSOR_SDK
@@ -412,11 +439,48 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool animateMaterials;
         internal float lastTime;
 
+        // This value is used to limit the taaFrameIndex value to a reasonable numeric range. The taaFrameIndex value is uploaded to shaders as a float so we should avoid letting it get too large to avoid precision issues.
+        // NOTE: We assume this value is always a power of two when using it modulate taaFrameIndex
+        internal const int kTaaSequenceLength = 1024;
+
         private Camera m_parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
         internal Camera parentCamera { get { return m_parentCamera; } }
 
+        private Vector2 m_LowResHWDRSFactor = new Vector2(0.0f, 0.0f);
+
+        internal Vector2 lowResDrsFactor => DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() ? m_LowResHWDRSFactor : new Vector2(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
         internal float lowResScale = 0.5f;
         internal bool isLowResScaleHalf { get { return lowResScale == 0.5f; } }
+        internal Rect lowResViewport
+        {
+            get
+            {
+                return new Rect(
+                    0.0f, 0.0f,
+                    (float)Mathf.RoundToInt(((float)actualWidth) * lowResScale),
+                    (float)Mathf.RoundToInt(((float)actualHeight) * lowResScale));
+            }
+        }
+
+        static private Vector2 CalculateLowResHWDrsFactor(Vector2Int scaledSize, DynamicResolutionHandler resolutionHandler, float lowResFactor)
+        {
+            // This function fixes some float precision issues against the runtime + drs system + low res transparency (on hardware DRS only).
+            //
+            // In hardware DRS the actual size underneath can be different because the runtime does a computation the following way:
+            // finalLowRes = ceil(round(fullRes * lowResMultiplier) * drsPerc)
+            //
+            // meanwhile the SRP does it this way:
+            // finalLowRes = round(ceil(fullRes * drsPerc) * lowResMultiplier)
+            //
+            // Unfortunately changing this would cause quite a bit of unknowns all over since its a change required on RTHandle scaling.
+            // Its safer to fix it case by case for now, and this problem has only been seen on xb1 HW drs on low res transparent.
+            // In this case we compute the error between both computations, and plumb it as the DRS percentate. This ultimately means that low res transparency.
+            // 
+            Vector2Int originalLowResHWViewport = new Vector2Int(Mathf.RoundToInt((float)RTHandles.maxWidth * lowResFactor), Mathf.RoundToInt((float)RTHandles.maxHeight * lowResFactor));
+            Vector2Int lowResHWViewport = resolutionHandler.GetScaledSize(originalLowResHWViewport);
+            Vector2 lowResViewport = new Vector2(Mathf.RoundToInt((float)scaledSize.x * lowResFactor), Mathf.RoundToInt((float)scaledSize.y * lowResFactor));
+            return lowResViewport / (Vector2)lowResHWViewport;
+        }
 
         //Setting a parent camera also tries to use the parent's camera exposure textures.
         //One example is planar reflection probe volume being pre exposed.
@@ -463,6 +527,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowHistoryUsage[] shadowHistoryUsage = null;
         // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
         internal HistoryEffectValidity[] historyEffectUsage = null;
+
+        // This property allows to share planet data across various effects (clouds, sky, fog, ...)
+        internal PlanetData planet;
 
         // Boolean that allows us to track if the current camera maps to a real time reflection probe.
         internal bool realtimeReflectionProbe = false;
@@ -864,9 +931,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
         }
 
+        internal bool IsFSR2Enabled()
+        {
+            return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderFSR2;
+        }
+
         internal bool IsTAAUEnabled()
         {
-            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled() && !IsFSR2Enabled();
         }
 
         internal bool IsPathTracingEnabled()
@@ -879,11 +951,38 @@ namespace UnityEngine.Rendering.HighDefinition
             return pathTracing ? pathTracing.enable.value : false;
         }
 
+        internal bool IsRayTracingEnabled()
+        {
+            if (!frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return false;
+
+            var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
+            if (( frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                || (frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabledTransparent.value))
+                if (ssr.tracing.value != RayCastingMode.RayMarching)
+                    return true;
+
+            var ssgi = volumeStack.GetComponent<GlobalIllumination>();
+            if (frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value)
+                if (ssgi.tracing.value != RayCastingMode.RayMarching)
+                    return true;
+
+            var recursiveSettings = volumeStack.GetComponent<RecursiveRendering>();
+            if (recursiveSettings.enable.value)
+                return true;
+
+            return false;
+        }
+
         internal DynamicResolutionHandler.UpsamplerScheduleType UpsampleSyncPoint()
         {
             if (IsDLSSEnabled())
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint;
+            }
+            else if (IsFSR2Enabled())
+            {
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2InjectionPoint;
             }
             else if (IsTAAUEnabled())
             {
@@ -901,12 +1000,21 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool deepLearningSuperSamplingUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomAttributes;
         internal bool deepLearningSuperSamplingUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseOptimalSettings;
         internal float deepLearningSuperSamplingSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.deepLearningSuperSamplingSharpening;
+
+        internal bool allowFidelityFX2SuperResolution => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowFidelityFX2SuperResolution;
+        internal bool fidelityFX2SuperResolutionUseCustomQualitySettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionUseCustomQualitySettings;
+        internal uint fidelityFX2SuperResolutionQuality => m_AdditionalCameraData == null ? 0u : m_AdditionalCameraData.fidelityFX2SuperResolutionQuality;
+        internal bool fidelityFX2SuperResolutionUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionUseCustomAttributes;
+        internal bool fidelityFX2SuperResolutionUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionUseOptimalSettings;
+        internal bool fidelityFX2SuperResolutionEnableSharpening => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fidelityFX2SuperResolutionEnableSharpening;
+        internal float fidelityFX2SuperResolutionSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.fidelityFX2SuperResolutionSharpening;
+
         internal bool fsrOverrideSharpness => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fsrOverrideSharpness;
         internal float fsrSharpness => m_AdditionalCameraData == null ? FSRUtils.kDefaultSharpnessLinear : m_AdditionalCameraData.fsrSharpness;
 
         internal bool RequiresCameraJitter()
         {
-            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || IsTAAUEnabled()) && !IsPathTracingEnabled();
+            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled()) && !IsPathTracingEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -1137,13 +1245,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
             lowResScale = 0.5f;
+            m_LowResHWDRSFactor = Vector2.one;
             if (canDoDynamicResolution)
             {
-                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
+                Vector2Int orignalSize = new Vector2Int(actualWidth, actualHeight);
+                Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(orignalSize);
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
                 globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField);
+
+                //setting up constants for low resolution rendering (i.e. transparent low res)
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
+                m_LowResHWDRSFactor = CalculateLowResHWDrsFactor(scaledSize, DynamicResolutionHandler.instance, lowResScale);
             }
 
             var screenWidth = actualWidth;
@@ -1155,9 +1268,15 @@ namespace UnityEngine.Rendering.HighDefinition
             SetPostProcessScreenSize(screenWidth, screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
+            // We reset the TAA frame index counter whenever the history data is reset to ensure TAA behaves consistently on camera cuts
+            // We also only increment the TAA frame index if the camera requires jitter.
+            // Other logic in the camera code resets taaFrameIndex to 0 when jitter isn't enabled, and this logic ensures that it actually remains 0 for the entire frame rather than being confusingly set to 1.
+            //
+            // Additionally, we clamp the value range here as well to avoid letting the number get too big over time as its used as a float within shaders.
+            if (resetPostProcessingHistory)
                 taaFrameIndex = 0;
+            else if (RequiresCameraJitter())
+                taaFrameIndex = (taaFrameIndex + 1) & (kTaaSequenceLength - 1);
 
             UpdateAllViewConstants();
             isFirstFrame = false;
@@ -1380,6 +1499,24 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._LastTimeParameters = new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f);
             cb._FrameCount = frameCount;
             cb._XRViewCount = (uint)viewCount;
+
+            var cameraPos = mainViewConstants.worldSpaceCameraPos;
+            var planetPosRWS = planet.center - cameraPos;
+
+            // This is not very efficient but necessary for precision
+            var planetUp = -planetPosRWS.normalized;
+            var cameraHeight = Vector3.Dot(cameraPos - (planetUp * planet.radius + planet.center), planetUp);
+
+            if (planet.renderingSpace == RenderingSpace.Camera)
+            {
+                planetPosRWS = new Vector3(0, -planet.radius, 0.0f);
+                cameraHeight = 0.0f;
+            }
+
+            cb._PlanetCenterRadius = ShaderConfig.s_CameraRelativeRendering != 0 ? planetPosRWS : planet.center;
+            cb._PlanetCenterRadius.w = planet.radius;
+            cb._PlanetUpAltitude = planetUp;
+            cb._PlanetUpAltitude.w = cameraHeight;
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale = exposureMultiplierForProbes;
@@ -1606,6 +1743,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_NumVolumetricBuffersAllocated = 0;
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution
+
+        static internal IEnumerable<HDCamera> GetHDCameras() => s_Cameras.Values.AsEnumerable();
 
         Dictionary<AOVRequestData, BufferedRTHandleSystem> m_AOVHistoryRTSystem = new Dictionary<AOVRequestData, BufferedRTHandleSystem>(new AOVRequestDataComparer());
 
@@ -1949,6 +2088,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }
 
+            // Update planet data
+            var visualEnv = volumeStack.GetComponent<VisualEnvironment>();
+            planet.Set(mainViewConstants.worldSpaceCameraPos, visualEnv);
+
             // Update info about current target mid gray
             TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;
             switch (requestedMidGray)
@@ -1986,10 +2129,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
-            float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
-            float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
+            float jitterX = HaltonSequence.Get(taaFrameIndex + 1, 2) - 0.5f;
+            float jitterY = HaltonSequence.Get(taaFrameIndex + 1, 3) - 0.5f;
 
-            if (!(IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
+            if (!(IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
             {
                 jitterX *= taaJitterScale;
                 jitterY *= taaJitterScale;

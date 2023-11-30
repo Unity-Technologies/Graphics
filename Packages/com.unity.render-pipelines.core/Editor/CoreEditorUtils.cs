@@ -382,7 +382,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Draw a splitter separator which is used after drawing a fouldout header.</summary>
         /// <param name="isBoxed">[Optional] add margin if the splitter is boxed</param>
-        internal static void DrawFoldoutEndSplitter(bool isBoxed = false)
+        public static void DrawFoldoutEndSplitter(bool isBoxed = false)
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
 
@@ -881,6 +881,26 @@ namespace UnityEditor.Rendering
         {
             menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
             menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+        }
+
+        /// <summary>
+        /// Draw a Color Field but convert the color to gamma space before displaying it in the shader.
+        /// Using SetColor on a material does the conversion, but setting the color as vector3 in a constant buffer doesn't
+        /// So we have to do it manually, doing it in the UI avoids having to do a migration step for existing fields
+        /// </summary>
+        /// <param name="property">The color property</param>
+        /// <param name="label">The label</param>
+        static public void ColorFieldLinear(SerializedProperty property, GUIContent label)
+        {
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, label, property);
+
+            EditorGUI.BeginChangeCheck();
+            var color = EditorGUI.ColorField(rect, label, property.colorValue.gamma, true, false, false);
+            if (EditorGUI.EndChangeCheck())
+                property.colorValue = color.linear;
+
+            EditorGUI.EndProperty();
         }
 
         static readonly GUIContent[][] k_DrawVector6_Label =

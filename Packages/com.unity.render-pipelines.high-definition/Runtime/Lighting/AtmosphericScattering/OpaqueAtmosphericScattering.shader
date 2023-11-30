@@ -149,6 +149,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
+                #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
                 #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
@@ -164,6 +165,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
+                #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
                 #pragma vertex Vert
                 #pragma fragment FragMSAA
             ENDHLSL

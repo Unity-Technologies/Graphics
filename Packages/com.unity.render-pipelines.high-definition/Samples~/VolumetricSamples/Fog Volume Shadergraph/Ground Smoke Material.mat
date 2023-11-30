@@ -77,6 +77,14 @@ Material:
     - _EnableFogOnTransparent: 1
     - _Flatten: 2
     - _Float: 4
+    - _FogVolumeAlphaBlendOp: 0
+    - _FogVolumeBlendMode: 1
+    - _FogVolumeColorBlendOp: 0
+    - _FogVolumeDstAlphaBlend: 1
+    - _FogVolumeDstColorBlend: 1
+    - _FogVolumeFogDistanceProperty: 2
+    - _FogVolumeSrcAlphaBlend: 1
+    - _FogVolumeSrcColorBlend: 1
     - _Height_Tiling: 1.84
     - _Max_Height: 4
     - _Min_Height: 0
@@ -111,6 +119,7 @@ Material:
     - _Direction: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FogVolumeSingleScatteringAlbedo: {r: 1, g: 1, b: 1, a: 1}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Top_Color: {r: 1, g: 0.94102645, b: 0.83647794, a: 1}
     - _Vector3: {r: 1, g: 0, b: 0, a: 0}
@@ -128,7 +137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 13
   hdPluginSubTargetMaterialVersions:
     m_Keys: []
     m_Values: 

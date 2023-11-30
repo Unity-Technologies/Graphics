@@ -7,6 +7,14 @@
 #error DOTS Instancing requires the new shader preprocessor. Please enable Caching Preprocessor in the Editor settings!
 #endif
 
+// Config defines
+// ==========================================================================================
+// #define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED_BY_DEFAULT
+
+
+
+
+
 /*
 Here's a bit of python code to generate these repetitive typespecs without
 a lot of C macro magic
@@ -100,6 +108,10 @@ for t, c, sz in (
 #define UNITY_DOTS_INSTANCING_TYPESPEC_min16float4 H8
 #define UNITY_DOTS_INSTANCING_TYPESPEC_SH F128
 
+static const int kDotsInstancedPropOverrideDisabled = 0;
+static const int kDotsInstancedPropOverrideSupported = 1;
+static const int kDotsInstancedPropOverrideRequired = 2;
+
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
 #define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
 #define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata, name)
@@ -115,20 +127,53 @@ for t, c, sz in (
 //       underscore in the common case where the property name starts with an underscore.
 //       A prefix double underscore is illegal on some platforms like OpenGL.
 #define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) UNITY_DOTS_INSTANCING_CONCAT2(name, _DOTSInstancingOverrideMode)
 
 #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
 #define UNITY_DOTS_INSTANCING_END(name)   }
-#define UNITY_DOTS_INSTANCED_PROP(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name);
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED(type, name) static const uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) = 0; \
+static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInstancedPropOverrideDisabled;
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_DEFAULT(type, arr, var) LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name); \
+static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInstancedPropOverrideSupported;
 
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_DOTS_INSTANCED_PROP_OVERRIDE_REQUIRED(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name); \
+static const int UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) = kDotsInstancedPropOverrideRequired;
 
+#ifdef UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED_BY_DEFAULT
+#define UNITY_DOTS_INSTANCED_PROP(type, name) UNITY_DOTS_INSTANCED_PROP_OVERRIDE_DISABLED(type, name)
+#else
+#define UNITY_DOTS_INSTANCED_PROP(type, name) UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(type, name)
+#endif
+
+#define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_DISABLED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideDisabled)
+#define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideSupported)
+#define UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(name) (UNITY_DOTS_INSTANCED_PROP_OVERRIDE_MODE_NAME(name) == kDotsInstancedPropOverrideRequired)
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) ( /* Compile-time branches */ \
+UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: ((type)0) \
+)
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) ( /* Compile-time branches */ \
+UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: (var) \
+)
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) ( /* Compile-time branches */ \
+UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_ENABLED(var) ? LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: UNITY_DOTS_INSTANCED_PROP_IS_OVERRIDE_REQUIRED(var) ? LoadDOTSInstancedDataOverridden_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var)) \
+: (default_value) \
+)
+
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var)
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_DEFAULT(type, arr, var) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var)
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value)
+
+#define UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES() // No-op by default
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
@@ -176,11 +221,15 @@ static const uint kDOTSInstancingFlagForceZeroMotion  = (1 << 1); // Object shou
 static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses Camera motion (i.e. not per-Object motion)
 static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
 static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
+static const uint kDOTSInstancingFlagLODCrossFadeValuePacked = (1 << 5); // Object's cross fade value is encoded in the higher 8 bits of the instance index
 
 static const uint kPerInstanceDataBit = 0x80000000;
 static const uint kAddressMask        = 0x7fffffff;
 
-static DOTSVisibleData unity_SampledDOTSVisibleData;
+static const uint kIndirectVisibleOffsetEnabledBit = 0x80000000;
+static uint unity_SampledDOTSIndirectVisibleIndex;
+static uint unity_SampledDOTSInstanceIndex;
+static int unity_SampledLODCrossfade;
 static real4 unity_DOTS_Sampled_SHAr;
 static real4 unity_DOTS_Sampled_SHAg;
 static real4 unity_DOTS_Sampled_SHAb;
@@ -192,9 +241,14 @@ static real4 unity_DOTS_Sampled_ProbesOcclusion;
 static float3 unity_DOTS_RendererBounds_Min;
 static float3 unity_DOTS_RendererBounds_Max;
 
+uint GetDOTSIndirectVisibleIndex()
+{
+    return unity_SampledDOTSIndirectVisibleIndex;
+}
+
 uint GetDOTSInstanceIndex()
 {
-    return unity_SampledDOTSVisibleData.VisibleData.x;
+    return unity_SampledDOTSInstanceIndex;
 }
 
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
@@ -238,20 +292,52 @@ void SetupDOTSInstanceSelectMasks() {}
 
 #endif
 
-void SetDOTSVisibleData(DOTSVisibleData visibleData)
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+CBUFFER_START(unity_DOTSInstancing_IndirectInstanceVisibility)
+    float4 unity_DOTSInstancing_IndirectInstanceVisibilityRaw[4096];
+CBUFFER_END
+#else
+ByteAddressBuffer unity_DOTSInstancing_IndirectInstanceVisibility;
+#endif
+
+uint LoadDOTSIndirectInstanceIndex(uint indirectIndex)
 {
-    unity_SampledDOTSVisibleData = visibleData;
-    SetupDOTSInstanceSelectMasks();
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+    uint4 raw = asuint(unity_DOTSInstancing_IndirectInstanceVisibilityRaw[indirectIndex >> 2]);
+    uint2 tmp = (indirectIndex & 0x2) ? raw.zw : raw.xy;
+    return (indirectIndex & 0x1) ? tmp.y : tmp.x;
+#else
+    return unity_DOTSInstancing_IndirectInstanceVisibility.Load(indirectIndex << 2);
+#endif
 }
 
 void SetupDOTSVisibleInstancingData()
 {
-    SetDOTSVisibleData(unity_DOTSVisibleInstances[unity_InstanceID]);
+    uint packedIndirectVisibleOffset = unity_DOTSVisibleInstances[0].VisibleData.y;
+    uint crossFadeValuePacked = unity_DOTSVisibleInstances[0].VisibleData.w & kDOTSInstancingFlagLODCrossFadeValuePacked;
+    unity_SampledDOTSIndirectVisibleIndex = (packedIndirectVisibleOffset & ~kIndirectVisibleOffsetEnabledBit) + unity_InstanceID;
+
+    if (packedIndirectVisibleOffset != 0)
+        unity_SampledDOTSInstanceIndex = LoadDOTSIndirectInstanceIndex(unity_SampledDOTSIndirectVisibleIndex);
+    else
+        unity_SampledDOTSInstanceIndex = unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+
+    if(crossFadeValuePacked != 0)
+    {
+        unity_SampledLODCrossfade = int(unity_SampledDOTSInstanceIndex) >> 24;
+        unity_SampledDOTSInstanceIndex &= 0x00ffffff;
+    }
+    else
+    {
+        unity_SampledLODCrossfade = 0;
+    }
+
+    SetupDOTSInstanceSelectMasks();
 }
 
 int GetDOTSInstanceCrossfadeSnorm8()
 {
-    return unity_SampledDOTSVisibleData.VisibleData.y;
+    return unity_SampledLODCrossfade;
 }
 
 bool IsDOTSInstancedProperty(uint metadata)
@@ -376,6 +462,11 @@ type LoadDOTSInstancedData_##type(uint metadata) \
     uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type); \
     return conv(DOTSInstanceData_Load(address)); \
 } \
+type LoadDOTSInstancedDataOverridden_##type(uint metadata) \
+{ \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type); \
+    return conv(DOTSInstanceData_Load(address)); \
+} \
 type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type); \
@@ -387,6 +478,11 @@ type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
     uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width); \
+    return conv(DOTSInstanceData_Load##width(address)); \
+} \
+type##width LoadDOTSInstancedDataOverridden_##type##width(uint metadata) \
+{ \
+    uint address = ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type * width); \
     return conv(DOTSInstanceData_Load##width(address)); \
 } \
 type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint metadata) \
@@ -551,8 +647,10 @@ float3  LoadDOTSInstancedData_MeshLocalBoundExtent()
 
 float4 LoadDOTSInstancedData_MotionVectorsParams()
 {
+    // See MotionVectorRendererLoop.cpp
+    static const float s_bias = -0.001;
     uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
-    return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, -0.001f, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
+    return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, s_bias, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_WorldTransformParams()
@@ -579,7 +677,7 @@ float4 LoadDOTSInstancedData_LODFade()
 }
 
 
-void    SetupDOTSRendererBounds(float4x4 objectToWorld)
+void SetupDOTSRendererBounds(float4x4 objectToWorld)
 {
     float3 vCenter = mul(objectToWorld, float4(LoadDOTSInstancedData_MeshLocalBoundCenter(), 1.0f)).xyz;
     float3 vInputExt = LoadDOTSInstancedData_MeshLocalBoundExtent();

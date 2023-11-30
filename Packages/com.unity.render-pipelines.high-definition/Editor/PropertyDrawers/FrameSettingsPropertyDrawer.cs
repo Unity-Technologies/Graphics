@@ -19,6 +19,12 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
+        internal static void Expand(FrameSettingsRenderType type, int group)
+        {
+            string key = $"UI_State_{nameof(FrameSettingsPropertyDrawer)}_{type}_{group}";
+            EditorPrefs.SetBool(key, true);
+        }
+
         private float m_TotalHeight = 0f;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

@@ -34,10 +34,9 @@ namespace UnityEditor.VFX.Block
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, the fade will also affect shadow map generation. This could have unexpected results in the shadow when using multiple cameras.")]
         private bool affectShadows = false;
 
-        public override string libraryName { get { return "Camera Fade"; } }
-        public override string name { get { return string.Format("Camera Fade ({0})", ObjectNames.NicifyVariableName(fadeMode.ToString())); } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.Output; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override string name => $"Camera Fade ({ObjectNames.NicifyVariableName(fadeMode.ToString())})";
+        public override VFXContextType compatibleContexts => VFXContextType.Output;
+        public override VFXDataType compatibleData => VFXDataType.Particle;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

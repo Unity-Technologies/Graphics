@@ -6,15 +6,13 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputParticleMesh")]
-    [VFXInfo]
+    [VFXInfo(name = "Output Particle Mesh", category = "Output")]
     class VFXMeshOutput : VFXShaderGraphParticleOutput, IVFXMultiMeshOutput
     {
         public override string name
         {
             get
             {
-                if (shaderName != string.Empty)
-                    return $"Output Particle {shaderName} Mesh";
                 return "Output Particle Mesh";
             }
         }
@@ -41,13 +39,13 @@ namespace UnityEditor.VFX
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
-                    {
-                        if (VFXSortingUtility.IsPerCamera(sortMode))
-                            features |= VFXOutputUpdate.Features.CameraSort;
-                        else
-                            features |= VFXOutputUpdate.Features.Sort;
-                    }
+                }
+                if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
+                {
+                    if (VFXSortingUtility.IsPerCamera(sortMode))
+                        features |= VFXOutputUpdate.Features.CameraSort;
+                    else
+                        features |= VFXOutputUpdate.Features.Sort;
                 }
                 return features;
             }

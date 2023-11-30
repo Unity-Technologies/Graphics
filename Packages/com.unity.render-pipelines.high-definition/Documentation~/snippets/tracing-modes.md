@@ -16,15 +16,15 @@ In Mixed tracing mode, HDRP still uses ray tracing for any geometry inside the r
 
 ![](../Images/mixed-tracing-mixed.png)
 
-In this Scene, Mixed mode can include reflections for the opaque leaf particles, the white decal, and for GameObjects that aren't visible in the cliff face's original, non-deformed, geometry.
+In this Scene, Mixed mode can include reflections for the opaque leaf particles, the white decal, and GameObjects that aren't visible in the cliff face's non-deformed geometry.
 
 ![](../Images/mixed-tracing-ray-traced.png)
 
-Ray tracing mode doesn't render reflections for the white decal or for the opaque leaf particles. Also, reflection rays intersect with the original, non-deformed, cliff face geometry which means they can not see the rock and bush on the right-hand side. To see the Scene from the perspective of the ray tracing mode, see the following image.
+Reflection rays intersect with the original, non-deformed cliff face geometry. This means the rays can still be affected by the bush behind the rock. To view the Scene from the perspective of the ray tracing mode, refer to the following image.
 
 ![](../Images/mixed-tracing-ray-traced-no-deform.png)
 
-This is the Scene from the perspective of the ray tracing mode. See how the original, non-deformed, cliff face geometry hides the rock and bush that were on the right-hand side of the Scene.
+This image shows the elements of the Scene that ray tracing takes into account. The non-deformed cliff face geometry reveals the bushes behind the rocks.
 
 ### Tracing Modes Limitation
 
@@ -35,7 +35,7 @@ This is the Scene from the perspective of the ray tracing mode. See how the orig
 #### Ray Tracing
 
 * Transparent Emissive Material aren't taken into account.
-* No [decals](decal.md) are supported including Emissive Decals.
+* No [decals](decals.md) are supported including Emissive Decals.
 
 #### Mixed Tracing
 

@@ -269,15 +269,22 @@ namespace UnityEditor.VFX.UI
         void IPropertyRMProvider.StartLiveModification() { }
         void IPropertyRMProvider.EndLiveModification() { }
 
-        public override void DrawGizmos(VisualEffect component)
+        public override void CollectGizmos()
         {
             if (parentController.isOutput)
                 return;
+            m_GizmoableAnchors.Clear();
             if (VFXGizmoUtility.HasGizmo(m_ParentController.portType))
             {
-                m_ParentController.DrawGizmos(component);
-
                 m_GizmoableAnchors.Add(m_ParentController);
+            }
+        }
+
+        public override void DrawGizmos(VisualEffect component)
+        {
+            if (currentGizmoable is VFXParameterController gizmoable)
+            {
+                gizmoable.DrawGizmos(component);
             }
         }
 

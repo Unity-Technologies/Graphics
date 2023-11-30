@@ -2,25 +2,6 @@ namespace UnityEngine.Rendering.Universal
 {
     class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
-        internal static class WidgetFactory
-        {
-            internal static DebugUI.Widget CreateMissingDebugShadersWarning() => new DebugUI.MessageBox
-            {
-                displayName = "Warning: the debug shader variants are missing. Ensure that the \"Strip Runtime Debug Shaders\" option is disabled in URP Global Settings.",
-                style = DebugUI.MessageBox.Style.Warning,
-                isHiddenCallback = () =>
-                {
-#if UNITY_EDITOR
-                    return true;
-#else
-                    if (UniversalRenderPipelineGlobalSettings.instance != null)
-                        return !UniversalRenderPipelineGlobalSettings.instance.stripDebugVariants;
-                    return true;
-#endif
-                }
-            };
-        }
-
         [DisplayInfo(name = "Frequently Used", order = -1)]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -30,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
-                AddWidget(WidgetFactory.CreateMissingDebugShadersWarning());
+                AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
 
                 foreach (var widget in DebugManager.instance.GetItems(DebugUI.Flags.FrequentlyUsed))
                 {

@@ -128,6 +128,72 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Allocate RT handles for a buffer using a RenderTextureDescriptor.
+        /// </summary>
+        /// <param name="bufferId">The buffer to allocate.</param>
+        /// <param name="bufferCount">The number of RT handles for this buffer.</param>
+        /// <param name="descriptor">RenderTexture descriptor of the RTHandles.</param>
+        /// <param name="filterMode">Filtering mode of the RTHandles.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandles.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        // NOTE: API is similar to RTHandles.Alloc.
+        public void AllocBuffer(int bufferId, int bufferCount,
+            ref RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            // This function should only be used when there is a non-zero number of buffers to allocate.
+            // If the caller provides a value of zero, they're likely doing something unintentional in the calling code.
+            Debug.Assert(bufferCount > 0);
+
+            var buffer = new RTHandle[bufferCount];
+            m_RTHandles.Add(bufferId, buffer);
+
+            RTHandle Alloc(ref RenderTextureDescriptor d, FilterMode fMode, TextureWrapMode wMode, bool isShadow, int aniso, float mipBias, string n)
+            {
+                return m_RTHandleSystem.Alloc(
+                    d.width,
+                    d.height,
+                    d.volumeDepth,
+                    (DepthBits)d.depthBufferBits,
+                    d.graphicsFormat,
+                    fMode,
+                    wMode,
+                    d.dimension,
+                    d.enableRandomWrite,
+                    d.useMipMap,
+                    d.autoGenerateMips,
+                    isShadow,
+                    aniso,
+                    mipBias,
+                    (MSAASamples)d.msaaSamples,
+                    d.bindMS,
+                    d.useDynamicScale,
+                    d.useDynamicScaleExplicit,
+                    d.memoryless,
+                    d.vrUsage,
+                    n);
+            }
+
+            // First is autoresized
+            buffer[0] = Alloc(ref descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+
+            // Other are resized on demand
+            for (int i = 1, c = buffer.Length; i < c; ++i)
+            {
+                buffer[i] = Alloc(ref descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                m_RTHandleSystem.SwitchResizeMode(buffer[i], RTHandleSystem.ResizeMode.OnDemand);
+            }
+        }
+
+        /// <summary>
         /// Release a buffer
         /// </summary>
         /// <param name="bufferId">Id of the buffer that needs to be released.</param>

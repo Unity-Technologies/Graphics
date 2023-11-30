@@ -11,7 +11,7 @@ editor:priming:trunk:Win:
     name: '[trunk,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: automation-tooling/ubuntu-22.04-desktop:v2.933537
+        image: desktop/ubuntu-22.04-desktop:v2.1165007
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -34,7 +34,7 @@ editor:priming:CUSTOM-REVISION:Win:
     name: '[CUSTOM-REVISION,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: automation-tooling/ubuntu-22.04-desktop:v2.933537
+        image: desktop/ubuntu-22.04-desktop:v2.1165007
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -57,7 +57,7 @@ editor:priming:test_min_editor:Win:
     name: '[Min_Editor,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu-22.04:v4
+        image: package-ci/ubuntu-22.04:v4.30.0
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -80,7 +80,7 @@ editor:priming:trunk:OSX:
     name: '[trunk,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: automation-tooling/ubuntu-22.04-desktop:v2.933537
+        image: desktop/ubuntu-22.04-desktop:v2.1165007
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -103,7 +103,7 @@ editor:priming:CUSTOM-REVISION:OSX:
     name: '[CUSTOM-REVISION,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: automation-tooling/ubuntu-22.04-desktop:v2.933537
+        image: desktop/ubuntu-22.04-desktop:v2.1165007
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -126,7 +126,7 @@ editor:priming:test_min_editor:OSX:
     name: '[Min_Editor,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu-22.04:v4
+        image: package-ci/ubuntu-22.04:v4.30.0
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -149,7 +149,7 @@ editor:priming:trunk:Linux:
     name: '[trunk,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: automation-tooling/ubuntu-22.04-desktop:v2.933537
+        image: desktop/ubuntu-22.04-desktop:v2.1165007
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -172,7 +172,7 @@ editor:priming:CUSTOM-REVISION:Linux:
     name: '[CUSTOM-REVISION,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: automation-tooling/ubuntu-22.04-desktop:v2.933537
+        image: desktop/ubuntu-22.04-desktop:v2.1165007
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -195,7 +195,7 @@ editor:priming:test_min_editor:Linux:
     name: '[Min_Editor,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu-22.04:v4
+        image: package-ci/ubuntu-22.04:v4.30.0
         flavor: b1.small
     variables:
         DISPLAY: ":0"

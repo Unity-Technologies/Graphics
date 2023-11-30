@@ -30,6 +30,7 @@ namespace UnityEditor.VFX.UI
         protected readonly VisualElement m_PopupContent;
 
         protected DropDownButtonBase(
+            string elementName,
             VFXView view,
             string uxmlSource,
             string mainButtonLabel,
@@ -38,6 +39,7 @@ namespace UnityEditor.VFX.UI
             bool hasSeparatorBefore = false,
             bool hasSeparatorAfter = false)
         {
+            name = elementName;
             m_VFXView = view;
             style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
 
@@ -92,11 +94,6 @@ namespace UnityEditor.VFX.UI
         protected virtual void OnOpenPopup() { }
         protected virtual void OnMainButton() { }
         protected abstract Vector2 GetPopupSize();
-
-        protected void SetMainButtonTooltip(string newTooltip)
-        {
-            m_MainButton.tooltip = newTooltip;
-        }
 
         protected void ClosePopup()
         {

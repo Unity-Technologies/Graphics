@@ -2,12 +2,12 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
+using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXHelpURL("Subgraph")]
+    [VFXInfo(name = "Empty Subgraph Block")]
     class VFXSubgraphBlock : VFXBlock
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -44,12 +44,15 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
 
-            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+            // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
             if (!VFXGraph.explicitCompile)
+            {
                 ResyncSlots(true);
+                ResyncCustomAttributes();
+            }
         }
 
-        public sealed override string name { get { return m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Block"; } }
+        public sealed override string name => m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Block";
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -70,7 +73,7 @@ namespace UnityEditor.VFX
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 
-                    foreach (var param in GetParameters(t => InputPredicate(t)).OrderBy(t => t.order))
+                    foreach (var param in GetParameters(InputPredicate).OrderBy(t => t.order))
                     {
                         yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
                     }
@@ -83,15 +86,10 @@ namespace UnityEditor.VFX
             return param.exposed && !param.isOutput;
         }
 
-        static bool OutputPredicate(VFXParameter param)
-        {
-            return param.isOutput;
-        }
-
         IEnumerable<VFXParameter> GetParameters(Func<VFXParameter, bool> predicate)
         {
             if (m_SubChildren == null) return Enumerable.Empty<VFXParameter>();
-            return m_SubChildren.OfType<VFXParameter>().Where(t => predicate(t)).OrderBy(t => t.order);
+            return m_SubChildren.OfType<VFXParameter>().Where(predicate).OrderBy(t => t.order);
         }
 
         bool m_isInOnEnable;
@@ -106,6 +104,8 @@ namespace UnityEditor.VFX
         {
             Invalidate(this, cause);
         }
+
+        public override IEnumerable<VFXAttribute> usedAttributes => m_SubChildren?.OfType<IVFXAttributeUsage>().SelectMany(x => x.usedAttributes) ?? Array.Empty<VFXAttribute>();
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -171,10 +171,15 @@ namespace UnityEditor.VFX
 
             var copy = VFXMemorySerializer.DuplicateObjects(dependencies.ToArray());
             m_UsedSubgraph = graph;
+            m_UsedSubgraph.SyncCustomAttributes();
             m_SubChildren = copy.OfType<VFXModel>().Where(t => t is VFXBlock || t is VFXOperator || t is VFXParameter).ToArray();
             m_SubBlocks = m_SubChildren.OfType<VFXBlock>().ToArray();
             foreach (var child in m_SubChildren)
+            {
+                child.CheckGraphBeforeImport();
                 child.onInvalidateDelegate += SubChildrenOnInvalidate;
+            }
+
             foreach (var child in copy)
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
@@ -183,6 +188,11 @@ namespace UnityEditor.VFX
             foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
                 subgraphBlocks.RecreateCopy();
             SyncSlots(VFXSlot.Direction.kInput, true);
+            ResyncCustomAttributes();
+            if (GetGraph() is { } mainGraph)
+            {
+                mainGraph.SyncCustomAttributes();
+            }
         }
 
         public void PatchInputExpressions()
@@ -199,14 +209,7 @@ namespace UnityEditor.VFX
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t => t.order));
         }
 
-        public VFXModel[] subChildren
-        {
-            get { return m_SubChildren; }
-        }
-        public VFXBlock[] subBlocks
-        {
-            get { return m_SubBlocks; }
-        }
+        public VFXModel[] subChildren => m_SubChildren;
 
         public IEnumerable<VFXBlock> recursiveSubBlocks
         {
@@ -298,6 +301,34 @@ namespace UnityEditor.VFX
             }
 
             base.Invalidate(model, cause);
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            ResyncCustomAttributes();
+        }
+
+        private void ResyncCustomAttributes()
+        {
+            var graph = GetGraph();
+            if (graph == null || m_SubChildren == null)
+            {
+                return;
+            }
+
+            foreach (var customAttribute in usedAttributes)
+            {
+                if (!graph.attributesManager.Exist(customAttribute.name))
+                {
+                    graph.TryAddCustomAttribute(customAttribute.name, customAttribute.type, customAttribute.description, true, out _);
+                }
+                else
+                {
+                    graph.TryUpdateCustomAttribute(customAttribute.name, CustomAttributeUtility.GetSignature(customAttribute.type), customAttribute.description, true);
+                }
+                graph.SetCustomAttributeDirty();
+            }
         }
     }
 }

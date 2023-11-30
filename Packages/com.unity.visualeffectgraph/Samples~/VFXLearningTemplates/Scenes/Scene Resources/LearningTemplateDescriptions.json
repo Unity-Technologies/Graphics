@@ -1,0 +1,317 @@
+{
+	"introduction":
+	"""Welcome to the VFX Learning Samples.
+	This collection is composed of various <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/index.html">VFX Graphs</a>, each, here, to visually explain one or several aspects of VFX Graph. Those visual examples are packed with notes so that users can get a good understanding of the VFX Graph feature set. This collection will be updated based on users inputs and/or development updates.""",
+
+
+	"samples": [
+		{
+			"title": "Contexts & Data Flow",
+			"prefabName": "Contexts & Data Flow",
+			"description":
+			"""<ignore><link="Context&Flow.vfx">Open VFX Graph</link>
+
+			</ignore>This VFX is intended to provide an overview and basic understanding of how <b>data flow</b> is articulated in VFX Graph. It also presents an overview of the most frequently used <b>Context Blocks</b>.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/GraphLogicAndPhilosophy.html#processing-workflow-vertical-logic">Data Flow</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Contexts.html">Context Block</a>"""
+
+
+		},
+		{
+			"title": "Capacity Count",
+			"prefabName": "Capacity",
+			"description":
+			"""<ignore><link="Capacity.vfx">Open VFX Graph</link>
+
+			</ignore><a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-Initialize.html#context-settings">Capacity Count</a> is used for the particle <b>Memory allocation</b> of a system. Increasing this number will increase the memory allocated.This capacity can be seen as the <b>max active particles</b>.It's a good practice to keep this number as close as possible to the Maximum alive particles.This VFX explains what capacity is and how to use the <b>VFX Control</b> to set the Capacity.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-Initialize.html#context-settings">Capacity</a>
+			• Memory allocation
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/VisualEffectGraphWindow.html#vfx-control">VFX Control</a>"""
+		},
+		{
+			"title": "Spawn Context",
+			"prefabName": "Spawn Context",
+			"description":
+			"""<ignore><link="SpawnContext.vfx">Open VFX Graph</link>
+
+			</ignore>This VFX is intended to provide information related to the <b>Spawn Context</b>.What is the <b>Spawn Context</b>, what options can be found in the inspector but also extra informations like: What are <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a> ? How to setup <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a>? What is the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SpawnState.html">Spawn State Operator</a>.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-Spawn.html">Spawn Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SpawnState.html">Spawn State</a>"""
+		},
+		{
+			"title": "Multiple Outputs",
+			"prefabName": "Multiple Outputs",
+			"description":
+			"""<ignore><link="MultipleOutputs.vfx">Open VFX Graph</link>
+
+			</ignore>The output context is where everything related to the rendering part of particles is done. You can render particles as <b>billboard quads</b>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputMesh.html">meshes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputPoint.html">points</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputForwardDecal.html">decals</a>, etc...
+			This VFX Graph shows how you can add several outputs to render each particle multiple times.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Contexts.html#output">Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetAttribute.html#block-settings">Composition Mode</a>"""
+		},
+		{
+			"title": "Bounds",
+			"prefabName": "Bounds",
+			"description":
+			"""<ignore><link="BoundsGizmo.vfx">Open VFX Graph</link>
+
+			</ignore>The <b>Bounds</b> are used to <b>cull</b> the VFX when it's not in the <b>camera frustum</b>. <b>Bounds</b> can be manually or automatically set. The <b>VFX Bound</b> is the cumulative Bounds of each System within a VFX Graph. In this example, the <b>Bounds</b> aren't properly set up, so the particles aren't rendering correctly. Don't hesitate to open the VFX to correctly set the <b>Bounds.</b>
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/visual-effect-bounds.html">Bounds</a>
+			• Culling"""
+		},
+		{
+			"title": "Orient Face Camera",
+			"prefabName": "Orient Face Camera",
+			"description":
+			"""<ignore><link="OrientFaceCamera.vfx">Open VFX Graph</link>
+
+			</ignore>Whether the <b>output</b> is set to quads, meshes, or even strips, we often want to control how the geometry is instantiated on a particle. Should it <b>face the camera</b>? What is the <b>forward</b> and/or <b>up-axis</b>?
+			The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles with its various modes. In this example, we're using the <b>Face Camera Position</b> mode, which will ensure that the particles are always facing the Camera position.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">AxisX AxisY AxisZ</a>"""
+		},
+		{
+			"title": "Orient Fixed Axis",
+			"prefabName": "Orient Fixed Axis",
+			"description":
+			"""<ignore><link="OrientFixedAxis.vfx">Open VFX Graph</link>
+
+			</ignore>Whether the <b>Output</b> is set to Quads, Meshes, or even Strips, we often want to control how to instantiate the geometry on a particle. Should it be <b>facing the camera</b>? What is the <b>forward</b> and/or <b>Up-Axis</b> ? The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles as it comes with a number of different modes. This example shows how to use the <b>Fixed Axis mode</b>.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">AxisX AxisY AxisZ</a>"""
+		},
+		{
+			"title": "Orient Advanced",
+			"prefabName": "Orient Advanced",
+			"description":
+			"""<ignore><link="OrientAdvanced.vfx">Open VFX Graph</link>
+
+			</ignore>Whether the <b>Output</b> is set to Quads, Meshes, or even Strips, we often want to control how to instantiate the geometry on a particle. Should it be <b>facing the camera</b>? What is the <b>forward</b> and/or <b>Up-Axis</b> ? The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles as it comes with a number of different modes. This example shows how to use the <b>Advanced Mode</b>.
+
+			<b>Covered Aspects:</b>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">AxisX AxisY AxisZ</a>"""
+		},
+		{
+			"title": "Rotation & Angle",
+			"prefabName": "Rotation & Angle",
+			"description":
+			"""<ignore><link="RotationAngle.vfx">Open VFX Graph</link>
+
+			</ignore>It's often really useful to be able to <b>rotate</b> particles. This VFX shows how to <b>rotate</b> particles thanks to the <b>Angle attribute</b>.
+
+			<b>Covered Aspects:</b>
+			• Rotation
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#advanced-simulation-attributes">Angle attribute</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">Pivot attribute</a>"""
+		},
+		{
+			"title": "Rotation & Angular Velocity",
+			"prefabName": "Rotation & Angular Velocity",
+			"description":
+			"""<ignore><link="AngularVelocity.vfx">Open VFX Graph</link>
+
+			</ignore><b>Particle’s rotation</b> can be controlled by setting the <b>angle attribute</b>. To get more realistic behavior, you can also, like in this example, use the <b>angular velocity</b>. This attribute is usually set in the <b>Initialize Context</b>, and then, the <b>Update Context</b> is responsible to <b>integrate this angular velocity to update the Rotation</b>.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#advanced-simulation-attributes">Angular Velocity</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#advanced-simulation-attributes">Angle</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-UpdateRotation.html">Update Rotation</a>"""
+		},
+		{
+			"title": "TexIndex Attribute",
+			"prefabName": "TexIndex Attribute",
+			"description":
+			"""<ignore><link="BasicTexIndex.vfx">Open VFX Graph</link>
+
+			</ignore>It's pretty common for VFX artists to rely on <b>Sprite sheets</b>. This VFX shows how to use <b>Uvs options</b> in the <b>Output</b> to use a <b>Sprite sheet</b>. It also explains how to set up the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-FlipbookPlayer.html">Flipbook Settings</a> and the relation with the <b>texIndex attribute</b>.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">TexIndex Attribute</a>
+			• Uvs Mode
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-FlipbookPlayer.html">Flipbook</a>"""
+		},
+		{
+			"title": "Flipbook Mode",
+			"prefabName": "Flipbook Mode",
+			"description":
+			"""<ignore><link="FlipbookMode.vfx">Open VFX Graph</link>
+
+			</ignore>This VFX shows how to set up the <b>Uvs mode </b>of the <b>Output</b> to <b>Flipbook</b> to use a <b>Sprite sheet</b>. It also shows the differences between <b>Flipbook Uvs</b> and <b>Flipbook Blend Uvs</b> and a basic usage of the <b>Flipbook Player Block</b>. <b>Flipbook Blend Uvs</b> mode allows interpolation between the frames. This can help to get smoother looking animation.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-FlipbookPlayer.html">Flipbook operator</a>
+			• Uvs Mode
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">TexIndex Attribute</a>"""
+		},
+		{
+			"title": "TexIndex Advanced",
+			"prefabName": "TexIndex Advanced",
+			"description":
+			"""<ignore><link="TexIndexAdvanced.vfx">Open VFX Graph</link>
+
+			</ignore>This complex VFX is composed of several systems that are playing with the <b>texIndex attribute</b> in a creative way in order to:Control the <b>texIndex</b> thanks to time, noise, and even particle position.
+
+			<b>Covered Aspects</b>:
+			• Flipbook Uvs
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">TexIndex Attribute</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-FlipbookPlayer.html">Flipbook Player</a>"""
+		},
+		{
+			"title": "Pivot Attribute",
+			"prefabName": "Pivot Attribute",
+			"description":
+			"""<ignore><link="PivotAttribute.vfx">Open VFX Graph</link>
+
+			</ignore>The <b>pivot attribute</b> control where the <b>output render</b> is <b>instantiated</b> in regard to the particle position. By default, the<b> pivot</b> is centered on the <b>Particle's Position</b>. But you can offset it on any axis (XYZ). Offsetting the pivot can be extremely helpful as it can lead to interesting motion when doing scaling or rotation.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">Pivot Attribute</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#advanced-simulation-attributes">Angle attribute</a>"""
+		},
+		{
+			"title": "Pivot Advanced",
+			"prefabName": "Pivot Advanced",
+			"description":
+			"""<ignore><link="PivotAdvanced.vfx">Open VFX Graph</link>
+
+			</ignore>Controlling the <b>Pivot</b> of a particle is a key aspect to unlock interesting motion. This VFX is giving an example of <b>Pivot</b> manipulation. Here the petals, Leafs and Spikes of the Flower are all particles. The<b> Pivot attribute</b> is controlled and sometimes animated to be able to properly locate and animate the particles. This example also demonstrates the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/sg-working-with.html">ShaderGraph integration</a> and how you can control <b>ShaderGraph</b> through <b>VFX Graph</b>.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">Pivot Attribute</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/sg-working-with.html">ShaderGraph integration</a>"""
+		},
+		{
+			"title": "Sample Mesh",
+			"prefabName": "Sample Mesh",
+			"description":
+			"""<ignore><link="SampleMesh.vfx">Open VFX Graph</link>
+
+			</ignore>This VFX is giving an example of how to <b>sample a Mesh</b> to spawn particles on its surface and <b>inherit</b> its <b>Vertex Color</b> of the Mesh. Ambient Occlusion has been baked in the vertex color of the Mesh and is used to set the <b>particles’s color</b>
+
+			<b>Covered Aspects:</b>
+			• Mesh Sampling
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleMesh.html">Sample Mesh Operator</a>"""
+		},
+		{
+			"title": "Sample Texture2D",
+			"prefabName": "Sample Texture2D",
+			"description":
+			"""<ignore><link="SampleTexture2D.vfx">Open VFX Graph</link>
+
+			</ignore>This VFX demonstrates how to use the <b>texture2D sample</b> operator to determine the color of particles and perform <b>rejection sampling</b>. We spawn particles in a 2D grid fashion and use their XY coordinates to <b>sample the texture</b>. We then kill the particles based on a threshold value of the sampled texture values.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleTexture2D.html">Texture2D Sample Operator</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#basic-simulation-attributes">Alive attribute</a>
+			• Rejection Sampling"""
+		},
+		{
+			"title": "Sample Signed Distance Field (SDF)",
+			"prefabName": "Sample SDF",
+			"description":
+			"""<ignore><link="SampleSDF.vfx">Open VFX Graph</link>
+
+			</ignore>A <b>signed distance field (SDF)</b> is a technique used to efficiently represent the shape and contours of 2D or 3D objects. It allows us to calculate the distance from any point in space to the<b> nearest point</b> on the object's surface. This VFX demonstrates how to <b>sample an SDF</b> to have particles crawling on the surface of a mesh. Note that an <b>SDF Baker tool</b> is provided:
+			Window->Visual Effects->Utilities->SDF Bake Tool
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleSDF.html">SDF Sample Operator</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-ConformToSignedDistanceField.html">Conform to SDF</a>
+			• Strip/trails"""
+		},
+		{
+			"title": "Sample Skinned Mesh",
+			"prefabName": "Sample Skinned Mesh",
+			"description":
+			"""<ignore><link="SampleSkinnedMesh.vfx">Open VFX Graph</link>
+
+			</ignore><b>Sampling a skinned mesh</b> enables you to get a lot of information from it, like surface position, vertex colors, Uvs, Normals, Velocity etc... This basic example shows how to <b>sample a Skinned Mesh</b> and spawn particles on its surface. We're also<b> getting the Uvs</b> of the Skinned Mesh to sample the same texture that the Mesh is using so that we can drive where to spawn feathers on our creature's back.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleSkinnedMesh.html">SkinnedMesh Sample Operator</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleTexture2D.html">Texture2D Sample Operator</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetPosition(SkinnedMesh).html">Set position SkinnedMesh</a>"""
+		},
+		{
+			"title": "Collision Properties",
+			"prefabName": "Collision Properties",
+			"description":
+			"""<ignore><link="CollisionBasicProperties.vfx">Open VFX Graph</link>
+
+			</ignore>As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry approximations like <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithAABox.html">Boxes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Spheres</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html">Cones</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithPlane.html">Planes</a> or even complex shapes with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. This VFX Graph, shows the use of a standard <b>Collider Block</b> and how the different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a> like <b>Bounce</b>, <b>Friction</b> and/or <b>Roughness</b> can influence the <b>collision response</b> of the particles.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Collider Blocks</a>"""
+		},
+		{
+			"title": "Collision Simple",
+			"prefabName": "Collision Simple",
+			"description":
+			"""<ignore><link="CollisionSimple.vfx">Open VFX Graph</link>
+
+			</ignore>As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry approximations like <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithAABox.html">Boxes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Spheres</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html">Cones</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithPlane.html">Planes</a> or even complex shapes with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. This example shows you how to combine different <b>collider blocks</b> to get the desired results. It also covers some tricks to leverage <b>boolean ports</b> to get rid of some collision precision issues.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Collider Blocks</a>
+			• Boolean Port"""
+		},
+		{
+			"title": "Collision Advanced",
+			"prefabName": "Collision Advanced",
+			"description":
+			"""<ignore><link="CollisionAdvanced.vfx">Open VFX Graph</link>
+
+			</ignore>As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry approximations like <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithAABox.html">Boxes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Spheres</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html">Cones</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithPlane.html">Planes</a> or even complex shapes with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. Sometimes using simple collision shapes isn’t enough to get a precise enough collision with the environment. In this case, using <b>SDF</b> can be a good solution to approximate complex geometry like this sculpture of a hand.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF Collider</a>"""
+		},
+		{
+			"title": "Trigger Event Advanced",
+			"prefabName": "Trigger Event Advanced",
+			"description":
+			"""<ignore><link="TriggerEventAdvanced.vfx">Open VFX Graph</link>
+
+			</ignore>This VFX is displaying an advanced usage of the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventOnDie.html">Trigger on Die</a> block that allows us to spawn new particles when a particle dies. Dart particles are thrown at the dartboard. When they collide, they instantaneously die and trigger different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>. Those <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a> are used to spawn new particles like the Springy darts or the UI Score particles, that all <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">inherit attributes</a> from their parent.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventOnDie.html">Trigger on Die</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">Source Attribute</a>"""
+		},
+		{
+			"title": "Decal Particles",
+			"prefabName": "Decal Particles",
+			"description":
+			"""<ignore><link="DecalParticles.vfx">Open VFX Graph</link>
+
+			</ignore><b>Decal</b> is a very powerful tool that can add a lot of visual complexity to an environment. We can use <b>decals</b> to project textures on the environment and even on dynamic objects or skinned meshes. Output Decals allow you to render particles as <b>decals</b> and to project its properties onto a surface using a Base Color map (albedo), a Normal Map, or a Mask Map. This example shows how to leverage the <b>Output Decal</b> to stick and project animated <b>decals</b> onto an animated skinned mesh renderer.
+			
+			<i><b>Warning</b>: For this feature to work in URP, make sure to add an <b>Decal Renderer Feature</b> in your <b>URP Renderer Data</b> file.</i>
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetPosition(SkinnedMesh).html">Skinned Mesh Position</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleHDRPLitDecal.html">Output Decals HDRP</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleHDRPLitDecal.html">Output Decals URP</a>"""
+		}
+	]
+}

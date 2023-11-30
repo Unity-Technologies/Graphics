@@ -1,8 +1,8 @@
-# Renderer and Material Priority
+# Understand renderer and material priority
 
 A render pipeline must sort objects before rendering them to make sure that they appear on the screen in the correct order. The render pipeline must draw objects that are far away from the Camera first, so that it can draw closer objects over the top of them later. If the order isn't correct, objects further away from the Camera can appear in front of closer objects.
 
-The built-it Unity render pipeline sorts GameObjects according to their [Rendering Mode](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) and [renderQueue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html). HDRP uses the render queue in a different way, in that HDRP Materials don't expose the render queue directly. Instead, HDRP introduces two methods of control. Sorting by [Material](#SortingByMaterial) and sorting by [Renderer](#SortingByRenderer).
+The built-in Unity render pipeline sorts GameObjects according to their [Rendering Mode](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) and [renderQueue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html). HDRP uses the render queue in a different way, in that HDRP Materials don't expose the render queue directly. Instead, HDRP introduces two methods of control. Sorting by [Material](#SortingByMaterial) and sorting by [Renderer](#SortingByRenderer).
 
 HDRP uses these two sorting methods together to control the render queue. To calculate the order of the render queue, HDRP:
 
@@ -14,7 +14,7 @@ The resulting queue is a list of GameObjects that are first sorted by their Mate
 
 <a name="SortingByMaterial"></a>
 
-## Sorting by Material
+## Sort by Material
 
 Materials with a **Transparent Surface Type** have a **Sorting Priority** property that you can use to sort groups of Meshes that use different Materials. This property is an integer value clamped between -50 and 50.
 

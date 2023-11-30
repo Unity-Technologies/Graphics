@@ -15,17 +15,17 @@ namespace UnityEngine.Rendering.HighDefinition
         int[] m_SrcOffset;
         int[] m_DstOffset;
 
-        public MipGenerator(HDRenderPipelineRuntimeResources defaultResources)
+        public MipGenerator(HDRenderPipeline renderPipeline)
         {
             m_TempColorTargets = new RTHandle[tmpTargetCount];
             m_TempDownsamplePyramid = new RTHandle[tmpTargetCount];
-            m_DepthPyramidCS = defaultResources.shaders.depthPyramidCS;
+            m_DepthPyramidCS = renderPipeline.runtimeShaders.depthPyramidCS;
 
             m_DepthDownsampleKernel = m_DepthPyramidCS.FindKernel("KDepthDownsample8DualUav");
 
             m_SrcOffset = new int[4];
             m_DstOffset = new int[4];
-            m_ColorPyramidPS = defaultResources.shaders.colorPyramidPS;
+            m_ColorPyramidPS = renderPipeline.runtimeShaders.colorPyramidPS;
             m_ColorPyramidPSMat = CoreUtils.CreateEngineMaterial(m_ColorPyramidPS);
             m_PropertyBlock = new MaterialPropertyBlock();
         }

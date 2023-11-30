@@ -22,6 +22,18 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0
+  planetType:
+    m_OverrideState: 1
+    m_Value: 1
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  planetRadius:
+    m_OverrideState: 0
+    m_Value: 6378100
+  planetCenter:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: -6378100, z: 0}
   windOrientation:
     m_OverrideState: 0
     m_Value: 0
@@ -54,7 +66,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 24
   minimumDepth:
     m_OverrideState: 1
     m_Value: 1
@@ -82,6 +94,12 @@ MonoBehaviour:
   tilingParameters:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1, z: 0, w: 0}
+  seedMode:
+    m_OverrideState: 1
+    m_Value: 1
+  customSeed:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,18 +251,13 @@ MonoBehaviour:
   type:
     m_OverrideState: 0
     m_Value: 1
-  sphericalMode:
-    m_OverrideState: 0
-    m_Value: 1
-  seaLevel:
+  renderingMode:
     m_OverrideState: 0
     m_Value: 0
-  planetaryRadius:
+  material:
     m_OverrideState: 0
-    m_Value: 6378100
-  planetCenterPosition:
-    m_OverrideState: 0
-    m_Value: {x: 0, y: -6378100, z: 0}
+    m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e,
+      type: 3}
   airDensityR:
     m_OverrideState: 0
     m_Value: 0.04534
@@ -317,7 +330,19 @@ MonoBehaviour:
   horizonZenithShift:
     m_OverrideState: 0
     m_Value: 0
-  m_SkyVersion: 1
+  m_SkyVersion: 2
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
     m_Value: 1
+  sphericalMode:
+    m_OverrideState: 0
+    m_Value: 1
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  planetaryRadius:
+    m_OverrideState: 0
+    m_Value: 6378100
+  planetCenterPosition:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: -6378100, z: 0}

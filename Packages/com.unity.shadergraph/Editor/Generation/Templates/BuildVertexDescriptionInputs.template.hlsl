@@ -42,6 +42,11 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     $VertexDescriptionInputs.BoneWeights:                               output.BoneWeights =                                input.weights;
     $VertexDescriptionInputs.BoneIndices:                               output.BoneIndices =                                input.indices;
     $VertexDescriptionInputs.VertexID:                                  output.VertexID =                                   input.vertexID;
+$VertexDescriptionInputs.InstanceID: #if UNITY_ANY_INSTANCING_ENABLED
+    $VertexDescriptionInputs.InstanceID:                                output.InstanceID =                                 unity_InstanceID;
+$VertexDescriptionInputs.InstanceID: #else // TODO: XR support for procedural instancing because in this case UNITY_ANY_INSTANCING_ENABLED is not defined and instanceID is incorrect.
+    $VertexDescriptionInputs.InstanceID:                                output.InstanceID =                                 input.instanceID;
+$VertexDescriptionInputs.InstanceID: #endif
 
     return output;
 }

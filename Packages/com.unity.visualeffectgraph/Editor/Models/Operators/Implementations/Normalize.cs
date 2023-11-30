@@ -5,20 +5,15 @@ namespace UnityEditor.VFX.Operator
 {
     class SafeNormalizationVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        public override IEnumerable<Variant> GetVariants()
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "safeNormalize", new object[] {true, false} }
-                };
-            }
+            yield return new Variant("Safe Normalize", "Math/Vector", typeof(Normalize), new[] {new KeyValuePair<string, object>("safeNormalize", true)});
+            yield return new Variant("Normalize", "Math/Vector", typeof(Normalize), new[] {new KeyValuePair<string, object>("safeNormalize", false)});
         }
     }
 
     [VFXHelpURL("Operator-Normalize")]
-    [VFXInfo(category = "Math/Vector", variantProvider = typeof(SafeNormalizationVariantProvider))]
+    [VFXInfo(variantProvider = typeof(SafeNormalizationVariantProvider))]
     class Normalize : VFXOperatorNumericUniform
     {
         public class InputProperties

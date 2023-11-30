@@ -6,8 +6,14 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
+    class SampleMeshTriangleCountProvider : SampleMeshProvider
+    {
+        protected override string nameTemplate { get; } = "Get {0} Triangle Count";
+        protected override Type operatorType { get; } = typeof(MeshTriangleCount);
+    }
+
     //[VFXHelpURL("Operator-MeshTriangleCount")]
-    [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider))]
+    [VFXInfo(variantProvider = typeof(SampleMeshTriangleCountProvider))]
     class MeshTriangleCount : VFXOperator
     {
         override public string name

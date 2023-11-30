@@ -220,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_GeneratePropertyBlock = value;
         }
 
-        internal bool isExposed => isExposable && generatePropertyBlock;
+        internal virtual bool isExposed => isExposable && generatePropertyBlock;
 
         public virtual bool allowedInSubGraph
         {

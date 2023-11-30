@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Create_Prefab_Several_Override()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var parametersIntDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(int)).First();
+            var parametersIntDesc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(int)).First();
 
             Func<VisualEffect, string> dumpPropertySheetInteger = delegate(VisualEffect target)
             {
@@ -360,7 +360,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Create_Prefab_Modify_And_Expect_No_Override()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(Vector3)).First();
 
             var exposedName = "ghjkl";
             var parameter = parametersVector3Desc.CreateInstance();
@@ -446,7 +446,7 @@ namespace UnityEditor.VFX.Test
         {
             //Cover case 1230230 : VFX parameters are not set when the gameobject is immediately deactivated and is not selected in the Hierarchy
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var parametersUintDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(uint)).First();
+            var parametersUintDesc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(uint)).First();
 
             var parameter = parametersUintDesc.CreateInstance();
             parameter.SetSettingValue("m_ExposedName", m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable);
@@ -505,7 +505,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Create_Prefab_And_Check_UndoRedo()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var parametersUintDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(uint)).First();
+            var parametersUintDesc = VFXLibrary.GetParameters().Where(o => o.modelType == typeof(uint)).First();
 
             var parameter = parametersUintDesc.CreateInstance();
             parameter.SetSettingValue("m_ExposedName", m_Exposed_name_Create_Prefab_And_Check_UndoRedo);

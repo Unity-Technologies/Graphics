@@ -1,7 +1,7 @@
 #ifndef UNITY_COMMON_LIGHTING_INCLUDED
 #define UNITY_COMMON_LIGHTING_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -136,6 +136,55 @@ real PunctualLightAttenuation(real4 distances, real rangeAttenuationScale, real 
 
     // Effectively results in SmoothWindowedDistanceAttenuation(...) * SmoothAngleAttenuation(...).
     return Sq(attenuation);
+}
+
+// A hack to smoothly limit the influence of the light to the interior of a capsule.
+// A capsule is formed by sweeping a ball along a line segment.
+// This function behaves like SmoothWindowedDistanceAttenuation() for a short line segment.
+// Convention: the surface point is located at the origin of the coordinate system.
+real CapsuleWindowing(real3 center, real3 xAxis, real halfLength,
+                      real rangeAttenuationScale, real rangeAttenuationBias)
+{
+    // Conceptually, the idea is very simple: after taking the symmetry
+    // of the capsule into account, it is clear that the problem can be
+    // reduced to finding the closest sphere inside the capsule.
+    // We begin our search at the center of the capsule, and then translate
+    // this point along the line of symmetry until we either
+    // a) find the closest point on the line, or b) hit an endpoint of the line segment.
+    // The problem is simplified by working in the coordinate system of the capsule.
+    real x  = dot(center, xAxis);            // -x, strictly speaking
+    real dx = max(0, abs(x) - halfLength);
+    real r2 = dot(center, center);           // r^2
+    real z2 = max(0, r2 - x * x);            // z^2
+    real d2 = z2 + dx * dx;                  // Squared distance to the center of the closest sphere
+
+    return SmoothDistanceWindowing(d2, rangeAttenuationScale, rangeAttenuationBias);
+}
+
+// A hack to smoothly limit the influence of the light to the interior of a pillow.
+// A "pillow" (for the lack of a better name) is formed by sweeping a ball across a rectangle.
+// This function behaves like CapsuleAttenuation() for a narrow rectangle.
+// This function behaves like SmoothWindowedDistanceAttenuation() for a small rectangle.
+// Convention: the surface point is located at the origin of the coordinate system.
+real PillowWindowing(real3 center, real3 xAxis, real3 yAxis, real halfLength, real halfHeight,
+                     real rangeAttenuationScale, real rangeAttenuationBias)
+{
+    // Conceptually, the idea is very simple: after taking the symmetry
+    // of the pillow into account, it is clear that the problem can be
+    // reduced to finding the closest sphere inside the pillow.
+    // We begin our search at the center of the pillow, and then translate
+    // this point along and across the plane of symmetry until we either
+    // a) find the closest point on the plane, or b) hit an edge of the rectangle.
+    // The problem is simplified by working in the coordinate system of the pillow.
+    real x  = dot(center, xAxis);            // -x, strictly speaking
+    real dx = max(0, abs(x) - halfLength);
+    real y  = dot(center, yAxis);            // -y, strictly speaking
+    real dy = max(0, abs(y) - halfHeight);
+    real r2 = dot(center, center);           // r^2
+    real z2 = max(0, r2 - x * x - y * y);    // z^2
+    real d2 = z2 + dx * dx + dy * dy;        // Squared distance to the center of the closest sphere
+
+    return SmoothDistanceWindowing(d2, rangeAttenuationScale, rangeAttenuationBias);
 }
 
 // Applies SmoothDistanceWindowing() after transforming the attenuation ellipsoid into a sphere.
@@ -479,7 +528,7 @@ real3x3 GetLocalFrame(real3 localZ, real3 localX)
 
 // Construct a right-handed view-dependent orthogonal basis around the normal:
 // b0-b2 is the view-normal aka reflection plane.
-real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool testSingularity = false)
+real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool testSingularity = true)
 {
     real3x3 orthoBasisViewNormal;
     if (testSingularity && (abs(1.0 - unclampedNdotV) <= FLT_EPS))

@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
 
-        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.HybridPerInstance) && (decl != HLSLDeclaration.DoNotDeclare);
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {

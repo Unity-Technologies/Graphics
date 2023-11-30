@@ -1,12 +1,14 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class UpscalePass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Upscale Pass");
+        static readonly string k_UpscalePass = "Upscale2D Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_UpscalePass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Upscale");
         static Material m_BlitMaterial;
 
@@ -24,11 +26,11 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = blitMaterial;
         }
 
-        public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, ref RenderingData renderingData, out RTHandle upscaleHandle)
+        public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, RenderTextureDescriptor cameraTargetDescriptor, out RTHandle upscaleHandle)
         {
             source = colorTargetHandle;
 
-            RenderTextureDescriptor desc = renderingData.cameraData.cameraTargetDescriptor;
+            RenderTextureDescriptor desc = cameraTargetDescriptor;
             desc.width = width;
             desc.height = height;
             desc.depthBufferBits = 0;
@@ -59,16 +61,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref CameraData cameraData, ref RenderingData renderingData, in TextureHandle cameraColorAttachment, in TextureHandle upscaleHandle)
+        public void Render(RenderGraph graph, Camera camera, in TextureHandle cameraColorAttachment, in TextureHandle upscaleHandle)
         {
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
+            camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
             if (ppc == null || !ppc.enabled || !ppc.requiresUpscalePass)
                 return;
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Upscale Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_UpscalePass, out var passData, m_ProfilingSampler))
             {
                 passData.source = cameraColorAttachment;
-                builder.UseTextureFragment(upscaleHandle, 0);
+                builder.SetRenderAttachment(upscaleHandle, 0);
                 builder.UseTexture(cameraColorAttachment);
 
                 builder.AllowPassCulling(false);

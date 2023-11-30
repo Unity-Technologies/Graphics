@@ -202,6 +202,10 @@ Varyings BuildVaryings(Attributes input
     output.color = input.color;
 #endif
 
+#if (defined(VARYINGS_NEED_INSTANCEID) || defined(VARYINGS_DS_NEED_INSTANCEID)) && !UNITY_ANY_INSTANCING_ENABLED
+    output.instanceID = input.instanceID;
+#endif
+
 #ifdef VARYINGS_NEED_SCREENPOSITION
     output.screenPosition = vertexInput.positionNDC;
 #endif

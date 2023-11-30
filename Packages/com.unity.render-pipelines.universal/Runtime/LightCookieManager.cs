@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
             return m_VisibleLightIndexToShaderDataIndex[visibleLightIndex];
         }
 
-        public void Setup(CommandBuffer cmd, ref LightData lightData)
+        public void Setup(CommandBuffer cmd, UniversalLightData lightData)
         {
             using var profScope = new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LightCookies));
 
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
             bool isAdditionalLightsAvailable = lightData.additionalLightsCount > 0;
             if (isAdditionalLightsAvailable)
             {
-                isAdditionalLightsAvailable = SetupAdditionalLights(cmd, ref lightData);
+                isAdditionalLightsAvailable = SetupAdditionalLights(cmd, lightData);
             }
 
             // Ensure cookies are disabled if no cookies are available.
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Main and additional lights are merged into one keyword to reduce variants.
             IsKeywordLightCookieEnabled = isMainLightAvailable || isAdditionalLightsAvailable;
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightCookies, IsKeywordLightCookieEnabled);
+            cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, IsKeywordLightCookieEnabled);
         }
 
         bool SetupMainLight(CommandBuffer cmd, ref VisibleLight visibleMainLight)
@@ -440,12 +440,12 @@ namespace UnityEngine.Rendering.Universal
             uvTransform.SetColumn(3, new Vector4(-uvOffset.x * uvScale.x, -uvOffset.y * uvScale.y, 0, 1));
         }
 
-        bool SetupAdditionalLights(CommandBuffer cmd, ref LightData lightData)
+        bool SetupAdditionalLights(CommandBuffer cmd, UniversalLightData lightData)
         {
             int maxLightCount = Math.Min(m_Settings.maxAdditionalLights, lightData.visibleLights.Length);
             m_WorkMem.Resize(maxLightCount);
 
-            int validLightCount = FilterAndValidateAdditionalLights(ref lightData, m_WorkMem.lightMappings);
+            int validLightCount = FilterAndValidateAdditionalLights(lightData, m_WorkMem.lightMappings);
 
             // Early exit if no valid cookie lights
             if (validLightCount <= 0)
@@ -461,13 +461,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Upload shader data
             var validUvRects = new WorkSlice<Vector4>(m_WorkMem.uvRects, validUVRectCount);
-            UploadAdditionalLights(cmd, ref lightData, ref validLights, ref validUvRects);
+            UploadAdditionalLights(cmd, lightData, ref validLights, ref validUvRects);
 
             bool isAdditionalLightsEnabled = validUvRects.length > 0;
             return isAdditionalLightsEnabled;
         }
 
-        int FilterAndValidateAdditionalLights(ref LightData lightData, LightCookieMapping[] validLightMappings)
+        int FilterAndValidateAdditionalLights(UniversalLightData lightData, LightCookieMapping[] validLightMappings)
         {
             int skipMainLightIndex = lightData.mainLightIndex;
             int lightBufferOffset = 0;
@@ -740,7 +740,7 @@ namespace UnityEngine.Rendering.Universal
             uvScaleOffset.y *= shrinkScale.y;
         }
 
-        void UploadAdditionalLights(CommandBuffer cmd, ref LightData lightData, ref WorkSlice<LightCookieMapping> validLightMappings, ref WorkSlice<Vector4> validUvRects)
+        void UploadAdditionalLights(CommandBuffer cmd, UniversalLightData lightData, ref WorkSlice<LightCookieMapping> validLightMappings, ref WorkSlice<Vector4> validUvRects)
         {
             Assertions.Assert.IsTrue(m_AdditionalLightsCookieAtlas != null);
             Assertions.Assert.IsTrue(m_AdditionalLightsCookieShaderData != null);

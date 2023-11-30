@@ -150,8 +150,10 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
     // Skip useless groups
     if (groupId.x > GetElementCount(groupId.z) / ELEMENTS_COUNT)
         return;
-#if !FINAL_PASS
-    if(groupId.x == 0 && id == 0)
+    if (groupId.x == 0 && id == 0)
+#if FINAL_PASS
+        sortedSequence[groupId.z] = inputSequence[groupId.z].value;
+#else
         sortedSequence[groupId.z] = inputSequence[groupId.z];
 #endif
     // Load data from memory to LDS
@@ -232,6 +234,11 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
                 uint3 groupThreadId : SV_GroupThreadID)
 {
     uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
+
+#if FINAL_PASS
+    if (groupId.x == 0 && id == 0)
+        sortedSequence[groupId.z] = inputSequence[groupId.z].value;
+#endif
 
     if (id >= GetElementCount(groupId.z))
         return;

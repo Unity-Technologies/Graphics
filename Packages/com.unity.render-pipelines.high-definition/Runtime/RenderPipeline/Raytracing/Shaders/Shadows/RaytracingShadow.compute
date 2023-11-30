@@ -163,7 +163,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
         // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
         int cookieMode = lightData.cookieMode;
         lightData.cookieMode = COOKIEMODE_NONE;
-        DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
+        DirectLighting lighting = EvaluateBSDF_Area(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
         lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
         lightData.cookieMode = cookieMode;
 

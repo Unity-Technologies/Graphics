@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditorInternal;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -19,10 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Rendering = 1 << 4,
             Lighting = 1 << 5,
-            LightingQuality = 1 << 6,
+            LightingTiers = 1 << 6,
             Material = 1 << 7,
             PostProcess = 1 << 8,
-            PostProcessQuality = 1 << 9,
+            PostProcessTiers = 1 << 9,
             XR = 1 << 10,
             VirtualTexturing = 1 << 11,
             Volumes = 1 << 12
@@ -65,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIQuality = 1 << 6,
             SSGIQuality = 1 << 7
         }
-        
+
         internal enum ExpandablePostProcess
         {
             LensFlare = 1 << 0
@@ -102,6 +105,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly ExpandedState<ExpandablePostProcessQuality, HDRenderPipelineAsset> k_ExpandablePostProcessQualityState = new(0, "HDRP");
 
         static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
+
+        static internal void ExpandGroup(ExpandableGroup group)
+        {
+            k_ExpandedGroupState.SetExpandedAreas(group, true);
+        }
 
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
         k_QualityExpandedStates = new();
@@ -175,29 +183,28 @@ namespace UnityEditor.Rendering.HighDefinition
                         CED.FoldoutGroup(Styles.directionalLightshadowSubTitle, ExpandableShadows.DirectionalLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_DirectionalLightSectionShadows),
                         CED.FoldoutGroup(Styles.areaLightshadowSubTitle, ExpandableShadows.AreaLightShadows, k_LightsExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_AreaLightSectionShadows)
                         ),
-                    CED.FoldoutGroup(Styles.lightLoopSubTitle, ExpandableLighting.LightLoop, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
-                    ),
-                SubInspectors[ExpandableGroup.LightingQuality] = CED.FoldoutGroup(Styles.lightingQualitySettings, ExpandableGroup.LightingQuality, k_ExpandedGroupState,
-                    QualityDrawer(Styles.SSAOQualitySettingSubTitle, ExpandableLightingQuality.SSAOQuality, k_ExpandableLightingQualityState, DrawAOQualitySetting),
-                    QualityDrawer(Styles.RTAOQualitySettingSubTitle, ExpandableLightingQuality.RTAOQuality, k_ExpandableLightingQualityState, DrawRTAOQualitySetting),
-                    QualityDrawer(Styles.contactShadowsSettingsSubTitle, ExpandableLightingQuality.ContactShadowQuality, k_ExpandableLightingQualityState, DrawContactShadowQualitySetting),
-                    QualityDrawer(Styles.SSRSettingsSubTitle, ExpandableLightingQuality.SSRQuality, k_ExpandableLightingQualityState, DrawSSRQualitySetting),
-                    QualityDrawer(Styles.RTRSettingsSubTitle, ExpandableLightingQuality.RTRQuality, k_ExpandableLightingQualityState, DrawRTRQualitySetting),
-                    QualityDrawer(Styles.FogSettingsSubTitle, ExpandableLightingQuality.FogQuality, k_ExpandableLightingQualityState, DrawVolumetricFogQualitySetting),
-                    QualityDrawer(Styles.RTGISettingsSubTitle, ExpandableLightingQuality.RTGIQuality, k_ExpandableLightingQualityState, DrawRTGIQualitySetting),
-                    QualityDrawer(Styles.SSGISettingsSubTitle, ExpandableLightingQuality.SSGIQuality, k_ExpandableLightingQualityState, DrawSSGIQualitySetting)
+                    CED.FoldoutGroup(Styles.lightLoopSubTitle, ExpandableLighting.LightLoop, k_ExpandableLightingState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop),
+                    CED.FoldoutGroup(Styles.tierSubTitle, ExpandableGroup.LightingTiers, k_ExpandedGroupState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                        QualityDrawer(Styles.SSAOQualitySettingSubTitle, ExpandableLightingQuality.SSAOQuality, k_ExpandableLightingQualityState, DrawAOQualitySetting),
+                        QualityDrawer(Styles.RTAOQualitySettingSubTitle, ExpandableLightingQuality.RTAOQuality, k_ExpandableLightingQualityState, DrawRTAOQualitySetting),
+                        QualityDrawer(Styles.contactShadowsSettingsSubTitle, ExpandableLightingQuality.ContactShadowQuality, k_ExpandableLightingQualityState, DrawContactShadowQualitySetting),
+                        QualityDrawer(Styles.SSRSettingsSubTitle, ExpandableLightingQuality.SSRQuality, k_ExpandableLightingQualityState, DrawSSRQualitySetting),
+                        QualityDrawer(Styles.RTRSettingsSubTitle, ExpandableLightingQuality.RTRQuality, k_ExpandableLightingQualityState, DrawRTRQualitySetting),
+                        QualityDrawer(Styles.FogSettingsSubTitle, ExpandableLightingQuality.FogQuality, k_ExpandableLightingQualityState, DrawVolumetricFogQualitySetting),
+                        QualityDrawer(Styles.RTGISettingsSubTitle, ExpandableLightingQuality.RTGIQuality, k_ExpandableLightingQualityState, DrawRTGIQualitySetting),
+                        QualityDrawer(Styles.SSGISettingsSubTitle, ExpandableLightingQuality.SSGIQuality, k_ExpandableLightingQualityState, DrawSSGIQualitySetting))
                     ),
                 SubInspectors[ExpandableGroup.Material] = CED.FoldoutGroup(Styles.materialSectionTitle, ExpandableGroup.Material, k_ExpandedGroupState, Drawer_SectionMaterialUnsorted),
                 SubInspectors[ExpandableGroup.PostProcess] = CED.FoldoutGroup(Styles.postProcessSectionTitle, ExpandableGroup.PostProcess, k_ExpandedGroupState,
                     CED.Group(GroupOption.Indent, Drawer_SectionPostProcessSettings),
-                    CED.FoldoutGroup(Styles.LensFlareTitle, ExpandablePostProcess.LensFlare, k_ExpandablePostProcessState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_LensFlare)
+                    CED.FoldoutGroup(Styles.LensFlareTitle, ExpandablePostProcess.LensFlare, k_ExpandablePostProcessState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_LensFlare),
+                    CED.FoldoutGroup(Styles.tierSubTitle, ExpandableGroup.PostProcessTiers, k_ExpandedGroupState, FoldoutOption.Indent | FoldoutOption.SubFoldout,
+                        QualityDrawer(Styles.depthOfFieldQualitySettings, ExpandablePostProcessQuality.DepthOfFieldQuality, k_ExpandablePostProcessQualityState, DrawDepthOfFieldQualitySetting),
+                        QualityDrawer(Styles.motionBlurQualitySettings, ExpandablePostProcessQuality.MotionBlurQuality, k_ExpandablePostProcessQualityState, DrawMotionBlurQualitySetting),
+                        QualityDrawer(Styles.bloomQualitySettings, ExpandablePostProcessQuality.BloomQuality, k_ExpandablePostProcessQualityState, DrawBloomQualitySetting),
+                        QualityDrawer(Styles.chromaticAberrationQualitySettings, ExpandablePostProcessQuality.ChromaticAberrationQuality, k_ExpandablePostProcessQualityState, DrawChromaticAberrationQualitySetting)
+                    )
                 ),
-                SubInspectors[ExpandableGroup.PostProcessQuality] = CED.FoldoutGroup(Styles.postProcessQualitySubTitle, ExpandableGroup.PostProcessQuality, k_ExpandedGroupState,
-                    QualityDrawer(Styles.depthOfFieldQualitySettings, ExpandablePostProcessQuality.DepthOfFieldQuality, k_ExpandablePostProcessQualityState, DrawDepthOfFieldQualitySetting),
-                    QualityDrawer(Styles.motionBlurQualitySettings, ExpandablePostProcessQuality.MotionBlurQuality, k_ExpandablePostProcessQualityState, DrawMotionBlurQualitySetting),
-                    QualityDrawer(Styles.bloomQualitySettings, ExpandablePostProcessQuality.BloomQuality, k_ExpandablePostProcessQualityState, DrawBloomQualitySetting),
-                    QualityDrawer(Styles.chromaticAberrationQualitySettings, ExpandablePostProcessQuality.ChromaticAberrationQuality, k_ExpandablePostProcessQualityState, DrawChromaticAberrationQualitySetting)
-                    ),
                 SubInspectors[ExpandableGroup.Volumes] = CED.FoldoutGroup(Styles.volumesSectionTitle, ExpandableGroup.Volumes, k_ExpandedGroupState, Drawer_SectionVolumes),
                 SubInspectors[ExpandableGroup.XR] = CED.FoldoutGroup(Styles.xrTitle, ExpandableGroup.XR, k_ExpandedGroupState, Drawer_SectionXRSettings),
                 SubInspectors[ExpandableGroup.VirtualTexturing] = CED.FoldoutGroup(Styles.virtualTexturingTitle, ExpandableGroup.VirtualTexturing, k_ExpandedGroupState, Drawer_SectionVTSettings)
@@ -553,21 +560,115 @@ namespace UnityEditor.Rendering.HighDefinition
         static bool s_DisplayNvidiaModuleButtonInstall = true;
 #endif
 
+#if ENABLE_AMD && !ENABLE_AMD_MODULE
+        static bool s_DisplayAMDModuleButtonInstall = true;
+#endif
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
 
             bool showUpsampleFilterAsFallback = false;
+            int advancedUpscalersAvailable = 0;
+            int advancedUpscalersDetectedMask = 0;
+            int advancedUpscalersEnabledMask = 0;
+
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+            advancedUpscalersDetectedMask |= HDDynamicResolutionPlatformCapabilities.FSR2Detected ? (1 << (int)AdvancedUpscalers.FSR2) : 0;
+            advancedUpscalersAvailable |= (1 << (int)AdvancedUpscalers.FSR2);
+#endif
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            advancedUpscalersDetectedMask |= HDDynamicResolutionPlatformCapabilities.DLSSDetected ? (1 << (int)AdvancedUpscalers.DLSS) : 0;
+            advancedUpscalersAvailable |= (1 << (int)AdvancedUpscalers.DLSS);
+#endif
+
+            for (int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.arraySize; ++i)
+            {
+                int upscalerMaskValue = 1 << serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(i).intValue;
+                advancedUpscalersEnabledMask |= upscalerMaskValue;
+            }
 
             ++EditorGUI.indentLevel;
 
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.dynamicResolutionSettings.enabled.boolValue))
             {
-#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                bool dlssDetected = HDDynamicResolutionPlatformCapabilities.DLSSDetected;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS, Styles.enableDLSS);
+                if (advancedUpscalersDetectedMask != 0)
+                {
+                    ReorderableList reorderableList = null;
+                    if(owner as HDRenderPipelineEditor != null)
+                    {
+                        HDRenderPipelineEditor editor = owner as HDRenderPipelineEditor;
+                        reorderableList = editor.reusableReorderableList;
 
-                if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                        reorderableList ??= new ReorderableList(serialized.serializedObject, serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority, true, true, true, true)
+                        {
+                            drawHeaderCallback = (Rect rect) =>
+                            {
+                                EditorGUI.LabelField(new Rect(rect.x - 45f, rect.y, rect.width - 45f, rect.height), "Advanced Upscalers by Priority", EditorStyles.boldLabel);
+                            },
+                            drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                            {
+                                var element = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(index);
+                                rect.y += 2;
+                                EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight), element.enumDisplayNames[element.enumValueIndex], EditorStyles.label);
+                            },
+                            onAddDropdownCallback = (rect,list) => {
+                                int availableScalers = math.countbits(advancedUpscalersAvailable);
+                                AdvancedUpscalers[] possible = new AdvancedUpscalers[availableScalers];
+                                var names = new GUIContent[availableScalers];
+                                var enabled = new bool[availableScalers];
+                                for (int upscalerRemainingMask = advancedUpscalersAvailable, nextItem = 0; upscalerRemainingMask != 0;)
+                                {
+                                    AdvancedUpscalers upscalerIndex = (AdvancedUpscalers)math.tzcnt(upscalerRemainingMask);
+                                    enabled[nextItem] = (advancedUpscalersEnabledMask & (1 << (int)upscalerIndex)) == 0;
+                                    possible[nextItem] = upscalerIndex;
+                                    names[nextItem] = new GUIContent(upscalerIndex.ToString());
+                                    upscalerRemainingMask ^= (1 << (int)upscalerIndex);//turn off the bit
+                                    nextItem++;
+                                }
+
+                                EditorUtility.SelectMenuItemFunction value = (userData, options, selected) =>
+                                {
+                                    //Check if upscalerPriority already contains this selected upscalertype
+                                    bool containsSelection = false;
+                                    for(int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.arraySize; ++i)
+                                    {
+                                        if(serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(i).intValue == (int)possible[selected])
+                                        {
+                                            containsSelection = true;
+                                            break;
+                                        }
+                                    }
+
+                                    //if it doesnt then add item
+                                    if(!containsSelection)
+                                    {
+                                        int newIndex = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.arraySize;
+                                        serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.InsertArrayElementAtIndex(newIndex);
+                                        var newElement = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(list.index);
+                                        newElement.enumValueIndex = (int)possible[selected];
+                                        serialized.serializedObject.ApplyModifiedProperties();
+                                    }
+                                };
+                                EditorUtility.DisplayCustomMenu(rect, names, enabled.Length, value, possible, false);
+
+                            }
+                        };
+                        editor.reusableReorderableList = reorderableList;
+                    }
+
+                    EditorGUILayout.Space();
+                    EditorGUILayout.BeginVertical(new GUIStyle() { margin = new RectOffset((EditorGUI.indentLevel + 1) * 15, 0, 0, 0) });
+                    reorderableList.DoLayoutList();
+                    EditorGUILayout.EndVertical();
+
+                }
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+
+                bool containsDLSS = ((1 << (int)AdvancedUpscalers.DLSS) & advancedUpscalersEnabledMask) != 0;
+                bool dlssDetected = ((1 << (int)AdvancedUpscalers.DLSS) & advancedUpscalersDetectedMask) != 0;
+                if (containsDLSS)
                 {
                     ++EditorGUI.indentLevel;
                     var v = EditorGUILayout.EnumPopup(
@@ -577,7 +678,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
 
-                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.DLSSInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue, Styles.DLSSInjectionPointNames, Styles.DLSSInjectionPointValues);
+                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.DLSSInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
                     serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue = injectionPointVal;
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
 
@@ -588,15 +689,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     --EditorGUI.indentLevel;
                 }
 
-                showUpsampleFilterAsFallback = serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue;
-                if (serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                showUpsampleFilterAsFallback = showUpsampleFilterAsFallback || containsDLSS;
+                if (containsDLSS)
                 {
                     EditorGUILayout.HelpBox(
                         dlssDetected ? Styles.DLSSFeatureDetectedMsg : Styles.DLSSFeatureNotDetectedMsg,
                         dlssDetected ? MessageType.Info : MessageType.Warning);
                 }
 
-                if (dlssDetected && EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneWindows64 && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue)
+                if (dlssDetected && EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneWindows64 && containsDLSS)
                 {
                     --EditorGUI.indentLevel;
                     EditorGUILayout.BeginHorizontal();
@@ -610,6 +711,52 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 #endif
 
+#if ENABLE_AMD && ENABLE_AMD_MODULE
+                bool containsFSR2 = ((1 << (int)AdvancedUpscalers.FSR2) & advancedUpscalersEnabledMask) != 0;
+                bool fsr2Detected = ((1 << (int)AdvancedUpscalers.FSR2) & advancedUpscalersDetectedMask) != 0;
+                if (containsFSR2)
+                {
+                    ++EditorGUI.indentLevel;
+                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.FSR2InjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2InjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
+                    serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2InjectionPoint.intValue = injectionPointVal;
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2EnableSharpness, Styles.FSR2EnableSharpness);
+                    using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2EnableSharpness.boolValue))
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2Sharpness, Styles.FSR2Sharpness);
+                    }
+
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings, Styles.FSR2UseOptimalSettingsContent);
+                    if (serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings.boolValue)
+                    {
+                        var v = EditorGUILayout.EnumPopup(
+                            Styles.FSR2QualitySettingContent,
+                            (UnityEngine.AMD.FSR2Quality)
+                            serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2QualitySetting.intValue);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.FSR2QualitySetting.intValue = (int)(object)v;
+                    }
+                    --EditorGUI.indentLevel;
+                }
+
+                showUpsampleFilterAsFallback = showUpsampleFilterAsFallback || containsFSR2;
+                if (containsFSR2)
+                {
+                    EditorGUILayout.HelpBox(
+                        fsr2Detected ? Styles.FSR2FeatureDetectedMsg : Styles.FSR2FeatureNotDetectedMsg,
+                        fsr2Detected ? MessageType.Info : MessageType.Warning);
+                }
+                if (fsr2Detected && EditorUserBuildSettings.activeBuildTarget != BuildTarget.StandaloneWindows64 && containsFSR2)
+                {
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.HelpBox(Styles.FSR2WinTargetWarning, MessageType.Info);
+                    if (GUILayout.Button(Styles.FSR2SwitchTarget64Button, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+                    {
+                        EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    ++EditorGUI.indentLevel;
+                }
+#endif
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
                 {
@@ -645,7 +792,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
                 {
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                    if (dlssDetected && serialized.renderPipelineSettings.dynamicResolutionSettings.enableDLSS.boolValue && serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue)
+                    if (dlssDetected && containsDLSS && serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue)
                     {
                         EditorGUILayout.HelpBox(Styles.DLSSIgnorePercentages, MessageType.Info);
                     }
@@ -716,6 +863,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorUtils.DrawFixMeBox(Styles.DLSSPackageLabel, MessageType.Info, () => {
                     PackageManager.Client.Add("com.unity.modules.nvidia");
                     s_DisplayNvidiaModuleButtonInstall = false;
+                });
+            }
+#endif
+
+#if ENABLE_AMD && !ENABLE_AMD_MODULE
+            if (s_DisplayAMDModuleButtonInstall)
+            {
+                CoreEditorUtils.DrawFixMeBox(Styles.FSR2PackageLabel, MessageType.Info, () => {
+                    PackageManager.Client.Add("com.unity.modules.amd");
+                    s_DisplayAMDModuleButtonInstall = false;
                 });
             }
 #endif
@@ -836,9 +993,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     Styles.volumeProfileContextMenuStyle.Value))
             {
                 var profileEditor = s_VolumeProfileEditor as VolumeProfileEditor;
+                var componentEditors = profileEditor != null ? profileEditor.componentList.editors : null;
                 var srpAsset = serialized.serializedObject.targetObject as HDRenderPipelineAsset;
                 var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
-                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, profileEditor.componentList.editors,
+                VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, componentEditors,
                     overrideStateOnReset: false,
                     defaultVolumeProfilePath: $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{srpAsset.name}_VolumeProfile.asset",
                     onNewVolumeProfileCreated: volumeProfile =>
@@ -1062,15 +1220,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
-                    HDRenderPipelineGlobalSettings.instance.EnsureRayTracingResources(forceReload: false);
-                else
-                    HDRenderPipelineGlobalSettings.instance.ClearRayTracingResources();
-            }
 
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
@@ -1112,7 +1262,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            var gpuResidentDrawerSettings = serialized.renderPipelineSettings.gpuResidentDrawerSettings;
+            EditorGUILayout.PropertyField(gpuResidentDrawerSettings.mode, Styles.gpuResidentDrawerMode);
+
+            var brgStrippingError = EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll;
+            var staticBatchingInfo = PlayerSettings.GetStaticBatchingForPlatform(EditorUserBuildSettings.activeBuildTarget);
+            if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+                ++EditorGUI.indentLevel;
+                gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                --EditorGUI.indentLevel;
+
+                if(brgStrippingError)
+                    EditorGUILayout.HelpBox(Styles.brgShaderStrippingErrorMessage.text, MessageType.Warning, true);
+                if(staticBatchingInfo)
+                    EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
+            }
+
             EditorGUILayout.Space(); //to separate with following sub sections
+        }
+
+        static void DoThing(){
+            Debug.Log("DoThing");
         }
 
         static void Drawer_SectionLightingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -1160,7 +1331,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.supportFabricConvolution, Styles.supportFabricBSDFConvolutionContent);
         }
-        
+
         static void Drawer_LensFlare(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
@@ -1236,7 +1407,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             AppendSupport(builder, serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
-            
+
             AppendSupport(builder, serialized.renderPipelineSettings.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
 

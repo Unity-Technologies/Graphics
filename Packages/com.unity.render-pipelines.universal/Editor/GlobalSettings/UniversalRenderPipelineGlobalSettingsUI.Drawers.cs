@@ -99,10 +99,24 @@ namespace UnityEditor.Rendering.Universal
 
 
         #region Misc Settings
+        static void DrawRenderGraphCheckBox(SerializedUniversalRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.serializedObject?.FindProperty("m_EnableRenderGraph"), Styles.enableRenderGraphLabel);
+                if (EditorGUI.EndChangeCheck())
+                    UniversalRenderPipeline.asset.OnEnableRenderGraphChanged();
+                EditorGUILayout.Space();
+            }
+        }
 
         private static readonly CED.IDrawer MiscSection =
             CED.Group((s, owner) =>
             {
+                CoreEditorUtils.DrawSectionHeader(Styles.renderGraphHeaderLabel);
+                EditorGUILayout.Space();
+                DrawRenderGraphCheckBox(s, owner);
 #pragma warning disable 618 // Obsolete warning
                 CoreEditorUtils.DrawSectionHeader(RenderPipelineGlobalSettingsUI.Styles.shaderStrippingSettingsLabel);
 #pragma warning restore 618 // Obsolete warning
@@ -110,6 +124,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_ShaderStrippingSetting"));
                 EditorGUILayout.PropertyField(s.serializedObject.FindProperty("m_URPShaderStrippingSetting"));
+                EditorGUILayout.Space();
             });
 
         #endregion

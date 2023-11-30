@@ -29,8 +29,11 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatas))]
         public int[] TrySwap(int[] ints, int from, int to)
         {
-            Assert.IsTrue(ints.TrySwap(from, to, out var _));
-            return ints;
+            int[] copy = new int[ints.Length];
+            Array.Copy(ints, 0, copy, 0, ints.Length);
+
+            Assert.IsTrue(copy.TrySwap(from, to, out var _));
+            return copy;
         }
 
         static TestCaseData[] s_ListTestsCaseDatasExceptions =
@@ -45,8 +48,19 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(s_ListTestsCaseDatasExceptions))]
         public Type ExceptionsAreCorrect(int[] ints, int from, int to)
         {
-            ints.TrySwap(from, to, out var error);
-            return error.GetType();
+            if (ints != null)
+            {
+                int[] copy = new int[ints.Length];
+                Array.Copy(ints, 0, copy, 0, ints.Length);
+
+                copy.TrySwap(from, to, out var error);
+                return error.GetType();
+            }
+            else
+            {
+                ints.TrySwap(from, to, out var error);
+                return error.GetType();
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -136,13 +136,17 @@ namespace UnityEngine.Rendering.Universal
                 SetKeywords(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
                 Clear(renderingData.commandBuffer, m_PassData);
 
-                var param = InitRendererListParams(ref renderingData);
+                UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+                UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
+
+                var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
                 var rendererList = context.CreateRendererList(ref param);
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData, false);
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, false);
             }
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData, bool renderGraph)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, bool renderGraph)
         {
             passData.drawSystem.Execute(cmd);
             cmd.DrawRendererList(rendererList);
@@ -160,11 +164,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static void SetKeywords(RasterCommandBuffer cmd, PassData passData)
         {
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, passData.settings.surfaceData == DecalSurfaceData.Albedo);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT1, passData.settings.surfaceData == DecalSurfaceData.Albedo);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT2, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormal);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT3, passData.settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, passData.decalLayers);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
         }
 
         private static void Clear(CommandBuffer cmd, PassData passData)
@@ -191,7 +195,6 @@ namespace UnityEngine.Rendering.Universal
             internal RTHandle dBufferDepth;
             internal RTHandle[] dBufferColorHandles;
 
-            internal RenderingData renderingData;
             internal RendererListHandle rendererList;
         }
 
@@ -206,74 +209,83 @@ namespace UnityEngine.Rendering.Universal
             passData.dBufferColorHandles = dBufferColorHandles;
         }
 
-        private RendererListParams InitRendererListParams(ref RenderingData renderingData)
+        private RendererListParams InitRendererListParams(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            SortingCriteria sortingCriteria = cameraData.defaultOpaqueSortFlags;
+            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData, cameraData, lightData, sortingCriteria);
             return new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            TextureHandle cameraDepthTexture = frameResources.GetTexture(UniversalResource.CameraDepthTexture);
-            TextureHandle cameraNormalsTexture = frameResources.GetTexture(UniversalResource.CameraNormalsTexture);
+            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
 
-            TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? renderer.activeDepthTexture :
-                (renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1 ? frameResources.GetTexture(UniversalResource.DBufferDepth) : renderer.activeDepthTexture);
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+            TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraDepthTexture"), cameraDepthTexture);
-            RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID("_CameraNormalsTexture"), cameraNormalsTexture);
+            TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? resourceData.activeDepthTexture :
+                (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? resourceData.dBufferDepth : resourceData.activeDepthTexture);
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("DBuffer Pass", out var passData, m_ProfilingSampler))
             {
                 InitPassData(ref passData);
-                passData.renderingData = renderingData;
 
                 if (dbufferHandles == null)
                     dbufferHandles = new TextureHandle[RenderGraphUtils.DBufferSize];
 
                 // base
                 {
-                    var desc = renderingData.cameraData.cameraTargetDescriptor;
+                    var desc = cameraData.cameraTargetDescriptor;
                     desc.graphicsFormat = QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
                     dbufferHandles[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[0], true, new Color(0, 0, 0, 1));
-                    builder.UseTextureFragment(dbufferHandles[0], 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dbufferHandles[0], 0, AccessFlags.Write);
                 }
 
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
                 {
-                    var desc = renderingData.cameraData.cameraTargetDescriptor;
+                    var desc = cameraData.cameraTargetDescriptor;
                     desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
                     dbufferHandles[1] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[1], true, new Color(0.5f, 0.5f, 0.5f, 1));
-                    builder.UseTextureFragment(dbufferHandles[1], 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dbufferHandles[1], 1, AccessFlags.Write);
                 }
 
                 if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
                 {
-                    var desc = renderingData.cameraData.cameraTargetDescriptor;
+                    var desc = cameraData.cameraTargetDescriptor;
                     desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
                     desc.depthBufferBits = 0;
                     desc.msaaSamples = 1;
                     dbufferHandles[2] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, s_DBufferNames[2], true, new Color(0, 0, 0, 1));
-                    builder.UseTextureFragment(dbufferHandles[2], 2, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(dbufferHandles[2], 2, AccessFlags.Write);
                 }
 
-                builder.UseTextureFragmentDepth(depthTarget, IBaseRenderGraphBuilder.AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+                if (cameraData.cameraTargetDescriptor.msaaSamples > 1)
+                    builder.SetGlobalTextureAfterPass(depthTarget, Shader.PropertyToID("_CameraDepthTexture"));
 
                 if (cameraDepthTexture.IsValid())
-                    builder.UseTexture(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 if (cameraNormalsTexture.IsValid())
-                    builder.UseTexture(cameraNormalsTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                    builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
 
-                var param = InitRendererListParams(ref renderingData);
+                var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
+
+                for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
+                {
+                    if (dbufferHandles[i].IsValid())
+                        builder.SetGlobalTextureAfterPass(dbufferHandles[i], Shader.PropertyToID(s_DBufferNames[i]));
+                }
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
@@ -281,16 +293,11 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
                     SetKeywords(rgContext.cmd, data);
-                    ExecutePass(rgContext.cmd, data, data.rendererList, ref data.renderingData, true);
+                    ExecutePass(rgContext.cmd, data, data.rendererList, true);
                 });
             }
 
-            for (int i = 0; i < RenderGraphUtils.DBufferSize; ++i)
-            {
-                if (dbufferHandles[i].IsValid())
-                    RenderGraphUtils.SetGlobalTexture(renderGraph, Shader.PropertyToID(s_DBufferNames[i]), dbufferHandles[i]);
-                frameResources.SetTexture((UniversalResource) (UniversalResource.DBuffer0 + i), dbufferHandles[i]);
-            }
+            resourceData.dBuffer = dbufferHandles;
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
@@ -300,10 +307,10 @@ namespace UnityEngine.Rendering.Universal
                 throw new System.ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT1, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT2, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DBufferMRT3, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, false);
         }
     }
 }

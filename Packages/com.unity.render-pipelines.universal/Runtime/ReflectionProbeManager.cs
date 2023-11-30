@@ -100,9 +100,9 @@ namespace UnityEngine.Rendering.Universal
             m_MipScaleOffset = new Vector4[maxProbes * 7];
         }
 
-        public unsafe void UpdateGpuData(CommandBuffer cmd, ref RenderingData renderingData)
+        public unsafe void UpdateGpuData(CommandBuffer cmd, ref CullingResults cullResults)
         {
-            var probes = renderingData.cullResults.visibleReflectionProbes;
+            var probes = cullResults.visibleReflectionProbes;
             var probeCount = math.min(probes.Length, UniversalRenderPipeline.maxVisibleReflectionProbes);
             var frameIndex = Time.renderedFrameCount;
 
@@ -213,9 +213,13 @@ namespace UnityEngine.Rendering.Universal
                     m_NeedsUpdate.Add(id);
                 }
 
-                cachedProbe.lastUsed = frameIndex;
+                // If the probe is set to be updated every frame, we assign the last used frame to -1 so it's evicted in next frame.
+                if (probe.reflectionProbe.refreshMode == ReflectionProbeRefreshMode.EveryFrame)
+                    cachedProbe.lastUsed = -1;
+                else
+                    cachedProbe.lastUsed = frameIndex;
+                
                 cachedProbe.hdrData = probe.hdrData;
-
                 m_Cache[id] = cachedProbe;
             }
 

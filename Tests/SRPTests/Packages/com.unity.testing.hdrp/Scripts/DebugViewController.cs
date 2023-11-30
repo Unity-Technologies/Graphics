@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask;
 
 public class DebugViewController : MonoBehaviour
 {
@@ -21,14 +22,26 @@ public class DebugViewController : MonoBehaviour
     [SerializeField] bool lightlayers = false;
     [SerializeField] int lightingFullScreenDebugMode = 0;
     [SerializeField] int lightingFullScreenDebugRTASView = 0;
-    [SerializeField] int lightingFullScreenDebugRTASMode = 0
-    ;
+    [SerializeField] int lightingFullScreenDebugRTASMode = 0;
     [SerializeField] int lightingTileClusterDebugMode = 0;
     [SerializeField] int lightingTileClusterCategory = 0;
     [SerializeField] int lightingClusterDebugMode = 0;
     [SerializeField] int lightingClusterDistance = 0;
 
     [SerializeField] int lightingShadowDebugMode = 0;
+
+    [SerializeField] int lightingMaterialOverrideMode = 0;
+
+    public enum MaterialOverride
+    {
+        None = 0,
+        Smoothness = 1 << 0,
+        Albedo = 1 << 1,
+        Normal = 1 << 2,
+        AmbientOcclusion = 1 << 3,
+        SpecularColor = 1 << 4,
+        EmissiveColor = 1 << 5
+    }
 
     [ContextMenu("Set Debug View")]
     public void SetDebugView()
@@ -67,6 +80,19 @@ public class DebugViewController : MonoBehaviour
                         }
                     }
                 }
+
+                // Set material overrides
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideSmoothness = (lightingMaterialOverrideMode & (int)MaterialOverride.Smoothness) != 0;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideSmoothnessValue = 0.5f;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideNormal = (lightingMaterialOverrideMode & (int)MaterialOverride.Normal) != 0;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideAlbedo = (lightingMaterialOverrideMode & (int)MaterialOverride.Albedo) != 0;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideAlbedoValue = new Color(1, 0.4f, 0.1f);
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideAmbientOcclusion = (lightingMaterialOverrideMode & (int)MaterialOverride.AmbientOcclusion) != 0;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideAmbientOcclusionValue = 1.0f;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideSpecularColor = (lightingMaterialOverrideMode & (int)MaterialOverride.SpecularColor) != 0;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideSpecularColorValue = new Color(0.2f, 0.2f, 0.2f);
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideEmissiveColor = (lightingMaterialOverrideMode & (int)MaterialOverride.EmissiveColor) != 0;
+                hdPipeline.debugDisplaySettings.data.lightingDebugSettings.overrideEmissiveColorValue = new Color(0, 0, 1);
                 break;
             case SettingType.Rendering:
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode)fullScreenDebugMode);

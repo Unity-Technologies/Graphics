@@ -8,6 +8,14 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth() => 60;
 
+        public override void SetValue(object obj)
+        {
+            if (obj is string code)
+            {
+                base.SetValue(code);
+            }
+        }
+
         public override ValueControl<string> CreateField()
         {
             var hlslModel = provider is VFXSettingController settingController && settingController.owner is VFXModel model

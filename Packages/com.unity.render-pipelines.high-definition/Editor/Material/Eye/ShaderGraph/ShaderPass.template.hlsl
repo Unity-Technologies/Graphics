@@ -68,12 +68,15 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
     #ifdef DEBUG_DISPLAY
+    #if !defined(SHADER_STAGE_RAY_TRACING)
+        // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {
             // TODO: need to update mip info
         }
+    #endif
 
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+        // We need to call ApplyDebugToSurfaceData after filling the surfaceData and before filling builtinData
         // as it can modify attribute use for static lighting
         ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
     #endif

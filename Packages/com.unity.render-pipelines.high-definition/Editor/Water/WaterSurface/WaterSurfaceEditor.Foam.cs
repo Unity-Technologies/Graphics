@@ -1,9 +1,6 @@
-using System;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
-using static UnityEditor.Rendering.HighDefinition.HDProbeUI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -15,8 +12,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_FoamAreaSize;
         SerializedProperty m_FoamAreaOffset;
         SerializedProperty m_FoamPersistenceMultiplier;
+        SerializedProperty m_FoamCurrentInfluence;
         SerializedProperty m_FoamSmoothness;
         SerializedProperty m_FoamTextureTiling;
+        SerializedProperty m_FoamColor;
 
         // Simulation Foam
         SerializedProperty m_SimulationFoam;
@@ -34,8 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FoamAreaSize = o.Find(x => x.foamAreaSize);
             m_FoamAreaOffset = o.Find(x => x.foamAreaOffset);
             m_FoamPersistenceMultiplier = o.Find(x => x.foamPersistenceMultiplier);
+            m_FoamCurrentInfluence = o.Find(x => x.foamCurrentInfluence);
             m_FoamSmoothness = o.Find(x => x.foamSmoothness);
             m_FoamTextureTiling = o.Find(x => x.foamTextureTiling);
+            m_FoamColor = o.Find(x => x.foamColor);
 
             // Simulation Foam
             m_SimulationFoam = o.Find(x => x.simulationFoam);
@@ -68,7 +69,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!serialized.m_Foam.boolValue)
                 return;
 
-            WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
             using (new IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(serialized.m_FoamResolution, k_FoamResolution);
@@ -77,13 +77,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.m_FoamAreaOffset, k_FoamAreaOffset);
 
                 // Foam properties
-                serialized.m_FoamPersistenceMultiplier.floatValue = EditorGUILayout.Slider(k_FoamPersistenceMultiplier, serialized.m_FoamPersistenceMultiplier.floatValue, 0.0f, 1.0f);
-                serialized.m_FoamSmoothness.floatValue = EditorGUILayout.Slider(k_FoamSmoothness, serialized.m_FoamSmoothness.floatValue, 0.0f, 1.0f);
+                EditorGUILayout.PropertyField(serialized.m_FoamPersistenceMultiplier, k_FoamPersistenceMultiplier);
+                EditorGUILayout.PropertyField(serialized.m_FoamCurrentInfluence, k_FoamCurrentInfluence);
+                CoreEditorUtils.ColorFieldLinear(serialized.m_FoamColor, k_FoamColor);
+                EditorGUILayout.PropertyField(serialized.m_FoamSmoothness, k_FoamSmoothness);
                 EditorGUILayout.PropertyField(serialized.m_FoamTextureTiling, k_FoamTextureTiling);
-                serialized.m_FoamTextureTiling.floatValue = Mathf.Max(serialized.m_FoamTextureTiling.floatValue, 0.01f);
 
                 // We only support foam for oceans and rivers
-                if (surfaceType == WaterSurfaceType.Pool)
+                WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
+                if (serialized.m_SurfaceType.hasMultipleDifferentValues || serialized.m_SimulationFoam.hasMultipleDifferentValues)
+                {
+                    EditorGUI.showMixedValue = true;
+                    using (new BoldLabelScope())
+                        using (new DisabledScope())
+                            EditorGUILayout.PropertyField(serialized.m_SimulationFoam, k_SimulationFoam);
+                    EditorGUI.showMixedValue = false;
+                }
+                else if (surfaceType == WaterSurfaceType.Pool)
                 {
                     EditorGUILayout.LabelField(k_SimulationFoam, EditorStyles.boldLabel);
                     EditorGUILayout.HelpBox("Simulation foam rendering is not supported for Pools.", MessageType.Info, wide: true);
@@ -98,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         using (new IndentLevelScope())
                         {
-                            serialized.m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, serialized.m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
+                            EditorGUILayout.PropertyField(serialized.m_SimulationFoamAmount);
 
                             // Foam masking
                             using (new BoldLabelScope())

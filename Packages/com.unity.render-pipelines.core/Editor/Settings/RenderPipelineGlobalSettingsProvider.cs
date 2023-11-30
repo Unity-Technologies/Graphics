@@ -1,4 +1,6 @@
+using System;
 using System.Reflection;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -18,7 +20,7 @@ namespace UnityEditor.Rendering
         {
             public static readonly string warningGlobalSettingsMissing = "Select a valid {0} asset.";
             public static readonly string warningSRPNotActive = "Current Render Pipeline is {0}. Check the settings: Graphics > Scriptable Render Pipeline Settings, Quality > Render Pipeline Asset.";
-            public static readonly string settingNullRPSettings = "Are you sure you want to unregister the Render Pipeline Settings? There might be issues with rendering.";
+            public static readonly string settingNullRPSettings = "Invalid Global Settings asset. Rollback to the previous value";
 
             public static readonly GUIContent newAssetButtonLabel = EditorGUIUtility.TrTextContent("New", "Create a Global Settings asset in the Assets folder.");
             public static readonly GUIContent cloneAssetButtonLabel = EditorGUIUtility.TrTextContent("Clone", "Clone a Global Settings asset in the Assets folder.");
@@ -56,11 +58,18 @@ namespace UnityEditor.Rendering
             m_Editor = null;
         }
 
-        VisualElement CreateEditor()
+        bool TryCreateEditor(out VisualElement editorElement)
         {
+            editorElement = null;
+
             m_Editor = Editor.CreateEditor(renderPipelineSettings);
-            var editorRoot = m_Editor != null ? m_Editor.CreateInspectorGUI() : null;
-            return editorRoot;
+            if (m_Editor != null)
+            {
+                editorElement = m_Editor.CreateInspectorGUI();
+                editorElement.name = $"{renderPipelineSettings.name}_EditorElement";
+            }
+
+            return editorElement != null;
         }
 
         /// <summary>
@@ -73,30 +82,85 @@ namespace UnityEditor.Rendering
             DestroyEditor();
             base.OnActivate(searchContext, rootElement);
 
-            var srpSettingsEditor = CreateEditor();
-            if (srpSettingsEditor != null)
+            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_TemplatePath);
+            var settingsRoot = template.Instantiate();
+
+            settingsRoot.Q<Label>("srp-global-settings__header-label").text = label;
+            settingsRoot.Q<Image>("srp-global-settings__help-button-image").image = CoreEditorStyles.iconHelp;
+            settingsRoot.Q<Button>("srp-global-settings__help-button").clicked += () => Help.BrowseURL(Help.GetHelpURLForObject(renderPipelineSettings));
+
+            var contentContainer = settingsRoot.Q("srp-global-settings__content-container");
+
+            if (m_SupportedOnRenderPipeline is { isSupportedOnCurrentPipeline: false })
             {
-                // CreateEditor returned a VisualElement, we are using UITK and not IMGUI.
-                var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_TemplatePath);
-                var settingsRoot = template.Instantiate();
-
-                settingsRoot.Q<Label>("srp-global-settings__header-label").text = label;
-                settingsRoot.Q<Image>("srp-global-settings__help-button-image").image = CoreEditorStyles.iconHelp;
-                settingsRoot.Q<Button>("srp-global-settings__help-button").clicked += () => Help.BrowseURL(Help.GetHelpURLForObject(renderPipelineSettings));
-
-                var contentContainer = settingsRoot.Q("srp-global-settings__content-container");
-                contentContainer.Add(new IMGUIContainer(() =>
-                {
-                    using (new SettingsProviderGUIScope())
-                    {
-                        bool shouldDrawEditor = DrawImguiContent();
-                        srpSettingsEditor.style.display = shouldDrawEditor ? DisplayStyle.Flex : DisplayStyle.None;
-                    }
-                }));
-                contentContainer.Add(srpSettingsEditor);
-
-                rootElement.Add(settingsRoot);
+                contentContainer.Add(new HelpBox("These settings are currently not available due to the active Render Pipeline.", HelpBoxMessageType.Warning));
             }
+            else
+            {
+                VisualElement renderPipelineGraphicsSettingsWidget = new VisualElement
+                {
+                    name = nameof(renderPipelineGraphicsSettingsWidget),
+                    style =
+                    {
+                        flexDirection = FlexDirection.Row,
+                        marginLeft = 10,
+                        marginRight = 10,
+                    }
+                };
+                var picker = new ObjectField()
+                {
+                    value = renderPipelineSettings,
+                    objectType = typeof(TGlobalSettings),
+                    style =
+                    {
+                        flexGrow = 1.0f
+                    }
+                };
+                picker.RegisterValueChangedCallback(evt =>
+                {
+                    if (evt.newValue == null)
+                    {
+                        Debug.LogWarning(Styles.settingNullRPSettings);
+                        picker.SetValueWithoutNotify(renderPipelineSettings);
+                    }
+                    else
+                    {
+                        EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<TRenderPipeline>(
+                            evt.newValue as RenderPipelineGlobalSettings);
+
+                        // As the SetRenderPipelineGlobalSettingsAsset call is reloading the ProjectSettings window
+                        // We need to close the ObjectSelector as we have lost this picker object.
+                        EditorWindow[] windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+                        foreach (EditorWindow window in windows)
+                        {
+                            if (window.GetType().Name.Contains("ObjectSelector"))
+                            {
+                                window.Close();
+                                break;
+                            }
+                        }
+                    }
+                });
+                renderPipelineGraphicsSettingsWidget.Add(picker);
+                renderPipelineGraphicsSettingsWidget.Add(new Button(
+                    () => Create(useProjectSettingsFolder: true, activateAsset: true))
+                {
+                    text = "New"
+                });
+                renderPipelineGraphicsSettingsWidget.Add(new Button(
+                    () => Clone(renderPipelineSettings, activateAsset: true))
+                {
+                    text = "Clone"
+                });
+                contentContainer.Add(renderPipelineGraphicsSettingsWidget);
+
+                contentContainer.Add(new InspectorElement(renderPipelineSettings)
+                {
+                    style = { paddingLeft = 0}
+                });
+            }
+
+            rootElement.Add(settingsRoot);
         }
 
         /// <summary>
@@ -133,8 +197,10 @@ namespace UnityEditor.Rendering
             RenderPipelineGlobalSettingsEndNameEditAction.CloneFrom<TRenderPipeline, TGlobalSettings>(source, activateAsset);
         }
 
-        bool DrawImguiContent()
+        bool DrawImguiContent(out bool assetChanged)
         {
+            assetChanged = false;
+
             if (m_SupportedOnRenderPipeline is { isSupportedOnCurrentPipeline: false })
             {
                 EditorGUILayout.HelpBox("These settings are currently not available due to the active Render Pipeline.", MessageType.Warning);
@@ -147,7 +213,7 @@ namespace UnityEditor.Rendering
                 return false;
             }
 
-            DrawAssetSelection();
+            DrawAssetSelection(out assetChanged);
 
             if (RenderPipelineManager.currentPipeline != null && !(RenderPipelineManager.currentPipeline is TRenderPipeline))
             {
@@ -165,13 +231,13 @@ namespace UnityEditor.Rendering
         {
             using (new SettingsProviderGUIScope())
             {
-                if (DrawImguiContent())
+                if (DrawImguiContent(out var assetChanged))
                 {
-                    if (m_Editor != null && (m_Editor.target == null || m_Editor.target != renderPipelineSettings))
+                    if (assetChanged || m_Editor != null && (m_Editor.target == null || m_Editor.target != renderPipelineSettings))
                         DestroyEditor();
 
                     if (m_Editor == null)
-                        CreateEditor();
+                        m_Editor = Editor.CreateEditor(renderPipelineSettings);
 
                     if (m_Editor != null)
                         m_Editor.OnInspectorGUI();
@@ -181,25 +247,18 @@ namespace UnityEditor.Rendering
             base.OnGUI(searchContext);
         }
 
-        void DrawAssetSelection()
+        void DrawAssetSelection(out bool assetChanged)
         {
-            var oldRenderPipelineSettings = renderPipelineSettings;
-
             using (new EditorGUILayout.HorizontalScope())
             {
-                var newSettings = (TGlobalSettings)EditorGUILayout.ObjectField(renderPipelineSettings, typeof(TGlobalSettings), false);
+                var selectedGlobalSettings = renderPipelineSettings;
 
-                if (renderPipelineSettings != newSettings)
+                selectedGlobalSettings = (TGlobalSettings)EditorGUILayout.ObjectField(selectedGlobalSettings, typeof(TGlobalSettings), false);
+
+                if (selectedGlobalSettings == null && renderPipelineSettings != null)
                 {
-                    if (newSettings == null && !EditorUtility.DisplayDialog(
-                            $"Invalid {ObjectNames.NicifyVariableName(typeof(TGlobalSettings).Name)}",
-                            Styles.settingNullRPSettings, "Yes", "No"))
-                        newSettings = renderPipelineSettings as TGlobalSettings;
-
-                    EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<TRenderPipeline>(newSettings);
-                    
-                    if (renderPipelineSettings != null && !renderPipelineSettings.Equals(null))
-                        EditorUtility.SetDirty(renderPipelineSettings);
+                    Debug.LogWarning(Styles.settingNullRPSettings);
+                    selectedGlobalSettings = renderPipelineSettings;
                 }
 
                 if (GUILayout.Button(Styles.newAssetButtonLabel, Styles.buttonOptions))
@@ -214,11 +273,13 @@ namespace UnityEditor.Rendering
                     Clone(renderPipelineSettings, activateAsset: true);
                 }
                 GUI.enabled = guiEnabled;
-            }
 
-            if (oldRenderPipelineSettings != renderPipelineSettings)
-            {
-                DestroyEditor();
+                assetChanged = selectedGlobalSettings != renderPipelineSettings;
+                if (assetChanged)
+                {
+                    DestroyEditor();
+                    EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<TRenderPipeline>(selectedGlobalSettings);
+                }
             }
         }
     }

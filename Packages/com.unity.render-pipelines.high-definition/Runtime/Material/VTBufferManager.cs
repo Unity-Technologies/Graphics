@@ -1,7 +1,7 @@
 #if ENABLE_VIRTUALTEXTURES
 using VirtualTexturing = UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace  UnityEngine.Rendering.HighDefinition
 {
@@ -101,7 +101,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             {
                 if (m_DownSampleCS == null)
                 {
-                    m_DownSampleCS = HDRenderPipeline.currentAsset.renderPipelineResources.shaders.VTFeedbackDownsample;
+                    m_DownSampleCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.VTFeedbackDownsample;
                     m_DownsampleKernel = m_DownSampleCS.FindKernel("KMain");
                     m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
                 }

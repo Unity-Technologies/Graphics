@@ -1,6 +1,7 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Linq;
+using Moq;
 using NUnit.Framework;
 using UnityEditor.VFX.Block;
 using UnityEngine;
@@ -11,6 +12,14 @@ namespace UnityEditor.VFX.Test
     class VFXCustomHLSLTest
     {
         const string templateHlslCode = "void CustomHLSL(inout VFXAttributes attributes, {0} {1} {2}) {{{3}}}";
+
+        private IVFXAttributesManager attributesManager;
+
+        [SetUp]
+        public void Setup()
+        {
+            this.attributesManager = new VFXAttributesManager();
+        }
 
         [TestCase("float", typeof(float))]
         [TestCase("uint", typeof(uint))]
@@ -31,7 +40,7 @@ namespace UnityEditor.VFX.Test
             var hlslCode = string.Format(templateHlslCode, "in", hlslType, "param", string.Empty);
 
             // Act
-            var functions = HLSLFunction.Parse(hlslCode).ToArray();
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode).ToArray();
             var function = functions.FirstOrDefault();
 
             // Assert
@@ -58,7 +67,7 @@ namespace UnityEditor.VFX.Test
             var hlslCode = string.Format(templateHlslCode, modifier, "float", "param", string.Empty);
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             if (access != HLSLAccess.NONE)
@@ -81,7 +90,7 @@ namespace UnityEditor.VFX.Test
             var hlslCode = string.Format(templateHlslCode, "in", "float", name, string.Empty);
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             var input = function.inputs.ElementAt(1); // The first parameter is a VFXAttributes
@@ -97,7 +106,7 @@ namespace UnityEditor.VFX.Test
             var hlslCode = string.Format(templateHlslCode, "in", $"StructuredBuffer<{templateType}>", "buffer", string.Empty);
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             var input = function.inputs.ElementAt(1); // The first parameter is a VFXAttributes
@@ -117,7 +126,7 @@ namespace UnityEditor.VFX.Test
             var hlslCode = string.Format(templateHlslCode, "in", $"ByteAddressBuffer", "buffer", string.Empty);
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             var input = function.inputs.ElementAt(1); // The first parameter is a VFXAttributes
@@ -135,7 +144,7 @@ namespace UnityEditor.VFX.Test
             var hlslCode = string.Format(templateHlslCode, "in", $"float2x2", "mat", string.Empty);
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             var input = function.inputs.ElementAt(1); // The first parameter is a VFXAttributes
@@ -158,7 +167,7 @@ namespace UnityEditor.VFX.Test
                 "}";
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             foreach (var parameter in function.inputs.Skip(1)) // Skip the first parameter which is VFXAttributes
@@ -179,7 +188,7 @@ namespace UnityEditor.VFX.Test
                 "}";
 
             // Act
-            var functions = HLSLFunction.Parse(hlslCode);
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode);
 
             // Assert
             Assert.IsEmpty(functions);
@@ -218,7 +227,7 @@ namespace UnityEditor.VFX.Test
                 "}";
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             var input = function.inputs.FirstOrDefault();
@@ -240,7 +249,7 @@ namespace UnityEditor.VFX.Test
                 "}";
 
             // Act
-            var function = HLSLFunction.Parse(hlslCode).Single();
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
 
             // Assert
             Assert.AreEqual(1, function.attributes.Count);
@@ -257,7 +266,7 @@ namespace UnityEditor.VFX.Test
                 "  float3 pos = float3(param, param, param);\n";
 
             // Act
-            var functions = HLSLFunction.Parse(hlslCode);
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode);
 
             // Assert
             // The function must be detected, but the compute shader would not compile
@@ -284,7 +293,7 @@ namespace UnityEditor.VFX.Test
                 "}\n";
 
             // Act
-            var functions = HLSLFunction.Parse(hlslCode);
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode);
 
             // Assert
             CollectionAssert.IsNotEmpty(functions);

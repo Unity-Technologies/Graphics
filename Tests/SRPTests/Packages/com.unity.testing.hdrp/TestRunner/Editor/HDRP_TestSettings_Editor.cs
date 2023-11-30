@@ -19,6 +19,7 @@ public class HDRP_TestSettings_Editor : Editor
     SerializedProperty ImageComparisonSettings;
     SerializedProperty xrCompatible;
     SerializedProperty xrThresholdMultiplier;
+    SerializedProperty gpuDrivenCompatible;
     SerializedProperty waitForFrameCountMultiple;
     SerializedProperty frameCountMultiple;
     SerializedProperty checkMemoryAllocation;
@@ -35,6 +36,7 @@ public class HDRP_TestSettings_Editor : Editor
         ImageComparisonSettings = serializedObject.FindProperty("ImageComparisonSettings");
         xrCompatible = serializedObject.FindProperty("xrCompatible");
         xrThresholdMultiplier = serializedObject.FindProperty("xrThresholdMultiplier");
+        gpuDrivenCompatible = serializedObject.FindProperty("gpuDrivenCompatible");
         waitForFrameCountMultiple = serializedObject.FindProperty("waitForFrameCountMultiple");
         frameCountMultiple = serializedObject.FindProperty("frameCountMultiple");
         checkMemoryAllocation = serializedObject.FindProperty("checkMemoryAllocation");
@@ -60,6 +62,8 @@ public class HDRP_TestSettings_Editor : Editor
             EditorGUILayout.PropertyField(xrThresholdMultiplier);
             EditorGUI.indentLevel--;
         }
+
+        EditorGUILayout.PropertyField(gpuDrivenCompatible);
 
         EditorGUILayout.PropertyField(waitForFrameCountMultiple);
         if(waitForFrameCountMultiple.boolValue)

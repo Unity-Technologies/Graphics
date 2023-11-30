@@ -15,91 +15,9 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
     [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
-    public abstract class ScriptableRendererData : ScriptableObject
+    public abstract partial class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
-
-        /// <summary>
-        /// Class contains references to shader resources used by Rendering Debugger.
-        /// </summary>
-        [Serializable, ReloadGroup]
-        public sealed class DebugShaderResources
-        {
-            /// <summary>
-            /// Debug shader used to output interpolated vertex attributes.
-            /// </summary>
-            [Reload("Shaders/Debug/DebugReplacement.shader")]
-            public Shader debugReplacementPS;
-
-            /// <summary>
-            /// Debug shader used to output HDR Chromacity mapping.
-            /// </summary>
-            [Reload("Shaders/Debug/HDRDebugView.shader")]
-            public Shader hdrDebugViewPS;
-
-            /// <summary>
-            /// Debug shader used to output world position and world normal for the pixel under the cursor.
-            /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeSamplingDebugPositionNormal.compute")]
-            public ComputeShader probeVolumeSamplingDebugComputeShader;
-        }
-
-        /// <summary>
-        /// Container for shader resources used by Rendering Debugger.
-        /// </summary>
-        public DebugShaderResources debugShaders;
-
-        /// <summary>
-        /// Class contains references to shader resources used by APV.
-        /// </summary>
-        [Serializable, ReloadGroup]
-        public sealed class ProbeVolumeResources
-        {
-            /// <summary>
-            /// Debug shader used to render probes in the volume.
-            /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeDebug.shader")]
-            public Shader probeVolumeDebugShader;
-
-            /// <summary>
-            /// Debug shader used to display fragmentation of the GPU memory.
-            /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeFragmentationDebug.shader")]
-            public Shader probeVolumeFragmentationDebugShader;
-
-            /// <summary>
-            /// Debug shader used to draw the offset direction used for a probe.
-            /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeOffsetDebug.shader")]
-            public Shader probeVolumeOffsetDebugShader;
-
-            /// <summary>
-            /// Debug shader used to draw the sampling weights of the probe volume.
-            /// </summary>
-            [Reload("Shaders/Debug/ProbeVolumeSamplingDebug.shader")]
-            public Shader probeVolumeSamplingDebugShader;
-
-            /// <summary>
-            /// Debug mesh used to draw the sampling weights of the probe volume.
-            /// </summary>
-            [Reload("Shaders/Debug/ProbeSamplingDebugMesh.fbx")]
-            public Mesh probeSamplingDebugMesh;
-
-            /// <summary>
-            /// Texture with the numbers dor sampling weights.
-            /// </summary>
-            [Reload("Shaders/Debug/NumbersDisplayTex.png")]
-            public Texture2D probeSamplingDebugTexture;
-
-            // Disable this since it requires compute
-            //[Reload("Shaders/ProbeVolumeBlendStates.compute")]
-            //public ComputeShader probeVolumeBlendStatesCS;
-        }
-
-        /// <summary>
-        /// Probe volume resources used by URP
-        /// </summary>
-        public ProbeVolumeResources probeVolumeResources;
 
         /// <summary>
         /// Creates the instance of the ScriptableRenderer.
@@ -260,8 +178,24 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool DuplicateFeatureCheck(Type type)
         {
-            var isSingleFeature = type.GetCustomAttribute(typeof(DisallowMultipleRendererFeature));
-            return isSingleFeature != null && m_RendererFeatures.Select(renderFeature => renderFeature.GetType()).Any(t => t == type);
+            Attribute isSingleFeature = type.GetCustomAttribute(typeof(DisallowMultipleRendererFeature));
+            if (isSingleFeature == null)
+                return false;
+
+            if (m_RendererFeatures == null)
+                return false;
+
+            for (int i = 0; i < m_RendererFeatures.Count; i++)
+            {
+                ScriptableRendererFeature feature = m_RendererFeatures[i];
+                if (feature == null)
+                    continue;
+
+                if (feature.GetType() == type)
+                    return true;
+            }
+
+            return false;
         }
 
         private static object GetUnusedAsset(ref List<long> usedIds, ref Dictionary<long, object> assets)

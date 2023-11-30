@@ -10,10 +10,35 @@ namespace UnityEngine.Rendering
     public abstract class DebugDisplaySettings<T> : IDebugDisplaySettings
         where T : IDebugDisplaySettings, new()
     {
+        class IDebugDisplaySettingsDataComparer : IEqualityComparer<IDebugDisplaySettingsData>
+        {
+            public bool Equals(IDebugDisplaySettingsData x, IDebugDisplaySettingsData y)
+            {
+                if (ReferenceEquals(x, y))
+                    return true;
+
+                if (x == null || y == null)
+                    return false;
+
+                return x.GetType() == y.GetType();
+            }
+
+            public int GetHashCode(IDebugDisplaySettingsData obj)
+            {
+                // Define your custom hashing logic based on the properties you want to include.
+                unchecked
+                {
+                    int hash = 17;
+                    hash = hash * 23 + obj.GetType().GetHashCode();
+                    return hash;
+                }
+            }
+        }
+
         /// <summary>
         /// The set of <see cref="IDebugDisplaySettingsData"/> containing the settings for this debug display
         /// </summary>
-        protected readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
+        protected readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>(new IDebugDisplaySettingsDataComparer());
 
         private static readonly Lazy<T> s_Instance = new Lazy<T>(() =>
         {
@@ -82,7 +107,15 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TData">The type of <see cref="TData"/> to be added</typeparam>
         /// <param name="newData">The <see cref="TData"/> to be added</param>
         /// <returns>The type of <see cref="TData"/> that has been added</returns>
-        protected TData Add<TData>(TData newData) where TData : IDebugDisplaySettingsData
+        protected TData Add<TData>(TData newData)
+            where TData : IDebugDisplaySettingsData
+        {
+            m_Settings.Add(newData);
+            return newData;
+        }
+
+        /// <inheritdoc/>
+        IDebugDisplaySettingsData IDebugDisplaySettings.Add(IDebugDisplaySettingsData newData)
         {
             m_Settings.Add(newData);
             return newData;

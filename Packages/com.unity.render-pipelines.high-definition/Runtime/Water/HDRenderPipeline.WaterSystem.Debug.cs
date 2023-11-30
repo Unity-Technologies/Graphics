@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -45,6 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Output buffers
             public TextureHandle colorBuffer;
             public TextureHandle depthBuffer;
+
+            // Other resources
+            public BufferHandle indirectBuffer;
+            public BufferHandle patchDataBuffer;
+            public BufferHandle frustumBuffer;
         }
 
         void RenderWaterSurfaceMask(RenderGraph renderGraph, HDCamera hdCamera, WaterSurface currentWater, WaterRendering settings, int surfaceIdx, TextureHandle colorBuffer, TextureHandle depthBuffer)
@@ -70,6 +75,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.displacementBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
                 passData.additionalDataBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 passData.deformationBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationBuffer) : renderGraph.defaultResources.blackTexture;
+
+                // For GPU culling
+                passData.indirectBuffer = renderGraph.ImportBuffer(m_WaterIndirectDispatchBuffer);
+                passData.patchDataBuffer = renderGraph.ImportBuffer(m_WaterPatchDataBuffer);
+                passData.frustumBuffer = renderGraph.ImportBuffer(m_WaterCameraFrustrumBuffer);
 
                 // Request the output textures
                 builder.SetRenderFunc(
@@ -106,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ConstantBuffer.Push(ctx.cmd, data.waterDebugCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
                         // For the debug mode, we don't bother using the indirect method as we do not care about perf.
-                        DrawWaterSurface(ctx.cmd, data.parameters, k_WaterMaskPass, false, null, null, null);
+                        DrawWaterSurface(ctx.cmd, data.parameters, k_WaterMaskPass, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer);
 
                         // Reset the keywords
                         ResetWaterShaderKeyword(ctx.cmd);

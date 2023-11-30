@@ -323,6 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = GeneratePragmas(useTessellation, useDebugSymbols),
                 defines = GenerateDefines(WaterMaskDefines, false, useTessellation, false),
                 includes = GenerateIncludes(),
+                fieldDependencies = CoreFieldDependencies.Default,
 
                 virtualTextureFeedback = false,
                 customInterpolators = CoreCustomInterpolators.Common
@@ -383,7 +384,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Low res gbuffer
                     GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
                     // Debug pass, this one never use tessellation for simplicity
-                    GenerateWaterMaskPass(true, systemData.debugSymbols),
+                    GenerateWaterMaskPass(false, systemData.debugSymbols),
                 };
                 return passes;
             }
@@ -466,7 +467,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilRefWaterVar.displayName = "Stencil Water Ref GBuffer";
             stencilRefWaterVar.hidden = true;
             stencilRefWaterVar.floatType = FloatType.Default;
-            stencilRefWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTAA);
+            stencilRefWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTUAndAA);
             stencilRefWaterVar.overrideHLSLDeclaration = true;
             stencilRefWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilRefWaterVar.generatePropertyBlock = false;
@@ -477,7 +478,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.displayName = "Stencil Water Write Mask GBuffer";
             stencilWriteMaskWaterVar.hidden = true;
             stencilWriteMaskWaterVar.floatType = FloatType.Default;
-            stencilWriteMaskWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTAA);
+            stencilWriteMaskWaterVar.value = (int)(StencilUsage.WaterSurface | StencilUsage.ExcludeFromTUAndAA);
             stencilWriteMaskWaterVar.overrideHLSLDeclaration = true;
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;

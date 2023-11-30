@@ -197,8 +197,6 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle normalsRenderTarget;
         internal RTHandle cameraSortingLayerRenderTarget;
 
-
-
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }
     }

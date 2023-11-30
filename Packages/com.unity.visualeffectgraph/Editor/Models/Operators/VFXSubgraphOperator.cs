@@ -1,13 +1,15 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
+using UnityEditor.VFX.Block;
 using UnityEngine;
 
 namespace UnityEditor.VFX
 {
     static class VFXSubgraphUtility
     {
+        public static bool IsSubgraphModel(VFXModel model) => model is VFXSubgraphBlock or VFXSubgraphContext or VFXSubgraphOperator;
+
         public static int TransferExpressionToParameters(IList<VFXExpression> inputExpression, IEnumerable<VFXParameter> parameters, List<VFXExpression> backedUpExpressions = null)
         {
             int cptSlot = 0;
@@ -60,8 +62,10 @@ namespace UnityEditor.VFX
             return models.OfType<VFXParameter>().Where(predicate).OrderBy(t => t.order);
         }
     }
-    [VFXInfo]
-    class VFXSubgraphOperator : VFXOperator
+
+    [VFXHelpURL("Subgraph")]
+    [VFXInfo(name = "Empty Subgraph Operator")]
+    class VFXSubgraphOperator : VFXOperator, IVFXAttributeUsage
     {
         bool m_IsMissing;
 
@@ -128,6 +132,14 @@ namespace UnityEditor.VFX
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
             }
+
+            var usedSubgraph = m_Subgraph.GetResource().GetOrCreateGraph();
+            usedSubgraph.SyncCustomAttributes();
+            if (GetGraph() is { } mainGraph)
+            {
+                mainGraph.SyncCustomAttributes();
+            }
+            ResyncCustomAttributes();
         }
 
         private void ClearCopy()
@@ -228,7 +240,16 @@ namespace UnityEditor.VFX
 
             // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
             if (!VFXGraph.explicitCompile)
+            {
                 ResyncSlots(true);
+                ResyncCustomAttributes();
+            }
+        }
+
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            ResyncCustomAttributes();
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -263,6 +284,54 @@ namespace UnityEditor.VFX
             {
                 Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
+        }
+
+        private void ResyncCustomAttributes()
+        {
+            var graph = GetGraph();
+            if (graph == null || m_Subgraph == null)
+            {
+                return;
+            }
+
+            var usedSubgraph = m_Subgraph.GetResource().GetOrCreateGraph();
+
+            foreach (var customAttribute in usedSubgraph.customAttributes)
+            {
+                if (!graph.attributesManager.Exist(customAttribute.attributeName))
+                {
+                    graph.TryAddCustomAttribute(customAttribute.attributeName, CustomAttributeUtility.GetValueType(customAttribute.type), customAttribute.description, true, out _);
+                    graph.Invalidate(InvalidationCause.kExpressionGraphChanged);
+                }
+                else
+                {
+                    graph.TryUpdateCustomAttribute(customAttribute.attributeName, customAttribute.type, customAttribute.description, true);
+                }
+            }
+            graph.SetCustomAttributeDirty();
+        }
+
+        public IEnumerable<VFXAttribute> usedAttributes
+        {
+            get
+            {
+                if (m_Subgraph != null)
+                {
+                    var usedSubgraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                    foreach (var customAttribute in usedSubgraph.customAttributes)
+                    {
+                        if (usedSubgraph.attributesManager.TryFind(customAttribute.attributeName, out var attribute))
+                        {
+                            yield return attribute;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Rename(string oldName, string newName)
+        {
+            throw new NotSupportedException("The subgraph operator can use attributes, but cannot rename them");
         }
     }
 }

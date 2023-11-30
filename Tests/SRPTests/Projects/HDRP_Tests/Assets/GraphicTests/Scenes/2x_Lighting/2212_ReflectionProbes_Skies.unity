@@ -14449,6 +14449,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
+      propertyPath: gpuDrivenCompatible
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
       propertyPath: checkMemoryAllocation
       value: 0
       objectReference: {fileID: 0}
@@ -15189,7 +15194,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2084073690}
-  m_Text: PBR Sky
+  m_Text: PBR Sky Camera
   m_OffsetZ: 0
   m_CharacterSize: 0.2
   m_LineSpacing: 1

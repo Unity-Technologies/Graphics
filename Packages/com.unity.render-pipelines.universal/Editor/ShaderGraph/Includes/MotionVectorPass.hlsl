@@ -119,6 +119,13 @@ void vert(
     #endif
 #endif
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && defined(DOTS_DEFORMED)
+    // Deformed vertices in DOTS are not cumulative with built-in Unity skinning/blend shapes
+    // Needs to be called after vertex modification has been applied otherwise it will be
+    // overwritten by Compute Deform node
+    ApplyPreviousFrameDeformedVertexPosition(input.vertexID, previousPositionOS);
+#endif
+        
 #if defined (_ADD_PRECOMPUTED_VELOCITY)
         previousPositionOS -= passInput.alembicMotionVectorOS;
 #endif
@@ -161,7 +168,7 @@ float4 frag(
     UNITY_SETUP_INSTANCE_ID(input);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(input);
 
-#if _ALPHATEST_ON
+#if defined(_ALPHATEST_ON)
     clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
 #endif
 

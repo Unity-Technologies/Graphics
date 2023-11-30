@@ -382,6 +382,7 @@ namespace ShaderStrippingAndPrefiltering
             helper.rendererData.renderingMode = RenderingMode.Deferred;
             expected = helper.defaultRendererRequirements;
             expected.renderingMode = helper.rendererData.renderingMode;
+            expected.needsRenderPass = true;
             actual = helper.GetRendererRequirements();
             helper.AssertRendererRequirementsAndReset(expected, actual);
 
@@ -406,7 +407,7 @@ namespace ShaderStrippingAndPrefiltering
             helper.ScriptableRenderer.useRenderPassEnabled = true;
             expected = helper.defaultRendererRequirements;
             expected.renderingMode = helper.rendererData.renderingMode;
-            expected.needsRenderPass = helper.ScriptableRenderer.useRenderPassEnabled;
+            expected.needsRenderPass = true;
             actual = helper.GetRendererRequirements();
             helper.AssertRendererRequirementsAndReset(expected, actual);
 
@@ -731,6 +732,7 @@ namespace ShaderStrippingAndPrefiltering
                                               | ShaderFeatures.DBufferMRT1
                                               | ShaderFeatures.DBufferMRT2
                                               | ShaderFeatures.DBufferMRT3
+                                              | ShaderFeatures.DecalScreenSpace
                                               | ShaderFeatures.DecalNormalBlendLow
                                               | ShaderFeatures.DecalNormalBlendMedium
                                               | ShaderFeatures.DecalNormalBlendHigh
@@ -955,6 +957,7 @@ namespace ShaderStrippingAndPrefiltering
                                               | ShaderFeatures.DBufferMRT1
                                               | ShaderFeatures.DBufferMRT2
                                               | ShaderFeatures.DBufferMRT3
+                                              | ShaderFeatures.DecalScreenSpace
                                               | ShaderFeatures.DecalNormalBlendLow
                                               | ShaderFeatures.DecalNormalBlendMedium
                                               | ShaderFeatures.DecalNormalBlendHigh

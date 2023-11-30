@@ -11,9 +11,11 @@ namespace UnityEditor.VFX.UI
 {
     class VFXPaste : VFXCopyPasteCommon
     {
-        List<KeyValuePair<VFXContext, List<VFXBlock>>> newContexts = new List<KeyValuePair<VFXContext, List<VFXBlock>>>();
-        List<VFXOperator> newOperators = new List<VFXOperator>();
-        List<KeyValuePair<VFXParameter, List<int>>> newParameters = new List<KeyValuePair<VFXParameter, List<int>>>();
+        readonly List<KeyValuePair<VFXContext, List<VFXBlock>>> newContexts = new List<KeyValuePair<VFXContext, List<VFXBlock>>>();
+        readonly List<VFXOperator> newOperators = new List<VFXOperator>();
+        readonly List<KeyValuePair<VFXParameter, List<int>>> newParameterNodes = new List<KeyValuePair<VFXParameter, List<int>>>();
+        readonly List<string> newBlackboardItems = new List<string>();
+        private readonly List<string> newCategories = new List<string>();
 
         Dictionary<NodeID, VFXNodeController> newControllers = new Dictionary<NodeID, VFXNodeController>();
 
@@ -50,7 +52,7 @@ namespace UnityEditor.VFX.UI
             if (s_Instance == null)
                 s_Instance = new VFXPaste();
 
-            s_Instance.PasteStickyNotes(data as SerializableGraph, Vector2.zero, viewController.graph.UIInfos);
+            s_Instance.PasteStickyNotes(viewController, data as SerializableGraph, Vector2.zero, viewController.graph.UIInfos);
         }
 
         static bool CanPasteSubgraph(VisualEffectSubgraph subgraph, string openedAssetPath)
@@ -129,6 +131,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (view != null)
                 {
+                    PasteVFXAttributes(viewController, serializableGraph);
                     PasteBlocks(view, ref serializableGraph, nodesInTheSameOrder);
                 }
             }
@@ -233,9 +236,13 @@ namespace UnityEditor.VFX.UI
             newControllers.Clear();
             newContexts.Clear();
             newOperators.Clear();
-            newParameters.Clear();
+            newParameterNodes.Clear();
             newContextUIs.Clear();
             newNodesUI.Clear();
+            newBlackboardItems.Clear();
+            newCategories.Clear();
+
+            newCategories.AddRange(serializableGraph.categories);
 
             m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
@@ -254,8 +261,10 @@ namespace UnityEditor.VFX.UI
                 PasteContexts(viewController, center, serializableGraph);
             }
 
+            PasteVFXAttributes(viewController, serializableGraph);
             PasteOperators(viewController, center, serializableGraph);
             PasteParameters(viewController, serializableGraph, center);
+            PasteCategories(viewController);
 
             // Create controllers for all new nodes
             viewController.LightApplyChanges();
@@ -271,7 +280,7 @@ namespace UnityEditor.VFX.UI
 
             //Paste Everything else
             PasteGroupNodes(serializableGraph, center, ui);
-            PasteStickyNotes(serializableGraph, center, ui);
+            PasteStickyNotes(viewController, serializableGraph, center, ui);
 
             PasteDatas(viewController, serializableGraph); // TODO Data settings should be pasted at context creation. This can lead to issues as blocks are added before data is initialized
             PasteDataEdges(serializableGraph);
@@ -363,7 +372,7 @@ namespace UnityEditor.VFX.UI
             {
                 var blk = block;
 
-                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(null, center, bounds, ref blk);
+                VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(controller, center, bounds, ref blk);
 
                 blocks.Add(newBlock);
 
@@ -385,15 +394,13 @@ namespace UnityEditor.VFX.UI
                 return null;
 
             var ope = node;
-            PasteNode(newNode, center, bounds, ref ope);
-
             if (!(newNode is VFXBlock))
             {
                 controller.graph.AddChild(newNode);
 
                 m_NodesInTheSameOrder[node.indexInClipboard] = new VFXNodeID(newNode, 0);
             }
-
+            PasteNode(newNode, center, bounds, ref ope);
 
             return newNode;
         }
@@ -481,6 +488,15 @@ namespace UnityEditor.VFX.UI
             }
 
             SelectStickyNotes(view, elements);
+            SelectBlackboardElements(view);
+        }
+
+        private void SelectBlackboardElements(VFXView view)
+        {
+            foreach (var item in newBlackboardItems)
+            {
+                view.blackboard.AddPendingSelection(item);
+            }
         }
 
         private void SelectGroupNodes(VFXView view, List<Experimental.GraphView.GraphElement> elements)
@@ -608,19 +624,22 @@ namespace UnityEditor.VFX.UI
 
         private void RegisterParameterNodes(VFXViewController viewController, SerializableGraph serializableGraph)
         {
-            for (int i = 0; i < newParameters.Count; ++i)
+            for (int i = 0; i < newParameterNodes.Count; ++i)
             {
-                var parameterController = viewController.GetParameterController(newParameters[i].Key);
+                var parameterController = viewController.GetParameterController(newParameterNodes[i].Key);
                 parameterController.ApplyChanges();
                 if (parameterController.spaceableAndMasterOfSpace)
                 {
-                    parameterController.space = serializableGraph.parameters[i].space;
+                    parameterController.space = serializableGraph.parameterNodes[i].space;
                 }
 
-                for (int j = 0; j < newParameters[i].Value.Count; j++)
+                if (newParameterNodes[i].Value.Count > 0)
                 {
-                    var nodeController = viewController.GetNodeController(newParameters[i].Key, newParameters[i].Value[j]) as VFXParameterNodeController;
-                    newControllers[GetParameterNodeID((uint)i, (uint)j)] = nodeController;
+                    for (int j = 0; j < newParameterNodes[i].Value.Count; j++)
+                    {
+                        var nodeController = viewController.GetNodeController(newParameterNodes[i].Key, newParameterNodes[i].Value[j]) as VFXParameterNodeController;
+                        newControllers[GetParameterNodeID((uint)i, (uint)j)] = nodeController;
+                    }
                 }
             }
         }
@@ -656,7 +675,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private void PasteStickyNotes(SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
+        private void PasteStickyNotes(VFXViewController vfxViewController, SerializableGraph serializableGraph, Vector2 center, VFXUI ui)
         {
             if (serializableGraph.stickyNotes != null && serializableGraph.stickyNotes.Length > 0)
             {
@@ -674,6 +693,8 @@ namespace UnityEditor.VFX.UI
                         position = new Rect(center + offset, t.position.size)
                     };
                 })).ToArray();
+
+                vfxViewController?.graph?.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
 
@@ -733,6 +754,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        private void PasteVFXAttributes(VFXViewController viewController, SerializableGraph serializableGraph)
+        {
+            if (serializableGraph.attributes != null)
+            {
+                foreach (var attribute in serializableGraph.attributes)
+                {
+                    VFXAttribute pastedAttribute;
+                    // Check that the attribute still exists because it can have been deleted between copy and paste operations
+                    // Also do not duplicate when the custom attribute comes from a block (we might have multiple blocks referring to the same custom attribute for instance)
+                    if (attribute.canDuplicate && viewController.graph.attributesManager.Exist(attribute.name))
+                    {
+                        pastedAttribute = viewController.graph.DuplicateCustomAttribute(attribute.name);
+                    }
+                    else
+                    {
+                        viewController.graph.TryAddCustomAttribute(attribute.name, attribute.type, attribute.description, false, out pastedAttribute);
+                    }
+                    newBlackboardItems.Add(pastedAttribute.name);
+                }
+                viewController.graph.SetCustomAttributeDirty();
+            }
+        }
+
         private void PasteOperators(VFXViewController viewController, Vector2 center, SerializableGraph serializableGraph)
         {
             newOperators.Clear();
@@ -750,43 +794,29 @@ namespace UnityEditor.VFX.UI
 
         private void PasteParameters(VFXViewController viewController, SerializableGraph serializableGraph, Vector2 center)
         {
-            newParameters.Clear();
+            newParameterNodes.Clear();
 
-            if (serializableGraph.parameters != null)
+            if (serializableGraph.parameterNodes != null)
             {
-                foreach (var parameter in serializableGraph.parameters)
+                foreach (var parameter in serializableGraph.parameterNodes)
                 {
                     // if we have a parameter with the same name use it else create it with the copied data
                     VFXParameter p = viewController.graph.children.OfType<VFXParameter>().FirstOrDefault(t => t.GetInstanceID() == parameter.originalInstanceID);
                     if (p == null)
                     {
                         Type type = parameter.value.type;
-                        VFXModelDescriptorParameters desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.model.type == type);
+                        VFXModelDescriptorParameters desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.variant.modelType == type);
                         if (desc != null)
                         {
-                            p = viewController.AddVFXParameter(Vector2.zero, desc);
-                            p.value = parameter.value.Get();
-                            p.valueFilter = parameter.valueFilter;
-                            if (parameter.valueFilter == VFXValueFilter.Range)
-                            {
-                                p.min = parameter.min.Get();
-                                p.max = parameter.max.Get();
-                            }
-                            else if (parameter.valueFilter == VFXValueFilter.Enum)
-                            {
-                                p.enumValues = parameter.enumValue.ToList();
-                            }
-                            p.SetSettingValue("m_Exposed", parameter.exposed);
-                            if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator)
-                                p.isOutput = parameter.isOutput;
-                            p.SetSettingValue("m_ExposedName", parameter.name); // the controller will take care or name unicity later
-                            p.tooltip = parameter.tooltip;
+                            p = viewController.AddVFXParameter(Vector2.zero, desc.variant);
+                            serializableGraph.parameters = serializableGraph.parameters.Where(x => x.name != parameter.name).ToArray();
+                            CopyParameter(parameter, p, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
                         }
                     }
 
                     if (p == null)
                     {
-                        newParameters.Add(new KeyValuePair<VFXParameter, List<int>>(null, null));
+                        this.newParameterNodes.Add(new KeyValuePair<VFXParameter, List<int>>(null, null));
                         continue;
                     }
 
@@ -805,9 +835,81 @@ namespace UnityEditor.VFX.UI
                         newParameterNodes.Add(nodeIndex);
                     }
 
-                    newParameters.Add(new KeyValuePair<VFXParameter, List<int>>(p, newParameterNodes));
+                    this.newParameterNodes.Add(new KeyValuePair<VFXParameter, List<int>>(p, newParameterNodes));
                 }
             }
+
+            var existingCategories = viewController.graph.UIInfos.categories?.Select(x => x.name).ToHashSet() ?? new HashSet<string>();
+            var categoryMapping = new Dictionary<string, string>();
+            if (serializableGraph.categories != null)
+            {
+                foreach (var category in serializableGraph.categories)
+                {
+                    var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories);
+                    existingCategories.Add(newCategoryName);
+                    categoryMapping[category] = newCategoryName;
+                }
+            }
+
+            if (serializableGraph.parameters != null)
+            {
+                foreach (var parameter in serializableGraph.parameters)
+                {
+                    var newVfxParameter = ScriptableObject.CreateInstance<VFXParameter>();
+                    newVfxParameter.Init(parameter.value.type);
+                    CopyParameter(parameter, newVfxParameter, viewController.model.visualEffectObject is VisualEffectSubgraphOperator && parameter.isOutput);
+                    if (categoryMapping.TryGetValue(newVfxParameter.category, out var category))
+                    {
+                        newBlackboardItems.Add(category);
+                        newVfxParameter.category = category;
+                        newCategories.Remove(parameter.category);
+                    }
+                    viewController.AddVFXModel(Vector2.zero, newVfxParameter);
+                    var groupChanged = false;
+                    viewController.SyncControllerFromModel(ref groupChanged);
+
+                    newBlackboardItems.Add(newVfxParameter.exposedName);
+                }
+            }
+        }
+
+        private void PasteCategories(VFXViewController viewController)
+        {
+            var existingCategories = viewController.graph.UIInfos.categories.Select(x => x.name).ToHashSet();
+            foreach (var category in newCategories)
+            {
+                var newCategoryName = VFXParameterController.MakeNameUnique(category, existingCategories);
+                existingCategories.Add(newCategoryName);
+                viewController.graph.UIInfos.categories ??= new List<VFXUI.CategoryInfo>();
+                viewController.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
+                newBlackboardItems.Add(newCategoryName);
+            }
+
+            if (newCategories.Count > 0)
+            {
+                viewController.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+            }
+        }
+
+        private void CopyParameter(Parameter parameter, VFXParameter vfxParameter, bool isOutput)
+        {
+            vfxParameter.value = parameter.value.Get();
+            vfxParameter.valueFilter = parameter.valueFilter;
+            vfxParameter.category = parameter.category;
+            if (parameter.valueFilter == VFXValueFilter.Range)
+            {
+                vfxParameter.min = parameter.min.Get();
+                vfxParameter.max = parameter.max.Get();
+            }
+            else if (parameter.valueFilter == VFXValueFilter.Enum)
+            {
+                vfxParameter.enumValues = parameter.enumValue.ToList();
+            }
+            vfxParameter.SetSettingValue("m_Exposed", parameter.exposed);
+            vfxParameter.SetSettingValue("m_ExposedName", parameter.name); // the controller will take care or name unicity later
+            vfxParameter.isOutput = isOutput;
+            vfxParameter.tooltip = parameter.tooltip;
+            vfxParameter.collapsed = parameter.collapsed;
         }
 
         static VFXSlot FetchSlot(IVFXSlotContainer container, int[] slotPath, bool input)

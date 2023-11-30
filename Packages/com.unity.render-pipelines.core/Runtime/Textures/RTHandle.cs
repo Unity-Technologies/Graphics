@@ -39,13 +39,13 @@ namespace UnityEngine.Rendering
             // User managed wrapper is null, just return here.
             if (rtWrapper == null)
                 return;
-            
-            // Check user managed RTHandle wrapper is actually a warpper around RTid
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            // Check user managed RTHandle wrapper is actually a wrapper around RTid
             if (rtWrapper.m_RT != null)
-                throw new ArgumentException($"Input wrapper must be a wrapper around RenderTargetIdentifier. Passed in warpper contains valid RenderTexture {rtWrapper.m_RT.name} and cannot be used as warpper.");
+                throw new ArgumentException($"Input wrapper must be a wrapper around RenderTargetIdentifier. Passed in wrapper contains valid RenderTexture {rtWrapper.m_RT.name} and cannot be used as wrapper.");
             if (rtWrapper.m_ExternalTexture != null)
-                throw new ArgumentException($"Input wrapper must be a wrapper around RenderTargetIdentifier. Passed in warpper contains valid Texture {rtWrapper.m_ExternalTexture.name} and cannot be used as warpper.");
-
+                throw new ArgumentException($"Input wrapper must be a wrapper around RenderTargetIdentifier. Passed in wrapper contains valid Texture {rtWrapper.m_ExternalTexture.name} and cannot be used as wrapper.");
+#endif
             rtWrapper.SetTexture(rtId);
         }
     }

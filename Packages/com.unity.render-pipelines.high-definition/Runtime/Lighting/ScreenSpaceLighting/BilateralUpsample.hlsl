@@ -102,9 +102,9 @@ struct NeighborhoodUpsampleData3x3
 
 void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentIndex,
                             inout float inputMask, inout int closestNeighhor,
-                            inout float currentDistance, inout float rejectedNeighborhood)
+                            inout float currentDistance)
 {
-    if(inputMask == 0.0f)
+    if (inputMask == 0.0f)
         return;
 
     // Convert the depths to linear
@@ -122,34 +122,34 @@ void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentInde
 
     bool validSample = candidateDistance < (linearHighDepth * 0.3);
     inputMask = validSample ? 1.0f : 0.0f;
-    rejectedNeighborhood *= (validSample ? 0.0f : 1.0f);
 }
 
 void OverrideMaskValues(float highDepth, inout NeighborhoodUpsampleData3x3 data,
-                        out float rejectedNeighborhood, out int closestNeighhor)
+                        out bool rejectedNeighborhood, out int closestNeighbor)
 {
     // First of all compute the linear version of the high depth
     float linearHighDepth = Linear01Depth(highDepth, _ZBufferParams);
-
-    // Flag that tells us which pixel holds valid information
-    rejectedNeighborhood = 1.0f;
-    closestNeighhor = 4;
     float currentDistance = 1.0f;
 
+    closestNeighbor = 4; // Index of the closest neighbor (center by default)
+
     // The center has precedence over the other pixels
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.x, 4, data.lowMasksB.x, closestNeighhor, currentDistance, rejectedNeighborhood);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.x, 4, data.lowMasksB.x, closestNeighbor, currentDistance);
 
     // Then the plus
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.y, 1, data.lowMasksA.y, closestNeighhor, currentDistance, rejectedNeighborhood);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.w, 3, data.lowMasksA.w, closestNeighhor, currentDistance, rejectedNeighborhood);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.y, 5, data.lowMasksB.y, closestNeighhor, currentDistance, rejectedNeighborhood);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.w, 7, data.lowMasksB.w, closestNeighhor, currentDistance, rejectedNeighborhood);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.y, 1, data.lowMasksA.y, closestNeighbor, currentDistance);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.w, 3, data.lowMasksA.w, closestNeighbor, currentDistance);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.y, 5, data.lowMasksB.y, closestNeighbor, currentDistance);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.w, 7, data.lowMasksB.w, closestNeighbor, currentDistance);
 
     // Then the cross
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.x, 0, data.lowMasksA.x, closestNeighhor, currentDistance, rejectedNeighborhood);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.z, 2, data.lowMasksA.z, closestNeighhor, currentDistance, rejectedNeighborhood);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.z, 6, data.lowMasksB.z, closestNeighhor, currentDistance, rejectedNeighborhood);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthC, 8, data.lowMasksC, closestNeighhor, currentDistance, rejectedNeighborhood);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.x, 0, data.lowMasksA.x, closestNeighbor, currentDistance);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.z, 2, data.lowMasksA.z, closestNeighbor, currentDistance);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.z, 6, data.lowMasksB.z, closestNeighbor, currentDistance);
+    EvaluateMaskValidity(linearHighDepth, data.lowDepthC, 8, data.lowMasksC, closestNeighbor, currentDistance);
+
+    // Flag that tells us which pixel holds valid information
+    rejectedNeighborhood = (currentDistance >= (linearHighDepth * 0.3));
 }
 
 // The bilateral upscale function (3x3 neighborhood)

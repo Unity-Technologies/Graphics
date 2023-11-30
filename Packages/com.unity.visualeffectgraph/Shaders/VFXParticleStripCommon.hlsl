@@ -5,6 +5,7 @@
 #define STRIP_MAX_ALIVE 4
 #define STRIP_DATA_X(buffer,data,stripIndex) buffer[(stripIndex * 5) + (data)]
 #define STRIP_DATA(data,stripIndex) STRIP_DATA_X(stripDataBuffer,data,stripIndex)
+#define STRIP_PARTICLE_IN_EDGE (id & 1)
 
 struct StripData
 {
@@ -43,6 +44,27 @@ uint GetParticleIndex(uint relativeIndex, const StripData data)
 uint GetRelativeIndex(uint particleIndex, const StripData data)
 {
     return (data.capacity + particleIndex - data.firstIndex) % data.capacity;
+}
+
+bool FindIndexInStrip(inout uint index, uint id, uint instanceIndex, out uint relativeIndexInStrip, out StripData stripData)
+{
+#if VFX_HAS_INDIRECT_DRAW
+    // In indirect mode, index is global particle index
+    uint stripIndex = index / (PARTICLE_PER_STRIP_COUNT);
+    stripData = GetStripDataFromStripIndex(stripIndex, instanceIndex);
+    uint relativeParticleIndex = GetRelativeIndex(index, stripData);
+#else
+    // By default, index is the relative particle index (skipping last one per strip as an optimization)
+    uint stripIndex = index / (PARTICLE_PER_STRIP_COUNT - 1);
+    stripData = GetStripDataFromStripIndex(stripIndex, instanceIndex);
+    uint relativeParticleIndex = index - stripIndex * (PARTICLE_PER_STRIP_COUNT - 1);
+#endif
+
+    relativeIndexInStrip = relativeParticleIndex + STRIP_PARTICLE_IN_EDGE; // vertex index in the strip
+    index = GetParticleIndex(relativeIndexInStrip, stripData);
+
+    uint maxEdgeIndex = relativeParticleIndex + 1;
+    return maxEdgeIndex < stripData.nextIndex;
 }
 
 #if HAS_VFX_ATTRIBUTES

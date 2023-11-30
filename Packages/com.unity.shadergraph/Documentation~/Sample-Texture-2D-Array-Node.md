@@ -22,36 +22,20 @@ The Sample Texture 3D [!include[nodes-compatibility-all](./snippets/nodes-compat
 
 The Sample Texture 3D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th><strong>Binding</strong></th>
-<th><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Texture Array</strong></td>
-<td>Texture 2D Array</td>
-<td>None</td>
-<td>The Texture 2D Array asset to sample.</td>
-</tr>
-<tr>
-<td><strong>Index</strong></td>
-<td>Float</td>
-<td>None</td>
-<td>The index of the specific Texture in the Texture array to sample. The index value is the Texture's location in the Texture array. The index values in an array always start at 0. An array with four textures would have locations 0, 1, 2, and 3.</td>
-</tr>
-[!include[nodes-sample-uv-table](./snippets/sample-nodes/nodes-sample-uv-table.md)]
-[!include[nodes-sample-ss-table](./snippets/sample-nodes/nodes-sample-ss-table.md)]
-[!include[nodes-sample-lod-table](./snippets/sample-nodes/nodes-sample-lod-table.md)]
-[!include[nodes-sample-mip-bias-table](./snippets/sample-nodes/nodes-sample-mip-bias-table.md)]
-[!include[nodes-sample-ddx-table](./snippets/sample-nodes/nodes-sample-ddx-table.md)]
-[!include[nodes-sample-ddy-table](./snippets/sample-nodes/nodes-sample-ddy-table.md)]
-</tbody>
-</table>
+| **Name** | **Type**  | **Binding** | **Description** |
+|--|--|--|--|
+| **Texture Array** | Texture 2D Array | None | The Texture 2D Array asset to sample. |
+| **Index** | Float | None | The index of the specific Texture in the Texture array to sample. The index value is the Texture's location in the Texture array. The index values in an array always start at 0. An array with four textures would have locations 0, 1, 2, and 3. |
+| **UV** | Vector 2 | None | UV coordinates to use to sample the Texture. |
+| **Sampler** | Sampler State | Default Sampler State | The Sampler State and settings to use to sample the texture. |
+| **LOD** | Float | LOD | **NOTE**: The **LOD** Input port only displays if **Mip Sampling Mode** is **LOD**. For more information, refer to [Additional node settings](#additional-node-settings). The specific mip to use when sampling the Texture. |
+| **UV** | Vector 2 | UV | The UV coordinates to use to sample the texture. |
+| **Sampler** | Sampler State | Default Sampler State | The Sampler State and settings to use to sample the texture.|
+| **LOD** | Float | LOD | The specific mip to use when sampling the Texture. **NOTE** The **LOD** Input port only displays if **Mip Sampling Mode** is **LOD**. For more information, refer to [Additional node settings](#additional-node-settings). |
+| **Bias** | Float | Bias | **NOTE**: The **Bias** Input port only displays if **Mip Sampling Mode** is **Bias**. For more information, refer to [Additional node settings](#additional-node-settings). If **Use Global Mip Bias** is enabled, Unity adds this Bias amount to the Global Mip Bias for a texture's mip calculation. If **Global Mip Bias** is disabled, Unity uses this Bias amount instead of the Global Mip Bias. |
+| **DDX** | Float | DDY | **NOTE**: The **DDX** Input port only displays if **Mip Sampling Mode** is **Gradient**. For more information, refer to [Additional node settings](#additional-node-settings). The specific DDX value to use to calculate the texture's mip when sampling. For more information on DDX values for mipmaps, refer to [Mipmaps introduction](https://docs.unity3d.com/Documentation/Manual/texture-mipmaps-introduction.html) in the Unity User Manual. |
+| **DDY** | Float | DDY | **NOTE** The **DDY** Input port only displays if **Mip Sampling Mode** is **Gradient**. For more information, refer to [Additional node settings](#additional-node-settings). The specific DDY value to use to calculate the texture's mip when sampling. For more information on DDY values for mipmaps, refer to [Mipmaps introduction](https://docs.unity3d.com/Documentation/Manual/texture-mipmaps-introduction.html)> in the Unity User Manual. |
+
 
 ## Additional node settings
 

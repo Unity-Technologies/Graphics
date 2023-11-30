@@ -237,8 +237,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.maskMode == LocalVolumetricFogMaskMode.Texture)
             {
                 bool alphaTexture = false;
-                if (textureMaterial == null)
-                    textureMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.defaultFogVolumeShader);
+                if (textureMaterial == null && HDRenderPipelineGlobalSettings.instance != null)
+                {
+                    var runtimeShaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs;
+                    textureMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.defaultFogVolumeShader);
+                }
 
                 // Setup properties for material:
                 FogVolumeAPI.SetupFogVolumeBlendMode(textureMaterial, parameters.blendingMode);

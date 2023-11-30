@@ -94,6 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
+            typeof(WaterDecalSubTarget),
             typeof(FogVolumeSubTarget),
             typeof(PBRSkySubTarget),
         };
@@ -104,6 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
+            typeof(WaterDecalSubTarget),
             typeof(FogVolumeSubTarget),
             typeof(PBRSkySubTarget),
         };
@@ -649,6 +651,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord2,                                                HDStructFields.VaryingsMeshToPS.texCoord2),
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                                HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                                    HDStructFields.VaryingsMeshToPS.color),
+            new FieldDependency(HDStructFields.FragInputs.instanceID,                                               HDStructFields.VaryingsMeshToPS.instanceID),
         };
 
         public static DependencyCollection VertexDescription = new DependencyCollection
@@ -699,6 +702,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                                   HDStructFields.AttributesMesh.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                                   HDStructFields.AttributesMesh.indices),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                                      HDStructFields.AttributesMesh.vertexID),
+            new FieldDependency(StructFields.VertexDescriptionInputs.InstanceID,                                    HDStructFields.AttributesMesh.instanceID),
         };
 
         public static DependencyCollection VertexDescriptionTessellation = new DependencyCollection
@@ -713,6 +717,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                                           HDStructFields.VaryingsMeshToDS.texCoord2),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                                           HDStructFields.VaryingsMeshToDS.texCoord3),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                                   HDStructFields.VaryingsMeshToDS.color),
+            new FieldDependency(StructFields.VertexDescriptionInputs.InstanceID,                                    HDStructFields.VaryingsMeshToDS.instanceID),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection
@@ -758,6 +763,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv2,                                          HDStructFields.FragInputs.texCoord2),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                                          HDStructFields.FragInputs.texCoord3),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                                  HDStructFields.FragInputs.color),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.InstanceID,                                   HDStructFields.FragInputs.instanceID),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                                     HDStructFields.FragInputs.IsFrontFace),
         };
 

@@ -7,46 +7,81 @@ using System.Globalization;
 
 namespace UnityEditor.VFX.Block
 {
-    class AttributeFromCurveProvider : VariantProvider
+    class AttributeFromCurveVariantProvider : VariantProvider
     {
-        public override IEnumerable<Variant> ComputeVariants()
+        private readonly string m_Attribute;
+
+        public AttributeFromCurveVariantProvider(string attribute)
+        {
+            m_Attribute = attribute;
+        }
+
+        public override IEnumerable<Variant> GetVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
-            var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
             var sampleModes = new[] { AttributeFromCurve.CurveSampleMode.OverLife, AttributeFromCurve.CurveSampleMode.BySpeed, AttributeFromCurve.CurveSampleMode.Random }.ToArray();
 
-            foreach (var attribute in attributes)
+            foreach (var composition in compositions)
             {
-                foreach (var composition in compositions)
+                foreach (var sampleMode in sampleModes)
                 {
-                    foreach (var sampleMode in sampleModes)
+                    if (m_Attribute == VFXAttribute.Age.name && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
                     {
-                        if (attribute == VFXAttribute.Age.name && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
-                        {
-                            continue;
-                        }
-
-                        if (attribute == VFXAttribute.Velocity.name && sampleMode == AttributeFromCurve.CurveSampleMode.BySpeed)
-                        {
-                            continue;
-                        }
-
-                        yield return new Variant(
-                            new[]
-                            {
-                                new KeyValuePair<string, object>("attribute", attribute),
-                                new KeyValuePair<string, object>("Composition", composition),
-                                new KeyValuePair<string, object>("SampleMode", sampleMode)
-                            },
-                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
+                        continue;
                     }
+
+                    if (m_Attribute == VFXAttribute.Velocity.name && sampleMode == AttributeFromCurve.CurveSampleMode.BySpeed)
+                    {
+                        continue;
+                    }
+
+                    // This is the main variant settings
+                    if (composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
+                    {
+                        continue;
+                    }
+
+                    var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                    yield return new Variant(
+                        $"{compositionString} {m_Attribute} | {VFXBlockUtility.GetNameString(sampleMode)}",
+                        compositionString,
+                        typeof(AttributeFromCurve),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("attribute", m_Attribute),
+                            new KeyValuePair<string, object>("Composition", composition),
+                            new KeyValuePair<string, object>("SampleMode", sampleMode)
+                        });
                 }
             }
         }
     }
 
+    class AttributeFromCurveProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
+            foreach (var attribute in attributes)
+            {
+                var sampleMode = attribute != VFXAttribute.Age.name ? AttributeFromCurve.CurveSampleMode.OverLife : AttributeFromCurve.CurveSampleMode.BySpeed;
+                yield return new Variant(
+                    $"Set {attribute} | {VFXBlockUtility.GetNameString(sampleMode)}",
+                    "Attribute from curve",
+                    typeof(AttributeFromCurve),
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("attribute", attribute),
+                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
+                        new KeyValuePair<string, object>("SampleMode", sampleMode)
+                    },
+                    () => new AttributeFromCurveVariantProvider(attribute));
+            }
+        }
+    }
+
     [VFXHelpURL("Block-SetAttributeFromCurve")]
-    [VFXInfo(category = "Attribute/{0}/Curve/{1}", variantProvider = typeof(AttributeFromCurveProvider))]
+    [VFXInfo(variantProvider = typeof(AttributeFromCurveProvider))]
     class AttributeFromCurve : VFXBlock
     {
         public enum CurveSampleMode
@@ -72,7 +107,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
-        public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
+        public string attribute = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the chosen attribute. The value derived from this block can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
@@ -80,7 +115,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the alpha value. The value derived from this block can overwrite, add to, multiply with, or blend with the existing alpha value.")]
         public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting, Tooltip("Specifies the method by which to sample the curve. This can be over the particle’s lifetime, its speed, randomly, or through a user-specified value.")]
+        [VFXSetting, Tooltip("Specifies the method by which to sample the curve. This can be over the particle's lifetime, its speed, randomly, or through a user-specified value.")]
         public CurveSampleMode SampleMode = CurveSampleMode.OverLife;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies whether the block operates per component or uniformly across all components of the chosen attribute.")]
@@ -93,9 +128,9 @@ namespace UnityEditor.VFX.Block
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
-        private string GenerateName(bool library)
+        private string GenerateName()
         {
-            var variadicName = (currentAttribute.variadic == VFXVariadic.True && !library) ? "." + channels.ToString() : string.Empty;
+            var variadicName = currentAttribute.variadic == VFXVariadic.True ? "." + channels : string.Empty;
             var n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + variadicName;
             switch (SampleMode)
             {
@@ -108,31 +143,13 @@ namespace UnityEditor.VFX.Block
                     throw new NotImplementedException("Invalid CurveSampleMode");
             }
 
-            if (library && attribute == VFXAttribute.Color.name)
-            {
-                n += " (Gradient)";
-            }
             return n;
         }
 
-        public override string name
-        {
-            get
-            {
-                return GenerateName(false);
-            }
-        }
+        public override string name => GenerateName();
 
-        public override string libraryName
-        {
-            get
-            {
-                return GenerateName(true);
-            }
-        }
-
-        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        public override VFXContextType compatibleContexts => VFXContextType.InitAndUpdateAndOutput;
+        public override VFXDataType compatibleData => VFXDataType.Particle;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -155,7 +172,7 @@ namespace UnityEditor.VFX.Block
                     {
                         string channelsString = channels.ToString();
                         for (int i = 0; i < channelsString.Length; i++)
-                            yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                            yield return new VFXAttributeInfo(VFXAttributesManager.FindBuiltInOnly(attrib.name + channelsString[i]), attributeMode);
                     }
                     else
                     {
@@ -190,8 +207,17 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (VFXBlockUtility.SanitizeAttribute(ref attribute, ref channels, version))
-                Invalidate(InvalidationCause.kSettingChanged);
+            if (GetGraph() is {} graph)
+            {
+                if (VFXBlockUtility.SanitizeAttribute(graph, ref attribute, ref channels, version))
+                {
+                    Invalidate(InvalidationCause.kSettingChanged);
+                }
+            }
+            else
+            {
+                Debug.LogError($"Trying to find attribute '{attribute}' when graph is not available");
+            }
 
             base.Sanitize(version);
         }
@@ -297,7 +323,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public string GetFetchValueString(string localName, int size, ComputeMode computeMode, CurveSampleMode sampleMode)
+        private string GetFetchValueString(string localName, int size, ComputeMode computeMode, CurveSampleMode sampleMode)
         {
             string output;
             switch (SampleMode)
@@ -311,24 +337,24 @@ namespace UnityEditor.VFX.Block
                     throw new NotImplementedException("Invalid CurveSampleMode");
             }
 
-            output += string.Format("float{0} value = 0.0f;\n", (size == 1) ? "" : size.ToString());
+            output += $"float{(size == 1 ? "" : size.ToString())} value = 0.0f;\n";
 
             if (computeMode == ComputeMode.Uniform || size == 1)
             {
-                output += string.Format("value = SampleCurve({0}, t);\n", localName);
+                output += $"value = SampleCurve({localName}, t);\n";
             }
             else
             {
                 if (currentAttribute.Equals(VFXAttribute.Color))
                 {
-                    output += string.Format("value = SampleGradient({0}, t);\n", localName);
+                    output += $"value = SampleGradient({localName}, t);\n";
                 }
                 else
                 {
-                    if (size > 0) output += string.Format("value[0] = SampleCurve({0}, t);\n", localName + "_x");
-                    if (size > 1) output += string.Format("value[1] = SampleCurve({0}, t);\n", localName + "_y");
-                    if (size > 2) output += string.Format("value[2] = SampleCurve({0}, t);\n", localName + "_z");
-                    if (size > 3) output += string.Format("value[3] = SampleCurve({0}, t);\n", localName + "_w");
+                    if (size > 0) output += $"value[0] = SampleCurve({localName + "_x"}, t);\n";
+                    if (size > 1) output += $"value[1] = SampleCurve({localName + "_y"}, t);\n";
+                    if (size > 2) output += $"value[2] = SampleCurve({localName + "_z"}, t);\n";
+                    if (size > 3) output += $"value[3] = SampleCurve({localName + "_w"}, t);\n";
                 }
             }
 
@@ -407,11 +433,48 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        private VFXAttribute currentAttribute
+        protected override void OnAdded()
+        {
+            base.OnAdded();
+            // When using custom attribute we need to access to the graph to find the custom attribute
+            // and the graph is only available after the node being added to it.
+            if (GetGraph() is {} graph && graph.attributesManager.IsCustom(attribute))
+            {
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+
+        public VFXAttribute currentAttribute
         {
             get
             {
-                return VFXAttribute.Find(attribute);
+                if (GetGraph() is { } graph)
+                {
+                    if (graph.attributesManager.TryFind(attribute, out var vfxAttribute))
+                    {
+                        return vfxAttribute;
+                    }
+                }
+                else // Happens when the node is not yet added to the graph, but should be ok as soon as it's added (see OnAdded)
+                {
+                    var attr = VFXAttributesManager.FindBuiltInOnly(attribute);
+                    if (string.Compare(attribute, attr.name, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        return attr;
+                    }
+                }
+
+                // Temporary attribute
+                return new VFXAttribute(attribute, VFXValueType.Float, null);
+            }
+        }
+
+        public override void Rename(string oldName, string newName)
+        {
+            if (GetGraph() is {} graph && graph.attributesManager.IsCustom(newName))
+            {
+                attribute = newName;
+                SyncSlots(VFXSlot.Direction.kInput, true);
             }
         }
     }

@@ -75,6 +75,8 @@ namespace UnityEditor.VFX.UI
                     { Event.KeyboardEvent("F5"), view.ReinitComponents },
                     { Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents },
                     { Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents },
+                    { Event.KeyboardEvent("p"), view.m_ProfilingBoard.ExpandAllGraphPanels },
+                    { Event.KeyboardEvent("#p"), view.m_ProfilingBoard.CloseAllGraphPanels },
                 });
         }
 
@@ -301,7 +303,6 @@ namespace UnityEditor.VFX.UI
             VFXManagerEditor.CheckVFXManager();
 
             graphView = new VFXView();
-            graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
             rootVisualElement.Add(graphView);
@@ -446,6 +447,12 @@ namespace UnityEditor.VFX.UI
                         }
                         else
                             graph.RecompileIfNeeded(true, true);
+
+                        if (graph.IsCustomAttributeDirty())
+                        {
+                            graphView.blackboard.Update(true);
+                            graph.SetCustomAttributeDirty(false);
+                        }
 
                         bool wasDirty = graph.IsExpressionGraphDirty();
 

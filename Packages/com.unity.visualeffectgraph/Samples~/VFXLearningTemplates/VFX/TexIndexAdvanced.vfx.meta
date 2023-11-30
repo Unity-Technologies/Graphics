@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 29714eb2a2055e849b2ad797689dd11c
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: TexIndex Advanced
+    category: Learning Templates
+    description: 'This complex VFX is composed of several systems that are playing
+      with the texIndex attribute in a creative way in order to: Control the texIndex
+      thanks to time, noise, and even particle position.  '
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 80592822edf375347952a1be729773d2, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

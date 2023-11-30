@@ -5,7 +5,7 @@ using UnityEditor;
 [EditorTool("Light Placement Tool", typeof(Light))]
 class LightPlacementTool : EditorTool
 {
-    private const float k_DefaultZoom = 2f;
+    private const float k_DefaultZoom = 0.05f;
     private bool initialPositionSet;
 
     private static Vector3 initialPivot;

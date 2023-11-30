@@ -933,7 +933,7 @@ namespace UnityEditor.VFX.Test
             var name = "unity";
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                var parameter = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Vector2)).CreateInstance();
                 parameter.SetSettingValue("m_Exposed", true);
                 parameter.SetSettingValue("m_ExposedName", name);
                 asset.GetResource().GetOrCreateGraph().AddChild(parameter);
@@ -959,7 +959,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                var parameter = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Vector2)).CreateInstance();
                 add.SetOperandType(0, typeof(Vector2));
                 graph.AddChild(add);
                 graph.AddChild(parameter);
@@ -985,7 +985,7 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.variant.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
@@ -1006,7 +1006,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.variant.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 graph.AddChild(builtIn);
                 graph.AddChild(add);
                 add.inputSlots[0].Link(builtIn.outputSlots[0]);
@@ -1044,8 +1044,8 @@ namespace UnityEditor.VFX.Test
 
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var sizeCurrent = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
-                var sizeSource = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                var sizeCurrent = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                var sizeSource = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
                 (sizeSource as VFXAttributeParameter).SetSettingValue("location", VFXAttributeLocation.Source);
                 asset.GetResource().GetOrCreateGraph().AddChild(sizeCurrent);
                 asset.GetResource().GetOrCreateGraph().AddChild(sizeSource);
@@ -1260,8 +1260,8 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Add a static mesh output
-            var staticMeshOutputContextDesc = VFXLibrary.GetContexts().Single(x => x.model is VFXStaticMeshOutput);
-            var staticMeshOutputContext = (VFXStaticMeshOutput)window.graphView.controller.AddVFXContext(Vector2.zero, staticMeshOutputContextDesc);
+            var staticMeshOutputContextDesc = VFXLibrary.GetContexts().Single(x => x.modelType == typeof(VFXStaticMeshOutput));
+            var staticMeshOutputContext = (VFXStaticMeshOutput)window.graphView.controller.AddVFXContext(Vector2.zero, staticMeshOutputContextDesc.variant);
             var shaderGraph = AssetDatabase.LoadAssetAtPath<Shader>("Assets/AllTests/Editor/Tests/Modify_SG_Property_A.shadergraph");
             staticMeshOutputContext.SetSettingValue("shader", shaderGraph);
             window.graphView.OnSave();
@@ -1278,50 +1278,6 @@ namespace UnityEditor.VFX.Test
 
             // Check that the shader is still set to None
             Assert.IsNull(staticMeshOutputContext.GetSetting("shader").value, "The shader was expected to be null but it didn't. Probably the previous value has been restored when saving");
-        }
-
-        [UnityTest, Description("Cover regression UUM-13863")]
-        public IEnumerator Crash_On_StoreObject_While_Modifying_SG()
-        {
-            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_13863.zip";
-            var tempDest = VFXTestCommon.tempBasePath + "/Repro_13863";
-
-            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
-            AssetDatabase.Refresh();
-            yield return null;
-
-            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
-            Assert.IsNotNull(asset);
-
-            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
-            var window = VFXViewWindow.GetWindow(asset);
-            window.LoadAsset(asset, null);
-            for (int i = 0; i < 4; ++i)
-                yield return null;
-
-            var baseFilePath = tempDest + "/Repro_13863_A.shadergraph";
-            var backupSGContent = File.ReadAllBytes(baseFilePath);
-            var newSGContent = File.ReadAllBytes(tempDest + "/Repro_13863_B.shadergraph");
-            Assert.IsNotEmpty(backupSGContent);
-            Assert.IsNotEmpty(newSGContent);
-
-            //Modify SG once
-            File.WriteAllBytes(baseFilePath, newSGContent);
-            AssetDatabase.Refresh();
-            for (int i = 0; i < 4; ++i)
-                yield return null;
-
-            //Restore
-            File.WriteAllBytes(baseFilePath, backupSGContent);
-            AssetDatabase.Refresh();
-
-            for (int i = 0; i < 4; ++i)
-                yield return null; //Crash is occurring here
-
-
-            window.Close();
-            for (int i = 0; i < 4; ++i)
-                yield return null;
         }
 
         [UnityTest, Description("Cover case UUM-553")]
@@ -1429,6 +1385,102 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(customLogger.m_HasLoggedMustUnlit);
             Assert.IsTrue(customLogger.m_HasLoggedCantCompile);
         }
+
+        class ShaderGraph_Unexpected_Feature : ILogHandler
+        {
+            public ILogHandler m_ForwardHandler;
+
+            public bool m_HasLoggedUnsupportedFeature;
+            public bool m_HasLoggedCantCompile;
+
+            public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+            {
+                if (logType == LogType.Warning)
+                {
+                    var result = string.Format(format, args);
+                    if (result.EndsWith("blackboard properties in Shader Graph are currently not supported in Visual Effect Shaders."))
+                    {
+                        m_HasLoggedUnsupportedFeature = true;
+                        return;
+                    }
+                }
+
+                if (logType == LogType.Error)
+                {
+                    var result = string.Format(format, args);
+                    if (result.StartsWith("Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_13863/Repro_13863.vfx\""))
+                    {
+                        m_HasLoggedCantCompile = true;
+                        return;
+                    }
+                }
+
+                m_ForwardHandler.LogFormat(logType, context, format, args);
+            }
+
+            public void LogException(Exception exception, UnityEngine.Object context)
+            {
+                if (exception is InvalidOperationException invalidOperationException
+                    && invalidOperationException.Message.StartsWith("Unhandled log message: '[Error] Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_13863/Repro_13863.vfx\""))
+                {
+                    return;
+                }
+
+                m_ForwardHandler.LogException(exception, context);
+            }
+        }
+
+        [UnityTest, Description("Cover regression UUM-13863")]
+        public IEnumerator Crash_On_StoreObject_While_Modifying_SG()
+        {
+            var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_13863.zip";
+            var tempDest = VFXTestCommon.tempBasePath + "/Repro_13863";
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
+
+            var customLogger = new ShaderGraph_Unexpected_Feature() { m_ForwardHandler = m_BackupLogHandler }; ;
+            Debug.unityLogger.logHandler = customLogger;
+
+            AssetDatabase.Refresh();
+            yield return null;
+
+            Assert.IsTrue(customLogger.m_HasLoggedUnsupportedFeature);
+            Assert.IsTrue(customLogger.m_HasLoggedCantCompile);
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
+            Assert.IsNotNull(asset);
+
+            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            var baseFilePath = tempDest + "/Repro_13863_A.shadergraph";
+            var backupSGContent = File.ReadAllBytes(baseFilePath);
+            var newSGContent = File.ReadAllBytes(tempDest + "/Repro_13863_B.shadergraph");
+            Assert.IsNotEmpty(backupSGContent);
+            Assert.IsNotEmpty(newSGContent);
+
+            //Modify SG once
+            File.WriteAllBytes(baseFilePath, newSGContent);
+            AssetDatabase.Refresh();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            //Restore
+            File.WriteAllBytes(baseFilePath, backupSGContent);
+            AssetDatabase.Refresh();
+
+            for (int i = 0; i < 4; ++i)
+                yield return null; //Crash is occurring here
+
+
+            window.Close();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+        }
+
 
         [OneTimeTearDown]
         public void CleanUp()

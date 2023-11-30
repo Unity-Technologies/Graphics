@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// The class for the SSAO renderer feature.
     /// </summary>
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Screen Space Ambient Occlusion")]
     [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     [URPHelpURL("post-processing-ssao")]
@@ -126,6 +127,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            if (UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
+                return;
+
             if (!GetMaterials())
             {
                 Debug.LogErrorFormat("{0}.AddRenderPasses(): Missing material. {1} render pass will not be added.", GetType().Name, name);
@@ -151,7 +155,5 @@ namespace UnityEngine.Rendering.Universal
                 m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
             return m_Material != null;
         }
-
-
     }
 }

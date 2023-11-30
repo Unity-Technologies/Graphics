@@ -140,6 +140,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Controls the strength of the Specular AA reduction. Higher values give a more blurry result and less aliasing.");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Controls the effect of Specular AA reduction. A values of 0 does not apply reduction, higher values allow higher reduction.");
 
+            public static GUIContent excludeFromTUAndAAText = new GUIContent("Exclude From Temporal Upscalers and Anti Aliasing", "When enabled, the current material wont be temporaly sampled during TAA and will have reduced ghosting on upscalers.");
+
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
             public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections. This will force a transparent depth prepass on the object if HDRP supports it.");
@@ -177,7 +179,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty enableBlendModePreserveSpecularLighting = null;
         MaterialProperty enableFogOnTransparent = null;
         MaterialProperty refractionModel = null;
-        private const string kRenderQueueTypeShaderGraph = "_RenderQueueType";
 
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
@@ -191,6 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kSpecularAAThreshold = "_SpecularAAThreshold";
         MaterialProperty transmissionEnable = null;
         MaterialProperty clearCoatEnabled = null;
+        MaterialProperty excludeFromTUAndAA = null;
 
         // Per pixel displacement params
         MaterialProperty ppdMinSamples = null;
@@ -224,6 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty opaqueCullMode = null;
         MaterialProperty rayTracing = null;
 
+        MaterialProperty renderQueueTypeSG = null;
         SerializedProperty renderQueueProperty = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
@@ -254,8 +257,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 foreach (Material target in materialEditor.targets)
                 {
-                    if (target.HasProperty(kRenderQueueTypeShaderGraph))
-                        target.SetFloat(kRenderQueueTypeShaderGraph, (int)HDRenderQueue.GetTypeByRenderQueueValue(value));
+                    if (renderQueueTypeSG != null)
+                        renderQueueTypeSG.floatValue = (int)HDRenderQueue.GetTypeByRenderQueueValue(value);
                     target.renderQueue = value;
                 }
             }
@@ -322,6 +325,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             transmissionEnable = FindProperty(kTransmissionEnable);
             clearCoatEnabled = FindProperty(kClearCoatEnabled);
+            
+            excludeFromTUAndAA = FindProperty(kExcludeFromTUAndAA);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
             {
@@ -373,6 +378,8 @@ namespace UnityEditor.Rendering.HighDefinition
             rayTracing = FindProperty(kRayTracing);
 
             renderQueueProperty = materialEditor.serializedObject.FindProperty("m_CustomRenderQueue");
+            if (!(materialEditor.target as Material).isVariant)
+                renderQueueTypeSG = FindProperty(kRenderQueueTypeShaderGraph);
         }
 
         /// <summary>
@@ -645,10 +652,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graph only property, used to transfer the render queue from the shader graph to the material,
             // because we can't use the renderqueue from the shader as we have to keep the renderqueue on the material side.
-            if (material.HasProperty(kRenderQueueTypeShaderGraph))
-            {
-                renderQueueType = (HDRenderQueue.RenderQueueType)material.GetFloat(kRenderQueueTypeShaderGraph);
-            }
+            if (renderQueueTypeSG != null)
+                renderQueueType = (HDRenderQueue.RenderQueueType)renderQueueTypeSG.floatValue;
+
             // To know if we need to update the renderqueue, mainly happens if a material is created from a shader graph shader
             // with default render-states.
             bool renderQueueTypeMismatchRenderQueue = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue) != renderQueueType;
@@ -709,8 +715,8 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
 
-            if (material.HasProperty("_RenderQueueType"))
-                material.SetFloat("_RenderQueueType", (float)renderQueueType);
+            if (renderQueueTypeSG != null)
+                renderQueueTypeSG.floatValue = (float)renderQueueType;
         }
 
         int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
@@ -806,6 +812,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                     materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }
+
+            if (excludeFromTUAndAA != null && BaseLitAPI.CompatibleWithExcludeFromTUAndAA(surfaceTypeValue, renderQueue))
+                materialEditor.ShaderProperty(excludeFromTUAndAA, Styles.excludeFromTUAndAAText);
 
             if (enableGeometricSpecularAA != null)
             {

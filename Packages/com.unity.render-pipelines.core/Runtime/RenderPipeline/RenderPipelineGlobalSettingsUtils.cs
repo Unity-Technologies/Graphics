@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering
             path = AssetDatabase.GenerateUniqueAssetPath(path);
 
             var assetCreated = ScriptableObject.CreateInstance(renderPipelineGlobalSettingsType) as RenderPipelineGlobalSettings;
-            if (assetCreated)
+            if (assetCreated != null)
             {
                 AssetDatabase.CreateAsset(assetCreated, path);
 
@@ -57,9 +57,12 @@ namespace UnityEngine.Rendering
                 if (dataSource != null)
                     EditorUtility.CopySerializedManagedFieldsOnly(dataSource, assetCreated);
 
+                EditorGraphicsSettings.PopulateRenderPipelineGraphicsSettings(assetCreated);
+
                 assetCreated.Initialize(dataSource);
 
-                AssetDatabase.SaveAssets();
+                EditorUtility.SetDirty(assetCreated);
+                AssetDatabase.SaveAssetIfDirty(assetCreated);
                 AssetDatabase.Refresh();
             }
 

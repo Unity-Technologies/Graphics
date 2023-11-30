@@ -128,8 +128,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half alpha = surfaceDescription.Alpha;
     half4 color = half4(surfaceDescription.BaseColor + surfaceDescription.Emission, alpha) ;
 
-    #ifndef HAVE_VFX_MODIFICATION
-        color *= unpacked.color ;
+    #if !defined(HAVE_VFX_MODIFICATION) && !defined(_DISABLE_COLOR_TINT)
+        color *= unpacked.color;
     #endif
 
     #ifdef UNITY_UI_CLIP_RECT

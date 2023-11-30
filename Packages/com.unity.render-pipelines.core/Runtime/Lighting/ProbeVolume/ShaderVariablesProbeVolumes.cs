@@ -35,11 +35,11 @@ namespace UnityEngine.Rendering
     internal unsafe struct ShaderVariablesProbeVolumes
     {
         public Vector4 _PoolDim_CellInMeters;
-        public Vector4 _RcpPoolDim_Padding;
+        public Vector4 _RcpPoolDim_XY;
         public Vector4 _MinEntryPos_Noise;
         public Vector4 _IndicesDim_IndexChunkSize;
-        public Vector4 _Biases_CellInMinBrick_MinBrickSize;
-        public Vector4 _LeakReductionParams;
+        public Vector4 _Biases_MinBrickSize_Padding;
+        public Vector4 _LeakReduction_SkyOcclusion;
         public Vector4 _Weight_MinLoadedCellInEntries;
         public Vector4 _MaxLoadedCellInEntries_FrameIndex;
         public Vector4 _NormalizationClamp_IndirectionEntryDim_Padding;

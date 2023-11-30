@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Epsilon")]
-    [VFXInfo(category = "Math/Constants")]
+    [VFXInfo(name = "Epsilon (ε)", category = "Math/Constants")]
     class Epsilon : VFXOperator
     {
         override public string name { get { return "Epsilon (ε)"; } }

@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         ShaderGraphVfxAssetData m_Data = new ShaderGraphVfxAssetData();
 
+        [HideInInspector]
         [SerializeField]
         private SerializationHelper.JSONSerializedElement m_SerializedVfxAssetData;
 

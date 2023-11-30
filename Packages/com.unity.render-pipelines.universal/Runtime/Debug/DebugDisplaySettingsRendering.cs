@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
             public SettingsPanel(DebugDisplaySettingsRendering data)
                 : base(data)
             {
-                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+                AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
 
                 AddWidget(new DebugUI.Foldout
                 {
@@ -402,6 +402,22 @@ namespace UnityEngine.Rendering.Universal
                                 WidgetFactory.CreatePixelValueRangeMax(this)
                             }
                         }
+                    }
+                });
+
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "HDR Output",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        new DebugUI.MessageBox
+                        {
+                            displayName = "The values on the Rendering Debugger editor window might not be accurate. Please use the playmode debug UI (Ctrl+Backspace).",
+                            style = DebugUI.MessageBox.Style.Warning,
+                        },
+                        DebugDisplaySettingsHDROutput.CreateHDROuputDisplayTable()
                     }
                 });
             }

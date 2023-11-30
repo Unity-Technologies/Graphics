@@ -4,8 +4,20 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class PositionSphereProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Sphere)",
+                "Position/Position on shape",
+                typeof(PositionSphere),
+                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
+        }
+    }
+
     [VFXHelpURL("Block-SetPosition(Sphere)")]
-    [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionBaseProvider))]
+    [VFXInfo(variantProvider = typeof(PositionSphereProvider))]
     class PositionSphere : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Arc Sphere"); } }

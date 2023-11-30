@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -20,10 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_GatherSingleKernel;
         int m_GatherColorKernel;
 
-        public void Init(HDRenderPipelineRuntimeResources rpResources, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
-            m_DiffuseDenoiser = rpResources.shaders.diffuseDenoiserCS;
+            m_DiffuseDenoiser = renderPipeline.runtimeShaders.diffuseDenoiserCS;
 
             // Grab all the kernels we'll eventually need
             m_BilateralFilterSingleKernel = m_DiffuseDenoiser.FindKernel("BilateralFilterSingle");
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Data required for the online initialization
             m_DenoiserInitialized = false;
-            m_OwnenScrambledTexture = rpResources.textures.owenScrambledRGBATex;
+            m_OwnenScrambledTexture = renderPipeline.runtimeTextures.owenScrambledRGBATex;
             m_PointDistribution = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 16 * 4, 2 * sizeof(float));
         }
 

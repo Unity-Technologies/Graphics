@@ -46,8 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxDeformerCount = m_Asset.currentPlatformRenderPipelineSettings.maximumDeformerCount;
             m_WaterDeformersData = new ComputeBuffer(m_MaxDeformerCount, System.Runtime.InteropServices.Marshal.SizeOf<WaterDeformerData>());
             m_WaterDeformersDataCPU = new NativeArray<WaterDeformerData>(m_MaxDeformerCount, Allocator.Persistent);
-            m_DeformerMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterDeformationPS);
-            m_WaterDeformationCS = defaultResources.shaders.waterDeformationCS;
+            m_DeformerMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.waterDeformationPS);
+            m_WaterDeformationCS = runtimeShaders.waterDeformationCS;
             m_FilterDeformationKernel = m_WaterDeformationCS.FindKernel("FilterDeformation");
             m_EvaluateDeformationSurfaceGradientKernel = m_WaterDeformationCS.FindKernel("EvaluateDeformationSurfaceGradient");
             m_DeformerAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize, 0, GraphicsFormat.R16_UNorm, name: "Water Deformation Atlas", useMipMap: false);
@@ -89,6 +89,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         needRelayout = true;
                     }
                 }
+                else if (deformer.type == WaterDeformerType.Material && deformer.IsValidMaterial())
+                {
+                    if (!m_DeformerAtlas.ReserveSpace(deformer.GetMaterialAtlasingId(), deformer.resolution.x, deformer.resolution.y))
+                    {
+                        needRelayout = true;
+                    }
+                }
             }
 
             // Ask for a relayout
@@ -107,6 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If this is a texture deformer without a texture skip it
                 if (currentDeformer.type == WaterDeformerType.Texture && currentDeformer.texture == null)
+                    continue;
+                if (currentDeformer.type == WaterDeformerType.Material && !currentDeformer.IsValidMaterial())
                     continue;
 
                 Vector3 scale = currentDeformer.scaleMode == DecalScaleMode.InheritFromHierarchy ? currentDeformer.transform.lossyScale : Vector3.one;
@@ -163,6 +172,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (m_DeformerAtlas.NeedsUpdate(tex, false))
                                 m_DeformerAtlas.BlitTexture(cmd, scaleBias, tex, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_DeformerAtlas.GetTextureID(tex));
+
+                            // General
+                            data.scaleOffset = scaleBias;
+                            data.blendRegion = currentDeformer.range;
+                        }
+                        break;
+                    case WaterDeformerType.Material:
+                        {
+                            Material mat = currentDeformer.material;
+                            if (!m_DeformerAtlas.IsCached(out var scaleBias, currentDeformer.GetMaterialAtlasingId()) && outOfSpace)
+                                Debug.LogError($"No more space in the 2D Water Deformer Altas to store the material {mat}. To solve this issue, decrease the deformer resolution or increase the resolution of the Deformation Atlas Size in the current HDRP asset.");
+
+                            if (currentDeformer.updateMode == CustomRenderTextureUpdateMode.Realtime || currentDeformer.shouldUpdate)
+                            {
+                                var size = (int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize;
+                                cmd.SetRenderTarget(m_DeformerAtlas.AtlasTexture);
+                                cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
+                                cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.Deformer, MeshTopology.Triangles, 3, 1, currentDeformer.mpb);
+
+                                currentDeformer.shouldUpdate = false;
+                            }
 
                             // General
                             data.scaleOffset = scaleBias;

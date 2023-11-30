@@ -1,6 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     {
     }
 
+    [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Screen Space Shadows")]
     [Tooltip("Screen Space Shadows")]
     [URPHelpURL("renderer-feature-screen-space-shadows")]
@@ -48,6 +49,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            if (UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
+                return;
+
             if (!LoadMaterial())
             {
                 Debug.LogErrorFormat(
@@ -65,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
                     ? RenderPassEvent.AfterRenderingGbuffer
-                    : RenderPassEvent.AfterRenderingPrePasses;
+                    : RenderPassEvent.AfterRenderingPrePasses + 1; // We add 1 to ensure this happens after depth priming depth copy pass that might be scheduled
 
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
@@ -157,7 +161,6 @@ namespace UnityEngine.Rendering.Universal
             private class PassData
             {
                 internal TextureHandle target;
-                internal RenderingData renderingData;
                 internal Material material;
                 internal int shadowmapID;
             }
@@ -166,22 +169,21 @@ namespace UnityEngine.Rendering.Universal
             /// Initialize the shared pass data.
             /// </summary>
             /// <param name="passData"></param>
-            private void InitPassData(ref RenderingData renderingData, ref PassData passData)
+            private void InitPassData(ref PassData passData)
             {
-                passData.renderingData = renderingData;
                 passData.material = m_Material;
                 passData.shadowmapID = m_ScreenSpaceShadowmapTextureID;
             }
 
-            public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 if (m_Material == null)
                 {
                     Debug.LogErrorFormat("{0}.Execute(): Missing material. ScreenSpaceShadows pass will not execute. Check for missing reference in the renderer resources.", GetType().Name);
                     return;
                 }
-
-                var desc = renderingData.cameraData.cameraTargetDescriptor;
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                var desc = cameraData.cameraTargetDescriptor;
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
                 // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
@@ -193,26 +195,28 @@ namespace UnityEngine.Rendering.Universal
 
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadows Pass", out var passData, m_ProfilingSampler))
                 {
-                    passData.target = builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    passData.target = color;
+                    builder.SetRenderAttachment(color, 0, AccessFlags.Write);
 
-                    InitPassData(ref renderingData, ref passData);
+                    InitPassData(ref passData);
                     builder.AllowGlobalStateModification(true);
+
+                    if (color.IsValid())
+                        builder.SetGlobalTextureAfterPass(color, m_ScreenSpaceShadowmapTextureID);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
-                        ExecutePass(rgContext.cmd, data, data.target, ref data.renderingData);
+                        ExecutePass(rgContext.cmd, data, data.target);
                     });
                 }
-
-                RenderGraphUtils.SetGlobalTexture(renderGraph, m_ScreenSpaceShadowmapTextureID, color);
             }
 
-            private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target, ref RenderingData renderingData)
+            private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)
             {
                 Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, false);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, true);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, true);
             }
 
             /// <inheritdoc/>
@@ -224,11 +228,11 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                InitPassData(ref renderingData, ref m_PassData);
+                InitPassData(ref m_PassData);
                 var cmd = renderingData.commandBuffer;
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_RenderTarget, ref renderingData);
+                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_RenderTarget);
                 }
             }
         }
@@ -245,52 +249,53 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureTarget(k_CurrentActive);
             }
 
-
-            private static void ExecutePass(RasterCommandBuffer cmd, ref RenderingData renderingData)
+            private static void ExecutePass(RasterCommandBuffer cmd, UniversalShadowData shadowData)
             {
-                ShadowData shadowData = renderingData.shadowData;
                 int cascadesCount = shadowData.mainLightShadowCascadesCount;
-                bool mainLightShadows = renderingData.shadowData.supportsMainLightShadows;
+                bool mainLightShadows = shadowData.supportsMainLightShadows;
                 bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
                 bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
                 // Before transparent object pass, force to disable screen space shadow of main light
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, false);
 
                 // then enable main light shadows with or without cascades
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, receiveShadowsCascades);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, receiveShadowsNoCascade);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, receiveShadowsCascades);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 var cmd = renderingData.commandBuffer;
+                UniversalShadowData shadowData = renderingData.frameData.Get<UniversalShadowData>();
+
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref renderingData);
+                    ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), shadowData);
                 }
             }
 
             internal class PassData
             {
                 internal ScreenSpaceShadowsPostPass pass;
-                internal RenderingData renderingData;
+                internal UniversalShadowData shadowData;
             }
-            public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadow Post Pass", out var passData, m_ProfilingSampler))
                 {
-                    UniversalRenderer renderer = (UniversalRenderer) renderingData.cameraData.renderer;
-                    TextureHandle color = renderer.activeColorTexture;
-                    builder.UseTextureFragment(color, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                    passData.renderingData = renderingData;
+                    UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+                    TextureHandle color = resourceData.activeColorTexture;
+                    builder.SetRenderAttachment(color, 0, AccessFlags.Write);
+                    passData.shadowData = frameData.Get<UniversalShadowData>();
                     passData.pass = this;
 
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                     {
-                        ExecutePass(rgContext.cmd, ref data.renderingData);
+                        ExecutePass(rgContext.cmd, data.shadowData);
                     });
                 }
             }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -104,15 +104,15 @@ namespace UnityEngine.Rendering.Universal
         internal ref RTHandle DebugScreenDepthHandle => ref m_DebugScreenDepthHandle;
         internal HDRDebugViewPass hdrDebugViewPass => m_HDRDebugViewPass;
 
-        internal bool HDRDebugViewIsActive(ref CameraData cameraData)
+        internal bool HDRDebugViewIsActive(bool resolveFinalTarget)
         {
             // HDR debug views should only apply to the last camera in the stack
-            return DebugDisplaySettings.lightingSettings.hdrDebugMode != HDRDebugMode.None && cameraData.resolveFinalTarget;
+            return DebugDisplaySettings.lightingSettings.hdrDebugMode != HDRDebugMode.None && resolveFinalTarget;
         }
 
-        internal bool WriteToDebugScreenTexture(ref CameraData cameraData)
+        internal bool WriteToDebugScreenTexture(bool resolveFinalTarget)
         {
-            return HDRDebugViewIsActive(ref cameraData);
+            return HDRDebugViewIsActive(resolveFinalTarget);
         }
 
         internal bool IsScreenClearNeeded
@@ -133,15 +133,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal DebugHandler(ScriptableRendererData scriptableRendererData)
+        internal DebugHandler()
         {
-            Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
-            Shader hdrDebugViewShader = scriptableRendererData.debugShaders.hdrDebugViewPS;
-
             m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
 
-            m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
-            m_HDRDebugViewMaterial = (hdrDebugViewShader == null) ? null : CoreUtils.CreateEngineMaterial(hdrDebugViewShader);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>(out var shaders))
+            {
+                m_ReplacementMaterial = (shaders.debugReplacementPS != null) ? CoreUtils.CreateEngineMaterial(shaders.debugReplacementPS) : null;
+                m_HDRDebugViewMaterial = (shaders.hdrDebugViewPS != null) ? CoreUtils.CreateEngineMaterial(shaders.hdrDebugViewPS) : null;
+            }
 
             m_HDRDebugViewPass = new HDRDebugViewPass(m_HDRDebugViewMaterial);
         }
@@ -155,9 +155,9 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ReplacementMaterial);
         }
 
-        internal bool IsActiveForCamera(ref CameraData cameraData)
+        internal bool IsActiveForCamera(bool isPreviewCamera)
         {
-            return !cameraData.isPreviewCamera && AreAnySettingsActive;
+            return !isPreviewCamera && AreAnySettingsActive;
         }
 
         internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
@@ -190,14 +190,6 @@ namespace UnityEngine.Rendering.Universal
             descriptor.autoGenerateMips = false;
             descriptor.useDynamicScale = true;
             descriptor.depthStencilFormat = depthStencilFormat;
-        }
-
-        internal void BlitTextureToDebugScreenTexture(CommandBuffer cmd, RTHandle sourceTexture, Material material, int passId)
-        {
-            Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-
-            CoreUtils.SetRenderTarget(cmd, m_DebugScreenColorHandle, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            Blitter.BlitTexture(cmd, sourceTexture, viewportScale, material, passId);
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
@@ -241,12 +233,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (passIndex == 0)
                     {
-                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                     }
                     else if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(k_DebugColorPropertyId, Color.black);
-                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                        cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
                     }
 
                     break;
@@ -284,23 +276,23 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, ref CameraData cameraData, bool isFinalPass)
+        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, UniversalCameraData cameraData, bool isFinalPass)
         {
             // Ensure final validation & fullscreen debug modes are only done once in the very final pass, for the last camera on the stack.
             bool isFinal = isFinalPass && cameraData.resolveFinalTarget;
             if (!isFinal)
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                 return;
             }
 
-            if (IsActiveForCamera(ref cameraData))
+            if (IsActiveForCamera(cameraData.isPreviewCamera))
             {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
             }
             else
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
             }
 
             if (m_HasDebugRenderTarget)
@@ -320,14 +312,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(ref RenderingData renderingData)
+        internal void Setup(CommandBuffer cmd, bool isPreviewCamera)
         {
-            var cmd = renderingData.commandBuffer;
-            ref var cameraData = ref renderingData.cameraData;
-
-            if (IsActiveForCamera(ref cameraData))
+            if (IsActiveForCamera(isPreviewCamera))
             {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
 
                 // Material settings...
                 cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
@@ -353,17 +342,16 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
+                cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
             }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Render(RenderGraph renderGraph, ref RenderingData renderingData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
+        internal void Render(RenderGraph renderGraph, CommandBuffer cmd, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
         {
-            ref var cameraData = ref renderingData.cameraData;
-            if (IsActiveForCamera(ref cameraData) && HDRDebugViewIsActive(ref cameraData))
+            if (IsActiveForCamera(cameraData.isPreviewCamera) && HDRDebugViewIsActive(cameraData.resolveFinalTarget))
             {
-                m_HDRDebugViewPass.RenderHDRDebug(renderGraph, ref renderingData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
+                m_HDRDebugViewPass.RenderHDRDebug(renderGraph, cmd, cameraData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
             }
         }
 
@@ -371,25 +359,25 @@ namespace UnityEngine.Rendering.Universal
 
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
-             ref RenderingData renderingData,
+             ref CullingResults cullResults,
              ref DrawingSettings drawingSettings,
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
         {
             DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
-            debug.CreateRendererListsWithDebugRenderState(context, ref renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            debug.CreateRendererListsWithDebugRenderState(context, ref cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
         }
 
         internal DebugRendererLists CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
-            ref RenderingData renderingData,
+            ref CullingResults cullResults,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
         {
             DebugRendererLists debug = new DebugRendererLists(this, filteringSettings);
-            debug.CreateRendererListsWithDebugRenderState(renderGraph, ref renderingData, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            debug.CreateRendererListsWithDebugRenderState(renderGraph, ref cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
             return debug;
         }
         #endregion
@@ -431,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void CreateRendererListsWithDebugRenderState(
              ScriptableRenderContext context,
-             ref RenderingData renderingData,
+             ref CullingResults cullResults,
              ref DrawingSettings drawingSettings,
              ref FilteringSettings filteringSettings,
              ref RenderStateBlock renderStateBlock)
@@ -442,14 +430,14 @@ namespace UnityEngine.Rendering.Universal
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
                 RendererList rendererList = new RendererList();
-                RenderingUtils.CreateRendererListWithRenderStateBlock(context, renderingData, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererList);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererList);
                 m_ActiveDebugRendererList.Add((rendererList));
             }
         }
 
         internal void CreateRendererListsWithDebugRenderState(
             RenderGraph renderGraph,
-            ref RenderingData renderingData,
+            ref CullingResults cullResults,
             ref DrawingSettings drawingSettings,
             ref FilteringSettings filteringSettings,
             ref RenderStateBlock renderStateBlock)
@@ -460,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
                 DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(drawingSettings);
                 RenderStateBlock debugRenderStateBlock = debugRenderSetup.GetRenderStateBlock(renderStateBlock);
                 RendererListHandle rendererListHdl = new RendererListHandle();
-                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, renderingData, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererListHdl);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, debugDrawingSettings, filteringSettings, debugRenderStateBlock, ref rendererListHdl);
                 m_ActiveDebugRendererListHdl.Add((rendererListHdl));
             }
         }

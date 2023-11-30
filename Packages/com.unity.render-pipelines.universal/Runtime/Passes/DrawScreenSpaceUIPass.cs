@@ -1,5 +1,5 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawScreenSpaceUIPass));
             renderPassEvent = evt;
+            useNativeRenderPass = false;
             m_RenderOffscreen = renderOffscreen;
             m_PassData = new PassData();
         }
@@ -64,6 +65,12 @@ namespace UnityEngine.Rendering.Universal
             commandBuffer.DrawRendererList(rendererList);
         }
 
+        // Specific to RG cases which have to go through Unsafe commands
+        private static void ExecutePass(UnsafeCommandBuffer commandBuffer, UnsafePassData passData, RendererList rendererList)
+        {
+            commandBuffer.DrawRendererList(rendererList);
+        }
+
         // Non-RenderGraph path
         public void Dispose()
         {
@@ -76,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cameraData">Camera rendering data containing all relevant render target information.</param>
         /// <param name="depthStencilFormat">Depth stencil format required for depth/stencil effects.</param>
-        public void Setup(ref CameraData cameraData, GraphicsFormat depthStencilFormat)
+        public void Setup(UniversalCameraData cameraData, GraphicsFormat depthStencilFormat)
         {
             if (m_RenderOffscreen)
             {
@@ -91,33 +98,39 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (m_RenderOffscreen)
+            if(m_RenderOffscreen)
             {
-                CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_ColorTarget, m_DepthTarget, ClearFlag.Color, Color.clear);
-                renderingData.commandBuffer.SetGlobalTexture(ShaderPropertyId.overlayUITexture, m_ColorTarget);
+                ConfigureTarget(m_ColorTarget, m_DepthTarget);
+                ConfigureClear(ClearFlag.Color, Color.clear);
+                cmd?.SetGlobalTexture(ShaderPropertyId.overlayUITexture, m_ColorTarget);
             }
             else
             {
-                DebugHandler debugHandler = GetActiveDebugHandler(ref renderingData);
-                var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
-                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(ref renderingData.cameraData);
+                UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+                DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
+                bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
 
                 if (resolveToDebugScreen)
                 {
-                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+                    ConfigureTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
                 }
                 else
                 {
                     // Get RTHandle alias to use RTHandle apis
+                    var cameraTarget = RenderingUtils.GetCameraTargetIdentifier(ref renderingData);
                     RTHandleStaticHelpers.SetRTHandleStaticWrapper(cameraTarget);
                     var colorTargetHandle = RTHandleStaticHelpers.s_RTHandleWrapper;
 
-                    CoreUtils.SetRenderTarget(renderingData.commandBuffer, colorTargetHandle);
+                    ConfigureTarget(colorTargetHandle);
                 }
             }
+        }
 
+        /// <inheritdoc/>
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
             using (new ProfilingScope(renderingData.commandBuffer, ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI)))
             {
                 RendererList rendererList = context.CreateUIOverlayRendererList(renderingData.cameraData.camera);
@@ -131,46 +144,235 @@ namespace UnityEngine.Rendering.Universal
             internal RendererListHandle rendererList;
         }
 
-        internal void RenderOffscreen(RenderGraph renderGraph, GraphicsFormat depthStencilFormat, out TextureHandle output, ref RenderingData renderingData)
+        // Specific to RG cases which have to go through Unsafe commands
+        private class UnsafePassData
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Offscreen", out var passData, base.profilingSampler))
-            {
-                RenderTextureDescriptor colorDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                ConfigureColorDescriptor(ref colorDescriptor, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-                output = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDescriptor, "_OverlayUITexture", true);
-                builder.UseTextureFragment(output, 0);
-                
-                passData.rendererList = renderGraph.CreateUIOverlayRendererList(renderingData.cameraData.camera);
-                builder.UseRendererList(passData.rendererList);
-
-                RenderTextureDescriptor depthDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, renderingData.cameraData.pixelWidth, renderingData.cameraData.pixelHeight);
-                TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
-                builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-                {
-                    ExecutePass(context.cmd, data, data.rendererList);
-                });
-            }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph, ShaderPropertyId.overlayUITexture, output);
+            internal RendererListHandle rendererList;
+            internal TextureHandle colorTarget;
+            internal TextureHandle depthTarget;
         }
 
-        internal void RenderOverlay(RenderGraph renderGraph, in TextureHandle colorBuffer, in TextureHandle depthBuffer, ref RenderingData renderingData)
+        internal void RenderOffscreen(RenderGraph renderGraph, ContextContainer frameData, GraphicsFormat depthStencilFormat, out TextureHandle output)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            RenderTextureDescriptor colorDescriptor = cameraData.cameraTargetDescriptor;
+            ConfigureColorDescriptor(ref colorDescriptor, cameraData.pixelWidth, cameraData.pixelHeight);
+            output = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDescriptor, "_OverlayUITexture", true);
+
+            RenderTextureDescriptor depthDescriptor = cameraData.cameraTargetDescriptor;
+            ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
+            TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
+
+            bool isVulkan = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan);
+            bool isDX12 = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12);
+
+            // Vulkan backend doesn't support SetSRGBWrite() calls in Render Pass and we have some of them at IMGUI levels on native side
+            // So we need to use a low level render pass for those specific UI rendering calls
+            if(isVulkan)
             {
-                builder.UseTextureFragment(colorBuffer, 0);
-                builder.UseTextureFragmentDepth(depthBuffer, IBaseRenderGraphBuilder.AccessFlags.ReadWrite);
-
-                passData.rendererList = renderGraph.CreateUIOverlayRendererList(renderingData.cameraData.camera);
-                builder.UseRendererList(passData.rendererList);
-
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                // Render uGUI and UIToolkit overlays
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space uGUI/UIToolkit Pass - Offscreen", out var passData, base.profilingSampler))
                 {
-                    ExecutePass(context.cmd, data, data.rendererList);
-                });
+                    builder.SetRenderAttachment(output, 0);
+                    
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UGUI | UISubset.UIToolkit);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+
+                    if (output.IsValid())
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
+
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+                // Render IMGUI overlay and software cursor
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
+                {
+                    passData.colorTarget = output;
+                    builder.UseTexture(output, AccessFlags.Write);
+                    
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.LowLevel);
+                    builder.UseRendererList(passData.rendererList);
+
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.ReadWrite);
+
+                    if (output.IsValid())
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
+
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                    {
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+            }
+            // NRP DX12 implementation doesn't support CopyTextureRegion called in uGUI
+            else if(isDX12)
+            {
+                // Render uGUI overlay
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space uGUI Pass - Offscreen", out var passData, base.profilingSampler))
+                {
+                    passData.colorTarget = output;
+                    builder.UseTexture(output, AccessFlags.Write);
+                    
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UGUI);
+                    builder.UseRendererList(passData.rendererList);
+
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.ReadWrite);
+
+                    if (output.IsValid())
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
+
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                    {
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+                // Render UIToolkit/IMGUI overlays and software cursor
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
+                {
+                    builder.SetRenderAttachment(output, 0);
+                    
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UIToolkit | UISubset.LowLevel);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+
+                    if (output.IsValid())
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
+
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+            }
+            else
+            {
+                // Render all UI at once
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Offscreen", out var passData, base.profilingSampler))
+                {
+                    builder.SetRenderAttachment(output, 0);
+                    
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.All);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+
+                    if (output.IsValid())
+                        builder.SetGlobalTextureAfterPass(output, ShaderPropertyId.overlayUITexture);
+
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+            }
+        }
+
+        internal void RenderOverlay(RenderGraph renderGraph, Camera camera, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
+        {
+            bool isVulkan = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan);
+            bool isDX12 = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12);
+
+            // Vulkan backend doesn't support SetSRGBWrite() calls in Render Pass and we have some of them at IMGUI levels on native side
+            // So we need to use a low level render pass for those specific UI rendering calls
+            if(isVulkan)
+            {
+                // Render uGUI and UIToolkit overlays
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space uGUI/UIToolkit Pass - Overlay", out var passData, base.profilingSampler))
+                {
+                    builder.SetRenderAttachment(colorBuffer, 0);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+                        
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UGUI | UISubset.UIToolkit);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+                // Render IMGUI overlay and software cursor
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
+                {
+                    passData.colorTarget = colorBuffer;
+                    builder.UseTexture(colorBuffer, AccessFlags.Write);
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.Write);
+
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.LowLevel);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                    {
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+            }
+            // NRP DX12 implementation doesn't support CopyTextureRegion called in uGUI
+            else if(isDX12)
+            {
+                // Render uGUI overlay
+                using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space uGUI Pass - Overlay", out var passData, base.profilingSampler))
+                {
+                    passData.colorTarget = colorBuffer;
+                    builder.UseTexture(colorBuffer, AccessFlags.Write);
+                    passData.depthTarget = depthBuffer;
+                    builder.UseTexture(depthBuffer, AccessFlags.Write);
+
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UGUI);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
+                    {
+                        context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
+                        
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+                // Render UIToolkit/IMGUI overlays and software cursor
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
+                {
+                    builder.SetRenderAttachment(colorBuffer, 0);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+                        
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UIToolkit | UISubset.LowLevel);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
+            }
+            else
+            {
+                // Render all UI at once
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UI Pass - Overlay", out var passData, base.profilingSampler))
+                {
+                    builder.SetRenderAttachment(colorBuffer, 0);
+                    builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+                        
+                    passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.All);
+                    builder.UseRendererList(passData.rendererList);
+
+                    builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
+                    {
+                        ExecutePass(context.cmd, data, data.rendererList);
+                    });
+                }
             }
         }
     }

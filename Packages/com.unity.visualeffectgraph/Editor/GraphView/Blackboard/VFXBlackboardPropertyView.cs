@@ -1,16 +1,9 @@
 using System;
-using UnityEditor.UIElements;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEngine.UIElements;
-using UnityEditor.VFX;
 using System.Collections.Generic;
-using UnityEditor;
 using System.Linq;
-using System.Text;
-using UnityEditor.Graphs;
-using UnityEditor.SceneManagement;
+
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
@@ -22,13 +15,7 @@ namespace UnityEditor.VFX.UI
             m_NoEnum = noEnum;
         }
 
-        public override IEnumerable<int> filteredOutEnumerators
-        {
-            get
-            {
-                return m_NoEnum ? new int[] { 2 } : null;
-            }
-        }
+        public override IEnumerable<int> filteredOutEnumerators => m_NoEnum ? new[] { 2 } : null;
     }
 
     class VFXBlackboardPropertyView : VisualElement, IControlledElement<VFXParameterController>
@@ -38,19 +25,11 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
-        public VFXBlackboardRow owner
-        {
-            get; set;
-        }
+        public VFXBlackboardRow owner { get; set; }
 
-        Controller IControlledElement.controller
-        {
-            get { return owner.controller; }
-        }
-        public VFXParameterController controller
-        {
-            get { return owner.controller; }
-        }
+        Controller IControlledElement.controller => owner.controller;
+
+        public VFXParameterController controller => owner.controller;
 
         PropertyRM m_Property;
         PropertyRM m_MinProperty;
@@ -106,6 +85,21 @@ namespace UnityEditor.VFX.UI
             {
                 port.SetLabelWidth(labelWidth);
             }
+            // Adjust the field size to the maximum number of digits
+            if (controller.valueFilter == VFXValueFilter.Range)
+            {
+                var maxValue = (float)Convert.ChangeType(controller.maxValue, typeof(float));
+                var minValue = (float)Convert.ChangeType(controller.minValue, typeof(float));
+
+                var digits = Mathf.Floor(Mathf.Log10(Mathf.Max(Mathf.Abs(minValue), Mathf.Abs(maxValue))) + 1);
+                if (float.IsFinite(digits) && m_Property.Q<VisualElement>("Field") is {} field)
+                {
+                    // Add some space for minus character
+                    // The width is calculated thanks to a linear regression equation: y = 7.36x + 5.32
+                    var offset = minValue < 0 ? 10f : 5.32f;
+                    field.style.width = 7.36f * digits + offset;
+                }
+            }
         }
 
         void CreateSubProperties(ref int insertIndex, List<int> fieldPath)
@@ -156,6 +150,8 @@ namespace UnityEditor.VFX.UI
                     prop.Update();
                 }
             }
+
+            Relayout();
         }
 
         public void SelfChange(int change)
@@ -206,6 +202,7 @@ namespace UnityEditor.VFX.UI
                         {
                             m_TooltipProperty = new StringPropertyRM(new SimplePropertyRMProvider<string>("Tooltip", () => controller.model.tooltip, t => controller.model.tooltip = t), 55);
                             TextField field = m_TooltipProperty.Query<TextField>();
+                            field.maxLength = 256;
                             field.multiline = true;
                         }
                         Insert(insertIndex++, m_TooltipProperty);

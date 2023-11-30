@@ -39,12 +39,25 @@ namespace UnityEngine.VFX.Test
 #endif
         }
 
+#if UNITY_WEBGL || UNITY_ANDROID
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            yield return RuntimeGraphicsTestCaseProvider.EnsureGetReferenceImageBundlesAsync();
+        }
+#endif
+
         [UnityTest, Category("VisualEffect")]
         [PrebuildSetup("SetupGraphicsTestCases")]
         [UseGraphicsTestCases]
         [Timeout(450 * 1000)] // Increase timeout to handle complex scenes with many shaders and XR variants
         public IEnumerator Run(GraphicsTestCase testCase)
         {
+            Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+#if UNITY_WEBGL || UNITY_ANDROID
+            RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
+#endif
+
 #if UNITY_EDITOR
             while (SceneView.sceneViews.Count > 0)
             {
@@ -52,6 +65,7 @@ namespace UnityEngine.VFX.Test
                 sceneView.Close();
             }
 #endif
+			Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
             SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
 
             // Always wait one frame for scene load

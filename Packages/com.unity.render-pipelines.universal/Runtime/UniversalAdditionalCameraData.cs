@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine.Serialization;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -345,7 +344,9 @@ namespace UnityEngine.Rendering.Universal
 
         // These persist over multiple frames
         [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
-        [NonSerialized] TaaPersistentData m_TaaPersistentData = new TaaPersistentData();
+
+        // The URP camera history texture manager. Persistent per camera textures.
+        [NonSerialized] internal UniversalCameraHistory m_History = new UniversalCameraHistory();
 
         [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
 
@@ -380,6 +381,15 @@ namespace UnityEngine.Rendering.Universal
                 }
                 return m_Camera;
             }
+        }
+
+        void Start()
+        {
+            // Need to ensure correct behavoiur for overlay cameras settings their clear flag to nothing.
+            // This can't be done in the upgrade since the camera component can't be retrieved in the deserialization phase.
+            // OnValidate ensure future cameras won't have this issue.
+            if (m_CameraType == CameraRenderType.Overlay)
+                camera.clearFlags = CameraClearFlags.Nothing;
         }
 
 
@@ -670,9 +680,17 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Temporal Anti-aliasing buffers and data that persists over a frame.
+        /// Returns the URP camera history texture read access.
+        /// Used to register requests and to read the existing history textures by external systems.
         /// </summary>
-        internal TaaPersistentData taaPersistentData => m_TaaPersistentData;
+        public ICameraHistoryReadAccess history => m_History;
+
+        // Returns the URP camera history texture manager with full access for internal systems.
+        // NOTE: Only the pipeline should write/render history textures. Should be kept internal.
+        //
+        // The history is camera specific. The UniversalAdditionalCameraData is the URP specific camera (data).
+        // Therefore it owns the UniversalCameraHistory. The history should follow the camera lifetime.
+        internal UniversalCameraHistory historyManager => m_History;
 
         /// <summary>
         /// Motion data that persists over a frame.
@@ -749,7 +767,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_ScreenCoordScaleBias;
             set => m_ScreenCoordScaleBias = value;
         }
-        
+
         /// <summary>
         /// Returns true if this camera allows outputting to HDR displays.
         /// </summary>
@@ -831,7 +849,8 @@ namespace UnityEngine.Rendering.Universal
             m_Camera.DestroyVolumeStack(this);
             if (camera.cameraType != CameraType.SceneView )
                 scriptableRenderer?.ReleaseRenderTargets();
-            m_TaaPersistentData?.DeallocateTargets();
+            m_History?.Dispose();
+            m_History = null;
         }
     }
 }

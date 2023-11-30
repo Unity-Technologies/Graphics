@@ -3,9 +3,8 @@
     border-color: rgba(35,35,35,0.8);
 }
 
-#collapse-button >#icon
+#node-border > #title > #collapse-button >#icon
 {
-
     visibility: visible;
 }
 
@@ -119,4 +118,11 @@
 {
     height:0;
     border-bottom-width: 0;
+}
+
+.VFXNodeUI.hovered #selection-border
+{
+    border-width: 2px;
+    background-color:rgba(255,128,0,0.4);
+    border-color: rgba(255,128,0,1);
 }

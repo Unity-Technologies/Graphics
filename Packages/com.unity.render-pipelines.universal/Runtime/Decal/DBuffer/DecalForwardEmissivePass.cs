@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -37,12 +37,17 @@ namespace UnityEngine.Rendering.Universal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             InitPassData(ref m_PassData);
-            var param = InitRendererListParams(ref renderingData);
+
+            UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
+
+            var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
 
             var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
+            using (new ProfilingScope(universalRenderingData.commandBuffer, m_ProfilingSampler))
             {
-                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
+                ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), m_PassData, rendererList);
             }
         }
 
@@ -50,7 +55,6 @@ namespace UnityEngine.Rendering.Universal
         {
             internal DecalDrawFowardEmissiveSystem drawSystem;
 
-            internal RenderingData renderingData;
             internal RendererListHandle rendererList;
         }
 
@@ -59,36 +63,40 @@ namespace UnityEngine.Rendering.Universal
             passData.drawSystem = m_DrawSystem;
         }
 
-        private RendererListParams InitRendererListParams(ref RenderingData renderingData)
+        private RendererListParams InitRendererListParams(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
-            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
+            SortingCriteria sortingCriteria = cameraData.defaultOpaqueSortFlags;
+            DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, renderingData, cameraData, lightData, sortingCriteria);
             return new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {
             passData.drawSystem.Execute(cmd);
             cmd.DrawRendererList(rendererList);
         }
 
-        public override void RecordRenderGraph(RenderGraph renderGraph, FrameResources frameResources, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Forward Emissive Pass", out var passData, m_ProfilingSampler))
             {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
                 InitPassData(ref passData);
-                var param = InitRendererListParams(ref renderingData);
-                passData.renderingData = renderingData;
+                var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
 
-                UniversalRenderer renderer = (UniversalRenderer)renderingData.cameraData.renderer;
-                builder.UseTextureFragment(renderer.activeColorTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                builder.UseTextureFragmentDepth(renderer.activeDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Read);
+                UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    ExecutePass(rgContext.cmd, data, data.rendererList, ref data.renderingData);
+                    ExecutePass(rgContext.cmd, data, data.rendererList);
                 });
             }
         }

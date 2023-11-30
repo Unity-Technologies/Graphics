@@ -56,23 +56,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/VolumetricLighting/DebugLocalVolumetricFogAtlas.shader")]
             public Shader debugLocalVolumetricFogAtlasPS;
 
-            // APV
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
-            public ComputeShader probeVolumeBlendStatesCS;
-            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeUploadData.compute")]
-            public ComputeShader probeVolumeUploadDataCS;
-
             // APV Debug
-            [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
-            public Shader probeVolumeDebugShader;
-            [Reload("Runtime/Debug/ProbeVolumeFragmentationDebug.shader")]
-            public Shader probeVolumeFragmentationDebugShader;
-            [Reload("Runtime/Debug/ProbeVolumeSamplingDebug.shader")]
-            public Shader probeVolumeSamplingDebugShader;
+            // TODO Should be moved to Core as well but currently this debug is entirely done from HDRP side so it should be done in a separate PR.
             [Reload("Runtime/Debug/ProbeVolumeSamplingDebugPositionNormal.compute")]
             public ComputeShader probeVolumeSamplingDebugComputeShader;
-            [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
-            public Shader probeVolumeOffsetDebugShader;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -178,6 +165,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader groundIrradiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]
             public ComputeShader inScatteredRadiancePrecomputationCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/SkyLUTGenerator.compute")]
+            public ComputeShader skyLUTGenerator;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader physicallyBasedSkyPS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/CloudLayer.shader")]
@@ -475,124 +464,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]
             public ComputeShader furnaceTestCS;
 #endif
-
-#if UNITY_EDITOR
-            // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
-            // used compute shaders up to date (prefer editor-only usage)
-            public IEnumerable<ComputeShader> GetAllComputeShaders()
-            {
-                var fields = typeof(ShaderResources).GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-                foreach (var field in fields)
-                {
-                    if (field.GetValue(this) is ComputeShader computeShader)
-                        yield return computeShader;
-                }
-            }
-
-#endif
-        }
-
-        [Serializable, ReloadGroup]
-        public sealed class MaterialResources
-        {
-            // Water
-            [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
-            public Material waterMaterial;
-            [Reload("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
-            public Material waterExclusionMaterial;
-
-            [Reload("Runtime/RenderPipelineResources/ShaderGraph/PhysicallyBasedSky.shadergraph")]
-            public Material pbrSkyMaterial;
-
-            [Reload("Runtime/RenderPipelineResources/Material/AreaLightViewer.mat")]
-            public Material areaLightMaterial; // never referenced but required by area light mesh renderer, otherwise shader is stripped
-            [Reload("Runtime/RenderPipelineResources/Material/AreaLightCookieViewer.mat")]
-            public Material areaLightCookieMaterial; // We also need one for the cookie because the emissive map is a keyword in our Unlit shader.
-        }
-
-        [Serializable, ReloadGroup]
-        public sealed class TextureResources
-        {
-            // Debug
-            [Reload("Runtime/RenderPipelineResources/Texture/DebugFont.tga")]
-            public Texture2D debugFontTex;
-            [Reload("Runtime/Debug/ColorGradient.png")]
-            public Texture2D colorGradient;
-            [Reload("Runtime/RenderPipelineResources/Texture/Matcap/DefaultMatcap.png")]
-            public Texture2D matcapTex;
-
-            // Pre-baked noise
-            [Reload("Runtime/RenderPipelineResources/Texture/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
-            public Texture2D[] blueNoise16LTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/BlueNoise16/RGB/LDR_RGB1_{0}.png", 0, 32)]
-            public Texture2D[] blueNoise16RGBTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise4.png")]
-            public Texture2D owenScrambledRGBATex;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/OwenScrambledNoise256.png")]
-            public Texture2D owenScrambled256Tex;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png")]
-            public Texture2D scramblingTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile1SPP.png")]
-            public Texture2D rankingTile1SPP;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile1SPP.png")]
-            public Texture2D scramblingTile1SPP;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile8SPP.png")]
-            public Texture2D rankingTile8SPP;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile8SPP.png")]
-            public Texture2D scramblingTile8SPP;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile256SPP.png")]
-            public Texture2D rankingTile256SPP;
-            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
-            public Texture2D scramblingTile256SPP;
-
-            // Precalculated eye caustic LUT
-            [Reload("Runtime/RenderPipelineResources/Texture/EyeCausticLUT16R.exr")]
-            public Texture3D eyeCausticLUT;
-
-            // Clouds textures
-            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
-            public Texture2D cloudLutRainAO;
-            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise128RGBA.png")]
-            public Texture3D worleyNoise128RGBA;
-            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise32RGB.png")]
-            public Texture3D worleyNoise32RGB;
-            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
-            public Texture3D perlinNoise32RGB;
-
-            // Water textures
-            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamMask.png")]
-            public Texture2D foamMask;
-
-            // Post-processing
-            [Reload(new[]
-            {
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Thin01.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Thin02.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Medium01.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Medium02.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Medium03.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Medium04.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Medium05.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Medium06.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Large01.png",
-                "Runtime/RenderPipelineResources/Texture/FilmGrain/Large02.png"
-            })]
-            public Texture2D[] filmGrainTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/SMAA/SearchTex.tga")]
-            public Texture2D SMAASearchTex;
-            [Reload("Runtime/RenderPipelineResources/Texture/SMAA/AreaTex.tga")]
-            public Texture2D SMAAAreaTex;
-
-            [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
-            public Cubemap defaultHDRISky;
-
-            [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudMap.png")]
-            public Texture2D defaultCloudMap;
-
-            // APV Sampling debug
-            [Reload("Runtime/RenderPipelineResources/Texture/APV/NumbersDisplayTex.png")]
-            public Texture2D numbersDisplayTex;
         }
 
         [Serializable, ReloadGroup]
@@ -604,29 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader defaultFogVolumeShader;
         }
 
-        [Serializable, ReloadGroup]
-        public sealed class AssetResources
-        {
-            [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
-            public DiffusionProfileSettings defaultDiffusionProfile;
-
-            //Area Light Emissive Meshes
-            [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
-            public Mesh emissiveCylinderMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Quad.fbx")]
-            public Mesh emissiveQuadMesh;
-            [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
-            public Mesh sphereMesh;
-
-            // APV Sampling debug
-            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeSamplingDebugMesh.fbx")]
-            public Mesh probeSamplingDebugMesh;
-        }
-
         public ShaderResources shaders;
-        public MaterialResources materials;
-        public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
-        public AssetResources assets;
     }
 }

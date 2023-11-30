@@ -356,6 +356,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Distance at which clusters will be visualized.</summary>
         public float clusterDebugDistance = 1.0f;
 
+        /// <summary>Light category for cluster debug view.</summary>
+        public ClusterLightCategoryDebug clusterLightCategory = ClusterLightCategoryDebug.All;
+
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
@@ -397,6 +400,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 colors[i] = new Vector4(0, 0, 0);
 
             return colors;
+        }
+
+        internal int ComputeOverrideHash()
+        {
+            int hash = (overrideSmoothness ? 1 : 0);
+            hash |= (overrideAlbedo ? 1 : 0) << 1;
+            hash |= (overrideNormal ? 1 : 0) << 2;
+            hash |= (overrideAmbientOcclusion ? 1 : 0) << 3;
+            hash |= (overrideSpecularColor ? 1 : 0) << 4;
+            hash |= (overrideEmissiveColor ? 1 : 0) << 5;
+            unchecked
+            {
+                hash = hash * 23 + overrideSmoothnessValue.GetHashCode();
+                hash = hash * 23 + overrideAlbedoValue.GetHashCode();
+                hash = hash * 23 + overrideAmbientOcclusionValue.GetHashCode();
+                hash = hash * 23 + overrideSpecularColorValue.GetHashCode();
+                hash = hash * 23 + overrideEmissiveColorValue.GetHashCode();
+            }
+            return hash;
         }
     }
 }

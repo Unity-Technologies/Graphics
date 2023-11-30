@@ -9,6 +9,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.0] - 2023-09-26
+
+This version is compatible with Unity 2023.3.0a8.
+
+### Added
+- Made Main Light Shadow Resolution and Additional Light Shadow Resolution settings public in the URP Asset.
+- Made the cascade split settings public in the URP Asset.
+- ContextContainer items used as frame data for UniversalRenderer and Renderer2D e.g. UniversalLightData & UniversalCameraData.
+
+### Changed
+- Enabled APV Lighting Scenario Baking in URP.
+
+### Fixed
+- Disabled Soft Shadow Quality per-light levels on Quest and HoloLens platforms to improve XR performance.
+- Global Settings always exist when URP is the current active pipeline.
+- Added depth and stencil operations to FullScreenPassRendererFeature and allowed users to opt-out of depth-stencil being bound per feature in the "Additional Properties" section.
+- Fixed FullScreenPassRendererFeature only using the material of the last full screen feature in a frame, this allows multiple passes to work correctly within one frame.
+- Fixed ArgumentNullException when trying to use a FullScreenPassRenderer feature with "None" in the requirements mask with Render Graph.
+- Fixed missing "_BlitScaleBias" upload for text shaders using the CoreRP Blit.hlsl header.
+- Fixed an issue where additional lights were not rendering correctly when using a mix of shadow settings in deferred.
+- Fixed an issue where Shader ID's weren't reset properly in the DepthNormals pass.
+- Fixed an issue where IndexOutOfRangeException was thrown when creating a stacked camera from script.
+- Fixed an issue where NullReferenceException was thrown when camera prefab referenced a camera outside the prefab in the camera stack.
+- Fixed an issue with Screen Space Decals where dark artefacts appeared in the editor.
+- Fixed an issue where SSAO would not apply to a scene when using the Deferred Rendering Path and with no Directional light active.
+- Fixed an issue causing 'implicit truncation of vector type' warning when using ShaderGraph shaders in the Forward+ Rendering Path
+- Fixed noise and flicker caused by TAA when the *Very High* option is in use.
+- Fixed memory leak from render texture when rtHandle realloc failed to be added to pool.
+- Fixed an issue where Rendering Layers didn't work properly when opening a project.
+- Fixed shader stripping when using APV.
+- Add GBuffer (fill) passes to ComplexLit and Unlit shader to prevent GBuffer data holes.
+- Fixed HDR output persisting even if the user explicitly turned it off.
+- Fixed an issue where it wasn't possible to add a Renderer Feature on a renderer if another feature had a missing or broken script. This issue impacted the Universal Render Pipeline.
+- Fixed an issue where reflection probes were not updating correctly when using Forward+.
+- Fixed transparent materials getting marked as dirty during material UI updates and project saving.
+- Fixed IndexOutOfRangeException error when using Native RenderPass on Deferred.
+- Fixed scene elements not being sorted correctly when RenderGraph is enabled on OS.
+- Fixed the URP Debug Rendering map overlays when RenderGraph is enabled.
+- Fixed visible outline when composited ShadowCaster2Ds with transparency overlap
+- Fixed missing padding at the bottom of URP's Global Settings
+- Fixed an issue where selecting a stacked camera caused the editor to freeze and sometimes crash.
+- Fix Overdraw and Wireframe debugger views not rendering correctly
+
 ## [16.0.3] - 2023-07-04
 
 This version is compatible with Unity 2023.3.0a1.
@@ -940,7 +983,7 @@ This version is compatible with Unity 2022.2.0a8.
 - Fixed an issue where Terrain hole Shader changes were missing. [Case 1179808](https://issuetracker.unity3d.com/issues/terrain-brush-tool-is-not-drawing-when-paint-holes-is-selected).
 - Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
-- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on a console platform.
 - Fixed an issue where the Scene lighting button didn't work when you used the 2D Renderer.
 - Fixed a performance regression when you used the 2D Renderer.
 - Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
@@ -1531,7 +1574,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 
 ### Fixed
 - Post-processing now works with VR on PC.
-- PS4 compiler error
+- Console platform compiler error
 - Fixed VR multiview rendering by forcing MSAA to be off. There's a current issue in engine that breaks MSAA and Texture2DArray.
 - Fixed UnityPerDraw CB layout
 - GLCore compute buffer compiler error

@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 name = "VertexSetup",
                 templatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/Kernels/VertexSetup.template",
-                passDescriptorReference = HDShaderPasses.GenerateForwardOnlyPass(supportLighting, false, false, false)
+                passDescriptorReference = HDShaderPasses.GenerateForwardOnlyPass(supportLighting, false, false)
             };
         }
     }

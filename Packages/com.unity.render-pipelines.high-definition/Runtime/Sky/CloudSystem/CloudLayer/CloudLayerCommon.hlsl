@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 
@@ -32,6 +33,8 @@ StructuredBuffer<float4> _AmbientProbeBuffer;
 #define _Altitude(l)        _Params1[l].w
 #define _AmbientDimmer(l)   _Params2[l]
 
+#define _LowestAltitude(l)  (_Altitude(l) + _PlanetaryRadius)
+
 struct CloudLayerData
 {
     int index;
@@ -40,12 +43,6 @@ struct CloudLayerData
     TEXTURE2D(flowmap);
     SAMPLER(flowmapSampler);
 };
-
-float3 GetCloudVolumeIntersection(int index, float3 dir)
-{
-    const float _EarthRadius = 6378100.0f;
-    return dir * -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
-}
 
 float2 SampleCloudMap(float3 dir, int layer)
 {
@@ -86,29 +83,10 @@ CloudLayerData GetCloudLayer(int index)
     return layer;
 }
 
-void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, inout float3 sunColor)
-{
-#ifdef PHYSICALLY_BASED_SUN
-    float3 X = evaluationPointWS;
-    float3 C = _PlanetCenterPosition.xyz;
-
-    float r        = distance(X, C);
-    float cosHoriz = ComputeCosineOfHorizonAngle(r);
-    float cosTheta = dot(X - C, sunDirection) * rcp(r); // Normalize
-
-    float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
-    float3 opacity = 1 - TransmittanceFromOpticalDepth(oDepth);
-    sunColor *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
-#endif
-}
-
 float4 GetCloudLayerColor(float3 dir, int index)
 {
     float2 cloud;
-
-    float3 position = GetCloudVolumeIntersection(index, dir);
-    float3 lightColor = _SunLightColor(index);
-    EvaluateSunColorAttenuation(position, _SunDirection, lightColor);
+    float3 position = dir * IntersectSphere(_LowestAltitude(index), dir.y, _PlanetaryRadius).y;
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)
@@ -138,7 +116,13 @@ float4 GetCloudLayerColor(float3 dir, int index)
     else
         cloud = SampleCloudMap(dir, index);
 
+    float3 lightColor = _SunLightColor(index);
     float3 ambient = SampleSH9(_AmbientProbeBuffer, float3(0, -1, 0)) * _AmbientDimmer(index);
+
+    #ifdef PHYSICALLY_BASED_SUN
+    lightColor *= EvaluateSunColorAttenuation(position + float3(0,_PlanetaryRadius,0), _SunDirection);
+    #endif
+
     return float4(cloud.x * lightColor + ambient * cloud.y, cloud.y) * _Opacity;
 }
 

@@ -88,8 +88,12 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
     // Reset the payload color, which will store our final result
     payload.value = 0.0;
 
-    // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = payload.segmentID >= _RaytracingMinRecursion - 1;
+    SetPathTracingFlag(payload, PATHTRACING_FLAG_VOLUME_INTERACTION);
+
+    // Check if we want to compute direct lighting for current depth
+    bool minDepthAllowsDirect = payload.segmentID + 1 >= _RaytracingMinRecursion - 1;
+    // Check if we want to send more rays after this segment
+    bool haveReachedMaxDepth = payload.segmentID + 1 > _RaytracingMaxRecursion - 1;
 
     // Compute the scattering position
     float3 scatteringPosition = WorldRayOrigin() + payload.rayTHit * WorldRayDirection();
@@ -97,43 +101,30 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
 
     // Create the list of active lights (a local light can be forced by providing its position)
     LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
+    payload.lightListParams = float4(lightPosition, sampleLocalLights ? 1 : 0);
 
     float pdf, shadowOpacity;
     float3 value;
+    float3 sampleRayDirection;
+    float sampleRayDistance;
 
-    RayDesc ray;
-    ray.Origin = scatteringPosition;
-    ray.TMin = 0.0;
-
-    PathPayload shadowPayload;
-
-    if (computeDirect)
+    if (minDepthAllowsDirect && !haveReachedMaxDepth)
     {
         // Light sampling
-        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, ray.Direction, value, pdf, ray.TMax, shadowOpacity))
+        if (SampleLights(lightList, inputSample, scatteringPosition, 0.0, true, sampleRayDirection, value, pdf, sampleRayDistance, shadowOpacity))
         {
             // Apply phase function and divide by PDF
-            float phasePdf = HenyeyGreensteinPhaseFunction(_GlobalFogAnisotropy,  dot(incomingDirection, ray.Direction));
+            float phasePdf = HenyeyGreensteinPhaseFunction(_GlobalFogAnisotropy,  dot(incomingDirection, sampleRayDirection));
             value *= _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y) * phasePdf / pdf;
 
             if (Luminance(value) > 0.001)
             {
-                // Shoot a transmission ray
-                shadowPayload.segmentID = SEGMENT_ID_TRANSMISSION;
-                shadowPayload.value = 1.0;
-                ray.TMax -= _RayTracingRayBias;
-
-                // FIXME: For the time being, there is no front/back face culling for shadows
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
-                         RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 1, ray, shadowPayload);
-
-                float misWeight = PowerHeuristic(pdf, phasePdf);
-                payload.value += value * GetLightTransmission(shadowPayload.value, shadowOpacity) * misWeight;
+                PushLightSampleQuery(scatteringPosition, sampleRayDirection, sampleRayDistance - _RayTracingRayBias, PowerHeuristic(pdf, phasePdf) * value, shadowOpacity, payload);
             }
         }
 
         // Phase function sampling
-        if (SampleHenyeyGreenstein(incomingDirection, _GlobalFogAnisotropy, inputSample, ray.Direction, pdf))
+        if (SampleHenyeyGreenstein(incomingDirection, _GlobalFogAnisotropy, inputSample, sampleRayDirection, pdf))
         {
             // Applying phase function and dividing by PDF cancels out
             value = _HeightFogBaseScattering.xyz * ComputeHeightFogMultiplier(scatteringPosition.y);
@@ -141,24 +132,8 @@ void ComputeVolumeScattering(inout PathPayload payload : SV_RayPayload, float3 i
             if (Luminance(value) > 0.001)
             {
                 payload.throughput *= value;
-
-                // Shoot a ray returning nearest tHit
-                ray.TMax = FLT_INF;
-                shadowPayload.rayTHit = FLT_INF;
-                shadowPayload.segmentID = SEGMENT_ID_NEAREST_HIT;
-
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_NON_OPAQUE | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-                         RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, ray, shadowPayload);
-
-                // Evaluate lights closer than nearest hit
-                ray.TMax = shadowPayload.rayTHit;
-                ray.TMax += _RayTracingRayBias;
-                float3 lightValue;
-                float lightPdf;
-                EvaluateLights(lightList, ray, lightValue, lightPdf);
-
-                float misWeight = PowerHeuristic(pdf, lightPdf);
-                payload.value += value * lightValue * misWeight;
+                payload.materialSamplePdf = pdf;
+                PushMaterialSampleQuery(scatteringPosition, sampleRayDirection, payload);
             }
         }
     }

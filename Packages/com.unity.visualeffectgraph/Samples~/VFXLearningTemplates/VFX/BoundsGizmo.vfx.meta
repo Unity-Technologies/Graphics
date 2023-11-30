@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f023ef5f170adc34180abdbd65838179
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: System Bound
+    category: Learning Templates
+    description: This VFXGraph is a simple example you that explain the bounds. Why
+      are they useful and how to properly set them.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: ebac51e649dc3cd418ec7486775452ad, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -50,7 +50,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     }
     #endif
 
-#ifndef HAVE_VFX_MODIFICATION
+#if !defined(HAVE_VFX_MODIFICATION) && !defined(_DISABLE_COLOR_TINT)
     color *= unpacked.color * unity_SpriteColor;
 #endif
 

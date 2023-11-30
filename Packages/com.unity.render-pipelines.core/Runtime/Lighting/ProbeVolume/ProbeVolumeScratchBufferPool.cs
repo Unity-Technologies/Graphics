@@ -46,8 +46,12 @@ namespace UnityEngine.Rendering
 
         int m_L0Size;
         int m_L1Size;
-        int m_SharedSize;
+        int m_ValiditySize;
         int m_L2Size;
+        int m_SkyOcclusionSize;
+        int m_SkyShadingDirectionSize;
+        bool m_SkyOcclusion;
+        bool m_SkyShadingDirection;
 
         int m_CurrentlyAllocatedChunkCount = 0;
         // List and not a Dictionary because we need the list sorted.
@@ -55,15 +59,19 @@ namespace UnityEngine.Rendering
         // We store layouts separately because we might use a bigger buffer than required but we still want the layout to match the exact chunk count.
         Dictionary<int, CellStreamingScratchBufferLayout> m_Layouts = new Dictionary<int, CellStreamingScratchBufferLayout>();
 
-        public ProbeVolumeScratchBufferPool(ProbeVolumeBakingSet bakingSet, ProbeVolumeSHBands shBands)
+        public ProbeVolumeScratchBufferPool(ProbeVolumeBakingSet bakingSet, ProbeVolumeSHBands shBands, bool skyOcclusion, bool skyShadingDirection)
         {
             chunkSize = bakingSet.GetChunkGPUMemory(shBands);
             maxChunkCount = bakingSet.maxSHChunkCount;
 
             m_L0Size = bakingSet.L0ChunkSize;
             m_L1Size = bakingSet.L1ChunkSize;
-            m_SharedSize = bakingSet.validityMaskChunkSize;
+            m_ValiditySize = bakingSet.sharedValidityMaskChunkSize;
+            m_SkyOcclusionSize = bakingSet.sharedSkyOcclusionL0L1ChunkSize;
+            m_SkyShadingDirectionSize = bakingSet.sharedSkyShadingDirectionIndicesChunkSize;
             m_L2Size = bakingSet.L2TextureChunkSize;
+            m_SkyOcclusion = skyOcclusion;
+            m_SkyShadingDirection = skyShadingDirection;
         }
 
         CellStreamingScratchBufferLayout GetOrCreateScratchBufferLayout(int chunkCount)
@@ -77,14 +85,38 @@ namespace UnityEngine.Rendering
                 var bufferLayout = new CellStreamingScratchBufferLayout();
                 bufferLayout._L0Size = m_L0Size;
                 bufferLayout._L1Size = m_L1Size;
-                bufferLayout._SharedSize = m_SharedSize;
+                bufferLayout._ValiditySize = m_ValiditySize;
+                bufferLayout._ValidityProbeSize = 1; // 1xbyte => 4 probes at a time.
+                if (m_SkyOcclusion)
+                {
+                    bufferLayout._SkyOcclusionSize = m_SkyOcclusionSize;
+                    bufferLayout._SkyOcclusionProbeSize = 8; // 4xFP16
+
+                    if (m_SkyShadingDirection)
+                    {
+                        bufferLayout._SkyShadingDirectionSize = m_SkyShadingDirectionSize;
+                        bufferLayout._SkyShadingDirectionProbeSize = 1; // 1xbyte => 4 probes at a time.
+                    }
+                    else
+                    {
+                        bufferLayout._SkyShadingDirectionSize = 0;
+                        bufferLayout._SkyShadingDirectionProbeSize = 0;
+                    }
+                }
+                else
+                {
+                    bufferLayout._SkyOcclusionSize = 0;
+                    bufferLayout._SkyOcclusionProbeSize = 0;
+
+                    bufferLayout._SkyShadingDirectionSize = 0;
+                    bufferLayout._SkyShadingDirectionProbeSize = 0;
+                }
                 bufferLayout._L2Size = m_L2Size;
 
                 // TODO: Find a generic way to pass this down? (depends on the gfx format we use).
                 bufferLayout._L0ProbeSize = 8; // 4xFP16
                 bufferLayout._L1ProbeSize = 4; // 4xbyte
                 bufferLayout._L2ProbeSize = 4; // 4xbyte
-                bufferLayout._SharedProbeSize = 1; // 1xbyte => 4 probes at a time.
 
                 int destChunksSize = chunkCount * sizeof(uint) * 4; // 1 Chunk == Vector4Int
                                                                     // First destination chunks at offset 0 (no explicit member for this).
@@ -94,8 +126,10 @@ namespace UnityEngine.Rendering
                 bufferLayout._L0L1rxOffset = bufferLayout._SharedDestChunksOffset + destChunksSize;
                 bufferLayout._L1GryOffset = bufferLayout._L0L1rxOffset + m_L0Size * chunkCount;
                 bufferLayout._L1BrzOffset = bufferLayout._L1GryOffset + m_L1Size * chunkCount;
-                bufferLayout._SharedOffset = bufferLayout._L1BrzOffset + m_L1Size * chunkCount;
-                bufferLayout._L2_0Offset = bufferLayout._SharedOffset + m_SharedSize * chunkCount;
+                bufferLayout._ValidityOffset = bufferLayout._L1BrzOffset + m_L1Size * chunkCount;
+                bufferLayout._SkyOcclusionOffset = bufferLayout._ValidityOffset + m_ValiditySize * chunkCount;
+                bufferLayout._SkyShadingDirectionOffset = bufferLayout._SkyOcclusionOffset + m_SkyOcclusionSize * chunkCount;
+                bufferLayout._L2_0Offset = bufferLayout._SkyShadingDirectionOffset + m_SkyShadingDirectionSize * chunkCount;
                 bufferLayout._L2_1Offset = bufferLayout._L2_0Offset + m_L2Size * chunkCount;
                 bufferLayout._L2_2Offset = bufferLayout._L2_1Offset + m_L2Size * chunkCount;
                 bufferLayout._L2_3Offset = bufferLayout._L2_2Offset + m_L2Size * chunkCount;

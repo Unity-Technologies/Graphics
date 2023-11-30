@@ -85,19 +85,23 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdLight = go.AddComponent<HDAdditionalLightData>();
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
 
+            hdLight.celestialBodyShadingSource = HDAdditionalLightData.CelestialBodyShadingSource.ReflectSunLight;
+            hdLight.distance = 384400000;
+            hdLight.diameterMultiplerMode = false;
+            hdLight.diameterOverride = 3.0f;
+            hdLight.flareSize = 0.0f;
+
             light.colorTemperature = 4100;
             hdLight.intensity = 0.5f; // 0.5 lux is actually a bit more than max moon light intensity on a full moon
-            hdLight.distance = 384400000;
-            hdLight.emissiveLightSource = false;
-            hdLight.diameterMultiplier = 4.0f;
-            hdLight.flareSize = 25;
-            hdLight.flareFalloff = 15;
-            hdLight.flareTint = new Color(0.01909091f, 0.02418182f, 0.035f);
-            hdLight.surfaceTint = new Color(0.014f, 0.014f, 0.014f);
 
-            var globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (globalSettings != null)
-                hdLight.surfaceTexture = globalSettings.renderPipelineEditorResources?.textures.moonAlbedo;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorTextures>(out var defaultRenderPipelineTextures))
+            {
+                hdLight.surfaceTexture = defaultRenderPipelineTextures.moonAlbedo;
+            }
+            else
+            {
+                Debug.LogWarning($"{go.name} is missing the {nameof(HDAdditionalLightData.surfaceTexture)} due to not being able to find {nameof(HDRenderPipelineEditorTextures.moonAlbedo)} Texture.");
+            }
         }
 
         [MenuItem("GameObject/Volume/Sky and Fog Global Volume", priority = CoreUtils.Priorities.gameObjectMenuPriority + 1)]
@@ -126,6 +130,21 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
             MaterialReimporter.ReimportAllMaterials();
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Generate Material Resources", priority = CoreUtils.Priorities.editMenuPriority)]
+        internal static void GenerateLookUpTables()
+        {
+            var resources = new List<RenderTexture>();
+
+            // Ask for each render pipeline material to build their look-ups
+            HDUtils.GetRenderPipelineMaterialList().ForEach(material => material.BuildOffline(ref resources));
+
+            // Write the resources to disk.
+            resources.ForEach(resource => HDTextureUtilities.WriteTextureToAsset(resource, $"Assets/HDRPDefaultResources/Generated/{resource.name}.asset"));
+
+            // Release
+            resources.ForEach(RenderTexture.ReleaseTemporary);
         }
 
         [MenuItem("Edit/Rendering/Rendering Layers/Add HDRP Default Layer Mask to Loaded Mesh Renderers and Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]

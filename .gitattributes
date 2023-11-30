@@ -55,6 +55,7 @@ Repositories.ini eol=lf
 *.7[zZ] filter=lfs diff=lfs merge=lfs -text
 *.[zZ]7 filter=lfs diff=lfs merge=lfs -text
 *.[tT][gG][zZ] filter=lfs diff=lfs merge=lfs -text
+*.[tT][aA][rR].[zZ][sS][tT] filter=lfs diff=lfs merge=lfs -text
 *.[gG][zZ] filter=lfs diff=lfs merge=lfs -text
 *.[jJ][aA][rR] filter=lfs diff=lfs merge=lfs -text
 *.[nN][uU][pP][kK][gG] filter=lfs diff=lfs merge=lfs -text
@@ -391,3 +392,6 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 **/GfxTestProjectFolder/**/*.[cC][uU][bB][eE][mM][aA][pP] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[pP][rR][xX] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[dD][fF][oO][nN][tT] filter=lfs diff=lfs merge=lfs -text
+
+# memoryprofiler test snapshots
+**/com.unity.memoryprofiler.tests/**/*.[sS][nN][aA][pP] filter=lfs diff=lfs merge=lfs -text

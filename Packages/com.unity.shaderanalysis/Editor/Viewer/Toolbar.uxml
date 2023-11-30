@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <uie:Toolbar>
+        <uie:ObjectField label="Compute Shader" name="ShaderField" />
+        <ui:VisualElement name="ComputeShaderFilterSettings" style="flex-grow: 0.5; flex-direction: row;" />
+        <ui:VisualElement name="ShaderFilterSettings" style="flex-grow: 1;" />
+        <ui:VisualElement name="MaterialFilterSettings" style="flex-grow: 1;" />
+        <uie:ToolbarSpacer style="flex-direction: row; flex-grow: 1; flex-shrink: 0;" />
+        <ui:DropdownField label="Platform" choices="PS4,PS5" name="PlatformField" />
+        <uie:ToolbarSearchField placeholder-text="Search In Code" name="CodeSearch" style="width: 200px;" />
+        <uie:ToolbarButton text="Analyze" name="Analyze" style="white-space: nowrap; -unity-font-style: bold; right: auto; left: 0;" />
+    </uie:Toolbar>
+    <ui:TabView>
+        <ui:Tab label="VGPR Code Analysis" name="VGPRCodeAnalysisTab" />
+        <ui:Tab label="VGPR Assembly Analysis" name="VGPRAssemblyAnalysisTab" />
+        <ui:Tab label="SGPR Code Analysis" name="SGPRCodeAnalysisTab" />
+        <ui:Tab label="SGPR Assembly Analysis" name="SGPRAssemblyAnalysisTab" />
+        <ui:Tab label="CBuffer Read Order" name="CBufferReadOrderTab" />
+    </ui:TabView>
+</ui:UXML>

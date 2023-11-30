@@ -1,10 +1,44 @@
 #ifndef PROBEVOLUMEDEBUG_BASE_HLSL
 #define PROBEVOLUMEDEBUG_BASE_HLSL
 
-// Requires includes in the .shader file
+// TEMPORARY WORKAROUND
+// Unfortunately we don't have a cross pipeline way to pass per frame constant.
+// One of the reason is that we don't want to force a certain Constant Buffer layout on users (read: SRP writer) for shared data.
+// This means that usually SRP Core functions (see SpaceTransforms.hlsl for example) use common names that are NOT declared in the Core package but rather in each pipelines.
+// The consequence is that when writing core shaders that need those variables, we currently have to copy their declaration and set them manually from core C# code to the relevant shaders.
+
+// Here is current the subset of variables and functions required by APV debug.
+// Copying them here means that these shaders don't support either XR or Camera Relative rendering (at least until those concept become fully cross pipeline)
+CBUFFER_START(ShaderVariablesProbeVolumeDebug)
+float4x4 unity_MatrixVP;        // Sent by builtin
+float4x4 unity_MatrixInvV;      // Sent by builtin
+float4x4 unity_ObjectToWorld;   // Sent by builtin
+float4 _ScreenSize;
+float3 _WorldSpaceCameraPos;    // Sent by builtin
+CBUFFER_END
+
+TEXTURE2D(_ExposureTexture);
+
+#define UNITY_MATRIX_VP unity_MatrixVP
+#define UNITY_MATRIX_V unity_MatrixV
+#define UNITY_MATRIX_I_V unity_MatrixInvV
+#define UNITY_MATRIX_M unity_ObjectToWorld
+
+float3 GetCurrentViewPosition()
+{
+    return UNITY_MATRIX_I_V._14_24_34;
+}
+
+float GetCurrentExposureMultiplier()
+{
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+}
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeReferenceVolume.Debug.cs.hlsl"
+
 
 uniform int _ShadingMode;
 uniform float _ExposureCompensation;
@@ -71,9 +105,9 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
 
     if (_DebugSamplingNoise)
     {
-        float2 posNDC = ComputeNormalizedDeviceCoordinates(GetCameraRelativePositionWS(posWS), UNITY_MATRIX_VP);
+        float2 posNDC = ComputeNormalizedDeviceCoordinates(posWS, UNITY_MATRIX_VP);
         float2 posSS = floor(posNDC.xy * _ScreenSize.xy);
-        posWS = AddNoiseToSamplingPosition(posWS, posSS);
+        posWS = AddNoiseToSamplingPosition(posWS, posSS, viewDir_WS);
     }
 
     APVResources apvRes = FillAPVResources();
@@ -88,7 +122,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
 
     WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
 
-    if (_LeakReductionParams.x != 0)
+    if (_LeakReductionMode != 0)
     {
         samplingPosition_WS = snappedProbePosition_WS + (normalizedOffset*probeDistance);
     }
@@ -197,7 +231,7 @@ half4 WriteFractNumber(float input, float2 texCoord)
         outVal = SampleCharacter(10, dot_uv);
     else if (texCoord.x <= 0.75)
         outVal = SampleCharacter(n1_value, n1_uv);
-    else 
+    else
         outVal = SampleCharacter(n2_value, n2_uv);
 
     return outVal;
@@ -246,32 +280,67 @@ float3 CalculateDiffuseLighting(v2f i)
     int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
     float3 normal = normalize(i.normal);
 
-    float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
-    float3 L0 = L0_L1Rx.xyz;
+    float3 skyShadingDirection = normal;
+    if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
+    {
+        uint index = 255;
+        if (_EnableSkyOcclusionShadingDirection > 0)
+        {
+            index = apvRes.SkyShadingDirectionIndices[texLoc].r * 255;
+            if (index != 255)
+                skyShadingDirection = apvRes.SkyPrecomputedDirections[index].rgb;
+        }
+        float value = 1.0f / GetCurrentExposureMultiplier();
 
-    if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0)
-        return L0;
+        if (index == 255)
+            return float3(value, 0.0f, 0.0f);
 
-    float  L1Rx = L0_L1Rx.w;
-    float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
-    float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
+        if (dot(normal, skyShadingDirection) > 0.95)
+            return float3(0.0f, value, 0.0f);
+        return float3(0.0f, 0.0f, 0.0f);
+    }
+    else
+    {
+        float skyOcclusion = 0.0f;
+        if (_SkyOcclusionIntensity > 0)
+        {
+            // L0 L1
+            float4 temp = float4(kSHBasis0, kSHBasis1 * normal.x, kSHBasis1 * normal.y, kSHBasis1 * normal.z);
+            skyOcclusion = dot(temp, apvRes.SkyOcclusionL0L1[texLoc].rgba);
+        }
 
-    float3 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
-    bakeDiffuseLighting += L0;
+        if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH)
+            return skyOcclusion / GetCurrentExposureMultiplier();
 
-    if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0L1)
-        return bakeDiffuseLighting;
+        float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
+        float3 L0 = L0_L1Rx.xyz;
+
+        if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0)
+            return L0;
+
+        float  L1Rx = L0_L1Rx.w;
+        float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
+        float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
+
+        float3 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
+        bakeDiffuseLighting += L0;
+
+        if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0L1)
+            return bakeDiffuseLighting;
 
 #ifdef PROBE_VOLUMES_L2
-    float4 L2_R = apvRes.L2_0[texLoc].rgba;
-    float4 L2_G = apvRes.L2_1[texLoc].rgba;
-    float4 L2_B = apvRes.L2_2[texLoc].rgba;
-    float4 L2_C = apvRes.L2_3[texLoc].rgba;
+        float4 L2_R = apvRes.L2_0[texLoc].rgba;
+        float4 L2_G = apvRes.L2_1[texLoc].rgba;
+        float4 L2_B = apvRes.L2_2[texLoc].rgba;
+        float4 L2_C = apvRes.L2_3[texLoc].rgba;
 
-    bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
+        bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
 #endif
+        if (_SkyOcclusionIntensity > 0)
+            bakeDiffuseLighting += skyOcclusion * EvaluateAmbientProbe(skyShadingDirection);
 
-    return bakeDiffuseLighting;
+        return bakeDiffuseLighting;
+    }
 }
 
 #endif //PROBEVOLUMEDEBUG_BASE_HLSL

@@ -17,6 +17,8 @@
 #define UNDER_WATER_REFRACTION_DISTANCE 100.0
 #define WATER_SYSTEM_CHOPPINESS 2.25
 #define WATER_DEEP_FOAM_JACOBIAN_OVER_ESTIMATION 1.03
+#define MAX_MENISCUS_REFRACTION_MULTIPLIER 0.5
+#define MENISCUS_THRESHOLD 0.05
 
 #if !defined(IGNORE_WATER_DEFORMATION)
 #define SUPPORT_WATER_DEFORMATION
@@ -42,12 +44,6 @@ Texture2DArray<float4> _WaterAdditionalDataBuffer;
 // Water mask
 TEXTURE2D(_WaterMask);
 SAMPLER(sampler_WaterMask);
-
-// Foam textures
-Texture2D<float2> _WaterFoamBuffer;
-TEXTURE2D(_SimulationFoamMask);
-SAMPLER(sampler_SimulationFoamMask);
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
 
 // Water deformation data
 Texture2D<float> _WaterDeformationBuffer;
@@ -129,11 +125,11 @@ float4 GetBandPatchData(int bandIdx)
     switch (bandIdx)
     {
         case 0:
-            return _Band0_ScaleOffset_AmplitudeMultiplier; 
+            return _Band0_ScaleOffset_AmplitudeMultiplier;
         case 1:
-            return _Band1_ScaleOffset_AmplitudeMultiplier; 
+            return _Band1_ScaleOffset_AmplitudeMultiplier;
         default:
-            return _Band2_ScaleOffset_AmplitudeMultiplier; 
+            return _Band2_ScaleOffset_AmplitudeMultiplier;
     }
 }
 
@@ -265,10 +261,7 @@ float3 WaterSimulationPosition(float3 objectPosition)
     #endif
 
     // Scale and offset the position to where it should be
-    simulationPos.x = objectPosition.x * _PatchRotation.x - objectPosition.z * _PatchRotation.y;
-    simulationPos.z = objectPosition.x * _PatchRotation.y + objectPosition.z * _PatchRotation.x;
-
-    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset.xz - _GridOffset;
 
     #ifndef WATER_DISPLACEMENT
     // Clamp the mesh inside the region so that it's never empty
@@ -286,6 +279,12 @@ struct WaterDisplacementData
     float3 displacement;
     float lowFrequencyHeight;
 };
+
+// Foam textures
+Texture2D<float2> _WaterFoamBuffer;
+TEXTURE2D(_SimulationFoamMask);
+SAMPLER(sampler_SimulationFoamMask);
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
 
 // UV to sample the foam mask
 float2 EvaluateFoamMaskUV(float2 foamUV)
@@ -662,8 +661,8 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     }
 #endif
 
-    // Apply the texture
-    waterAdditionalData.deepFoam = DeepFoam(positionOS.xz, 1.0 - waterAdditionalData.deepFoam);
+    // Final foam value
+    waterAdditionalData.deepFoam = FoamErosion(1.0 - waterAdditionalData.deepFoam, positionOS.xz, false, 4);
 }
 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
@@ -700,11 +699,10 @@ struct FoamData
     float foamValue;
 };
 
-void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionAWS, out FoamData foamData)
+void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionOS, out FoamData foamData)
 {
-    // Final foam value
     float foamLifeTime = saturate(1.0 - (surfaceFoam + customFoam));
-    foamData.foamValue = SurfaceFoam(positionAWS.xz, foamLifeTime);
+    foamData.foamValue = FoamErosion(foamLifeTime, positionOS.xz);
 
     // Blend the smoothness of the water and the foam
     foamData.smoothness = lerp(_WaterSmoothness, _FoamSmoothness, saturate(foamData.foamValue));
@@ -769,26 +767,56 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     float underWaterDistance = directWaterDepth == UNITY_RAW_FAR_CLIP_VALUE ? WATER_BACKGROUND_ABSORPTION_DISTANCE : length(directWaterPosRWS - waterPosRWS);
 
     // We approach the refraction differently if we are under or above water for various reasons
-    float3 refractedView;
-    float3 distortedWaterWS;
+
+    float3 distortedWaterWS = 0.0f;
     if (aboveWater || disableUnderWaterIOR)
     {
-        refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(positionNDC, length(waterPosRWS))) * (1 - upVector);
-        distortedWaterWS = waterPosRWS + refractedView * min(underWaterDistance, maxRefractionDistance);
+        float3 refractedView = lerp(waterNormal, upVector, EdgeBlendingFactor(positionNDC, length(waterPosRWS))) * (1 - upVector);
 
-        // When disable IOR is active, we are sure that refraction data is always avalaible on screen
-        // but we still compute a total internal refraction
+        // If camera is below the water surface, we mulitply the maxRefractionDistance with (half) the distance between the water surface pixel and the camera water depth.
+        float refractionDistance;
+        if (!aboveWater)
+            refractionDistance = maxRefractionDistance * abs(waterPosRWS.y) * 0.5f;
+        else
+            refractionDistance = min(underWaterDistance, maxRefractionDistance);
+
+        distortedWaterWS = waterPosRWS + refractedView * refractionDistance;
+    }
+
+    // If underwater
+    if (!aboveWater)
+    {
+        float3 refractedView = refract(-V, waterNormal, WATER_IOR);
+
+        bool totalInternalReflection = all(refractedView == 0.0f);
+        absorptionTint = totalInternalReflection ? 0.0f : 1.0f;
+
         if (disableUnderWaterIOR)
-            refractedView = refract(-V, waterNormal, WATER_IOR);
+        {
+            // At the limit between refraction and internal reflection, we simulate a higher refraction to avoid having a harsh threshold between both ray directions.
+            float NdotV = dot(waterNormal, V);
+            float k = 1.f - WATER_IOR * WATER_IOR * (1.f - NdotV * NdotV);
+            float refractionValueMultiplier = 1;
+            if (k >= -MENISCUS_THRESHOLD && k <= MENISCUS_THRESHOLD)
+            {
+                float lerpFactor = saturate((k + MENISCUS_THRESHOLD) / (2 * MENISCUS_THRESHOLD));
+                refractionValueMultiplier *= lerp(MAX_MENISCUS_REFRACTION_MULTIPLIER, 0, lerpFactor);
+                distortedWaterWS += refractedView * refractionValueMultiplier;
+
+                absorptionTint = saturate(2 * lerpFactor - 1);
+            }
+        }
+        else
+        {
+            distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
+        }
     }
     else
-    {
-        refractedView = refract(-V, waterNormal, WATER_IOR);
-        distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
-    }
+        absorptionTint = outScatteringCoeff * (1.f - transparencyColor); // this is weird but compiler complains otherwise
 
     // Project the point on screen
-    distortedWaterNDC = ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP);
+    distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
+    distortedWaterNDC = min(distortedWaterNDC, 1.0f - _ScreenSize.zw);
 
     // Compute the position of the surface behind the water surface
     float refractedWaterDepth = SampleCameraDepth(distortedWaterNDC);
@@ -805,16 +833,10 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     }
 
     // Evaluate the absorption tint
-    if (!aboveWater)
+    if (aboveWater)
     {
-        // If we are underwater and we detect a total internal refraction, we need to adjust the parameters
-        bool totalInternalReflection = all(refractedView == 0.0f);
-        bool invalidSample = any(saturate(distortedWaterNDC) != distortedWaterNDC);
-
-        absorptionTint = (totalInternalReflection || invalidSample) ? 0.0f : 1.0f;
+        absorptionTint = exp(-refractedWaterDistance * absorptionTint);
     }
-    else
-        absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)

@@ -48,9 +48,9 @@ namespace UnityEditor.VFX
     struct VFXSetting
     {
         public readonly FieldInfo field;
-        public readonly VFXModel instance;
+        public readonly object instance;
 
-        public VFXSetting(FieldInfo field, VFXModel instance, VFXSettingAttribute.VisibleFlags visibility = VFXSettingAttribute.VisibleFlags.Default)
+        public VFXSetting(FieldInfo field, object instance, VFXSettingAttribute.VisibleFlags visibility = VFXSettingAttribute.VisibleFlags.Default)
         {
             this.field = field;
             this.instance = instance;

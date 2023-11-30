@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // don't forget to add your migration step into skipedStepWhenCreatedFromHDRPAsset.
         //
         // /!\ Also for each new version, you must now upgrade asset in HDRP_Runtime, HDRP_Performance and SRP_SmokeTest test project.
-        enum Version
+        internal enum Version
         {
             First,
             UpdateMSAA,
@@ -30,13 +30,14 @@ namespace UnityEngine.Rendering.HighDefinition
             EnableAmethystFeaturesByDefault, 
             ShaderStrippingSettings,
             RenderingPathFrameSettings,
-            CustomPostProcessOrdersSettings
+            CustomPostProcessOrdersSettings,
+            SetUpIncluderRenderPipelineAssetGraphicsSettings,
         }
 
         static Version[] skipedStepWhenCreatedFromHDRPAsset = new Version[] { };
 
         [SerializeField]
-        Version m_Version = MigrationDescription.LastVersion<Version>();
+        internal Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 #if UNITY_EDITOR
@@ -74,36 +75,25 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.MoveDiffusionProfilesToVolume, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
+                if (data.m_ObsoleteDiffusionProfileSettingsList == null ||
+                    data.m_ObsoleteDiffusionProfileSettingsList.Length == 0)
                     return;
 
-                var volumeProfile = data.GetOrCreateDefaultVolumeProfile();
-
-                #if UNITY_EDITOR
-                // Profile from resources is read only in released packages, so we have to copy it to the assets folder
-                if (data.IsVolumeProfileFromResources())
+                var defaultVolumeProfile = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+                if (data.m_DefaultVolumeProfile != null && VolumeUtils.IsDefaultVolumeProfile(data.m_DefaultVolumeProfile, defaultVolumeProfile))
                 {
-                    data.volumeProfile = CopyVolumeProfileFromResourcesToAssets(volumeProfile);
+                    // Profile from resources is read only in released packages, so we have to copy it to the assets folder
+                    data.m_DefaultVolumeProfile = null;
                 }
 
-                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(volumeProfile));
-                #endif
-
-                var overrides = data.GetOrCreateDiffusionProfileList();
-                foreach (var profile in data.m_ObsoleteDiffusionProfileSettingsList)
+                if (data.m_DefaultVolumeProfile == null)
                 {
-                    bool found = false;
-                    foreach (var profile2 in overrides.diffusionProfiles.value)
-                    {
-                        if (profile2 == profile)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found)
-                        data.AddDiffusionProfile(profile);
+                    data.m_DefaultVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(defaultVolumeProfile);
                 }
+
+                UnityEditor.AssetDatabase.MakeEditable(UnityEditor.AssetDatabase.GetAssetPath(data.m_DefaultVolumeProfile));
+
+                VolumeUtils.TryAddDiffusionProfiles(data.m_DefaultVolumeProfile, data.m_ObsoleteDiffusionProfileSettingsList);
 #pragma warning restore 618
             }),
             MigrationStep.New(Version.GenericRenderingLayers, (HDRenderPipelineGlobalSettings data) =>
@@ -173,8 +163,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_CustomPostProcessOrdersSettings.beforeTransparentCustomPostProcesses.AddRange(data.beforeTransparentCustomPostProcesses);
 #pragma warning restore 618
             })
+            ,
+            MigrationStep.New(Version.SetUpIncluderRenderPipelineAssetGraphicsSettings, (HDRenderPipelineGlobalSettings data) => data.SetUpRPAssetIncluded())
         );
-        bool IMigratableAsset.Migrate()
+        public bool Migrate()
             => k_Migration.Migrate(this);
 
         bool IMigratableAsset.IsAtLastVersion()
@@ -206,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             assetToUpgrade.m_ObsoleteRenderingPathDefaultRealtimeReflectionFrameSettings      = oldAsset.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
 
             assetToUpgrade.m_RenderPipelineResources           = oldAsset.m_ObsoleteRenderPipelineResources;
-            assetToUpgrade.m_RenderPipelineRayTracingResources = oldAsset.m_ObsoleteRenderPipelineRayTracingResources;
+            assetToUpgrade.m_ObsoleteRenderPipelineRayTracingResources = oldAsset.m_ObsoleteRenderPipelineRayTracingResources;
 
             assetToUpgrade.beforeTransparentCustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTransparentCustomPostProcesses);
             assetToUpgrade.beforePostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforePostProcessCustomPostProcesses);

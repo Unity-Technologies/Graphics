@@ -1,0 +1,14 @@
+rpw:
+  area: RP Workflow
+
+urp:
+  when:
+    path:
+      - ^.*ContextContainer.*$
+  area: Universal RP
+
+xr:
+  when:
+    path:
+      - ^.*XRSubsystem.*$
+  area: XR SRP

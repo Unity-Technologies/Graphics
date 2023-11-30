@@ -17,37 +17,14 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     #if VFX_PRIMITIVE_TRIANGLE
         index = id / 3;
     #elif VFX_PRIMITIVE_QUAD
-    #if HAS_STRIPS
-        id += VFX_GET_INSTANCE_ID(i) * 8192;
-        const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
-
-        index = id / vertexPerStripCount; // stripIndex. Needed by VFXInitInstancing
-        $splice(VFXInitInstancing)
-
-        const StripData stripData = GetStripDataFromStripIndex(index, instanceIndex);
-        uint relativeIndexInStrip = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
-
-        uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
-
-        if (maxEdgeIndex >= stripData.nextIndex)
-            return false;
-
-        element.stripData = stripData;
-        element.relativeIndexInStrip = relativeIndexInStrip;
-
-        index = GetParticleIndex(relativeIndexInStrip, stripData);
-    #else
         index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
-    #endif
     #elif VFX_PRIMITIVE_OCTAGON
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
-    #if !HAS_STRIPS
     $splice(VFXInitInstancing)
     #ifdef UNITY_INSTANCING_ENABLED
     input.instanceID = unity_InstanceID;
-    #endif
     #endif
 
     ContextData contextData = instancingContextData[instanceActiveIndex];
@@ -61,6 +38,16 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
     #endif
 
+    #if HAS_STRIPS
+    StripData stripData;
+    uint relativeIndexInStrip = 0;
+    if (!FindIndexInStrip(index, id, instanceIndex, relativeIndexInStrip, stripData))
+        return false;
+
+    element.relativeIndexInStrip = relativeIndexInStrip;
+    element.stripData = stripData;
+#endif
+
     element.index = index;
     element.instanceIndex = instanceIndex;
     element.instanceActiveIndex = instanceActiveIndex;
@@ -73,7 +60,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         #if VFX_STRIPS_UV_STRECHED
             uv.x = (float)(relativeIndexInStrip) / (stripData.nextIndex - 1);
         #elif VFX_STRIPS_UV_PER_SEGMENT
-            uv.x = PARTICLE_IN_EDGE;
+            uv.x = STRIP_PARTICLE_IN_EDGE;
         #else
             GetElementData(element);
             const InternalAttributesElement attributes = element.attributes;

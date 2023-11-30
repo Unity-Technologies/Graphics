@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -108,30 +108,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList, ref RenderingData renderingData)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
             {
                 // Enable Rendering Layers
                 if (passData.enableRenderingLayers)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, true);
+                    cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
                 // Draw
                 cmd.DrawRendererList(rendererList);
 
                 // Clean up
                 if (passData.enableRenderingLayers)
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.WriteRenderingLayers, false);
+                    cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
             }
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            InitPassData(ref renderingData, ref m_PassData);
-            var param = InitRendererListParams(ref renderingData);
+            ContextContainer frameData = renderingData.frameData;
+            UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
+            m_PassData.enableRenderingLayers = enableRenderingLayers;
+            var param = InitRendererListParams(universalRenderingData, cameraData,lightData);
             var rendererList = context.CreateRendererList(ref param);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList, ref renderingData);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
         }
 
         /// <inheritdoc/>
@@ -144,6 +149,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             normalHandle = null;
             depthHandle = null;
             renderingLayersHandle = null;
+
+            // This needs to be reset as the renderer might change this in runtime (UUM-36069)
+            shaderTagIds = k_DepthNormals;
         }
 
         /// <summary>
@@ -153,48 +161,54 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal TextureHandle cameraDepthTexture;
             internal TextureHandle cameraNormalsTexture;
-            internal RenderingData renderingData;
             internal bool enableRenderingLayers;
             internal RenderingLayerUtils.MaskSize maskSize;
             internal RendererListHandle rendererList;
         }
 
-        /// <summary>
-        /// Initialize the shared pass data.
-        /// </summary>
-        /// <param name="passData"></param>
-        private void InitPassData(ref RenderingData renderingData, ref PassData passData)
+        private RendererListParams InitRendererListParams(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            passData.enableRenderingLayers = enableRenderingLayers;
-            passData.renderingData = renderingData;
-        }
-
-        private RendererListParams InitRendererListParams(ref RenderingData renderingData)
-        {
-            var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
-            var drawSettings = RenderingUtils.CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
+            var sortFlags = cameraData.defaultOpaqueSortFlags;
+            var drawSettings = RenderingUtils.CreateDrawingSettings(this.shaderTagIds, renderingData, cameraData, lightData, sortFlags);
             drawSettings.perObjectData = PerObjectData.None;
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture, ref RenderingData renderingData)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalLightData lightData = frameData.Get<UniversalLightData>();
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthNormals Prepass", out var passData, base.profilingSampler))
             {
-                passData.cameraNormalsTexture = builder.UseTextureFragment(cameraNormalsTexture, 0, IBaseRenderGraphBuilder.AccessFlags.Write);
-                passData.cameraDepthTexture = builder.UseTextureFragmentDepth(cameraDepthTexture, IBaseRenderGraphBuilder.AccessFlags.Write);
+                passData.cameraNormalsTexture = cameraNormalsTexture;
+                builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);
+                passData.cameraDepthTexture = cameraDepthTexture;
+                builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
 
-                InitPassData(ref renderingData, ref passData);
+                passData.enableRenderingLayers = enableRenderingLayers;
 
                 if (passData.enableRenderingLayers)
                 {
-                    builder.UseTextureFragment(renderingLayersTexture, 1, IBaseRenderGraphBuilder.AccessFlags.Write);
+                    builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
                     passData.maskSize = renderingLayersMaskSize;
                 }
 
-                var param = InitRendererListParams(ref renderingData);
+                var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
+                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
+
+                UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
+                if (universalRenderer != null)
+                {
+                    var renderingMode = universalRenderer.renderingModeActual;
+                    if (cameraNormalsTexture.IsValid() && renderingMode != RenderingMode.Deferred)
+                        builder.SetGlobalTextureAfterPass(cameraNormalsTexture, Shader.PropertyToID("_CameraNormalsTexture"));
+                    if (cameraDepthTexture.IsValid() && renderingMode != RenderingMode.Deferred)
+                        builder.SetGlobalTextureAfterPass(cameraDepthTexture, Shader.PropertyToID("_CameraDepthTexture"));
+                }
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
@@ -204,12 +218,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
-                    ExecutePass(context.cmd, data, data.rendererList, ref data.renderingData);
+                    ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
-
-            RenderGraphUtils.SetGlobalTexture(renderGraph, "_CameraNormalsTexture", cameraNormalsTexture, "Set Camera Normals Texture");
-            RenderGraphUtils.SetGlobalTexture(renderGraph,"_CameraDepthTexture", cameraDepthTexture, "Set Global CameraDepthTexture");
         }
     }
 }

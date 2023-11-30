@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (supportForward)
                 {
                     passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, systemData.debugSymbols));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
                 }
 
                 if (supportDistortion)
@@ -255,7 +255,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
             context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
-            context.AddField(HDFields.LineWidth, target.supportLineRendering);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -298,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
 
-            context.AddBlock(HDBlockFields.SurfaceDescription.LineWidth, target.supportLineRendering);
+            context.AddBlock(HDBlockFields.VertexDescription.Width, target.supportLineRendering);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

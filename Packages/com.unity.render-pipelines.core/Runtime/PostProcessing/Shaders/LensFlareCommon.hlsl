@@ -2,6 +2,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/LensFlareOcclusionPermutation.cs.hlsl"
 
 struct AttributesLensFlare
 {
@@ -37,14 +38,27 @@ SAMPLER(sampler_FlareOcclusionTex);
 #endif
 
 #ifdef HDRP_FLARE
-#if defined(FLARE_CLOUD_BACKGROUND_OCCLUSION)
+uint _FlareOcclusionPermutation;
+
+TEXTURE2D_X_UINT2(_StencilTexture);
+SAMPLER(sampler_StencilTexture);
+
+TEXTURE2D_X(_DepthWithWaterTexture);
+SAMPLER(sampler_DepthWithWaterTexture);
+
 TEXTURE2D_X(_FlareCloudOpacity);
 SAMPLER(sampler_FlareCloudOpacity);
-#endif
-#if defined(FLARE_VOLUMETRIC_CLOUD_OCCLUSION)
+
 TEXTURE2D_X(_FlareSunOcclusionTex);
 SAMPLER(sampler_FlareSunOcclusionTex);
-#endif
+
+// Copy-paste from:
+//  Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs
+//  Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl
+#define STENCILUSAGE_WATER_SURFACE (16)
+
+TEXTURE2D_X(_FlareWaterGBuffer3Thickness);
+SAMPLER(sampler_FlareWaterGBuffer3Thickness);
 #endif
 
 float4 _FlareColorValue;
@@ -99,7 +113,11 @@ float2 Rotate(float2 v, float cos0, float sin0)
 float GetLinearDepthValue(float2 uv)
 {
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
-    float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
+    float depth;
+    if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
+        depth = LOAD_TEXTURE2D_X_LOD(_DepthWithWaterTexture, uint2(uv * _ScreenSize.xy), 0).x;
+    else
+        depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
 #else
     float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
 #endif
@@ -131,16 +149,37 @@ float GetOcclusion(float ratio)
             if (depth0 > _ScreenPosZ)
             {
                 float occlusionValue = 1.0f;
+
 #ifdef HDRP_FLARE
-#if defined(FLARE_CLOUD_BACKGROUND_OCCLUSION)
-                float cloudOpacity = LOAD_TEXTURE2D_X_LOD(_FlareCloudOpacity, uint2(pos.xy * _ScreenSize.xy), 0).x;
-                occlusionValue *= LOAD_TEXTURE2D_X(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy)).x;
+                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_CLOUD_LAYER) != 0)
+                {
+                    float cloudOpacity = LOAD_TEXTURE2D_X(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy)).x;
+                    occlusionValue *= saturate(cloudOpacity);
+                }
+
+                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_VOLUMETRIC_CLOUD) != 0)
+                {
+                    float volumetricCloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
+                    occlusionValue *= saturate(volumetricCloudOcclusion);
+                }
+
+                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
+                {
+                    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uint2(pos * _ScreenParams.xy)));
+                    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) != 0)
+                    {
+                        float2 waterGBufferData = LOAD_TEXTURE2D_X(_FlareWaterGBuffer3Thickness, uint2(pos.xy * _ScreenParams.xy)).xy;
+
+                        // Copy pasted from HDRP
+                        uint upper16Bits = ((uint)(waterGBufferData.x * 255.0f)) << 8 | ((uint)(waterGBufferData.y * 255.0f));
+                        float opticalThickness = f16tof32(upper16Bits);
+                        //
+
+                        occlusionValue *= saturate(opticalThickness);
+                    }
+                }
 #endif
-#if defined(FLARE_VOLUMETRIC_CLOUD_OCCLUSION)
-                float volumetricCloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
-                occlusionValue *= saturate(volumetricCloudOcclusion);
-#endif
-#endif
+
                 contrib += sample_Contrib * occlusionValue;
             }
         }

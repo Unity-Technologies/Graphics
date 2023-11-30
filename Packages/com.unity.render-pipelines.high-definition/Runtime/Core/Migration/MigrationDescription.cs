@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if it has executed migration steps, false otherwise.</returns>
         public bool Migrate(TTarget target)
         {
-            if (Equals(target.version, Steps[Steps.Length - 1].Version))
+            if (IsLastVersionOrAbove(target.version))
                 return false;
 
             for (int i = 0; i < Steps.Length; ++i)
@@ -155,5 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool Equals(TVersion l, TVersion r) => Compare(l, r) == 0;
         static int Compare(TVersion l, TVersion r) => (int)(object)l - (int)(object)r;
+        bool IsLastVersionOrAbove(TVersion target) => Compare(target, Steps[Steps.Length - 1].Version) >= 0;
     }
 }

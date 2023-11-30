@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abd488482a604ce28bd6a034eb28b22a, type: 3}
+  m_Name: GPUResidentDrawerResources
+  m_EditorClassIdentifier:
+  instanceDataBufferCopyKernels: {fileID: 7200000, guid: f984aeb540ded8b4fbb8a2047ab5b2e2, type: 3}
+  instanceDataBufferUploadKernels: {fileID: 7200000, guid: 53864816eb00f2343b60e1a2c5a262ef, type: 3}
+  transformUpdaterKernels: {fileID: 7200000, guid: 2a567b9b2733f8d47a700c3c85bed75b, type: 3}
+  windDataUpdaterKernels: {fileID: 7200000, guid: fde76746e4fd0ed418c224f6b4084114, type: 3}

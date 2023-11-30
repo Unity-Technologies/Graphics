@@ -13,8 +13,9 @@ Shader "Hidden/Light2D"
 
         Pass
         {
-            Blend[_SrcBlend][_DstBlend]
+            Blend [_SrcBlend][_DstBlend]
             ZWrite Off
+            ZTest [_HandleZTest]
             Cull Off
 
             HLSLPROGRAM
@@ -25,11 +26,8 @@ Shader "Hidden/Light2D"
             #pragma multi_compile_local USE_VOLUMETRIC __
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
-            #pragma multi_compile USE_SHAPE_LIGHT_TYPE_3 __
 
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 

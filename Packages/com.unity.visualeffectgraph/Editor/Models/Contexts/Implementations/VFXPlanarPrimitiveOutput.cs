@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,8 +7,23 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    class VFXPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
+            {
+                yield return new Variant(
+                    $"Output Particle {primitive}",
+                    "Output",
+                    typeof(VFXPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
+            }
+        }
+    }
+
     [VFXHelpURL("Context-OutputPrimitive")]
-    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
+    [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveOutputProvider))]
     class VFXPlanarPrimitiveOutput : VFXShaderGraphParticleOutput
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what primitive type to use for this output. Triangle outputs have fewer vertices, octagons can be used to conform the geometry closer to the texture to avoid overdraw, and quads are a good middle ground.")]
@@ -20,8 +36,6 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (shaderName != string.Empty)
-                    return $"Output Particle {shaderName} {primitiveType.ToString()}";
                 return $"Output Particle {primitiveType.ToString()}";
             }
         }

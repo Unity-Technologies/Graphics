@@ -1,14 +1,17 @@
 using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal class CopyCameraSortingLayerPass : ScriptableRenderPass
     {
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("CopyCameraSortingLayerPass");
+        static readonly string k_CopyCameraSortingLayerPass = "CopyCameraSortingLayer Pass";
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CopyCameraSortingLayerPass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Copy");
         public static readonly string k_CameraSortingLayerTexture = "_CameraSortingLayerTexture";
+        private static readonly int k_CameraSortingLayerTextureId = Shader.PropertyToID(k_CameraSortingLayerTexture);
         static Material m_BlitMaterial;
 
         public CopyCameraSortingLayerPass(Material blitMaterial)
@@ -53,13 +56,13 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle source;
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, in TextureHandle cameraColorAttachment, in TextureHandle destination)
+        public void Render(RenderGraph graph, in TextureHandle cameraColorAttachment, in TextureHandle destination)
         {
-            using (var builder = graph.AddRasterRenderPass<PassData>("Copy Camera Sorting Layer Pass", out var passData, m_ProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(k_CopyCameraSortingLayerPass, out var passData, m_ProfilingSampler))
             {
                 passData.source = cameraColorAttachment;
 
-                builder.UseTextureFragment(destination, 0);
+                builder.SetRenderAttachment(destination, 0);
                 builder.UseTexture(passData.source);
                 builder.AllowPassCulling(false);
 
@@ -69,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
                 });
             }
 
-            RenderGraphUtils.SetGlobalTexture(graph, k_CameraSortingLayerTexture, destination, "Set Camera Sorting Layer Texture");
+            RenderGraphUtils.SetGlobalTexture(graph, k_CameraSortingLayerTextureId, destination, "Set Camera Sorting Layer Texture");
         }
     }
 }

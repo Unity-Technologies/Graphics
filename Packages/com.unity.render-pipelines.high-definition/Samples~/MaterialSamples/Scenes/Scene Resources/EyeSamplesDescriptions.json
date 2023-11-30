@@ -1,0 +1,12 @@
+{
+    "introduction":
+	"""Welcome to the samples scene for rendering <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/eye-shader.html">eyes</a> in HDRP.
+
+Human eyeballs are about 25mm in diameter. The shader uses separate diffusion profiles for the <link="IrisDiffusionProfile 25mm.asset">iris</link> and <link="ScleraDiffusionProfile 25mm.asset">sclera</link>. Scaling the eye changes how subsurface scattering looks. To get the same result for eyes of different sizes, duplicate the diffusion profiles and adjust the world scale, as shown in the 100mm eye example.
+
+This <link="SG_Eye.shadergraph">Shader Graph</link> is designed <b>exclusively</b> for this <link="HumanEyeModel.fbx">3D model</link> with an import scale factor of one. When working with different models or scale factors, you'll need to create a separate graph. In this example, we've chosen the <b>'EyeCinematicWithCaustics'</b> type within the Material Type, located under Surface Options in the Graph Inspector.
+
+""",
+"samples": []	
+}
+

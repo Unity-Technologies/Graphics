@@ -55,9 +55,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
 #endif
 
-#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
-#endif
 
 void MeshDecalsPositionZBias(inout Varyings input)
 {
@@ -92,7 +90,7 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
 #if defined(VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV) && defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, half3(input.sh), normalWS);
 #elif defined(VARYINGS_NEED_STATIC_LIGHTMAP_UV)
-#if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.sh,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
@@ -248,8 +246,11 @@ void Frag(PackedVaryings packedInput,
 
     float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
 
-#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    positionSS = RemapFoveatedRenderingNonUniformToLinearCS(input.positionCS.xy, true) * _ScreenSize.zw;
+#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    {
+        positionSS = RemapFoveatedRenderingNonUniformToLinearCS(input.positionCS.xy, true) * _ScreenSize.zw;
+    }
 #endif
 
 #ifdef DECAL_PROJECTOR
@@ -326,7 +327,13 @@ void Frag(PackedVaryings packedInput,
 
     outColor = color;
 #elif defined(DECAL_GBUFFER)
-
+    
+    // Need to reconstruct normal here for inputData.bakedGI, but also save off surfaceData.normalWS for correct GBuffer blending
+    half3 normalToPack = surfaceData.normalWS.xyz;
+#ifdef DECAL_RECONSTRUCT_NORMAL
+    surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
+#endif
+    
     InputData inputData;
     InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
@@ -338,21 +345,15 @@ void Frag(PackedVaryings packedInput,
 
     // Skip GI if there is no abledo
 #ifdef _MATERIAL_AFFECTS_ALBEDO
-
-    // GI needs blended normal
-#ifdef DECAL_RECONSTRUCT_NORMAL
-    half3 normalGI = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
-#endif
-
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
-    MixRealtimeAndBakedGI(mainLight, normalGI, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, normalGI, inputData.viewDirectionWS);
+    MixRealtimeAndBakedGI(mainLight, surfaceData.normalWS.xyz, inputData.bakedGI, inputData.shadowMask);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, surfaceData.normalWS.xyz, inputData.viewDirectionWS);
 #else
     half3 color = 0;
 #endif
 
     // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
-    half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
+    half3 packedNormalWS = PackNormal(normalToPack);
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.GBuffer1 = 0;
     fragmentOutput.GBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);

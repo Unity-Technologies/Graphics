@@ -42,6 +42,7 @@ $Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2
 $Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
 $Attributes.color: #define ATTRIBUTES_NEED_COLOR
 $Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
+$Attributes.instanceID: #define ATTRIBUTES_NEED_INSTANCEID
 $Varyings.positionWS: #define VARYINGS_NEED_POSITION_WS
 $Varyings.normalWS: #define VARYINGS_NEED_NORMAL_WS
 $Varyings.tangentWS: #define VARYINGS_NEED_TANGENT_WS
@@ -54,6 +55,7 @@ $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
 $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
+$Varyings.instanceID: #define VARYINGS_NEED_INSTANCEID
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX
 $BuiltIn.UseLegacySpriteBlocks: #define BUILTIN_USELEGACYSPRITEBLOCKS
 $splice(PassInstancing)

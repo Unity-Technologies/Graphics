@@ -30,7 +30,8 @@ namespace UnityEditor.VFX.Test
         private static List<(string name, float value)> ExtractMaterialSettings(VFXModel model)
         {
             var materialSettingsWithoutSerialized = new SerializedObject(model);
-            var materialSettings = materialSettingsWithoutSerialized.FindProperty("materialSettings");
+            var shading = materialSettingsWithoutSerialized.FindProperty("m_Shading");
+            var materialSettings = shading.FindPropertyRelative("materialSettings");
             var propertyNames = materialSettings.FindPropertyRelative("m_PropertyNames");
             var propertyValues = materialSettings.FindPropertyRelative("m_PropertyValues");
 
@@ -66,15 +67,15 @@ namespace UnityEditor.VFX.Test
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
             var vfxGraph = vfxAsset.GetOrCreateResource().GetOrCreateGraph();
 
-            var withoutOverride = vfxGraph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault(o => o.label == "Without override");
-            var withOverride = vfxGraph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault(o => o.label == "With override");
+            var withoutOverride = vfxGraph.children.OfType<VFXAbstractComposedParticleOutput>().FirstOrDefault(o => o.label == "Without override");
+            var withOverride = vfxGraph.children.OfType<VFXAbstractComposedParticleOutput>().FirstOrDefault(o => o.label == "With override");
 
             Assert.IsNotNull(withoutOverride);
             Assert.IsNotNull(withOverride);
 
             //Functional check
-            Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Opaque, withoutOverride.GetMaterialBlendMode());
-            Assert.AreEqual(VFXAbstractRenderedOutput.BlendMode.Additive, withOverride.GetMaterialBlendMode());
+            Assert.AreEqual(true, withoutOverride.isBlendModeOpaque);
+            Assert.AreEqual(false, withOverride.isBlendModeOpaque);
 
             //Serialized data and override check
             var materialSettingsWithout = ExtractMaterialSettings(withoutOverride);
@@ -93,8 +94,10 @@ namespace UnityEditor.VFX.Test
             Assert.IsEmpty(materialSettingsWithout);
             Assert.IsNotEmpty(materialSettingsWith);
 
+            List<(string name, float value)> expectedRemainder;
+
 #if VFX_TESTS_HAS_HDRP
-            var expectedRemainder = new List<(string name, float value)>()
+            expectedRemainder = new()
             {
                 ("_AlphaDstBlend", 1),
                 ("_BlendMode", 1),
@@ -107,7 +110,7 @@ namespace UnityEditor.VFX.Test
 #endif
 
 #if VFX_TESTS_HAS_URP
-            var expectedRemainder = new List<(string name, float value)>()
+            expectedRemainder = new()
             {
                 ("_Blend", 2),
                 ("_DstBlend", 1),
@@ -132,9 +135,9 @@ namespace UnityEditor.VFX.Test
             internal string initialShaderGraph;
             internal string replacementShaderGraph;
 
-            internal Action<VFXPlanarPrimitiveOutput> initialCheck;
-            internal Action<VFXPlanarPrimitiveOutput> afterSwichShaderGraphCheck;
-            internal Action<VFXPlanarPrimitiveOutput, Material> injectOverride;
+            internal Action<VFXAbstractParticleOutput> initialCheck;
+            internal Action<VFXAbstractParticleOutput> afterSwichShaderGraphCheck;
+            internal Action<VFXAbstractParticleOutput, Material> injectOverride;
 
             public override string ToString()
             {
@@ -224,7 +227,9 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Verify_MaterialSettings_Visibility()
         {
-            var particleOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+            var particleOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+            particleOutput.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+            particleOutput.SetSettingValue("m_Shading", new ParticleShadingShaderGraph());
             Assert.IsNotNull(particleOutput.GetSetting("materialSettings"));
 
             var allSettings = particleOutput
@@ -243,7 +248,9 @@ namespace UnityEditor.VFX.Test
             var graph = VFXTestCommon.MakeTemporaryGraph();
             //Create VFXAsset
             {
-                var particleOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                var particleOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                particleOutput.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+
                 particleOutput.SetSettingValue("shaderGraph", shaderGraph);
                 graph.AddChild(particleOutput);
 
@@ -260,7 +267,7 @@ namespace UnityEditor.VFX.Test
 
             //Basic First check
             {
-                var output = graph.children.OfType<VFXPlanarPrimitiveOutput>().First();
+                var output = graph.children.OfType<VFXAbstractParticleOutput>().First();
                 testCase.initialCheck(output);
             }
 
@@ -272,14 +279,14 @@ namespace UnityEditor.VFX.Test
                 File.WriteAllBytes(shaderGraphPath, content);
                 AssetDatabase.ImportAsset(shaderGraphPath, ImportAssetOptions.ForceUpdate);
 
-                var output = graph.children.OfType<VFXPlanarPrimitiveOutput>().First();
-                Assert.IsNotNull(output.GetOrRefreshShaderGraphObject(false));
+                var output = graph.children.OfType<VFXAbstractParticleOutput>().First();
+                Assert.IsNotNull(VFXShaderGraphHelpers.GetShaderGraph(output));
                 testCase.afterSwichShaderGraphCheck(output);
             }
 
             //Explicitly inject override
             {
-                var output = graph.children.OfType<VFXPlanarPrimitiveOutput>().First();
+                var output = graph.children.OfType<VFXAbstractParticleOutput>().First();
 
                 var shaderGraphPath = AssetDatabase.GetAssetPath(shaderGraph);
                 var referenceMaterial = AssetDatabase.LoadAssetAtPath<Material>(shaderGraphPath);
@@ -288,13 +295,13 @@ namespace UnityEditor.VFX.Test
                 materialVariant.parent = referenceMaterial;
                 Assert.IsTrue(materialVariant.isVariant);
 
-                Assert.IsNotNull(output.GetOrRefreshShaderGraphObject(false));
+                Assert.IsNotNull(VFXShaderGraphHelpers.GetShaderGraph(output));
                 testCase.injectOverride(output, materialVariant);
             }
 
             //Revert material settings & Restore SG initial content
             {
-                var output = graph.children.OfType<VFXPlanarPrimitiveOutput>().First();
+                var output = graph.children.OfType<VFXAbstractParticleOutput>().First();
                 output.SetSettingValue("materialSettings", new VFXMaterialSerializedSettings());
 
                 var content = File.ReadAllBytes(baseDataPath + testCase.initialShaderGraph + ".shadergraph");
@@ -350,7 +357,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(graph);
             Assert.AreEqual(testCase.compilationMode, graph.GetCompilationMode());
 
-            var output = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
+            var output = graph.children.OfType<VFXComposedParticleOutput>().FirstOrDefault();
             Assert.IsNotNull(output);
 
             if (testCase.createEditor)
@@ -361,7 +368,7 @@ namespace UnityEditor.VFX.Test
                 yield return null;
                 for (int i = 0; i < 3; ++i)
                 {
-                    Assert.IsTrue(inspector.tracker.activeEditors.OfType<VFXShaderGraphParticleOutputEditor>().Any());
+                    Assert.IsTrue(inspector.tracker.activeEditors.OfType<VFXComposedParticleOutputEditor>().Any());
                     yield return null;
                 }
             }

@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeUnderWaterResources()
         {
             // Kernels
-            m_WaterLineCS = m_Asset.renderPipelineResources.shaders.waterLineCS;
+            m_WaterLineCS = runtimeShaders.waterLineCS;
             m_ClearWaterLine = m_WaterLineCS.FindKernel("ClearWaterLine");
             m_WaterLineEvaluation1D = m_WaterLineCS.FindKernel("LineEvaluation1D");
             m_WaterLineBoundsPropagation = m_WaterLineCS.FindKernel("BoundsPropagation");

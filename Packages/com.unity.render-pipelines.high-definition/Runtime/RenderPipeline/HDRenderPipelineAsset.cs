@@ -19,8 +19,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
 #endif
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
     {
+        /// <inheritdoc/>
+        public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
+
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
 
@@ -37,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
-            HDRenderPipeline.SetupDLSSFeature();
+            HDDynamicResolutionPlatformCapabilities.SetupFeatures();
         }
 
         void Reset()
@@ -66,7 +69,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>A new HDRenderPipeline instance.</returns>
         protected override RenderPipeline CreatePipeline()
-            => new HDRenderPipeline(this);
+        {
+            var renderPipeline = new HDRenderPipeline(this);
+
+            IGPUResidentRenderPipeline.ReinitializeGPUResidentDrawer();
+
+            return renderPipeline;
+        }
 
         /// <summary>
         /// OnValidate implementation.
@@ -84,11 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         HDRenderPipelineGlobalSettings globalSettings => HDRenderPipelineGlobalSettings.instance;
-
-        internal HDRenderPipelineRuntimeResources renderPipelineResources
-        {
-            get { return globalSettings.renderPipelineResources; }
-        }
 
         internal bool frameSettingsHistory { get; set; } = false;
 
@@ -181,10 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public string[] renderingLayerNames => globalSettings.renderingLayerNames;
 
-        /// <summary>HDRP default shader.</summary>
-        public override Shader defaultShader
-            => globalSettings?.renderPipelineResources?.shaders.defaultPS;
-
         [SerializeField]
         internal VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
 
@@ -197,90 +197,23 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_UseRenderGraph = value;
         }
 
-#if UNITY_EDITOR
-        /// <summary>HDRP default material.</summary>
-        public override Material defaultMaterial
-            => globalSettings?.renderPipelineEditorResources?.materials.defaultDiffuseMat;
+        [SerializeField] private CustomPostProcessVolumeComponentList m_CompositorCustomVolumeComponentsList = new(CustomPostProcessInjectionPoint.BeforePostProcess);
 
-        // call to GetAutodeskInteractiveShaderXXX are only from within editor
-        /// <summary>HDRP default autodesk interactive shader.</summary>
-        public override Shader autodeskInteractiveShader
-            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.autodeskInteractive;
+        internal CustomPostProcessVolumeComponentList compositorCustomVolumeComponentsList =>
+            m_CompositorCustomVolumeComponentsList;
 
-        /// <summary>HDRP default autodesk interactive transparent shader.</summary>
-        public override Shader autodeskInteractiveTransparentShader
-            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.autodeskInteractiveTransparent;
-
-        /// <summary>HDRP default autodesk interactive masked shader.</summary>
-        public override Shader autodeskInteractiveMaskedShader
-            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.autodeskInteractiveMasked;
-
-        /// <summary>HDRP default terrain detail lit shader.</summary>
-        public override Shader terrainDetailLitShader
-            => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailLitShader;
-
-        /// <summary>HDRP default terrain detail grass shader.</summary>
-        public override Shader terrainDetailGrassShader
-            => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassShader;
-
-        /// <summary>HDRP default terrain detail grass billboard shader.</summary>
-        public override Shader terrainDetailGrassBillboardShader
-            => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
-
-        public override Shader defaultSpeedTree8Shader
-            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
-
-        // Note: This function is HD specific
-        /// <summary>HDRP default Decal material.</summary>
-        public Material GetDefaultDecalMaterial()
-            => globalSettings?.renderPipelineEditorResources?.materials.defaultDecalMat;
-
-        // Note: This function is HD specific
-        /// <summary>HDRP default mirror material.</summary>
-        public Material GetDefaultMirrorMaterial()
-            => globalSettings?.renderPipelineEditorResources?.materials.defaultMirrorMat;
-
-        /// <summary>HDRP default particles material.</summary>
-        public override Material defaultParticleMaterial
-            => globalSettings?.renderPipelineEditorResources?.materials.defaultParticleMat;
-
-        /// <summary>HDRP default terrain material.</summary>
-        public override Material defaultTerrainMaterial
-            => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
-
-        /// <inheritdoc/>
-        public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
-
-        // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
-        List<string> defineArray = new List<string>();
-
-        bool UpdateDefineList(bool flagValue, string defineMacroValue)
-        {
-            bool macroExists = defineArray.Contains(defineMacroValue);
-            if (flagValue)
-            {
-                if (!macroExists)
-                {
-                    defineArray.Add(defineMacroValue);
-                    return true;
-                }
-            }
-            else
-            {
-                if (macroExists)
-                {
-                    defineArray.Remove(defineMacroValue);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-#endif
         /// <summary>
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
+
+        /// <summary>
+        /// Indicates if this render pipeline instance supports Adaptive Probe Volume.
+        /// </summary>
+        public bool supportProbeVolume
+        {
+            get => currentPlatformRenderPipelineSettings.supportProbeVolume;
+        }
 
         /// <summary>
         /// Indicates the maximum number of SH Bands used by this render pipeline instance.
@@ -296,15 +229,43 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        /// <summary>
+        /// Global settings struct for GPU Resident Drawer
+        /// </summary>
+        GPUResidentDrawerSettings IGPUResidentRenderPipeline.gpuResidentDrawerSettings => new()
+        {
+            mode = m_RenderPipelineSettings.gpuResidentDrawerSettings.mode,
+            supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
+            allowInEditMode = true,
+            smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
+#if UNITY_EDITOR
+            pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
+#endif
+            loadingShader = Shader.Find("Hidden/HDRP/MaterialLoading"),
+            errorShader = Shader.Find("Hidden/HDRP/MaterialError"),
+        };
+
+        /// <summary>
+        /// GPUResidentDrawerMode configured on this pipeline asset
+        /// </summary>
+        public GPUResidentDrawerMode gpuResidentDrawerMode
+        {
+            get => m_RenderPipelineSettings.gpuResidentDrawerSettings.mode;
+            set
+            {
+                if (value == m_RenderPipelineSettings.gpuResidentDrawerSettings.mode)
+                    return;
+
+                m_RenderPipelineSettings.gpuResidentDrawerSettings.mode = value;
+                OnValidate();
+            }
+        }
+
         /// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
-        public ProbeVolumeSceneData probeVolumeSceneData
-        {
-            get
-            {
-                return HDRenderPipelineGlobalSettings.instance?.apvScenesData;
-            }
-        }
+        [Obsolete("This property is no longer necessary.")]
+        public ProbeVolumeSceneData probeVolumeSceneData => null;
     }
 }

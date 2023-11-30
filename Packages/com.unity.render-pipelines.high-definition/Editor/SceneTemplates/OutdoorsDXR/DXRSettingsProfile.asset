@@ -32,23 +32,26 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   m_MaxRaySteps:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 64
   m_DenoiseSS:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   m_HalfResolutionDenoiserSS:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   m_DenoiserRadiusSS:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.5
   m_SecondDenoiserPassSS:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   lastBounceFallbackHierarchy:
     m_OverrideState: 0
     m_Value: 3
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 0
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -184,6 +187,9 @@ MonoBehaviour:
   lastBounceFallbackHierarchy:
     m_OverrideState: 0
     m_Value: 3
+  ambientProbeDimmer:
+    m_OverrideState: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -204,9 +210,9 @@ MonoBehaviour:
   m_DenoiserRadius:
     m_OverrideState: 0
     m_Value: 16
-  m_AffectSmoothSurfaces:
+  m_DenoiserAntiFlickeringStrength:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   mode:
     m_OverrideState: 1
     m_Value: 1

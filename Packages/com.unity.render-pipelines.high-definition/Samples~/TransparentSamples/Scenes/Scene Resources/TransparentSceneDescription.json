@@ -1,0 +1,54 @@
+ {
+    "introduction":
+	"""Welcome to HDRP samples scene about Transparency. We will be covering the following topics:
+
+• <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/refraction-models.html">Refraction Models</a>
+• Stacking transparent objects.
+• Shadows casted by object with transparent materials.
+
+In <b>Rasterization</b>, which is the classic rendering mode for real time 3D, transparent rendering has some limitations. For instance, computing refraction is taxing, so there are a few Refraction Models available, which can efficiently approximate refraction for various use cases.
+
+<b>If DXR is enabled</b> on the project, it allows you to render some objects or effects using <b>Ray Tracing</b>, such as:
+
+• <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Tracing-Recursive-Rendering.html">Recursive Rendering</a> for objects that have Recursive Rendering checked on their materials
+• <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Traced-Shadows.html">Ray-Traced Shadows</a> for lights.
+• <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Ray-Tracing-Path-Tracing.html">Path Tracing</a>, while still not adapted for games, can be used to render physically accurate images without the need for approximations. 
+
+Use the dropdown to instantiate a Volume Profile that enables <b>Recursive Rendering</b>, <b>Ray Traced Shadows</b> or <b>Path Tracing</b> for this scene.
+""",
+
+
+    "samples": 
+	[
+		{
+            "title": "Rasterization",
+            "prefabName": "Rasterization",
+            "description": "In this mode, which is the default, the scene is rendered using rasterization techniques."
+        },
+        {
+            "title": "Rasterization with Ray Traced Shadows",
+            "prefabName": "Rasterization with Raytraced Shadows",
+            "description": """In this mode, lights cast ray traced shadows. Ray traced shadows are enabled in the 'Shadows' sub component of Lights. 
+            
+<i>Make sure your project supports ray tracing options. Navigate to Window > Rendering > HDRP Wizard, select <b>HDRP + DXR</b> and select 'Fix All'. Then, go through the different required settings if a warning appears at the top of this component.</i>"""
+        },
+		{
+            "title": "Recursive Rendering with Ray Traced Shadows",
+            "prefabName": "Recursive Rendering",
+            "description": 
+			"""When <b>Recursive Rendering</b> override is enabled, every object that has a material with Recursive Rendering checked is rendered using ray-tracing. 
+			
+Recursive rendering is its own rendering path and bypasses rasterization techniques per material.
+            
+<i>Make sure your project supports ray tracing options. Navigate to Window > Rendering > HDRP Wizard, select <b>HDRP + DXR</b> and select 'Fix All'. Then, go through the different required settings if a warning appears at the top of this component.</i>"""
+        },
+		{
+            "title": "Path Tracing",
+            "prefabName": "Path Tracing",
+            "description": """When the <b>Path Tracing</b> override is enabled, everything is rendered using Path Tracing techniques.
+            
+<i>Make sure your project supports ray tracing options. Navigate to Window > Rendering > HDRP Wizard, select <b>HDRP + DXR</b> and select 'Fix All'.</i>"""
+        }
+	]	
+}
+
