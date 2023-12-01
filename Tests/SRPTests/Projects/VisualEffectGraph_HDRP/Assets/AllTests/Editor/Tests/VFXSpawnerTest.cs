@@ -1844,6 +1844,75 @@ namespace UnityEditor.VFX.Test
             GameObject.DestroyImmediate(gameObj_A);
             GameObject.DestroyImmediate(gameObj_B);
         }
+
+
+        [UnityTest, Description("Regression test UUM-51509")]
+        public IEnumerator Create_SpawnerCallback_Instanced()
+        {
+            const string customAttributeName = "targetPosition";
+            VFXGraph graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            eventStart.eventName = "OnPlay";
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            var slotCount = blockConstantRate.GetInputSlot(0);
+            slotCount.value = 10.0f;
+
+            var customSpawnerBlock = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
+            customSpawnerBlock.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerGameObjectPosition)));
+            spawnerContext.AddChild(blockConstantRate);
+            spawnerContext.AddChild(customSpawnerBlock);
+
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.CreateInstance();
+            blockAttribute.SetSettingValue("attribute", customAttributeName);
+            blockAttribute.SetSettingValue("Source", SetAttribute.ValueSource.Source);
+            spawnerInit.AddChild(blockAttribute);
+
+            graph.AddChild(eventStart);
+            graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
+
+            spawnerContext.LinkFrom(eventStart, 0, 0);
+            spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+
+            GameObject gameObjectAtZero = new GameObject("GameObjectAtZero");
+            gameObjectAtZero.transform.position = Vector3.zero;
+            VisualEffect vfxComponent0 = gameObjectAtZero.AddComponent<VisualEffect>();
+            vfxComponent0.visualEffectAsset = graph.visualEffectResource.asset;
+
+            GameObject gameObjectAtOne = new GameObject("GameObjectAtOne");
+            gameObjectAtOne.transform.position = Vector3.one;
+            VisualEffect vfxComponent1 = gameObjectAtOne.AddComponent<VisualEffect>();
+            vfxComponent1.visualEffectAsset = graph.visualEffectResource.asset;
+
+            int maxFrame = 512;
+            while (vfxComponent0.culled && vfxComponent1.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+            yield return null;
+
+            var state0 = VFXTestCommon.GetSpawnerState(vfxComponent0, 0);
+            var state1 = VFXTestCommon.GetSpawnerState(vfxComponent1, 0);
+
+            Vector3 readAttribute0 = state0.vfxEventAttribute.GetVector3(customAttributeName);
+            Vector3 readAttribute1 = state1.vfxEventAttribute.GetVector3(customAttributeName);
+
+            Assert.AreEqual( Vector3.zero, readAttribute0);
+            Assert.AreEqual( Vector3.one, readAttribute1);
+        }
     }
 }
 #endif
