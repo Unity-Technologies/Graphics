@@ -126,11 +126,11 @@ CBUFFER_END
 CBUFFER_START(ShaderVariablesWaterRendering)
     float4x4 _WaterSurfaceTransform;
     float4x4 _WaterSurfaceTransform_Inverse;
-    float4 _PatchOffset;
+    float2 _PatchOffset;
     float2 _GridSize;
-    float2 _GridOffset;
     float2 _RegionExtent;
     float2 _CurrentMapInfluence;
+    float _GridSizeMultiplier;
     uint _MaxLOD;
     float _MaxWaterDeformation;
     float _CausticsMaxLOD;
@@ -138,7 +138,6 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float _CausticsIntensity;
     float _CausticsShadowIntensity;
     float _CausticsPlaneBlendDistance;
-    int _PaddingWR1;
     float4 _Group0CurrentRegionScaleOffset;
     float4 _Group1CurrentRegionScaleOffset;
     uint _WaterRenderingLayer;

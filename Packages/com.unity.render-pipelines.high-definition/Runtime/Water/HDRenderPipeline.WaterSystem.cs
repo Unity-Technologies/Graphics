@@ -28,15 +28,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The shader passes used to render the water
         Material m_InternalWaterMaterial;
-        const string k_WaterGBufferPass = "WaterGBuffer";
-        const string k_WaterGBufferTessellationPass = "WaterGBufferTessellation";
-        const string k_LowResGBufferPass = "LowRes";
-        const string k_WaterMaskPass = "WaterMask";
         Mesh m_GridMesh, m_RingMesh, m_RingMeshLow;
         GraphicsBuffer m_WaterIndirectDispatchBuffer;
         GraphicsBuffer m_WaterPatchDataBuffer;
         GraphicsBuffer m_WaterCameraFrustrumBuffer;
         FrustumGPU[] m_WaterCameraFrustumCPU = new FrustumGPU[1];
+
+        internal const string k_WaterGBufferPass = "WaterGBuffer";
+        internal const string k_WaterMaskPass = "WaterMask";
+        internal const string k_LowResGBufferPass = "LowRes";
+        internal const string k_TessellationPass = "Tessellation";
+        readonly static string[] k_PassesGBuffer = new string[] { k_WaterGBufferPass, k_LowResGBufferPass };
+        readonly static string[] k_PassesGBufferTessellation = new string[] { k_WaterGBufferPass + k_TessellationPass, k_LowResGBufferPass };
+        readonly static string[] k_PassesWaterMask = new string[] { k_WaterMaskPass, k_WaterMaskPass + k_LowResGBufferPass };
+
 
         // Other internal rendering data
         MaterialPropertyBlock m_WaterMaterialPropertyBlock;
@@ -108,9 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Waterline / Underwater
             // TODO: This should be entirely dynamic and depend on M_MaxViewCount
             m_WaterCameraHeightBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2 * 4, sizeof(float));
-
-            // Make sure the CPU simulation stuff is properly initialized
-            InitializeCPUWaterSimulation();
 
             // Make sure the under water surface index is invalidated
             m_UnderWaterSurfaceIndex = -1;
@@ -319,19 +321,27 @@ namespace UnityEngine.Rendering.HighDefinition
             return 2.0f;
         }
 
-        float ComputeScreenSpaceSize(HDCamera hdCamera, float maxDisplacement, float sizeWS)
+        /// <summary>
+        /// Computes the screen space size of an edge after camera projection
+        /// </summary>
+        /// <param name="hdCamera">camera</param>
+        /// <param name="cameraDistance">the distance between the edge and the camera</param>
+        /// <param name="sizeWS">the size of the edge in world space</param>
+        /// <returns>The screen space size</returns>
+        float ComputeScreenSpaceSize(HDCamera hdCamera, float cameraDistance, float sizeWS)
         {
-            float4 positionWS = new float4(sizeWS, 0.0f, hdCamera.camera.transform.position.y + maxDisplacement, 1.0f);
+            float4 positionWS = new float4(sizeWS, 0.0f, cameraDistance, 1.0f);
             float4 positionCS = math.mul(hdCamera.mainViewConstants.nonJitteredProjMatrix, positionWS);
             return math.abs(positionCS.x / positionCS.w) * 0.5f * hdCamera.actualWidth;
         }
 
         void UpdateShaderVariablesWaterRendering(WaterSurface currentWater, HDCamera hdCamera, WaterRendering settings,
                                                 bool instancedQuads, bool infinite, bool customMesh,
-                                                Vector2 extent, float maxWaveDisplacement, float maxWaveHeight,
+                                                float maxWaveDisplacement, float maxWaveHeight,
                                                 ref ShaderVariablesWaterRendering cb)
         {
             float3 waterPosition = currentWater.transform.position;
+            float2 extent = currentWater.IsProceduralGeometry() ? new Vector2(Mathf.Abs(currentWater.transform.lossyScale.x), Mathf.Abs(currentWater.transform.lossyScale.z)) : Vector2.one;
 
             cb._CausticsIntensity = currentWater.caustics ? currentWater.causticsIntensity : 0.0f;
             cb._CausticsShadowIntensity = currentWater.causticsDirectionalShadow ? currentWater.causticsDirectionalShadowDimmer : 1.0f;
@@ -340,67 +350,61 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CausticsTilingFactor = 1.0f / currentWater.causticsTilingFactor;
 
             cb._MaxWaterDeformation = m_MaxWaterDeformation;
+            cb._GridSizeMultiplier = 1.0f;
 
             // Rotation, size and offsets (patch, water mask and foam mask)
             if (instancedQuads)
             {
+                Matrix4x4 worldToWater = currentWater.simulation.rendering.worldToWaterMatrix;
+
                 // Compute the grid size to maintain a constant triangle size in screen space
-                float vertexSpace = Mathf.Min(ComputeScreenSpaceSize(hdCamera, maxWaveDisplacement, 1.0f / WaterConsts.k_WaterTessellatedMeshResolution), 1.0f);
+                float distanceToCamera = maxWaveDisplacement + worldToWater.MultiplyPoint3x4(hdCamera.camera.transform.position).y;
+                float vertexSpace = Mathf.Min(ComputeScreenSpaceSize(hdCamera, distanceToCamera, 1.0f / WaterConsts.k_WaterTessellatedMeshResolution), 1.0f);
                 float gridSize = (1 << (int)(Mathf.Log(1.0f / vertexSpace, 2))) * settings.triangleSize.value;
-                cb._GridSize.Set(gridSize, gridSize);
-                cb._GridOffset.Set(waterPosition.x, waterPosition.z);
+                cb._GridSize = gridSize;
 
                 // Move the patches with the camera in locksteps to reduce vertex wobbling
                 int stableLODCount = 5;
                 float cameraStep = (1 << stableLODCount) * gridSize / WaterConsts.k_WaterTessellatedMeshResolution;
                 float cameraDirOffset = maxWaveDisplacement * (1.0f - settings.triangleSize.value / 200.0f);
-                float3 position = hdCamera.camera.transform.position + hdCamera.camera.transform.forward * cameraDirOffset;
-                cb._PatchOffset.Set(
-                    Mathf.Round(position.x / cameraStep) * cameraStep,
-                    waterPosition.y,
-                    Mathf.Round(position.z / cameraStep) * cameraStep,
-                    1.0f);
+                float3 patchOffset = worldToWater.MultiplyPoint3x4(hdCamera.camera.transform.position + hdCamera.camera.transform.forward * cameraDirOffset);
+                cb._PatchOffset = math.round((waterPosition.xz + patchOffset.xz) / cameraStep) * cameraStep - waterPosition.xz;
             }
             else
             {
-                cb._GridSize.Set(extent.x, extent.y);
-                cb._GridOffset.Set(0.0f, 0.0f);
-                cb._PatchOffset.Set(0.0f, 0.0f, 0.0f, 1.0f);
+                cb._GridSize = extent;
+                cb._PatchOffset = 0.0f;
             }
 
             // Used for non infinite surfaces
             if (instancedQuads && !infinite)
             {
-                cb._RegionExtent.Set(extent.x * 0.5f, extent.y * 0.5f);
+                cb._RegionExtent = extent * 0.5f;
 
                 // compute biggest lod that touches region
                 float distance = math.max(
-                    math.abs(cb._GridOffset.x - cb._PatchOffset.x) + cb._RegionExtent.x,
-                    math.abs(cb._GridOffset.y - cb._PatchOffset.z) + cb._RegionExtent.y);
+                    math.abs(waterPosition.x - cb._PatchOffset.x) + cb._RegionExtent.x,
+                    math.abs(waterPosition.z - cb._PatchOffset.y) + cb._RegionExtent.y);
                 int lod = (int)math.ceil(math.log2(math.max(distance * 2.0f / cb._GridSize.x, 1.0f)));
                 // determine vertex step for this lod level
                 float triangleSize = (1 << lod) * cb._GridSize.x / WaterConsts.k_WaterTessellatedMeshResolution;
                 // align grid size on region extent
-                float optimalTriangleSizeX = extent.x / Mathf.Max(Mathf.Floor(extent.x / triangleSize), 1);
-                float optimalTriangleSizeZ = extent.y / Mathf.Max(Mathf.Floor(extent.y / triangleSize), 1);
-                cb._GridSize.Set(optimalTriangleSizeX * cb._GridSize.x / triangleSize, optimalTriangleSizeZ * cb._GridSize.x / triangleSize);
+                float2 optimalTriangleSize = new float2(
+                    extent.x / Mathf.Max(Mathf.Floor(extent.x / triangleSize), 1),
+                    extent.y / Mathf.Max(Mathf.Floor(extent.y / triangleSize), 1));
+                cb._GridSize = optimalTriangleSize * cb._GridSize.x / triangleSize;
                 // align grid pos on one region corner
-                float cornerX = cb._GridOffset.x - (cb._PatchOffset.x + 0.5f * cb._GridSize.x) - cb._RegionExtent.x;
-                float cornerZ = cb._GridOffset.y - (cb._PatchOffset.z + 0.5f * cb._GridSize.y) - cb._RegionExtent.y;
-                cb._PatchOffset.Set(
-                    cb._PatchOffset.x + (cornerX - Mathf.Round(cornerX / optimalTriangleSizeX) * optimalTriangleSizeX),
-                    cb._PatchOffset.y,
-                    cb._PatchOffset.z + (cornerZ - Mathf.Round(cornerZ / optimalTriangleSizeZ) * optimalTriangleSizeZ),
-                    1.0f);
+                float2 corner = -(cb._PatchOffset + 0.5f * cb._GridSize) - cb._RegionExtent;
+                cb._PatchOffset = cb._PatchOffset + (corner - math.round(corner / optimalTriangleSize) * optimalTriangleSize);
             }
             else
-                cb._RegionExtent.Set(float.MaxValue, float.MaxValue);
+                cb._RegionExtent = new float2(float.MaxValue, float.MaxValue);
 
             if (instancedQuads)
             {
                 // Max offset for patch culling
                 float3 cameraPosition = hdCamera.camera.transform.position;
-                float maxOffsetRelative = math.max(math.abs(cb._PatchOffset.x - cameraPosition.x), math.abs(cb._PatchOffset.z - cameraPosition.z));
+                float maxOffsetRelative = math.max(math.abs(cb._PatchOffset.x - cameraPosition.x), math.abs(cb._PatchOffset.y - cameraPosition.z));
                 float maxPatchOffset = -maxWaveDisplacement - maxOffsetRelative;
 
                 // Compute last LOD with displacement
@@ -414,9 +418,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._MaxLOD = (uint)Mathf.Ceil(Mathf.Log(maxFadeDistance, 2)); // only keep highest bit
                 }
                 else
-                    cb._MaxLOD = 8; // we could support a maximum 12 LODs (max 49 patches, 12 * 4 = 48), but this is enough
+                    cb._MaxLOD = 8; // we could support a maximum of 12 LODs (max 49 patches, 12 * 4 = 48), but this is enough
 
-                cb._PatchOffset.Set(cb._PatchOffset.x, cb._PatchOffset.y, cb._PatchOffset.z, (1 << (int)cb._MaxLOD) * 0.5f);
+                cb._GridSizeMultiplier = (1 << (int)cb._MaxLOD) * 0.5f;
             }
 
             // Large Current
@@ -448,9 +452,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
         {
+            if (!m_ActiveWaterSimulationCPU && currentWater.scriptInteractions)
+                InitializeCPUWaterSimulation();
+
             // If the function returns false, this means the resources were just created and they need to be initialized.
             bool validGPUResources, validCPUResources, validHistory;
-            currentWater.CheckResources((int)m_WaterBandResolution, m_ActiveWaterFoam, m_ActiveWaterSimulationCPU, out validGPUResources, out validCPUResources, out validHistory);
+            currentWater.CheckResources((int)m_WaterBandResolution, m_ActiveWaterFoam, m_GPUReadbackMode, out validGPUResources, out validCPUResources, out validHistory);
 
             // Update the simulation time (include timescale)
             currentWater.simulation.Update(currentWater.timeMultiplier);
@@ -559,7 +566,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool tessellation;
             public int numActiveBands;
             public Vector3 center;
-            public Vector2 extent;
             public Vector2 waterMaskOffset;
             public bool exclusion;
 
@@ -627,7 +633,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.tessellation = currentWater.tessellation;
             parameters.numActiveBands = currentWater.simulation.numActiveBands;
             parameters.center = currentWater.transform.position;
-            parameters.extent = currentWater.IsProceduralGeometry() ? new Vector2(currentWater.transform.lossyScale.x, currentWater.transform.lossyScale.z) : Vector2.one;
             parameters.simulationFoamMaskOffset = currentWater.simulationFoamMaskOffset;
             parameters.waterMaskOffset = currentWater.waterMaskOffset;
             parameters.exclusion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterExclusion);
@@ -681,7 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Setup the rendering water constant buffer
             UpdateShaderVariablesWaterRendering(currentWater, hdCamera, settings,
                 parameters.instancedQuads, parameters.infinite, parameters.customMesh,
-                parameters.extent, parameters.waterCB._MaxWaveDisplacement, parameters.waterCB._MaxWaveHeight,
+                parameters.waterCB._MaxWaveDisplacement, parameters.waterCB._MaxWaveHeight,
                 ref parameters.waterRenderingCB);
 
             // Waterline & underwater
@@ -907,8 +912,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat(HDShaderIDs._StencilWaterReadMaskGBuffer, parameters.exclusion ? (int)(StencilUsage.WaterExclusion) : 0);
             cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, parameters.evaluateCameraPosition ? (int)CullMode.Off : (int)CullMode.Back);
 
-            string passName = parameters.tessellation ? k_WaterGBufferTessellationPass : k_WaterGBufferPass;
-            DrawWaterSurface(cmd, parameters, passName, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
+            var passNames = parameters.tessellation ? k_PassesGBufferTessellation : k_PassesGBuffer;
+            DrawWaterSurface(cmd, parameters, passNames, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
 
             // Reset the keywords
             ResetWaterShaderKeyword(cmd);

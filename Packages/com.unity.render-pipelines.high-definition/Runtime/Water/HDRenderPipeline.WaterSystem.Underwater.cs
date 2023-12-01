@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var boundsSS = new float4(rightBounds.x, rightBounds.y, upBounds.x, upBounds.y);
 
             m_WaterLineBufferSize = maxPixelCount;
-            m_ReductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 128);
+            m_ReductionSize = HDUtils.DivRoundUp(Mathf.CeilToInt(boundsSS.y - boundsSS.x), 64);
 
             if (m_ReductionSize == 0)
             {

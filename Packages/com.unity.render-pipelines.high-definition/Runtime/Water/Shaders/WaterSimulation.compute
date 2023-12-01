@@ -195,20 +195,20 @@ void ComputePatchBounds(uint patch,
     center = center.x * rotation.xy + center.y * float2(-rotation.y, rotation.x);
     size = size.x * abs(rotation.xy) + size.y * abs(rotation.yx);
 
-    center = center * _GridSize + _PatchOffset.xz;
+    center = center * _GridSize + _PatchOffset;
     size = size * _GridSize + _MaxWaveDisplacement;
 }
 
 bool PatchIsInRegion(float2 center, float2 size)
 {
-    return all(abs(center - _GridOffset) < _RegionExtent + size);
+    return all(abs(center) < _RegionExtent + size);
 }
 
 #define MAX_PATCH_COUNT (7*7)
 
 // Group share flag that allows us to keep track of the valid instances
 groupshared uint gs_instanceValidity[MAX_PATCH_COUNT];
-groupshared float2 gs_instanceData[MAX_PATCH_COUNT];
+groupshared float2 gs_instanceRotation[MAX_PATCH_COUNT];
 
 // Structure that holds the per data patch info
 StructuredBuffer<FrustumGPU> _FrustumGPUBuffer;
@@ -234,20 +234,19 @@ void EVALUATE_INSTANCE_DATA(uint currentPatch : SV_DispatchThreadID)
     if (patchIsVisible)
     {
         OrientedBBox obb;
-        obb.center = float3(center.x, _PatchOffset.y, center.y);
-        obb.right = float3(1.0, 0, 0);
-        obb.up = float3(0, 1.0, 0);
+        obb.center = mul(ApplyCameraTranslationToMatrix(_WaterSurfaceTransform), float4(center.x, 0.0f, center.y, 1.0f)).xyz;
+        obb.right = _WaterSurfaceTransform_Inverse[0].xyz;
+        obb.up    = _WaterSurfaceTransform_Inverse[1].xyz;
         obb.extentX = size.x;
         obb.extentY = _MaxWaveHeight + _MaxWaterDeformation;
         obb.extentZ = size.y;
 
-        obb.center = GetCameraRelativePositionWS(obb.center);
         patchIsVisible = FrustumOBBIntersection(obb, _FrustumGPUBuffer[0]);
     }
 
     // Propagate the patch data
     gs_instanceValidity[currentPatch] = patchIsVisible;
-    gs_instanceData[currentPatch] = rotation;
+    gs_instanceRotation[currentPatch] = rotation;
 
     // Wait untill all workers have processed their patch data
     GroupMemoryBarrierWithGroupSync();
@@ -262,7 +261,7 @@ void EVALUATE_INSTANCE_DATA(uint currentPatch : SV_DispatchThreadID)
             if (gs_instanceValidity[patchIdx])
             {
                 // Output the patch data to the next slot
-                _WaterPatchDataRW[totalInstanceCount] = gs_instanceData[patchIdx];
+                _WaterPatchDataRW[totalInstanceCount] = gs_instanceRotation[patchIdx];
 
                 // Increment the count
                 totalInstanceCount++;

@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.HighDefinition;
-using static UnityEditor.EditorGUI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -123,9 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_TessellationFactorFadeRange;
 
         // CPU Simulation
-        SerializedProperty m_CPUSimulation;
-        SerializedProperty m_CPULowLatency;
-        SerializedProperty m_CPUFullResolution;
+        SerializedProperty m_ScriptInteractions;
         SerializedProperty m_CPUEvaluateRipples;
 
         void OnEnable()
@@ -145,9 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_TessellationFactorFadeRange = o.Find(x => x.tessellationFactorFadeRange);
 
             // CPU Simulation
-            m_CPUSimulation = o.Find(x => x.cpuSimulation);
-            m_CPULowLatency = o.Find(x => x.cpuLowLatency);
-            m_CPUFullResolution = o.Find(x => x.cpuFullResolution);
+            m_ScriptInteractions = o.Find(x => x.scriptInteractions);
             m_CPUEvaluateRipples = o.Find(x => x.cpuEvaluateRipples);
 
             // Simulation
@@ -166,16 +161,6 @@ namespace UnityEditor.Rendering.HighDefinition
             OnEnableMiscellaneous(o);
         }
 
-        static internal bool ValidInfiniteSurface(Transform transform)
-        {
-            return transform.eulerAngles.x == 0.0
-                    && transform.eulerAngles.y == 0.0
-                    && transform.eulerAngles.z == 0.0
-                    && transform.localScale.x == 1.0
-                    && transform.localScale.y == 1.0
-                    && transform.localScale.z == 1.0;
-        }
-
         static internal void WaterSurfaceGeneralSection(WaterSurfaceEditor serialized, Editor owner)
         {
             {
@@ -192,116 +177,75 @@ namespace UnityEditor.Rendering.HighDefinition
                             serialized.m_GeometryType.enumValueIndex = (int)WaterGeometryType.Infinite;
 
                         EditorGUILayout.PropertyField(serialized.m_GeometryType, k_GeometryType);
-                        using (new IndentLevelScope())
-                        {
-                            if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Custom)
-                                EditorGUILayout.PropertyField(serialized.m_MeshRenderers, k_MeshRenderers);
-                        }
-
-                        if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Infinite)
-                        {
-                            // Grab the water surface
-                            WaterSurface surface = (WaterSurface)(serialized.serializedObject.targetObject);
-                            if (!ValidInfiniteSurface(surface.transform))
-                            {
-                                CoreEditorUtils.DrawFixMeBox(k_FixTransform, MessageType.Info, "Fix", () =>
-                                {
-                                    WaterSurface ws = (serialized.target as WaterSurface);
-                                    var menu = new GenericMenu();
-                                    menu.AddItem(k_ResetTransformPopup, false, () => { ws.gameObject.transform.localScale = Vector3.one; ws.gameObject.transform.eulerAngles = Vector3.zero; });
-                                    menu.ShowAsContext();
-                                });
-                            }
-                        }
                     }
                     break;
+
                     case WaterSurfaceType.River:
                     case WaterSurfaceType.Pool:
-                        {
-                            // If infinite was set, we need to force it to quad or instanced quads based on the new surface type
-                            if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Infinite)
-                                serialized.m_GeometryType.enumValueIndex = currentSurfaceType == WaterSurfaceType.River ? (int)WaterGeometryType.InstancedQuads : (int)WaterGeometryType.Quad;
-                            serialized.m_GeometryType.enumValueIndex = EditorGUILayout.Popup(k_GeometryType, serialized.m_GeometryType.enumValueIndex, k_GeometryTypeEnum);
-                            if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Custom)
-                                EditorGUILayout.PropertyField(serialized.m_MeshRenderers, k_MeshRenderers);
-                        }
-                        break;
+                    {
+                        // If infinite was set, we need to force it to quad or instanced quads based on the new surface type
+                        if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Infinite)
+                            serialized.m_GeometryType.enumValueIndex = currentSurfaceType == WaterSurfaceType.River ? (int)WaterGeometryType.InstancedQuads : (int)WaterGeometryType.Quad;
+
+                        EditorGUI.BeginChangeCheck();
+
+                        var rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(rect, k_GeometryType, serialized.m_GeometryType);
+                        var value = EditorGUI.Popup(rect, k_GeometryType, serialized.m_GeometryType.enumValueIndex, k_GeometryTypeEnum);
+                        EditorGUI.EndProperty();
+
+                        if (EditorGUI.EndChangeCheck())
+                            serialized.m_GeometryType.enumValueIndex = value;
+                    }
+                    break;
                 };
+
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    if ((WaterGeometryType)serialized.m_GeometryType.enumValueIndex == WaterGeometryType.Custom)
+                        EditorGUILayout.PropertyField(serialized.m_MeshRenderers, k_MeshRenderers);
+                }
             }
 
             serialized.m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, serialized.m_TimeMultiplier.floatValue, 0.0f, 10.0f);
 
-            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            // Display the CPU simulation check box, but only make it available if the asset allows it
-            bool cpuSimSupported = currentAsset.currentPlatformRenderPipelineSettings.waterCPUSimulation;
-            using (new EditorGUI.DisabledScope(!cpuSimSupported))
+            using (new BoldLabelScope())
+                EditorGUILayout.PropertyField(serialized.m_ScriptInteractions);
+
+            using (new EditorGUI.IndentLevelScope())
             {
-                using (new BoldLabelScope())
-                    serialized.m_CPUSimulation.boolValue = EditorGUILayout.Toggle(k_CPUSimulation, serialized.m_CPUSimulation.boolValue);
-
-                using (new IndentLevelScope())
+                if (serialized.m_ScriptInteractions.boolValue)
                 {
-                    if (serialized.m_CPUSimulation.boolValue)
+                    WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
+
+                    // Does the surface support ripples
+                    bool canHaveRipples = (surfaceType == WaterSurfaceType.OceanSeaLake || surfaceType == WaterSurfaceType.River);
+
+                    if (canHaveRipples)
                     {
-                        EditorGUILayout.PropertyField(serialized.m_CPULowLatency, k_CPULowLatency);
-                        if (serialized.m_CPULowLatency.boolValue)
+                        using (new EditorGUI.DisabledScope(!serialized.m_Ripples.boolValue))
                         {
-                            EditorGUI.indentLevel++;
-                            if (currentAsset.currentPlatformRenderPipelineSettings.waterSimulationResolution == WaterSimulationResolution.Low64)
-                            {
-                                using (new EditorGUI.DisabledScope(true))
-                                {
-                                    // When in 64, we always show that we are running the CPU simulation at full res.
-                                    bool fakeToggle = true;
-                                    EditorGUILayout.Toggle(k_CPUFullResolution, fakeToggle);
-                                }
-                            }
-                            else
-                            {
-                                EditorGUILayout.PropertyField(serialized.m_CPUFullResolution, k_CPUFullResolution);
-                            }
-                            EditorGUI.indentLevel--;
+                            // When we only have 2 bands, we should evaluate all bands
+                            EditorGUILayout.PropertyField(serialized.m_CPUEvaluateRipples, k_CPUEvaluateRipples);
                         }
-
-                        WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
-
-                        // Does the surface support ripples
-                        bool canHaveRipples = (surfaceType == WaterSurfaceType.OceanSeaLake || surfaceType == WaterSurfaceType.River);
-
-                        if (canHaveRipples)
+                    }
+                    else
+                    {
+                        using (new EditorGUI.DisabledScope(true))
                         {
-                            using (new EditorGUI.DisabledScope(!serialized.m_Ripples.boolValue))
-                            {
-                                // When we only have 2 bands, we should evaluate all bands
-                                EditorGUILayout.PropertyField(serialized.m_CPUEvaluateRipples, k_CPUEvaluateRipples);
-                            }
-                        }
-                        else
-                        {
-                            using (new EditorGUI.DisabledScope(true))
-                            {
-                                // When we only have 2 bands, we should evaluate all bands
-                                bool fakeToggle = true;
-                                EditorGUILayout.Toggle(k_CPUEvaluateRipples, fakeToggle);
-                            }
+                            // When we only have 2 bands, we should evaluate all bands
+                            bool fakeToggle = true;
+                            EditorGUILayout.Toggle(k_CPUEvaluateRipples, fakeToggle);
                         }
                     }
                 }
-            }
-
-            // Redirect to the asset if disabled
-            if (!cpuSimSupported)
-            {
-                HDEditorUtils.QualitySettingsHelpBox("Enable 'Script Interactions' in your HDRP Asset if you want to replicate the water simulation on CPU. There is a performance cost of enabling this option.",
-                    MessageType.Info, HDRenderPipelineUI.ExpandableGroup.Rendering, HDRenderPipelineUI.ExpandableRendering.Water, "m_RenderPipelineSettings.waterCPUSimulation");
-                EditorGUILayout.Space();
             }
 
             using (new BoldLabelScope())
                 EditorGUILayout.PropertyField(serialized.m_Tessellation);
             if (serialized.m_Tessellation.boolValue)
             {
-                using (new IndentLevelScope())
+                using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(serialized.m_MaxTessellationFactor);
                     if (WaterSurfaceUI.ShowAdditionalProperties())

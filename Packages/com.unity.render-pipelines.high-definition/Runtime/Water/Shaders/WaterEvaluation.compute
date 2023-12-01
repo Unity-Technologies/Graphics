@@ -63,8 +63,7 @@ TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePositio
 [numthreads(1, 1, 1)]
 void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
 {
-    // Get the index of the position to process
-    uint coord = currentThread.z;
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentThread.z);
 
     // The point we will be looking for needs to be converted into the local space of the water simulation
     float3 targetPosition = mul(_WaterCustomTransform_Inverse, float4(_WorldSpaceCameraPos.xyz, 1.0)).xyz;
@@ -110,8 +109,8 @@ void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
         stepCount++;
     }
 
-    _WaterCameraHeightBufferRW[4 * coord] = targetPosition.y - currentHeight;
-    _WaterCameraHeightBufferRW[4 * coord + 1] = currentError;
-    _WaterCameraHeightBufferRW[4 * coord + 2] = stepCount;
-    _WaterCameraHeightBufferRW[4 * coord + 3] = 0.0;
+    _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 0] = targetPosition.y - currentHeight;
+    _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 1] = currentError;
+    _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 2] = stepCount;
+    _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 3] = 0.0;
 }

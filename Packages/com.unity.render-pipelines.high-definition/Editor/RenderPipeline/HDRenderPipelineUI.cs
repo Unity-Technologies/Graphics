@@ -780,7 +780,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterExclusion, Styles.supportWaterExclusionContent);
 
                 // CPU Simulation
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterCPUSimulation, Styles.cpuSimulationContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterScriptInteractionsMode);
+
+                if (serialized.renderPipelineSettings.waterScriptInteractionsMode.intValue == (int)WaterScriptInteractionsMode.CPUSimulation)
+                {
+                    EditorGUI.indentLevel++;
+                    if (serialized.renderPipelineSettings.waterSimulationResolution.intValue != (int)WaterSimulationResolution.Low64)
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterFullCPUSimulation);
+                    EditorGUI.indentLevel--;
+                }
+
             }
             --EditorGUI.indentLevel;
         }

@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Simulation
         internal float simulationTime;
         internal int simulationRes;
-        internal bool lowLatency;
+        internal bool cpuSimulation;
         [ReadOnly] internal NativeArray<float4> displacementDataCPU;
         [ReadOnly] internal NativeArray<half4> displacementDataGPU;
         internal WaterSpectrumParameters spectrum;
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies if the search should ignore the simulation.
         /// </summary>
         public bool excludeSimulation;
-        
+
         /// <summary>
         /// Output native array that holds the set of world space position projected on the water surface along the up vector of the water surface.
         /// </summary>

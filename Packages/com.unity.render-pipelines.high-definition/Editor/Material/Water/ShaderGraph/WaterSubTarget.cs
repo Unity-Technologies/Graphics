@@ -23,9 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // We can't name it simply GBuffer otherwise it's stripped in forward only
-        public static readonly string k_MainPassName = "WaterGBuffer";
-        public static readonly string k_MaskPassName = "WaterMask";
-        public static readonly string k_LowResPassName = "LowRes";
         public static readonly string k_CullWaterMask = "_CullWaterMask";
         public static readonly string k_StencilWaterReadMaskGBuffer = "_StencilWaterReadMaskGBuffer";
         public static readonly string k_StencilWaterWriteMaskGBuffer = "_StencilWaterWriteMaskGBuffer";
@@ -243,9 +240,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PassDescriptor GenerateWaterGBufferPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
         {
-            string passName = lowRes ? k_LowResPassName : k_MainPassName;
+            string passName = lowRes ? HDRenderPipeline.k_LowResGBufferPass: HDRenderPipeline.k_WaterGBufferPass;
             if (useTessellation)
-                passName += "Tessellation";
+                passName += HDRenderPipeline.k_TessellationPass;
 
             return new PassDescriptor
             {
@@ -304,9 +301,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.IsFrontFace,
         };
 
-        public static PassDescriptor GenerateWaterMaskPass(bool useTessellation, bool useDebugSymbols)
+        public static PassDescriptor GenerateWaterMaskPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
         {
-            string passName = k_MaskPassName + (useTessellation ? "Tessellation" : "");
+            string passName = HDRenderPipeline.k_WaterMaskPass;
+            if (lowRes)
+                passName += HDRenderPipeline.k_LowResGBufferPass;
+            if (useTessellation)
+                passName += HDRenderPipeline.k_TessellationPass;
 
             return new PassDescriptor
             {
@@ -321,7 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = BasicWaterMask,
                 renderStates = WaterMask,
                 pragmas = GeneratePragmas(useTessellation, useDebugSymbols),
-                defines = GenerateDefines(WaterMaskDefines, false, useTessellation, false),
+                defines = GenerateDefines(WaterMaskDefines, false, useTessellation, lowRes),
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = false,
@@ -383,7 +384,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Low res gbuffer
                     GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
                     // Debug pass, this one never use tessellation for simplicity
-                    GenerateWaterMaskPass(false, systemData.debugSymbols),
+                    GenerateWaterMaskPass(false, false, systemData.debugSymbols),
+                    GenerateWaterMaskPass(true, false, systemData.debugSymbols),
                 };
                 return passes;
             }
@@ -434,7 +436,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
-            if (pass.displayName.StartsWith(k_LowResPassName))
+            if (pass.displayName.StartsWith(HDRenderPipeline.k_LowResGBufferPass))
                 return;
 
             pass.keywords.Add(WaterBandCount);
@@ -443,12 +445,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.StereoInstancing);
 
             // The following keywords/multicompiles are only required for the gbuffer pass
-            if (pass.displayName.StartsWith(k_MainPassName))
+            if (pass.displayName.StartsWith(HDRenderPipeline.k_WaterGBufferPass))
             {
                 if (lightingData.receiveDecals)
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
             }
-            else if (pass.displayName.StartsWith(k_MaskPassName))
+            else if (pass.displayName.StartsWith(HDRenderPipeline.k_WaterMaskPass))
             {
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             }
