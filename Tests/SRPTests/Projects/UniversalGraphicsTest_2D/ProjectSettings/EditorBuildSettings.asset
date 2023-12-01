@@ -215,5 +215,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/075_TilemapRenderer_SpriteAtlas_MixedSecondaryTextures.unity
     guid: 606833216bc06f442aeede4ae93a98be
+  - enabled: 1
+    path: Assets/Scenes/076_TilemapRenderer_DefaultSecondaryTextures.unity
+    guid: df19e9e1912830644b606bb88acf7b86
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
