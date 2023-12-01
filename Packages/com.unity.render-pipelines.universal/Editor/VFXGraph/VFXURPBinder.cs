@@ -114,11 +114,11 @@ namespace UnityEditor.VFX.URP
             {
                 switch (metaData.shaderID)
                 {
-                    case ShaderUtils.ShaderID.SG_Unlit:
-                    case ShaderUtils.ShaderID.SG_SpriteUnlit: return "Unlit";
-                    case ShaderUtils.ShaderID.SG_Lit:
-                    case ShaderUtils.ShaderID.SG_SpriteLit:
-                    case ShaderUtils.ShaderID.SG_SpriteCustomLit: return "Lit";
+                    case ShaderUtils.ShaderID.SG_Unlit: return "Unlit";
+                    case ShaderUtils.ShaderID.SG_SpriteUnlit: return "Sprite Unlit";
+                    case ShaderUtils.ShaderID.SG_Lit: return "Lit";
+                    case ShaderUtils.ShaderID.SG_SpriteLit: return "Sprite Lit";
+                    case ShaderUtils.ShaderID.SG_SpriteCustomLit: return "Sprite Custom Lit";
                 }
             }
             return string.Empty;
