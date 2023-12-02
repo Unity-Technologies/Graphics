@@ -47,7 +47,7 @@ As a result, Paper White values determine the brightness of UI elements in HDR m
 
 ## Configure HDR Tone Mapping settings
 
-You can select and adjust Tonemapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR Tonemapping configuration with a script (see the [HDROutputSettings API](#the-hdroutputsettings-api)).
+You can select and adjust tone mapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR tone mapping configuration with a script. For more information on this, refer to the [HDROutputSettings API](#the-hdroutputsettings-api).
 
 After you enable **Allow HDR Display Output**, HDR Tonemapping options become visible in the Volume component.
 

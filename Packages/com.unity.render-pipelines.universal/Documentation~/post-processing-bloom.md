@@ -49,6 +49,6 @@ To add **Bloom** to a Volume:
 
 There are multiple ways to improve the performance impact of Bloom. Listed in order of effectiveness, you can:
 
-1. Disable **High Quality Filtering**. Bloom then uses bilinear filtering instead of bicubic. This reduces the overall smoothness of the Bloom effect, but greatly improves performance, especially on lower-end hardware and platforms. In some extreme cases, you might see blocky graphical artifacts in your scene.
+1. Disable **High Quality Filtering**. Bloom then uses bilinear filtering instead of bicubic. This reduces the overall smoothness of the Bloom effect, but greatly improves performance, especially on lower-end hardware and platforms. In some extreme cases, blocky graphical artifacts might occur in your scene.
 2. Set **Downscale** to **Quarter** starting resolution to make the initial cost of Bloom much lower.
 3. Use a lower resolution **Lens Dirt** Texture to reduce memory pressure and speed up blending across volumes.

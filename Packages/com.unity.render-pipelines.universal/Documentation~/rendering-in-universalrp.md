@@ -21,7 +21,7 @@ The URP renderer executes a Camera loop for each Camera, which performs the foll
 2. Builds data for the renderer
 3. Executes a renderer that outputs an image to the framebuffer.
 
-For more information about each step, see [Camera loop](#camera-loop).
+For more information about each step, refer to [Camera loop](#camera-loop).
 
 In the [RenderPipelineManager](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager.html) class, URP provides events that you can use to execute code before and after rendering a frame, and before and after rendering each Camera loop. The events are:
 
@@ -30,7 +30,7 @@ In the [RenderPipelineManager](https://docs.unity3d.com/ScriptReference/Renderin
 * [endCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-endCameraRendering.html)
 * [endFrameRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-endFrameRendering.html)
 
-For the example of how to use the beginCameraRendering event, see the page [Using the beginCameraRendering event](using-begincamerarendering.md).
+For the example of how to use the beginCameraRendering event, refer to the documentation on [Using the beginCameraRendering event](using-begincamerarendering.md).
 
 ## Camera loop
 

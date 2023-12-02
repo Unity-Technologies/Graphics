@@ -12,7 +12,7 @@ The Forward+ Rendering Path has the following advantages compared with the Forwa
 
 * More flexibility with procedural draws.
 
-See also: [Rendering Path comparison](../urp-universal-renderer.md#rendering-path-comparison).
+For more information, also check: [Rendering Path comparison](../urp-universal-renderer.md#rendering-path-comparison).
 
 ## <a name="how-to-enable"></a>How to select the Forward+ Rendering Path
 

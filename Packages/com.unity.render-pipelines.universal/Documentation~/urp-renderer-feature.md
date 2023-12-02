@@ -2,11 +2,11 @@
 
 A Renderer Feature is an asset that lets you add extra Render passes to a URP Renderer and configure their behavior.
 
-For examples of how to use Renderer Features, see the [Renderer Features samples in URP Package Samples](package-sample-urp-package-samples.md#renderer-features).
+For examples of how to use Renderer Features, refer to the [Renderer Features samples in URP Package Samples](package-sample-urp-package-samples.md#renderer-features).
 
 ## How to add a Renderer Feature
 
-For information on how to add a Renderer Feature to a Renderer, see the page [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
+For information on how to add a Renderer Feature to a Renderer, refer to the page [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
 
 ## Available Renderer Features
 
