@@ -1,6 +1,6 @@
 <tr>
-<td>**Iris Normal Object Space**</td>
+<td><strong>Iris Normal Object Space</strong></td>
 <td>The normal of the eye's iris in object space.</td>
-<td>&#8226; **Material Type** set to **Eye** <br/>&#8226; **Iris Normal** enabled <br/>&#8226; **Fragment Normal Space** set to **Object**</td>
+<td>&#8226; <strong>Material Type</strong> set to <strong>Eye</strong> <br/>&#8226; <strong>Iris Normal</strong> enabled <br/>&#8226; <strong>Fragment Normal Space</strong> set to <strong>Object</strong></td>
 <td>CoordinateSpace.Object</td>
 </tr>

@@ -29,9 +29,11 @@ To create a Decal material in Shader Graph, use one of the following methods:
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/vertex-position.md)]
 [!include[](snippets/shader-graph-blocks/vertex-normal.md)]
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
+
 </table>
 
 #### Relevant
@@ -51,6 +53,7 @@ When you create a new Decal Master Stack, the Fragment Context contains the foll
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/base-color.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
 [!include[](snippets/shader-graph-blocks/normal-tangent-space.md)]
@@ -60,6 +63,7 @@ When you create a new Decal Master Stack, the Fragment Context contains the foll
 [!include[](snippets/shader-graph-blocks/smoothness.md)]
 [!include[](snippets/shader-graph-blocks/maos-alpha.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]
+
 </table>
 
 #### Relevant

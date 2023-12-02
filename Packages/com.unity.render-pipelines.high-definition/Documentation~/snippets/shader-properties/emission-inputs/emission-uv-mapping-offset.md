@@ -1,4 +1,4 @@
 <tr>
-<td>**- Offset**</td>
-<td>The per-axis offset for the **Emission Map** UV. HDRP uses the **X** and **Y** values to offset the Texture assigned to the **Emission Map** across the Material’s surface, in object space.</td>
+<td><strong>- Offset</strong></td>
+<td>The per-axis offset for the <strong>Emission Map</strong> UV. HDRP uses the <strong>X</strong> and <strong>Y</strong> values to offset the Texture assigned to the <strong>Emission Map</strong> across the Material’s surface, in object space.</td>
 </tr>

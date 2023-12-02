@@ -33,9 +33,11 @@ When you create a new Eye Master Stack, the Vertex Context contains the followin
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/vertex-position.md)]
 [!include[](snippets/shader-graph-blocks/vertex-normal.md)]
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
+
 </table>
 
 #### Relevant
@@ -49,8 +51,10 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/tessellation-factor.md)]
 [!include[](snippets/shader-graph-blocks/tessellation-displacement.md)]
+
 </table>
 
 ### Fragment Context
@@ -66,6 +70,7 @@ When you create a new Eye Master Stack, the Fragment Context contains the follow
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/base-color.md)]
 [!include[](snippets/shader-graph-blocks/normal-tangent-space.md)]
 [!include[](snippets/shader-graph-blocks/bent-normal.md)]
@@ -75,6 +80,7 @@ When you create a new Eye Master Stack, the Fragment Context contains the follow
 [!include[](snippets/shader-graph-blocks/mask.md)]
 [!include[](snippets/shader-graph-blocks/emission.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
+
 </table>
 
 #### Relevant
@@ -88,6 +94,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold.md)]
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold-depth-postpass.md)]
 [!include[](snippets/shader-graph-blocks/alpha-clip-threshold-depth-prepass.md)]
@@ -105,6 +112,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-graph-blocks/specular-aa-threshold.md)]
 [!include[](snippets/shader-graph-blocks/specular-occlusion.md)]
 [!include[](snippets/shader-graph-blocks/subsurface-mask.md)]
+
 </table>
 
 ## Graph Settings
@@ -112,10 +120,16 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 ### Surface Options
 
 <table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
+<thead>
+  <tr>
+    <th>Property</th>
+    <th></th>
+    <th></th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+
 [!include[](snippets/shader-properties/surface-options/eye-material-type.md)]
 [!include[](snippets/shader-properties/surface-options/recursive-rendering.md)]
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
@@ -146,6 +160,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/surface-options/tessellation.md)]
 [!include[](snippets/shader-properties/surface-options/subsurface-scattering.md)]
 [!include[](snippets/shader-properties/surface-options/iris-normal.md)]
+
+</tbody>
 </table>
 
 ### Advanced Options
@@ -155,10 +171,12 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
 [!include[](snippets/shader-properties/advanced-options/override-baked-gi.md)]
 [!include[](snippets/shader-properties/advanced-options/support-lod-crossfade.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+
 </table>
 
 ### Other top level settings
@@ -167,5 +185,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/support-vfx-graph.md)]
+
 </table>
