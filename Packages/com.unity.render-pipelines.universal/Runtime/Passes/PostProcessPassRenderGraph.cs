@@ -1724,7 +1724,7 @@ namespace UnityEngine.Rendering.Universal
             Vector4 lutParams = new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear);
 
             RTHandle userLutRThdl = m_ColorLookup.texture.value ? RTHandles.Alloc(m_ColorLookup.texture.value) : null;
-            TextureHandle userLutTexture = renderGraph.ImportTexture(userLutRThdl);
+            TextureHandle userLutTexture = userLutRThdl != null ? renderGraph.ImportTexture(userLutRThdl) : TextureHandle.nullHandle;
             Vector4 userLutParams = !m_ColorLookup.IsActive()
                 ? Vector4.zero
                 : new Vector4(1f / m_ColorLookup.texture.value.width,
