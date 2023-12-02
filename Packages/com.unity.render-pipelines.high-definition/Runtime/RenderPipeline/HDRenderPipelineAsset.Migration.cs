@@ -184,9 +184,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_ObsoleteDefaultVolumeProfile = null;
                 data.m_ObsoleteDefaultLookDevProfile = null;
 
-                data.m_ObsoleteRenderPipelineResources = null;
-                data.m_ObsoleteRenderPipelineRayTracingResources = null;
-
                 data.m_ObsoleteBeforeTransparentCustomPostProcesses = null;
                 data.m_ObsoleteBeforePostProcessCustomPostProcesses = null;
                 data.m_ObsoleteAfterPostProcessCustomPostProcesses = null;
@@ -298,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }),
 #pragma warning restore 618
-            MigrationStep.New(Version.UpdatedUpscalers, (HDRenderPipelineAsset data) => 
+            MigrationStep.New(Version.UpdatedUpscalers, (HDRenderPipelineAsset data) =>
             {
                 data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Clear();
 #pragma warning disable 618 // Type or member is obsolete
@@ -346,14 +343,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal FrameSettings m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
-
-        [SerializeField]
-        [FormerlySerializedAs("m_RenderPipelineResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
-        internal HDRenderPipelineRuntimeResources m_ObsoleteRenderPipelineResources;
-        [SerializeField]
-        [FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
-        internal HDRenderPipelineRayTracingResources m_ObsoleteRenderPipelineRayTracingResources;
-
         [SerializeField]
         [FormerlySerializedAs("beforeTransparentCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal List<string> m_ObsoleteBeforeTransparentCustomPostProcesses;

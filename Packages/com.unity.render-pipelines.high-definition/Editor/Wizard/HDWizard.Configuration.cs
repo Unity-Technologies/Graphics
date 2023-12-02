@@ -178,7 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             entryList.AddRange(new Entry[]
             {
-                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpRuntimeResources, IsRuntimeResourcesCorrect, FixRuntimeResources, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile, indent: 1),
@@ -463,17 +462,6 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
             => HDRenderPipelineGlobalSettings.Ensure();
 
-        bool IsRuntimeResourcesCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.AreRuntimeResourcesCreated();
-
-        void FixRuntimeResources(bool fromAsyncUnused)
-        {
-            if (!IsHdrpGlobalSettingsUsedCorrect())
-                FixHdrpGlobalSettingsUsed(fromAsync: false);
-
-            HDRenderPipelineGlobalSettings.instance.EnsureRuntimeResources(forceReload: true);
-        }
-
         bool IsSRPBatcherCorrect()
             => IsHdrpAssetQualityUsedCorrect() && (HDRenderPipeline.currentAsset?.enableSRPBatcher ?? false);
 
@@ -596,11 +584,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset graphicsAsset)
                     collection.Add(graphicsAsset);
-                if (HDRenderPipelineGlobalSettings.instance)
-                {
-                    collection.Add(HDRenderPipelineGlobalSettings.instance.renderPipelineResources); //only resource that have migration
-                    collection.Add(HDRenderPipelineGlobalSettings.instance);
-                }
+
                 return collection;
             }
         }

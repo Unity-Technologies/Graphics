@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return AddHDLight(gameObject, type);
         }
     }
-
+  
     partial class HDRenderPipelineGlobalSettings
     {
         #region Custom Post Processes Injections
@@ -592,8 +592,5 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         #endregion
-        
-        [SerializeField, FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Migrated to IRenderPipelineResources. #from(23.3)")]
-        HDRenderPipelineRayTracingResources m_ObsoleteRenderPipelineRayTracingResources;
     }
 }

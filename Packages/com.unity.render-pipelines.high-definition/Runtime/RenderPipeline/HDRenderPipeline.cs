@@ -422,11 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
         internal HDRPRayTracingResources rayTracingResources { get; private set; }
-
-#if UNITY_EDITOR
-        bool m_ResourcesInitialized = false;
-#endif
-
+        
         internal bool reflectionProbeBaking { get; set; }
 
         /// <summary>
@@ -476,14 +472,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SetLodQualitySettings();
 
 #if UNITY_EDITOR
-            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
-            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
-            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated();
-
-            if (!m_ResourcesInitialized)
-                return;
-
             runtimeShaders.EnsureShadersCompiled();
 #endif
 
@@ -949,11 +937,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_ValidAPI)
                 return;
-
-#if UNITY_EDITOR
-            if (!m_ResourcesInitialized)
-                return;
-#endif
 
             base.Dispose(disposing);
 
@@ -2136,9 +2119,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Build target can change in editor so we need to check if the target is supported
             if (!HDUtils.IsSupportedBuildTarget(UnityEditor.EditorUserBuildSettings.activeBuildTarget))
-                return;
-
-            if (!m_ResourcesInitialized)
                 return;
 #endif
 

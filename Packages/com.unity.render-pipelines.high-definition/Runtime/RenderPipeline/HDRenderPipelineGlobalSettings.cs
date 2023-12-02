@@ -91,9 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             SetUpRPAssetIncluded();
 
-            // ensure resources are here
-            EnsureRuntimeResources(forceReload: true);
-
             TryGet(typeof(HDRenderPipelineEditorAssets), out var editorAssets);
             var assets = editorAssets as HDRenderPipelineEditorAssets;
 
@@ -135,40 +132,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif // UNITY_EDITOR
-
-        #region Runtime Resources
-        [SerializeField]
-        HDRenderPipelineRuntimeResources m_RenderPipelineResources;
-
-        internal HDRenderPipelineRuntimeResources renderPipelineResources
-        {
-            get
-            {
-#if UNITY_EDITOR
-                EnsureRuntimeResources(forceReload: false);
-#endif
-                return m_RenderPipelineResources;
-            }
-        }
-
-#if UNITY_EDITOR
-        // be sure to cach result for not using GC in a frame after first one.
-        static readonly string runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRuntimeResources.asset";
-
-        internal void EnsureRuntimeResources(bool forceReload)
-            => ResourceReloader.EnsureResources(forceReload, ref m_RenderPipelineResources, runtimeResourcesPath, AreRuntimeResourcesCreated_Internal, this);
-
-        // Passing method in a Func argument create a functor that create GC
-        // If it is static it is then only computed once but the Ensure is called after first frame which will make our GC check fail
-        // So create it once and store it here.
-        // Expected usage: HDRenderPipelineGlobalSettings.AreRuntimeResourcesCreated(anyHDRenderPipelineGlobalSettings) that will return a bool
-        static Func<HDRenderPipelineGlobalSettings, bool> AreRuntimeResourcesCreated_Internal = global
-            => global.m_RenderPipelineResources != null && !global.m_RenderPipelineResources.Equals(null);
-
-        internal bool AreRuntimeResourcesCreated() => AreRuntimeResourcesCreated_Internal(this);
-
-#endif //UNITY_EDITOR
-        #endregion // Runtime Resources
 
         #region Rendering Layer Mask
         [SerializeField]
