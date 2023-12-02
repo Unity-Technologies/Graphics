@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
     [Serializable]
     [Category("Miscellaneous")]
-    [HideInInspector] // TODO Remove when UI has fully being migrated
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class LensSettings : IRenderPipelineGraphicsSettings
     {

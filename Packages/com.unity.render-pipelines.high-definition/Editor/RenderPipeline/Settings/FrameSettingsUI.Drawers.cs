@@ -116,11 +116,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // When drawing the inspector of a selected HDRPAsset in Project windows, access HDRP by owner drawing itself
                 hdrpAsset = (owner as HDRenderPipelineEditor).target as HDRenderPipelineAsset;
             }
-            else if (owner is HDRenderPipelineGlobalSettingsEditor || owner == null)
-            {
-                // When drawing the inspector of a selected HDRPAsset in Project windows, access HDRP by owner drawing itself
-                hdrpAsset = null;
-            }
             else
             {
                 // Else rely on GraphicsSettings are you should be in hdrp and owner could be probe or camera.

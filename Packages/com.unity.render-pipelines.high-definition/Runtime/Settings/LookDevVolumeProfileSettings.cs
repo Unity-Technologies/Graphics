@@ -7,8 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Settings class that stores the volume profile for HDRP LookDev.
     /// </summary>
     [Serializable]
-    [HideInInspector] // TODO Remove when UI has fully being migrated
-    [Category("LookDev Volume Profile")]
+    [Category("Volume/LookDev Profile")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     public class LookDevVolumeProfileSettings : IRenderPipelineGraphicsSettings
     {

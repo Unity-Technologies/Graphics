@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     /// <typeparam name="TRenderPipeline"><see cref="RenderPipeline"/></typeparam>
     /// <typeparam name="TGlobalSettings"><see cref="RenderPipelineGlobalSettings"/></typeparam>
+    [Obsolete("This is obsolete. GlobalSettingsAsset content are transformed in IRenderPipelineGraphicsSettings and they are directly embedded in Projectsettings > Graphics #from(2023.3)")]
     public abstract class RenderPipelineGlobalSettingsProvider<TRenderPipeline, TGlobalSettings> : SettingsProvider
         where TRenderPipeline : RenderPipeline
         where TGlobalSettings : RenderPipelineGlobalSettings
@@ -56,20 +57,6 @@ namespace UnityEditor.Rendering
         {
             CoreUtils.Destroy(m_Editor);
             m_Editor = null;
-        }
-
-        bool TryCreateEditor(out VisualElement editorElement)
-        {
-            editorElement = null;
-
-            m_Editor = Editor.CreateEditor(renderPipelineSettings);
-            if (m_Editor != null)
-            {
-                editorElement = m_Editor.CreateInspectorGUI();
-                editorElement.name = $"{renderPipelineSettings.name}_EditorElement";
-            }
-
-            return editorElement != null;
         }
 
         /// <summary>
@@ -127,7 +114,6 @@ namespace UnityEditor.Rendering
                     {
                         EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<TRenderPipeline>(
                             evt.newValue as RenderPipelineGlobalSettings);
-
                         // As the SetRenderPipelineGlobalSettingsAsset call is reloading the ProjectSettings window
                         // We need to close the ObjectSelector as we have lost this picker object.
                         EditorWindow[] windows = Resources.FindObjectsOfTypeAll<EditorWindow>();

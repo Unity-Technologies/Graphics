@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering
     /// Class that stores shader stripping settings shared between all pipelines
     /// </summary>
     [Serializable]
-    [HideInInspector] // TODO: Remove when UI has fully been migrated to UITK
     [Category("Additional Shader Stripping Settings")]
     [SupportedOnRenderPipeline]
     public class ShaderStrippingSetting : IRenderPipelineGraphicsSettings

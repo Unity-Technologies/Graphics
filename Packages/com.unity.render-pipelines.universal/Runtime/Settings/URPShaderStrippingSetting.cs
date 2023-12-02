@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.Universal
     /// Class that stores the shader stripping settings that are specific for <see cref="UniversalRenderPipeline"/>
     /// </summary>
     [Serializable]
-    [HideInInspector] // TODO remove when fully UITK implementation is being done
     [Category("Additional Shader Stripping Settings")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class URPShaderStrippingSetting : IRenderPipelineGraphicsSettings

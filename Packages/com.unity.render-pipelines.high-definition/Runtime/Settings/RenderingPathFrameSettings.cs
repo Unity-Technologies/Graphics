@@ -7,7 +7,6 @@ using System.ComponentModel;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [HideInInspector] // TODO Remove when UI has fully being migrated
     [Category("Frame Settings (Default Values)")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class RenderingPathFrameSettings : IRenderPipelineGraphicsSettings

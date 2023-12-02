@@ -9,7 +9,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable]
     [Category("Render Graph")]
-    [HideInInspector] // TODO Remove when UI has fully being migrated
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class RenderGraphSettings: IRenderPipelineGraphicsSettings
     {

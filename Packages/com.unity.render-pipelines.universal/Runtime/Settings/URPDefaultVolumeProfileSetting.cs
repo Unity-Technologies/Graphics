@@ -7,8 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// Settings class that stores the default volume profile for Volume Framework.
     /// </summary>
     [Serializable]
-    [HideInInspector] // TODO Remove when UI has fully being migrated
-    [Category("Default Volume Profile")]
+    [Category("Volume/Default Profile")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class URPDefaultVolumeProfileSettings : IDefaultVolumeProfileSettings
     {

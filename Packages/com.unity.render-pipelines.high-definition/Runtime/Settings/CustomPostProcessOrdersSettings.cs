@@ -5,7 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
     [Category("Custom Post Process Orders")]
-    [HideInInspector] // TODO Remove when UI has fully being migrated
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class CustomPostProcessOrdersSettings : IRenderPipelineGraphicsSettings
     {

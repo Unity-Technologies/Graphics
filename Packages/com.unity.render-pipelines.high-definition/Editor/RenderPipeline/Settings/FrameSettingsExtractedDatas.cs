@@ -369,8 +369,8 @@ namespace UnityEditor.Rendering.HighDefinition
             AmmendInfo(FrameSettingsField.LODBias, ignoreDependencies: true, fieldDependentLabel: FrameSettingsField.LODBiasMode);
             AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel, ignoreDependencies: true);
             AmmendInfo(FrameSettingsField.MaximumLODLevel, ignoreDependencies: true, fieldDependentLabel: FrameSettingsField.MaximumLODLevelMode);
-            AmmendInfo(FrameSettingsField.Decals, callbackOnChange: (oldVal, newVal) => HDRenderPipelineGlobalSettingsPanelProvider.needRefreshVfxErrors = true);
-            AmmendInfo(FrameSettingsField.DecalLayers, callbackOnChange: (oldVal, newVal) => HDRenderPipelineGlobalSettingsPanelProvider.needRefreshVfxErrors = true);
+            AmmendInfo(FrameSettingsField.Decals, callbackOnChange: (oldVal, newVal) => VFX.HDRP.VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded());
+            AmmendInfo(FrameSettingsField.DecalLayers, callbackOnChange: (oldVal, newVal) => VFX.HDRP.VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded());
 
             // Lighting
             AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
