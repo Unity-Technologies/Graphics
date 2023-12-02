@@ -122,6 +122,11 @@ namespace UnityEditor.VFX
                         "Setting the system Bounds Mode to Automatic will switch the culling flags of the Visual Effect asset" +
                         " to 'Always recompute bounds and simulate'.");
                 }
+
+                if (data.hasTooManyContext)
+                {
+                    manager.RegisterError("TooManyContexts", VFXErrorType.Error, $"Too many contexts within the same system, maximum is {VFXData.kMaxContexts}");
+                }
             }
         }
 

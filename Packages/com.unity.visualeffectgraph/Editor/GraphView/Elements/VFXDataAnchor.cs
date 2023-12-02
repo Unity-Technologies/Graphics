@@ -369,7 +369,7 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
 
-            if (descriptor.CreateInstance() is not IVFXSlotContainer container)
+            if (descriptor.unTypedModel is not IVFXSlotContainer container)
                 return false;
 
             if (direction == Direction.Output

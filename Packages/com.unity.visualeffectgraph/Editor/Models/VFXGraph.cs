@@ -134,7 +134,10 @@ namespace UnityEditor.VFX
                         graph.CollectDependencies(dependencies);
                         var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
 
+                        var window = VFXViewWindow.GetWindow(graph, false, false);
+                        var reporter = window != null ? window.graphView.StartCompilationErrorReport(graph, false) : null;
                         graph.CompileForImport();
+                        reporter?.Dispose();
 
                         VFXMemorySerializer.ExtractObjects(backup, false);
                         //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
@@ -1353,7 +1356,7 @@ namespace UnityEditor.VFX
         }
 
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
-        public static bool explicitCompile { get; set; } = false;
+        public bool explicitCompile { get; set; } = false;
 
 
         public void SanitizeForImport()
@@ -1368,7 +1371,7 @@ namespace UnityEditor.VFX
 
         public void CompileForImport()
         {
-            if (VFXGraph.compilingInEditMode)
+            if (compilingInEditMode)
                 m_CompilationMode = VFXCompilationMode.Edition;
 
             SyncCustomAttributes();
@@ -1388,7 +1391,7 @@ namespace UnityEditor.VFX
             m_ExpressionValuesDirty = false;
         }
 
-        public static VFXCompileErrorReporter compileReporter = null;
+        public IVFXErrorReporter compileReporter { get; set; }
 
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
@@ -1433,6 +1436,11 @@ namespace UnityEditor.VFX
                 }
                 m_DependentDirty = false;
             }
+        }
+
+        public void RegisterCompileError(VFXModel model, string description)
+        {
+            compileReporter?.RegisterError("CompilationError", VFXErrorType.Error, description, model);
         }
 
         private VFXGraphCompiledData compiledData

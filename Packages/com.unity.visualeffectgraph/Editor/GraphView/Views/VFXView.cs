@@ -541,17 +541,14 @@ namespace UnityEditor.VFX.UI
 
         public void RefreshErrors(VFXModel model)
         {
-            errorManager.ClearAllErrors(model, VFXErrorOrigin.Invalidate);
-            using (var reporter = new VFXInvalidateErrorReporter(errorManager, model))
+            try
             {
-                try
-                {
-                    model.GenerateErrors(reporter);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
+                using var reporter = StartInvalidateErrorReport(model);
+                model.GenerateErrors(reporter);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
 
@@ -697,7 +694,7 @@ namespace UnityEditor.VFX.UI
             m_NoAssetElement.Add(createButton);
 
             m_LockedElement = new VisualElement { name = "lockedContainer"};
-            var lockLabel = new Label("⬆ Check out to modify") { name = "lockedMessage" };
+            var lockLabel = new Label("\u2b06 Check out to modify") { name = "lockedMessage" };
             lockLabel.focusable = true;
             m_LockedElement.Add(lockLabel);
 
@@ -799,10 +796,10 @@ namespace UnityEditor.VFX.UI
         }
 
         [NonSerialized]
-        Dictionary<VFXModel, List<IconBadge>> m_InvalidateBadges = new Dictionary<VFXModel, List<IconBadge>>();
+        Dictionary<VFXModel, List<VFXIconBadge>> m_InvalidateBadges = new();
 
         [NonSerialized]
-        List<IconBadge> m_CompileBadges = new List<IconBadge>();
+        List<VFXIconBadge> m_CompileBadges = new();
 
         private void SetToolbarEnabled(bool enabled)
         {
@@ -813,7 +810,6 @@ namespace UnityEditor.VFX.UI
         {
             VisualElement target = null;
             VisualElement targetParent = null;
-            SpriteAlignment alignement = SpriteAlignment.TopLeft;
 
             if (model is VFXSlot)
             {
@@ -829,7 +825,6 @@ namespace UnityEditor.VFX.UI
 
                 targetParent = GetNodeByController(nodeController);
                 target = (targetParent as VFXNodeUI).GetPorts(slot.direction == VFXSlot.Direction.kInput, slot.direction != VFXSlot.Direction.kInput).FirstOrDefault(t => t.controller == anchorController);
-                alignement = slot.direction == VFXSlot.Direction.kInput ? SpriteAlignment.LeftCenter : SpriteAlignment.RightCenter;
             }
             else if (model is IVFXSlotContainer)
             {
@@ -851,17 +846,19 @@ namespace UnityEditor.VFX.UI
                 {
                     targetParent = target.parent;
                 }
-                target = (target as VFXNodeUI).titleContainer;
-                alignement = SpriteAlignment.LeftCenter;
             }
 
             if (target != null && targetParent != null)
             {
-                var badge = type == VFXErrorType.Error ? IconBadge.CreateError(description) : IconBadge.CreateComment(description);
-                targetParent.Add(badge);
-                badge.AttachTo(target, alignement);
-                if (type == VFXErrorType.Warning)
-                    badge.SendToBack();
+                var badge = new VFXIconBadge(description, type);
+                var badgeHolder = target.Children().SingleOrDefault(x => x.name == "BadgesHolder");
+                if (badgeHolder == null)
+                {
+                    badgeHolder = new VisualElement { name = "BadgesHolder" };
+                    badgeHolder.AddStyleSheetPath("VFXIconBadge");
+                    target.Add(badgeHolder);
+                }
+                badgeHolder.Add(badge);
 
                 if (errorOrigin == VFXErrorOrigin.Compilation)
                 {
@@ -869,38 +866,28 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    List<IconBadge> badges;
+                    List<VFXIconBadge> badges;
                     if (!m_InvalidateBadges.TryGetValue(model, out badges))
                     {
-                        badges = new List<IconBadge>();
+                        badges = new List<VFXIconBadge>();
                         m_InvalidateBadges[model] = badges;
                     }
                     badges.Add(badge);
                 }
-                badge.AddManipulator(new Clickable(() =>
-                {
-                    badge.Detach();
-                    badge.RemoveFromHierarchy();
-                    model.IgnoreError(error);
-                }));
+                badge.AddManipulator(new Clickable(() => badge.RemoveFromHierarchy()));
                 badge.AddManipulator(new ContextualMenuManipulator(e =>
                 {
-                    e.menu.AppendAction("Hide",
-                        _ =>
-                        {
-                            badge.Detach();
-                            badge.RemoveFromHierarchy();
-                        });
+                    e.menu.AppendAction("Hide", _ => { badge.RemoveFromHierarchy(); });
 
                     if (type != VFXErrorType.Error)
                     {
                         e.menu.AppendAction("Ignore", _ =>
                         {
-                            badge.Detach();
                             badge.RemoveFromHierarchy();
                             model.IgnoreError(error);
                         });
                     }
+                    e.StopImmediatePropagation();
                 }));
             }
         }
@@ -911,7 +898,6 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var badge in m_CompileBadges)
                 {
-                    badge.Detach();
                     badge.RemoveFromHierarchy();
                 }
                 m_CompileBadges.Clear();
@@ -920,12 +906,10 @@ namespace UnityEditor.VFX.UI
             {
                 if (!object.ReferenceEquals(model, null))
                 {
-                    List<IconBadge> badges;
-                    if (m_InvalidateBadges.TryGetValue(model, out badges))
+                    if (m_InvalidateBadges.TryGetValue(model, out var badges))
                     {
                         foreach (var badge in badges)
                         {
-                            badge.Detach();
                             badge.RemoveFromHierarchy();
                         }
                         m_InvalidateBadges.Remove(model);
@@ -1800,14 +1784,7 @@ namespace UnityEditor.VFX.UI
                 controller.graph.RecompileIfNeeded(false, false);
             else
             {
-                VFXGraph.explicitCompile = true;
-                using (var reporter = new VFXCompileErrorReporter(errorManager))
-                {
-                    VFXGraph.compileReporter = reporter;
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
-                    VFXGraph.compileReporter = null;
-                }
-                VFXGraph.explicitCompile = false;
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
             }
         }
 
@@ -3380,6 +3357,21 @@ namespace UnityEditor.VFX.UI
             {
                 Debug.LogException(e);
             }
+        }
+
+        public VFXCompileErrorReporter StartCompilationErrorReport(VFXGraph graph, bool explicitCompile)
+        {
+            if (graph.compileReporter is VFXCompileErrorReporter compileReporter)
+                return null; // Return null so the the current reporter is not disposed too early
+
+            errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
+            return new VFXCompileErrorReporter(graph, errorManager, explicitCompile);
+        }
+
+        public VFXInvalidateErrorReporter StartInvalidateErrorReport(VFXModel model)
+        {
+            errorManager.ClearAllErrors(model, VFXErrorOrigin.Invalidate);
+            return new VFXInvalidateErrorReporter(errorManager, model);
         }
     }
 }

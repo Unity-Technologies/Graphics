@@ -6,6 +6,17 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    static class MatrixExtension
+    {
+        public static bool IsMatrix3x3Identity(this Matrix4x4 matrix)
+        {
+            return
+                Mathf.Approximately(matrix.m00, 1f) && Mathf.Approximately(matrix.m10, 0f) && Mathf.Approximately(matrix.m20, 0f) &&
+                Mathf.Approximately(matrix.m01, 0f) && Mathf.Approximately(matrix.m11, 1f) && Mathf.Approximately(matrix.m21, 0f) &&
+                Mathf.Approximately(matrix.m02, 0f) && Mathf.Approximately(matrix.m12, 0f) && Mathf.Approximately(matrix.m22, 1f);
+        }
+    }
+
     class VFXExpressionTRSToMatrix : VFXExpression
     {
         public VFXExpressionTRSToMatrix() : this(new VFXExpression[] { VFXValue<Vector3>.Default, VFXValue<Vector3>.Default, VFXValue<Vector3>.Default }
@@ -299,15 +310,19 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOperation operation
+        public override VFXExpressionOperation operation => VFXExpressionOperation.TransformPos;
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            get
+            if (reducedParents[0].Is(VFXExpression.Flags.Constant) && reducedParents[0] is VFXValue<Matrix4x4> && reducedParents[0].Get<Matrix4x4>() is { isIdentity: true })
             {
-                return VFXExpressionOperation.TransformPos;
+                return reducedParents[1];
             }
+
+            return base.Reduce(reducedParents);
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
             var positionReduce = constParents[1];
@@ -330,19 +345,23 @@ namespace UnityEditor.VFX
         {
         }
 
-        public VFXExpressionTransformVector(VFXExpression matrix, VFXExpression vector) : base(VFXExpression.Flags.None, new VFXExpression[] { matrix, vector })
+        public VFXExpressionTransformVector(VFXExpression matrix, VFXExpression vector) : base(Flags.None, new VFXExpression[] { matrix, vector })
         {
         }
 
-        public override VFXExpressionOperation operation
+        public override VFXExpressionOperation operation => VFXExpressionOperation.TransformVec;
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            get
+            if (reducedParents[0].Is(Flags.Constant) && reducedParents[0].Get<Matrix4x4>() is var matrix4x4 && matrix4x4.IsMatrix3x3Identity())
             {
-                return VFXExpressionOperation.TransformVec;
+                return reducedParents[1];
             }
+
+            return base.Reduce(reducedParents);
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
             var positionReduce = constParents[1];
@@ -371,15 +390,19 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOperation operation
+        public override VFXExpressionOperation operation => VFXExpressionOperation.TransformVector4;
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            get
+            if (reducedParents[0].Is(Flags.Constant) && reducedParents[0].Get<Matrix4x4>() is { isIdentity: true })
             {
-                return VFXExpressionOperation.TransformVector4;
+                return reducedParents[1];
             }
+
+            return base.Reduce(reducedParents);
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
             var vReduce = constParents[1];
@@ -413,15 +436,19 @@ namespace UnityEditor.VFX
         {
         }
 
-        public override VFXExpressionOperation operation
+        public override VFXExpressionOperation operation => VFXExpressionOperation.TransformDir;
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            get
+            if (reducedParents[0].Is(Flags.Constant) && reducedParents[0].Get<Matrix4x4>() is var matrix4x4 && matrix4x4.IsMatrix3x3Identity())
             {
-                return VFXExpressionOperation.TransformDir;
+                return reducedParents[1];
             }
+
+            return base.Reduce(reducedParents);
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
             var positionReduce = constParents[1];

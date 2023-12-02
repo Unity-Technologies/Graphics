@@ -239,7 +239,7 @@ namespace UnityEditor.VFX
             base.CheckGraphBeforeImport();
 
             // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
-            if (!VFXGraph.explicitCompile)
+            if (!GetGraph().explicitCompile)
             {
                 ResyncSlots(true);
                 ResyncCustomAttributes();

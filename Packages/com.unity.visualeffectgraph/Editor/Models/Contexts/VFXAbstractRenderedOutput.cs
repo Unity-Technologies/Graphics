@@ -65,6 +65,7 @@ namespace UnityEditor.VFX
         protected bool excludeFromTUAndAA = false;
 
         public virtual bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+        public bool iszWriting => zWriteMode == ZWriteMode.On || zWriteMode == ZWriteMode.Default && isBlendModeOpaque;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(-50, 50), FormerlySerializedAs("materialOffset"), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
         protected int sortingPriority = 0;

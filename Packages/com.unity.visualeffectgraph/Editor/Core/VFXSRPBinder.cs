@@ -5,10 +5,7 @@ using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
-using UnityEngine.VFX;
 using UnityEngine.Rendering;
-using Object = System.Object;
-using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -73,10 +70,11 @@ namespace UnityEditor.VFX
             return s_BaseUnsupportedShaderPropertyTypes;
         }
 
-        public bool CheckGraphDataValid(GraphData graph)
+        public bool CheckGraphDataValid(GraphData graph, out List<string> errors)
         {
             bool valid = true;
-            var warnings = new List<string>();
+            errors = new List<string>();
+            var message = new StringBuilder();
 
             // Filter property list for any unsupported exposed shader properties.
             foreach (var property in graph.properties.Where(o => o.isExposed))
@@ -84,13 +82,14 @@ namespace UnityEditor.VFX
                 var unsupported = GetUnsupportedShaderPropertyType().FirstOrDefault(o => o.type == property.GetType());
                 if (unsupported.type != null)
                 {
+                    errors.Add($"Shader Graph blackboard property of type '{unsupported.name}' is not currently supported in Visual Effect Graph");
+                    message.Append(unsupported.name);
                     valid = false;
-                    warnings.Add(unsupported.name);
                 }
             }
 
             if (!valid)
-                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect Shaders.");
+                Debug.LogError($"{message} blackboard properties in Shader Graph are not currently supported in Visual Effect Shaders.");
 
             return valid;
         }

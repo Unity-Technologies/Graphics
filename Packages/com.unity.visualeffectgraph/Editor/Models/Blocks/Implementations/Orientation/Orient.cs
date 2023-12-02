@@ -377,6 +377,33 @@ axisY = cross(axisZ, axisX);
                 string outputTypeStr = hasStrips ? "strip" : "non strip";
                 manager.RegisterError("InvalidOrientMode", VFXErrorType.Error, string.Format("Orient mode {0} is invalid with {1} output", mode, outputTypeStr));
             }
+
+            if (mode is Mode.Advanced or Mode.FixedAxis)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+                var expressions = new VFXExpression[GetNbInputSlots()];
+                for (var i = 0; i < GetNbInputSlots(); i++)
+                {
+                    var expression = GetInputSlot(i).GetExpression();
+                    expressions[i] = expression;
+                    context.RegisterExpression(expression);
+                }
+
+                context.Compile();
+
+                for (var i = 0; i < GetNbInputSlots(); i++)
+                {
+                    var expression = expressions[i];
+                    if (context.GetReduced(expression) is { } direction &&
+                        direction.Is(VFXExpression.Flags.Constant) &&
+                        direction.valueType == UnityEngine.VFX.VFXValueType.Float3 &&
+                        direction.Get<Vector3>() is { sqrMagnitude: var sqrMag } &&
+                        (float.IsNaN(sqrMag) || sqrMag <= Mathf.Epsilon))
+                    {
+                        manager.RegisterError("InvalidAxis", VFXErrorType.Error, $"{GetInputSlot(i).property.name} vector must not be zero length");
+                    }
+                }
+            }
         }
 
         private void AxesPairToHLSL(AxesPair axes, out string axis1, out string axis2, out string axis3)

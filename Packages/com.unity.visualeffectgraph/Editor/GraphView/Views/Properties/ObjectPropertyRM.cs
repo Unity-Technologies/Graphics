@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateEnabled() => m_ObjectField.SetEnabled(propertyEnabled);
 
-        protected override void UpdateIndeterminate() => visible = !indeterminate;
+        protected override void UpdateIndeterminate() => visible = true;
 
         private void OnValueChanged(ChangeEvent<UnityObject> evt)
         {

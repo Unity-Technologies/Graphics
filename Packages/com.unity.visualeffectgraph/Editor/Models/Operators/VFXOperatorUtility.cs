@@ -26,6 +26,7 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<VFXValueType, VFXExpression> MinusOneExpression = GenerateExpressionConstant(-1.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> HalfExpression = GenerateExpressionConstant(0.5f);
         public static readonly Dictionary<VFXValueType, VFXExpression> ZeroExpression = GenerateExpressionConstant(0.0f);
+        public static readonly Dictionary<VFXValueType, VFXExpression> NaNExpression = GenerateExpressionConstant(float.NaN);
         public static readonly Dictionary<VFXValueType, VFXExpression> TwoExpression = GenerateExpressionConstant(2.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> ThreeExpression = GenerateExpressionConstant(3.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> TenExpression = GenerateExpressionConstant(10.0f);

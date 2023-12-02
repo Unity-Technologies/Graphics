@@ -912,16 +912,28 @@ namespace UnityEditor.VFX.UI
             return m_ParametersController.SelectMany(GetDataRecursive).Where(x => x.data is T).Any(x => predicate((T)x.data));
         }
 
+        private void ExpandCategories(IEnumerable<string> categories)
+        {
+            var categoriesToExpand = categories
+                .Concat(new []{ PropertiesCategoryTitle })
+                .Distinct()
+                .ToArray();
+            foreach (var blackboardCategory in this.Query<VFXBlackboardCategory>().ToList())
+            {
+                if (categoriesToExpand.Contains(blackboardCategory.title))
+                {
+                    m_Treeview.ExpandItem(blackboardCategory.category.id);
+                }
+            }
+        }
+
         private void SelectAllCustomAttributes()
         {
             m_View.ClearSelection();
             m_Treeview.ClearSelection();
             // Expand categories so child elements can be selected
             var categoriesToExpand = new []{ AttributesCategoryTitle, CustomAttributeCategory.Title };
-            this.Query<VFXBlackboardCategory>()
-                .Where(x => categoriesToExpand.Contains(x.title))
-                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
-
+            ExpandCategories(categoriesToExpand);
             this.Query<VFXBlackboardAttributeField>()
                 .Where(x => !x.attribute.isBuiltIn)
                 .ForEach(x => m_Treeview.AddToSelection(x.attribute.index));
@@ -931,13 +943,9 @@ namespace UnityEditor.VFX.UI
         {
             m_View.ClearSelection();
             m_Treeview.ClearSelection();
-
             // Expand categories so child elements can be selected
             var categoriesToExpand = new []{ AttributesCategoryTitle, CustomAttributeCategory.Title };
-            this.Query<VFXBlackboardCategory>()
-                .Where(x => categoriesToExpand.Contains(x.title))
-                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
-
+            ExpandCategories(categoriesToExpand);
             var unused = m_View.controller.graph.GetUnusedCustomAttributes().ToArray();
             this.Query<VFXBlackboardAttributeField>()
                 .Where(x => unused.Contains(x.attribute.title))
@@ -949,11 +957,7 @@ namespace UnityEditor.VFX.UI
             m_View.ClearSelection();
             m_Treeview.ClearSelection();
             // Expand categories so child elements can be selected
-            var categoriesToExpand = controller.parameterControllers.Select(x => x.model.category).Distinct().Concat(new []{ PropertiesCategoryTitle });
-            this.Query<VFXBlackboardCategory>()
-                .Where(x => categoriesToExpand.Contains(x.title))
-                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
-
+            ExpandCategories(controller.parameterControllers.Select(x => x.model.category));
             this.Query<VFXBlackboardField>().ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
         }
 
@@ -961,16 +965,10 @@ namespace UnityEditor.VFX.UI
         {
             m_View.ClearSelection();
             m_Treeview.ClearSelection();
-
             var unused = unusedParameters.ToList();
             // Expand categories so child elements can be selected
-            var categoriesToExpand = unused.Select(x => x.category).Distinct().Concat(new []{ PropertiesCategoryTitle });
-            this.Query<VFXBlackboardCategory>()
-                .Where(x => categoriesToExpand.Contains(x.title))
-                .ForEach(x => m_Treeview.ExpandItem(x.category.id));
-            this.Query<VFXBlackboardField>()
-                .Where(x => unused.Contains(x.controller.model))
-                .ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
+            ExpandCategories(unused.Select(x => x.category));
+            this.Query<VFXBlackboardField>().Where(x => unused.Contains(x.controller.model)).ForEach(x => m_Treeview.AddToSelection(x.PropertyItem.index));
         }
 
         IEnumerable<VFXParameter> unusedParameters

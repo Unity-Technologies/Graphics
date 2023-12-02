@@ -263,9 +263,7 @@ namespace UnityEditor.VFX.UI
         void CopyParameterControllers(ref SerializableGraph serializableGraph)
         {
             serializableGraph.categories = categories;
-            serializableGraph.parameters = parameterNodeControllers
-                .Select(x => (VFXParameter)x.model)
-                .Union(parameters)
+            serializableGraph.parameters = parameters
                 .Select(x => CreateParameter(x, Array.Empty<ParameterNode>()))
                 .ToArray();
         }

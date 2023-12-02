@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
             yield return new Variant(
                 "Output Particle ShaderGraph Quad Strip",
                 "Output",
-                typeof(VFXComposedParticleOutput),
+                typeof(VFXComposedParticleStripOutput),
                 new[] { new KeyValuePair<string, object>("m_Topology", new ParticleTopologyQuadStrip()) });
         }
     }
@@ -18,5 +18,18 @@ namespace UnityEditor.VFX
     sealed class VFXComposedParticleStripOutput : VFXAbstractComposedParticleOutput
     {
         VFXComposedParticleStripOutput() : base(true) { }
+
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            foreach (var attributeInfo in GetAttributesInfos())
+            {
+                if (attributeInfo.mode.HasFlag(VFXAttributeMode.Write) && attributeInfo.attrib.Equals(VFXAttribute.Position))
+                {
+                    manager.RegisterError("WritePositionInStrip", VFXErrorType.Warning, VFXQuadStripOutput.WriteToPositionMessage);
+                    break;
+                }
+            }
+        }
     }
 }

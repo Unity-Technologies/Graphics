@@ -318,5 +318,23 @@ namespace UnityEditor.VFX.Block
                 return source;
             }
         }
+
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (shape == SequentialShape.Circle)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+                var expression = inputSlots.Single(x => x.name == nameof(InputPropertiesCircle.Count)).GetExpression();
+                context.RegisterExpression(expression);
+                context.Compile();
+
+                if (context.GetReduced(expression) is var countExpression &&
+                    countExpression.Is(VFXExpression.Flags.Constant) &&
+                    countExpression.Get<uint>() == 0)
+                {
+                    manager.RegisterError("CircleCountIsZero", VFXErrorType.Warning, "A circle with Count = 0 is not valid");
+                }
+            }
+        }
     }
 }

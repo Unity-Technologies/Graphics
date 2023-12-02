@@ -441,6 +441,51 @@ namespace UnityEditor.VFX.Block
             {
                 manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character");
             }
+
+            if (Source == ValueSource.Source && GetParent() is { } parentContext && (parentContext.contextType & VFXContextType.UpdateAndOutput) != 0)
+            {
+                manager.RegisterError("SourceNotAllowed", VFXErrorType.Warning, "Inherit attribute is not supported in Update and Output contexts");
+            }
+
+            if (GetNbInputSlots() == 0)
+            {
+                return;
+            }
+
+            if (attribute == VFXAttribute.Lifetime.name)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+                var expression = GetInputSlot(0).GetExpression();
+                context.RegisterExpression(expression);
+                context.Compile();
+
+                if (context.GetReduced(expression) is var lifeTimeExpression &&
+                    lifeTimeExpression.Is(VFXExpression.Flags.Constant) &&
+                    lifeTimeExpression.Get<float>() is var lifeTime &&
+                    lifeTime > 1e4)
+                {
+                    manager.RegisterError("TooLongLifeTime", VFXErrorType.Warning, $"The lifetime is pretty high: {TimeSpan.FromSeconds(lifeTime):hh\\hmm\\m}.\nYou might prefer to make immortal particles by removing the Set Lifetime block.");
+                }
+            }
+
+            if (attribute == VFXAttribute.scale.name)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+                var expression = GetInputSlot(0).GetExpression();
+                context.RegisterExpression(expression);
+                context.Compile();
+
+                if (context.GetReduced(expression) is var scaleExpression &&
+                    scaleExpression.Is(VFXExpression.Flags.Constant))
+                {
+                    if (scaleExpression.valueType == VFXValueType.Float && Mathf.Approximately(scaleExpression.Get<float>(), 0f) ||
+                        scaleExpression.valueType == VFXValueType.Float2 && scaleExpression.Get<Vector2>() is var vec2 && Mathf.Approximately(vec2.x * vec2.y, 0f) ||
+                        scaleExpression.valueType == VFXValueType.Float3 && scaleExpression.Get<Vector3>() is var vec3 && Mathf.Approximately(vec3.x * vec3.y * vec3.z, 0f) )
+                    {
+                        manager.RegisterError("ZeroScaleValue", VFXErrorType.Warning, "Scale is set to zero");
+                    }
+                }
+            }
         }
 
         protected override void OnAdded()

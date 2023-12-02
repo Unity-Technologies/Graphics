@@ -110,7 +110,7 @@ namespace UnityEditor.VFX
         }
 
         public override void FillDescs(
-            VFXCompileErrorReporter reporter,
+            IVFXErrorReporter reporter,
             VFXCompilationMode compilationMode,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,

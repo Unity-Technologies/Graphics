@@ -155,8 +155,8 @@ namespace UnityEditor.VFX.Test
             };
             var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
             HashSet<string> dependencies = new HashSet<string>();
-            var stringBuilderNoDebugSymbols = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false);
-            var stringBuilderDebugSymbols = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, true);
+            var stringBuilderNoDebugSymbols = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false, out var _);
+            var stringBuilderDebugSymbols = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, true, out var _);
 
             const string debugSymbolStr = "#pragma enable_d3d11_debug_symbols";
             Assert.IsFalse(stringBuilderNoDebugSymbols.ToString().Contains(debugSymbolStr));
@@ -188,7 +188,7 @@ namespace UnityEditor.VFX.Test
             };
             HashSet<string> dependencies = new HashSet<string>();
             var task = new VFXTask { templatePath = updateContext.codeGeneratorTemplate, type = updateContext.taskType };
-            var stringBuilder = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false);
+            var stringBuilder = VFXCodeGenerator.Build(updateContext, task, VFXCompilationMode.Runtime, contextCompiledData, dependencies, false, out var _);
 
             var code = stringBuilder.ToString();
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));

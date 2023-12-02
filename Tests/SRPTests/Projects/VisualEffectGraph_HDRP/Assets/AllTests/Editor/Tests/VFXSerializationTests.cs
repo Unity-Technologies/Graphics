@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Collections;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 using NUnit.Framework;
 using UnityEditor.VFX.Block;
@@ -15,8 +13,6 @@ using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.TestTools;
-
-using Task = System.Threading.Tasks.Task;
 
 namespace UnityEditor.VFX.Test
 {
@@ -1355,74 +1351,110 @@ namespace UnityEditor.VFX.Test
         }
     }
 
+    //Equivalent of LogAssert but always works during import
+    //LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
+    //LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
+    //It also provides the ability of breaking on log while running test
+    class CustomLogHandler : ILogHandler, IDisposable
+    {
+        private ILogHandler m_OriginalHandler;
+        private Dictionary<string, Type> m_ExpectedException = new();
+        private Dictionary<string, Type> m_ActualException = new();
+        private Dictionary<string, LogType> m_ExpectedLogs = new();
+        private Dictionary<string, LogType> m_ActualLogs = new();
+
+        public CustomLogHandler()
+        {
+            m_OriginalHandler = Debug.unityLogger.logHandler;
+            Debug.unityLogger.logHandler = this;
+        }
+
+        public void Reset()
+        {
+            m_ExpectedException.Clear();
+            m_ActualException.Clear();
+            m_ExpectedLogs.Clear();
+            m_ActualLogs.Clear();
+        }
+
+        public void Clear()
+        {
+            m_ActualException.Clear();
+            m_ActualLogs.Clear();
+        }
+
+        public void ExpectedLog(LogType type, string message)
+        {
+            m_ExpectedLogs.Add(message, type);
+        }
+
+        public void ExpectedException(Type type, string message)
+        {
+            m_ExpectedException.Add(message, type);
+        }
+
+        public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+        {
+            var message = string.Format(format, args);
+
+            if (m_ExpectedLogs.TryGetValue(message, out var type) && type == logType)
+            {
+                m_ActualLogs.TryAdd(message, type);
+            }
+            else
+            {
+                m_OriginalHandler.LogFormat(logType, context, format, args);
+            }
+        }
+
+        public void LogException(Exception exception, UnityEngine.Object context)
+        {
+            if (m_ExpectedException.TryGetValue(exception.Message, out var type) && type == exception.GetType())
+            {
+                m_ActualException.TryAdd(exception.Message, type);
+            }
+            else
+            {
+                m_OriginalHandler.LogException(exception, context);
+            }
+        }
+
+        public void Dispose()
+        {
+            Assert.AreEqual(m_ExpectedLogs.Count, m_ActualLogs.Count, "Expected logs count do not match actual log count");
+            Assert.AreEqual(m_ExpectedException.Count, m_ActualException.Count, "Expected exception count do not match actual exception count");
+            Debug.unityLogger.logHandler = m_OriginalHandler;
+            Reset();
+        }
+    }
 
     [TestFixture]
     public class VFXSerializationTestsWithCustomLogger
     {
-        private ILogHandler m_BackupLogHandler;
+        private CustomLogHandler m_CustomLogHandler;
 
         [OneTimeSetUp]
         public void SetUp()
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
-            m_BackupLogHandler = Debug.unityLogger.logHandler;
-        }
-
-        //Equivalent of LogAssert but always works during import
-        //LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
-        //LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
-        //It also provides the ability of breaking on log while running test
-        class ShaderGraph_Lit_On_Unlit_Logger : ILogHandler
-        {
-            public ILogHandler m_ForwardHandler;
-
-            public bool m_HasLoggedMustUnlit;
-            public bool m_HasLoggedCantCompile;
-
-            public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
-            {
-                if (logType == LogType.Error)
-                {
-                    var result = string.Format(format, args);
-                    if (result.StartsWith("You must use an unlit vfx master node with an unlit output"))
-                    {
-                        m_HasLoggedMustUnlit = true;
-                        return;
-                    }
-
-                    if (result.StartsWith("Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_5728/Repro_5728.vfx\""))
-                    {
-                        m_HasLoggedCantCompile = true;
-                        return;
-                    }
-                }
-
-                m_ForwardHandler.LogFormat(logType, context, format, args);
-            }
-
-            public void LogException(Exception exception, UnityEngine.Object context)
-            {
-                if (exception is InvalidOperationException invalidOperationException
-                    && invalidOperationException.Message.StartsWith("Unhandled log message: '[Error] Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_5728/Repro_5728.vfx\""))
-                {
-                    return;
-                }
-
-                m_ForwardHandler.LogException(exception, context);
-            }
+            m_CustomLogHandler = new CustomLogHandler();
         }
 
         [UnityTest, Description("Cover regression UUM-5728")]
         public IEnumerator ShaderGraph_Lit_On_Unlit()
         {
+            LogAssert.Expect(LogType.Error, "Invalid VFX Particle System. It is skipped.");
+
             var reproContent = "Assets/AllTests/Editor/Tests/VFXSerialization_Repro_5728.zip";
             var tempDest = VFXTestCommon.tempBasePath + "/Repro_5728";
 
             System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
 
-            var customLogger = new ShaderGraph_Lit_On_Unlit_Logger() { m_ForwardHandler = m_BackupLogHandler };;
+            m_CustomLogHandler.Reset();
+            m_CustomLogHandler.ExpectedLog(LogType.Error, "You must use an unlit vfx master node with an unlit output");
+            m_CustomLogHandler.ExpectedLog(LogType.Error, "Invalid VFX Particle System. It is skipped.");
+            m_CustomLogHandler.ExpectedException(typeof(InvalidOperationException), "Unhandled log message: '[Error] Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_5728/Repro_5728.vfx\"");
 
-            Debug.unityLogger.logHandler = customLogger;
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             yield return null;
 
@@ -1435,53 +1467,6 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < 4; ++i)
                 yield return null;
-
-            Assert.IsTrue(customLogger.m_HasLoggedMustUnlit);
-            Assert.IsTrue(customLogger.m_HasLoggedCantCompile);
-        }
-
-        class ShaderGraph_Unexpected_Feature : ILogHandler
-        {
-            public ILogHandler m_ForwardHandler;
-
-            public bool m_HasLoggedUnsupportedFeature;
-            public bool m_HasLoggedCantCompile;
-
-            public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
-            {
-                if (logType == LogType.Warning)
-                {
-                    var result = string.Format(format, args);
-                    if (result.EndsWith("blackboard properties in Shader Graph are currently not supported in Visual Effect Shaders."))
-                    {
-                        m_HasLoggedUnsupportedFeature = true;
-                        return;
-                    }
-                }
-
-                if (logType == LogType.Error)
-                {
-                    var result = string.Format(format, args);
-                    if (result.StartsWith("Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_13863/Repro_13863.vfx\""))
-                    {
-                        m_HasLoggedCantCompile = true;
-                        return;
-                    }
-                }
-
-                m_ForwardHandler.LogFormat(logType, context, format, args);
-            }
-
-            public void LogException(Exception exception, UnityEngine.Object context)
-            {
-                if (exception is InvalidOperationException invalidOperationException
-                    && invalidOperationException.Message.StartsWith("Unhandled log message: '[Error] Unity cannot compile the VisualEffectAsset at path \"Assets/TmpTests/Repro_13863/Repro_13863.vfx\""))
-                {
-                    return;
-                }
-
-                m_ForwardHandler.LogException(exception, context);
-            }
         }
 
         [UnityTest, Description("Cover regression UUM-13863")]
@@ -1492,14 +1477,14 @@ namespace UnityEditor.VFX.Test
 
             System.IO.Compression.ZipFile.ExtractToDirectory(reproContent, tempDest);
 
-            var customLogger = new ShaderGraph_Unexpected_Feature() { m_ForwardHandler = m_BackupLogHandler }; ;
-            Debug.unityLogger.logHandler = customLogger;
+            m_CustomLogHandler.Reset();
+            m_CustomLogHandler.ExpectedLog(LogType.Error, "Gradient, Diffusion Profile, Virtual Texture, blackboard properties in Shader Graph are not currently supported in Visual Effect Shaders.");
+            m_CustomLogHandler.ExpectedLog(LogType.Error, "Diffusion Profile blackboard properties in Shader Graph are not currently supported in Visual Effect Shaders.");
 
             AssetDatabase.Refresh();
             yield return null;
 
-            Assert.IsTrue(customLogger.m_HasLoggedUnsupportedFeature);
-            Assert.IsTrue(customLogger.m_HasLoggedCantCompile);
+            m_CustomLogHandler.Clear();
 
             var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(tempDest + "/Repro_13863.vfx");
             Assert.IsNotNull(asset);
@@ -1540,7 +1525,7 @@ namespace UnityEditor.VFX.Test
         public void CleanUp()
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
-            Debug.unityLogger.logHandler = m_BackupLogHandler;
+            m_CustomLogHandler.Dispose();
         }
     }
 }

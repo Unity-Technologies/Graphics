@@ -381,7 +381,7 @@ namespace UnityEditor.VFX
             base.Invalidate(model, cause);
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (SerializationUtility.HasManagedReferencesWithMissingTypes(this))
@@ -416,7 +416,7 @@ namespace UnityEditor.VFX
             {
                 MarkCacheAsDirty();
                 base.CheckGraphBeforeImport();
-                if (!VFXGraph.explicitCompile)
+                if (!GetGraph().explicitCompile)
                 {
                     ResyncSlots(true);
                 }

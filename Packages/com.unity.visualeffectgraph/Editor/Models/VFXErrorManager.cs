@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.VFX;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
@@ -46,7 +47,12 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXInvalidateErrorReporter : IDisposable
+    interface IVFXErrorReporter : IDisposable
+    {
+        void RegisterError(string error, VFXErrorType type, string description, VFXModel model);
+    }
+
+    class VFXInvalidateErrorReporter : IVFXErrorReporter
     {
         readonly VFXModel m_Model;
         readonly VFXErrorManager m_Manager;
@@ -57,31 +63,38 @@ namespace UnityEditor.VFX
             m_Manager = manager;
         }
 
-        public void Dispose()
+        public void RegisterError(string error, VFXErrorType type, string description, VFXModel model = null)
         {
+            model ??= m_Model;
+            if (!m_Model.IsErrorIgnored(error))
+                m_Manager.RegisterError(model, VFXErrorOrigin.Invalidate, error, type, description);
         }
 
-        public void RegisterError(string error, VFXErrorType type, string description)
-        {
-            if (!m_Model.IsErrorIgnored(error))
-                m_Manager.RegisterError(m_Model, VFXErrorOrigin.Invalidate, error, type, description);
-        }
+        public void Dispose() { }
     }
 
-    class VFXCompileErrorReporter : IDisposable
+    class VFXCompileErrorReporter : IVFXErrorReporter
     {
+        private readonly VFXGraph m_Graph;
         readonly VFXErrorManager m_Manager;
 
-        public VFXCompileErrorReporter(VFXErrorManager manager)
+        public VFXCompileErrorReporter(VFXGraph graph, VFXErrorManager manager, bool explicitCompile)
         {
+            m_Graph = graph;
             m_Manager = manager;
+            Assert.IsNull(m_Graph.compileReporter);
+            m_Graph.explicitCompile = explicitCompile;
+            m_Graph.compileReporter = this;
         }
 
         public void Dispose()
         {
+            Assert.IsNotNull(m_Graph.compileReporter);
+            m_Graph.explicitCompile = false;
+            m_Graph.compileReporter = null;
         }
 
-        public void RegisterError(VFXModel model, string error, VFXErrorType type, string description)
+        public void RegisterError(string error, VFXErrorType type, string description, VFXModel model)
         {
             if (model != null && !model.IsErrorIgnored(error))
                 m_Manager.RegisterError(model, VFXErrorOrigin.Compilation, error, type, description);

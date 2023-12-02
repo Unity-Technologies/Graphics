@@ -128,7 +128,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void RefreshErrors()
+        public virtual void RefreshErrors()
         {
             VFXViewWindow.RefreshErrors(this);
         }
@@ -390,6 +390,8 @@ namespace UnityEditor.VFX
             OnInvalidate(model, cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);
+            if (cause is InvalidationCause.kParamChanged or InvalidationCause.kExpressionValueInvalidated)
+                RefreshErrors();
         }
 
         private static Dictionary<Type, List<(FieldInfo field, VFXSettingAttribute attribute)>> s_CacheFieldByType;

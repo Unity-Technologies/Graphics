@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
         internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             if (value is Texture texture && texture != null && texture.dimension != TextureDimension.Tex2D)
-                manager.RegisterError("Slot_Value_Incorrect_Texture2D", VFXErrorType.Error, "This slot expects a Texture2D");
+                manager.RegisterError("Slot_Value_Incorrect_Texture2D", VFXErrorType.Warning, $"The selected texture {(string.IsNullOrEmpty(this.property.name) ? "" : $"'{this.property.name}' ")}is not a 2D texture", this.owner as VFXModel);
 
             base.GenerateErrors(manager);
         }

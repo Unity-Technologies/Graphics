@@ -227,8 +227,14 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             return r;
         }
 
-        static public StringBuilder Build(VFXContext context, VFXTask task, VFXCompilationMode compilationMode,
-            VFXTaskCompiledData taskData, HashSet<string> dependencies, bool forceShadeDebugSymbols)
+        public static StringBuilder Build(
+            VFXContext context,
+            VFXTask task,
+            VFXCompilationMode compilationMode,
+            VFXTaskCompiledData taskData,
+            HashSet<string> dependencies,
+            bool forceShadeDebugSymbols,
+            out List<string> errors)
         {
             string templatePath = null;
             if (!string.IsNullOrEmpty(task.templatePath))
@@ -237,10 +243,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
             }
 
-            return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols);
+            return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols, out errors);
         }
 
-        static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
+        private static void GetFunctionName(VFXBlock block, out string functionName, out string comment)
         {
             var settings = block.GetSettings(true).ToArray();
             if (settings.Length > 0)
@@ -580,9 +586,17 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             fillGraphValues = fillGraphValuesShaderWriter.ToString();
         }
 
-        static private StringBuilder Build(VFXContext context, VFXTask task, string templatePath, VFXCompilationMode compilationMode,
-                VFXTaskCompiledData taskData, HashSet<string> dependencies, bool enableShaderDebugSymbols)
+        static private StringBuilder Build(
+            VFXContext context,
+            VFXTask task,
+            string templatePath,
+            VFXCompilationMode compilationMode,
+            VFXTaskCompiledData taskData,
+            HashSet<string> dependencies,
+            bool enableShaderDebugSymbols,
+            out List<string> errors)
         {
+            errors = null;
             if (!context.SetupCompilation())
                 return null;
 
@@ -591,7 +605,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 var shaderGraph = shaderGraphOutput.GetShaderGraph();
                 if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
                 {
-                    var result = TryBuildFromShaderGraph(context, taskData);
+                    var result = TryBuildFromShaderGraph(context, taskData, out errors);
                     context.EndCompilation();
                     return result;
                 }
@@ -827,8 +841,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
         };
 
-        private static StringBuilder TryBuildFromShaderGraph(VFXContext context, VFXTaskCompiledData taskData)
+        private static StringBuilder TryBuildFromShaderGraph(VFXContext context, VFXTaskCompiledData taskData, out List<string> errors)
         {
+            errors = null;
             var stringBuilder = new StringBuilder();
 
             // Reconstruct the ShaderGraph.
@@ -848,7 +863,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             graph.ValidateGraph();
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
-            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph))
+            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph, out errors))
                 return stringBuilder;
 
             var target = graph.activeTargets.Where(o =>

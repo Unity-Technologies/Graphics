@@ -23,6 +23,12 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+
+            VisualElement borderContainer = this.Q(name: "node-border");
+            if (borderContainer != null)
+            {
+                borderContainer.style.overflow = Overflow.Visible;
+            }
         }
 
         void OnEdit()

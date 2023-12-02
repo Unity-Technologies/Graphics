@@ -127,7 +127,7 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
 
-            var model = (VFXContext)descriptor.CreateInstance();
+            var model = (VFXContext)descriptor.unTypedModel;
             return direction == Direction.Input
                 ? VFXContext.CanLink(model, controller.context.model)
                 : VFXContext.CanLink(controller.context.model, model);

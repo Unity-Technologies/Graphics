@@ -1,0 +1,54 @@
+﻿#BadgesHolder
+{
+    top: 10px;
+    right: -20px;
+    flex-direction: column;
+    position: absolute;
+}
+
+VFXOperatorUI.superCollapsed #BadgesHolder
+{
+    top: 6px;
+}
+
+VFXContextUI > #BadgesHolder {
+    top: 32px;
+}
+
+VFXBlockUI.collapsed > #BadgesHolder > VFXIconBadge {
+    position: absolute;
+    right: 0px;
+}
+
+VFXIconBadge {
+    margin-bottom: 0px;
+    width: 17px;
+    height: 17px;
+    flex-direction: row;
+}
+
+VFXIconBadge #tip {
+    align-self: center;
+    scale: 1 -1;
+    width: 7px;
+    height: 4px;
+    rotate: 90deg;
+    margin-left: -6px;
+    background-image : resource("GraphView/Badge/CommentTip.png");
+}
+
+VFXIconBadge.badge-error #tip {
+    -unity-background-image-tint-color: #b10c0c;
+}
+
+VFXIconBadge.badge-perf #tip, VFXIconBadge.badge-warning #tip {
+    -unity-background-image-tint-color: #ffc107;
+}
+
+VFXIconBadge.badge-error {
+    background-image : resource("console.erroricon@2x");
+}
+
+VFXIconBadge.badge-perf, VFXIconBadge.badge-warning {
+    background-image : resource("console.warnicon@2x");
+}

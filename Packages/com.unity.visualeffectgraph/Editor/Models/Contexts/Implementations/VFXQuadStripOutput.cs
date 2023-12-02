@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo(name = "Output ParticleStrip Quad", category = "Output", experimental = true)]
     class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {
+        internal const string WriteToPositionMessage = "Writing to Position attribute in a strip output can produce unexpected behavior";
+
         [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]
         protected StripTilingMode tilingMode = StripTilingMode.Stretch;
 
@@ -156,6 +157,14 @@ namespace UnityEditor.VFX
         {
             SanitizeOrient(this, version, UseCustomZAxis);
             base.Sanitize(version);
+        }
+
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (GetAttributesInfos().Any(x => x.mode.HasFlag(VFXAttributeMode.Write) && x.attrib.Equals(VFXAttribute.Position)))
+            {
+                manager.RegisterError("WritePositionInStrip", VFXErrorType.Warning, WriteToPositionMessage);
+            }
         }
     }
 }
