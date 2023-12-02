@@ -444,9 +444,12 @@ namespace UnityEngine.Rendering.Universal
             // rendering to the same screen. See e.g. test foundation 014 that renders a minimap)
             bool clearBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && !m_CreateColorTexture;
 
+            // force the clear if we are rendering to an offscreen depth texture
+            clearBackbufferOnFirstUse |= isCameraTargetOffscreenDepth;
+
             // UI Overlay is rendered by native engine if not done within SRP
             // To check if the engine does it natively post-URP, we look at SupportedRenderingFeatures
-            // and restrict it to cases where we resolve to screen and render UI overlay, i.e mostly final camera for game view 
+            // and restrict it to cases where we resolve to screen and render UI overlay, i.e mostly final camera for game view
             // We cannot use directly !cameraData.rendersOverlayUI but this is similar logic
             bool isNativeUIOverlayRenderingAfterURP = !SupportedRenderingFeatures.active.rendersUIOverlay && cameraData.resolveToScreen;
             bool isNativeRenderingAfterURP = UnityEngine.Rendering.Watermark.IsVisible() || isNativeUIOverlayRenderingAfterURP;
@@ -462,7 +465,7 @@ namespace UnityEngine.Rendering.Universal
             ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
             importBackbufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferDepthParams.clearColor = cameraBackgroundColor;
-            importBackbufferDepthParams.discardOnLastUse = true;
+            importBackbufferDepthParams.discardOnLastUse = !isCameraTargetOffscreenDepth;
 
 #if UNITY_EDITOR
             // on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos
@@ -559,10 +562,9 @@ namespace UnityEngine.Rendering.Universal
 
             // TODO: Don't think the backbuffer color and depth should be imported at all if !isBuiltinTexture, double check
             if (!isCameraTargetOffscreenDepth)
-            {
                 resourceData.backBufferColor = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferColorParams);
-                resourceData.backBufferDepth = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferDepthParams);
-            }
+
+            resourceData.backBufferDepth = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferDepthParams);
 
             #region Intermediate Camera Target
 
