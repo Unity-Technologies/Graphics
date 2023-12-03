@@ -100,7 +100,17 @@ namespace UnityEngine.Rendering.Universal
         internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
 
         // Non-rendergraph path only. Do NOT use with rendergraph!
-        internal ref CommandBuffer commandBuffer => ref frameData.Get<UniversalRenderingData>().commandBuffer;
+        internal ref CommandBuffer commandBuffer
+        {
+            get
+            {
+                ref var cmd = ref frameData.Get<UniversalRenderingData>().m_CommandBuffer;
+                if (cmd == null)
+                    Debug.LogError("RenderingData.commandBuffer is null. RenderGraph does not support this property. Please use the command buffer provided by the RenderGraphContext.");
+
+                return ref cmd;
+            }
+        }
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.

@@ -785,7 +785,7 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
-                    renderer.FinishRenderGraphRendering();
+                    renderer.FinishRenderGraphRendering(cmd);
                 }
                 else
                 {
@@ -1503,7 +1503,13 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
             data.perObjectData = GetPerObjectLightFlags(universalLightData.additionalLightsCount, isForwardPlus);
-            data.commandBuffer = cmd;
+
+            // Render graph does not support RenderingData.commandBuffer as its execution timeline might break.
+            // RenderingData.commandBuffer is available only for the old non-RG execute code path.
+            if(useRenderGraph)
+                data.m_CommandBuffer = null;
+            else
+                data.m_CommandBuffer = cmd;
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
             if (universalRenderer != null)

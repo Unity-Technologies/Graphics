@@ -1543,11 +1543,9 @@ namespace UnityEngine.Rendering.Universal
             m_FilmGrain = stack.GetComponent<FilmGrain>();
             m_Tonemapping = stack.GetComponent<Tonemapping>();
 
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             var material = m_Materials.finalPass;
-            var cmd = renderingData.commandBuffer;
 
             material.shaderKeywords = null;
 
@@ -1599,8 +1597,7 @@ namespace UnityEngine.Rendering.Universal
             }
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
-            // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+            debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
             bool outputToHDR = cameraData.isHDROutputActive;
             settings.isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);

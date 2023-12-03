@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler setupRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(SetupRenderPasses)}");
             public static readonly ProfilingSampler clearRenderingState = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
-            public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
+            public static readonly ProfilingSampler internalFinishRenderingCommon = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRenderingCommon)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
             internal static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
             internal static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
@@ -1124,12 +1124,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal void FinishRenderGraphRendering()
+        internal void FinishRenderGraphRendering(CommandBuffer cmd)
         {
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            OnFinishRenderGraphRendering();
-            InternalFinishRendering(cameraData.resolveFinalTarget, renderingData);
+            OnFinishRenderGraphRendering(cmd);
+            InternalFinishRenderingCommon(cmd, cameraData.resolveFinalTarget);
         }
 
         /// <summary>
@@ -1137,7 +1136,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal virtual void OnFinishRenderGraphRendering()
+        internal virtual void OnFinishRenderGraphRendering(CommandBuffer cmd)
         {
         }
 
@@ -1389,7 +1388,7 @@ namespace UnityEngine.Rendering.Universal
                     DrawGizmos(context, camera, GizmoSubset.PostImageEffects, ref renderingData);
                 }
 
-                InternalFinishRendering(context, cameraData.resolveFinalTarget);
+                InternalFinishRenderingExecute(context, cmd, cameraData.resolveFinalTarget);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -2141,12 +2140,13 @@ namespace UnityEngine.Rendering.Universal
             renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(bool resolveFinalTarget, UniversalRenderingData renderingData)
+        // Common ScriptableRenderer.Execute and RenderGraph path
+        void InternalFinishRenderingCommon(CommandBuffer cmd, bool resolveFinalTarget)
         {
-            using (new ProfilingScope(Profiling.internalFinishRendering))
+            using (new ProfilingScope(Profiling.internalFinishRenderingCommon))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                    m_ActiveRenderPassQueue[i].FrameCleanup(renderingData.commandBuffer);
+                    m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
                 // Happens when rendering the last camera in the camera stack.
                 if (resolveFinalTarget)
@@ -2155,11 +2155,11 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Disable obsolete warning for internal usage
                         #pragma warning disable CS0618
-                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(renderingData.commandBuffer);
+                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
                         #pragma warning restore CS0618
                     }
 
-                    FinishRendering(renderingData.commandBuffer);
+                    FinishRendering(cmd);
 
                     // We finished camera stacking and released all intermediate pipeline textures.
                     m_IsPipelineExecuting = false;
@@ -2168,16 +2168,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
+        // ScriptableRenderer.Execute path
+        void InternalFinishRenderingExecute(ScriptableRenderContext context, CommandBuffer cmd, bool resolveFinalTarget)
         {
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
-
-            InternalFinishRendering(resolveFinalTarget, renderingData);
+            InternalFinishRenderingCommon(cmd, resolveFinalTarget);
 
             ResetNativeRenderPassFrameData();
 
-            context.ExecuteCommandBuffer(renderingData.commandBuffer);
-            renderingData.commandBuffer.Clear();
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

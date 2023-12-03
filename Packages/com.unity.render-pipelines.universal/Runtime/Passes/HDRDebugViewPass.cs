@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //RenderGraph path
-        internal void RenderHDRDebug(RenderGraph renderGraph, CommandBuffer cmd, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
+        internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
         {
             bool requiresCIExyData = hdrDebugMode != HDRDebugMode.ValuesAbovePaperWhite;
             Vector4 luminanceParameters = GetLuminanceParameters(cameraData);

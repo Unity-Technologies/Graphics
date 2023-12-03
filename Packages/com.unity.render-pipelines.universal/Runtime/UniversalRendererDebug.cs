@@ -121,8 +121,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     Rect uvRect = CalculateUVRect(cameraData, width, height);
-
-                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle.nameID, uvRect, supportsStereo);
+                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, supportsStereo);
                 }
                 else
                 {
@@ -166,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
 
                     Rect uvRect = CalculateUVRect(cameraData, textureHeightPercent);
 
-                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle.nameID, uvRect, true);
+                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, true);
                 }
             }
         }

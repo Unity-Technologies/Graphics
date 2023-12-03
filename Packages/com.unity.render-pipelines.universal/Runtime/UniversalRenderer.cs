@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         case DebugFullScreenMode.Depth:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.nameID, normalizedRect, true);
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture, normalizedRect, true);
                             break;
                         }
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
@@ -490,7 +490,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                         case DebugFullScreenMode.ReflectionProbeAtlas:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRT, normalizedRect, false);
+                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRTHandle, normalizedRect, false);
                             break;
                         }
                         default:
@@ -1869,7 +1869,8 @@ namespace UnityEngine.Rendering.Universal
         internal override bool supportsNativeRenderPassRendergraphCompiler
         {
             get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3    // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 // UUM-56295
             ;
         }

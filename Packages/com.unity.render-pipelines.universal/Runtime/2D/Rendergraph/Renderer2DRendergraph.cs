@@ -637,8 +637,8 @@ namespace UnityEngine.Rendering.Universal
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, cameraData.camera, in finalColorHandle, in finalDepthHandle);
 
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
-            DebugHandler?.Setup(renderingData.commandBuffer, cameraData.isPreviewCamera);
-            DebugHandler?.Render(renderGraph, renderingData.commandBuffer, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
+            DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
+            DebugHandler?.Render(renderGraph, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.backBufferColor, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);

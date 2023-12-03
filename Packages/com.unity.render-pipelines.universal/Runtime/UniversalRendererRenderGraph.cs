@@ -780,7 +780,7 @@ namespace UnityEngine.Rendering.Universal
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth);
 
             if (DebugHandler != null)
-                DebugHandler.Setup(renderingData.commandBuffer, cameraData.isPreviewCamera);
+                DebugHandler.Setup(renderGraph, cameraData.isPreviewCamera);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRendering);
 
@@ -817,14 +817,13 @@ namespace UnityEngine.Rendering.Universal
             resourceData.EndFrame();
         }
 
-        internal override void OnFinishRenderGraphRendering()
+        internal override void OnFinishRenderGraphRendering(CommandBuffer cmd)
         {
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             if (this.renderingModeActual == RenderingMode.Deferred)
-                m_DeferredPass.OnCameraCleanup(renderingData.commandBuffer);
+                m_DeferredPass.OnCameraCleanup(cmd);
 
-            m_CopyDepthPass.OnCameraCleanup(renderingData.commandBuffer);
-            m_DepthNormalPrepass.OnCameraCleanup(renderingData.commandBuffer);
+            m_CopyDepthPass.OnCameraCleanup(cmd);
+            m_DepthNormalPrepass.OnCameraCleanup(cmd);
         }
 
         /// <summary>
@@ -1359,8 +1358,7 @@ namespace UnityEngine.Rendering.Universal
                 // make sure we are accessing the proper camera color in case it was replaced by injected passes
                 cameraColor = resourceData.cameraColor;
 
-                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !resolveToDebugScreen);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
                 m_FinalBlitPass.Render(renderGraph, cameraData, cameraColor, target, overlayUITexture);
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
@@ -1391,8 +1389,7 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle overlayUITexture = resourceData.overlayUITexture;
                 TextureHandle debugScreenTexture = resourceData.debugScreenColor;
 
-                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-                debugHandler.Render(renderGraph, renderingData.commandBuffer, cameraData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
+                debugHandler.Render(renderGraph, cameraData, debugScreenTexture, overlayUITexture, debugHandlerColorTarget);
             }
 
 #if UNITY_EDITOR
