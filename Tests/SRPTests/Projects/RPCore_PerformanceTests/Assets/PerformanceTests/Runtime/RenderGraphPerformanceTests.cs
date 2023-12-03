@@ -40,7 +40,7 @@ namespace PerformanceTests.Runtime
         public void OneTimeSetUp()
         {
             m_RenderGraph.ClearCompiledGraph();
-            m_RenderGraph.NativeRenderPassesEnabled = m_Compiler == Compiler.NativeRenderGraph;
+            m_RenderGraph.nativeRenderPassesEnabled = m_Compiler == Compiler.NativeRenderGraph;
         }
 
         [OneTimeTearDown]
@@ -84,6 +84,7 @@ namespace PerformanceTests.Runtime
             {
                 Compiler.NativeRenderGraph => ProfilingSampler.Get((NativePassCompiler.NativeCompilerProfileId) profilerId),
                 Compiler.RenderGraph => ProfilingSampler.Get((RenderGraphProfileId) profilerId),
+                _ => throw new NotImplementedException()
             };
 
             Type profileIdEnumType = m_Compiler == Compiler.NativeRenderGraph
@@ -153,8 +154,8 @@ namespace PerformanceTests.Runtime
             {
                 using (var builder = m_RenderGraph.AddRasterRenderPass<SimplePassData>("Simple Pass", out var passData))
                 {
-                    builder.UseTextureFragment(colorTarget, 0, AccessFlags.Write);
-                    builder.UseTextureFragmentDepth(depthTarget, AccessFlags.Write);
+                    builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
                     builder.AllowPassCulling(false);
                     builder.SetRenderFunc((SimplePassData data, RasterGraphContext context) => { });
                 }

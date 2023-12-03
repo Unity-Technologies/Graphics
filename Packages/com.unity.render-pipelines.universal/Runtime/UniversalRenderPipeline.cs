@@ -172,7 +172,8 @@ namespace UnityEngine.Rendering.Universal
         internal static RenderGraph s_RenderGraph;
         internal static RTHandleResourcePool s_RTHandlePool;
 
-        private static bool useRenderGraph;
+        // internal for tests
+        internal static bool useRenderGraph;
 
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
