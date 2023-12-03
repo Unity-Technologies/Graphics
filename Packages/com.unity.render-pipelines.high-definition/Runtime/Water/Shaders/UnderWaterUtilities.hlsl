@@ -266,7 +266,7 @@ void ComputeRefractionSplitColor(PositionInputs posInput, inout float4 outColor,
         outColor            = 0;
 
         // Because we don't have control over shader blend mode (to be compatible with VT and MV), we handle blending manually
-        if (_BlendMode == BLENDMODE_ADDITIVE)
+        if (_BlendMode == BLENDINGMODE_ADDITIVE)
             outBeforeRefractionColor.a = outBeforeRefractionAlpha.a = 0;
     }
     else

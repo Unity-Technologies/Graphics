@@ -55,7 +55,7 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
 
     // In the case of alpha blend mode the code should be float4(diffuseLighting + (specularLighting / max(opacity, 0.01)), opacity)
     // However this have precision issue when reaching 0, so we change the blend mode and apply src * src_a inside the shader instead
-    if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
+    if (_BlendMode == BLENDINGMODE_ALPHA || _BlendMode == BLENDINGMODE_ADDITIVE)
         return float4(diffuseLighting * opacity + specularLighting * (
 #ifdef SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
         _EnableBlendModePreserveSpecularLighting ? 1.0f :
@@ -81,7 +81,7 @@ float4 ApplyFogOnTransparent(float4 inputColor, float3 volColor, float3 volOpaci
     float4 result = inputColor;
 
 #ifdef _ENABLE_FOG_ON_TRANSPARENT
-    if (_BlendMode == BLENDMODE_ALPHA)
+    if (_BlendMode == BLENDINGMODE_ALPHA)
     {
         // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
         // result.rgb = lerp(result.rgb, unpremul_volColor * result.a, volOpacity);
@@ -89,12 +89,12 @@ float4 ApplyFogOnTransparent(float4 inputColor, float3 volColor, float3 volOpaci
         // result.rgb = result.rgb + volColor * result.a - result.rgb * volOpacity;
         result.rgb = result.rgb * (1 - volOpacity) + volColor * result.a;
     }
-    else if (_BlendMode == BLENDMODE_ADDITIVE)
+    else if (_BlendMode == BLENDINGMODE_ADDITIVE)
     {
         // For additive, we just need to fade to black with fog density (black + background == background color == fog color)
         result.rgb = result.rgb * (1.0 - volOpacity);
     }
-    else if (_BlendMode == BLENDMODE_PREMULTIPLY)
+    else if (_BlendMode == BLENDINGMODE_PREMULTIPLY)
     {
         // For Pre-Multiplied Alpha Blend, we need to multiply fog color by src alpha to match regular alpha blending formula.
         // result.rgb = lerp(result.rgb, unpremul_volColor * result.a, volOpacity);

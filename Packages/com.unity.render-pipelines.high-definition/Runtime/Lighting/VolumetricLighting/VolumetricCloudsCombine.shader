@@ -21,7 +21,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         // Atmospheric scattering is computed while tracing
         #define _TRANSPARENT_REFRACTIVE_SORT
         #define _ENABLE_FOG_ON_TRANSPARENT
-        #define _BlendMode BLENDMODE_ALPHA
+        #define _BlendMode BLENDINGMODE_ALPHA
         #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
