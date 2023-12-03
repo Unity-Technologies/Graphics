@@ -71,8 +71,8 @@ The **Soft Shadows Quality** property on a Light:
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 15, see the [Changelog](xref:changelog).
+For a complete list of issues resolved in URP 15, refer to the [Changelog](xref:changelog).
 
 ## Known issues
 
-For information on the known issues in URP 15, see the section [Known issues](../known-issues.md).
+For information on the known issues in URP 15, refer to the section [Known issues](../known-issues.md).

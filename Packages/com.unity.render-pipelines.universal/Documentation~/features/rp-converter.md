@@ -20,7 +20,7 @@ To convert project assets:
 
     ![Select converters](../Images/rp-converter/select-converters.png)
 
-    For the list of available converters, see the section [Converters](#converters).
+    For the list of available converters, refer to the section [Converters](#converters).
 
 4. Click **Initialize Converters**. The Render Pipeline Converter preprocesses the assets in the project and shows the list of elements to convert. Select or clear check boxes next to assets to include or exclude them from the conversion process.
 
@@ -30,11 +30,11 @@ To convert project assets:
 
     ![Initialized converters](../Images/rp-converter/after-initialize.png)
 
-    Click a converter to see the list of items that a converter is about to convert.
+    Click a converter to check the list of items that a converter is about to convert.
 
     ![Converter detailed view](../Images/rp-converter/converter-detailed-view.png)
 
-    **Yellow icon**: a yellow icon next to an element indicates that a user action might be required to run the conversion. Hover the mouse pointer over the icon to see the description of the issue.
+    **Yellow icon**: a yellow icon next to an element indicates that a user action might be required to run the conversion. Hover the mouse pointer over the icon to check the description of the issue.
 
 5. Click **Convert Assets** to start the conversion process.
 
@@ -50,7 +50,7 @@ To convert project assets:
 
     **Red icon**: the conversion failed.
 
-6. Click a converter to see the list of processed items in that converter.
+6. Click a converter to check the list of processed items in that converter.
 
     ![Conversion finished. Detailed view of a converter](../Images/rp-converter/conversion-finished-details.png)
 
@@ -156,4 +156,4 @@ To run the example conversion from the command line, use the following command:
 "<path to Unity application> -projectPath <project path> -batchmode -executeMethod MyUpgradeScript.ConvertBuiltinToURPMaterials
 ```
 
-See also: [Unity Editor command line arguments](https://docs.unity3d.com/Manual/EditorCommandLineArguments.html).
+Also check: [Unity Editor command line arguments](https://docs.unity3d.com/Manual/EditorCommandLineArguments.html).

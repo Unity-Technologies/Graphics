@@ -21,7 +21,7 @@ This material type comes with a distinct set of Graph Settings, which significan
 
 ### Vertex Context
 
-The Vertex context represents the vertex stage of this shader. Unity executes any block you connect to this context in the vertex function of this shader. For more information, see Master Stack.
+The Vertex context represents the vertex stage of this shader. Unity executes any block you connect to this context in the vertex function of this shader. For more information, refer to [Master Stack](https://docs.unity3d.com/Packages/com.unity.shadergraph@17.0/manual/Master-Stack.html).
 
 Vertex blocks are not compatible with the Canvas Master Stack.
 

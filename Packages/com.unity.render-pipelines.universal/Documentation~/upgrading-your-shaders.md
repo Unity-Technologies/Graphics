@@ -2,7 +2,7 @@
 
 Shaders written for the Built-in Render Pipeline are not compatible with the URP shaders.
 
-For an overview of the mapping between built-in shaders and URP shaders, see [Shader mappings](#shader-mappings).
+For an overview of the mapping between built-in shaders and URP shaders, refer to [Shader mappings](#shader-mappings).
 
 Use the [Render Pipeline Converter](features/rp-converter.md) to apply the shader mappings automatically.
 

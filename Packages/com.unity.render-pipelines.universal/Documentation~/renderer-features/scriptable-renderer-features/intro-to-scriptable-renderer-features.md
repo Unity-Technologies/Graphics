@@ -7,7 +7,7 @@ The following sections explain the fundamentals of Scriptable Renderer Features:
 * [What is a Scriptable Renderer Feature?](#scriptable-renderer-feature)
 * [Scriptable Renderer Feature or Scriptable Render Pass?](#renderer-feature-or-render-pass)
 
-Scriptable Render Passes are a fundamental part of Scriptable Renderer Features. For more information, see [Scriptable Render Pass Fundamentals](./intro-to-scriptable-render-passes.md).
+Scriptable Render Passes are a fundamental part of Scriptable Renderer Features. For more information, refer to [Scriptable Render Pass Fundamentals](./intro-to-scriptable-render-passes.md).
 
 ## <a name="scriptable-renderer-feature"></a>What is a Scriptable Renderer Feature
 

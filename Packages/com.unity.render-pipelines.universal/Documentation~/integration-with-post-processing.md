@@ -22,13 +22,13 @@ This section describes how to configure Post-processing in URP.
 
 Post-processing is preconfigured in the SampleScene scene in URP Template.
 
-To see the preconfigured effects, select **Post-process Volume** in the scene.
+To check the preconfigured effects, select **Post-process Volume** in the scene.
 
 ![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-with-post-proc.png)
 
 To add extra effects, [add Volume Overrides to the Volume](VolumeOverrides.md#volume-add-override).
 
-To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
+To configure location-based post-processing effects, refer to the documentation on [How to use Local Volumes](Volumes.md#volume-local).
 
 ### Configuring post-processing in a new URP Scene
 
@@ -54,7 +54,7 @@ Now you can adjust post-processing effect settings in Overrides in the Volume co
 
 ![Editing post-processing effects using Overrides.](Images/post-proc/volume-new-scene-post-proc-from-scratch.png)
 
-To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
+To configure location-based post-processing effects, refer to the documentation on [How to use Local Volumes](Volumes.md#volume-local).
 
 ## Post-processing in URP for mobile devices
 
