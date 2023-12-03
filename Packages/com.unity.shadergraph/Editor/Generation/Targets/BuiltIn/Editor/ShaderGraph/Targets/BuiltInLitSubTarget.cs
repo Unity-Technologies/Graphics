@@ -103,7 +103,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
-            context.AddBlock(BlockFields.SurfaceDescription.Specular, (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
+            // when the surface options are material controlled, we must show all of these blocks
+            // when target controlled, we can cull the unnecessary blocks
+            // NOTE: Specular workflow is not supported so we need to not have this check now,
+            // otherwise allowMaterialOverride will show a block that does nothing.
+            //context.AddBlock(BlockFields.SurfaceDescription.Specular, (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic, (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha, (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
