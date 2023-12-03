@@ -2710,12 +2710,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     uint result = 0u;
 
                     bool baked = light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked;
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && data.includeForRayTracing;
-                    bool pathtracing = raytracing && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value;
+                    bool raytracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+                    bool includeForRaytracing = raytracingEnabled && data.includeForRayTracing;
+                    bool includeForPathtracing = raytracingEnabled && hdCamera.IsPathTracingEnabled() && data.includeForPathTracing;
 
-                    if (raytracing && !baked)
+                    if (includeForRaytracing && !baked)
                         result |= (uint)WorldLightFlags.Raytracing;
-                    if (pathtracing)
+                    if (includeForPathtracing)
                         result |= (uint)WorldLightFlags.Pathtracing;
 
                     return result;

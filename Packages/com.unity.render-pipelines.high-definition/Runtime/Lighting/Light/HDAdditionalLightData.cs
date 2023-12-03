@@ -762,6 +762,28 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        [SerializeField]
+        bool m_IncludeForPathTracing = true;
+        /// <summary>
+        /// Controls if the light is enabled when the camera has Path Tracing enabled.
+        /// </summary>
+        public bool includeForPathTracing
+        {
+            get => m_IncludeForPathTracing;
+            set
+            {
+                if (m_IncludeForPathTracing == value)
+                    return;
+
+                m_IncludeForPathTracing = value;
+
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).includeForPathTracing = m_IncludeForPathTracing;
+                UpdateAllLightValues();
+            }
+        }
+
         [Range(k_MinAreaLightShadowCone, k_MaxAreaLightShadowCone)]
         [SerializeField, FormerlySerializedAs("areaLightShadowCone")]
         float m_AreaLightShadowCone = 120.0f;
@@ -2933,6 +2955,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_IESPoint = m_IESPoint;
             data.m_IESSpot = m_IESSpot;
             data.m_IncludeForRayTracing = m_IncludeForRayTracing;
+            data.m_IncludeForPathTracing = m_IncludeForPathTracing;
             data.m_AreaLightShadowCone = m_AreaLightShadowCone;
             data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
             data.m_InteractsWithSky = m_InteractsWithSky;
@@ -3840,6 +3863,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.angularDiameter = m_AngularDiameter;
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
+            lightRenderData.includeForPathTracing = m_IncludeForPathTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
 
             // If we are pure shadowmask, we disable raytraced shadows.
