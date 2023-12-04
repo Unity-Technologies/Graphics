@@ -370,7 +370,6 @@ namespace UnityEditor.VFX.UI
         {
             if (controller != null && m_AttachedComponent != null && m_View.controller.graph != null)
             {
-                controller.RecompileExpressionGraphIfNeeded();
                 bool wasRecording = false;
                 if (m_BoundsRecorder != null)
                 {
@@ -823,6 +822,7 @@ namespace UnityEditor.VFX.UI
             if (systemNamesChanged)
                 UpdateBoundsRecorder();
         }
+
 
         Dictionary<string, VFXComponentBoardEventUI> m_Events = new Dictionary<string, VFXComponentBoardEventUI>();
 
