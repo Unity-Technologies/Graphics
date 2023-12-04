@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers && !CoreUtils.IsSceneLightingDisabled(renderingData.cameraData.camera));
 
                 if (m_LightCookieManager != null)
                 {
