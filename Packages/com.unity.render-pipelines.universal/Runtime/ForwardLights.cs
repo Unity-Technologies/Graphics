@@ -234,26 +234,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var worldToViews = new Fixed2<float4x4>(cameraData.GetViewMatrix(0), cameraData.GetViewMatrix(math.min(1, viewCount - 1)));
                 var viewToClips = new Fixed2<float4x4>(cameraData.GetProjectionMatrix(0), cameraData.GetProjectionMatrix(math.min(1, viewCount - 1)));
-
-                // Should probe come after otherProbe?
-                static bool IsProbeGreater(VisibleReflectionProbe probe, VisibleReflectionProbe otherProbe)
-                {
-                    return probe.importance < otherProbe.importance || probe.bounds.extents.sqrMagnitude > otherProbe.bounds.extents.sqrMagnitude;
-                }
-
-                for (var i = 1; i < reflectionProbeCount; i++)
-                {
-                    var probe = reflectionProbes[i];
-                    var j = i - 1;
-                    while (j >= 0 && IsProbeGreater(reflectionProbes[j], probe))
-                    {
-                        reflectionProbes[j + 1] = reflectionProbes[j];
-                        j--;
-                    }
-
-                    reflectionProbes[j + 1] = probe;
-                }
-
+                
                 var minMaxZs = new NativeArray<float2>(itemsPerTile * viewCount, Allocator.TempJob);
 
                 var lightMinMaxZJob = new LightMinMaxZJob
