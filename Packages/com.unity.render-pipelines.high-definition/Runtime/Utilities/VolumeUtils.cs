@@ -162,6 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 diffusionProfileList.ReplaceWithArray(array);
                 EditorUtility.SetDirty(volumeProfile);
+                VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
 
                 return ok;
             }
