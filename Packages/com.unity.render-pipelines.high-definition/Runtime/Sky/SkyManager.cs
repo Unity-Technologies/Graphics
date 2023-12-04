@@ -1457,7 +1457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                passData.polychromaticAlpha = waterEnabled || Fog.IsPBRFogEnabled(hdCamera);
+                passData.polychromaticAlpha = (waterEnabled || Fog.IsPBRFogEnabled(hdCamera)) && !passData.volumetricFogDebug;
                 if (passData.polychromaticAlpha)
                 {
                     passData.colorBuffer = builder.ReadTexture(colorBuffer);
