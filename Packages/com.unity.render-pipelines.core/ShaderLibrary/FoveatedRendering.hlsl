@@ -1,26 +1,20 @@
 #ifndef UNITY_FOVEATED_RENDERING_INCLUDED
 #define UNITY_FOVEATED_RENDERING_INCLUDED
 
-#if (!defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_OSX) || defined(UNITY_PLATFORM_IOS))) || defined(SHADER_API_PS5)
+/*#ifndef UNITY_FOVEATED_RENDERING_KEYWORDS_INCLUDED
+#error Use #include_with_pragmas "FoveatedRenderingKeywords.hlsl" before including this file
+#endif*/
 
-    #if defined(SHADER_API_PS5) || defined(SHADER_API_METAL)
+#if SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
+#if defined(SHADER_API_PS5)
+    #include "Packages/com.unity.render-pipelines.ps5/ShaderLibrary/API/FoveatedRendering_PSSL.hlsl"
+#endif
 
-        #define SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER 1
-
-        #if defined(SHADER_API_PS5)
-            #include "Packages/com.unity.render-pipelines.ps5/ShaderLibrary/API/FoveatedRendering_PSSL.hlsl"
-        #endif
-
-        #if defined(SHADER_API_METAL)
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/FoveatedRendering_Metal.hlsl"
-        #endif
-
-    #endif
-
+#if defined(SHADER_API_METAL)
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/FoveatedRendering_Metal.hlsl"
 #endif
 
 // coordinate remapping functions for foveated rendering
-#if SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
 #define FOVEATED_FLIP_Y(uv) uv.y = 1.0f - uv.y
 float2 FoveatedRemapLinearToNonUniform(float2 uv)
 {
