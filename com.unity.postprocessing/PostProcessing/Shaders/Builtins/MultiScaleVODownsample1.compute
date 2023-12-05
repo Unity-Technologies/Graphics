@@ -29,11 +29,11 @@
 
 #ifdef MSAA
 // Output textures
+RWTexture2D<float2> DS4x;
+RWTexture2DArray<float2> DS4xAtlas;
 RWTexture2D<float2> LinearZ;
 RWTexture2D<float2> DS2x;
 RWTexture2DArray<float2> DS2xAtlas;
-RWTexture2D<float2> DS4x;
-RWTexture2DArray<float2> DS4xAtlas;
 
 // Input textures
 Texture2D<float4> Depth;
@@ -42,11 +42,11 @@ Texture2D<float4> Depth;
 groupshared float2 g_CacheW[256];
 #else
 // Output textures
+RWTexture2D<float> DS4x;
+RWTexture2DArray<float> DS4xAtlas;
 RWTexture2D<float> LinearZ;
 RWTexture2D<float> DS2x;
 RWTexture2DArray<float> DS2xAtlas;
-RWTexture2D<float> DS4x;
-RWTexture2DArray<float> DS4xAtlas;
 
 // Input textures
 Texture2D<float> Depth;
@@ -122,7 +122,6 @@ void main(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
     uint slice = ((st.x & 3) | (st.y << 2)) & 15;
     DS2x[st] = w1;
     DS2xAtlas[uint3(st >> 2, slice)] = w1;
-
     if ((GI & 011) == 0)
     {
         st = DTid.xy >> 1;
@@ -130,7 +129,6 @@ void main(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
         DS4x[st] = w1;
         DS4xAtlas[uint3(st >> 2, slice)] = w1;
     }
-
 }
 
 #endif

@@ -34,6 +34,19 @@
 #pragma kernel MultiScaleVOUpSample_MSAA_blendout           MAIN=MultiScaleVOUpSample_MSAA_blendout             MSAA BLEND_WITH_HIGHER_RESOLUTION
 #pragma kernel MultiScaleVOUpSample_MSAA_premin_blendout    MAIN=MultiScaleVOUpSample_MSAA_premin_blendout      MSAA COMBINE_LOWER_RESOLUTIONS BLEND_WITH_HIGHER_RESOLUTION
 
+#pragma kernel MultiScaleVOUpSample_Float4                  MAIN=MultiScaleVOUpSample_Float4                    FLOAT4
+#pragma kernel MultiScaleVOUpSample_invert_Float4           MAIN=MultiScaleVOUpSample_invert_Float4             INVERT FLOAT4
+#pragma kernel MultiScaleVOUpSample_premin_Float4           MAIN=MultiScaleVOUpSample_premin_Float4             COMBINE_LOWER_RESOLUTIONS FLOAT4
+#pragma kernel MultiScaleVOUpSample_blendout_Float4         MAIN=MultiScaleVOUpSample_blendout_Float4           BLEND_WITH_HIGHER_RESOLUTION FLOAT4
+#pragma kernel MultiScaleVOUpSample_premin_blendout_Float4  MAIN=MultiScaleVOUpSample_premin_blendout_Float4    COMBINE_LOWER_RESOLUTIONS BLEND_WITH_HIGHER_RESOLUTION FLOAT4
+
+#pragma kernel MultiScaleVOUpSample_MSAA_Float4                    MAIN=MultiScaleVOUpSample_MSAA_Float4                    FLOAT4
+#pragma kernel MultiScaleVOUpSample_MSAA_invert_Float4             MAIN=MultiScaleVOUpSample_MSAA_invert_Float4             MSAA INVERT FLOAT4
+#pragma kernel MultiScaleVOUpSample_MSAA_premin_Float4             MAIN=MultiScaleVOUpSample_MSAA_premin_Float4             MSAA COMBINE_LOWER_RESOLUTIONS FLOAT4
+#pragma kernel MultiScaleVOUpSample_MSAA_blendout_Float4           MAIN=MultiScaleVOUpSample_MSAA_blendout_Float4           MSAA BLEND_WITH_HIGHER_RESOLUTION FLOAT4
+#pragma kernel MultiScaleVOUpSample_MSAA_premin_blendout_Float4    MAIN=MultiScaleVOUpSample_MSAA_premin_blendout_Float4    MSAA COMBINE_LOWER_RESOLUTIONS BLEND_WITH_HIGHER_RESOLUTION FLOAT4
+
+
 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
 
 
@@ -67,7 +80,11 @@
     #endif
 
     // Ouput textures
+    #ifdef FLOAT4
+    RWTexture2D<unorm float4> AoResult;
+    #else
     RWTexture2D<float> AoResult;
+    #endif
 
     // Shared memory
     groupshared float DepthCache[256];
@@ -416,15 +433,41 @@ void MAIN(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
     int2 OutST = DTid.xy << 1;
 
     #ifdef INVERT
-        AoResult[OutST + int2(-1,  0)] = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        AoResult[OutST + int2( 0,  0)] = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        AoResult[OutST + int2( 0, -1)] = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        AoResult[OutST + int2(-1, -1)] = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        float x = 1.0 - BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
+        float y = 1.0 - BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
+        float z = 1.0 - BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
+        float w = 1.0 - BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+
+        #ifdef FLOAT4
+            AoResult[OutST + int2(-1, 0)]   = float4(x, x, x, x);
+            AoResult[OutST + int2(0, 0)]    = float4(y, y, y, y);
+            AoResult[OutST + int2(0, -1)]   = float4(z, z, z, z);
+            AoResult[OutST + int2(-1, -1)]  = float4(w, w, w, w);
+        #else
+            AoResult[OutST + int2(-1, 0)]   = x;
+            AoResult[OutST + int2(0, 0)]    = y;
+            AoResult[OutST + int2(0, -1)]   = z;
+            AoResult[OutST + int2(-1, -1)]  = w;
+        #endif
+
     #else
-        AoResult[OutST + int2(-1,  0)] = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
-        AoResult[OutST + int2( 0,  0)] = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
-        AoResult[OutST + int2( 0, -1)] = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
-        AoResult[OutST + int2(-1, -1)] = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+        float x = BilateralUpsample(HiDepths.x, HiSSAOs.x, LoDepths.xyzw, LoSSAOs.xyzw);
+        float y = BilateralUpsample(HiDepths.y, HiSSAOs.y, LoDepths.yzwx, LoSSAOs.yzwx);
+        float z = BilateralUpsample(HiDepths.z, HiSSAOs.z, LoDepths.zwxy, LoSSAOs.zwxy);
+        float w = BilateralUpsample(HiDepths.w, HiSSAOs.w, LoDepths.wxyz, LoSSAOs.wxyz);
+
+        #ifdef FLOAT4
+            AoResult[OutST + int2(-1, 0)] = float4(x, x, x, x);
+            AoResult[OutST + int2(0, 0)] = float4(y, y, y, y);
+            AoResult[OutST + int2(0, -1)] = float4(z, z, z, z);
+            AoResult[OutST + int2(-1, -1)] = float4(w, w, w, w);
+        #else
+            AoResult[OutST + int2(-1, 0)] = x;
+            AoResult[OutST + int2(0, 0)] = y;
+            AoResult[OutST + int2(0, -1)] = z;
+            AoResult[OutST + int2(-1, -1)] = w;
+        #endif
+
     #endif
 #endif
 }

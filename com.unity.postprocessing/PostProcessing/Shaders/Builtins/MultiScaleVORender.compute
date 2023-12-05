@@ -27,6 +27,12 @@
 #pragma kernel MultiScaleVORender_MSAA                      MAIN=MultiScaleVORender_MSAA                MSAA
 #pragma kernel MultiScaleVORender_MSAA_interleaved          MAIN=MultiScaleVORender_MSAA_interleaved    MSAA INTERLEAVE_RESULT
 
+#pragma kernel MultiScaleVORender_Float4                    MAIN=MultiScaleVORender_Float4                  FLOAT4
+#pragma kernel MultiScaleVORender_interleaved_Float4        MAIN=MultiScaleVORender_interleaved_Float4      INTERLEAVE_RESULT FLOAT4
+#pragma kernel MultiScaleVORender_MSAA_Float4               MAIN=MultiScaleVORender_MSAA_Float4             MSAA FLOAT4
+#pragma kernel MultiScaleVORender_MSAA_interleaved_Float4   MAIN=MultiScaleVORender_MSAA_interleaved_Float4 MSAA INTERLEAVE_RESULT FLOAT4
+
+
 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/StdLib.hlsl"
 
 #ifndef INTERLEAVE_RESULT
@@ -68,7 +74,11 @@
     #endif
 
     // Output texture
+#ifdef FLOAT4
+    RWTexture2D<unorm float4> Occlusion;
+#else
     RWTexture2D<float> Occlusion;
+#endif
 
     // Shared memory
     groupshared float DepthSamples[TILE_DIM * TILE_DIM];

@@ -31,9 +31,13 @@ namespace UnityEditor.Rendering.PostProcessing
 
         public override void OnInspectorGUI()
         {
-            if (!SystemInfo.supportsComputeShaders || EditorUtilities.isTargetingWebGL)
+            if (!SystemInfo.supportsComputeShaders)
             {
                 EditorGUILayout.HelpBox("Auto exposure requires compute shader support which is not available on this platform.", MessageType.Error);
+            }
+            else if (EditorUtilities.isTargetingWebGL)
+            {
+                EditorGUILayout.HelpBox("Auto exposure requires compute shader support (WebGPU) when running on Web.", MessageType.Warning);
             }
             else if (EditorUtilities.isTargetingAndroid)
             {

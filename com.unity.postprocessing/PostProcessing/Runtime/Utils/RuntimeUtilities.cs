@@ -862,14 +862,28 @@ namespace UnityEngine.Rendering.PostProcessing
         /// Returns <c>true</c> if the target platform is WebGL,
         /// <c>false</c> otherwise.
         /// </summary>
-        public static bool isWebGL
+        public static bool isWebNonWebGPU
         {
-            get {
-#if UNITY_WEBGL
+            get
+            {
+#if UNITY_EDITOR
+    #if UNITY_WEBGL
+        #if UNITY_2023_2_OR_NEWER
+                return PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL).First() != GraphicsDeviceType.WebGPU;
+        #else
                 return true;
-#else
+        #endif
+    #else
                 return false;
+    #endif
+#else
+                return Application.platform == RuntimePlatform.WebGLPlayer
+    #if UNITY_2023_2_OR_NEWER
+                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU
+    #endif
+                    ;
 #endif
+
             }
         }
 
