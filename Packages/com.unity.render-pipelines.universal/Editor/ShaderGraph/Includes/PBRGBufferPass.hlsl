@@ -69,7 +69,7 @@ FragmentOutput frag(PackedVaryings packedInput)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    #if _ALPHATEST_ON
+    #if defined(_ALPHATEST_ON)
         half alpha = surfaceDescription.Alpha;
         clip(alpha - surfaceDescription.AlphaClipThreshold);
     #elif _SURFACE_TYPE_TRANSPARENT
