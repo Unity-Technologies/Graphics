@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Analytics
     internal class VolumePriorityUsageAnalytic
     {
 
-        [AnalyticInfo(eventName: "uVolumePriorityUsageAnalyticData", version: 2)]
+        [AnalyticInfo(eventName: "uVolumePriorityUsageAnalyticData", version: 2, vendorKey: "unity.srp")]
         class Analytic : IAnalytic
         {
             public Analytic(Volume volume, string guid)
