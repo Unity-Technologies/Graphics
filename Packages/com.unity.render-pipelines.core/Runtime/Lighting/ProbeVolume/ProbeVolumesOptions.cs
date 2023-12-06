@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
         [Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
-        public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.1f, 0.0f, 0.5f);
+        public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
 
         /// <summary>
@@ -65,7 +65,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         [Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
         public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
-
 
         /// <summary>
         /// When enabled, reflection probe normalization can only decrease the reflections intensity.

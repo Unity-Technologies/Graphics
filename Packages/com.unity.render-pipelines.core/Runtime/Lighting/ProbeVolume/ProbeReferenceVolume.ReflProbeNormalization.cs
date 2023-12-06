@@ -24,16 +24,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
-        internal void Init()
-        {
-            SubscribeOnBakeStarted();
-        }
-
-        internal void Cleanup()
-        {
-            UnsubscribeOnBakeStarted();
-        }
-
         const float kInvalidSH = 1f;
         const float kValidSHThresh = 0.33f;
 
@@ -109,29 +99,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void SubscribeOnBakeStarted()
-        {
-            UnsubscribeOnBakeStarted();
-            Lightmapping.bakeStarted += AddRequestsToLightmapper;
-        }
-
-        private void UnsubscribeOnBakeStarted()
-        {
-            Lightmapping.bakeStarted -= AddRequestsToLightmapper;
-            RemoveRequestsFromLightmapper();
-        }
-
         internal void AddRequestsToLightmapper()
         {
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, (new List<Vector3>(m_RequestPositions.Values)).ToArray());
 
             Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
             Lightmapping.bakeCompleted += OnAdditionalProbesBakeCompleted;
-        }
-
-        private void RemoveRequestsFromLightmapper()
-        {
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, null);
         }
 
         private void OnAdditionalProbesBakeCompleted()
