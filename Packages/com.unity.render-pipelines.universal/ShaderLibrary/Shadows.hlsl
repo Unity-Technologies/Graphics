@@ -276,14 +276,14 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real shadowStrength = shadowParams.x;
 
     // Quality levels are only for platforms requiring strict static branches
-    #if _SHADOWS_SOFT_LOW
+    #if defined(_SHADOWS_SOFT_LOW)
         attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif _SHADOWS_SOFT_MEDIUM
+    #elif defined(_SHADOWS_SOFT_MEDIUM)
         attenuation = SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif _SHADOWS_SOFT_HIGH
+    #elif defined(_SHADOWS_SOFT_HIGH)
         attenuation = SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif _SHADOWS_SOFT
-        if(shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
+    #elif defined(_SHADOWS_SOFT)
+        if (shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
         {
             attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
         }
