@@ -4,15 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.3.1] - 2023-00-00
+## [3.4.0] - 2023-12-11
+
+### Added
+- Added WebGPU support
 
 ### Fixed
-- Fixed obsolete FormatUsage bug
-- Disabled compute based effects not supported on WebGL and Android OpenGL (IN-2999)
+- Fixed obsolete FormatUsage error
+- Fixed MSVO to support platforms with limited storage texture support
+- Fixed compute based effects not supported on WebGL and Android OpenGL (IN-2999)
 - Fixed grid gizmo is visible through geometry when Post Process Layer is enabled (IN-10318)
 - Fixed transparent objects rendering incorrectly when TAA is disabled (IN-31494)
-- Fixed MSVO to support platforms with limited storage texture support.
-- added WebGPU API platform defines
 
 ## [3.3.0] - 2023-05-11
 
