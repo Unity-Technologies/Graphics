@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
         public fixed float _XRNonJitteredViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRNonJitteredInvViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
         public fixed float _XRPrevViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
         public fixed float _XRPrevInvViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];

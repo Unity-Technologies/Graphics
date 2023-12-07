@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 invViewProjMatrix;
             /// <summary>Non-jittered View Projection matrix.</summary>
             public Matrix4x4 nonJitteredViewProjMatrix;
+            /// <summary>Non-jittered View Projection matrix.</summary>
+            public Matrix4x4 nonJitteredInvViewProjMatrix;
             /// <summary>Previous view matrix from previous frame.</summary>
             public Matrix4x4 prevViewMatrix;
             /// <summary>Non-jittered Projection matrix from previous frame.</summary>
@@ -1524,6 +1526,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CameraViewProjMatrix = mainViewConstants.viewProjMatrix;
             cb._InvViewProjMatrix = mainViewConstants.invViewProjMatrix;
             cb._NonJitteredViewProjMatrix = mainViewConstants.nonJitteredViewProjMatrix;
+            cb._NonJitteredInvViewProjMatrix = mainViewConstants.nonJitteredInvViewProjMatrix;
             cb._PrevViewProjMatrix = mainViewConstants.prevViewProjMatrix;
             cb._PrevInvViewProjMatrix = mainViewConstants.prevInvViewProjMatrix;
             cb._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
@@ -1631,6 +1634,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._XRViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].viewProjMatrix[j];
                     cb._XRInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].invViewProjMatrix[j];
                     cb._XRNonJitteredViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredViewProjMatrix[j];
+                    cb._XRNonJitteredInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredInvViewProjMatrix[j];
                     cb._XRPrevViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrix[j];
                     cb._XRPrevInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevInvViewProjMatrix[j];
                     cb._XRViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].viewProjectionNoCameraTrans[j];
@@ -2028,6 +2032,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.viewProjMatrix = gpuProj * gpuView;
             viewConstants.invViewProjMatrix = viewConstants.viewProjMatrix.inverse;
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
+            viewConstants.nonJitteredInvViewProjMatrix = viewConstants.nonJitteredViewProjMatrix.inverse;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
             viewConstants.viewProjectionNoCameraTrans = gpuVPNoTrans;
