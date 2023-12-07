@@ -380,10 +380,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, autoName: DirectSpecularLighting, tooltip: "When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.")]
         DirectSpecularLighting = 38,
         /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
-        [FrameSettingsField(1, customOrderInGroup: 3, displayedName: "Probe Volumes", tooltip: "Enable Probe Volumes for rendering and debug visualisations. Enabling this feature causes HDRP to process Probe Volumes for this Camera/Reflection Probe.")]
-        ProbeVolume = 127,
+        [FrameSettingsField(1, customOrderInGroup: 3, displayedName: "Adaptive Probe Volumes", tooltip: "Enable Adaptive Probe Volumes for rendering and debug visualisations. Enabling this feature causes HDRP to process Adaptive Probe Volumes for this Camera/Reflection Probe.")]
+        AdaptiveProbeVolume = 127,
         /// <summary>When enabled, HDRP uses probe volumes to normalize the data sampled from reflection probes so they better match the lighting at the sampling location.</summary>
-        [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Normalize Reflection Probes", positiveDependencies: new[] { ProbeVolume })]
+        [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Normalize Reflection Probes", positiveDependencies: new[] { AdaptiveProbeVolume })]
         NormalizeReflectionProbeWithProbeVolume = 126,
 
         //async settings (group 2)
@@ -607,7 +607,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool ContactShadowsRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
         internal bool VolumeVoxelizationRunsAsync() => asyncEnabled && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
         internal bool HighQualityLinesRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(uint)FrameSettingsField.HighQualityLinesAsync];
-        
+
         /// <summary>Construct and initialize a <see cref="FrameSettings"/></summary>
         /// <returns>A new <see cref="FrameSettings"/> initialized</returns>
         public static FrameSettings Create()
@@ -715,7 +715,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool water = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Water] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Refraction] && renderPipelineSettings.supportWater && notPreview;
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterDeformation] &= water && renderPipelineSettings.supportWaterDeformation;
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterExclusion] &= water && renderPipelineSettings.supportWaterExclusion;
-            
+
             // Disable Lens Flares if they are unchecked in the HDRP Assets
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareScreenSpace] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareScreenSpace] && renderPipelineSettings.supportScreenSpaceLensFlare;
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareDataDriven] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.LensFlareDataDriven] && renderPipelineSettings.supportDataDrivenLensFlare;
@@ -770,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
 
-            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && notPreview;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.AdaptiveProbeVolume] &= renderPipelineSettings.supportProbeVolume && notPreview;
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
 
             // We disable reflection probes and planar reflections in regular preview rendering for two reasons.

@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
         {
             bool enableProbeVolumes = false;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AdaptiveProbeVolume))
                 enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(cmd,
                     hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>(),
                     hdCamera.taaFrameIndex);

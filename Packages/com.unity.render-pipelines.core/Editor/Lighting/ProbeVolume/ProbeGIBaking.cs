@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering
                 else
                 {
                     globalProgress = Mathf.Max(GetProgress(stage), globalProgress); // prevent progress from going back
-                    EditorUtility.DisplayProgressBar("Baking Probe Volumes", stage.ToString(), globalProgress);
+                    EditorUtility.DisplayProgressBar("Baking Adaptive Probe Volumes", stage.ToString(), globalProgress);
                 }
             }
 
@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering
                     if (isBakingSingleScene)
                         continue;
 
-                    Debug.LogError($"Scene '{scene.name}' does not belong to any Baking Set. Please add it to a Baking Set in the Probe Volumes tab of the Lighting Window.");
+                    Debug.LogError($"Scene '{scene.name}' does not belong to any Baking Set. Please add it to a Baking Set in the Adaptive Probe Volumes tab of the Lighting Window.");
                     return false;
                 }
 
@@ -1015,7 +1015,7 @@ namespace UnityEngine.Rendering
                 Debug.Assert(numProbes > 0);
 
                 if (c % 10 == 0)
-                    EditorUtility.DisplayProgressBar("Baking Probe Volumes", $"({c} of {numCells}) Read Cell Probes", Mathf.Lerp(progress0, progress1, c / (float)numCells));
+                    EditorUtility.DisplayProgressBar("Baking Adaptive Probe Volumes", $"({c} of {numCells}) Read Cell Probes", Mathf.Lerp(progress0, progress1, c / (float)numCells));
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];

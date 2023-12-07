@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// The reference volume for the Probe Volume system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
+    /// The reference volume for the Adaptive Probe Volumes system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
     /// </summary>
     public partial class ProbeReferenceVolume
     {
@@ -1048,7 +1048,7 @@ namespace UnityEngine.Rendering
 
             if (!m_IsInitialized)
             {
-                Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
+                Debug.LogError("Adaptive Probe Volumes have not been initialized before calling Cleanup.");
                 return;
             }
 
@@ -1305,13 +1305,13 @@ namespace UnityEngine.Rendering
 
             if (bakingSet.chunkSizeInBricks != ProbeBrickPool.GetChunkSizeInBrickCount())
             {
-                Debug.LogError($"Trying to load Probe Volume data ({bakingSet.name}) baked with an older incompatible version of APV. Please rebake your data.");
+                Debug.LogError($"Trying to load Adaptive Probe Volumes data ({bakingSet.name}) baked with an older incompatible version of APV. Please rebake your data.");
                 return;
             }
 
             if (m_CurrentBakingSet != null && bakingSet != m_CurrentBakingSet)
             {
-                Debug.LogError($"Trying to load Probe Volume data for a scene from a different baking set than currently loaded ones. " +
+                Debug.LogError($"Trying to load Adaptive Probe Volumes data for a scene from a different baking set than currently loaded ones. " +
                                $"Please make sure all loaded scenes are in the same baking set.");
                 return;
             }
@@ -1324,7 +1324,7 @@ namespace UnityEngine.Rendering
                 {
                     if (bakingSet != toBeLoadedBakingSet.Item1)
                     {
-                        Debug.LogError($"Trying to load Probe Volume data for a scene from a different baking set from other scenes that are being loaded. " +
+                        Debug.LogError($"Trying to load Adaptive Probe Volumes data for a scene from a different baking set from other scenes that are being loaded. " +
                                     $"Please make sure all loaded scenes are in the same baking set.");
                         return;
                     }

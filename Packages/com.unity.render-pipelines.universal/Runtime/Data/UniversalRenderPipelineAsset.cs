@@ -404,7 +404,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>The light probe group system.</summary>
         [InspectorName("Light Probe Groups")]
         LegacyLightProbes = 0,
-        /// <summary>Probe Volume system.</summary>
+        /// <summary>Adaptive Probe Volumes system.</summary>
+        [InspectorName("Adaptive Probe Volumes")]
         ProbeVolumes = 1,
     }
 

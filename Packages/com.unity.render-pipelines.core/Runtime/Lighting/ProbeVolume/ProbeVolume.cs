@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     [CoreRPHelpURL("probevolumes-settings#probe-volume-properties", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/Probe Volume")]
+    [AddComponentMenu("Rendering/Adaptive Probe Volume")]
     public partial class ProbeVolume : MonoBehaviour
     {
         /// <summary>Indicates which renderers should be considerer for the Probe Volume bounds when baking</summary>
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering
         /// The highest subdivision level override
         /// </summary>
         [HideInInspector]
-        public int highestSubdivLevelOverride = -1;
+        public int highestSubdivLevelOverride = ProbeBrickIndex.kMaxSubdivisionLevels;
 
         /// <summary>
         /// If the subdivision levels need to be overriden

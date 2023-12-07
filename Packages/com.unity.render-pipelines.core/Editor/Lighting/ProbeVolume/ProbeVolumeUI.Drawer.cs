@@ -22,16 +22,16 @@ namespace UnityEditor.Rendering
 
             GIContributors.ContributorFilter? filter = null;
 
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to All Scenes", "Fit this Probe Volume to cover all loaded Scenes. "), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to All Scenes", "Fit this Adaptive Probe Volume to cover all loaded Scenes. "), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.All;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fit this Probe Volume to the renderers in the same Scene."), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fit this Adaptive Probe Volume to the renderers in the same Scene."), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Scene;
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits the Probe Volume to the selected renderer(s). Lock the Inspector to make additional selections."), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits this Adaptive Probe Volume to the selected renderer(s). Lock the Inspector to make additional selections."), EditorStyles.miniButton))
                 filter = GIContributors.ContributorFilter.Selection;
 
             if (filter.HasValue)
             {
-                Undo.RecordObject(pv.transform, "Fitting Probe Volume");
+                Undo.RecordObject(pv.transform, "Fitting Adaptive Probe Volume");
 
                 // Get minBrickSize from scene profile if available
                 float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
@@ -95,7 +95,9 @@ namespace UnityEditor.Rendering
         {
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
 
-            bool hasProfile = ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(pv.gameObject.scene, out var profile);
+            ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(pv.gameObject.scene, out var bakingSet);
+            if (bakingSet == null)
+                bakingSet = ProbeVolumeLightingTab.GetSingleSceneSet(pv.gameObject.scene);
 
             EditorGUILayout.PropertyField(serialized.mode);
             if (serialized.mode.intValue == (int)ProbeVolume.Mode.Local)
@@ -108,42 +110,37 @@ namespace UnityEditor.Rendering
                 Drawer_BakeToolBar(serialized, owner);
             }
 
-            if (!hasProfile)
-            {
-                EditorGUILayout.HelpBox("No profile information is set for the scene that owns this probe volume so no subdivision information can be retrieved.", MessageType.Warning);
-            }
-
-            bool isFreezingPlacement = hasProfile && profile.freezePlacement && ProbeGIBaking.CanFreezePlacement();
-
             EditorGUILayout.Space();
-            EditorGUI.BeginDisabledGroup(!hasProfile);
 
-            if (isFreezingPlacement)
-            {
-                CoreEditorUtils.DrawFixMeBox("The placement is frozen in the baking settings. To change these values uncheck the Freeze Placement in the Probe Volume tab of the Lighting Window.", MessageType.None, "Open", () =>
-                {
-                    ProbeVolumeLightingTab.OpenBakingSet(profile);
-                });
-            }
-
-            using (new EditorGUI.DisabledGroupScope(isFreezingPlacement))
+            EditorGUILayout.LabelField("Subdivision Override", EditorStyles.boldLabel);
+            bool isFreezingPlacement = bakingSet != null && bakingSet.freezePlacement && ProbeGIBaking.CanFreezePlacement();
+            using (new EditorGUI.DisabledScope(isFreezingPlacement))
             {
                 // Get settings from scene profile if available
                 int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
                 float minDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-                if (hasProfile)
+                if (bakingSet != null)
                 {
-                    maxSubdiv = profile.maxSubdivision - 1;
-                    minDistance = profile.minDistanceBetweenProbes;
+                    maxSubdiv = bakingSet.simplificationLevels;
+                    minDistance = bakingSet.minDistanceBetweenProbes;
+                }
+                if (maxSubdiv == -1)
+                {
+                    maxSubdiv = 5;
+                    minDistance = 1;
                 }
                 maxSubdiv = Mathf.Max(0, maxSubdiv);
 
-                EditorGUILayout.LabelField("Subdivision Override", EditorStyles.boldLabel);
                 SubdivisionRange(serialized, maxSubdiv, minDistance);
-
             }
 
-            EditorGUI.EndDisabledGroup();
+            if (isFreezingPlacement)
+            {
+                CoreEditorUtils.DrawFixMeBox("The placement is frozen in the baking settings. To change these values uncheck the Freeze Placement in the Adaptive Probe Volumes tab of the Lighting Window.", MessageType.Info, "Open", () =>
+                {
+                    ProbeVolumeLightingTab.OpenBakingSet(bakingSet);
+                });
+            }
 
             EditorGUILayout.LabelField("Geometry Settings", EditorStyles.boldLabel);
 
@@ -157,6 +154,12 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUILayout.PropertyField(serialized.fillEmptySpaces);
+
+            if (bakingSet == null)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.HelpBox("The scene this Adaptive Probe Volume is part of does not belong to any Baking Set.", MessageType.Warning);
+            }
         }
 
         static void Drawer_RebakeWarning(SerializedProbeVolume serialized, Editor owner)

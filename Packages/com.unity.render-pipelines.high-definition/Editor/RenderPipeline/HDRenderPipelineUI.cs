@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
-            if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.ProbeVolumes)
+            if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.AdaptiveProbeVolumes)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);

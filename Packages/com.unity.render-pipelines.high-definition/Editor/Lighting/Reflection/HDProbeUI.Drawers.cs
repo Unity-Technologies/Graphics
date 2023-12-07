@@ -422,7 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static void DrawSHNormalizationStatus(SerializedHDProbe serialized, Editor owner)
             {
-                if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightProbeSystem != RenderPipelineSettings.LightProbeSystem.ProbeVolumes)
+                if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightProbeSystem != RenderPipelineSettings.LightProbeSystem.AdaptiveProbeVolumes)
                     return;
 
                 const string kResolution = " Please ensure that probe positions are valid (not inside static geometry) then bake lighting to regenerate data.";

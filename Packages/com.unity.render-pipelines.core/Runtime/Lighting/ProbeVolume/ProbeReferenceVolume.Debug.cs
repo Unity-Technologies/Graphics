@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering
         const int kProbesPerBatch = 511;
 
         /// <summary>Name of debug panel for Probe Volume</summary>
-        public static readonly string k_DebugPanelName = "Probe Volume";
+        public static readonly string k_DebugPanelName = "Probe Volumes";
 
         internal ProbeVolumeDebug probeVolumeDebug { get; } = new ProbeVolumeDebug();
 
@@ -417,8 +417,8 @@ namespace UnityEngine.Rendering
 #endif
                 }
             };
-            subdivContainer.children.Add(new DebugUI.BoolField 
-            { 
+            subdivContainer.children.Add(new DebugUI.BoolField
+            {
                 displayName = "Display Cells",
                 tooltip = "Draw Cells used for loading and streaming.",
                 getter = () => probeVolumeDebug.drawCells,
@@ -440,7 +440,7 @@ namespace UnityEngine.Rendering
                 subdivContainer.children.Add(new DebugUI.BoolField
                 {
                     displayName = "Live Subdivision Preview",
-                    tooltip = "Enable a preview of Probe Volume data in the Scene without baking. Can impact Editor performance.",
+                    tooltip = "Enable a preview of Adaptive Probe Volumes subdivision data in the Scene without baking. Can impact Editor performance.",
                     getter = () => probeVolumeDebug.realtimeSubdivision,
                     setter = value => probeVolumeDebug.realtimeSubdivision = value,
                 });
@@ -563,7 +563,7 @@ namespace UnityEngine.Rendering
                         var searchDistance = CellSize(0) * MinBrickSize() / ProbeBrickPool.kBrickCellCount * m_CurrentBakingSet.settings.virtualOffsetSettings.searchMultiplier + m_CurrentBakingSet.settings.virtualOffsetSettings.outOfGeoOffset;
                         probeVolumeDebug.probeSize = Mathf.Min(probeVolumeDebug.probeSize, Mathf.Clamp(searchDistance, kProbeSizeMin, kProbeSizeMax));
                     }
-                } 
+                }
             });
             var voOffset = new DebugUI.FloatField
             {

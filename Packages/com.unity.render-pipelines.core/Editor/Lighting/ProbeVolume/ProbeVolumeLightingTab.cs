@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent lightingSettings = new GUIContent("Lighting Settings Asset");
             public static readonly GUIContent bakingTitle = new GUIContent("Baking");
 
-            public static readonly GUIContent bakingMode = new GUIContent("Baking Mode", "In Single Scene mode, only the Active Scene will be baked. Probe Volumes in other scenes will be ignored.");
+            public static readonly GUIContent bakingMode = new GUIContent("Baking Mode", "In Single Scene mode, only the Active Scene will be baked. Adaptive Probe Volumes in other Scenes will be ignored.");
             public static readonly GUIContent currentBakingSet = new GUIContent("Current Baking Set");
             public static readonly GUIContent scenesInSet = new GUIContent("Scenes in Baking Set");
             public static readonly GUIContent addLoadedScenes = new GUIContent("Add Loaded Scenes");
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent toggleBakeNone = new GUIContent("Toggle None");
             public static readonly GUIContent status = new GUIContent("Status", "Unloaded scenes will not be considered when generating lighting data.");
             public static readonly GUIContent bake = new GUIContent("Bake", "Scenes loaded but not selected for Baking will contribute to lighting but baked data will not be regenerated for these scenes.");
-            public static readonly GUIContent bakeBox = new GUIContent("", "Controls if Probe Volumes in this scene are baked when Generating Lighting.");
+            public static readonly GUIContent bakeBox = new GUIContent("", "Controls if Adaptive Probe Volumes in this scene are baked when Generating Lighting.");
             public static readonly GUIContent warnings = new GUIContent("Warnings");
 
             public static readonly string[] bakingModeOptions = new string[] { "Single Scene", "Baking Set" };
@@ -77,13 +77,11 @@ namespace UnityEngine.Rendering
             Scenarios = 1 << 2,
             Placement = 1 << 3,
             PlacementFilters = 1 << 4,
-            Settings = 1 << 5,
-            SettingsDilation = 1 << 6,
-            SettingsVirtualOffset = 1 << 7,
+            InvaliditySettings = 1 << 5,
             SettingsSkyOcclusion = 1 << 8,
         };
 
-        static readonly Expandable k_ExpandableDefault = Expandable.Baking | Expandable.BakingWarnings | Expandable.Scenarios | Expandable.Placement | Expandable.Settings;
+        static readonly Expandable k_ExpandableDefault = Expandable.Baking | Expandable.BakingWarnings | Expandable.Scenarios | Expandable.Placement | Expandable.InvaliditySettings;
         static ExpandedState<Expandable, ProbeVolumeBakingProcessSettings> k_Foldouts;
 
         // This set is used to draw a read only inspector in case no other set has been created
@@ -162,7 +160,7 @@ namespace UnityEngine.Rendering
         public override void OnEnable()
         {
             instance = this;
-            titleContent = new GUIContent("Probe Volumes");
+            titleContent = new GUIContent("Adaptive Probe Volumes");
             priority = 1;
 
             RefreshSceneAssets();
@@ -860,6 +858,18 @@ namespace UnityEngine.Rendering
             return data;
         }
 
+        internal static ProbeVolumeBakingSet GetSingleSceneSet(Scene scene)
+        {
+            if (instance == null || instance.activeSet == null)
+                return null;
+            if (!singleSceneMode || !instance.activeSet.singleSceneMode)
+                return null;
+            if (!instance.activeSet.sceneGUIDs.Contains(scene.GetGUID()))
+                return null;
+
+            return instance.activeSet;
+        }
+
         internal static bool AllSetScenesAreLoaded(ProbeVolumeBakingSet set)
         {
             var dataList = ProbeReferenceVolume.instance.perSceneDataList;
@@ -968,7 +978,7 @@ namespace UnityEngine.Rendering
             {
                 if(!activeSet.DialogNoProbeVolumeInSetShown())
                 {
-                    if(EditorUtility.DisplayDialog("No Probe Volume in Scene", "Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
+                    if(EditorUtility.DisplayDialog("No Probe Volume in Scene", "Adaptive Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
                         "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
                         CreateProbeVolume();
                     activeSet.SetDialogNoProbeVolumeInSetShown(true);

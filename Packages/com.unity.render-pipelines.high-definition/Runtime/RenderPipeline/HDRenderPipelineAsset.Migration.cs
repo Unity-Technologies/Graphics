@@ -274,9 +274,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.LegacyLightProbes;
                 }
 
-                if (data.m_RenderPipelineSettings.oldSupportProbeVolume || data.m_RenderPipelineSettings.oldLightProbeSystem == RenderPipelineSettings.LightProbeSystem.ProbeVolumes)
+                if (data.m_RenderPipelineSettings.oldSupportProbeVolume || data.m_RenderPipelineSettings.oldLightProbeSystem == RenderPipelineSettings.LightProbeSystem.AdaptiveProbeVolumes)
                 {
-                    data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.ProbeVolumes;
+                    data.m_RenderPipelineSettings.lightProbeSystem = RenderPipelineSettings.LightProbeSystem.AdaptiveProbeVolumes;
                 }
             }),
 #pragma warning restore 618

@@ -51,8 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>The legacy light probe system.</summary>
             [InspectorName("Light Probe Groups")]
             LegacyLightProbes = 0,
-            /// <summary>Probe Volume system.</summary>
-            ProbeVolumes = 1,
+            /// <summary>Adaptive Probe Volumes system.</summary>
+            AdaptiveProbeVolumes = 1,
         }
 
 
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-                lightProbeSystem = LightProbeSystem.ProbeVolumes,
+                lightProbeSystem = LightProbeSystem.AdaptiveProbeVolumes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeScenarios = false,
@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => HDRenderPipelineGlobalSettings.instance.m_StripDebugVariants = !value;
         }
 
-        internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);
+        internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.AdaptiveProbeVolumes);
         [FormerlySerializedAs("supportProbeVolume")]
         [Obsolete("Use lightProbeSystem instead", false)]
         internal bool oldSupportProbeVolume;

@@ -254,7 +254,7 @@ namespace UnityEditor.Rendering
 
                     if (!useSkyOcclusion)
                     {
-                        EditorGUILayout.HelpBox("Override sky occlusion shading direction can be used only if Probe Volumes were baked with sky occlusion on.", MessageType.Warning);
+                        EditorGUILayout.HelpBox("Override sky occlusion shading direction can be used only if Adaptive Probe Volumes were baked with sky occlusion on.", MessageType.Warning);
                     }
                 }
 

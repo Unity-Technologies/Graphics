@@ -2790,7 +2790,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind AdaptiveProbeVolume resources
                 if (apvIsEnabled)
                 {
-                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.AdaptiveProbeVolume));
                 }
 
                 // Note: Legacy Unity behave like this for ShadowMask
