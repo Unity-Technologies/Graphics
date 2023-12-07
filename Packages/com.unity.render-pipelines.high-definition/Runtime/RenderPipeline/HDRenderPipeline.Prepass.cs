@@ -1151,7 +1151,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<CopyDepthPassData>("Copy depth buffer", out var passData, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
                 {
                     var depthMipchainSize = hdCamera.depthMipChainSize;
-                    passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
+
+                    //HACK - HACK - HACK - Do not remove, please take a gpu capture and analyze the placement of fences.
+                    // Reason: The following issue occurs when Async compute for gpu light culling is enabled.
+                    // In vulkan, dx12 and consoles the first read of a texture always triggers a depth decompression
+                    // (in vulkan is seen as a vk event, in dx12 as a barrier, and in gnm as a straight up depth decompress compute job).
+                    // Unfortunately, the current render graph implementation only see's the current texture as a read since the abstraction doesnt go too low.
+                    // The GfxDevice has no context of passes so it can't put the barrier in the right spot... so for now hacking this by *assuming* this is the first read. :( 
+                    passData.inputDepth = builder.ReadWriteTexture(output.resolvedDepthBuffer);
+                    //passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
 
                     passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(depthMipchainSize.x, depthMipchainSize.y, true, true)
                         { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" }));
