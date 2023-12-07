@@ -218,7 +218,7 @@ half AlphaClip(half alpha, half cutoff)
 // NOTE: When _ALPHATEST_ON is not defined, this function is effectively a no-op.
 real AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
-#ifdef _ALPHATEST_ON
+#if defined(_ALPHATEST_ON)
     if (IsAlphaDiscardEnabled())
         alpha = AlphaClip(alpha, cutoff + offset);
 #endif

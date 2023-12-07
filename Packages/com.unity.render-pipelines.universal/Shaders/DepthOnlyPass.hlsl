@@ -15,7 +15,9 @@ struct Attributes
 
 struct Varyings
 {
-    float2 uv           : TEXCOORD0;
+    #if defined(_ALPHATEST_ON)
+        float2 uv       : TEXCOORD0;
+    #endif
     float4 positionCS   : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
