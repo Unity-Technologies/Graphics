@@ -760,6 +760,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
         internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
+            if (graphicDevice == GraphicsDeviceType.Switch) // Switch support only enabled when forced by env variable for CI
+                return Environment.GetEnvironmentVariable("ENABLE_HDRP_SWITCH_SUPPORT") != null;
+
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
                 graphicDevice == GraphicsDeviceType.Direct3D12 ||
                 graphicDevice == GraphicsDeviceType.PlayStation4 ||
@@ -770,9 +773,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
                 graphicDevice == GraphicsDeviceType.GameCoreXboxSeries ||
                 graphicDevice == GraphicsDeviceType.Metal ||
-                graphicDevice == GraphicsDeviceType.Vulkan
-                // Switch isn't supported currently (19.3)
-                /* || graphicDevice == GraphicsDeviceType.Switch */);
+                graphicDevice == GraphicsDeviceType.Vulkan);
         }
 
         internal static bool IsHardwareDynamicResolutionSupportedByDevice(GraphicsDeviceType deviceType)
@@ -788,6 +789,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
         internal static bool IsSupportedBuildTarget(UnityEditor.BuildTarget buildTarget)
         {
+            if (buildTarget == UnityEditor.BuildTarget.Switch) // Switch support only enabled when forced by env variable for CI
+                return Environment.GetEnvironmentVariable("ENABLE_HDRP_SWITCH_SUPPORT") != null;
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                 buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                 buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
@@ -799,7 +802,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 buildTarget == UnityEditor.BuildTarget.PS4 ||
                 buildTarget == UnityEditor.BuildTarget.PS5 ||
                 // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
-                // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
                 buildTarget == UnityEditor.BuildTarget.LinuxHeadlessSimulation);
         }
 
