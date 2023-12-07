@@ -49,17 +49,17 @@ test_platforms:
       paths:
         - "upm-ci~/test-results/**/*"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_postprocessing_publish.yml#{{ name }}_pack
 {% endfor %}
 {% endfor %}
 
 {{ name }}_test_trigger:
   name: {{ name }} - Tests Trigger
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_postprocessing_publish.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/postprocessing_publish.yml#{{ name }}_test_{{platform.name}}_{{editor}}
+    - .yamato/_postprocessing_publish.yml#{{ name }}_test_{{platform.name}}_{{editor}}
     {% endfor %}
     {% endfor %}
 
@@ -79,10 +79,10 @@ test_platforms:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_postprocessing_publish.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/postprocessing_publish.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
+    - .yamato/_postprocessing_publish.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
     {% endfor %}
     {% endfor %}
 
@@ -103,9 +103,9 @@ test_platforms:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_postprocessing_publish.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/postprocessing_publish.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
+    - .yamato/_postprocessing_publish.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
     {% endfor %}
     {% endfor %}
