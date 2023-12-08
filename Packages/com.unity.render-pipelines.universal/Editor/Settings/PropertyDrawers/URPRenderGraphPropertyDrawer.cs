@@ -11,12 +11,16 @@ namespace UnityEditor.Rendering.Universal
         private VisualElement m_Root;
         private bool m_FirstTime = true;
 
+        private const string k_EnableRenderCompatibilityPropertyName = "m_EnableRenderCompatibilityMode";
+        private const string k_EnableRenderCompatibilityModeLabel = "Compatibility Mode (Render Graph Disabled)";
+        private const string k_EnableRenderCompatibilityModeHelpBoxLabel = "Unity no longer develops or improves the rendering path that does not use Render Graph API. Use the Render Graph API when developing new graphics features.";
+
         /// <inheritdoc/>
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             m_Root = new VisualElement();
-            var enableCompatilityModeProp = property.FindPropertyRelative("m_EnableRenderCompatibilityMode");
-            var enableCompatibilityMode = new PropertyField(enableCompatilityModeProp);
+            var enableCompatilityModeProp = property.FindPropertyRelative(k_EnableRenderCompatibilityPropertyName);
+            var enableCompatibilityMode = new PropertyField(enableCompatilityModeProp, k_EnableRenderCompatibilityModeLabel);
 
             m_Root.Add(enableCompatibilityMode);
             enableCompatibilityMode.RegisterValueChangeCallback((onchanged) =>
@@ -31,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
                 GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().NotifyValueChanged(onchanged.changedProperty.name);
             });
 
-            m_Root.Add(new HelpBox("Unity no longer develops or improves the rendering path that does not use Render Graph API. Use the Render Graph API when developing new graphics features.", HelpBoxMessageType.Warning)
+            m_Root.Add(new HelpBox(k_EnableRenderCompatibilityModeHelpBoxLabel, HelpBoxMessageType.Warning)
             {
                 name = "HelpBoxWarning"
             });

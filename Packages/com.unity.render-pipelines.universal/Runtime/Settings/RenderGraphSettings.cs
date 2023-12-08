@@ -30,8 +30,7 @@ namespace UnityEngine.Rendering.Universal
         #region SerializeFields
 
         [SerializeField]
-        [InspectorName("Use Render Graph")]
-        [Tooltip("When enabled, Universal Rendering Pipeline will not use Render Graph API to construct and execute the frame.")]
+        [Tooltip("When enabled, URP does not use the Render Graph API to construct and execute the frame. Use this option only for compatibility purposes.")]
         [RecreatePipelineOnChange]
         private bool m_EnableRenderCompatibilityMode;
         #endregion
