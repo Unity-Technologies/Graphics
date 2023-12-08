@@ -257,6 +257,7 @@ namespace UnityEditor.Rendering
         /// <param name="defaultVolumeProfilePath">Default path for the new volume profile&lt;</param>
         /// <param name="onNewVolumeProfileCreated">Callback when new volume profile has been created</param>
         /// <param name="onComponentEditorsExpandedCollapsed">Callback when all editors are collapsed or expanded</param>
+        /// <param name="canCreateNewProfile">Whether it is allowed to create a new profile</param>
         public static void AddVolumeProfileContextMenuItems(
             ref GenericDropdownMenu menu,
             VolumeProfile volumeProfile,
@@ -264,22 +265,37 @@ namespace UnityEditor.Rendering
             bool overrideStateOnReset,
             string defaultVolumeProfilePath,
             Action<VolumeProfile> onNewVolumeProfileCreated,
-            Action onComponentEditorsExpandedCollapsed = null)
+            Action onComponentEditorsExpandedCollapsed = null,
+            bool canCreateNewProfile = true)
         {
-            menu.AddItem(Styles.newVolumeProfile.text, false, () =>
+            if (canCreateNewProfile)
             {
-                VolumeProfileFactory.CreateVolumeProfileWithCallback(defaultVolumeProfilePath,
-                    onNewVolumeProfileCreated);
-            });
+                menu.AddItem(Styles.newVolumeProfile.text, false, () =>
+                {
+                    VolumeProfileFactory.CreateVolumeProfileWithCallback(defaultVolumeProfilePath,
+                        onNewVolumeProfileCreated);
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(Styles.newVolumeProfile.text, false);
+            }
 
             if (volumeProfile != null)
             {
-                menu.AddItem(Styles.clone.text, false, () =>
+                if (canCreateNewProfile)
                 {
-                    var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
-                    var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
-                    onNewVolumeProfileCreated(clone);
-                });
+                    menu.AddItem(Styles.clone.text, false, () =>
+                    {
+                        var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
+                        var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
+                        onNewVolumeProfileCreated(clone);
+                    });
+                }
+                else
+                {
+                    menu.AddDisabledItem(Styles.clone.text, false);
+                }
 
                 menu.AddSeparator(string.Empty);
 
@@ -292,17 +308,6 @@ namespace UnityEditor.Rendering
                 {
                     SetComponentEditorsExpanded(componentEditors, true);
                     onComponentEditorsExpandedCollapsed?.Invoke();
-                });
-
-                menu.AddSeparator(string.Empty);
-
-                menu.AddItem(Styles.resetAll.text, false, () =>
-                {
-                    VolumeComponent[] components = new VolumeComponent[componentEditors.Count];
-                    for (int i = 0; i < componentEditors.Count; i++)
-                        components[i] = componentEditors[i].volumeComponent;
-
-                    ResetComponentsInternal(new SerializedObject(volumeProfile), volumeProfile, components, overrideStateOnReset);
                 });
             }
 
@@ -343,7 +348,6 @@ namespace UnityEditor.Rendering
         /// <param name="overrideStateOnReset">Default override state for components when they are reset</param>
         /// <param name="onNewVolumeProfileCreated">Callback when new volume profile has been created</param>
         /// <param name="onComponentEditorsExpandedCollapsed">Callback when all editors are collapsed or expanded</param>
-        [Obsolete("Deprecated, use AddVolumeProfileContextMenuItems instead. #from(23.3)")]
         public static void OnVolumeProfileContextClick(
             Vector2 position,
             VolumeProfile volumeProfile,

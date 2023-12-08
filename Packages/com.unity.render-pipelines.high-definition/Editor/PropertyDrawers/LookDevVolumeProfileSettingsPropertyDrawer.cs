@@ -69,6 +69,11 @@ namespace UnityEditor.Rendering.HighDefinition
                             lookDevVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
                                 .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
                         }
+
+                        // When the built-in Reset context action is used, the asset becomes null outside of this scope.
+                        // This is required to apply the new value to the serialized property.
+                        GUI.changed = true;
+
                         return lookDevVolumeProfileSettings.volumeProfile;
                     },
                     ref expanded

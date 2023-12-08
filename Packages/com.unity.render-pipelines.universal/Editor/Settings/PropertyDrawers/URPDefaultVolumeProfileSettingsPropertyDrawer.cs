@@ -37,7 +37,17 @@ namespace UnityEditor.Rendering.Universal
                 VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     m_VolumeProfileSerializedProperty,
                     defaultVolumeProfileAssetLabel,
-                    getOrCreateVolumeProfile: () => UniversalRenderPipelineGlobalSettings.GetOrCreateDefaultVolumeProfile(null),
+                    getOrCreateVolumeProfile: () =>
+                    {
+                        if (RenderPipelineManager.currentPipeline is not UniversalRenderPipeline)
+                            return null;
+
+                        // When the built-in Reset context action is used, the asset becomes null outside of this scope.
+                        // This is required to apply the new value to the serialized property.
+                        GUI.changed = true;
+
+                        return UniversalRenderPipelineGlobalSettings.GetOrCreateDefaultVolumeProfile(null);
+                    },
                     ref expanded
                 );
                 m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
@@ -52,6 +62,7 @@ namespace UnityEditor.Rendering.Universal
                     else if (previousDefaultVolumeProfileAsset == null)
                     {
                         VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<UniversalRenderPipeline>(defaultVolumeProfileAsset);
+                        m_VolumeProfileSerializedProperty.objectReferenceValue = defaultVolumeProfileAsset;
                     }
                     else
                     {

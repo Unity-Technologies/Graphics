@@ -108,6 +108,7 @@ namespace UnityEditor.Rendering
                 menu.AddSeparator("");
 
                 var volumeDrawer = drawer as DefaultVolumeProfileSettingsPropertyDrawer;
+                bool canCreateNewAsset = RenderPipelineManager.currentPipeline is TRenderPipeline;
                 VolumeProfileUtils.AddVolumeProfileContextMenuItems(ref menu,
                     setting.volumeProfile,
                     volumeDrawer.m_Editor.allEditors,
@@ -129,7 +130,8 @@ namespace UnityEditor.Rendering
                         }
                         VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(createdProfile, initialAsset);
                     },
-                    onComponentEditorsExpandedCollapsed: volumeDrawer.m_Editor.RebuildListViews);
+                    onComponentEditorsExpandedCollapsed: volumeDrawer.m_Editor.RebuildListViews,
+                    canCreateNewAsset);
             }
         }
     }

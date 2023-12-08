@@ -644,7 +644,6 @@ namespace UnityEditor.Rendering.Universal
                 var componentEditors = profileEditor != null ? profileEditor.componentList.editors : null;
                 var srpAsset = serialized.serializedObject.targetObject as UniversalRenderPipelineAsset;
                 var pos = new Vector2(contextMenuButtonRect.x, contextMenuButtonRect.yMax);
-#pragma warning disable 618 // Obsolete warning
                 VolumeProfileUtils.OnVolumeProfileContextClick(pos, srpAsset.volumeProfile, componentEditors,
                     overrideStateOnReset: false,
                     defaultVolumeProfilePath: $"Assets/{srpAsset.name}_VolumeProfile.asset",
@@ -656,7 +655,6 @@ namespace UnityEditor.Rendering.Universal
                             VolumeManager.instance.SetQualityDefaultProfile(volumeProfile);
                         EditorUtility.SetDirty(srpAsset);
                     });
-#pragma warning restore 618 // Obsolete warning
             }
             EditorGUILayout.EndHorizontal();
             GUILayout.Space(2);

@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using var indentLevelScope = new EditorGUI.IndentLevelScope();
                 using var changeScope = new EditorGUI.ChangeCheckScope();
-                
+
                 /* values adapted to the ProjectSettings > Graphics */
                 var minWidth = 91;
                 var indent = 94;
@@ -34,17 +34,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
                 var previousDefaultVolumeProfileAsset = m_VolumeProfileSerializedProperty.objectReferenceValue;
+
                 VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
                     m_VolumeProfileSerializedProperty,
                     defaultVolumeProfileAssetLabel,
                     getOrCreateVolumeProfile: () =>
                     {
+                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline)
+                            return null;
+
                         var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
                         if (defaultVolumeProfileSettings.volumeProfile == null)
                         {
                             defaultVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(
                                 GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile);
                         }
+
+                        // When the built-in Reset context action is used, the asset becomes null outside of this scope.
+                        // This is required to apply the new value to the serialized property.
+                        GUI.changed = true;
 
                         return defaultVolumeProfileSettings.volumeProfile;
                     },
@@ -54,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (changeScope.changed && defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
                 {
-                    var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile;
+                    var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>()?.defaultVolumeProfile;
                     if (RenderPipelineManager.currentPipeline is not HDRenderPipeline)
                     {
                         Debug.Log("Cannot change Default Volume Profile when HDRP is not active. Rolling back to previous value.");
@@ -63,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     else if (previousDefaultVolumeProfileAsset == null)
                     {
                         VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
+                        m_VolumeProfileSerializedProperty.objectReferenceValue = defaultVolumeProfileAsset;
                     }
                     else
                     {
