@@ -8,8 +8,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomPropertyDrawer(typeof(RenderGraphSettings))]
     class RenderGraphPropertyDrawer : PropertyDrawer
     {
-        private VisualElement m_Root;
-        private bool m_FirstTime = true;
+        VisualElement m_Root;
 
         private const string k_EnableRenderCompatibilityPropertyName = "m_EnableRenderCompatibilityMode";
         private const string k_EnableRenderCompatibilityModeLabel = "Compatibility Mode (Render Graph Disabled)";
@@ -22,17 +21,20 @@ namespace UnityEditor.Rendering.Universal
             var enableCompatilityModeProp = property.FindPropertyRelative(k_EnableRenderCompatibilityPropertyName);
             var enableCompatibilityMode = new PropertyField(enableCompatilityModeProp, k_EnableRenderCompatibilityModeLabel);
 
+            // UITK raises ValueChangeCallback at bind time, so we need to ignore the first event
+            bool firstTime = true;
+
             m_Root.Add(enableCompatibilityMode);
             enableCompatibilityMode.RegisterValueChangeCallback((onchanged) =>
             {
                 m_Root.Q<HelpBox>("HelpBoxWarning").style.display = (onchanged.changedProperty.boolValue) ? DisplayStyle.Flex : DisplayStyle.None;
-                if (m_FirstTime)
+                if (firstTime)
                 {
-                    m_FirstTime = false;
+                    firstTime = false;
                     return;
                 }
 
-                GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().NotifyValueChanged(onchanged.changedProperty.name);
+                GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>()?.NotifyValueChanged(onchanged.changedProperty.name);
             });
 
             m_Root.Add(new HelpBox(k_EnableRenderCompatibilityModeHelpBoxLabel, HelpBoxMessageType.Warning)
