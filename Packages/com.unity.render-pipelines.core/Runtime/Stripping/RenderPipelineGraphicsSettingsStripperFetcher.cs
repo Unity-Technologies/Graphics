@@ -38,11 +38,14 @@ namespace UnityEngine.Rendering
             {
                 foreach (var stripperType in TypeCache.GetTypesDerivedFrom(typeof(IRenderPipelineGraphicsSettingsStripper<>)))
                 {
+                    if (stripperType.IsAbstract)
+                        continue;
+
                     // The ctor is private?
                     if (stripperType.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes,
                             null) == null)
                     {
-                        Debug.LogWarning($"{stripperType} has the constructor is private, it will not be used to strip {nameof(IRenderPipelineGraphicsSettings)}.");
+                        Debug.LogWarning($"{stripperType} has no public constructor, it will not be used to strip {nameof(IRenderPipelineGraphicsSettings)}.");
                         continue;
                     }
 

@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering
 {
     abstract class RendererStripper<T, S> : IRenderPipelineGraphicsSettingsStripper<T>
         where T : IRenderPipelineGraphicsSettings
-        where S : ScriptableRenderer
+        where S : ScriptableRendererData
     {
         public bool active => URPBuildData.instance.buildingPlayerForUniversalRenderPipeline;
 
@@ -14,8 +14,9 @@ namespace UnityEditor.Rendering
         {
             foreach (var urpAssetForBuild in URPBuildData.instance.renderPipelineAssets)
             {
-                foreach(var renderer in urpAssetForBuild.renderers)
-                    if (renderer is S)
+                // UUM-57954: Use RendererData rather than Renderer which may be null during the build in some circumstances
+                foreach(var rendererData in urpAssetForBuild.m_RendererDataList)
+                    if (rendererData is S)
                         return false;
             }
 
@@ -23,6 +24,6 @@ namespace UnityEditor.Rendering
         }
     }
 
-    class UniversalRendererResourcesStripper : RendererStripper<UniversalRendererResources, UniversalRenderer> { }
-    class Renderer2DResourcesStripper : RendererStripper<Renderer2DResources, Renderer2D> { }
+    class UniversalRendererResourcesStripper : RendererStripper<UniversalRendererResources, UniversalRendererData> { }
+    class Renderer2DResourcesStripper : RendererStripper<Renderer2DResources, Renderer2DData> { }
 }
