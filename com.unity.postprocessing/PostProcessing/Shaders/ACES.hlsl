@@ -220,7 +220,9 @@ half3 ACES_to_ACEScc(half3 x)
     x = clamp(x, 0.0, HALF_MAX);
 
     // x is clamped to [0, HALF_MAX], skip the <= 0 check
-    return (x < 0.00003051757) ? (log2(0.00001525878 + x * 0.5) + 9.72) / 17.52 : (log2(x) + 9.72) / 17.52;
+    return half3((x.x < 0.00003051757) ? (log2(0.00001525878 + x.x * 0.5) + 9.72) / 17.52 : (log2(x.x) + 9.72) / 17.52,
+                 (x.y < 0.00003051757) ? (log2(0.00001525878 + x.y * 0.5) + 9.72) / 17.52 : (log2(x.y) + 9.72) / 17.52,
+                 (x.z < 0.00003051757) ? (log2(0.00001525878 + x.z * 0.5) + 9.72) / 17.52 : (log2(x.z) + 9.72) / 17.52);
 
     /*
     return half3(
@@ -678,7 +680,9 @@ half roll_white_fwd(
 
 half3 linear_to_sRGB(half3 x)
 {
-    return (x <= 0.0031308 ? (x * 12.9232102) : 1.055 * pow(x, 1.0 / 2.4) - 0.055);
+    return half3(x.x <= 0.0031308 ? (x.x * 12.9232102) : 1.055 * pow(x.x, 1.0 / 2.4) - 0.055,
+                 x.y <= 0.0031308 ? (x.y * 12.9232102) : 1.055 * pow(x.y, 1.0 / 2.4) - 0.055,
+                 x.z <= 0.0031308 ? (x.z * 12.9232102) : 1.055 * pow(x.z, 1.0 / 2.4) - 0.055);
 }
 
 half3 linear_to_bt1886(half3 x, half gamma, half Lw, half Lb)
