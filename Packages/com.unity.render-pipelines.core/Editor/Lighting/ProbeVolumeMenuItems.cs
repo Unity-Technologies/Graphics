@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class ProbeVolumeMenuItems
     {
-        [MenuItem("GameObject/Light/Probe Volume/Adaptive Probe Volume", priority = CoreUtils.Sections.section8)]
+        [MenuItem("GameObject/Light/Adaptive Probe Volume", priority = CoreUtils.Sections.section8)]
         static void CreateProbeVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
             probeVolume.AddComponent<ProbeVolume>();
         }
 
-        [MenuItem("GameObject/Light/Probe Volume/Probe Adjustment Volume", priority = CoreUtils.Sections.section8 + 1)]
+        [MenuItem("GameObject/Light/Probe Adjustment Volume", priority = CoreUtils.Sections.section8 + 1)]
         static void CreateProbeTouchupVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;

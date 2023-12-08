@@ -905,7 +905,7 @@ namespace UnityEngine.Rendering
             if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
             {
                 bakingSet = perSceneData.bakingSet;
-                return true;
+                return bakingSet!=null;
             }
             else
             {

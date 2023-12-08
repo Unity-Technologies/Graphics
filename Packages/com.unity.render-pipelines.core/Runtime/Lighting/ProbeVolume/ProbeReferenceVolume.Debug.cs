@@ -434,29 +434,35 @@ namespace UnityEngine.Rendering
                 onValueChanged = RefreshDebug
             });
 
-#if UNITY_EDITOR
-            if(probeVolumeDebug.drawCells || probeVolumeDebug.drawBricks)
-            {
-                subdivContainer.children.Add(new DebugUI.BoolField
-                {
-                    displayName = "Live Subdivision Preview",
-                    tooltip = "Enable a preview of Adaptive Probe Volumes subdivision data in the Scene without baking. Can impact Editor performance.",
-                    getter = () => probeVolumeDebug.realtimeSubdivision,
-                    setter = value => probeVolumeDebug.realtimeSubdivision = value,
-                });
-
-                var realtimeSubdivisonChildContainer = new DebugUI.Container()
-                {
-                    isHiddenCallback = () => !probeVolumeDebug.realtimeSubdivision
-                };
-                realtimeSubdivisonChildContainer.children.Add(new DebugUI.IntField { displayName = "Cell Updates Per Frame", tooltip = "The number of Cells, bricks, and probe positions updated per frame. Higher numbers can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 });
-                realtimeSubdivisonChildContainer.children.Add(new DebugUI.FloatField { displayName = "Update Frequency", tooltip = "Delay in seconds between updates to Cell, Brick, and Probe positions if Live Subdivision Preview is enabled.", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 });
-                subdivContainer.children.Add(realtimeSubdivisonChildContainer);
-            }
-#endif
-
             subdivContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw debug visualization for Cells and Bricks. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionViewCullingDistance, setter = value => probeVolumeDebug.subdivisionViewCullingDistance = value, min = () => 0.0f });
             widgetList.Add(subdivContainer);
+
+#if UNITY_EDITOR
+            var subdivPreviewContainer = new DebugUI.Container()
+            {
+                displayName = "Subdivision Preview",
+                isHiddenCallback = () =>
+                {
+                    return (!probeVolumeDebug.drawCells && !probeVolumeDebug.drawBricks);
+                }
+            };
+            subdivPreviewContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Live Updates",
+                tooltip = "Enable a preview of Adaptive Probe Volumes data in the Scene without baking. Can impact Editor performance.",
+                getter = () => probeVolumeDebug.realtimeSubdivision,
+                setter = value => probeVolumeDebug.realtimeSubdivision = value,
+            });
+
+            var realtimeSubdivisonChildContainer = new DebugUI.Container()
+            {
+                isHiddenCallback = () => !probeVolumeDebug.realtimeSubdivision
+            };
+            realtimeSubdivisonChildContainer.children.Add(new DebugUI.IntField { displayName = "Cell Updates Per Frame", tooltip = "The number of Cells, bricks, and probe positions updated per frame. Higher numbers can impact Editor performance.", getter = () => probeVolumeDebug.subdivisionCellUpdatePerFrame, setter = value => probeVolumeDebug.subdivisionCellUpdatePerFrame = value, min = () => 1, max = () => 100 });
+            realtimeSubdivisonChildContainer.children.Add(new DebugUI.FloatField { displayName = "Update Frequency", tooltip = "Delay in seconds between updates to Cell, Brick, and Probe positions if Live Subdivision Preview is enabled.", getter = () => probeVolumeDebug.subdivisionDelayInSeconds, setter = value => probeVolumeDebug.subdivisionDelayInSeconds = value, min = () => 0.1f, max = () => 10 });
+            subdivPreviewContainer.children.Add(realtimeSubdivisonChildContainer);
+            widgetList.Add(subdivPreviewContainer);
+#endif
 
             widgetList.Add(new DebugUI.RuntimeDebugShadersMessageBox());
 
@@ -507,9 +513,9 @@ namespace UnityEngine.Rendering
                     displayName = "Max Subdivisions Displayed",
                     tooltip = "The highest (most dense) probe subdivision level displayed in the debug view.",
                     getter = () => probeVolumeDebug.maxSubdivToVisualize,
-                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(v, GetMaxSubdivision() - 1),
+                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Max(0, Mathf.Min(v, GetMaxSubdivision() - 1)),
                     min = () => 0,
-                    max = () => GetMaxSubdivision() - 1,
+                    max = () => Mathf.Max(0, GetMaxSubdivision() - 1),
                 });
 
                 probeContainerChildren.children.Add(new DebugUI.IntField
@@ -519,9 +525,8 @@ namespace UnityEngine.Rendering
                     getter = () => probeVolumeDebug.minSubdivToVisualize,
                     setter = (v) => probeVolumeDebug.minSubdivToVisualize = Mathf.Max(v, 0),
                     min = () => 0,
-                    max = () => GetMaxSubdivision() - 1,
+                    max = () => Mathf.Max(0, GetMaxSubdivision() - 1),
                 });
-
 
                 probeContainer.children.Add(probeContainerChildren);
             }
@@ -565,6 +570,12 @@ namespace UnityEngine.Rendering
                     }
                 }
             });
+
+            var drawVirtualOffsetDebugChildren = new DebugUI.Container()
+            {
+                isHiddenCallback = () => !probeVolumeDebug.drawVirtualOffsetPush
+            };
+
             var voOffset = new DebugUI.FloatField
             {
                 displayName = "Debug Size",
@@ -575,7 +586,8 @@ namespace UnityEngine.Rendering
                 max = () => kOffsetSizeMax,
                 isHiddenCallback = () => !probeVolumeDebug.drawVirtualOffsetPush
             };
-            probeContainer.children.Add(new DebugUI.Container { children = { voOffset } });
+            drawVirtualOffsetDebugChildren.children.Add(voOffset);
+            probeContainer.children.Add(drawVirtualOffsetDebugChildren);
 
             probeContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw probe debug visualizations. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.probeCullingDistance, setter = value => probeVolumeDebug.probeCullingDistance = value, min = () => 0.0f });
             widgetList.Add(probeContainer);
@@ -853,7 +865,7 @@ namespace UnityEngine.Rendering
                 minAvailableSubdiv = Mathf.Min(minAvailableSubdiv, cell.desc.minSubdiv);
             }
 
-            probeVolumeDebug.maxSubdivToVisualize = Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, GetMaxSubdivision() - 1);
+            probeVolumeDebug.maxSubdivToVisualize = Mathf.Max(0, Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, GetMaxSubdivision() - 1));
             m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == GetMaxSubdivision() - 1;
             probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
 
