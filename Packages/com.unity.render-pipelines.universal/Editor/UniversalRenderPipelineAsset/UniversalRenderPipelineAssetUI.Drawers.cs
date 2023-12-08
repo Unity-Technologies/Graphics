@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
                     if (staticBatchingWarning)
                         EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
-                    if (serialized.gpuResidentDrawerEnableOcclusionCullingInCameras.boolValue)
+                    if (serialized.gpuResidentDrawerEnableOcclusionCullingInCameras.boolValue && GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
                         EditorGUILayout.HelpBox(Styles.renderGraphNotEnabledErrorMessage.text, MessageType.Info, true);
                 }
             }
