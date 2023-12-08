@@ -38,7 +38,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         //     'm_Material = new Material(m_Shader);'
         //   In this case for the shader referenced by 'm_Shader' to be included in builds you will have to either:
         //     1) Assign 'm_Shader = Shader.Find("Shader Graphs/FullscreenInvertColors")' behind UNITY_EDITOR only and make sure 'm_Shader' is a "[SerializedField]"
-        //     2) Or add "Shader Graphs/FullscreenInvertColors" to the "Always Included Shaders List" under "ProjectSettings"-> "Graphics" -> "Shader Settings"  
+        //     2) Or add "Shader Graphs/FullscreenInvertColors" to the "Always Included Shaders List" under "ProjectSettings"-> "Graphics" -> "Shader Settings"
         //        and call 'm_Shader = Shader.Find("Shader Graphs/FullscreenInvertColors")' outside of the UNITY_EDITOR section
         if (m_Material == null)
             m_Material = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/FullscreenInvertColors.mat");
@@ -55,7 +55,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         // Skip rendering if m_Material or the pass instance are null for whatever reason
         if (m_Material == null || m_FullScreenPass == null)
             return;
-        
+
         // This check makes sure to not render the effect to reflection probes or preview cameras as post-processing is typically not desired there
         if (renderingData.cameraData.cameraType == CameraType.Preview || renderingData.cameraData.cameraType == CameraType.Reflection)
             return;
@@ -65,7 +65,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         // E.g. when controlling rendering with a VolumeComponent you will typically want to skip rendering as an optimization when the component
         // has settings which would make it imperceptible (e.g. the implementation of IsActive() might return false when some "intensity" value is 0).
         //
-        // N.B. if your volme component type is actually defined in C# it is unlikely that VolumeManager would return a "null" instance of it as
+        // N.B. if your volume component type is actually defined in C# it is unlikely that VolumeManager would return a "null" instance of it as
         // GlobalSettings should always contain an instance of all VolumeComponents in the project even if if they're not overriden in the scene
         #VOLUME_TYPE# myVolume = VolumeManager.instance.stack?.GetComponent<#VOLUME_TYPE#>();
         if (myVolume == null || !myVolume.IsActive())
@@ -138,6 +138,12 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         {
             profilingSampler = new ProfilingSampler(passName);
             m_Material = material;
+
+            // * The 'requiresIntermediateTexture' field needs to be set to 'true' when a ScriptableRenderPass intends to sample
+            //   the active color buffer
+            // * This will make sure that URP will not apply the optimization of rendering the entire frame to the write-only backbuffer,
+            //   but will instead render to intermediate textures that can be sampled, which is typically needed for post-processing
+            requiresIntermediateTexture = kCopyActiveColor;
         }
 
         #region PASS_SHARED_RENDERING_CODE
@@ -162,10 +168,9 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
             //
             // To control the rendering of your effect using a custom VolumeComponent you can set the material's properties
             // based on the blended values of your VolumeComponent by querying them with the core VolumeManager API e.g.:
-            //
             #VOLUME_TYPE# myVolume = VolumeManager.instance.stack?.GetComponent<#VOLUME_TYPE#>();
             if (myVolume != null)
-                s_SharedPropertyBlock.SetFloat("_Intensity", myVolume.intensity.GetValue<float>());
+                s_SharedPropertyBlock.SetFloat("_Intensity", myVolume.intensity.value);
 
             cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3, 1, s_SharedPropertyBlock);
         }
