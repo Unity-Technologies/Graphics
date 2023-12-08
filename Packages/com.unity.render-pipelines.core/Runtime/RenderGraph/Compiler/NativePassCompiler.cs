@@ -1332,6 +1332,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 bool inRenderPass = false;
                 previousCommandBuffer = rgContext.cmd;
 
+                // Having random access targets bound leads to all sorts of weird behavior so we clear them before executing the graph.
+                rgContext.cmd.ClearRandomWriteTargets();
+
                 for (int passIndex = 0; passIndex < contextData.passData.Length; passIndex++)
                 {
                     ref var pass = ref contextData.passData.ElementAt(passIndex);
@@ -1394,13 +1397,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                     if (pass.numRandomAccessResources > 0)
 					{
-                        //TODO: are we that paranoid? maybe clean it once at the beginning of the graph?
-                        rgContext.cmd.ClearRandomWriteTargets();
                         foreach (var randomWriteAttachment in pass.RandomWriteTextures(contextData))
-                        if (pass.numRandomAccessResources > 0)
-                    	{
+                        {
                             SetRandomWriteTarget(rgContext.cmd, resources, randomWriteAttachment.index, randomWriteAttachment.resource);
-                    	}
+                        }
 					}
 
 #if THROW_ON_SETRENDERTARGET_DEBUG
@@ -1411,6 +1411,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #endif
 
                     ExecuteGraphNode(ref rgContext, resources, passes[pass.passId]);
+
+                    // If we set any uavs clear them again so they are local to the pass
+                    if (pass.numRandomAccessResources > 0)
+                    {
+                        rgContext.cmd.ClearRandomWriteTargets();
+                    }
 
                     // should we insert a fence to sync between difference queues?
                     if (pass.insertGraphicsFence)
