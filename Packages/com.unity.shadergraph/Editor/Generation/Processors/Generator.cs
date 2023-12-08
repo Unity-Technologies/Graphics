@@ -205,15 +205,16 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
+        // Do we want to return "" in case shaderName is null?
+        private string ProcessShaderName(string shaderName)
+            => shaderName?.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal);
+
         // temporary used by BuildShader()
         ShaderStringBuilder m_Builder;
         GeneratedShader BuildShader(string additionalShaderID, List<BlockNode> outTemporaryBlocks = null)
         {
             bool isPrimaryShader = string.IsNullOrEmpty(additionalShaderID);
-            string shaderName =
-                isPrimaryShader ?
-                    m_PrimaryShaderFullName :
-                    additionalShaderID.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal);
+            string shaderName = isPrimaryShader ? m_PrimaryShaderFullName : ProcessShaderName(additionalShaderID);
 
             var activeNodeList = Pool.HashSetPool<AbstractMaterialNode>.Get();
             bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
@@ -342,7 +343,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var shaderDependency in shaderDependencies)
                 {
                     if (shaderDependency.dependencyName != lastDependencyName)
-                        m_Builder.AppendLine($"Dependency \"{shaderDependency.dependencyName}\" = \"{shaderDependency.shaderName}\"");
+                        m_Builder.AppendLine($"Dependency \"{shaderDependency.dependencyName}\" = \"{ProcessShaderName(shaderDependency.shaderName)}\"");
                     lastDependencyName = shaderDependency.dependencyName;
                 }
 
@@ -495,7 +496,7 @@ namespace UnityEditor.ShaderGraph
             var generatedShader = new GeneratedShader
             {
                 codeString = m_Builder.ToCodeBlock(),
-                shaderName = kernel.name.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal),
+                shaderName = ProcessShaderName(kernel.name),
                 assignedTextures = null,
                 errorMessage = null
             };
