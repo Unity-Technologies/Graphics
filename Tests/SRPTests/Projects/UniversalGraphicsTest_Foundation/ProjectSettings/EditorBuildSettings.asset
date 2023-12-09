@@ -437,5 +437,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/300_RandomUAV.unity
     guid: 5e57a94eeee3964488362ad6cab7cfb2
+  - enabled: 1
+    path: Assets/Scenes/310_Swapbuffer_Depth.unity
+    guid: aec68106d2ff047868f32b8853c6abf0
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

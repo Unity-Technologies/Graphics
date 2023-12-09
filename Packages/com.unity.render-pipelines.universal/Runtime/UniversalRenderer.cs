@@ -1838,7 +1838,7 @@ namespace UnityEngine.Rendering.Universal
             #pragma warning disable CS0618
             //Check if we are using the depth that is attached to color buffer
             if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
-                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ActiveCameraDepthAttachment);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
             #pragma warning restore CS0618
