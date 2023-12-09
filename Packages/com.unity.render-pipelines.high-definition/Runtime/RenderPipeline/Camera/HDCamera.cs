@@ -2020,7 +2020,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     viewConstants.prevPrevProjMatrix = viewConstants.prevProjMatrix;
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
                     viewConstants.prevViewMatrix = viewConstants.viewMatrix;
-                    viewConstants.prevProjMatrix = viewConstants.projMatrix;
+                    viewConstants.prevProjMatrix = viewConstants.nonJitteredProjMatrix;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
                     viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }

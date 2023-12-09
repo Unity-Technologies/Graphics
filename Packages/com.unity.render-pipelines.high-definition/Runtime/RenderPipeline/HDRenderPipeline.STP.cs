@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 STP.PerViewConfig perViewConfig;
 
                 // STP requires non-jittered versions of the current, previous, and "previous previous" projection matrix.
-                // NOTE: The "prevProjMatrix" and "prevPrevProjMatrix" values are always unjittered because the non-jittered matrices are restored at the end of each frame.
+                // NOTE: The "prevProjMatrix" and "prevPrevProjMatrix" values are always unjittered because they are sourced from the nonJitteredProjMatrix value.
                 perViewConfig.currentProj = hdCamera.m_XRViewConstants[viewIndex].nonJitteredProjMatrix;
                 perViewConfig.lastProj = hdCamera.m_XRViewConstants[viewIndex].prevProjMatrix;
                 perViewConfig.lastLastProj = hdCamera.m_XRViewConstants[viewIndex].prevPrevProjMatrix;
