@@ -79,4 +79,7 @@ Built-in Keywords are always of either the Boolean or Enum type, but they behave
 
 All Built-in Keyword fields in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) are grayed out except for the **Default** field, which you can enable or disable to show the differences in Shader Graph previews. You also cannot expose Built-in Keywords in the Material Inspector.
 
+In an HDRP project, you can find the current quality level in the Material section of the [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/manual/quality-settings.html#using-the-current-quality-settings-parameters). For URP projects, the feature is not supported, but you can use the <code>SetGloalShaderKeywords</code> command to set the [MaterialQuality](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/api/UnityEngine.Rendering.MaterialQuality.html) Enum in the script.  For example, the following line would set Material Quality to High:
+`MaterialQualityUtilities.SetGlobalShaderKeywords( MaterialQuality.High );`
+
 ![](images/keywords_built-in.png)
