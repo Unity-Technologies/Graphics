@@ -15,6 +15,7 @@ In the URP, you can configure settings for:
 * [**Lighting**](#lighting)
 * [**Shadows**](#shadows)
 * [**Post-processing**](#post-processing)
+* [**Volumes**](#volumes)
 * [**Adaptive Performance**](#adaptive-performance)
 
 > **Note**: If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the URP Asset don't have any impact on your final app or game.
@@ -129,7 +130,15 @@ This section allows you to fine-tune global post-processing settings.
 | **Grading Mode** | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<ul><li>**High Dynamic Range**: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.</li><li>**Low Dynamic Range**: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.</li></ul> |
 | **LUT Size**     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 | **Fast sRGB/Linear Conversions** | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
-| **Volume Update Mode** | Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.|
+
+### Volumes
+
+| Property         | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| **Volume Update Mode** | Select how Unity updates Volumes at run time. <br />&#8226; **Every Frame**: Unity updates volumes every frame. <br />&#8226; **Via Scripting**: Unity updates volumes when triggered via scripting.<br /> In the Editor, Unity updates Volumes every frame when not in Play mode. |
+| **Volume Profile** | Set the [Volume Profile](Volume-Profile.md) that a scene uses by default. Refer to [Understand volumes](Volumes.md) for more information. |
+
+The list of Volume Overrides that the Volume Profile contains appears below **Volume Profile**. You can add, remove, disable, and enable Volume Overrides, and edit their properties. Refer to [Volume Overrides](VolumeOverrides.md) for more information.
 
 ### Adaptive Performance
 

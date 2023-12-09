@@ -4,9 +4,17 @@ If a project has the URP package installed, Unity shows the URP Global Settings 
 
 The URP Global Settings section lets you define project-wide settings for URP.
 
-![URP Settings Window](Images/Inspectors/global-settings.png)
-
 The section contains the following settings.
+
+## Default Volume Profile
+
+Use this section to assign and edit a [Volume Profile](Volume-Profile.md) for the Default Volume that all scenes use. Refer to [Understand Volumes](volumes.md) for more information.
+
+| **Property**              | **Description**                                              |
+| --------------------------| ------------------------------------------------------------ |
+| **Volume Profile** | Set the [Volume Profile](Volume-Profile.md) the global Default Volume uses. You can't set **Volume Profile** to **None**. |
+
+URP displays all the properties for all the possible [Volume Overrides](VolumeOverrides.md). You can edit the properties, or override the properties using [the global volume for a quality level](set-up-a-volume.md#configure-the-global-volume-for-a-quality-level) or by [creating a volume](set-up-a-volume.md#add-a-volume).
 
 ## Rendering Layers (3D)
 
