@@ -14,8 +14,9 @@ namespace UnityEngine.Rendering
         {
 #if RENDER_GRAPH_REUSE_TESTS_STANDALONE
             get => true;
-#endif
+#else
             get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-render-graph-reuse-tests");
+#endif
         }
 
         /// <summary>
