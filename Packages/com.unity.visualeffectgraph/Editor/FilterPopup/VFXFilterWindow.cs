@@ -145,8 +145,15 @@ namespace UnityEditor.VFX.UI
         private bool m_IsResizing;
         private Rect m_OriginalWindowPos;
         private Vector3 m_OriginalMousePos;
+        private VFXView m_ParentView;
 
         private bool hasSearch => !string.IsNullOrEmpty(m_SearchPattern);
+
+        public void ToggleSubVariantVisibility()
+        {
+            var toggle = rootVisualElement.Q<Toggle>("ListVariantToggle");
+            toggle.value = !settings.showSubVariantsInSearchResults;
+        }
 
         protected void OnLostFocus()
         {
@@ -159,6 +166,7 @@ namespace UnityEditor.VFX.UI
         private void OnDisable()
         {
             SaveSettings();
+            m_ParentView.Focus();
         }
 
         private void CreateGUI()
@@ -185,6 +193,9 @@ namespace UnityEditor.VFX.UI
             m_SearchField = rootVisualElement.Q<ToolbarSearchField>();
             m_SearchField.RegisterCallback<ChangeEvent<string>>(OnSearchChanged);
             m_SearchField.RegisterCallback<KeyDownEvent>(OnKeyDown);
+            var searchTextField = m_SearchField.Q<TextField>();
+            searchTextField.selectAllOnFocus = false;
+            searchTextField.selectAllOnMouseUp = false;
 
             m_SplitPanel = rootVisualElement.Q<TwoPaneSplitView>("SplitPanel");
             m_SplitPanel.fixedPaneInitialDimension = leftPanelWidth;
@@ -293,6 +304,10 @@ namespace UnityEditor.VFX.UI
                     {
                         m_SearchField.Focus();
                     }
+                    else if (m_SearchField.HasFocus() && m_Treeview.selectedIndex > 0)
+                    {
+                        m_Treeview.SetSelection(m_Treeview.selectedIndex - 1);
+                    }
                     break;
                 case KeyCode.Return:
                     if (m_Treeview.selectedItem is Descriptor { variant: not null } descriptor)
@@ -304,7 +319,7 @@ namespace UnityEditor.VFX.UI
                 case KeyCode.LeftArrow:
                     break;
                 default:
-                    if (!m_SearchField.HasFocus())
+                    if (!m_SearchField.HasFocus() && evt.modifiers is EventModifiers.None or EventModifiers.Shift)
                     {
                         m_SearchField.Focus();
                     }
@@ -747,9 +762,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        internal static void Show(Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
+        internal static void Show(VFXView parentView, Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
         {
-            CreateInstance<VFXFilterWindow>().Init(graphPosition, screenPosition, provider);
+            CreateInstance<VFXFilterWindow>().Init(parentView, graphPosition, screenPosition, provider);
         }
 
         private IEnumerable<Descriptor> GetMatches(IVFXModelDescriptor modelDescriptor, string[] patternTokens)
@@ -872,8 +887,9 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        private void Init(Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
+        private void Init(VFXView parentView, Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
         {
+            m_ParentView = parentView;
             m_Provider = provider;
             m_Provider.position = graphPosition;
 

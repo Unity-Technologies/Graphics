@@ -330,10 +330,10 @@ namespace UnityEditor.VFX.UI
             get { return m_ParentController; }
         }
 
-        public void ConvertToInline()
+        public VFXInlineOperator ConvertToInline()
         {
             if (parentController.isOutput)
-                return;
+                return null;
             VFXInlineOperator op = ScriptableObject.CreateInstance<VFXInlineOperator>();
             op.SetSettingValue("m_Type", (SerializableType)parentController.model.type);
 
@@ -390,6 +390,7 @@ namespace UnityEditor.VFX.UI
             viewController.LightApplyChanges();
             viewController.PutInSameGroupNodeAs(viewController.GetNodeController(op, 0), this);
             viewController.RemoveElement(this);
+            return op;
         }
     }
 }

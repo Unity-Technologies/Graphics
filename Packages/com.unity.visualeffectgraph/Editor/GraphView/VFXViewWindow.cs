@@ -29,7 +29,6 @@ namespace UnityEditor.VFX.UI
 
         static List<VFXViewWindow> s_VFXWindows = new();
 
-        ShortcutHandler m_ShortcutHandler;
         VisualEffect m_pendingAttachment;
 
         static VFXViewWindow()
@@ -55,30 +54,6 @@ namespace UnityEditor.VFX.UI
                 s_VFXWindows.Add(this);
                 DisableViewDataPersistence();
             }
-        }
-
-        protected void SetupFramingShortcutHandler(VFXView view)
-        {
-            m_ShortcutHandler = new ShortcutHandler(
-                new Dictionary<Event, ShortcutDelegate>
-                {
-                    { Event.KeyboardEvent("a"), view.FrameAll },
-                    { Event.KeyboardEvent("f"), view.FrameSelection },
-                    { Event.KeyboardEvent("o"), view.FrameOrigin },
-                    { Event.KeyboardEvent("^#>"), view.FramePrev },
-                    { Event.KeyboardEvent("^>"), view.FrameNext },
-                    { Event.KeyboardEvent("F7"), view.OnCompile },
-                    { Event.KeyboardEvent("#d"), view.OutputToDot },
-                    { Event.KeyboardEvent("^&d"), view.DuplicateSelectionWithEdges },
-                    { Event.KeyboardEvent("^#d"), view.OutputToDotReduced },
-                    { Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding },
-                    { Event.KeyboardEvent("^r"), view.ReinitComponents },
-                    { Event.KeyboardEvent("F5"), view.ReinitComponents },
-                    { Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents },
-                    { Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents },
-                    { Event.KeyboardEvent("p"), view.m_ProfilingBoard.ExpandAllGraphPanels },
-                    { Event.KeyboardEvent("#p"), view.m_ProfilingBoard.CloseAllGraphPanels },
-                });
         }
 
         [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
@@ -312,20 +287,11 @@ namespace UnityEditor.VFX.UI
             VFXManagerEditor.CheckVFXManager();
 
             graphView = new VFXView();
-            SetupFramingShortcutHandler(graphView);
 
             rootVisualElement.Add(graphView);
 
             autoCompile = true;
             autoReinit = true;
-
-            graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-
-            if (rootVisualElement.panel != null)
-            {
-                rootVisualElement.AddManipulator(m_ShortcutHandler);
-            }
 
             if (graphView?.controller == null && m_DisplayedResource != null)
             {
@@ -349,8 +315,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (graphView.controller != null)
                     VFXAnalytics.GetInstance().OnGraphClosed(graphView);
-                graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
-                graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.Dispose();
                 graphView = null;
             }
@@ -389,16 +353,6 @@ namespace UnityEditor.VFX.UI
             }
 
             return false;
-        }
-
-        void OnEnterPanel(AttachToPanelEvent e)
-        {
-            rootVisualElement.AddManipulator(m_ShortcutHandler);
-        }
-
-        void OnLeavePanel(DetachFromPanelEvent e)
-        {
-            rootVisualElement.RemoveManipulator(m_ShortcutHandler);
         }
 
         void OnFocus()

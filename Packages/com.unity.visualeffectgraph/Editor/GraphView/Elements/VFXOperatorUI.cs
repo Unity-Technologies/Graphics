@@ -128,7 +128,6 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target == this && controller != null && controller.model is VFXInlineOperator)
             {
-                evt.menu.AppendAction("Convert to Exposed Property", OnConvertToExposedProperty, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendAction("Convert to Property", OnConvertToProperty, e => DropdownMenuAction.Status.Normal);
                 evt.menu.AppendSeparator();
             }
@@ -136,12 +135,12 @@ namespace UnityEditor.VFX.UI
 
         void OnConvertToProperty(DropdownMenuAction evt)
         {
-            controller.ConvertToProperty(false);
+            ConvertToProperty(false);
         }
 
         void OnConvertToExposedProperty(DropdownMenuAction evt)
         {
-            controller.ConvertToProperty(true);
+            ConvertToProperty(true);
         }
 
         public override bool superCollapsed
@@ -272,6 +271,12 @@ namespace UnityEditor.VFX.UI
                         row.RemoveFromClassList("hovered");
                 }
             }
+        }
+
+        private void ConvertToProperty(bool exposed)
+        {
+            controller.ConvertToProperty(exposed);
+            this.GetFirstAncestorOfType<VFXView>().blackboard.Update(true);
         }
     }
 }

@@ -463,6 +463,12 @@ namespace UnityEditor.VFX.UI
             return picked.OfType<VFXGroupNode>().FirstOrDefault();
         }
 
+        internal VFXNodeController AddOperator(Type type)
+        {
+            var desc = VFXLibrary.GetOperators().FirstOrDefault(x => x.modelType == type);
+            return AddNode(desc.variant, Event.current.mousePosition);
+        }
+
         public VFXNodeController AddNode(Variant variant, Vector2 mPos)
         {
             UpdateSelectionWithNewNode();
@@ -1025,21 +1031,10 @@ namespace UnityEditor.VFX.UI
 
         void ToggleBlackboard(ChangeEvent<bool> e)
         {
-            if (m_Blackboard.parent == null)
-            {
-                Insert(childCount - 1, m_Blackboard);
-                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
-                m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
-                m_Blackboard.style.position = PositionType.Absolute;
-            }
-            else
-            {
-                m_Blackboard.RemoveFromHierarchy();
-                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
-            }
+            ToggleBlackboard();
         }
 
-        void ToggleComponentBoard()
+        public void ToggleComponentBoard()
         {
             if (m_ComponentBoard.parent == null)
             {
@@ -1055,7 +1050,7 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard.RefreshInitializeErrors();
         }
 
-        void ToggleProfilingBoard()
+        public void ToggleProfilingBoard()
         {
             if (m_ProfilingBoard.parent == null)
             {
@@ -1731,6 +1726,11 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
+            if (Event.current.modifiers != EventModifiers.None)
+            {
+                return;
+            }
+
             if (IsLocked())
             {
                 return;
@@ -1755,9 +1755,9 @@ namespace UnityEditor.VFX.UI
             {
                 VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
                 if (edge != null)
-                    VFXFilterWindow.Show(point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
+                    VFXFilterWindow.Show(this, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
-                    VFXFilterWindow.Show(point, ctx.screenMousePosition, m_NodeProvider);
+                    VFXFilterWindow.Show(this, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1929,6 +1929,27 @@ namespace UnityEditor.VFX.UI
                 component.Play();
             }
             return EventPropagation.Stop;
+        }
+
+        public void ToggleBlackboard()
+        {
+            if (m_Blackboard.parent == null)
+            {
+                Insert(childCount - 1, m_Blackboard);
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+                m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
+                m_Blackboard.style.position = PositionType.Absolute;
+            }
+            else
+            {
+                m_Blackboard.RemoveFromHierarchy();
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
+            }
+        }
+
+        public void ToggleDebugPanels()
+        {
+            m_ProfilingBoard.TogglePanelsVisibility();
         }
 
         public IEnumerable<VFXContextUI> GetAllContexts()
@@ -2696,12 +2717,89 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void GroupSelection()
+        public void ToggleCollapseSelection()
         {
-            controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
+            var state = 0;
+            foreach (var nodeUI in selection.OfType<VFXNodeUI>())
+            {
+                if (state == 0)
+                {
+                    if (nodeUI.controller.superCollapsed)
+                        state = 1;
+                    else if (nodeUI.expanded)
+                        state = 2;
+                    else state = 3;
+                }
+
+                switch (state)
+                {
+                    case 1:
+                        nodeUI.controller.superCollapsed = false;
+                        nodeUI.expanded = true;
+                        break;
+                    case 2:
+                        nodeUI.controller.superCollapsed = false;
+                        nodeUI.expanded = false;
+                        break;
+                    case 3:
+                        nodeUI.controller.superCollapsed = true;
+                        break;
+                }
+            }
         }
 
-        void AddStickyNote(Vector2 position, VFXGroupNode group = null)
+        public void GroupSelection()
+        {
+            if (canGroupSelection)
+            {
+                controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller).ToArray());
+            }
+        }
+
+        public void CleanUnLinkedOperators()
+        {
+            var isolatedOperators = controller.allChildren
+                .OfType<VFXOperatorController>()
+                .Where(x => !x.model.inputSlots.Any(y => y.HasLink(true)) && !x.model.outputSlots.Any(y => y.HasLink(true)))
+                .ToList();
+            isolatedOperators.ForEach(x => controller.RemoveElement(x));
+        }
+
+        public void ConvertToSubgraphOperator()
+        {
+            VFXConvertSubgraph.ConvertToSubgraphOperator(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
+        }
+
+        public void ToggleNodePropertyOrInline()
+        {
+            var currentSelection = selection.ToArray();
+            if (currentSelection.FirstOrDefault() is VFXOperatorUI operatorUI && operatorUI.controller.model is VFXInlineOperator)
+            {
+                foreach (var vfxOperatorUI in currentSelection.OfType<VFXOperatorUI>())
+                {
+                    if (vfxOperatorUI.controller.model is VFXInlineOperator)
+                    {
+                        var param = vfxOperatorUI.controller.ConvertToProperty();
+                        var ui = GetAllNodes().Single(x => x.controller.model == param);
+                        AddToSelection(ui);
+                        RemoveFromSelection(vfxOperatorUI);
+                    }
+                }
+                blackboard.Update(true);
+            }
+            else if (currentSelection.FirstOrDefault() is VFXParameterUI)
+            {
+                foreach (var vfxParameterUI in currentSelection.OfType<VFXParameterUI>())
+                {
+                    var inlineOperator = vfxParameterUI.controller.ConvertToInline();
+                    var ui = GetAllNodes().Single(x => x.controller.model == inlineOperator);
+                    AddToSelection(ui);
+                    RemoveFromSelection(vfxParameterUI);
+                }
+            }
+        }
+
+        public void AddStickyNote(Vector2 position, VFXGroupNode group = null)
         {
             position = contentViewContainer.WorldToLocal(position);
             controller.AddStickyNote(position, group != null ? group.controller : null);
@@ -2753,7 +2851,16 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNodeOnEdge(DropdownMenuAction e)
         {
-            VFXFilterWindow.Show(e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator) }));
+            CreateNodeOnEdge(e.eventInfo.mousePosition);
+        }
+
+        public void CreateNodeOnEdge(Vector2 mousePosition)
+        {
+            var edge = selection.OfType<VFXDataEdge>().FirstOrDefault();
+            if (edge != null)
+            {
+                VFXFilterWindow.Show(this, mousePosition, ViewToScreenPosition(mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new[] { typeof(VFXOperator) }));
+            }
         }
 
         // Todo: Uncomment this code and test it
@@ -2982,7 +3089,7 @@ namespace UnityEditor.VFX.UI
 
         void ToSubgraphOperator(DropdownMenuAction a)
         {
-            VFXConvertSubgraph.ConvertToSubgraphOperator(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
+            ConvertToSubgraphOperator();
         }
 
         void ToSubgraphContext(DropdownMenuAction a)

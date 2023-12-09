@@ -39,6 +39,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public bool hasExpandedPanel
+        {
+            get
+            {
+                foreach (var panel in m_AnchoredProfilerPanels)
+                {
+                    if (!panel.isCollapsed)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         VFXView m_View;
         IVisualElementScheduledItem m_UpdateItem;
         IVisualElementScheduledItem m_TimingCollectionUpdateItem;
@@ -119,28 +133,15 @@ namespace UnityEditor.VFX.UI
             m_ShortcutWindowButton.clickable.clicked += () => { m_ShortcutWindowMenu.ShowAsContext(); };
         }
 
-        internal EventPropagation ExpandAllGraphPanels()
+        internal void TogglePanelsVisibility()
         {
-            if (m_AnchoredProfilerPanels != null)
+            bool? expand = null;
+            foreach (var panel in m_AnchoredProfilerPanels)
             {
-                foreach (var panel in m_AnchoredProfilerPanels)
-                {
-                    panel.ForceExpand();
-                }
+                expand ??= panel.isCollapsed;
+                if (expand.Value) panel.ForceExpand();
+                else panel.ForceClose();
             }
-            return EventPropagation.Stop;
-        }
-
-        internal EventPropagation CloseAllGraphPanels()
-        {
-            if (m_AnchoredProfilerPanels != null)
-            {
-                foreach (var panel in m_AnchoredProfilerPanels)
-                {
-                    panel.ForceClose();
-                }
-            }
-            return EventPropagation.Stop;
         }
 
         public void ValidatePosition()
