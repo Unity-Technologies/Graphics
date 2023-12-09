@@ -48,19 +48,29 @@ namespace UnityEngine.Rendering
         }
 
         // We use a constant to define the debug view arrays to guarantee that they're exactly the same length at compile time
-        const int kNumDebugViews = 1;
+        const int kNumDebugViews = 6;
 
         // We define a fixed array of GUIContent values here which map to supported debug views within the STP shader code
         static readonly GUIContent[] s_DebugViewDescriptions = new GUIContent[kNumDebugViews]
         {
-            new GUIContent("Pattern/ClippedInputColor", "Input color clipped against the 0 to 1 range"),
+            new GUIContent("Clipped Input Color", "Shows input color clipped to {0 to 1}"),
+            new GUIContent("Log Input Depth", "Shows input depth in log scale"),
+            new GUIContent("Reversible Tonemapped Input Color", "Shows input color after conversion to reversible tonemaped space"),
+            new GUIContent("Shaped Absolute Input Motion", "Visualizes input motion vectors"),
+            new GUIContent("Motion Reprojection {R=Prior G=This Sqrt Luma Feedback Diff, B=Offscreen}", "Visualizes reprojected frame difference"),
+            new GUIContent("Sensitivity {G=No motion match, R=Responsive, B=Luma}", "Visualize pixel sensitivities"),
         };
 
         // Unfortunately we must maintain a sequence of index values that map to the supported debug view indices
         // if we want to be able to display the debug views as an enum field without allocating any garbage.
         static readonly int[] s_DebugViewIndices = new int[kNumDebugViews]
         {
-            0
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
         };
 
         /// <summary>
@@ -844,9 +854,9 @@ namespace UnityEngine.Rendering
             constants._StpTaaConstants2.y = (0.5f / config.outputImageSize.y);
             //------------------------------------------------------------------------------------------------------------------------------
             // Conversion from a {0 to 1} position in current input to feedback.
-            // StpH3 kJitCRcpC := jitC / image image size in pixels.
-            constants._StpTaaConstants2.z = jitC.x / config.currentImageSize.x;
-            constants._StpTaaConstants2.w = jitC.y / config.currentImageSize.y;
+            // StpH3 kJitCRcpC0 := jitC / image image size in pixels + {-0.5/size, +0.5/size} of current input image in pixels.
+            constants._StpTaaConstants2.z = jitC.x / config.currentImageSize.x - 0.5f / config.currentImageSize.x;
+            constants._StpTaaConstants2.w = jitC.y / config.currentImageSize.y + 0.5f / config.currentImageSize.y;
             //------------------------------------------------------------------------------------------------------------------------------
             // StpF2 kHalfRcpC := 0.5/size of current input image in pixels.
             constants._StpTaaConstants3.x = 0.5f / config.currentImageSize.x;
@@ -889,6 +899,7 @@ namespace UnityEngine.Rendering
         static class ShaderKeywords
         {
             public static readonly string EnableDebugMode = "ENABLE_DEBUG_MODE";
+            public static readonly string EnableLargeKernel = "ENABLE_LARGE_KERNEL";
             public static readonly string EnableStencilResponsive = "ENABLE_STENCIL_RESPONSIVE";
             public static readonly string DisableTexture2DXArray = "DISABLE_TEXTURE2D_X_ARRAY";
         }
@@ -945,6 +956,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Integer value used to identify when STP is running on a Qualcomm GPU
+        /// </summary>
+        static readonly int kQualcommVendorId = 0x5143;
+
+        /// <summary>
         /// Information required for STP's setup pass
         /// </summary>
         class SetupData
@@ -952,7 +968,7 @@ namespace UnityEngine.Rendering
             public ComputeShader cs;
             public int kernelIndex;
             public int viewCount;
-            public Vector2Int imageSize;
+            public Vector2Int dispatchSize;
 
             public StpConstantBufferData constantBufferData;
 
@@ -987,7 +1003,7 @@ namespace UnityEngine.Rendering
             public ComputeShader cs;
             public int kernelIndex;
             public int viewCount;
-            public Vector2Int imageSize;
+            public Vector2Int dispatchSize;
 
             // Common
             public TextureHandle noiseTexture;
@@ -1012,7 +1028,7 @@ namespace UnityEngine.Rendering
             public ComputeShader cs;
             public int kernelIndex;
             public int viewCount;
-            public Vector2Int imageSize;
+            public Vector2Int dispatchSize;
 
             // Common
             public TextureHandle noiseTexture;
@@ -1084,12 +1100,21 @@ namespace UnityEngine.Rendering
 
             Vector2Int intermediateSize = config.enableHwDrs ? config.outputImageSize : config.currentImageSize;
 
+            // Enable the large 128 wide kernel whenever STP runs on Qualcomm GPUs.
+            // These GPUs require larger compute work groups in order to reach maximum FP16 ALU efficiency
+            bool enableLargeKernel = SystemInfo.graphicsDeviceVendorID == kQualcommVendorId;
+
+            Vector2Int kernelSize = new Vector2Int(8, enableLargeKernel ? 16 : 8);
+
             SetupData setupData;
 
             using (var builder = renderGraph.AddComputePass<SetupData>("STP Setup", out var passData, ProfilingSampler.Get(ProfileId.StpSetup)))
             {
                 passData.cs = runtimeResources.setupCS;
                 passData.cs.shaderKeywords = null;
+
+                if (enableLargeKernel)
+                    passData.cs.EnableKeyword(ShaderKeywords.EnableLargeKernel);
 
                 if (!config.enableTexArray)
                     passData.cs.EnableKeyword(ShaderKeywords.DisableTexture2DXArray);
@@ -1108,7 +1133,10 @@ namespace UnityEngine.Rendering
 
                 passData.kernelIndex = passData.cs.FindKernel("StpSetup");
                 passData.viewCount = config.numActiveViews;
-                passData.imageSize = config.currentImageSize;
+                passData.dispatchSize = new Vector2Int(
+                    CoreUtils.DivRoundUp(config.currentImageSize.x, kernelSize.x),
+                    CoreUtils.DivRoundUp(config.currentImageSize.y, kernelSize.y)
+                );
 
                 passData.inputColor = UseTexture(builder, config.inputColor);
                 passData.inputDepth = UseTexture(builder, config.inputDepth);
@@ -1150,9 +1178,6 @@ namespace UnityEngine.Rendering
                         // TODO: Fix usage of m_WrappedCommandBuffer here once NRP support is added to ConstantBuffer.cs
                         ConstantBuffer.UpdateData(ctx.cmd.m_WrappedCommandBuffer, data.constantBufferData);
 
-                        int dispatchX = CoreUtils.DivRoundUp(data.imageSize.x, 8);
-                        int dispatchY = CoreUtils.DivRoundUp(data.imageSize.y, 8);
-
                         ConstantBuffer.Set<StpConstantBufferData>(data.cs, ShaderResources._StpConstantBufferData);
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpBlueNoiseIn, data.noiseTexture);
@@ -1178,7 +1203,7 @@ namespace UnityEngine.Rendering
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpPriorFeedback, data.priorFeedback);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpPriorConvergence, data.priorConvergence);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernelIndex, dispatchX, dispatchY, data.viewCount);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernelIndex, data.dispatchSize.x, data.dispatchSize.y, data.viewCount);
                     });
 
                 setupData = passData;
@@ -1190,6 +1215,9 @@ namespace UnityEngine.Rendering
             {
                 passData.cs = runtimeResources.preTaaCS;
                 passData.cs.shaderKeywords = null;
+
+                if (enableLargeKernel)
+                    passData.cs.EnableKeyword(ShaderKeywords.EnableLargeKernel);
 
                 if (!config.enableTexArray)
                     passData.cs.EnableKeyword(ShaderKeywords.DisableTexture2DXArray);
@@ -1204,7 +1232,10 @@ namespace UnityEngine.Rendering
 
                 passData.kernelIndex = passData.cs.FindKernel("StpPreTaa");
                 passData.viewCount = config.numActiveViews;
-                passData.imageSize = config.currentImageSize;
+                passData.dispatchSize = new Vector2Int(
+                    CoreUtils.DivRoundUp(config.currentImageSize.x, kernelSize.x),
+                    CoreUtils.DivRoundUp(config.currentImageSize.y, kernelSize.y)
+                );
 
                 passData.intermediateConvergence = UseTexture(builder, setupData.intermediateConvergence);
 
@@ -1221,9 +1252,6 @@ namespace UnityEngine.Rendering
                 builder.SetRenderFunc(
                     (PreTaaData data, ComputeGraphContext ctx) =>
                     {
-                        int dispatchX = CoreUtils.DivRoundUp(data.imageSize.x, 8);
-                        int dispatchY = CoreUtils.DivRoundUp(data.imageSize.y, 8);
-
                         ConstantBuffer.Set<StpConstantBufferData>(data.cs, ShaderResources._StpConstantBufferData);
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpBlueNoiseIn, data.noiseTexture);
@@ -1238,7 +1266,7 @@ namespace UnityEngine.Rendering
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpLuma, data.luma);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpConvergence, data.convergence);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernelIndex, dispatchX, dispatchY, data.viewCount);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernelIndex, data.dispatchSize.x, data.dispatchSize.y, data.viewCount);
                     });
 
                 preTaaData = passData;
@@ -1250,6 +1278,9 @@ namespace UnityEngine.Rendering
             {
                 passData.cs = runtimeResources.taaCS;
                 passData.cs.shaderKeywords = null;
+
+                if (enableLargeKernel)
+                    passData.cs.EnableKeyword(ShaderKeywords.EnableLargeKernel);
 
                 if (!config.enableTexArray)
                     passData.cs.EnableKeyword(ShaderKeywords.DisableTexture2DXArray);
@@ -1264,7 +1295,10 @@ namespace UnityEngine.Rendering
 
                 passData.kernelIndex = passData.cs.FindKernel("StpTaa");
                 passData.viewCount = config.numActiveViews;
-                passData.imageSize = config.outputImageSize;
+                passData.dispatchSize = new Vector2Int(
+                    CoreUtils.DivRoundUp(config.outputImageSize.x, kernelSize.x),
+                    CoreUtils.DivRoundUp(config.outputImageSize.y, kernelSize.y)
+                );
 
                 passData.intermediateColor = UseTexture(builder, setupData.intermediateColor);
                 passData.intermediateWeights = UseTexture(builder, preTaaData.intermediateWeights);
@@ -1280,9 +1314,6 @@ namespace UnityEngine.Rendering
                 builder.SetRenderFunc(
                     (TaaData data, ComputeGraphContext ctx) =>
                     {
-                        int dispatchX = CoreUtils.DivRoundUp(data.imageSize.x, 8);
-                        int dispatchY = CoreUtils.DivRoundUp(data.imageSize.y, 8);
-
                         ConstantBuffer.Set<StpConstantBufferData>(data.cs, ShaderResources._StpConstantBufferData);
 
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpBlueNoiseIn, data.noiseTexture);
@@ -1300,7 +1331,7 @@ namespace UnityEngine.Rendering
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpFeedback, data.feedback);
                         ctx.cmd.SetComputeTextureParam(data.cs, data.kernelIndex, ShaderResources._StpOutput, data.output);
 
-                        ctx.cmd.DispatchCompute(data.cs, data.kernelIndex, dispatchX, dispatchY, data.viewCount);
+                        ctx.cmd.DispatchCompute(data.cs, data.kernelIndex, data.dispatchSize.x, data.dispatchSize.y, data.viewCount);
                     });
 
                 taaData = passData;

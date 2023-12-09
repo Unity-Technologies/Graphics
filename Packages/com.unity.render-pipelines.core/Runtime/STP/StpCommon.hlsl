@@ -32,14 +32,17 @@
 // Disable grain since we don't currently have a way to integrate this with the rest of Unity's post processing
 #define STP_GRAIN 0
 
-// Enable the minimum precision path when supported by the shader environment
-#if REAL_IS_HALF
+// Enable the minimum precision path when supported by the shader environment.
+#if REAL_IS_HALF || defined(UNITY_DEVICE_SUPPORTS_NATIVE_16BIT)
     #define STP_MEDIUM 1
 #endif
 
-// Enable workarounds that help us avoid issues on the Switch
+// Mobile platforms use a simplified version of STP to reduce runtime overhead.
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+    #define STP_TAA_Q 0
+#endif
+
 #if defined(SHADER_API_SWITCH)
-    // Relying on infinity behavior causes issues in the on-screen inline pass calculations
     #define STP_BUG_SAT_INF 1
 #endif
 
@@ -51,22 +54,16 @@
     #define STP_BUG_SAT_INF 1
 #endif
 
-// Enable workarounds that help us avoid issues on Playstation
 #if defined(SHADER_API_PSSL)
-    // Relying on infinity behavior causes issues in the on-screen inline pass calculations
     #define STP_BUG_SAT_INF 1
 #endif
 
 #if defined(UNITY_DEVICE_SUPPORTS_NATIVE_16BIT)
     #define STP_16BIT 1
 
-    // We currently disable 16-bit math approximations on PlayStation to work around compiler issues
     #if defined(SHADER_API_PSSL)
         #define STP_BUG_PRX 1
     #endif
-
-    // We currently enable this to work around a saturate() related bug on AMD GPUs
-    #define STP_BUG_SAT 1
 #else
     #define STP_32BIT 1
 #endif
@@ -86,6 +83,34 @@
 // Common
 //
 
+#if defined(ENABLE_LARGE_KERNEL)
+#define STP_GROUP_SIZE 128
+#define STP_GROUP_SIZE_SHIFT_X 3
+#define STP_GROUP_SIZE_SHIFT_Y 4
+#else
+#define STP_GROUP_SIZE 64
+#define STP_GROUP_SIZE_SHIFT_X 3
+#define STP_GROUP_SIZE_SHIFT_Y 3
+#endif
+
+#if defined(STP_16BIT)
+StpW2 ComputeGroupPos(StpW2 groupId)
+{
+    return StpW2(
+        groupId.x << StpW1_(STP_GROUP_SIZE_SHIFT_X),
+        groupId.y << StpW1_(STP_GROUP_SIZE_SHIFT_Y)
+    );
+}
+#else
+StpMU2 ComputeGroupPos(StpMU2 groupId)
+{
+    return StpMU2(
+        groupId.x << StpMU1_(STP_GROUP_SIZE_SHIFT_X),
+        groupId.y << StpMU1_(STP_GROUP_SIZE_SHIFT_Y)
+    );
+}
+#endif
+
 #define STP_COMMON_CONSTANT asuint(_StpCommonConstant.x)
 #define STP_ZBUFFER_PARAMS_Z _StpCommonConstant.y
 #define STP_ZBUFFER_PARAMS_W _StpCommonConstant.z
@@ -98,10 +123,53 @@ SAMPLER(s_point_clamp_sampler);
 SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_linear_repeat_sampler);
 
-uint DecodeNoiseWidthMinusOne(uint param)
+#if defined(STP_32BIT)
+StpMU1 StpBfeF(StpMU1 data, StpMU1 offset, StpMU1 numBits)
 {
-    return param & 0xFF;
+    StpMU1 mask = (StpMU1(1) << numBits) - StpMU1(1);
+    return (data >> offset) & mask;
 }
+
+StpMU1 StpBfiF(StpMU1 mask, StpMU1 src, StpMU1 dst)
+{
+    return (src & mask) | (dst & ~mask);
+}
+
+StpMU2 StpRemapLaneTo8x16F(StpMU1 i)
+{
+    return StpMU2(StpBfiF(StpMU1(1), i, StpBfeF(i, StpMU1(2), StpMU1(3))),
+        StpBfiF(StpMU1(3), StpBfeF(i, StpMU1(1), StpMU1(2)), StpBfeF(i, StpMU1(3), StpMU1(4))));
+}
+
+StpMU1 DecodeNoiseWidthMinusOneF(StpMU1 param)
+{
+    return param & StpMU1(0xFF);
+}
+#endif
+
+#if defined(STP_16BIT)
+StpW1 StpBfeH(StpW1 data, StpW1 offset, StpW1 numBits)
+{
+    StpW1 mask = (StpW1(1) << numBits) - StpW1(1);
+    return (data >> offset) & mask;
+}
+
+StpW1 StpBfiH(StpW1 mask, StpW1 src, StpW1 dst)
+{
+    return (src & mask) | (dst & ~mask);
+}
+
+StpW2 StpRemapLaneTo8x16H(StpW1 i)
+{
+    return StpW2(StpBfiH(StpW1(1), i, StpBfeH(i, StpW1(2), StpW1(3))),
+        StpBfiH(StpW1(3), StpBfeH(i, StpW1(1), StpW1(2)), StpBfeH(i, StpW1(3), StpW1(4))));
+}
+
+StpW1 DecodeNoiseWidthMinusOneH(StpW1 param)
+{
+    return param & StpW1(0xFF);
+}
+#endif
 
 bool DecodeHasValidHistory(uint param)
 {
@@ -119,13 +187,13 @@ uint DecodeDebugViewIndex(uint param)
 }
 
 #if defined(STP_32BIT)
-StpMF1 StpDitF1(StpU2 o)
+StpMF1 StpDitF1(StpMU2 o)
 {
-    uint noiseWidthMinusOne = DecodeNoiseWidthMinusOne(STP_COMMON_CONSTANT);
+    StpMU1 noiseWidthMinusOne = DecodeNoiseWidthMinusOneF(StpMU1(STP_COMMON_CONSTANT));
     return (StpMF1)LOAD_TEXTURE2D_LOD(_StpBlueNoiseIn, o & noiseWidthMinusOne, 0).a;
 }
 // TODO: Broadcast one value as all three outputs a bug that will effect 'STP_GRAIN=3' output.
-StpMF3 StpDitF3(StpU2 o) { return (StpMF3)StpDitF1(o); }
+StpMF3 StpDitF3(StpMU2 o) { return (StpMF3)StpDitF1(o); }
 #endif
 
 // NOTE: This function is used by both the 32-bit path, and the 16-bit path (when various workarounds are active)
@@ -136,13 +204,13 @@ void StpBugF(StpU3 p, StpF4 c)
 }
 
 #if defined(STP_16BIT)
-StpH1 StpDitH1(StpU2 o)
+StpH1 StpDitH1(StpW2 o)
 {
-    uint noiseWidthMinusOne = DecodeNoiseWidthMinusOne(STP_COMMON_CONSTANT);
+    StpW1 noiseWidthMinusOne = DecodeNoiseWidthMinusOneH(StpW1(STP_COMMON_CONSTANT));
     return (StpH1)LOAD_TEXTURE2D_LOD(_StpBlueNoiseIn, o & noiseWidthMinusOne, 0).a;
 }
 // TODO: Broadcast one value as all three outputs a bug that will effect 'STP_GRAIN=3' output.
-StpH3 StpDitH3(StpU2 o) { return (StpH3)StpDitH1(o); }
+StpH3 StpDitH3(StpW2 o) { return (StpH3)StpDitH1(o); }
 #endif
 
 #endif // STP_COMMON_UNITY_INCLUDE_GUARD
