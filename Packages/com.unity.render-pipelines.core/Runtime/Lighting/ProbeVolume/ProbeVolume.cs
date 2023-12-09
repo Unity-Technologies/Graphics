@@ -212,13 +212,19 @@ namespace UnityEngine.Rendering
                 if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
                     return true;
 
-                cellSizeInMeters = bakingSet.cellSizeInMeters;
+                // Use the non-backed data to display real-time info
+                cellSizeInMeters = ProbeVolumeBakingSet.GetMinBrickSize(bakingSet.minDistanceBetweenProbes) * ProbeVolumeBakingSet.GetCellSizeInBricks(bakingSet.simplificationLevels);
             }
+            Camera activeCamera = Camera.current;
+#if UNITY_EDITOR
+            if (activeCamera == null)
+                activeCamera = UnityEditor.SceneView.lastActiveSceneView.camera;
+#endif
 
-            if (Camera.current == null)
+            if (activeCamera == null)
                 return true;
 
-            var cameraTransform = Camera.current.transform;
+            var cameraTransform = activeCamera.transform;
 
             Vector3 cellCenterWS = cellPosition * cellSizeInMeters + Vector3.one * (cellSizeInMeters / 2.0f);
 
@@ -228,7 +234,7 @@ namespace UnityEngine.Rendering
             if (roundedDownDist > ProbeReferenceVolume.instance.probeVolumeDebug.subdivisionViewCullingDistance)
                 return true;
 
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.current);
+            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
             var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);

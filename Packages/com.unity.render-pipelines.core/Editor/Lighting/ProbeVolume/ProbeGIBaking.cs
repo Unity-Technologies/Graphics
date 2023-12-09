@@ -615,6 +615,7 @@ namespace UnityEngine.Rendering
         {
             if (PrepareBaking())
             {
+
                 ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
                 Lightmapping.SetAdditionalBakeDelegate(BakeDelegate);
             }
@@ -1750,6 +1751,7 @@ namespace UnityEngine.Rendering
             m_BakingSet.sharedSkyOcclusionL0L1ChunkSize = handlesSkyOcclusion ? sizeof(ushort) * 4 * chunkSizeInProbes : 0;
             m_BakingSet.sharedSkyShadingDirectionIndicesChunkSize = handlesSkyShading ? sizeof(byte) * chunkSizeInProbes : 0;
             m_BakingSet.sharedDataChunkSize = m_BakingSet.sharedValidityMaskChunkSize + m_BakingSet.sharedSkyOcclusionL0L1ChunkSize + m_BakingSet.sharedSkyShadingDirectionIndicesChunkSize;
+
             var sharedDataTotalSize = m_TotalCellCounts.chunksCount * m_BakingSet.sharedDataChunkSize;
             using var sharedData = new NativeArray<byte>(sharedDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
@@ -2166,7 +2168,7 @@ namespace UnityEngine.Rendering
                     // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
                     var filteredContributors = contributors.Filter(ctx.bakingSet, cell.bounds, overlappingProbeVolumes);
 
-                    if (overlappingProbeVolumes.Count == 0 && filteredContributors.Count == 0)
+                    if (filteredContributors.Count == 0 && !overlappingProbeVolumes.Any(v => v.component.fillEmptySpaces))
                         continue;
 
                     var bricks = ProbePlacement.SubdivideCell(cell.bounds, ctx, gpuResources, filteredContributors, overlappingProbeVolumes);
