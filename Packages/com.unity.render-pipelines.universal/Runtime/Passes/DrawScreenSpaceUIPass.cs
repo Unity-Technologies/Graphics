@@ -16,6 +16,9 @@ namespace UnityEngine.Rendering.Universal
         // Whether to render on an offscreen render texture or on the current active render target
         bool m_RenderOffscreen;
 
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+        static readonly int s_CameraOpaqueTextureID = Shader.PropertyToID("_CameraOpaqueTexture");
+
         /// <summary>
         /// Creates a new <c>DrawScreenSpaceUIPass</c> instance.
         /// </summary>
@@ -206,21 +209,29 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(data.colorTarget);
-
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }
         }
 
-        internal void RenderOverlay(RenderGraph renderGraph, Camera camera, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
+        internal void RenderOverlay(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorBuffer, in TextureHandle depthBuffer)
         {
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+
             // Render uGUI and UIToolkit overlays
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space UIToolkit/uGUI Pass - Overlay", out var passData, base.profilingSampler))
             {
+                if (cameraData.requiresDepthTexture && renderer != null && renderer.renderingModeActual != RenderingMode.Deferred)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
+                if (cameraData.requiresOpaqueTexture && renderer != null)
+                    builder.UseGlobalTexture(s_CameraOpaqueTextureID);
+
                 builder.SetRenderAttachment(colorBuffer, 0);
                 builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
-                passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.UIToolkit_UGUI);
+                passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.UIToolkit_UGUI);
                 builder.UseRendererList(passData.rendererList);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
@@ -237,13 +248,12 @@ namespace UnityEngine.Rendering.Universal
                 passData.colorTarget = colorBuffer;
                 builder.UseTexture(colorBuffer, AccessFlags.Write);
 
-                passData.rendererList = renderGraph.CreateUIOverlayRendererList(camera, UISubset.LowLevel);
+                passData.rendererList = renderGraph.CreateUIOverlayRendererList(cameraData.camera, UISubset.LowLevel);
                 builder.UseRendererList(passData.rendererList);
 
                 builder.SetRenderFunc((UnsafePassData data, UnsafeGraphContext context) =>
                 {
                     context.cmd.SetRenderTarget(data.colorTarget);
-
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }

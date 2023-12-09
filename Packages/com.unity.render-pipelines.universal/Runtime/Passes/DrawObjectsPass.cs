@@ -251,6 +251,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Objects Pass", out var passData,
                 m_ProfilingSampler))
             {
+                builder.UseAllGlobalTextures(true);
+
                 InitPassData(cameraData, ref passData, batchLayerMask);
 
                 if (colorTarget.IsValid())

@@ -98,9 +98,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, bool hasDepthCopy = false)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var activeDebugHandler = GetActiveDebugHandler(cameraData);
             if (activeDebugHandler != null)
@@ -120,6 +121,10 @@ namespace UnityEngine.Rendering.Universal
                 InitPassData(ref passData, cameraData.xr);
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
+
+                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                if (hasDepthCopy && renderer.renderingModeActual != RenderingMode.Deferred && resourceData.cameraDepthTexture.IsValid())
+                    builder.UseGlobalTexture(Shader.PropertyToID("_CameraDepthTexture"));
 
                 builder.AllowPassCulling(false);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);

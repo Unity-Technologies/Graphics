@@ -241,8 +241,11 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
 
             using (var builder = renderGraph.AddRasterRenderPass<MainPassData>("FullScreenPass", out var passData, profilingSampler))
             {
+                builder.UseAllGlobalTextures(true);
+
                 passData.material = m_Material;
                 passData.passIndex = m_PassIndex;
+
                 if (m_CopyActiveColor)
                 {
                     passData.inputTexture = copiedColor;

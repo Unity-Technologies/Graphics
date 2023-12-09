@@ -213,6 +213,8 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Motion Vector Pass", out var passData, base.profilingSampler))
             {
+                builder.UseAllGlobalTextures(true);
+
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);

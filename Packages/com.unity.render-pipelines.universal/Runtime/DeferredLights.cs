@@ -93,6 +93,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             "_GBuffer6"
         };
 
+        internal static readonly int[] k_GBufferShaderPropertyIDs = new int[]
+        {
+            Shader.PropertyToID(k_GBufferNames[0]),
+            Shader.PropertyToID(k_GBufferNames[1]),
+            Shader.PropertyToID(k_GBufferNames[2]),
+            Shader.PropertyToID(k_GBufferNames[3]),
+            Shader.PropertyToID(k_GBufferNames[4]),
+            Shader.PropertyToID(k_GBufferNames[5]),
+            Shader.PropertyToID(k_GBufferNames[6]),
+        };
+
         static readonly string[] k_StencilDeferredPassNames = new string[]
         {
             "Stencil Volume",

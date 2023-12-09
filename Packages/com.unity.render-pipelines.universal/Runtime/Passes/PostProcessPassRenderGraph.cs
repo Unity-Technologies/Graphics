@@ -2,11 +2,15 @@ using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
     internal partial class PostProcessPass : ScriptableRenderPass
     {
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+        static readonly int s_CameraOpaqueTextureID = Shader.PropertyToID("_CameraOpaqueTexture");
+
         private class UpdateCameraResolutionPassData
         {
             internal Vector2Int newCameraTargetSize;
@@ -1731,6 +1735,18 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Postprocessing Uber Post Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
+                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                if (cameraData.requiresDepthTexture && renderer != null)
+                {
+                    if (renderer.renderingModeActual != RenderingMode.Deferred)
+                        builder.UseGlobalTexture(s_CameraDepthTextureID);
+                    else if (renderer.deferredLights.GbufferDepthIndex != -1)
+                        builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
+                }
+
+                if (cameraData.requiresOpaqueTexture && renderer != null)
+                    builder.UseGlobalTexture(s_CameraOpaqueTextureID);
+
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destTexture;
                 builder.SetRenderAttachment(destTexture, 0, AccessFlags.Write);

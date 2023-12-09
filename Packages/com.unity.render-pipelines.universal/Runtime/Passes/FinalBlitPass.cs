@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle m_Source;
         private PassData m_PassData;
 
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+
         // Use specialed URP fragment shader pass for debug draw support and color space conversion/encoding support.
         // See CoreBlit.shader and BlitHDROverlay.shader
         static class BlitPassNames
@@ -261,6 +263,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
+                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                if (cameraData.requiresDepthTexture && renderer != null && renderer.renderingModeActual != RenderingMode.Deferred)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
 
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);

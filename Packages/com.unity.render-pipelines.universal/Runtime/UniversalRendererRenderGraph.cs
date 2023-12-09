@@ -1123,7 +1123,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
             {
                 if (RenderSettings.skybox != null || (cameraData.camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
-                    m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture);
+                    m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture, requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents);
             }
 
             if (requiresColorCopyPass)
@@ -1381,7 +1381,7 @@ namespace UnityEngine.Rendering.Universal
                     depthBuffer = resourceData.debugScreenDepth;
                 }
 
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, cameraData.camera, in target, in depthBuffer);
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in target, in depthBuffer);
             }
 
             if (debugHandler != null)

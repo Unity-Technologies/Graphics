@@ -55,6 +55,8 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
+                builder.UseAllGlobalTextures(true);
+
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(passData.color, 0, AccessFlags.Write);
                 builder.UseTexture(renderingLayerTexture);

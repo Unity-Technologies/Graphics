@@ -41,8 +41,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraph = renderGraph;
             m_Disposed = false;
 
-            // For now we reference all globals by default
-            renderPass.useAllGlobalTextures = true;
+            renderPass.useAllGlobalTextures = false;
 
             if (renderPass.type == RenderGraphPassType.Raster)
             {

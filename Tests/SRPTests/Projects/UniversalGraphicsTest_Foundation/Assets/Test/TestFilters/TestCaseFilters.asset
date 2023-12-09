@@ -753,6 +753,16 @@ MonoBehaviour:
     Reason: Fix MSAA, Depth.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 349df85634812cd4e9157f31eace4abe, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-55074
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: df9ecbd3ee4e5004b9987029b4a54000, type: 3}
     - {fileID: 102900000, guid: 072dea7c1ff3b4c438fcf0d15ef2792d, type: 3}
     - {fileID: 102900000, guid: 5533322bdbc381043993a9d3f5a7bb05, type: 3}
