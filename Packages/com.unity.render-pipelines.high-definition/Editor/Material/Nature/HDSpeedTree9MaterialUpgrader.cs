@@ -91,16 +91,22 @@ namespace UnityEditor.Rendering.HighDefinition
             string matDiffProfile = HDUtils.ConvertVector4ToGUID(mat.GetVector(HDProperties.DiffusionProfileAssetID));
             string guid = "";
             uint diffusionProfileHash = 0;
-            var diffusionProfiles = VolumeUtils.GetOrCreateDiffusionProfileList(GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>().volumeProfile).ToArray();
-            foreach (var diffusionProfileAsset in diffusionProfiles)
+
+            var volumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+
+            if (volumeProfileSettings != null)
             {
-                if (diffusionProfileAsset != null)
+                var diffusionProfiles = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfileSettings.volumeProfile).ToArray();
+                foreach (var diffusionProfileAsset in diffusionProfiles)
                 {
-                    bool gotGuid = AssetDatabase.TryGetGUIDAndLocalFileIdentifier<DiffusionProfileSettings>(diffusionProfileAsset, out guid, out var localID);
-                    if (gotGuid && (diffusionProfileAsset.name.Equals(HDProperties.DefaultDiffusionProfileName) || guid.Equals(matDiffProfile)))
+                    if (diffusionProfileAsset != null)
                     {
-                        diffusionProfileHash = diffusionProfileAsset.profile.hash;
-                        break;
+                        bool gotGuid = AssetDatabase.TryGetGUIDAndLocalFileIdentifier<DiffusionProfileSettings>(diffusionProfileAsset, out guid, out var localID);
+                        if (gotGuid && (diffusionProfileAsset.name.Equals(HDProperties.DefaultDiffusionProfileName) || guid.Equals(matDiffProfile)))
+                        {
+                            diffusionProfileHash = diffusionProfileAsset.profile.hash;
+                            break;
+                        }
                     }
                 }
             }
