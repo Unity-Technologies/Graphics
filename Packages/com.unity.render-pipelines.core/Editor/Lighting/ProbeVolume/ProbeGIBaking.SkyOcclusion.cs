@@ -28,10 +28,6 @@ namespace UnityEngine.Rendering
             static readonly int _SobolBuffer = Shader.PropertyToID("_SobolBuffer");
             static readonly int _CPRBuffer = Shader.PropertyToID("_CPRBuffer");
 
-            const string k_PackageLightTransport = "Packages/com.unity.rendering.light-transport";
-
-            private SamplingResources m_SamplingResources;
-
             public bool skyOcclusion;
             public bool skyDirection;
 
@@ -132,9 +128,6 @@ namespace UnityEngine.Rendering
                 if (!skyOcclusion)
                     return;
 
-                m_SamplingResources = ScriptableObject.CreateInstance<SamplingResources>();
-                ResourceReloader.ReloadAllNullIn(m_SamplingResources, k_PackageLightTransport);
-
                 // Create acceletation structure
                 m_AccelerationStructure = BuildAccelerationStructure();
                 var skyOcclusionShader = s_TracingContext.shaderSO;
@@ -179,8 +172,8 @@ namespace UnityEngine.Rendering
                 var skyOccShader = s_TracingContext.shaderSO;
                 ref var job = ref jobs[currentJob];
 
+                s_TracingContext.BindSamplingTextures(cmd);
                 skyOccShader.SetAccelerationStructure(cmd, "_AccelStruct", m_AccelerationStructure);
-                SamplingResources.BindSamplingTextures(cmd, m_SamplingResources);
 
                 skyOccShader.SetIntParam(cmd, _BakeSkyShadingDirection, skyDirection ? 1 : 0);
                 skyOccShader.SetIntParam(cmd, _BackFaceCulling, skyOcclusionBackFaceCulling);
@@ -261,8 +254,6 @@ namespace UnityEngine.Rendering
             {
                 if (m_AccelerationStructure == null)
                     return;
-
-                CoreUtils.Destroy(m_SamplingResources);
 
                 occlusionOutputBuffer?.Dispose();
                 skyShadingBuffer?.Dispose();

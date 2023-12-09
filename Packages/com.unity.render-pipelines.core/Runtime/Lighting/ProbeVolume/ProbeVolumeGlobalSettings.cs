@@ -48,6 +48,34 @@ namespace UnityEngine.Rendering
         public Texture2D numbersDisplayTex;
     }
 
+    [Serializable]
+    [SupportedOnRenderPipeline()]
+    [Category("Probe Volume")]
+    [HideInInspector]
+    class ProbeVolumeBakingResources : IRenderPipelineResources
+    {
+        [SerializeField, HideInInspector]
+        int m_Version = 1;
+
+        public int version { get => m_Version; }
+
+        [ResourcePath("Editor/Lighting/ProbeVolume/ProbeVolumeCellDilation.compute")]
+        public ComputeShader dilationShader;
+        [ResourcePath("Editor/Lighting/ProbeVolume/ProbeVolumeSubdivide.compute")]
+        public ComputeShader subdivideSceneCS;
+        [ResourcePath("Editor/Lighting/ProbeVolume/VoxelizeScene.shader")]
+        public Shader voxelizeSceneShader;
+
+        [ResourcePath("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.compute")]
+        public ComputeShader traceVirtualOffsetCS;
+        [ResourcePath("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.raytrace")]
+        public RayTracingShader traceVirtualOffsetRT;
+
+        [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.compute")]
+        public ComputeShader skyOcclusionCS;
+        [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.raytrace")]
+        public RayTracingShader skyOcclusionRT;
+    }
 
     [Serializable]
     [SupportedOnRenderPipeline()]

@@ -24,6 +24,13 @@ namespace UnityEditor.Rendering
         }
     }
 
+    class ProbeVolumeBakingResourceStripper : IRenderPipelineGraphicsSettingsStripper<ProbeVolumeBakingResources>
+    {
+        public bool active => true;
+
+        public bool CanRemoveSettings(ProbeVolumeBakingResources _) => true;
+    }
+
     class ProbeVolumeGlobalSettingsStripper : IRenderPipelineGraphicsSettingsStripper<ProbeVolumeGlobalSettings>
     {
         public bool active => true;

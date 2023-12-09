@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEngine.Assertions;
 using UnityEngine.LightTransport;
 using UnityEngine.LightTransport.PostProcessing;
+using UnityEngine.Rendering.Sampling;
 using UnityEngine.Rendering.UnifiedRayTracing;
 using TouchupVolumeWithBoundsList = System.Collections.Generic.List<(UnityEngine.Rendering.ProbeReferenceVolume.Volume obb, UnityEngine.Bounds aabb, UnityEngine.Rendering.ProbeTouchupVolume touchupVolume)>;
 
@@ -649,26 +650,14 @@ namespace UnityEngine.Rendering
 
         struct APVRTContext
         {
-            const string k_PackageCore = "Packages/com.unity.render-pipelines.core/";
-            const string k_PackageLightTransport = "Packages/com.unity.rendering.light-transport/";
-
-            const string k_VirtualOffsetShader = k_PackageCore + "Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset";
-            const string k_SkyOcclusionShader = k_PackageCore + "Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion";
-
-
-            RayTracingResources m_Resources;
             RayTracingContext m_Context;
             RayTracingBackend m_Backend;
+            SamplingResources m_SamplingResources;
 
-            public static IRayTracingShader m_ShaderVO = null;
-            public static IRayTracingShader m_ShaderSO = null;
+            static IRayTracingShader m_ShaderVO = null;
+            static IRayTracingShader m_ShaderSO = null;
 
-            IRayTracingShader CreateShader(string filename)
-            {
-                filename = BackendHelpers.GetFileNameOfShader(m_Backend, filename);
-                Object shader = AssetDatabase.LoadAssetAtPath(filename, BackendHelpers.GetTypeOfShader(m_Backend));
-                return m_Context.CreateRayTracingShader(shader);
-            }
+            const string k_PackageLightTransport = "Packages/com.unity.rendering.light-transport";
 
             internal IRayTracingAccelStruct CreateAccelerationStructure()
             {
@@ -685,12 +674,12 @@ namespace UnityEngine.Rendering
                 {
                     if (m_Context == null)
                     {
-                        m_Resources = ScriptableObject.CreateInstance<RayTracingResources>();
-                        ResourceReloader.ReloadAllNullIn(m_Resources, k_PackageLightTransport);
+                        var resources = ScriptableObject.CreateInstance<RayTracingResources>();
+                        ResourceReloader.ReloadAllNullIn(resources, k_PackageLightTransport);
 
                         m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
                         m_Backend = RayTracingBackend.Compute; // hardcoded to compute as hardware is broken for now (UUM-56242)
-                        m_Context = new RayTracingContext(m_Backend, m_Resources);
+                        m_Context = new RayTracingContext(m_Backend, resources);
                     }
 
                     return m_Context;
@@ -702,7 +691,15 @@ namespace UnityEngine.Rendering
                 get
                 {
                     if (m_ShaderVO == null)
-                        m_ShaderVO = CreateShader(k_VirtualOffsetShader);
+                    {
+                        var bakingResources = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>();
+                        m_ShaderVO = m_Context.CreateRayTracingShader(m_Backend switch
+                        {
+                            RayTracingBackend.Hardware => bakingResources.traceVirtualOffsetRT,
+                            RayTracingBackend.Compute => bakingResources.traceVirtualOffsetCS,
+                            _ => null
+                        });
+                    }
 
                     return m_ShaderVO;
                 }
@@ -713,18 +710,43 @@ namespace UnityEngine.Rendering
                 get
                 {
                     if (m_ShaderSO == null)
-                        m_ShaderSO = CreateShader(k_SkyOcclusionShader);
+                    {
+                        var bakingResources = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>();
+                        m_ShaderSO = m_Context.CreateRayTracingShader(m_Backend switch
+                        {
+                            RayTracingBackend.Hardware => bakingResources.skyOcclusionRT,
+                            RayTracingBackend.Compute => bakingResources.skyOcclusionCS,
+                            _ => null
+                        });
+                    }
 
                     return m_ShaderSO;
                 }
+            }
+
+            public void BindSamplingTextures(CommandBuffer cmd)
+            {
+                if (m_SamplingResources == null)
+                {
+                    m_SamplingResources = ScriptableObject.CreateInstance<SamplingResources>();
+                    ResourceReloader.ReloadAllNullIn(m_SamplingResources, k_PackageLightTransport);
+                }
+
+                SamplingResources.BindSamplingTextures(cmd, m_SamplingResources);
             }
 
             public void Dispose()
             {
                 if (m_Context != null)
                 {
-                    m_Context.Dispose(); m_Context = null;
-                    CoreUtils.Destroy(m_Resources); m_Resources = null;
+                    m_Context.Dispose();
+                    m_Context = null;
+                }
+
+                if (m_Context != null)
+                {
+                    CoreUtils.Destroy(m_SamplingResources);
+                    m_SamplingResources = null;
                 }
             }
         }

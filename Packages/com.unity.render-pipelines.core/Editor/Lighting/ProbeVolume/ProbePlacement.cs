@@ -156,7 +156,8 @@ namespace UnityEngine.Rendering
             {
                 if (_subdivideSceneCS == null)
                 {
-                    _subdivideSceneCS = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeVolumeSubdivide.compute");
+                    _subdivideSceneCS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().subdivideSceneCS;
+
                     s_ClearBufferKernel = subdivideSceneCS.FindKernel("ClearBuffer");
                     s_ClearKernel = subdivideSceneCS.FindKernel("Clear");
                     s_JumpFloodingKernel = subdivideSceneCS.FindKernel("JumpFlooding");
@@ -175,7 +176,8 @@ namespace UnityEngine.Rendering
             get
             {
                 if (_voxelizeMaterial == null)
-                    _voxelizeMaterial = new Material(Shader.Find("Hidden/ProbeVolume/VoxelizeScene"));
+                    _voxelizeMaterial = new Material(GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().voxelizeSceneShader);
+
                 return _voxelizeMaterial;
             }
         }
