@@ -825,14 +825,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function should only be called when STP is enabled
             Debug.Assert(IsSTPEnabled());
 
+            bool isDynResEnabled = DynResRequest.enabled;
+
             // When HW DRS is not enabled, STP is only functional when the dynamic resolution is forced to a fixed value
-            if (!DynResRequest.hardwareEnabled)
+            if (isDynResEnabled && !DynResRequest.hardwareEnabled)
                 Debug.Assert(DynResRequest.forcingResolution);
 
             Vector2Int preUpscaleSize = new Vector2Int(actualWidth, actualHeight);
             Vector2Int postUpscaleSize = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
-            useHwDrs = DynResRequest.hardwareEnabled;
+            useHwDrs = isDynResEnabled && DynResRequest.hardwareEnabled;
 
             STP.HistoryUpdateInfo info;
             info.preUpscaleSize = preUpscaleSize;
