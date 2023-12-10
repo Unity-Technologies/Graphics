@@ -51,13 +51,16 @@ float4 FragBilinear(Varyings input) : SV_Target
     float4 outColor;
     float2 uv = input.texcoord.xy;
 
-#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    // We use stereo eye index to sample the correct slice when resolving foveated targets.
-    // Since MirrorView is not a stereo shader we have to populate unity_StereoEyeIndex ourselves.
-    unity_StereoEyeIndex = _SourceTexArraySlice;
+#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    {
+        // We use stereo eye index to sample the correct slice when resolving foveated targets.
+        // Since MirrorView is not a stereo shader we have to populate unity_StereoEyeIndex ourselves.
+        unity_StereoEyeIndex = _SourceTexArraySlice;
 
-    uv = RemapFoveatedRenderingResolve(input.texcoord.xy);
-#endif
+        uv = RemapFoveatedRenderingLinearToNonUniform(input.texcoord.xy);
+    }
+#endif // SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
 
 #if SRC_TEXTURE2D_X_ARRAY
     outColor = SAMPLE_TEXTURE2D_ARRAY(_SourceTex, sampler_LinearClamp, uv, _SourceTexArraySlice);

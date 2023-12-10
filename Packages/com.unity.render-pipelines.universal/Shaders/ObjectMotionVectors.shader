@@ -10,8 +10,6 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
             Tags{ "LightMode" = "MotionVectors" }
 
             HLSLPROGRAM
-            #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
-            #pragma never_use_dxc metal
 
             #pragma exclude_renderers d3d11_9x
             #pragma target 3.5
@@ -27,6 +25,9 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
+
 #ifndef HAVE_VFX_MODIFICATION
     #pragma multi_compile _ DOTS_INSTANCING_ON
     #if UNITY_PLATFORM_ANDROID || UNITY_PLATFORM_WEBGL || UNITY_PLATFORM_UWP
@@ -35,9 +36,6 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
         #pragma target 4.5 DOTS_INSTANCING_ON
     #endif
 #endif // HAVE_VFX_MODIFICATION
-            #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
-            #endif
 
             // -------------------------------------
             // Structs
@@ -87,10 +85,10 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                 return output;
             }
 
-            #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+            #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
                 // Non-uniform raster needs to keep the posNDC values in float to avoid additional conversions
                 // since uv remap functions use floats
-                #define POS_NDC_TYPE float2 
+                #define POS_NDC_TYPE float2
             #else
                 #define POS_NDC_TYPE half2
             #endif
@@ -112,23 +110,29 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                 // Calculate positions
                 float4 posCS = input.positionCSNoJitter;
                 float4 prevPosCS = input.previousPositionCSNoJitter;
-                
+
                 POS_NDC_TYPE posNDC = posCS.xy * rcp(posCS.w);
                 POS_NDC_TYPE prevPosNDC = prevPosCS.xy * rcp(prevPosCS.w);
 
-                #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                half2 velocity;
+                #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                {
                     // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
                     half2 posUV = RemapFoveatedRenderingResolve(posNDC * 0.5 + 0.5);
                     half2 prevPosUV = RemapFoveatedRenderingPrevFrameResolve(prevPosNDC * 0.5 + 0.5);
-                    
+
                     // Calculate forward velocity
-                    half2 velocity = (posUV - prevPosUV);
+                    velocity = (posUV - prevPosUV);
                     #if UNITY_UV_STARTS_AT_TOP
                         velocity.y = -velocity.y;
                     #endif
-                #else
+                }
+                else
+                #endif
+                {
                     // Calculate forward velocity
-                    half2 velocity = (posNDC.xy - prevPosNDC.xy);
+                    velocity = (posNDC.xy - prevPosNDC.xy);
                     #if UNITY_UV_STARTS_AT_TOP
                         velocity.y = -velocity.y;
                     #endif
@@ -137,7 +141,8 @@ Shader "Hidden/Universal Render Pipeline/ObjectMotionVectors"
                     // Note: It doesn't mean we don't have negative values, we store negative or positive offset in UV space.
                     // Note: ((posNDC * 0.5 + 0.5) - (prevPosNDC * 0.5 + 0.5)) = (velocity * 0.5)
                     velocity.xy *= 0.5;
-                #endif
+                }
+
                 return half4(velocity, 0, 0);
             }
             ENDHLSL

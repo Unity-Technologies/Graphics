@@ -55,9 +55,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
 #endif
 
-#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
-#endif
 
 void MeshDecalsPositionZBias(inout Varyings input)
 {
@@ -240,8 +238,11 @@ void Frag(PackedVaryings packedInput,
 
     float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
 
-#if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    positionSS = RemapFoveatedRenderingDistortCS(input.positionCS.xy, true) * _ScreenSize.zw;
+#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+    {
+        positionSS = RemapFoveatedRenderingNonUniformToLinearCS(input.positionCS.xy, true) * _ScreenSize.zw;
+    }
 #endif
 
 #ifdef DECAL_PROJECTOR
