@@ -10,20 +10,20 @@ UV data is typically in the range of 0 to 1 starting from the bottom left of UV 
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| UV      | Input | Vector 2 | UV | Input UV value |
-| Width      | Input | Float    | None | Amount of horizontal tiles |
-| Height      | Input | Float    | None | Amount of vertical tiles |
-| Tile      | Input | Float    | None | Current tile index |
-| Out | Output      |    Vector 2 | None | Output UV value |
+| Name   | Direction | Type     | Binding | Description |
+|:-------|:----------|:---------|:--------|:------------|
+| UV     | Input     | Vector 2 | UV      | Input UV value |
+| Width  | Input     | Float    | None    | Amount of horizontal tiles |
+| Height | Input     | Float    | None    | Amount of vertical tiles |
+| Tile   | Input     | Float    | None    | Current tile index |
+| Out    | Output    | Vector 2 | None    | Output UV value |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Invert X      | Toggle | True, False | If enabled tiles are iterated from right to left |
-| Invert Y      | Toggle | True, False | If enabled tiles are iterated from top to bottom |
+| Name     | Type   | Options     | Description |
+|:---------|:-------|:------------|:------------|
+| Invert X | Toggle | True, False | If enabled tiles are iterated from right to left |
+| Invert Y | Toggle | True, False | If enabled tiles are iterated from top to bottom |
 
 ## Generated Code Example
 
@@ -34,10 +34,11 @@ float2 _Flipbook_Invert = float2(FlipX, FlipY);
 
 void Unity_Flipbook_float(float2 UV, float Width, float Height, float Tile, float2 Invert, out float2 Out)
 {
-    Tile = fmod(Tile, Width * Height);
+    Tile = floor(fmod(Tile + float(0.00001), Width*Height));
     float2 tileCount = float2(1.0, 1.0) / float2(Width, Height);
-    float tileY = abs(Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));
-    float tileX = abs(Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));
+    float base = floor((Tile + float(0.5)) * tileCount.x);
+    float tileX = (Tile - Width * base);
+    float tileY = (Invert.y * Height - (base + Invert.y * 1));
     Out = (UV + float2(tileX, tileY)) * tileCount;
 }
 ```

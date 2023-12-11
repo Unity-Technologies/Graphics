@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, bool activeFoam, bool cpuSimActive, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
+        internal void CheckResources(int bandResolution, bool activeFoam, bool gpuReadback, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
         {
             int bandCount = numActiveBands;
 
@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Will we need to enable the CPU simulation?
-            bool cpuSimulationActive = cpuSimActive && cpuSimulation && cpuLowLatency;
+            bool cpuSimulationActive = scriptInteractions && gpuReadback;
 
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                waterToWorld = quad ? Matrix4x4.TRS(position, rotation, Vector3.one) : Matrix4x4.Translate(position);
+                waterToWorld = Matrix4x4.TRS(position, rotation, Vector3.one);
                 worldToWater = worldToWater2 = math.inverse(waterToWorld);
             }
         }

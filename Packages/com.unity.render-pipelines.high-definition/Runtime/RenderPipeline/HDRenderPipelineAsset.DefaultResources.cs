@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineAsset
@@ -30,16 +28,10 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Shaders
 
         /// <summary>HDRP default shader.</summary>
-        public override Shader defaultShader
-        {
-            get
-            {
-                if (globalSettings != null && globalSettings.renderPipelineResources != null)
-                    return globalSettings.renderPipelineResources.shaders.defaultPS;
-
-                return null;
-            }
-        }
+        public override Shader defaultShader =>
+            GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>(out var shaders)
+                ? shaders.defaultShader
+                : null;
 
 #if UNITY_EDITOR
 

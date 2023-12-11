@@ -627,13 +627,9 @@ namespace UnityEngine.Rendering
                 style = DebugUI.MessageBox.Style.Warning;
                 isHiddenCallback = () =>
                 {
-
 #if !UNITY_EDITOR
-                    if (GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings) &&
-                        settings is IShaderVariantSettings shaderVariantSettings)
-                    {
-                        return shaderVariantSettings.stripDebugVariants;
-                    }
+                    if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderStrippingSetting))
+                        return !shaderStrippingSetting.stripRuntimeDebugShaders;
 #endif
                     return true;
                 };

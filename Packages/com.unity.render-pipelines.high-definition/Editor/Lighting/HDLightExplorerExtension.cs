@@ -940,14 +940,13 @@ namespace UnityEditor.Rendering.HighDefinition
                             return;
                         }
 
-                        int lightlayersMask = (int)lightData.lightlayersMask;
-
+                        var lightLayerMask = (uint)lightData.lightlayersMask;
                         EditorGUI.BeginChangeCheck();
-                        lightlayersMask = HDEditorUtils.DrawRenderingLayerMask(r, lightlayersMask, null, false);
+                        lightLayerMask = HDEditorUtils.DrawRenderingLayerMask(r, lightLayerMask, null, false);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(lightData, "Changed light layer");
-                            lightData.lightlayersMask = (RenderingLayerMask)lightlayersMask;
+                            lightData.lightlayersMask = (RenderingLayerMask)lightLayerMask;
                         }
                     }
                 }, (lprop, rprop) =>

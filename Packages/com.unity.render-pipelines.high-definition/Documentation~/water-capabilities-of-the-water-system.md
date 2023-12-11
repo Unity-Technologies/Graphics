@@ -11,9 +11,10 @@ It is possible to view water surfaces from below if you enable the **Underwater*
 
 ## Wind and current
 Wind and swell or ripple properties combine with **Current** values to determine the motion of the [water simulation](water-water-system-simulation.md).
+For more information about customizing current, see [Create a current in the Water System](water-create-a-current-in-the-water-system) section.
 
-## Surface foam
-**River** and **Ocean, Sea, or Lake** surfaces support surface foam. You can adjust the amount of foam, its smoothness and texture, mask it, and adjust it based on the **Distant Wind Speed**.
+## Simulation foam
+**River** and **Ocean, Sea, or Lake** surfaces support surface simulation foam. You can adjust the amount of foam, its smoothness, mask it and dim it depending on the **Distant Wind Speed** using the **Wind Speed Dimmer**.
 
 ##  Caustics
 You can adjust caustic resolution for all surface types, and specify which **Simulation Band** Unity should use to generate the caustic texture for  **River** and **Ocean, Sea, or Lake** surface types.
@@ -33,14 +34,13 @@ It is possible to create [scripts that interact with the Water System](water-scr
 The Water System does not currently support:
 * Breaking waves on shorelines
 * Views from the side (as in an aquarium)
+* Spherical or vertical body of Water (like planets or water flowing in a ring planet)
 
 Foam and caustics are monochrome.
 ### Feature compatibility
 The Water System is compatible with most HDRP and Unity features, with some specific exceptions.
 #### Lighting
 You cannot bake lighting for a water surface.
-#### Lens Flare
-Water surfaces do not occlude Lens Flares. This produces an unnatural effect when you look upward at a Lens Flare from underwater.
 #### Dynamic resolution and antialiasing
 HDRP's water implementation does not use motion vectors. This means that techniques like [Deep learning super sampling](deep-learning-super-sampling-in-hdrp.md), and [temporal antialiasing](Anti-Aliasing.md) produce blurry results with a lot of ghosting if you use them with water. [Multisample anti-aliasing](Anti-Aliasing.md#MSAA) is entirely incompatible with water, however.
 

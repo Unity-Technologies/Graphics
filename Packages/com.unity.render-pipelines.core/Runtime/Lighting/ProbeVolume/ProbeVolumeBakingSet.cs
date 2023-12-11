@@ -10,23 +10,23 @@ using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
 
 namespace UnityEngine.Rendering
 {
+    internal class LogarithmicAttribute : PropertyAttribute
+    {
+        public int min;
+        public int max;
+
+        public LogarithmicAttribute(int min, int max)
+        {
+            this.min = min;
+            this.max = max;
+        }
+    }
+
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Probe Reference Volume"/>.
     /// </summary>
     public sealed partial class ProbeVolumeBakingSet : ScriptableObject, ISerializationCallbackReceiver
     {
-        internal class LogarithmicAttribute : PropertyAttribute
-        {
-            public int min;
-            public int max;
-
-            public LogarithmicAttribute(int min, int max)
-            {
-                this.min = min;
-                this.max = max;
-            }
-        }
-
         internal enum Version
         {
             Initial,
@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering
         List<int> m_PrunedIndexList = new List<int>();
         List<int> m_PrunedScenarioIndexList = new List<int>();
 
-        const int s_MaxSkyOcclusionBakingSamples = 8192;
+        internal const int k_MaxSkyOcclusionBakingSamples = 8192;
 
         // Baking Profile
         [SerializeField]
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Controls the number of samples per probe for dynamic sky baking.
         /// </summary>
-        [Logarithmic(1, s_MaxSkyOcclusionBakingSamples)]
+        [Logarithmic(1, k_MaxSkyOcclusionBakingSamples)]
         public int skyOcclusionBakingSamples = 2048;
 
         /// <summary>

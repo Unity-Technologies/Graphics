@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
+using RenderingLayerMask = UnityEngine.RenderingLayerMask;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -155,7 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var mesh in meshRenderers)
             {
                 Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
-                mesh.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
+                mesh.renderingLayerMask |= RenderingLayerMask.defaultRenderingLayerMask;
                 EditorUtility.SetDirty(mesh);
             }
 
@@ -164,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var terrain in terrains)
             {
                 Undo.RecordObject(terrain, "Terrain Layer Mask update");
-                terrain.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
+                terrain.renderingLayerMask |= RenderingLayerMask.defaultRenderingLayerMask;
                 EditorUtility.SetDirty(terrain);
             }
         }
@@ -183,7 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
                     {
                         Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
-                        mesh.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
+                        mesh.renderingLayerMask |= RenderingLayerMask.defaultRenderingLayerMask;
                         EditorUtility.SetDirty(mesh);
                     }
 
@@ -191,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (gameObj.TryGetComponent<Terrain>(out terrain))
                     {
                         Undo.RecordObject(terrain, "Terrain Layer Mask update");
-                        terrain.renderingLayerMask |= GraphicsSettings.defaultRenderingLayerMask;
+                        terrain.renderingLayerMask |= RenderingLayerMask.defaultRenderingLayerMask;
                         EditorUtility.SetDirty(terrain);
                     }
                 }

@@ -1,80 +1,173 @@
 using System.Collections.Generic;
-
+using System.Text;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXHelpURL("Block-CollideWithSignedDistanceField")]
-    [VFXInfo(name = "Collide with Signed Distance Field", category = "Collision")]
-    class CollisionSDF : CollisionBase
+    class CollisionSDF : CollisionShapeBase
     {
-        public override string name => "Collide with Signed Distance Field";
-
         public class InputProperties
         {
+            [Tooltip("Sets the Signed Distance Field to sample from.")]
             public Texture3D DistanceField = VFXResources.defaultResources.signedDistanceField;
+            [Tooltip("Sets the transform with which to position, scale, or rotate the field.")]
             public OrientedBox FieldTransform = OrientedBox.defaultValue;
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override IEnumerable<VFXNamedExpression> GetParameters(CollisionBase collisionBase, IEnumerable<VFXNamedExpression> collisionBaseParameters)
         {
-            get
+            VFXExpression transform = null;
+            VFXExpression SDF = null;
+            foreach (var p in base.GetParameters(collisionBase, collisionBaseParameters))
             {
-                foreach (var input in base.parameters)
-                    yield return input;
-
-                foreach (var input in GetExpressionsFromSlots(this))
+                if (p.name == "FieldTransform")
                 {
-                    if (input.name == "FieldTransform")
-                    {
-                        yield return new VFXNamedExpression(VFXOperatorUtility.IsTRSMatrixZeroScaled(input.exp), "isZeroScaled");
-                        yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
-                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)), "scalingFactor");
-                    }
+                    transform = p.exp;
+                    VFXExpression scale = new VFXExpressionAbs(new VFXExpressionExtractScaleFromMatrix(transform));
+                    yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invScale");
+                    yield return new VFXNamedExpression(VFXOperatorUtility.IsTRSMatrixZeroScaled(transform), "isZeroScaled");
+                    yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(transform), "InvFieldTransform");
                 }
+
+                if (p.name == "DistanceField")
+                    SDF = p.exp;
+
+                yield return p;
             }
+       
+            var w = new VFXExpressionCastUintToFloat(new VFXExpressionTextureWidth(SDF));
+            var h = new VFXExpressionCastUintToFloat(new VFXExpressionTextureHeight(SDF));
+            var d = new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(SDF));
+            var uvStep = VFXOperatorUtility.Reciprocal(new VFXExpressionCombine(w, h, d));
+            var maxDim = VFXOperatorUtility.Max3(w, h, d);
+            var textureDimScale = uvStep * new VFXExpressionCombine(maxDim, maxDim, maxDim);
+            var textureDimInvScale = VFXOperatorUtility.Reciprocal(textureDimScale);
+            var stepSize = VFXOperatorUtility.Reciprocal(maxDim);
+            yield return new VFXNamedExpression(uvStep, "uvStep");
+            yield return new VFXNamedExpression(textureDimScale, "textureDimScale");
+            yield return new VFXNamedExpression(textureDimInvScale, "textureDimInvScale");
+            yield return new VFXNamedExpression(stepSize, "stepSizeMeter");
         }
 
-        public override string source
+        public override string GetSource(CollisionBase collisionBase)
         {
-            get
+            string handlingSelectionCode = collisionBase.mode == CollisionBase.Mode.Solid ? @"
+if(currentDistanceToBox <= length(tDelta)) //Potential hit
+{
+    if(currentDistanceToBox >= 0) //Find first ray box intersection
+    {
+        float3 dummyNormal;
+        bool boxHit = RayBoxIntersection(tPos, tDelta, halfBoxSize, 1, tHit, dummyNormal);
+        needsSphereMarching = boxHit;
+        tPos += tHit * tDelta;
+    }
+    else
+    {
+        float3 uvw = saturate(tPos + 0.5f);
+        float dist = SampleSDF(DistanceField, uvw) - radiusOffset;
+        needsSphereMarching = dist > 0;
+        needsProjecting = !needsSphereMarching;
+    }
+}
+" : @"
+if(currentDistanceToBox > 0)
+{
+    needsProjecting = true;
+    tPos = ProjectOnBox(tPos, halfBoxSize);
+}
+else
+{
+    float3 uvw = saturate(tPos + 0.5f);
+    float dist = SampleSDF(DistanceField, uvw) - radiusOffset;
+    needsSphereMarching = dist < 0 && abs(dist) <= length(tDelta) ;
+    needsProjecting = dist >= 0;
+}
+";
+            string sphereMarchingCode = @"
+        float3 uvw = saturate(tPos + 0.5f);
+        float dist = colliderSign * (SampleSDF(DistanceField, uvw) - radiusOffset);
+
+        //Sphere March
+        const int ITERATION_COUNT = 8;
+        int i = 0;
+        hit = false;
+        float maxDist = length(tDelta * textureDimInvScale);
+        for(i = 0; i < ITERATION_COUNT; i++)
+        {
+            uvw = uvw + tDir * textureDimScale * dist;
+            float newDist = colliderSign * (SampleSDF(DistanceField, uvw) - radiusOffset);
+            tHit += dist/maxDist;
+            if(newDist < VFX_EPSILON)
             {
-                string Source = @"
+                hit = tHit <= 1 && tHit >= 0;
+                break;
+            }
+            if(tHit > 1)
+            {
+                hit = false;
+                break;
+            }
+            dist = newDist;
+        }
+        if(hit)
+        {
+            tPos = uvw - 0.5f;
+            hitPos = mul(FieldTransform, float4(tPos, 1.0f)).xyz;
+            hitNormal = SampleSDFUnscaledDerivatives(DistanceField, uvw, uvStep) * textureDimScale;
+            hitNormal = colliderSign * VFXSafeNormalize(mul(float4(hitNormal, 0.0f), InvFieldTransform).xyz);
+        }";
+
+            string projectOnSurfaceCode = @"
+        hit = true;
+        const int ITERATION_COUNT = 4;
+        int i = 0;
+        float3 uvw = saturate(tPos + 0.5f);
+        float3 sdfNormal = normalize(SampleSDFUnscaledDerivatives(DistanceField, uvw, uvStep));
+        float radiusOffset = colliderSign * dot(sdfNormal*sdfNormal ,invScale * textureDimInvScale) * radius;
+
+        for(i = 0; i < ITERATION_COUNT; i++)
+        {
+            uvw = IterateTowardSDFSurface(DistanceField, uvw, uvStep, radiusOffset, stepSizeMeter, sdfNormal);
+        }
+        tPos = uvw - 0.5f;
+        hitPos = mul(FieldTransform, float4(tPos, 1.0f)).xyz;
+        hitNormal = sdfNormal * textureDimScale;
+        hitNormal = colliderSign * VFXSafeNormalize(mul(float4(hitNormal, 0.0f), InvFieldTransform).xyz);
+        tHit = 0;
+";
+
+
+            var Source = new StringBuilder($@"
 if (isZeroScaled)
     return;
 
-float3 nextPos = position + velocity * deltaTime;
+float3 tPos = mul(InvFieldTransform, float4(position,1.0f)).xyz;
+float3 tVel = mul(InvFieldTransform, float4(velocity, 0.0f)).xyz;
+float3 tDelta = tVel * deltaTime;
+float3 tDir = VFXSafeNormalize(tVel);
+float radiusOffset = colliderSign * dot(tDir * tDir,invScale * textureDimInvScale) * radius;
 
-float3 tPos = mul(InvFieldTransform, float4(nextPos,1.0f)).xyz;
-float3 coord = saturate(tPos + 0.5f);
-float dist = SampleSDF(DistanceField, coord) * scalingFactor - colliderSign * radius;
-float3 absPos = abs(tPos);
-float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
+float3 halfBoxSize = 0.5f + radius * invScale * colliderSign;
+float currentDistanceToBox = DistanceToBox(tPos, halfBoxSize);
 
-if (colliderSign * dist <= 0.0f && (outsideDist < 0.5f || colliderSign < 0.0f)) // collision
-{
-    float3 n = SampleSDFDerivatives(DistanceField, coord);
-    n = colliderSign * VFXSafeNormalize(mul(float4(n ,0), InvFieldTransform).xyz);
-    // back in system space
-    float3 delta = abs(dist) * n;
-";
+bool needsSphereMarching = false;
+bool needsProjecting = false;
+{handlingSelectionCode}
 
-                Source += collisionResponseSource;
-
-                if (mode == Mode.Inverted)
-                {
-                    Source += @"
-
-    if (outsideDist > 0.5f) // Check whether point is outside the box
-        position = mul(FieldTransform,float4(coord - 0.5f,1)).xyz;
-";
-                }
-
-                Source += @"
-    position += delta;
-}";
-                return Source;
-            }
+if(needsSphereMarching)
+{{
+   {sphereMarchingCode}
+}}
+else if (needsProjecting)
+{{
+    {projectOnSurfaceCode}
+}}
+else
+{{
+    hit = false;
+    tHit = 0;
+}}");
+            return Source.ToString();
         }
     }
 }

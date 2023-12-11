@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -28,7 +29,9 @@ public class SetInputRequirements : ScriptableRendererFeature
     {
         m_DummyPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
         m_DummyPass.Setup( inputRequirement);
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_DummyPass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     class DummyPass : ScriptableRenderPass
@@ -46,10 +49,12 @@ public class SetInputRequirements : ScriptableRendererFeature
             ConfigureInput(inputRequirement);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
         }

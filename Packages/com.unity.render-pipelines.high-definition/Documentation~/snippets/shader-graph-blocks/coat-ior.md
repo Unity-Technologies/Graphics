@@ -1,6 +1,6 @@
 <tr>
-<td>**Coat IOR**</td>
+<td><strong>Coat IOR</strong></td>
 <td>The index of refraction to use for the coating layer.</td>
-<td>&#8226; **Material** set to **StackLit**<br/>&#8226; **Coat** enabled</td>
+<td>&#8226; <strong>Material</strong> set to <strong>StackLit</strong><br/>&#8226; <strong>Coat</strong> enabled</td>
 <td>1.4</td>
 </tr>

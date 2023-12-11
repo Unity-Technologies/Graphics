@@ -66,6 +66,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public virtual bool isCollapsed { get; }
+
         protected bool m_Locked = false;
         protected const float kAnchorHorizontalOffset = 50.0f;
         protected float m_AnchorVerticalOffset = 0.0f;

@@ -70,8 +70,8 @@ namespace UnityEditor.VFX.URP
                 yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
 
-                if (usesFlipbook)
-                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
+                foreach (var attribute in flipbookAttributes)
+                    yield return attribute;
             }
         }
 

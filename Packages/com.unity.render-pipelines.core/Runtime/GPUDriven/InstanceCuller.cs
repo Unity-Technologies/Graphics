@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine.Assertions;
 using Unity.Burst;
@@ -13,6 +11,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
 #endif
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
@@ -24,6 +23,7 @@ namespace UnityEngine.Rendering
         public ShadowCastingMode shadowCastingMode;
         public bool staticShadowCaster;
         public int rendererPriority;
+        public bool supportsIndirect;
 
         public bool Equals(RangeKey other)
         {
@@ -33,7 +33,8 @@ namespace UnityEngine.Rendering
                 motionMode == other.motionMode &&
                 shadowCastingMode == other.shadowCastingMode &&
                 staticShadowCaster == other.staticShadowCaster &&
-                rendererPriority == other.rendererPriority;
+                rendererPriority == other.rendererPriority &&
+                supportsIndirect == other.supportsIndirect;
         }
 
         public override int GetHashCode()
@@ -45,6 +46,7 @@ namespace UnityEngine.Rendering
             hash = (hash * 23) + (int)shadowCastingMode;
             hash = (hash * 23) + (staticShadowCaster ? 1 : 0);
             hash = (hash * 23) + rendererPriority;
+            hash = (hash * 23) + (supportsIndirect ? 1 : 0);
             return hash;
         }
     }
@@ -65,6 +67,7 @@ namespace UnityEngine.Rendering
         public int transparentInstanceId; // non-zero for transparent instances, to ensure each instance has its own draw command (for sorting)
         public uint overridenComponents;
         public RangeKey range;
+        public int lightmapIndex;
 
         public bool Equals(DrawKey other)
         {
@@ -75,7 +78,8 @@ namespace UnityEngine.Rendering
                 flags == other.flags &&
                 transparentInstanceId == other.transparentInstanceId &&
                 overridenComponents == other.overridenComponents &&
-                range.Equals(other.range);
+                range.Equals(other.range) &&
+                lightmapIndex == other.lightmapIndex;
         }
 
         public override int GetHashCode()
@@ -88,6 +92,7 @@ namespace UnityEngine.Rendering
             hash = (hash * 23) + transparentInstanceId;
             hash = (hash * 23) + range.GetHashCode();
             hash = (hash * 23) + (int)overridenComponents;
+            hash = (hash * 23) + lightmapIndex;
             return hash;
         }
     }
@@ -532,74 +537,155 @@ namespace UnityEngine.Rendering
 
         [NativeDisableUnsafePtrRestriction] public NativeArray<BatchCullingOutputDrawCommands> cullingOutput;
 
+        [ReadOnly] public IndirectBufferLimits indirectBufferLimits;
+        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo;
+        [NativeDisableContainerSafetyRestriction] public NativeArray<int> indirectAllocationCounters;
+
         unsafe public void Execute()
         {
             BatchCullingOutputDrawCommands output = cullingOutput[0];
 
-            int outRangeIndex = 0;
-            int outCommandIndex = 0;
-            int outVisibleInstanceIndex = 0;
+            bool allowIndirect = indirectBufferLimits.maxInstanceCount > 0;
 
-            for (int rangeIndex = 0; rangeIndex < drawRanges.Length; ++rangeIndex)
+            int outRangeIndex;
+            int outDirectCommandIndex;
+            int outDirectVisibleInstanceIndex;
+            int outIndirectCommandIndex;
+            int outIndirectVisibleInstanceIndex;
+
+            for (;;)
             {
-                int rangeDrawCommandCount = 0;
-                int rangeDrawCommandOffset = outCommandIndex;
+                // reset counters
+                outRangeIndex = 0;
+                outDirectCommandIndex = 0;
+                outDirectVisibleInstanceIndex = 0;
+                outIndirectCommandIndex = 0;
+                outIndirectVisibleInstanceIndex = 0;
 
-                var drawRangeInfo = drawRanges[rangeIndex];
-                for (int drawIndexInRange = 0; drawIndexInRange < drawRangeInfo.drawCount; ++drawIndexInRange)
+                for (int rangeIndex = 0; rangeIndex < drawRanges.Length; ++rangeIndex)
                 {
-                    var batchIndex = drawBatchIndices[drawRangeInfo.drawOffset + drawIndexInRange];
-                    batchDrawCommandOffsets[batchIndex] = outCommandIndex;
+                    var drawRangeInfo = drawRanges[rangeIndex];
+                    bool isIndirect = allowIndirect && drawRangeInfo.key.supportsIndirect;
 
-                    var binAllocOffset = batchBinAllocOffsets[batchIndex];
-                    var binCount = batchBinCounts[batchIndex];
+                    int rangeDrawCommandCount = 0;
+                    int rangeDrawCommandOffset = isIndirect ? outIndirectCommandIndex : outDirectCommandIndex;
 
-                    for (int binIndexInBatch = 0; binIndexInBatch < binCount; ++binIndexInBatch)
+                    for (int drawIndexInRange = 0; drawIndexInRange < drawRangeInfo.drawCount; ++drawIndexInRange)
                     {
-                        var binIndex = binAllocOffset + binIndexInBatch;
-                        binVisibleInstanceOffsets[binIndex] = outVisibleInstanceIndex;
+                        var batchIndex = drawBatchIndices[drawRangeInfo.drawOffset + drawIndexInRange];
+                        var binAllocOffset = batchBinAllocOffsets[batchIndex];
+                        var binCount = batchBinCounts[batchIndex];
 
-                        outVisibleInstanceIndex += binVisibleInstanceCounts[binIndex];
+                        if (isIndirect)
+                        {
+                            batchDrawCommandOffsets[batchIndex] = outIndirectCommandIndex;
+                            outIndirectCommandIndex += binCount;
+                        }
+                        else
+                        {
+                            batchDrawCommandOffsets[batchIndex] = outDirectCommandIndex;
+                            outDirectCommandIndex += binCount;
+                        }
+                        rangeDrawCommandCount += binCount;
+
+                        for (int binIndexInBatch = 0; binIndexInBatch < binCount; ++binIndexInBatch)
+                        {
+                            var binIndex = binAllocOffset + binIndexInBatch;
+                            if (isIndirect)
+                            {
+                                binVisibleInstanceOffsets[binIndex] = outIndirectVisibleInstanceIndex;
+                                outIndirectVisibleInstanceIndex += binVisibleInstanceCounts[binIndex];
+                            }
+                            else
+                            {
+                                binVisibleInstanceOffsets[binIndex] = outDirectVisibleInstanceIndex;
+                                outDirectVisibleInstanceIndex += binVisibleInstanceCounts[binIndex];
+                            }
+                        }
                     }
 
-                    outCommandIndex += binCount;
-                    rangeDrawCommandCount += binCount;
-                }
-
-                if (rangeDrawCommandCount != 0)
-                {
+                    if (rangeDrawCommandCount != 0)
+                    {
 #if DEBUG
-                    if (outRangeIndex >= output.drawRangeCount)
-                        throw new Exception("Exceeding draw range count");
+                        if (outRangeIndex >= output.drawRangeCount)
+                            throw new Exception("Exceeding draw range count");
 #endif
 
-                    var rangeKey = drawRangeInfo.key;
-                    output.drawRanges[outRangeIndex] = new BatchDrawRange
-                    {
-                        drawCommandsBegin = (uint)rangeDrawCommandOffset,
-                        drawCommandsCount = (uint)rangeDrawCommandCount,
-                        filterSettings = new BatchFilterSettings
+                        var rangeKey = drawRangeInfo.key;
+                        output.drawRanges[outRangeIndex] = new BatchDrawRange
                         {
-                            renderingLayerMask = rangeKey.renderingLayerMask,
-                            rendererPriority = rangeKey.rendererPriority,
-                            layer = rangeKey.layer,
-                            motionMode = rangeKey.motionMode,
-                            shadowCastingMode = rangeKey.shadowCastingMode,
-                            receiveShadows = true,
-                            staticShadowCaster = rangeKey.staticShadowCaster,
-                            allDepthSorted = false
-                        }
-                    };
-                    outRangeIndex++;
+                            drawCommandsBegin = (uint)rangeDrawCommandOffset,
+                            drawCommandsCount = (uint)rangeDrawCommandCount,
+                            drawCommandsType = isIndirect ? BatchDrawCommandType.Indirect : BatchDrawCommandType.Direct,
+                            filterSettings = new BatchFilterSettings
+                            {
+                                renderingLayerMask = rangeKey.renderingLayerMask,
+                                rendererPriority = rangeKey.rendererPriority,
+                                layer = rangeKey.layer,
+                                batchLayer = isIndirect ? BatchLayer.InstanceCullingIndirect : BatchLayer.InstanceCullingDirect,
+                                motionMode = rangeKey.motionMode,
+                                shadowCastingMode = rangeKey.shadowCastingMode,
+                                receiveShadows = true,
+                                staticShadowCaster = rangeKey.staticShadowCaster,
+                                allDepthSorted = false,
+                            }
+                        };
+                        outRangeIndex++;
+                    }
                 }
+
+                output.drawRangeCount = outRangeIndex; // trim to the number of written ranges
+
+                // try to allocate buffer space for indirect
+                bool isValid = true;
+                if (allowIndirect)
+                {
+                    int* allocCounters = (int*)indirectAllocationCounters.GetUnsafePtr<int>();
+
+                    var allocInfo = new IndirectBufferAllocInfo();
+                    allocInfo.drawCount = outIndirectCommandIndex;
+                    allocInfo.instanceCount = outIndirectVisibleInstanceIndex;
+
+                    int drawAllocCount = allocInfo.drawCount + IndirectBufferContextStorage.kExtraDrawAllocationCount;
+                    int drawAllocEnd = Interlocked.Add(ref UnsafeUtility.AsRef<int>(allocCounters + (int)IndirectAllocator.NextDrawIndex), drawAllocCount);
+                    allocInfo.drawAllocIndex = drawAllocEnd - drawAllocCount;
+
+                    int instanceAllocEnd = Interlocked.Add(ref UnsafeUtility.AsRef<int>(allocCounters + (int)IndirectAllocator.NextInstanceIndex), allocInfo.instanceCount);
+                    allocInfo.instanceAllocIndex = instanceAllocEnd - allocInfo.instanceCount;
+
+                    if (!allocInfo.IsWithinLimits(indirectBufferLimits))
+                    {
+                        allocInfo = new IndirectBufferAllocInfo();
+                        isValid = false;
+                    }
+
+                    indirectBufferAllocInfo[0] = allocInfo;
+                }
+                if (isValid)
+                    break;
+
+                // out of indirect memory, reset counters and try again without indirect
+                //Debug.Log("Out of indirect buffer space: falling back to direct draws for this frame!");
+                allowIndirect = false;
             }
 
-            output.drawRangeCount = outRangeIndex; // trim to the number of written ranges
-            output.drawCommandCount = outCommandIndex;
-            output.drawCommands = MemoryUtilities.Malloc<BatchDrawCommand>(outCommandIndex, Allocator.TempJob);
-            output.instanceSortingPositions = MemoryUtilities.Malloc<float>(3 * outCommandIndex, Allocator.TempJob);
-            output.visibleInstanceCount = outVisibleInstanceIndex;
-            output.visibleInstances = MemoryUtilities.Malloc<int>(outVisibleInstanceIndex, Allocator.TempJob);
+            if (outDirectCommandIndex != 0)
+            {
+                output.drawCommandCount = outDirectCommandIndex;
+                output.drawCommands = MemoryUtilities.Malloc<BatchDrawCommand>(outDirectCommandIndex, Allocator.TempJob);
+
+                output.visibleInstanceCount = outDirectVisibleInstanceIndex;
+                output.visibleInstances = MemoryUtilities.Malloc<int>(outDirectVisibleInstanceIndex, Allocator.TempJob);
+            }
+            if (outIndirectCommandIndex != 0)
+            {
+                output.indirectDrawCommandCount = outIndirectCommandIndex;
+                output.indirectDrawCommands = MemoryUtilities.Malloc<BatchDrawCommandIndirect>(outIndirectCommandIndex, Allocator.TempJob);
+            }
+
+            int totalCommandCount = outDirectCommandIndex + outIndirectCommandIndex;
+            output.instanceSortingPositions = MemoryUtilities.Malloc<float>(3 * totalCommandCount, Allocator.TempJob);
+
             cullingOutput[0] = output;
         }
     }
@@ -629,6 +715,13 @@ namespace UnityEngine.Rendering
 
         [ReadOnly] public NativeArray<BatchCullingOutputDrawCommands> cullingOutput;
 
+        [ReadOnly] public IndirectBufferLimits indirectBufferLimits;
+        [ReadOnly] public GraphicsBufferHandle visibleInstancesBufferHandle;
+        [ReadOnly] public GraphicsBufferHandle indirectArgsBufferHandle;
+        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo;
+        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectDrawInfo> indirectDrawInfoGlobalArray;
+        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectInstanceInfo> indirectInstanceInfoGlobalArray;
+
         unsafe int EncodeGPUInstanceIndexAndCrossFade(int rendererIndex, bool negateCrossFade)
         {
             var gpuInstanceIndex = instanceDataBuffer.CPUInstanceToGPUInstance(InstanceHandle.FromInt(rendererIndex));
@@ -657,6 +750,13 @@ namespace UnityEngine.Rendering
 
             BatchCullingOutputDrawCommands output = cullingOutput[0];
 
+            IndirectBufferAllocInfo indirectAllocInfo = new IndirectBufferAllocInfo();
+            if (indirectBufferLimits.maxDrawCount > 0)
+                indirectAllocInfo = indirectBufferAllocInfo[0];
+            bool allowIndirect = !indirectAllocInfo.IsEmpty();
+
+            bool isIndirect = allowIndirect && drawBatch.key.range.supportsIndirect;
+
             // figure out how many combinations of views/features we need to partition by
             int configCount = binningConfig.visibilityConfigCount;
 
@@ -664,6 +764,9 @@ namespace UnityEngine.Rendering
             var instanceOffsetPerConfig = stackalloc int[configCount];
             for (int i = 0; i < configCount; ++i)
                 instanceOffsetPerConfig[i] = 0;
+
+            // allocate storage to be able to look up the draw index per instance (by config)
+            var drawCommandOffsetPerConfig = stackalloc int[configCount];
 
             // write the draw commands, scatter the allocated offsets to our storage
             // TODO: fast path when binCount == 1
@@ -685,6 +788,7 @@ namespace UnityEngine.Rendering
 
                 // get the write index for the draw command
                 var drawCommandOffset = batchDrawCommandOffset + binIndexInBatch;
+                drawCommandOffsetPerConfig[configIndex] = drawCommandOffset;
 
                 var drawFlags = drawBatch.key.flags;
                 bool isFlipped = ((configIndex & 1) != 0);
@@ -708,27 +812,70 @@ namespace UnityEngine.Rendering
 
                 var sortingPosition = 0;
                 if ((drawFlags & BatchDrawCommandFlags.HasSortingPosition) != 0)
-                    sortingPosition = 3 * drawCommandOffset;
+                {
+                    int globalCommandOffset = drawCommandOffset;
+                    if (isIndirect)
+                        globalCommandOffset += output.drawCommandCount; // skip over direct commands
+                    sortingPosition = 3 * globalCommandOffset;
+                }
 
 #if DEBUG
-                if (drawCommandOffset >= output.drawCommandCount)
-                    throw new Exception("Exceeding draw command count");
-
                 if (!batchIDs.ContainsKey(drawBatch.key.overridenComponents))
                     throw new Exception("Draw command created with an invalid BatchID");
 #endif
-                output.drawCommands[drawCommandOffset] = new BatchDrawCommand
+                if (isIndirect)
                 {
-                    flags = drawFlags,
-                    visibleOffset = (uint)visibleInstanceOffset,
-                    visibleCount = (uint)visibleInstanceCount,
-                    batchID = batchIDs[drawBatch.key.overridenComponents],
-                    materialID = drawBatch.key.materialID,
-                    splitVisibilityMask = (ushort)visibilityMask,
-                    sortingPosition = sortingPosition,
-                    meshID = drawBatch.key.meshID,
-                    submeshIndex = (ushort)drawBatch.key.submeshIndex,
-                };
+#if DEBUG
+                    if (drawCommandOffset >= output.indirectDrawCommandCount)
+                        throw new Exception("Exceeding draw command count");
+#endif
+                    int instanceInfoGlobalIndex = indirectAllocInfo.instanceAllocIndex + visibleInstanceOffset;
+                    int drawInfoGlobalIndex = indirectAllocInfo.drawAllocIndex + drawCommandOffset;
+
+                    indirectDrawInfoGlobalArray[drawInfoGlobalIndex] = new IndirectDrawInfo
+                    {
+                        indexCount = drawBatch.procInfo.indexCount,
+                        firstIndex = drawBatch.procInfo.firstIndex,
+                        baseVertex = drawBatch.procInfo.baseVertex,
+                        firstInstanceGlobalIndex = (uint)instanceInfoGlobalIndex,
+                        maxInstanceCount = (uint)visibleInstanceCount,
+                    };
+                    output.indirectDrawCommands[drawCommandOffset] = new BatchDrawCommandIndirect
+                    {
+                        flags = drawFlags,
+                        visibleOffset = (uint)instanceInfoGlobalIndex,
+                        batchID = batchIDs[drawBatch.key.overridenComponents],
+                        materialID = drawBatch.key.materialID,
+                        splitVisibilityMask = (ushort)visibilityMask,
+                        lightmapIndex = (ushort)drawBatch.key.lightmapIndex,
+                        sortingPosition = sortingPosition,
+                        meshID = drawBatch.key.meshID,
+                        topology = drawBatch.procInfo.topology,
+                        visibleInstancesBufferHandle = visibleInstancesBufferHandle,
+                        indirectArgsBufferHandle = indirectArgsBufferHandle,
+                        indirectArgsBufferOffset = (uint)(drawInfoGlobalIndex * GraphicsBuffer.IndirectDrawIndexedArgs.size),
+                    };
+                }
+                else
+                {
+#if DEBUG
+                    if (drawCommandOffset >= output.drawCommandCount)
+                        throw new Exception("Exceeding draw command count");
+#endif
+                    output.drawCommands[drawCommandOffset] = new BatchDrawCommand
+                    {
+                        flags = drawFlags,
+                        visibleOffset = (uint)visibleInstanceOffset,
+                        visibleCount = (uint)visibleInstanceCount,
+                        batchID = batchIDs[drawBatch.key.overridenComponents],
+                        materialID = drawBatch.key.materialID,
+                        splitVisibilityMask = (ushort)visibilityMask,
+						lightmapIndex = (ushort)drawBatch.key.lightmapIndex,
+                        sortingPosition = sortingPosition,
+                        meshID = drawBatch.key.meshID,
+                        submeshIndex = (ushort)drawBatch.key.submeshIndex,
+                    };
+                }
             }
 
             // write the visible instances
@@ -754,11 +901,33 @@ namespace UnityEngine.Rendering
                     var visibleInstanceOffset = instanceOffsetPerConfig[configIndex];
                     instanceOffsetPerConfig[configIndex]++;
 
+                    if (isIndirect)
+                    {
 #if DEBUG
-                    if (visibleInstanceOffset >= output.visibleInstanceCount)
-                        throw new Exception("Exceeding visible instance count");
+                        if (visibleInstanceOffset >= indirectAllocInfo.instanceCount)
+                            throw new Exception("Exceeding visible instance count");
 #endif
-                    output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
+
+                        // remove extra bits so that the visibility mask is just the view mask
+                        if (binningConfig.supportsCrossFade)
+                            visibilityMask >>= 1;
+                        if (binningConfig.supportsMotionCheck)
+                            visibilityMask >>= 1;
+
+                        indirectInstanceInfoGlobalArray[indirectAllocInfo.instanceAllocIndex + visibleInstanceOffset] = new IndirectInstanceInfo
+                        {
+                            drawOffsetAndSplitMask = (drawCommandOffsetPerConfig[configIndex] << 8) | visibilityMask,
+                            instanceIndexAndCrossFade = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false),
+                        };
+                    }
+                    else
+                    {
+#if DEBUG
+                        if (visibleInstanceOffset >= output.visibleInstanceCount)
+                            throw new Exception("Exceeding visible instance count");
+#endif
+                        output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
+                    }
                 }
             }
             else
@@ -768,11 +937,30 @@ namespace UnityEngine.Rendering
                 {
                     var rendererIndex = drawInstanceIndices[instanceOffset + i];
                     int visibilityMask = (int)rendererVisibilityMasks[rendererIndex];
-                    if (visibilityMask == 0)
+
+                    bool isVisible = (visibilityMask != 0);
+                    if (!isVisible)
                         continue;
 
                     lastRendererIndex = rendererIndex;
-                    output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
+                    if (isIndirect)
+                    {
+                        // remove extra bits so that the visibility mask is just the view mask
+                        if (binningConfig.supportsCrossFade)
+                            visibilityMask >>= 1;
+                        if (binningConfig.supportsMotionCheck)
+                            visibilityMask >>= 1;
+
+                        indirectInstanceInfoGlobalArray[indirectAllocInfo.instanceAllocIndex + visibleInstanceOffset] = new IndirectInstanceInfo
+                        {
+                            drawOffsetAndSplitMask = (batchDrawCommandOffset << 8) | visibilityMask,
+                            instanceIndexAndCrossFade = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false),
+                        };
+                    }
+                    else
+                    {
+                        output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
+                    }
                     visibleInstanceOffset++;
                 }
             }
@@ -786,7 +974,11 @@ namespace UnityEngine.Rendering
                 ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
                 float3 position = worldAABB.center;
 
-                int sortingPosition = 3 * batchDrawCommandOffset;
+                int globalCommandOffset = batchDrawCommandOffset;
+                if (isIndirect)
+                    globalCommandOffset += output.drawCommandCount; // skip over direct commands
+                int sortingPosition = 3 * globalCommandOffset;
+
                 output.instanceSortingPositions[sortingPosition + 0] = position.x;
                 output.instanceSortingPositions[sortingPosition + 1] = position.y;
                 output.instanceSortingPositions[sortingPosition + 2] = position.z;
@@ -929,6 +1121,7 @@ namespace UnityEngine.Rendering
                             batchID = batchIDs[drawBatch.key.overridenComponents],
                             materialID = drawBatch.key.materialID,
                             splitVisibilityMask = 0x1,
+                            lightmapIndex = (ushort)drawBatch.key.lightmapIndex,
                             sortingPosition = 0,
                             meshID = drawBatch.key.meshID,
                             submeshIndex = (ushort)drawBatch.key.submeshIndex,
@@ -960,11 +1153,12 @@ namespace UnityEngine.Rendering
                             renderingLayerMask = rangeKey.renderingLayerMask,
                             rendererPriority = rangeKey.rendererPriority,
                             layer = rangeKey.layer,
+                            batchLayer = BatchLayer.InstanceCullingDirect,
                             motionMode = rangeKey.motionMode,
                             shadowCastingMode = rangeKey.shadowCastingMode,
                             receiveShadows = true,
                             staticShadowCaster = rangeKey.staticShadowCaster,
-                            allDepthSorted = false
+                            allDepthSorted = false,
                         }
                     };
                     outRangeIndex++;
@@ -993,7 +1187,9 @@ namespace UnityEngine.Rendering
 
         internal struct Info
         {
-            public SplitID splitID;
+            public BatchCullingViewType viewType;
+            public int viewInstanceID;
+            public int splitIndex;
         }
 
         private NativeList<Info> m_Info;
@@ -1016,7 +1212,7 @@ namespace UnityEngine.Rendering
             m_CounterSync.Dispose();
         }
 
-        public int TryAddSplits(int viewID, SplitViewType viewType, int splitCount)
+        public int TryAddSplits(BatchCullingViewType viewType, int viewInstanceID, int splitCount)
         {
             int baseIndex = m_Info.Length;
             if (baseIndex + splitCount > MaxSplitCount)
@@ -1026,12 +1222,9 @@ namespace UnityEngine.Rendering
             {
                 m_Info.Add(new Info()
                 {
-                    splitID = new SplitID()
-                    {
-                        viewType = viewType,
-                        viewID = viewID,
-                        splitIndex = splitIndex,
-                    },
+                    viewType = viewType,
+                    viewInstanceID = viewInstanceID,
+                    splitIndex = splitIndex,
                 });
             }
             return baseIndex;
@@ -1055,10 +1248,13 @@ namespace UnityEngine.Rendering
             debugStats.instanceCullerStats.Clear();
             for (int index = 0; index < m_Info.Length; ++index)
             {
+                var info = m_Info[index];
                 int counterBase = index * (int)InstanceCullerSplitDebugCounter.Count;
                 debugStats.instanceCullerStats.Add(new InstanceCullerViewStats
                 {
-                    splitID = m_Info[index].splitID,
+                    viewType = info.viewType,
+                    viewInstanceID = info.viewInstanceID,
+                    splitIndex = info.splitIndex,
                     visibleInstances = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.VisibleInstances],
                     drawCommands = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.DrawCommands],
                 });
@@ -1070,20 +1266,223 @@ namespace UnityEngine.Rendering
         }
     }
 
+    internal struct InstanceOcclusionEventDebugArray : IDisposable
+    {
+        private const int InitialPassCount = 4;
+        private const int MaxPassCount = 64;
+
+        internal struct Info
+        {
+            public int viewInstanceID;
+            public InstanceOcclusionEventType eventType;
+            public int occluderVersion;
+            public OcclusionTest occlusionTest;
+
+            public bool HasVersion()
+            {
+                return eventType == InstanceOcclusionEventType.OccluderUpdate || occlusionTest != OcclusionTest.None;
+            }
+        }
+
+        internal struct Request
+        {
+            public UnsafeList<Info> info;
+            public AsyncGPUReadbackRequest readback;
+        }
+
+        private GraphicsBuffer m_CounterBuffer;
+
+        private UnsafeList<Info> m_PendingInfo;
+        private NativeQueue<Request> m_Requests;
+
+        private UnsafeList<Info> m_LatestInfo;
+        private NativeArray<int> m_LatestCounters;
+        private bool m_HasLatest;
+
+        public GraphicsBuffer CounterBuffer { get => m_CounterBuffer; }
+
+        public void Init()
+        {
+            m_CounterBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, MaxPassCount * (int)InstanceOcclusionTestDebugCounter.Count, sizeof(uint));
+            m_PendingInfo = new UnsafeList<Info>(InitialPassCount, Allocator.Persistent);
+            m_Requests = new NativeQueue<Request>(Allocator.Persistent);
+        }
+
+       public void Dispose()
+        {
+            if (m_HasLatest)
+            {
+                m_LatestInfo.Dispose();
+                m_LatestCounters.Dispose();
+                m_HasLatest = false;
+            }
+            while (m_Requests.TryDequeue(out var req))
+            {
+                req.readback.WaitForCompletion();
+                req.info.Dispose();
+            }
+            m_Requests.Dispose();
+            m_PendingInfo.Dispose();
+            m_CounterBuffer.Dispose();
+        }
+
+        public int TryAdd(int viewInstanceID, InstanceOcclusionEventType eventType, int occluderVersion, OcclusionTest occlusionTest)
+        {
+            int passIndex = m_PendingInfo.Length;
+            if (passIndex + 1 > MaxPassCount)
+                return -1;
+
+            m_PendingInfo.Add(new Info()
+            {
+                viewInstanceID = viewInstanceID,
+                eventType = eventType,
+                occluderVersion = occluderVersion,
+                occlusionTest = occlusionTest,
+            });
+            return passIndex;
+        }
+
+        public void MoveToDebugStatsAndClear(DebugRendererBatcherStats debugStats)
+        {
+            // commit the pending set of stats
+            if (m_PendingInfo.Length > 0)
+            {
+                m_Requests.Enqueue(new Request
+                {
+                    info = m_PendingInfo,
+                    readback = AsyncGPUReadback.Request(m_CounterBuffer, m_PendingInfo.Length * (int)InstanceOcclusionTestDebugCounter.Count * sizeof(uint), 0)
+                });
+                m_PendingInfo = new UnsafeList<Info>(InitialPassCount, Allocator.Persistent);
+            }
+
+            // update the latest set of results that are ready
+            while (!m_Requests.IsEmpty() && m_Requests.Peek().readback.done)
+            {
+                var req = m_Requests.Dequeue();
+                if (!req.readback.hasError)
+                {
+                    NativeArray<int> src = req.readback.GetData<int>(0);
+                    if (src.Length == req.info.Length * (int)InstanceOcclusionTestDebugCounter.Count)
+                    {
+                        if (m_HasLatest)
+                        {
+                            m_LatestInfo.Dispose();
+                            m_LatestCounters.Dispose();
+                            m_HasLatest = false;
+                        }
+                        m_LatestInfo = req.info;
+                        m_LatestCounters = new NativeArray<int>(src, Allocator.Persistent);
+                        m_HasLatest = true;
+                    }
+                }
+            }
+
+            // overwrite debug stats with the latest
+            debugStats.instanceOcclusionEventStats.Clear();
+            if (m_HasLatest)
+            {
+                for (int index = 0; index < m_LatestInfo.Length; ++index)
+                {
+                    var info = m_LatestInfo[index];
+
+                    // make occluder version relative to the first one this frame
+                    int occluderVersion = -1;
+                    if (info.HasVersion())
+                    {
+                        occluderVersion = 0;
+                        for (int prevIndex = 0; prevIndex < index; ++prevIndex)
+                        {
+                            var prevInfo = m_LatestInfo[prevIndex];
+                            if (prevInfo.HasVersion() && prevInfo.viewInstanceID == info.viewInstanceID)
+                            {
+                                occluderVersion = info.occluderVersion - prevInfo.occluderVersion;
+                                break;
+                            }
+                        }
+                    }
+
+                    int counterBase = index * (int)InstanceOcclusionTestDebugCounter.Count;
+                    int occludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.Occluded];
+                    int notOccludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.NotOccluded];
+
+                    debugStats.instanceOcclusionEventStats.Add(new InstanceOcclusionEventStats
+                    {
+                        viewInstanceID = info.viewInstanceID,
+                        eventType = info.eventType,
+                        occluderVersion = occluderVersion,
+                        occlusionTest = info.occlusionTest,
+                        visibleInstances = notOccludedCounter,
+                        culledInstances = occludedCounter,
+                    });
+                }
+            }
+
+            // clear the GPU buffer for the next frame
+            var zeros = new NativeArray<int>(MaxPassCount * (int)InstanceOcclusionTestDebugCounter.Count, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            m_CounterBuffer.SetData(zeros);
+            zeros.Dispose();
+        }
+    }
+
     [BurstCompile]
     internal struct InstanceCuller : IDisposable
     {
         private ParallelBitArray m_CompactedVisibilityMasks;
         private JobHandle m_CompactedVisibilityMasksJobsHandle;
 
+        private IndirectBufferContextStorage m_IndirectStorage;
+
+        private OcclusionTestComputeShader m_OcclusionTestShader;
+        private int m_ResetDrawArgsKernel;
+        private int m_CopyInstancesKernel;
+        private int m_CullInstancesKernel;
+
         private DebugRendererBatcherStats m_DebugStats;
         private InstanceCullerSplitDebugArray m_SplitDebugArray;
+        private InstanceOcclusionEventDebugArray m_OcclusionEventDebugArray;
+        private ProfilingSampler m_ProfilingSampleInstanceOcclusionTest;
 
-        internal void Init(DebugRendererBatcherStats debugStats = null)
+        private NativeArray<InstanceOcclusionCullerShaderVariables> m_ShaderVariables;
+        private ComputeBuffer m_ConstantBuffer;
+
+        private CommandBuffer m_CommandBuffer;
+
+        private static class ShaderIDs
         {
+            public static readonly int InstanceOcclusionCullerShaderVariables = Shader.PropertyToID("InstanceOcclusionCullerShaderVariables");
+            public static readonly int _DrawInfo = Shader.PropertyToID("_DrawInfo");
+            public static readonly int _InstanceInfo = Shader.PropertyToID("_InstanceInfo");
+            public static readonly int _DrawArgs = Shader.PropertyToID("_DrawArgs");
+            public static readonly int _InstanceIndices = Shader.PropertyToID("_InstanceIndices");
+            public static readonly int _InstanceDataBuffer = Shader.PropertyToID("_InstanceDataBuffer");
+
+            // Debug
+            public static readonly int _OccluderDepthPyramid = Shader.PropertyToID("_OccluderDepthPyramid");
+            public static readonly int _OcclusionDebugCounters = Shader.PropertyToID("_OcclusionDebugCounters");
+        }
+
+        internal void Init(GPUResidentDrawerResources resources, DebugRendererBatcherStats debugStats = null)
+        {
+            m_IndirectStorage.Init();
+
+            m_OcclusionTestShader.Init(resources.instanceOcclusionCullingKernels);
+            m_ResetDrawArgsKernel = m_OcclusionTestShader.cs.FindKernel("ResetDrawArgs");
+            m_CopyInstancesKernel = m_OcclusionTestShader.cs.FindKernel("CopyInstances");
+            m_CullInstancesKernel = m_OcclusionTestShader.cs.FindKernel("CullInstances");
+
             m_DebugStats = debugStats;
             m_SplitDebugArray = new InstanceCullerSplitDebugArray();
             m_SplitDebugArray.Init();
+            m_OcclusionEventDebugArray = new InstanceOcclusionEventDebugArray();
+            m_OcclusionEventDebugArray.Init();
+
+            m_ProfilingSampleInstanceOcclusionTest = new ProfilingSampler("InstanceOcclusionTest");
+
+            m_ShaderVariables = new NativeArray<InstanceOcclusionCullerShaderVariables>(1, Allocator.Persistent);
+            m_ConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<InstanceOcclusionCullerShaderVariables>(), ComputeBufferType.Constant);
+
+            m_CommandBuffer = new CommandBuffer();
+            m_CommandBuffer.name = "EnsureValidOcclusionTestResults";
         }
 
         private JobHandle CreateFrustumCullingJob(
@@ -1093,6 +1492,7 @@ namespace UnityEngine.Rendering
             NativeList<LODGroupCullingData> lodGroupCullingData,
             in BinningConfig binningConfig,
             float smallMeshScreenPercentage,
+            OcclusionCullingCommon occlusionCullingCommon,
             out NativeArray<byte> rendererVisibilityMasks,
             out NativeArray<byte> rendererCrossFadeValues)
         {
@@ -1102,6 +1502,8 @@ namespace UnityEngine.Rendering
             var receiverSphereCuller = ReceiverSphereCuller.Create(cc, Allocator.TempJob);
             var frustumPlaneCuller = FrustumPlaneCuller.Create(cc, receiverPlanes.planes.AsArray(), receiverSphereCuller, Allocator.TempJob);
             var lightFacingFrustumPlanes = receiverPlanes.CopyLightFacingFrustumPlanes(Allocator.TempJob);
+            if (occlusionCullingCommon != null)
+                occlusionCullingCommon.UpdateSilhouettePlanes(cc.viewID.GetInstanceID(), receiverPlanes.SilhouettePlaneSubArray());
             receiverPlanes.planes.Dispose();
 
             var visibilityLength = instanceData.handlesLength;
@@ -1180,7 +1582,8 @@ namespace UnityEngine.Rendering
             CPUDrawInstanceData drawInstanceData,
             NativeParallelHashMap<uint, BatchID> batchIDs,
             int crossFadedRendererCount,
-            float smallMeshScreenPercentage)
+            float smallMeshScreenPercentage,
+            OcclusionCullingCommon occlusionCullingCommon)
         {
             var binningConfig = new BinningConfig
             {
@@ -1196,6 +1599,7 @@ namespace UnityEngine.Rendering
                 lodGroupCullingData,
                 binningConfig,
                 smallMeshScreenPercentage,
+                occlusionCullingCommon,
                 out var rendererVisibilityMasks,
                 out var rendererCrossFadeValues);
 
@@ -1207,6 +1611,7 @@ namespace UnityEngine.Rendering
                 drawCommands.drawRanges = MemoryUtilities.Malloc<BatchDrawRange>(drawCommands.drawRangeCount, Allocator.TempJob);
             }
             cullingOutput.drawCommands[0] = drawCommands;
+            cullingOutput.customCullingResult[0] = IntPtr.Zero;
 
             if (!m_CompactedVisibilityMasks.IsCreated)
             {
@@ -1299,10 +1704,7 @@ namespace UnityEngine.Rendering
                 int debugCounterBaseIndex = -1;
                 if (m_DebugStats?.enabled ?? false)
                 {
-                    int viewID = cc.viewID.GetInstanceID();
-                    SplitViewType viewType = (cc.viewType == BatchCullingViewType.Light) ? SplitViewType.Shadow : SplitViewType.Camera;
-                    int splitCount = cc.cullingSplits.Length;
-                    debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(viewID, viewType, splitCount);
+                    debugCounterBaseIndex = m_SplitDebugArray.TryAddSplits(cc.viewType, cc.viewID.GetInstanceID(), cc.cullingSplits.Length);
                 }
 
                 var batchCount = drawInstanceData.drawBatches.Length;
@@ -1316,6 +1718,17 @@ namespace UnityEngine.Rendering
                 var binConfigIndices = new NativeArray<short>(maxBinCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var binVisibleInstanceCounts = new NativeArray<int>(maxBinCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var binVisibleInstanceOffsets = new NativeArray<int>(maxBinCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+                int indirectContextIndex = -1;
+                bool useOcclusionCulling = (occlusionCullingCommon != null) && occlusionCullingCommon.HasOccluderContext(cc.viewID.GetInstanceID());
+                if (useOcclusionCulling)
+                {
+                    int viewInstanceID = cc.viewID.GetInstanceID();
+                    indirectContextIndex = m_IndirectStorage.TryAllocateContext(viewInstanceID);
+                    cullingOutput.customCullingResult[0] = (IntPtr)viewInstanceID;
+                }
+                IndirectBufferLimits indirectBufferLimits = m_IndirectStorage.GetLimits(indirectContextIndex);
+                NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo = m_IndirectStorage.GetAllocInfoSubArray(indirectContextIndex);
 
                 var allocateBinsJob = new AllocateBinsPerBatch
                 {
@@ -1346,6 +1759,9 @@ namespace UnityEngine.Rendering
                     batchDrawCommandOffsets = batchDrawCommandOffsets,
                     binVisibleInstanceOffsets = binVisibleInstanceOffsets,
                     cullingOutput = cullingOutput.drawCommands,
+                    indirectBufferLimits = indirectBufferLimits,
+                    indirectBufferAllocInfo = indirectBufferAllocInfo,
+                    indirectAllocationCounters = m_IndirectStorage.allocationCounters,
                 };
                 var prefixSumHandle = prefixSumJob.Schedule(allocateBinsHandle);
 
@@ -1366,8 +1782,36 @@ namespace UnityEngine.Rendering
                     binVisibleInstanceOffsets = binVisibleInstanceOffsets,
                     binVisibleInstanceCounts = binVisibleInstanceCounts,
                     cullingOutput = cullingOutput.drawCommands,
+                    indirectBufferLimits = indirectBufferLimits,
+                    visibleInstancesBufferHandle = m_IndirectStorage.visibleInstanceBufferHandle,
+                    indirectArgsBufferHandle = m_IndirectStorage.indirectArgsBufferHandle,
+                    indirectBufferAllocInfo = indirectBufferAllocInfo,
+                    indirectInstanceInfoGlobalArray = m_IndirectStorage.instanceInfoGlobalArray,
+                    indirectDrawInfoGlobalArray = m_IndirectStorage.drawInfoGlobalArray,
                 };
-                return drawCommandOutputJob.Schedule(batchCount, 1, prefixSumHandle);
+                var drawCommandOutputHandle = drawCommandOutputJob.Schedule(batchCount, 1, prefixSumHandle);
+
+                if (useOcclusionCulling)
+                    m_IndirectStorage.SetBufferContext(indirectContextIndex, new IndirectBufferContext(drawCommandOutputHandle));
+
+                return drawCommandOutputHandle;
+            }
+        }
+
+        public void InstanceOccludersUpdated(int viewInstanceID, RenderersBatchersContext batchersContext)
+        {
+            if (m_DebugStats?.enabled ?? false)
+            {
+                var occlusionCullingCommon = batchersContext.occlusionCullingCommon;
+                bool hasOccluders = occlusionCullingCommon.GetOccluderContext(viewInstanceID, out OccluderContext occluderCtx);
+                if (hasOccluders)
+                {
+                    m_OcclusionEventDebugArray.TryAdd(
+                        viewInstanceID,
+                        InstanceOcclusionEventType.OccluderUpdate,
+                        occluderCtx.version,
+                        OcclusionTest.None);
+                }
             }
         }
 
@@ -1388,11 +1832,287 @@ namespace UnityEngine.Rendering
             return m_CompactedVisibilityMasks;
         }
 
+        private class InstanceOcclusionTestPassData
+        {
+            public OcclusionCullingSettings settings;
+            public OccluderHandles occluderHandles;
+            public IndirectBufferContextHandles bufferHandles;
+        }
+
+        public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, RenderersBatchersContext batchersContext)
+        {
+            if (!batchersContext.occlusionCullingCommon.GetOccluderContext(settings.viewInstanceID, out OccluderContext occluderCtx))
+                return;
+
+            var occluderHandles = occluderCtx.Import(renderGraph);
+            if (!occluderHandles.IsValid())
+                return;
+
+            using (var builder = renderGraph.AddComputePass<InstanceOcclusionTestPassData>("Instance Occlusion Test", out var passData, m_ProfilingSampleInstanceOcclusionTest))
+            {
+                builder.AllowGlobalStateModification(true);
+
+                passData.settings = settings;
+                passData.bufferHandles = m_IndirectStorage.ImportBuffers(renderGraph);
+                passData.occluderHandles = occluderHandles;
+
+                passData.bufferHandles.UseForOcclusionTest(builder);
+                passData.occluderHandles.UseForOcclusionTest(builder);
+
+                builder.SetRenderFunc((InstanceOcclusionTestPassData data, ComputeGraphContext context) =>
+                {
+                    var batcher = GPUResidentDrawer.instance.batcher;
+                    batcher.instanceCullingBatcher.culler.AddOcclusionCullingDispatch(
+                        context.cmd,
+                        data.settings,
+                        data.bufferHandles,
+                        data.occluderHandles,
+                        batcher.batchersContext);
+                });
+            }
+        }
+
+        internal void EnsureValidOcclusionTestResults(int viewInstanceID)
+        {
+            int indirectContextIndex = m_IndirectStorage.TryGetContextIndex(viewInstanceID);
+            if (indirectContextIndex >= 0)
+            {
+                // sync before checking the allocation results
+                IndirectBufferContext bufferCtx = m_IndirectStorage.GetBufferContext(indirectContextIndex);
+                if (bufferCtx.bufferState == IndirectBufferContext.BufferState.Pending)
+                    bufferCtx.cullingJobHandle.Complete();
+
+                // if this did allocate, then ensure the indirect args start with valid data that renders everything
+                IndirectBufferAllocInfo allocInfo = m_IndirectStorage.GetAllocInfo(indirectContextIndex);
+                if (!allocInfo.IsEmpty())
+                {
+                    var cmd = m_CommandBuffer;
+
+                    cmd.Clear();
+                    m_IndirectStorage.CopyFromStaging(cmd, allocInfo);
+
+                    var cs = m_OcclusionTestShader.cs;
+
+                    m_ShaderVariables[0] = new InstanceOcclusionCullerShaderVariables
+                    {
+                        _DrawInfoAllocIndex = (uint)allocInfo.drawAllocIndex,
+                        _DrawInfoCount = (uint)allocInfo.drawCount,
+                        _InstanceInfoAllocIndex = (uint)(IndirectBufferContextStorage.kInstanceInfoGpuOffsetMultiplier * allocInfo.instanceAllocIndex),
+                        _InstanceInfoCount = (uint)allocInfo.instanceCount,
+                        _BoundingSphereInstanceDataAddress = 0,
+                        _DebugCounterIndex = -1,
+                    };
+                    cmd.SetBufferData(m_ConstantBuffer, m_ShaderVariables);
+                    cmd.SetComputeConstantBufferParam(cs, ShaderIDs.InstanceOcclusionCullerShaderVariables, m_ConstantBuffer, 0, m_ConstantBuffer.stride);
+
+                    int kernel = m_CopyInstancesKernel;
+                    cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, m_IndirectStorage.drawInfoBuffer);
+                    cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, m_IndirectStorage.instanceInfoBuffer);
+                    cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, m_IndirectStorage.argsBuffer);
+                    cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, m_IndirectStorage.instanceBuffer);
+
+                    cmd.DispatchCompute(cs, kernel, (allocInfo.instanceCount + 63) / 64, 1, 1);
+
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                }
+            }
+        }
+
+        private void AddOcclusionCullingDispatch(
+            ComputeCommandBuffer cmd,
+            in OcclusionCullingSettings settings,
+            in IndirectBufferContextHandles bufferHandles,
+            in OccluderHandles occluderHandles,
+            RenderersBatchersContext batchersContext)
+        {
+            int settingsCullingSplitIndex = 0; // TODO: rework to split mask for shadow caster culling
+            var occlusionCullingCommon = batchersContext.occlusionCullingCommon;
+            int indirectContextIndex = m_IndirectStorage.TryGetContextIndex(settings.viewInstanceID);
+            if (indirectContextIndex >= 0)
+            {
+                IndirectBufferContext bufferCtx = m_IndirectStorage.GetBufferContext(indirectContextIndex);
+
+                // check what compute we need to do (if any)
+                bool hasOccluders = occlusionCullingCommon.GetOccluderContext(settings.viewInstanceID, out OccluderContext occluderCtx);
+
+                IndirectBufferContext.BufferState newBufferState = IndirectBufferContext.BufferState.Zeroed;
+                OccluderState newOccluderState = new OccluderState();
+                switch (settings.occlusionTest)
+                {
+                    case OcclusionTest.None:
+                        newBufferState = IndirectBufferContext.BufferState.NoOcclusionTest;
+                        break;
+                    case OcclusionTest.TestAll:
+                        if (hasOccluders)
+                        {
+                            newBufferState = IndirectBufferContext.BufferState.AllInstancesOcclusionTested;
+                            newOccluderState = new OccluderState
+                            {
+                                version = occluderCtx.version,
+                                cullingSplitIndex = settingsCullingSplitIndex,
+                            };
+                        }
+                        else
+                        {
+                            newBufferState = IndirectBufferContext.BufferState.NoOcclusionTest;
+                        }
+                        break;
+                    case OcclusionTest.TestCulled:
+                        if (hasOccluders)
+                        {
+                            bool hasMatchingCullingOutput = true;
+                            switch (bufferCtx.bufferState)
+                            {
+                                case IndirectBufferContext.BufferState.AllInstancesOcclusionTested:
+                                case IndirectBufferContext.BufferState.OccludedInstancesReTested:
+                                    // valid or already done
+                                    if (bufferCtx.occluderState.cullingSplitIndex != settingsCullingSplitIndex)
+                                    {
+                                        Debug.Log("Expected the previous occlusion test to be from the same split index");
+                                        hasMatchingCullingOutput = false;
+                                    }
+                                    break;
+
+                                case IndirectBufferContext.BufferState.NoOcclusionTest:
+                                case IndirectBufferContext.BufferState.Zeroed:
+                                    // no instances, keep the new buffer state zeroed
+                                    hasMatchingCullingOutput = false;
+                                    break;
+
+                                default:
+                                    // unexpected, keep the new buffer state zeroed
+                                    hasMatchingCullingOutput = false;
+                                    Debug.Log("Expected the previous occlusion test to be TestAll before using TestCulled");
+                                    break;
+                            }
+                            if (hasMatchingCullingOutput)
+                            {
+                                newBufferState = IndirectBufferContext.BufferState.OccludedInstancesReTested;
+                                newOccluderState = new OccluderState
+                                {
+                                    version = occluderCtx.version,
+                                    cullingSplitIndex = settingsCullingSplitIndex,
+                                };
+                            }
+                        }
+                        break;
+                }
+
+                // issue the work (if any)
+                if ((bufferCtx.bufferState != newBufferState || !bufferCtx.occluderState.Matches(newOccluderState)))
+                {
+                    bool isFirstPass = (newBufferState == IndirectBufferContext.BufferState.AllInstancesOcclusionTested);
+                    bool isSecondPass = (newBufferState == IndirectBufferContext.BufferState.OccludedInstancesReTested);
+
+                    bool doWait = (bufferCtx.bufferState == IndirectBufferContext.BufferState.Pending);
+                    bool doCopyInstances = (newBufferState == IndirectBufferContext.BufferState.NoOcclusionTest);
+                    bool doResetDraws = (bufferCtx.bufferState != IndirectBufferContext.BufferState.Zeroed) && !doCopyInstances;
+                    bool doCullInstances = (newBufferState != IndirectBufferContext.BufferState.Zeroed) && !doCopyInstances;
+
+                    // sync before checking the allocation results
+                    if (doWait)
+                        bufferCtx.cullingJobHandle.Complete();
+
+                    IndirectBufferAllocInfo allocInfo = m_IndirectStorage.GetAllocInfo(indirectContextIndex);
+
+                    bufferCtx.bufferState = newBufferState;
+                    bufferCtx.occluderState = newOccluderState;
+
+                    if (!allocInfo.IsEmpty())
+                    {
+                        int debugCounterIndex = -1;
+                        if (m_DebugStats?.enabled ?? false)
+                        {
+                            debugCounterIndex = m_OcclusionEventDebugArray.TryAdd(
+                                settings.viewInstanceID,
+                                InstanceOcclusionEventType.OcclusionTest,
+                                newOccluderState.version,
+                                isFirstPass ? OcclusionTest.TestAll : isSecondPass ? OcclusionTest.TestCulled : OcclusionTest.None);
+                        }
+
+                        // set up keywords
+                        bool useArray = false;
+                        bool occlusionDebug = false;
+                        if (isFirstPass || isSecondPass)
+                        {
+                            useArray = OcclusionCullingCommon.UseArray(in occluderCtx);
+                            occlusionDebug = OcclusionCullingCommon.UseOcclusionDebug(in occluderCtx) && occluderHandles.debugPyramid.IsValid();
+                        }
+                        var cs = m_OcclusionTestShader.cs;
+                        var firstPassKeyword = new LocalKeyword(cs, "OCCLUSION_FIRST_PASS");
+                        var secondPassKeyword = new LocalKeyword(cs, "OCCLUSION_SECOND_PASS");
+                        OccluderContext.SetKeyword(cmd, cs, firstPassKeyword, isFirstPass);
+                        OccluderContext.SetKeyword(cmd, cs, secondPassKeyword, isSecondPass);
+
+                        m_ShaderVariables[0] = new InstanceOcclusionCullerShaderVariables
+                        {
+                            _DrawInfoAllocIndex = (uint)allocInfo.drawAllocIndex,
+                            _DrawInfoCount = (uint)allocInfo.drawCount,
+                            _InstanceInfoAllocIndex = (uint)(IndirectBufferContextStorage.kInstanceInfoGpuOffsetMultiplier * allocInfo.instanceAllocIndex),
+                            _InstanceInfoCount = (uint)allocInfo.instanceCount,
+                            _BoundingSphereInstanceDataAddress = batchersContext.renderersParameters.boundingSphere.gpuAddress,
+                            _DebugCounterIndex = debugCounterIndex,
+                        };
+                        cmd.SetBufferData(m_ConstantBuffer, m_ShaderVariables);
+                        cmd.SetComputeConstantBufferParam(cs, ShaderIDs.InstanceOcclusionCullerShaderVariables, m_ConstantBuffer, 0, m_ConstantBuffer.stride);
+
+                        occlusionCullingCommon.PrepareCulling(cmd, in occluderCtx, settings.viewInstanceID, settingsCullingSplitIndex, m_OcclusionTestShader, useArray, occlusionDebug);
+
+                        if (doCopyInstances)
+                        {
+                            int kernel = m_CopyInstancesKernel;
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, m_IndirectStorage.drawInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, m_IndirectStorage.instanceInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, m_IndirectStorage.argsBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, m_IndirectStorage.instanceBuffer);
+
+                            cmd.DispatchCompute(cs, kernel, (allocInfo.instanceCount + 63) / 64, 1, 1);
+                        }
+
+                        if (doResetDraws)
+                        {
+                            int kernel = m_ResetDrawArgsKernel;
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, bufferHandles.drawInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.argsBuffer);
+                            cmd.DispatchCompute(cs, kernel, (allocInfo.drawCount + 63) / 64, 1, 1);
+                        }
+
+                        if (doCullInstances)
+                        {
+                            int kernel = m_CullInstancesKernel;
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawInfo, bufferHandles.drawInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceInfo, bufferHandles.instanceInfoBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._DrawArgs, bufferHandles.argsBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceIndices, bufferHandles.instanceBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._InstanceDataBuffer, batchersContext.gpuInstanceDataBuffer);
+                            cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._OcclusionDebugCounters, m_OcclusionEventDebugArray.CounterBuffer);
+
+                            if (isFirstPass || isSecondPass)
+                                OcclusionCullingCommon.SetDepthPyramid(cmd, m_OcclusionTestShader, kernel, occluderHandles);
+
+                            if (occlusionDebug)
+                                OcclusionCullingCommon.SetDebugPyramid(cmd, m_OcclusionTestShader, kernel, occluderHandles);
+
+                            if (isSecondPass)
+                                cmd.DispatchCompute(cs, kernel, bufferHandles.argsBuffer, (uint)(GraphicsBuffer.IndirectDrawIndexedArgs.size * allocInfo.GetExtraDrawInfoSlotIndex()));
+                            else
+                                cmd.DispatchCompute(cs, kernel, (allocInfo.instanceCount + 63) / 64, 1, 1);
+                        }
+                    }
+                }
+
+                // update to the new buffer state
+                m_IndirectStorage.SetBufferContext(indirectContextIndex, bufferCtx);
+            }
+        }
+
         private void FlushDebugCounters()
         {
             if (m_DebugStats?.enabled ?? false)
             {
                 m_SplitDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
+                m_OcclusionEventDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
             }
         }
 
@@ -1400,13 +2120,19 @@ namespace UnityEngine.Rendering
         {
             DisposeCompactVisibilityMasks();
             FlushDebugCounters();
+            m_IndirectStorage.ClearContextsAndGrowBuffers();
         }
 
         public void Dispose()
         {
             DisposeCompactVisibilityMasks();
+            m_IndirectStorage.Dispose();
             m_DebugStats = null;
+            m_OcclusionEventDebugArray.Dispose();
             m_SplitDebugArray.Dispose();
+            m_ShaderVariables.Dispose();
+            m_ConstantBuffer.Release();
+            m_CommandBuffer.Dispose();
         }
     }
 }

@@ -139,6 +139,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();

@@ -44,17 +44,18 @@ void Frag(PackedVaryingsToPS packedInput,
     }
 #else
     // World space position of the fragment
+    float3 positionOS = float3(input.texCoord0.x, 0.0f, input.texCoord0.y);
     float3 transformedPosAWS = GetAbsolutePositionWS(input.positionRWS);
 
     if (_WaterDebugMode == WATERDEBUGMODE_SIMULATION_FOAM_MASK)
     {
-        float2 maskUV = EvaluateFoamMaskUV(input.texCoord0.xy);
+        float2 maskUV = EvaluateFoamMaskUV(positionOS.xz);
         float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, maskUV).x;
         outGBuffer0 = float4(foamMask, foamMask, foamMask, 1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_WATER_MASK)
     {
-        float2 maskUV = EvaluateWaterMaskUV(input.texCoord0.xy);
+        float2 maskUV = EvaluateWaterMaskUV(positionOS.xz);
         float3 waterMask = RemapWaterMaskValue(SAMPLE_TEXTURE2D(_WaterMask, sampler_WaterMask, maskUV).xyz);
         float3 debugMask = waterMask[_WaterMaskDebugMode];
         outGBuffer0 = float4(debugMask, 1.0);
@@ -85,31 +86,24 @@ void Frag(PackedVaryingsToPS packedInput,
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_DEFORMATION)
     {
-        if (_WaterDeformationExtent.x > 0.0)
-        {
-            // Define the sampling coordinates
-            float2 deformationUV = (transformedPosAWS.xz - _WaterDeformationCenter) / _WaterDeformationExtent + 0.5;
+        // Define the sampling coordinates
+        float2 deformationUV = EvaluateDeformationUV(transformedPosAWS);
 
-            // Sample the deformation region
-            float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
+        // Sample the deformation region
+        float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
 
-            // Evaluate the region flag
-            float regionFlag = deformationUV.x > 0.0 && deformationUV.x < 1.0 && deformationUV.y > 0.0 && deformationUV.y < 1.0;
-            float negativeDisplacement = max(-verticalDeformation, 0);
-            float positiveDisplacement = max(verticalDeformation, 0);
-            outGBuffer0 = float4(negativeDisplacement / (1.0 + negativeDisplacement), positiveDisplacement / (1.0 + positiveDisplacement), regionFlag, 1.0);
-        }
-        else
-        {
-            outGBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
-        }
+        // Evaluate the region flag
+        float regionFlag = deformationUV.x > 0.0 && deformationUV.x < 1.0 && deformationUV.y > 0.0 && deformationUV.y < 1.0;
+        float negativeDisplacement = max(-verticalDeformation, 0);
+        float positiveDisplacement = max(verticalDeformation, 0);
+        outGBuffer0 = float4(negativeDisplacement / (1.0 + negativeDisplacement), positiveDisplacement / (1.0 + positiveDisplacement), regionFlag, 1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_FOAM)
     {
         WaterAdditionalData waterAdditionalData;
         EvaluateWaterAdditionalData(input.texCoord0.xyy, input.positionRWS, float3(0, 1, 0), waterAdditionalData);
 
-        float2 foamUV = EvaluateFoamUV(transformedPosAWS.xz);
+        float2 foamUV = EvaluateFoamUV(transformedPosAWS);
         float foamRegionMask = all(foamUV > 0.0) && all(foamUV < 1.0) ? 1.0 : 0.0;
         float targetFoam = _WaterFoamDebugMode == 0 ? waterAdditionalData.surfaceFoam : waterAdditionalData.deepFoam;
         outGBuffer0 = float4(targetFoam, targetFoam, foamRegionMask, 1.0);

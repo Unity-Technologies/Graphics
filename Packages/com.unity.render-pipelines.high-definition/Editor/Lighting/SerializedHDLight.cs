@@ -49,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty iesPoint;
         public SerializedProperty iesSpot;
         public SerializedProperty includeForRayTracing;
+        public SerializedProperty includeForPathTracing;
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
@@ -286,6 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 iesPoint = o.Find("m_IESPoint");
                 iesSpot = o.Find("m_IESSpot");
                 includeForRayTracing = o.Find("m_IncludeForRayTracing");
+                includeForPathTracing = o.Find("m_IncludeForPathTracing");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");

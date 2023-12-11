@@ -11,86 +11,12 @@ using UnityEngine.TestTools;
 
 class EditorTests
 {
-    // When creating a new render pipeline asset it should not log any errors or throw exceptions.
-    [Test]
-    public void CreatePipelineAssetWithoutErrors()
-    {
-        // Test without any render pipeline assigned to GraphicsSettings.
-        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-        GraphicsSettings.renderPipelineAsset = null;
-
-        try
-        {
-            UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
-            UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
-            LogAssert.NoUnexpectedReceived();
-            ScriptableObject.DestroyImmediate(asset);
-            ScriptableObject.DestroyImmediate(data);
-        }
-        // Makes sure the render pipeline is restored in case of a NullReference exception.
-        finally
-        {
-            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
-        }
-    }
-
-    // When creating a new Universal Renderer asset it should not log any errors or throw exceptions.
-    [Test]
-    public void CreateUniversalRendererAssetWithoutErrors()
-    {
-        // Test without any render pipeline assigned to GraphicsSettings.
-        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-        GraphicsSettings.renderPipelineAsset = null;
-
-        try
-        {
-            var asset = ScriptableObject.CreateInstance<UniversalRendererData>();
-            ResourceReloader.ReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
-            var renderer = asset.InternalCreateRenderer();
-            LogAssert.NoUnexpectedReceived();
-            renderer.Dispose();
-            ScriptableObject.DestroyImmediate(asset);
-        }
-        // Makes sure the render pipeline is restored in case of a NullReference exception.
-        finally
-        {
-            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
-        }
-    }
-
-    // When creating a new renderer 2d asset it should not log any errors or throw exceptions.
-    [Test]
-    public void CreateRenderer2DAssetWithoutErrors()
-    {
-        // Test without any render pipeline assigned to GraphicsSettings.
-        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-        GraphicsSettings.renderPipelineAsset = null;
-
-        try
-        {
-            var asset = ScriptableObject.CreateInstance<Renderer2DData>();
-            ResourceReloader.ReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
-            var renderer = asset.InternalCreateRenderer();
-            LogAssert.NoUnexpectedReceived();
-            renderer.Dispose();
-            ScriptableObject.DestroyImmediate(asset);
-        }
-        // Makes sure the render pipeline is restored in case of a NullReference exception.
-        finally
-        {
-            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
-        }
-    }
-
     // Validate that resource Guids are valid
     [Test]
     public void ValidateBuiltinResourceFiles()
     {
         string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
         Assert.IsFalse(string.IsNullOrEmpty(templatePath));
-
-        string editorResourcesPath = AssetDatabase.GUIDToAssetPath(UniversalRenderPipelineAsset.editorResourcesGUID);
-        Assert.IsFalse(string.IsNullOrEmpty(editorResourcesPath));
     }
 
     // Validate that ShaderUtils.GetShaderGUID results are valid and that ShaderUtils.GetShaderPath match shader names.
@@ -126,8 +52,16 @@ class EditorTests
     [Test]
     public void ValidateNewAssetResources()
     {
+        if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset)
+        {
+            Assert.Ignore("This test is only available when URP is the current pipeline.");
+            return;
+        }
+
         UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
         UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
+        UniversalRenderPipelineGlobalSettings.Ensure();
+
         Assert.AreNotEqual(null, asset.defaultMaterial);
         Assert.AreNotEqual(null, asset.defaultParticleMaterial);
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
@@ -139,8 +73,8 @@ class EditorTests
         Assert.AreEqual(null, asset.defaultUIOverdrawMaterial);
         Assert.AreEqual(null, asset.defaultUIETC1SupportedMaterial);
         Assert.AreEqual(null, asset.default2DMaterial);
+        Assert.AreEqual(null, asset.default2DMaskMaterial);
 
-        Assert.AreNotEqual(null, asset.m_EditorResourcesAsset, "Editor Resources should be initialized when creating a new pipeline.");
         Assert.AreNotEqual(null, asset.m_RendererDataList, "A default renderer data should be created when creating a new pipeline.");
         ScriptableObject.DestroyImmediate(asset);
         ScriptableObject.DestroyImmediate(data);

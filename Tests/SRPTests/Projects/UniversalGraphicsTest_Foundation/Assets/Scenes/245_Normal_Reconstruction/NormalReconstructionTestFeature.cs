@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
@@ -37,6 +38,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             m_Material = material;
         }
 
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -164,6 +166,9 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
     {
         Assert.IsNotNull(m_Material);
         m_DrawNormalPass.Setup(m_Material);
+
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_DrawNormalPass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 }

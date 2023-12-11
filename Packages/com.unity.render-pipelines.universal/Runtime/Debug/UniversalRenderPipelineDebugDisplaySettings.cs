@@ -100,12 +100,28 @@ namespace UnityEngine.Rendering.Universal
             volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
             commonSettings = Add(new DebugDisplaySettingsCommon());
             gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
+
+            // This is not a debug property owned by any `IDebugDisplaySettingsData`, it is a static property on `Texture`.
+            // When the user hits reset, we want to make sure texture mip caching is enabled again (regardless of whether the
+            // user toggled this in the Rendering Debugger UI or changed it using the scripting API).
+            Texture.streamingTextureDiscardUnusedMips = false;
         }
 
         internal void UpdateDisplayStats()
         {
             if (displayStats != null)
                 displayStats.debugDisplayStats.Update();
+        }
+
+        internal void UpdateMaterials()
+        {
+            if (renderingSettings.mipInfoMode != DebugMipInfoMode.None)
+            {
+                int textureSlotImpl = (renderingSettings.canAggregateData && renderingSettings.showInfoForAllSlots)
+                    ? -1
+                    : renderingSettings.mipDebugMaterialTextureSlot;
+                Texture.SetStreamingTextureMaterialDebugProperties(textureSlotImpl);
+            }
         }
     }
 }

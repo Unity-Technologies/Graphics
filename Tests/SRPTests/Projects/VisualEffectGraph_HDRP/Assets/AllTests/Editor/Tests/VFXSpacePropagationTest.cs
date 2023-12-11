@@ -340,7 +340,8 @@ namespace UnityEditor.VFX.Test
         public void SpaceConversion_Conversion_Expected_Between_Slot_Block_And_Context()
         {
             var initializeContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            var positionSphere = ScriptableObject.CreateInstance<PositionSphere>();
+            var positionSphere = ScriptableObject.CreateInstance<PositionShape>();
+            positionSphere.SetSettingValue("shape", PositionShapeBase.Type.Sphere);
             initializeContext.AddChild(positionSphere);
 
             //Default is expected to be in same space between block & context
@@ -377,7 +378,7 @@ namespace UnityEditor.VFX.Test
             viewController.ApplyChanges();
             viewController.ForceReload();
 
-            var collision = ScriptableObject.CreateInstance<CollisionSphere>();
+            var collision = ScriptableObject.CreateInstance<CollisionShape>();
             var contextController = viewController.allChildren.OfType<VFXContextController>().First();
             contextController.AddBlock(0, collision, true);
 

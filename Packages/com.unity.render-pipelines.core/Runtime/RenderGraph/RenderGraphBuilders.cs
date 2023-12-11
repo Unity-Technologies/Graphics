@@ -41,8 +41,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraph = renderGraph;
             m_Disposed = false;
 
-            // For now we reference all globals by default
-            renderPass.useAllGlobalTextures = true;
+            renderPass.useAllGlobalTextures = false;
 
             if (renderPass.type == RenderGraphPassType.Raster)
             {
@@ -332,7 +331,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             m_Resources.GetRenderTargetInfo(tex.handle, out var info);
             // The old path is full of invalid uses that somehow work (or seemt to work) so we skip the tests if not using actual native renderpass
-            if (m_RenderGraph.NativeRenderPassesEnabled)
+            if (m_RenderGraph.nativeRenderPassesEnabled)
             {
                 if (isDepth)
                 {

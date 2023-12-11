@@ -4,8 +4,7 @@ Any Unity project that uses the Universal Render Pipeline (URP) must have a URP 
 
 The URP Asset controls several graphical features and quality settings for the Universal Render Pipeline.  It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the URP. You can then adjust the corresponding settings directly in the URP, instead of looking for them elsewhere.
 
-You can have multiple URP assets and switch between them. For example, you can have one with Shadows on and one with Shadows off. If you switch between the assets to see the effects, you don’t have to manually toggle the corresponding settings for shadows every time. You cannot, however, switch between HDRP/SRP and URP assets, as the
- render pipelines are incompatible.
+You can have multiple URP assets and switch between them. For example, you can have one with Shadows on and one with Shadows off. If you switch between the assets to understand the effects, you don’t have to manually toggle the corresponding settings for shadows every time. You cannot, however, switch between HDRP/SRP and URP assets, as the render pipelines are incompatible.
 
 ## UI overview
 
@@ -16,13 +15,14 @@ In the URP, you can configure settings for:
 * [**Lighting**](#lighting)
 * [**Shadows**](#shadows)
 * [**Post-processing**](#post-processing)
+* [**Volumes**](#volumes)
 * [**Adaptive Performance**](#adaptive-performance)
 
 > **Note**: If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the URP Asset don't have any impact on your final app or game.
 
 ### How to show Additional Properties
 
-Unity does not show certain advanced properties in the URP Asset by default. To see all available properties:
+Unity does not show certain advanced properties in the URP Asset by default. To reveal all available properties:
 
 * In the URP Asset, in any section, click the vertical ellipsis icon (&vellip;) and select **Show Additional Properties**
 
@@ -50,8 +50,8 @@ The **Rendering** settings control the core part of the pipeline rendered frame.
 | **Terrain Holes**       | If you disable this option, the URP removes all Terrain hole Shader variants when you build for the Unity Player, which decreases build time. |
 | **SRP Batcher**            | Check this box to enable the SRP Batcher. This is useful if you have many different Materials that use the same Shader. The SRP Batcher is an inner loop that speeds up CPU rendering without affecting GPU performance. When you use the SRP Batcher, it replaces the SRP rendering code inner loop. If both **SRP Batcher** and **Dynamic Batching** are enabled, SRP Batcher will take precedence over dynamic batching as long as the shader is SRP Batcher compatible. |
 | **Dynamic Batching**       | Enable [Dynamic Batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), to make the render pipeline automatically batch small dynamic objects that share the same Material. This is useful for platforms and graphics APIs that do not support GPU instancing. If your targeted hardware does support GPU instancing, disable **Dynamic Batching**. You can change this at run time. |
-| **Debug Level**            | Set the level of debug information that the render pipeline generates. The values are:<br />**Disabled**:  Debugging is disabled. This is the default.<br  />**Profiling**: Makes the render pipeline provide detailed information tags, which you can see in the FrameDebugger. |
-| **Shader Variant Log Level** | Set the level of information about Shader Stripping and Shader Variants you want to display when Unity finishes a build. Values are:<br /> **Disabled**: Unity doesn’t log anything.<br />**Only Universal**: Unity logs information for all of the [URP Shaders](shaders-in-universalrp.md).<br />**All**: Unity logs information for all Shaders in your build.<br /> You can see the information in Console panel when your build has finished. |
+| **Debug Level**            | Set the level of debug information that the render pipeline generates. The values are:<br />**Disabled**:  Debugging is disabled. This is the default.<br  />**Profiling**: Makes the render pipeline provide detailed information tags, which you can find in the FrameDebugger. |
+| **Shader Variant Log Level** | Set the level of information about Shader Stripping and Shader Variants you want to display when Unity finishes a build. Values are:<br /> **Disabled**: Unity doesn’t log anything.<br />**Only Universal**: Unity logs information for all of the [URP Shaders](shaders-in-universalrp.md).<br />**All**: Unity logs information for all Shaders in your build.<br /> You can check the information in Console panel when your build has finished. |
 | **Store Actions**          | Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the **Store** option significantly increases the memory bandwidth on mobile and tile-based GPUs.<br/>**Auto**: Unity uses the **Discard** option by default, and falls back to the **Store** option if it detects any injected Passes.<br/>**Discard**:  Unity discards the render targets of render Passes that are not reused later (lower memory bandwidth).<br/>**Store**: Unity stores all render targets of each Pass (higher memory bandwidth). |
 
 ### Quality
@@ -62,7 +62,7 @@ These settings control the quality level of the URP. This is where you can make 
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
-| **HDR**          | Enable this to allow rendering in High Dynamic Range (HDR) by default for every camera in your scene. With HDR, the brightest part of the image can be greater than 1. This gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light. This is useful if you want a wide range of lighting or to use [bloom](https://docs.unity3d.com/Manual/PostProcessing-Bloom.html) effects. If you’re targeting lower-end hardware, you can disable this to skip HDR calculations and get better performance. You can override this for individual cameras in the Camera Inspector. |
+| **HDR**          | Enable this to allow rendering in High Dynamic Range (HDR) by default for every camera in your scene. With HDR, the brightest part of the image can be greater than 1. This gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still pick out details and experience less saturation even with bright light. This is useful if you want a wide range of lighting or to use [bloom](https://docs.unity3d.com/Manual/PostProcessing-Bloom.html) effects. If you’re targeting lower-end hardware, you can disable this to skip HDR calculations and get better performance. You can override this for individual cameras in the Camera Inspector. |
 | &#160;&#160;&#160;&#160;HDR Precision | The precision of the Camera color buffer in HDR rendering. The 64 bit precision lets you avoid banding artifacts, but requires higher bandwidth and might make sampling slower. Default value: 32 bit. |
 | **Anti Aliasing (MSAA)** | Use [Multisample Anti-aliasing](anti-aliasing.md#msaa) by default for every Camera in your scene while rendering. This softens edges of your geometry, so they’re not jagged or flickering. In the drop-down menu, select how many samples to use per pixel: **2x**, **4x**, or **8x**. The more samples you choose, the smoother your object edges are. If you want to skip MSAA calculations, or you don’t need them in a 2D game, select **Disabled**. You can override this for individual cameras in the Camera Inspector.<br/>**Note**: On mobile platforms that do not support the [StoreAndResolve](https://docs.unity3d.com/ScriptReference/Rendering.RenderBufferStoreAction.StoreAndResolve.html) store action, if **Opaque Texture** is selected in the URP asset, Unity ignores the **Anti Aliasing (MSAA)** property at runtime (as if Anti Aliasing (MSAA) is set to Disabled). |
 | **Render Scale** | This slider scales the render target resolution (not the resolution of your current device). Use this when you want to render at a smaller resolution for performance reasons or to upscale rendering to improve quality.  This only scales the game rendering. UI rendering is left at the native resolution for the device. |
@@ -70,9 +70,10 @@ These settings control the quality level of the URP. This is where you can make 
 | &#160;&#160;&#160;&#160;**Automatic** | Unity selects one of the filtering options based on the Render Scale value and the current screen resolution. If integer scaling is possible, Unity selects the Nearest-Neighbor option, otherwise Unity selects the Bilinear option. |
 | &#160;&#160;&#160;&#160;**Bilinear** | Unity uses the bilinear or linear filtering provided by the graphics API. |
 | &#160;&#160;&#160;&#160;**Nearest-Neighbor** | Unity uses the nearest-neighbor or point sampling filtering provided by the graphics API. |
-| &#160;&#160;&#160;&#160;**FidelityFX Super Resolution&#160;1.0** | Unity uses the AMD FidelityFX Super Resolution 1.0 (FSR) technique to perform upscaling.<br/>Unlike the other Upscaling Filter options, this filter remains active even at a Render Scale value of 1.0. This filter can still improve image quality even when no scaling is occurring. This also makes the transition between scale values 0.99 and 1.0 less noticeable in cases where dynamic resolution scaling is active.<br/>**Note**: This filter is only supported on devices that support Unity shader model 4.5 or higher. On devices that do not support Unity shader model 4.5, Unity uses the **Automatic** option instead. |
+| &#160;&#160;&#160;&#160;**FidelityFX Super Resolution&#160;1.0** | Unity uses the AMD FidelityFX Super Resolution 1.0 (FSR) technique to perform upscaling.<br/>Unlike most other Upscaling Filter options, this filter remains active even at a Render Scale value of 1.0. This filter can still improve image quality even when no scaling is occurring. This also makes the transition between scale values 0.99 and 1.0 less noticeable in cases where dynamic resolution scaling is active.<br/>**Note**: This filter is only supported on devices that support Unity shader model 4.5 or higher. On devices that do not support Unity shader model 4.5, Unity uses the **Automatic** option instead. |
 | &#160;&#160;&#160;&#160;**Override FSR Sharpness** | Unity shows this check box when you select the FSR filter. Selecting this check box lets you specify the intensity of the FSR sharpening pass. |
 | &#160;&#160;&#160;&#160;**FSR Sharpness** | Specify the intensity of the FSR sharpening pass. A value of 0.0 provides no sharpening, a value of 1.0 provides maximum sharpness. This option has no effect when FSR is not the active upscaling filter. |
+| &#160;&#160;&#160;&#160;**Spatial Temporal Post-Processing (STP)&#160;1.0** | Unity uses the Spatial Temporal Post-Processing (STP) technique to perform upscaling.<br/>This filter performs temporal anti-aliasing as part of the upscaling process, so using it will override the camera's anti-aliasing method to temporal anti-aliasing. This filter is capable of improving image quality even without scaling, so it remains active at 1.0 Render Scale like FSR.<br/>**Note**: This filter is only supported on non-GLES devices that are capable of running compute shaders. STP is supported on mobile devices, but its performance cost on lower-end hardware can make it impractical. On devices that do not support STP's requirements, Unity uses the **Automatic** option instead. |
 | **LOD&#160;Cross&#160;Fade**       | Use this property to enable or disable the LOD cross-fade. If you disable this option, URP removes all LOD cross-fade shader variants when you build the Unity Player, which decreases the build time. |
 | **LOD Cross Fade Dithering&#160;Type** | When an [LOD group](https://docs.unity3d.com/Manual/class-LODGroup.html) has **Fade Mode** set to **Cross Fade**, Unity renders the Renderer's LOD meshes with cross-fade blending between them using alpha testing. This property defines the type of LOD cross-fade.<br/>Options:<br/>**Bayer Matrix**: better performance than the Blue Noise option, but has a repetitive pattern.<br/>**Blue Noise**: uses a precomputed blue noise texture and provides a better look than the Bayer Matrix option, but has a slightly higher performance cost. |
 
@@ -88,7 +89,7 @@ If you disable some of these settings, the relevant [keywords](https://docs.unit
 | **Cast Shadows**      | Check this box to make the main light cast shadows in your scene. |
 | **Shadow Resolution** | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
 | **Mixed Lighting**    | When [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) is enabled, Unity includes mixed lighting shader variants in the build.|
-| **Use Rendering Layers** | With this option selected, you can configure certain Lights to affect only specific GameObjects. For more information on Rendering Layers and how to use them, see the page [Rendering Layers](features/rendering-layers.md)
+| **Use Rendering Layers** | With this option selected, you can configure certain Lights to affect only specific GameObjects. For more information on Rendering Layers and how to use them, refer to the documentation on [Rendering Layers](features/rendering-layers.md)
 | **Additional Lights** | Here, you can choose to have additional lights to supplement your main light. Choose between [Per Vertex](https://docs.unity3d.com/Manual/LightPerformance.html), [Per Pixel](https://docs.unity3d.com/Manual/LightPerformance.html), or **Disabled**. |
 | **Per Object Limit**  | This slider sets the limit for how many additional lights can affect each GameObject. |
 | **Cast Shadows**      | Check this box to make the additional lights cast shadows in your scene. |
@@ -107,7 +108,7 @@ The **Shadows** section has the following properties.
 | ---------------- | ----------- |
 | **Max Distance** | The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance.<br/>**Note**: This property is in metric units regardless of the value in the **Working Unit** property. |
 | **Working Unit** | The unit in which Unity measures the shadow cascade distances. |
-| **Cascade Count** | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
+| **Cascade Count** | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, refer to the documentation on [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
 | &#160;&#160;&#160;&#160;Split&#160;1 | The distance where cascade 1 ends and cascade 2 starts. |
 | &#160;&#160;&#160;&#160;Split&#160;2 | The distance where cascade 2 ends and cascade 3 starts. |
 | &#160;&#160;&#160;&#160;Split&#160;3 | The distance where cascade 3 ends and cascade 4 starts. |
@@ -129,7 +130,15 @@ This section allows you to fine-tune global post-processing settings.
 | **Grading Mode** | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<ul><li>**High Dynamic Range**: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.</li><li>**Low Dynamic Range**: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.</li></ul> |
 | **LUT Size**     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 | **Fast sRGB/Linear Conversions** | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
-| **Volume Update Mode** | Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.|
+
+### Volumes
+
+| Property         | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| **Volume Update Mode** | Select how Unity updates Volumes at run time. <br />&#8226; **Every Frame**: Unity updates volumes every frame. <br />&#8226; **Via Scripting**: Unity updates volumes when triggered via scripting.<br /> In the Editor, Unity updates Volumes every frame when not in Play mode. |
+| **Volume Profile** | Set the [Volume Profile](Volume-Profile.md) that a scene uses by default. Refer to [Understand volumes](Volumes.md) for more information. |
+
+The list of Volume Overrides that the Volume Profile contains appears below **Volume Profile**. You can add, remove, disable, and enable Volume Overrides, and edit their properties. Refer to [Volume Overrides](VolumeOverrides.md) for more information.
 
 ### Adaptive Performance
 

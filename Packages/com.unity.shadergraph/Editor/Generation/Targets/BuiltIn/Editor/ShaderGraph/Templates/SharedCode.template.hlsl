@@ -61,11 +61,11 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv2:                                      output.uv2 = input.texCoord2;
     $SurfaceDescriptionInputs.uv3:                                      output.uv3 = input.texCoord3;
     $SurfaceDescriptionInputs.VertexColor:                              output.VertexColor = input.color;
-$SurfaceDescriptionInputs.InstanceID: #if UNITY_ANY_INSTANCING_ENABLED
+#if UNITY_ANY_INSTANCING_ENABLED
     $SurfaceDescriptionInputs.InstanceID:                               output.InstanceID = unity_InstanceID;
-$SurfaceDescriptionInputs.InstanceID: #else // TODO: XR support for procedural instancing because in this case UNITY_ANY_INSTANCING_ENABLED is not defined and instanceID is incorrect.
+#else // TODO: XR support for procedural instancing because in this case UNITY_ANY_INSTANCING_ENABLED is not defined and instanceID is incorrect.
     $SurfaceDescriptionInputs.InstanceID:                               output.InstanceID = input.instanceID;
-$SurfaceDescriptionInputs.InstanceID: #endif
+#endif
     $SurfaceDescriptionInputs.TimeParameters:                           output.TimeParameters = _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
 #if defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)
 #define BUILD_SURFACE_DESCRIPTION_INPUTS_OUTPUT_FACESIGN output.FaceSign =                    IS_FRONT_VFACE(input.cullFace, true, false);

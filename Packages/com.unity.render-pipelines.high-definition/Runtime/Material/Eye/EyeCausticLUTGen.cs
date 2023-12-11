@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (s_Shader == null)
             {
-                s_Shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.eyeMaterialCS;
+                s_Shader = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>().eyeMaterialCS;
                 s_Kernels[0] = s_Shader.FindKernel("SampleCaustic");
                 s_Kernels[1] = s_Shader.FindKernel("CopyToLUT");
                 s_Kernels[2] = s_Shader.FindKernel("ClearBuffer");

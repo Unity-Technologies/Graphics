@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -19,6 +20,40 @@ namespace UnityEditor.VFX
         {
             var name = this.name;
             return slotExpressions.Find(o => o.name == name);
+        }
+    }
+
+    struct ShaderKeywordExpressionFromSlot : IExpressionProvider
+    {
+        string slotName;
+        string keywordName;
+        uint keywordValue;
+
+        public ShaderKeywordExpressionFromSlot(string _slotName, string _keywordName, uint _keywordValue = uint.MaxValue)
+        {
+            slotName = _slotName;
+            keywordName = _keywordName;
+            keywordValue = _keywordValue;
+        }
+
+        public VFXNamedExpression GetExpression(List<VFXNamedExpression> slotExpressions)
+        {
+            var name = this.slotName;
+            var refExpression = slotExpressions.Find(o => o.name == name);
+
+            var keywordPrefixed = VFXSGInputs.kKeywordPrefix + keywordName;
+            if (refExpression.exp.valueType == VFXValueType.Boolean)
+            {
+                return new VFXNamedExpression(refExpression.exp, keywordPrefixed);
+            }
+            else
+            {
+                if (refExpression.exp.valueType != VFXValueType.Uint32)
+                    throw new InvalidOperationException("Unexpected input slot from keyword: " + slotName);
+
+                var compare = new VFXExpressionCondition(VFXValueType.Uint32, VFXCondition.Equal, refExpression.exp, VFXValue.Constant(keywordValue));
+                return new VFXNamedExpression(compare, keywordPrefixed);
+            }
         }
     }
 
@@ -346,7 +381,7 @@ namespace UnityEditor.VFX
             base.Invalidate(model, cause);
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
             if (SerializationUtility.HasManagedReferencesWithMissingTypes(this))
@@ -381,7 +416,7 @@ namespace UnityEditor.VFX
             {
                 MarkCacheAsDirty();
                 base.CheckGraphBeforeImport();
-                if (!VFXGraph.explicitCompile)
+                if (!GetGraph().explicitCompile)
                 {
                     ResyncSlots(true);
                 }

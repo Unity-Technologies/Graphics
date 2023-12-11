@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -75,6 +76,13 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         m_FullScreenPass = new FullScreenRenderPass(name);
     }
 
+    internal override bool RequireRenderingLayers(bool isDeferred, bool needsGBufferAccurateNormals, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
+    {
+        atEvent = RenderingLayerUtils.Event.Opaque;
+        maskSize = RenderingLayerUtils.MaskSize.Bits8;
+        return false;
+    }
+
     /// <inheritdoc/>
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
@@ -98,8 +106,13 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         m_FullScreenPass.renderPassEvent = (RenderPassEvent)injectionPoint;
         m_FullScreenPass.ConfigureInput(requirements);
         m_FullScreenPass.SetupMembers(passMaterial, passIndex, fetchColorBuffer, bindDepthStencilAttachment);
-
+        
+        m_FullScreenPass.requiresIntermediateTexture = fetchColorBuffer;
+        
+        // Disable obsolete warning for internal usage
+        #pragma warning disable CS0618
         renderer.EnqueuePass(m_FullScreenPass);
+        #pragma warning restore CS0618
     }
 
     /// <inheritdoc/>
@@ -131,11 +144,15 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
             m_BindDepthStencilAttachment = bindDepthStencilAttachment;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // FullScreenPass manages its own RenderTarget.
             // ResetTarget here so that ScriptableRenderer's active attachement can be invalidated when processing this ScriptableRenderPass.
             ResetTarget();
+            #pragma warning restore CS0618
 
             if (m_CopyActiveColor)
                 ReAllocate(renderingData.cameraData.cameraTargetDescriptor);
@@ -170,6 +187,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
             cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, s_SharedPropertyBlock);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ref var cameraData = ref renderingData.cameraData;
@@ -223,8 +241,11 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
 
             using (var builder = renderGraph.AddRasterRenderPass<MainPassData>("FullScreenPass", out var passData, profilingSampler))
             {
+                builder.UseAllGlobalTextures(true);
+
                 passData.material = m_Material;
                 passData.passIndex = m_PassIndex;
+
                 if (m_CopyActiveColor)
                 {
                     passData.inputTexture = copiedColor;

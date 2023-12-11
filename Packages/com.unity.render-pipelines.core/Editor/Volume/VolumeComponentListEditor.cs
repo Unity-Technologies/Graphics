@@ -142,7 +142,8 @@ namespace UnityEditor.Rendering
             bool forceOpen = false)
         {
             var editor = (VolumeComponentEditor) Editor.CreateEditor(component);
-            editor.inspector = m_BaseEditor;
+            editor.SetVolume(m_BaseEditor.target as Volume); // May be null if we're editing the asset
+            editor.SetVolumeProfile(asset);
             editor.enableOverrides = !m_IsDefaultVolumeProfile;
             editor.Init();
 
@@ -515,6 +516,23 @@ namespace UnityEditor.Rendering
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
             }
+        }
+
+        internal void RemoveAllComponents()
+        {
+            List<UnityEngine.Object> components = new List<UnityEngine.Object>(m_ComponentsProperty.arraySize);
+            for (int i = 0; i < m_ComponentsProperty.arraySize; i++)
+                components.Add(m_ComponentsProperty.GetArrayElementAtIndex(i).objectReferenceValue);
+
+            m_ComponentsProperty.ClearArray();
+            m_SerializedObject.ApplyModifiedProperties();
+
+            foreach (var component in components)
+                Undo.DestroyObjectImmediate(component);
+
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+            RefreshEditors();
         }
 
         internal void RemoveComponent(int id)

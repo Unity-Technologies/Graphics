@@ -31,8 +31,17 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public partial class HDRenderPipeline : RenderPipeline
     {
+
         #region Global Settings
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
+
+        private LensSettings m_LensSettings;
+        private SpecularFadeSettings m_SpecularFadeSettings;
+        private ColorGradingSettings m_ColorGradingSettings;
+        private RenderGraphSettings m_RenderGraphSettings;
+        private RenderingPathFrameSettings m_RenderingPathFrameSettings;
+        private CustomPostProcessOrdersSettings m_CustomPostProcessOrdersSettings;
+
         /// <summary>
         /// Accessor to the active Global Settings for the HD Render Pipeline.
         /// </summary>
@@ -64,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDRenderPipelineAsset asset => m_Asset;
 
         internal HDRenderPipelineRuntimeMaterials runtimeMaterials { get; private set; }
-        internal HDRenderPipelineRuntimeResources.ShaderResources runtimeShaders { get; private set; }
+        internal HDRenderPipelineRuntimeShaders runtimeShaders { get; private set; }
         internal HDRenderPipelineRuntimeAssets runtimeAssets { get; private set; }
         internal HDRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
 
@@ -413,11 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
         internal HDRPRayTracingResources rayTracingResources { get; private set; }
-
-#if UNITY_EDITOR
-        bool m_ResourcesInitialized = false;
-#endif
-
+        
         internal bool reflectionProbeBaking { get; set; }
 
         /// <summary>
@@ -444,8 +449,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
 
+            m_LensSettings                    = GraphicsSettings.GetRenderPipelineSettings<LensSettings>();
+            m_SpecularFadeSettings            = GraphicsSettings.GetRenderPipelineSettings<SpecularFadeSettings>();
+            m_ColorGradingSettings            = GraphicsSettings.GetRenderPipelineSettings<ColorGradingSettings>();
+            m_RenderGraphSettings             = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
+            m_RenderingPathFrameSettings      = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>();
+            m_CustomPostProcessOrdersSettings = GraphicsSettings.GetRenderPipelineSettings<CustomPostProcessOrdersSettings>();
             runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
-            runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
+            runtimeShaders   = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
@@ -458,23 +469,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             SetRenderingFeatures();
 
-            var cameraFrameSettings = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-
-            // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
-            // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
-            QualitySettings.lodBias = cameraFrameSettings.GetResolvedLODBias(m_Asset);
-            QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
+            SetLodQualitySettings();
 
 #if UNITY_EDITOR
-            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
-            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
-            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            m_ResourcesInitialized = m_GlobalSettings.AreRuntimeResourcesCreated();
-
-            if (!m_ResourcesInitialized)
-                return;
-
-            m_GlobalSettings.EnsureShadersCompiled();
+            runtimeShaders.EnsureShadersCompiled();
 #endif
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
@@ -582,7 +580,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearStencilBufferMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.clearStencilBufferPS);
 
-            VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, m_Asset.volumeProfile);
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+            VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, m_Asset.volumeProfile);
 
             InitializeDebug();
 
@@ -706,6 +705,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        private void SetLodQualitySettings()
+        {
+            var cameraFrameSettings = m_RenderingPathFrameSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+
+            // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
+            // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
+            QualitySettings.lodBias = cameraFrameSettings.GetResolvedLODBias(m_Asset);
+            QualitySettings.maximumLODLevel = cameraFrameSettings.GetResolvedMaximumLODLevel(m_Asset);
+        }
+
 #if UNITY_EDITOR
         public void UpdateDecalSystemShaderGraphs()
         {
@@ -737,10 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseColorTemperature = true;
             m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
-#if UNITY_2020_2_OR_NEWER
-            m_PreviousDefaultRenderingLayerMask = GraphicsSettings.defaultRenderingLayerMask;
-            GraphicsSettings.defaultRenderingLayerMask = (uint)m_GlobalSettings.defaultRenderingLayerMask;
-#endif
+
             m_PreviousDefaultGateFitMode = GraphicsSettings.defaultGateFitMode;
             GraphicsSettings.defaultGateFitMode = Camera.GateFitMode.Vertical;
 
@@ -818,7 +824,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool CheckResourcesValidity()
         {
-            if (!(runtimeShaders.defaultPS?.isSupported ?? true))
+            if (!(runtimeShaders.defaultShader?.isSupported ?? true))
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
@@ -853,9 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
-#if UNITY_2020_2_OR_NEWER
-            GraphicsSettings.defaultRenderingLayerMask = m_PreviousDefaultRenderingLayerMask;
-#endif
+
             GraphicsSettings.defaultGateFitMode = m_PreviousDefaultGateFitMode;
             QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
@@ -933,11 +937,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!m_ValidAPI)
                 return;
-
-#if UNITY_EDITOR
-            if (!m_ResourcesInitialized)
-                return;
-#endif
 
             base.Dispose(disposing);
 
@@ -1259,7 +1258,76 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
 
                 CoreUtils.SetKeyword(cmd, "SCREEN_COORD_OVERRIDE", hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
+
+                if (hdCamera.xr.enabled && hdCamera.xr.supportsFoveatedRendering)
+                {
+                    cmd.ConfigureFoveatedRendering(hdCamera.xr.foveatedRenderingInfo);
+                }
             }
+        }
+
+        // EnableFoveatedRasterization() is used to enable non-uniform foveated rasteriazation state
+        // and also the foveated non-uniform remapping shader functions FoveatedRemap*() via
+        // _FOVEATED_RENDERING_NON_UNIFORM_RASTER shader constant. The constant uses dynamic_branch
+        // to avoid shader variants and branching in shaders is done using:
+        //     if(_FOVEATED_RENDERING_NON_UNIFORM_RASTER) {...}
+        // instead of
+        //     #ifdef _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+        // EnableFoveatedRasterization() function should not be used for compute-only passes to keep
+        // them async compatible, but EnableFoveatedRemapping() should be used instead which enables
+        // only the remapping shader functions. EnableFoveatedRemapping() can be used also with
+        // rasterization passes where foveated rasterization isn't desired (e.g. full-screen pass with
+        // foveated remapping in shaders).
+        static GlobalKeyword _FOVEATED_RENDERING_NON_UNIFORM_RASTER = GlobalKeyword.Create("_FOVEATED_RENDERING_NON_UNIFORM_RASTER");
+
+        /// <summary>
+        /// Enable foveated rasterization state and foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void EnableFoveatedRasterization(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+            {
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+                cmd.EnableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
+            }
+        }
+
+        /// <summary>
+        /// Disable foveated rasterization state and foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void DisableFoveatedRasterization(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+            {
+                cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
+            }
+        }
+
+        /// <summary>
+        /// Enable foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void EnableFoveatedRemapping(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+                cmd.EnableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
+        }
+
+        /// <summary>
+        /// Disable foveated coordinate remapping by FoveatedRemap*() shader functions.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="useFoveatedRendering">Set to true if foveated rendering is enabled.</param>
+        public static void DisableFoveatedRemapping(CommandBuffer cmd, bool useFoveatedRendering)
+        {
+            if(useFoveatedRendering)
+                cmd.DisableKeyword(_FOVEATED_RENDERING_NON_UNIFORM_RASTER);
         }
 
         void SetupPartnerUpscalers(
@@ -1274,6 +1342,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCam.cameraCanRenderDLSS = false;
             hdCam.cameraCanRenderFSR2 = false;
+            hdCam.cameraCanRenderSTP = false;
 
             if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
                 return;
@@ -1313,6 +1382,20 @@ namespace UnityEngine.Rendering.HighDefinition
                                 : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings;
                             m_FSR2Pass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
                         }
+                    }
+                    break;
+                case AdvancedUpscalers.STP:
+                    {
+                        bool isHwDrsSupported = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);
+
+                        var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+
+                        // STP cannot support dynamic resolution when hardware support is not available.
+                        // However, we make an exception for cases where the dynamic resolution is known to be forced to a fixed value.
+                        bool isStpSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
+
+                        hdCam.cameraCanRenderSTP = isStpSupported;
+                        found = hdCam.cameraCanRenderSTP;
                     }
                     break;
                 }
@@ -2037,9 +2120,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Build target can change in editor so we need to check if the target is supported
             if (!HDUtils.IsSupportedBuildTarget(UnityEditor.EditorUserBuildSettings.activeBuildTarget))
                 return;
-
-            if (!m_ResourcesInitialized)
-                return;
 #endif
 
             // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
@@ -2065,19 +2145,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Potentially the asset might have been deleted by the user
             // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
             runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
-            runtimeShaders   = m_GlobalSettings.renderPipelineResources.shaders;
+            runtimeShaders   = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
             runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
 
 #endif
-            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.65f;
-            }
-            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.78f;
-            }
+
+            ColorUtils.s_LensAttenuation = m_LensSettings.GetLensAttenuationValue();
 
             DecalSystem.instance.StartDecalUpdateJobs();
 
@@ -2137,6 +2211,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDDebugDisplaySettings.Instance.UpdateDisplayStats();
             }
+
+            // This is for texture streaming
+            m_DebugDisplaySettings.UpdateMaterials();
 #endif
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
@@ -2227,12 +2304,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     //Warning!! do not read anything off the dynResHandler, until we have called Update(). Otherwise, the handler is in the process of getting constructed.
                     var dynResHandler = DynamicResolutionHandler.instance;
 
-                    if (hdCam != null)
+                    if ((hdCam != null) && cameraRequestedDynamicRes)
                     {
-                        // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
-                        // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
-                        if (drsSettings.dynResType == DynamicResolutionType.Hardware && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
+                        bool isHwDrsSupported = camera.allowDynamicResolution;
+
+                        // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
+                        if (drsSettings.dynResType == DynamicResolutionType.Hardware && !isHwDrsSupported)
                         {
                             dynResHandler.ForceSoftwareFallback();
                         }
@@ -2240,7 +2318,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Notify the hanlder if this camera requests DRS.
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
-                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP)) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
                     // Finally, our configuration is prepared. Push it to the drs handler
                     dynResHandler.Update(drsSettings);
@@ -2367,7 +2445,6 @@ namespace UnityEngine.Rendering.HighDefinition
             EndFrameRendering(renderContext, cameras);
 #endif
         }
-
 
         /// <summary>
         /// Check whether RenderRequest type is supported
@@ -2633,12 +2710,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     uint result = 0u;
 
                     bool baked = light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked;
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && data.includeForRayTracing;
-                    bool pathtracing = raytracing && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value;
+                    bool raytracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+                    bool includeForRaytracing = raytracingEnabled && data.includeForRayTracing;
+                    bool includeForPathtracing = raytracingEnabled && hdCamera.IsPathTracingEnabled() && data.includeForPathTracing;
 
-                    if (raytracing && !baked)
+                    if (includeForRaytracing && !baked)
                         result |= (uint)WorldLightFlags.Raytracing;
-                    if (pathtracing)
+                    if (includeForPathtracing)
                         result |= (uint)WorldLightFlags.Pathtracing;
 
                     return result;
@@ -2712,7 +2790,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind AdaptiveProbeVolume resources
                 if (apvIsEnabled)
                 {
-                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume));
+                    ProbeReferenceVolume.instance.BindAPVRuntimeResources(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.AdaptiveProbeVolume));
                 }
 
                 // Note: Legacy Unity behave like this for ShadowMask
@@ -2818,13 +2896,13 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera = default;
             cullingParams = default;
 
-            FrameSettings currentFrameSettings = new FrameSettings();
+            FrameSettings currentFrameSettings = new FrameSettings(); //don't require full init as will be fully reset in AggregateFrameSettings
             // Compute the FrameSettings actually used to draw the frame
             // FrameSettingsHistory do the same while keeping all step of FrameSettings aggregation in memory for DebugMenu
             if (m_FrameSettingsHistoryEnabled && camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
-                FrameSettingsHistory.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, null);
+                FrameSettingsHistory.AggregateFrameSettings(m_RenderingPathFrameSettings, ref currentFrameSettings, camera, additionalCameraData, m_Asset, null);
             else
-                FrameSettings.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset);
+                FrameSettings.AggregateFrameSettings(m_RenderingPathFrameSettings, ref currentFrameSettings, camera, additionalCameraData, m_Asset);
 
             // With the Frame Settings now properly set up, we can resolve the sample budget.
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);
@@ -2864,6 +2942,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (debugDisplaySettings.DebugHideTransparent())
                 {
                     currentFrameSettings.SetEnabled(FrameSettingsField.TransparentObjects, false);
+                    currentFrameSettings.SetEnabled(FrameSettingsField.Refraction, false);
+                    currentFrameSettings.SetEnabled(FrameSettingsField.Water, false);
+                    currentFrameSettings.SetEnabled(FrameSettingsField.LowResTransparent, false);
                 }
             }
 
@@ -3109,7 +3190,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderQueueRange? renderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null,
-            bool excludeObjectMotionVectors = false
+            bool excludeObjectMotionVectors = false,
+            uint batchLayerMask = uint.MaxValue
         )
         {
             var result = new RendererListDesc(passName, cull, camera)
@@ -3119,6 +3201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                batchLayerMask = batchLayerMask,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;
@@ -3132,7 +3215,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderQueueRange? renderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null,
-            bool excludeObjectMotionVectors = false
+            bool excludeObjectMotionVectors = false,
+            uint batchLayerMask = uint.MaxValue
         )
         {
             var result = new RendererListDesc(passNames, cull, camera)
@@ -3142,6 +3226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sortingCriteria = HDUtils.k_OpaqueSortingCriteria,
                 stateBlock = stateBlock,
                 overrideMaterial = overrideMaterial,
+                batchLayerMask = batchLayerMask,
                 excludeObjectMotionVectors = excludeObjectMotionVectors
             };
             return result;

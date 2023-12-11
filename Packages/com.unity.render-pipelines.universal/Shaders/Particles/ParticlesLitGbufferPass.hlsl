@@ -123,7 +123,7 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
+    SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, input.texcoord, _BaseMap);
 
     // Stripped down version of UniversalFragmentPBR().
 

@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
         RenderGraph AllocateRenderGraph()
         {
             RenderGraph g = new RenderGraph();
-            g.NativeRenderPassesEnabled = true;
+            g.nativeRenderPassesEnabled = true;
             return g;
         }
 
@@ -795,6 +795,72 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(buffer.handle.index, lastUsedList[0].index);
             Assert.AreEqual(RenderGraphResourceType.Buffer, lastUsedList[0].type);
 
+        }
+
+        [Test]
+        public void ResolveMSAAImportColor()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Import with parameters
+            // Depth
+            var depthBuffer = BuiltinRenderTextureType.Depth;
+            var depthBufferHandle = RTHandles.Alloc(depthBuffer, "Test Import Depth");
+
+            RenderTargetInfo importInfoDepth = new RenderTargetInfo();
+            importInfoDepth.width = 1024;
+            importInfoDepth.height = 768;
+            importInfoDepth.msaaSamples = 4;
+            importInfoDepth.volumeDepth = 1;
+            importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
+            
+            ImportResourceParams importResourceParams = new ImportResourceParams();
+            importResourceParams.clearOnFirstUse = true;
+            importResourceParams.discardOnLastUse = true;
+
+            var importedDepth = g.ImportTexture(depthBufferHandle, importInfoDepth, importResourceParams);
+
+            // Color
+            var backBuffer = BuiltinRenderTextureType.CameraTarget;
+            var backBufferHandle = RTHandles.Alloc(backBuffer, "Test Import Color");
+
+            RenderTargetInfo importInfoColor = new RenderTargetInfo();
+            importInfoColor.width = 1024;
+            importInfoColor.height = 768;
+            importInfoColor.msaaSamples = 4;
+            importInfoColor.volumeDepth = 1;
+            importInfoColor.format = GraphicsFormat.R16G16B16A16_SFloat;
+
+            var importedColor = g.ImportTexture(backBufferHandle, importInfoColor, importResourceParams);
+
+            // Render something to importedColor and importedDepth
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass", out var passData);
+                builder.SetRenderAttachmentDepth(importedDepth, AccessFlags.Write);
+                builder.SetRenderAttachment(importedColor, 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            }
+
+            var result = g.CompileNativeRenderGraph();
+            var passes = result.contextData.GetNativePasses();
+
+            // Validate nr pass 
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(2, passes[0].attachments.size);
+            Assert.AreEqual(1, passes[0].numGraphPasses);
+
+            // Clear on first use
+            ref var firstAttachment = ref passes[0].attachments[0];
+            Assert.AreEqual(RenderBufferLoadAction.Clear, firstAttachment.loadAction);
+            ref var secondAttachment = ref passes[0].attachments[1];
+            Assert.AreEqual(RenderBufferLoadAction.Clear, secondAttachment.loadAction);
+
+            // Discard on last use
+            Assert.AreEqual(RenderBufferStoreAction.DontCare, passes[0].attachments[0].storeAction);
+            // When discarding MSAA color, we only discard the MSAA buffers but keep the resolved texture
+            Assert.AreEqual(RenderBufferStoreAction.Resolve, passes[0].attachments[1].storeAction);
         }
     }
 }

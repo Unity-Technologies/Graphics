@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using System.Linq;
@@ -160,13 +161,17 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_VolumeProfile = value;
         }
 
+        static string[] s_Names;
+        static int[] s_Values;
+
         /// <summary>Names used for display of rendering layer masks.</summary>
-        public override string[] renderingLayerMaskNames
-            => globalSettings.renderingLayerNames;
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        public override string[] renderingLayerMaskNames => UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
         public override string[] prefixedRenderingLayerMaskNames
-            => globalSettings.prefixedRenderingLayerNames;
+            => Array.Empty<string>();
 
         /// <summary>
         /// Names used for display of light layers.
@@ -183,7 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] renderingLayerNames => globalSettings.renderingLayerNames;
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        public string[] renderingLayerNames => UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         [SerializeField]
         internal VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
@@ -237,7 +243,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             mode = m_RenderPipelineSettings.gpuResidentDrawerSettings.mode,
             supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
+            enableOcclusionCulling = m_RenderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras,
             allowInEditMode = true,
+            useLegacyLightmaps = m_RenderPipelineSettings.gpuResidentDrawerSettings.useLegacyLightmaps,
             smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
@@ -263,6 +271,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Returns true if we have opted out from binding lightmaps as texture arrays.
+        /// In this case, we bind them as individual textures, which breaks the batch every time lightmaps are changed.
+        /// This is well-supported on all GPUs and consumes less memory.
+        /// Returns false if we opt for lightmap texture arrays. This is the default.
+        /// This minimizes batch breakages, but texture arrays aren't supported in a performant way on all GPUs.
+        /// Only relevant when GPU Resident Drawer is enabled.
+        /// </summary>
+		public bool useLegacyLightmaps => m_RenderPipelineSettings.gpuResidentDrawerSettings.useLegacyLightmaps
+                                          && gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
+
+		/// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
         [Obsolete("This property is no longer necessary.")]

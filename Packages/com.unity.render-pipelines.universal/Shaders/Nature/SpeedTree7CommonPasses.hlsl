@@ -190,7 +190,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uvHueVariation.xy, _MainTex);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uvHueVariation.xy);
 
     #ifdef VERTEX_COLOR
         diffuseColor.rgb *= input.color.rgb;

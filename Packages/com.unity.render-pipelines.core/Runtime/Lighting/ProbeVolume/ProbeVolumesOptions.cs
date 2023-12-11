@@ -18,27 +18,27 @@ namespace UnityEngine.Rendering
         public APVLeakReductionModeParameter(APVLeakReductionMode value, bool overrideState = false) : base(value, overrideState) { }
     }
     /// <summary>
-    /// A volume component that holds settings for the Probe Volumes System per-camera options.
+    /// A volume component that holds settings for the Adaptive Probe Volumes System per-camera options.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Probe Volumes Options"), SupportedOnRenderPipeline]
+    [Serializable, VolumeComponentMenu("Lighting/Adaptive Probe Volumes Options"), SupportedOnRenderPipeline]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
         /// <summary>
-        /// The overridden normal bias to be applied to the world position when sampling the Probe Volumes data structure. Unit is meters.
+        /// The overridden normal bias to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.
         /// </summary>
-        [Tooltip("The overridden normal bias to be applied to the world position when sampling the Probe Volumes data structure. Unit is meters.")]
+        [Tooltip("The overridden normal bias to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.")]
         public ClampedFloatParameter normalBias = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);
 
         /// <summary>
-        /// A bias alongside the view vector to be applied to the world position when sampling the Probe Volumes data structure. Unit is meters.
+        /// A bias alongside the view vector to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.
         /// </summary>
-        [Tooltip("A bias alongside the view vector to be applied to the world position when sampling the Probe Volumes data structure. Unit is meters.")]
+        [Tooltip("A bias alongside the view vector to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.")]
         public ClampedFloatParameter viewBias = new ClampedFloatParameter(0.0f, 0.0f, 2.0f);
 
         /// <summary>
-        /// Whether to scale the bias for Probe Volumes by the minimum distance between probes.
+        /// Whether to scale the bias for Adaptive Probe Volumes by the minimum distance between probes.
         /// </summary>
-        [Tooltip("Whether to scale the bias for Probe Volumes by the minimum distance between probes.")]
+        [Tooltip("Whether to scale the bias for Adaptive Probe Volumes by the minimum distance between probes.")]
         public BoolParameter scaleBiasWithMinProbeDistance = new BoolParameter(false);
 
         /// <summary>

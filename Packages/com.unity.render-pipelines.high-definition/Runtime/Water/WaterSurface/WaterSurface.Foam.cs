@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // GPU foam data
         internal RTHandle[] foamBuffers = new RTHandle[2];
-        internal float4 previousFoamData;
+        internal float4 previousFoamRegionScaleOffset;
 
         internal void CheckFoamResources()
         {

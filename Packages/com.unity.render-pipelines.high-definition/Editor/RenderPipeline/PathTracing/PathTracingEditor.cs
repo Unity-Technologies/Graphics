@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_Denoising;
         SerializedDataParameter m_UseAOV;
         SerializedDataParameter m_Temporal;
+        SerializedDataParameter m_VolumetricFogDenoising;
 
 #if UNITY_64 && !ENABLE_UNITY_DENOISING_PLUGIN && UNITY_EDITOR_WIN
         // This is used to prevent users from spamming the denoising package install button
@@ -51,6 +52,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_Denoising = Unpack(o.Find(x => x.denoising));
             m_UseAOV = Unpack(o.Find(x => x.useAOVs));
             m_Temporal = Unpack(o.Find(x => x.temporal));
+            m_VolumetricFogDenoising = Unpack(o.Find(x => x.separateVolumetrics));
 #endif
         }
 
@@ -104,6 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                                 {
                                     PropertyField(m_Temporal);
                                 }
+                                PropertyField(m_VolumetricFogDenoising);
                             }
                             else
                             {

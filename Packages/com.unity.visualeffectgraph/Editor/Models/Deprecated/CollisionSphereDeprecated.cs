@@ -14,32 +14,11 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            var newCollisionSphere = ScriptableObject.CreateInstance<CollisionSphere>();
+            var newCollisionSphere = ScriptableObject.CreateInstance<CollisionSphereDeprecatedV2>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newCollisionSphere, this);
-            ReplaceModel(newCollisionSphere, this);
-        }
-
-        public override string source
-        {
-            get
-            {
-                string Source = @"
-float3 nextPos = position + velocity * deltaTime;
-float3 dir = nextPos - Sphere_center;
-float sqrLength = dot(dir, dir);
-float totalRadius = Sphere_radius + colliderSign * radius;
-if (colliderSign * sqrLength <= colliderSign * totalRadius * totalRadius)
-{
-    float dist = sqrt(sqrLength);
-    float3 n = colliderSign * dir / dist;
-    position -= n * (dist - totalRadius) * colliderSign;
-";
-
-                Source += collisionResponseSource;
-                Source += @"
-}";
-                return Source;
-            }
+            var newCollisionSphereShape = ScriptableObject.CreateInstance<CollisionShape>();
+            SanitizeHelper.MigrateBlockCollisionShapeToComposed(newCollisionSphereShape, newCollisionSphere, CollisionShapeBase.Type.Sphere);
+            ReplaceModel(newCollisionSphereShape, this);
         }
     }
 }

@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Set data
             systemData.surfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
+            systemData.blendingMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
             systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Set data
             systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
+            systemData.blendingMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
             systemData.renderQueueType = HDRenderQueue.MigrateRenderQueueToHDRP10(hdLitMasterNode.m_RenderingPass);
             if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && !hdLitMasterNode.m_DrawBeforeRefraction)
                 systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;

@@ -33,7 +33,8 @@ namespace UnityEditor.Rendering.Universal
         internal SerializedProperty lightProbeSystem;
         internal SerializedProperty probeVolumeTextureSize;
         internal SerializedProperty probeVolumeBlendingTextureSize;
-        internal SerializedProperty supportProbeVolumeStreaming;
+        internal SerializedProperty supportProbeVolumeGPUStreaming;
+        internal SerializedProperty supportProbeVolumeDiskStreaming;
         internal SerializedProperty supportProbeVolumeScenarios;
         internal SerializedProperty supportProbeVolumeScenarioBlending;
         internal SerializedProperty probeVolumeSHBands;
@@ -83,6 +84,9 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty gpuResidentDrawerMode { get; }
         public SerializedProperty smallMeshScreenPercentage { get; }
+        public SerializedProperty gpuResidentDrawerEnableOcclusionCullingInCameras { get; }
+
+        public SerializedProperty useLegacyLightmaps { get; }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
@@ -117,7 +121,8 @@ namespace UnityEditor.Rendering.Universal
             lightProbeSystem = serializedObject.FindProperty("m_LightProbeSystem");
             probeVolumeTextureSize = serializedObject.FindProperty("m_ProbeVolumeMemoryBudget");
             probeVolumeBlendingTextureSize = serializedObject.FindProperty("m_ProbeVolumeBlendingMemoryBudget");
-            supportProbeVolumeStreaming = serializedObject.FindProperty("m_SupportProbeVolumeStreaming");
+            supportProbeVolumeGPUStreaming = serializedObject.FindProperty("m_SupportProbeVolumeGPUStreaming");
+            supportProbeVolumeDiskStreaming = serializedObject.FindProperty("m_SupportProbeVolumeDiskStreaming");
             supportProbeVolumeScenarios = serializedObject.FindProperty("m_SupportProbeVolumeScenarios");
             supportProbeVolumeScenarioBlending = serializedObject.FindProperty("m_SupportProbeVolumeScenarioBlending");
             probeVolumeSHBands = serializedObject.FindProperty("m_ProbeVolumeSHBands");
@@ -174,7 +179,9 @@ namespace UnityEditor.Rendering.Universal
             supportScreenSpaceLensFlare = serializedObject.FindProperty("m_SupportScreenSpaceLensFlare");
 
             gpuResidentDrawerMode = serializedObject.FindProperty("m_GPUResidentDrawerMode");
+            useLegacyLightmaps = serializedObject.FindProperty("m_UseLegacyLightmaps");
             smallMeshScreenPercentage = serializedObject.FindProperty("m_SmallMeshScreenPercentage");
+            gpuResidentDrawerEnableOcclusionCullingInCameras = serializedObject.FindProperty("m_GPUResidentDrawerEnableOcclusionCullingInCameras");
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");

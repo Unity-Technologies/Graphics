@@ -312,6 +312,8 @@ void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 void DecodeWaterSurfaceIndexFromGBuffer(uint2 positionSS, out uint surfaceIndex)
 {
     float4 inGBuffer3 = LOAD_TEXTURE2D_X(_WaterGBufferTexture3, positionSS);
+    // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
+    // If change the packing or unpacking change it on LensFlareCommon.hlsl
     uint lower16Bits = ((uint)(inGBuffer3.z * 255.0f)) << 8 | ((uint)(inGBuffer3.w * 255.0f));
     surfaceIndex = lower16Bits & 0xf;
 }
@@ -319,6 +321,8 @@ void DecodeWaterSurfaceIndexFromGBuffer(uint2 positionSS, out uint surfaceIndex)
 bool DecodeWaterFrontFaceFromGBuffer(uint2 positionSS)
 {
     float4 inGBuffer3 = LOAD_TEXTURE2D_X(_WaterGBufferTexture3, positionSS);
+    // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
+    // If change the packing or unpacking change it on LensFlareCommon.hlsl
     uint lower16Bits = ((uint)(inGBuffer3.z * 255.0f)) << 8 | ((uint)(inGBuffer3.w * 255.0f));
     return ((lower16Bits >> 4) & 0xfff) != 0xfff;
 }

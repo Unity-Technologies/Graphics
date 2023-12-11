@@ -1,15 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using UnityEngine.Assertions;
-using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
 using UnityEngine.Profiling;
-using UnityEngine.XR;
 
 [assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.RegisterNewInstancesJob<UnityEngine.Rendering.BatchMeshID>))]
 [assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.RegisterNewInstancesJob<UnityEngine.Rendering.BatchMaterialID>))]
@@ -41,25 +38,6 @@ namespace UnityEngine.Rendering
                 ,brgError = null
 #endif
             };
-        }
-    }
-
-    internal struct MeshProceduralKey : IEquatable<MeshProceduralKey>
-    {
-        public BatchMeshID meshID;
-        public int submeshIndex;
-
-        public bool Equals(MeshProceduralKey other)
-        {
-            return meshID == other.meshID && submeshIndex == other.submeshIndex;
-        }
-
-        public override int GetHashCode()
-        {
-            int hash = 13;
-            hash = (hash * 23) + (int)meshID.value;
-            hash = (hash * 23) + (int)submeshIndex;
-            return hash;
         }
     }
 
@@ -334,12 +312,12 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap;
         [ReadOnly] public NativeParallelHashMap<int, BatchMeshID> batchMeshHash;
         [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash;
+        [ReadOnly] public bool useLegacyLightmaps;
 
         public NativeParallelHashMap<RangeKey, int> rangeHash;
         public NativeList<DrawRange> drawRanges;
         public NativeParallelHashMap<DrawKey, int> batchHash;
         public NativeList<DrawBatch> drawBatches;
-        public NativeParallelHashMap<MeshProceduralKey, MeshProceduralInfo> meshProceduralInfoHash;
 
         [WriteOnly] public NativeList<DrawInstance> drawInstances;
 
@@ -365,22 +343,11 @@ namespace UnityEngine.Rendering
         [BurstCompile]
         private ref DrawBatch EditDrawBatch(in DrawKey key, in SubMeshDescriptor subMeshDescriptor)
         {
-            var procKey = new MeshProceduralKey()
-            {
-                meshID = key.meshID,
-                submeshIndex = key.submeshIndex,
-            };
-
             var procInfo = new MeshProceduralInfo();
-
-            if (!meshProceduralInfoHash.TryGetValue(procKey, out procInfo))
-            {
-                procInfo.topology = subMeshDescriptor.topology;
-                procInfo.baseVertex = (uint)subMeshDescriptor.baseVertex;
-                procInfo.firstIndex = (uint)subMeshDescriptor.indexStart;
-                procInfo.indexCount = (uint)subMeshDescriptor.indexCount;
-                meshProceduralInfoHash.Add(procKey, procInfo);
-            }
+            procInfo.topology = subMeshDescriptor.topology;
+            procInfo.baseVertex = (uint)subMeshDescriptor.baseVertex;
+            procInfo.firstIndex = (uint)subMeshDescriptor.indexStart;
+            procInfo.indexCount = (uint)subMeshDescriptor.indexCount;
 
             int drawBatchIndex;
 
@@ -465,6 +432,7 @@ namespace UnityEngine.Rendering
                 shadowCastingMode = packedRendererData.shadowCastingMode,
                 staticShadowCaster = packedRendererData.staticShadowCaster,
                 rendererPriority = rendererPriority,
+                supportsIndirect = packedRendererData.supportsIndirect,
             };
 
             ref DrawRange drawRange = ref EditDrawRange(rangeKey);
@@ -505,6 +473,10 @@ namespace UnityEngine.Rendering
                 if (isTransparent)
                     flags |= BatchDrawCommandFlags.HasSortingPosition;
 
+                // Let the engine know if we've opted out of lightmap texture arrays
+                if (useLegacyLightmaps)
+                    flags |= BatchDrawCommandFlags.UseLegacyLightmapsKeyword;
+
                 {
                     var submeshIndex = startSubMesh + matIndex;
                     var subMeshDesc = rendererData.subMeshDesc[subMeshDescOffset + submeshIndex];
@@ -517,7 +489,13 @@ namespace UnityEngine.Rendering
                         flags = flags,
                         transparentInstanceId = isTransparent ? rendererGroupID : 0,
                         range = rangeKey,
-                        overridenComponents = (uint)overridenComponents
+                        overridenComponents = (uint)overridenComponents,
+                        // When we've opted out of lightmap texture arrays, we
+                        // need to pass in a valid lightmap index. The engine
+                        // uses this index for sorting and for breaking the
+                        // batch when lightmaps change across draw calls, and
+                        // for binding the correct light map.
+                        lightmapIndex = lightmapIndex
                     };
 
                     ref DrawBatch drawBatch = ref EditDrawBatch(drawKey, subMeshDesc);
@@ -556,7 +534,6 @@ namespace UnityEngine.Rendering
         public NativeList<DrawRange> drawRanges => m_DrawRanges;
         public NativeArray<int> drawBatchIndices => m_DrawBatchIndices.AsArray();
         public NativeArray<int> drawInstanceIndices => m_DrawInstanceIndices.AsArray();
-        public NativeParallelHashMap<MeshProceduralKey, MeshProceduralInfo> meshProceduralInfoHash => m_MeshProceduralInfoHash;
 
         private NativeParallelHashMap<RangeKey, int> m_RangeHash;       // index in m_DrawRanges, hashes by range state
         private NativeList<DrawRange> m_DrawRanges;
@@ -565,7 +542,6 @@ namespace UnityEngine.Rendering
         private NativeList<DrawInstance> m_DrawInstances;
         private NativeList<int> m_DrawInstanceIndices;          // DOTS instance index, arranged in contiguous blocks in m_DrawBatches order (see DrawBatch.instanceOffset, DrawBatch.instanceCount)
         private NativeList<int> m_DrawBatchIndices;             // index in m_DrawBatches, arranged in contiguous blocks in m_DrawRanges order (see DrawRange.drawOffset, DrawRange.drawCount)
-        private NativeParallelHashMap<MeshProceduralKey, MeshProceduralInfo> m_MeshProceduralInfoHash;
 
         private bool m_NeedsRebuild;
 
@@ -581,14 +557,10 @@ namespace UnityEngine.Rendering
             m_DrawInstances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
             m_DrawInstanceIndices = new NativeList<int>(1024, Allocator.Persistent);
             m_DrawBatchIndices = new NativeList<int>(1024, Allocator.Persistent);
-            m_MeshProceduralInfoHash = new NativeParallelHashMap<MeshProceduralKey, MeshProceduralInfo>(64, Allocator.Persistent);
         }
 
         public void Dispose()
         {
-            if (m_MeshProceduralInfoHash.IsCreated)
-                m_MeshProceduralInfoHash.Dispose();
-
             if (m_DrawBatchIndices.IsCreated)
                 m_DrawBatchIndices.Dispose();
 
@@ -793,7 +765,7 @@ namespace UnityEngine.Rendering
 #endif
 
             m_Culler = new InstanceCuller();
-            m_Culler.Init(batcherContext.debugStats);
+            m_Culler.Init(batcherContext.resources, batcherContext.debugStats);
 
             m_CachedInstanceDataBufferLayoutVersion = -1;
             m_OnCompleteCallback = desc.onCompleteCallback;
@@ -808,6 +780,8 @@ namespace UnityEngine.Rendering
             m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultWindLightProbe, GetBatchID(InstanceComponentGroup.DefaultWindLightProbe));
             m_GlobalBatchIDs.Add((uint)InstanceComponentGroup.DefaultWindLightmap, GetBatchID(InstanceComponentGroup.DefaultWindLightmap));
         }
+
+        internal ref InstanceCuller culler => ref m_Culler;
 
         public void Dispose()
         {
@@ -898,6 +872,7 @@ namespace UnityEngine.Rendering
 
             m_DrawInstanceData.RebuildDrawListsIfNeeded();
 
+            bool allowOcclusionCulling = m_BatchersContext.hasBoundingSpheres;
             JobHandle jobHandle = m_Culler.CreateCullJobTree(
                 cc,
                 cullingOutput,
@@ -908,12 +883,19 @@ namespace UnityEngine.Rendering
                 m_DrawInstanceData,
                 m_GlobalBatchIDs,
                 m_BatchersContext.crossfadedRendererCount,
-                m_BatchersContext.smallMeshScreenPercentage);
+                m_BatchersContext.smallMeshScreenPercentage,
+                allowOcclusionCulling ? m_BatchersContext.occlusionCullingCommon : null);
 
             if (m_OnCompleteCallback != null)
                 m_OnCompleteCallback(jobHandle, cc, cullingOutput);
 
             return jobHandle;
+        }
+
+        public void OnFinishedCulling(IntPtr customCullingResult)
+        {
+            int viewInstanceID = (int)customCullingResult;
+            m_Culler.EnsureValidOcclusionTestResults(viewInstanceID);
         }
 
         public void DestroyInstances(NativeArray<InstanceHandle> instances)
@@ -1056,12 +1038,16 @@ namespace UnityEngine.Rendering
                 drawRanges = m_DrawInstanceData.drawRanges,
                 batchHash = m_DrawInstanceData.batchHash,
                 drawBatches = m_DrawInstanceData.drawBatches,
-                meshProceduralInfoHash = m_DrawInstanceData.meshProceduralInfoHash,
-                drawInstances = m_DrawInstanceData.drawInstances
+                drawInstances = m_DrawInstanceData.drawInstances,
+				useLegacyLightmaps = m_BatchersContext.lightmapManager == null,
             }.Run();
 
             m_DrawInstanceData.NeedsRebuild();
             UpdateInstanceDataBufferLayoutVersion();
+        }
+        public void InstanceOccludersUpdated(int viewInstanceID)
+        {
+            m_Culler.InstanceOccludersUpdated(viewInstanceID, m_BatchersContext);
         }
 
         public void UpdateFrame()

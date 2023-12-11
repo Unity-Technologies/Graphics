@@ -209,11 +209,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/072_Shadow_Prerendering.unity
     guid: 5c51bb3f8f127fd4cbfa0fbdb9221b0e
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/073_FreeformLight2D.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
     path: Assets/Scenes/074_Screen_Space_UI_Overlay.unity
     guid: 40e6c1647ae044647ad33454538fa98a
+  - enabled: 1
+    path: Assets/Scenes/076_TilemapRenderer_DefaultSecondaryTextures.unity
+    guid: df19e9e1912830644b606bb88acf7b86
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

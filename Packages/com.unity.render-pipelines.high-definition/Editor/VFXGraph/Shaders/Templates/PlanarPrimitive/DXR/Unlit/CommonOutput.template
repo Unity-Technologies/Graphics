@@ -3,7 +3,11 @@ ${VFXBegin:VFXGetColorRT}
     #if USE_FLIPBOOK
         ${VFXLoadParameter:{invFlipBookSize}}
         ${VFXLoadParameter:{flipBookSize}}
-        VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, attributeData.barycentrics, attributes.texIndex);
+        #if USE_FLIPBOOK_INTERPOLATION
+            VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, uv, attributes.texIndex, attributes.texIndexBlend);
+        #else
+            VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, uv, attributes.texIndex);
+        #endif
     #else
         VFXUVData uvData = GetUVData(attributeData.barycentrics);
     #endif

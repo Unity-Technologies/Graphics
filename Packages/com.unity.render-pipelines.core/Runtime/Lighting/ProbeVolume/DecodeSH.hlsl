@@ -71,6 +71,13 @@ float3 EncodeSH(float l0, float3 l1)
     return l0 == 0.0f ? 0.5f : l1 * rcp(l0) / (2.0f * APV_L1_ENCODING_SCALE) + 0.5f;
 }
 
+#if !HALF_IS_FLOAT
+half3 EncodeSH(half l0, half3 l1)
+{
+    return l0 == 0.0 ? 0.5 : l1 * rcp(l0) / (2.0 * APV_L1_ENCODING_SCALE) + 0.5;
+}
+#endif
+
 void EncodeSH_L2(inout float3 l0, inout float4 l2_R, inout float4 l2_G, inout float4 l2_B, inout float3 l2_C)
 {
     // Account for how L2 is encoded.

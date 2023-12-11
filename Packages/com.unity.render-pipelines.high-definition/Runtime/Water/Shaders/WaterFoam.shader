@@ -10,6 +10,23 @@ Shader "Hidden/HDRP/WaterFoam"
 
     #pragma vertex Vert
     #pragma fragment Frag
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+
+    float2 GetFoamUV(float2 transformedPositionAWS)
+    {
+        float2 deformationPosition = transformedPositionAWS - _FoamRegionOffset;
+
+        float2 axis1 = _WaterForwardXZ;
+        float2 axis2 = float2(-axis1.y, axis1.x);
+        deformationPosition = float2(dot(deformationPosition, axis1), dot(deformationPosition, axis2));
+
+        return deformationPosition * _FoamRegionScale;
+    }
+
     ENDHLSL
 
     SubShader
@@ -27,11 +44,6 @@ Shader "Hidden/HDRP/WaterFoam"
             Blend One One
 
             HLSLPROGRAM
-            // Package includes
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterDeformer/WaterDeformer.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterDeformationUtilities.hlsl"
 
@@ -62,7 +74,7 @@ Shader "Hidden/HDRP/WaterFoam"
                 // Grab the current deformer
                 WaterDeformerData currentDeformer = _WaterDeformerData[varyings.deformerID];
 
-                // Comphte the object space position of the quad
+                // Compute the object space position of the quad
                 varyings.deformerPosOS = deformerCorners[input.vertexID] * currentDeformer.regionSize * 0.5;
                 varyings.centeredPos = deformerCorners[input.vertexID].xy;
                 varyings.normalizedPos = varyings.centeredPos * 0.5 + 0.5;
@@ -72,10 +84,13 @@ Shader "Hidden/HDRP/WaterFoam"
                 float sinRot = sin(currentDeformer.rotation);
                 float x = varyings.deformerPosOS.x * cosRot - sinRot * varyings.deformerPosOS.y;
                 float y = varyings.deformerPosOS.x * sinRot + cosRot * varyings.deformerPosOS.y;
-                varyings.positionWS = currentDeformer.position.xz * 2 + float2(x, y) * 2;
+                varyings.positionWS = currentDeformer.position.xz + float2(x, y);
 
-                // Remap  the position into the normalized area space
-                float2 vertexPositionCS = (varyings.positionWS - _FoamRegionOffset * 2) * _FoamRegionScale;
+                // Remap the position into the normalized area space
+                float2 vertexPositionCS = GetFoamUV(varyings.positionWS);
+
+                vertexPositionCS *= 2.0f;
+                varyings.positionWS *= 2.0f;
 
                 // Output the clip space position
                 varyings.positionHS = float4(vertexPositionCS.x, -vertexPositionCS.y, 0.5, 1.0);
@@ -135,11 +150,6 @@ Shader "Hidden/HDRP/WaterFoam"
             Blend One One
 
             HLSLPROGRAM
-            // Package includes
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterGenerationUtilities.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/FoamGenerator/WaterFoamGenerator.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterDeformationUtilities.hlsl"
@@ -171,7 +181,7 @@ Shader "Hidden/HDRP/WaterFoam"
                 // Grab the current deformer
                 WaterGeneratorData generator = _WaterGeneratorData[varyings.generatorID];
 
-                // Comphte the object space position of the quad
+                // Compute the object space position of the quad
                 varyings.positionOS = generatorCorners[input.vertexID] * generator.regionSize * 0.5;
                 varyings.centeredPos = generatorCorners[input.vertexID].xy;
                 varyings.normalizedPos = varyings.centeredPos * 0.5 + 0.5;
@@ -181,10 +191,13 @@ Shader "Hidden/HDRP/WaterFoam"
                 float sinRot = sin(generator.rotation);
                 float x = varyings.positionOS.x * cosRot - sinRot * varyings.positionOS.y;
                 float y = varyings.positionOS.x * sinRot + cosRot * varyings.positionOS.y;
-                varyings.positionWS = generator.position.xz * 2 + float2(x, y) * 2;
+                varyings.positionWS = generator.position.xz + float2(x, y);
 
-                // Remap  the position into the normalized area space
-                float2 vertexPositionCS = (varyings.positionWS - _FoamRegionOffset * 2) * _FoamRegionScale;
+                // Remap the position into the normalized area space
+                float2 vertexPositionCS = GetFoamUV(varyings.positionWS);
+
+                vertexPositionCS *= 2.0f;
+                varyings.positionWS *= 2.0f;
 
                 // Output the clip space position
                 varyings.positionHS = float4(vertexPositionCS.x, -vertexPositionCS.y, 0.5, 1.0);
@@ -232,11 +245,6 @@ Shader "Hidden/HDRP/WaterFoam"
             Blend Zero SrcAlpha
 
             HLSLPROGRAM
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
-
             struct Attributes
             {
                 uint vertexID : SV_VertexID;

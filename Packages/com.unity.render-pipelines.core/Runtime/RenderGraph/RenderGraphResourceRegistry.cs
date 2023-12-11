@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public Color clearColor;
         /// <summary>
         /// Discard the imported texture the last time it is used by the graph.
+        /// If MSAA enabled, only the multisampled version is discarded while the MSAA surface is always resolved.
+        /// Fully discarding both multisampled and resolved data is not currently possible.
         /// </summary>
         public bool discardOnLastUse;
     }

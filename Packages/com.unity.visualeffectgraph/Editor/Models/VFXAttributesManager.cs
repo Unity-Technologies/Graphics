@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using UnityEditor.VFX.Block;
@@ -30,7 +30,8 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute AngularVelocityX = new VFXAttribute("angularVelocityX", VFXValueType.Float, "The angular rotation of the particle, in degrees per second.", VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocityY = new VFXAttribute("angularVelocityY", VFXValueType.Float, "The angular rotation of the particle, in degrees per second.", VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocityZ = new VFXAttribute("angularVelocityZ", VFXValueType.Float, "The angular rotation of the particle, in degrees per second.", VFXVariadic.BelongsToVariadic);
-        public static readonly VFXAttribute TexIndex = new VFXAttribute("texIndex", VFXValueType.Float, "The current index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.");
+        public static readonly VFXAttribute TexIndex = new VFXAttribute("texIndex", VFXValueType.Float, "The current frame index of the flipbook. This attribute is used if ‘UV Mode’ in the output is set to use flipbooks.");
+        public static readonly VFXAttribute TexIndexBlend = new VFXAttribute("texIndexBlend", VFXValue.Constant(1.0f), "The next frame index of the flipbook, if flipbook frame blending is enabled.");
         public static readonly VFXAttribute MeshIndex = new VFXAttribute("meshIndex", VFXValueType.Uint32, "The current index of the mesh. This attribute determines which mesh to use when Mesh Count setting of a Mesh Output is higher than one.");
         public static readonly VFXAttribute PivotX = new VFXAttribute("pivotX", VFXValue.Constant(0.0f), "The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.", VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute PivotY = new VFXAttribute("pivotY", VFXValue.Constant(0.0f), "The point around which the particle rotates, moves, or is scaled. By default, this is the center of the particle.", VFXVariadic.BelongsToVariadic);
@@ -50,10 +51,21 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute ParticleCountInStrip = new VFXAttribute("particleCountInStrip", VFXValueType.Uint32, "Outputs the total particle count within the current strip. This attribute is available in systems using the 'Particle Strip' data type.");
         public static readonly VFXAttribute SpawnIndexInStrip = new VFXAttribute("spawnIndexInStrip", VFXValueType.Uint32, "The spawn index of the particle within its strip. Contrary to the ‘particleIndexInStrip’ attribute that is, unique for each particle, the spawnIndexInStrip value can be similar between particles in different strips.");
         public static readonly VFXAttribute SpawnCount = new VFXAttribute("spawnCount", VFXValue.Constant(1.0f), "The number of particles that have been spawned in this frame. It can be read in the Initialize Context as source or in the Spawn Context as Current.");
+        public static readonly VFXAttribute HasCollisionEvent = new VFXAttribute("hasCollisionEvent", VFXValue.Constant(false), "Outputs true at particle collision");
+        public static readonly VFXAttribute CollisionEventNormal = new VFXAttribute("collisionEventNormal", VFXValue.Constant(Vector3.zero), "Outputs the collider normal at collision point at this frame. (0,0,0) if no collision", VFXVariadic.False, SpaceableType.Direction);
+        public static readonly VFXAttribute CollisionEventPosition = new VFXAttribute("collisionEventPosition", VFXValue.Constant(Vector3.zero), "Outputs the collision point at this frame. (0,0,0) if no collision", VFXVariadic.False, SpaceableType.Position);
+        public static readonly VFXAttribute CollisionEventCount = new VFXAttribute("collisionEventCount", VFXValueType.Uint32, "Outputs the number of total collisions detected by the particle since its birth");
+        //public static readonly VFXAttribute ContinuousCollisionCount = new VFXAttribute("continuousCollisionCount", VFXValueType.Uint32, "Outputs the number of continuous collision detected (i.e detected at each frame) by the particle");
+        public static readonly VFXAttribute OldVelocity = new VFXAttribute("oldVelocity", VFXValueType.Float3, "The velocity at the beginning of the context, before any force integration");
+
         // Internal as we don't want it to appear in the graph
         internal static readonly VFXAttribute StripAlive = new VFXAttribute("stripAlive", VFXValue.Constant(true), string.Empty); // Internal attribute used to keep track of the state of the attached strip (TODO: Use a number to handle more tha 1 strip)
+        internal static readonly VFXAttribute angle = new VFXAttribute("angle", VFXValueType.Float3, "The particle’s Euler rotation on each axis. Expressed as Angle in degree. For Camera-facing billboard particles, the Z axis is most likely the desired axis of rotation.", VFXVariadic.True);
+        internal static readonly VFXAttribute angularVelocity = new VFXAttribute("angularVelocity", VFXValueType.Float3, "The angular rotation of the particle, in degrees per second. By default, the Update Context is responsible to calculate the Rotation by integrating the angularVelocity each frame.", VFXVariadic.True);
+        internal static readonly VFXAttribute pivot = new VFXAttribute("pivot", VFXValueType.Float3, "The point around which the particle rotates, moves and is scaled. By default, this is the center of the particle. The value is computed in a one unit box size. By default, it is (0,0,0), the center of the box. You can change its value to adjust the center of the box. Every face is located at -0.5 or 0.5 in each axis.", VFXVariadic.True);
+        internal static readonly VFXAttribute scale = new VFXAttribute("scale", VFXValue.Constant(new Vector3((float)VFXAttribute.ScaleX.value.GetContent(), (float)VFXAttribute.ScaleY.value.GetContent(), (float)VFXAttribute.ScaleZ.value.GetContent())), "The non-uniform scale of the particle that act as a multiplier to its size.", VFXVariadic.True);
     }
-
+	
     class VFXAttributesManager : IVFXAttributesManager
     {
         private readonly List<VFXAttribute> m_CustomAttributes = new ();
@@ -99,20 +111,38 @@ namespace UnityEditor.VFX
             VFXAttribute.ParticleCountInStrip,
             VFXAttribute.SpawnIndexInStrip,
             VFXAttribute.SpawnCount,
+			VFXAttribute.HasCollisionEvent,
+			VFXAttribute.CollisionEventNormal,
+			VFXAttribute.CollisionEventPosition,
+            VFXAttribute.CollisionEventCount,
+            //VFXAttribute.ContinuousCollisionCount,
+            VFXAttribute.OldVelocity,
         };
 
-        private static readonly List<VFXAttribute> s_ReadOnlyAttributes = new () { VFXAttribute.Seed, VFXAttribute.ParticleId, VFXAttribute.ParticleIndexInStrip, VFXAttribute.SpawnTime, VFXAttribute.SpawnIndex, VFXAttribute.SpawnCount, VFXAttribute.StripIndex, VFXAttribute.ParticleCountInStrip, VFXAttribute.SpawnIndexInStrip };
+        private static readonly List<VFXAttribute> s_ReadOnlyAttributes = new ()
+        {
+            VFXAttribute.Seed,
+            VFXAttribute.ParticleId,
+            VFXAttribute.ParticleIndexInStrip,
+            VFXAttribute.SpawnTime,
+            VFXAttribute.SpawnIndex,
+            VFXAttribute.SpawnCount,
+            VFXAttribute.StripIndex,
+            VFXAttribute.ParticleCountInStrip,
+            VFXAttribute.SpawnIndexInStrip,
+            VFXAttribute.HasCollisionEvent,
+            VFXAttribute.CollisionEventNormal,
+            VFXAttribute.CollisionEventPosition,
+            VFXAttribute.CollisionEventCount,
+            //VFXAttribute.ContinuousCollisionCount,
+            VFXAttribute.OldVelocity
+        };
+
         private static readonly List<VFXAttribute> s_WriteOnlyAttributes = new () { VFXAttribute.EventCount };
-        private static readonly List<VFXAttribute> s_LocalOnlyAttributes = new () { VFXAttribute.EventCount, VFXAttribute.ParticleIndexInStrip, VFXAttribute.StripIndex, VFXAttribute.ParticleCountInStrip };
+        private static readonly List<VFXAttribute> s_LocalOnlyAttributes = new () { VFXAttribute.EventCount, VFXAttribute.ParticleIndexInStrip, VFXAttribute.StripIndex, VFXAttribute.ParticleCountInStrip, VFXAttribute.HasCollisionEvent, VFXAttribute.OldVelocity };
         private static readonly List<VFXAttribute> s_AffectingAABBAttributes = new () { VFXAttribute.Position, VFXAttribute.PivotX, VFXAttribute.PivotY, VFXAttribute.PivotZ, VFXAttribute.Size, VFXAttribute.ScaleX, VFXAttribute.ScaleY, VFXAttribute.ScaleZ, VFXAttribute.AxisX, VFXAttribute.AxisY, VFXAttribute.AxisZ, VFXAttribute.AngleX, VFXAttribute.AngleY, VFXAttribute.AngleZ, };
         private static readonly List<VFXAttribute> s_VariadicComponentsAttributes = new() { VFXAttribute.AngleX, VFXAttribute.AngleY, VFXAttribute.AngleZ, VFXAttribute.AngularVelocityX, VFXAttribute.AngularVelocityY, VFXAttribute.AngularVelocityZ, VFXAttribute.PivotX, VFXAttribute.PivotY, VFXAttribute.PivotZ, VFXAttribute.ScaleX, VFXAttribute.ScaleY, VFXAttribute.ScaleZ };
-        private static readonly List<VFXAttribute> s_VariadicAttribute = new ()
-        {
-            new VFXAttribute("angle", VFXValueType.Float3, "The particle’s Euler rotation on each axis. Expressed as Angle in degree. For Camera-facing billboard particles, the Z axis is most likely the desired axis of rotation.", VFXVariadic.True),
-            new VFXAttribute("angularVelocity", VFXValueType.Float3, "The angular rotation of the particle, in degrees per second. By default, the Update Context is responsible to calculate the Rotation by integrating the angularVelocity each frame.", VFXVariadic.True),
-            new VFXAttribute("pivot", VFXValueType.Float3, "The point around which the particle rotates, moves and is scaled. By default, this is the center of the particle. The value is computed in a one unit box size. By default, it is (0,0,0), the center of the box. You can change its value to adjust the center of the box. Every face is located at -0.5 or 0.5 in each axis.", VFXVariadic.True),
-            new VFXAttribute("scale", VFXValue.Constant(new Vector3((float)VFXAttribute.ScaleX.value.GetContent(), (float)VFXAttribute.ScaleY.value.GetContent(), (float)VFXAttribute.ScaleZ.value.GetContent())), "The non-uniform scale of the particle that act as a multiplier to its size.", VFXVariadic.True)
-        };
+        private static readonly List<VFXAttribute> s_VariadicAttribute = new () { VFXAttribute.angle, VFXAttribute.angularVelocity, VFXAttribute.pivot, VFXAttribute.scale };
 
         public static VFXAttribute[] AffectingAABBAttributes => s_AffectingAABBAttributes.ToArray();
 

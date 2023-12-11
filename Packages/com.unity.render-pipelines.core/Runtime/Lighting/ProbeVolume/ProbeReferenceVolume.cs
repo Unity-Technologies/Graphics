@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// The reference volume for the Probe Volume system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
+    /// The reference volume for the Adaptive Probe Volumes system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
     /// </summary>
     public partial class ProbeReferenceVolume
     {
@@ -676,7 +676,6 @@ namespace UnityEngine.Rendering
         ProbeBrickIndex m_Index;
         ProbeGlobalIndirection m_CellIndices;
         ProbeBrickBlendingPool m_BlendingPool;
-        DynamicSkyPrecomputedDirections m_DynamicSkyPrecomputedDirections;
         List<Chunk> m_TmpSrcChunks = new List<Chunk>();
         float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Bounds m_CurrGlobalBounds = new Bounds();
@@ -749,7 +748,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool skyOcclusion
         {
-            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyOcclusion : false;
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyOcclusion : true;
         }
 
         /// <summary>
@@ -757,14 +756,14 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool skyOcclusionShadingDirection
         {
-            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : false;
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : true;
         }
 
         bool m_NeedsIndexRebuild = false;
         bool m_HasChangedIndex = false;
 
         int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
-         
+
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeBlendingTextureMemoryBudget m_BlendingMemoryBudget;
         ProbeVolumeSHBands m_SHBands;
@@ -869,7 +868,7 @@ namespace UnityEngine.Rendering
             else
             {
                 Debug.Assert(perSceneDataList.Count > 0);
-                var sceneBakingSet = data.bakingSet; // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip 
+                var sceneBakingSet = data.bakingSet; // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip
 
                 if (sceneBakingSet != null && !string.IsNullOrEmpty(data.sceneGUID) && sceneBakingSet != m_CurrentBakingSet)
                 {
@@ -906,11 +905,16 @@ namespace UnityEngine.Rendering
             if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
             {
                 bakingSet = perSceneData.bakingSet;
-                return true;
+                return bakingSet!=null;
             }
             else
             {
+                #if UNITY_EDITOR
+                // some scenes in a baking set may not contain a probe volume; so no perscenedata
+                bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
+                #else
                 bakingSet = null;
+                #endif
                 return false;
             }
         }
@@ -970,10 +974,12 @@ namespace UnityEngine.Rendering
             // So we need to split the conditions to plan for that.
             m_DiskStreamingUseCompute = SystemInfo.supportsComputeShaders && streamingUploadCS != null && streamingUploadL2CS != null;
             InitializeDebug();
-			InitDynamicSkyPrecomputedDirections();
+            DynamicSkyPrecomputedDirections.Initialize();
             ProbeBrickPool.Initialize();
             ProbeBrickBlendingPool.Initialize();
-            InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget);
+            InitProbeReferenceVolume();
+            InitStreaming();
+
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
 #pragma warning disable 618
@@ -1013,7 +1019,7 @@ namespace UnityEngine.Rendering
             m_SHBands = shBands;
 
             DeinitProbeReferenceVolume();
-            InitProbeReferenceVolume(m_MemoryBudget, m_BlendingMemoryBudget);
+            InitProbeReferenceVolume();
 
             PerformPendingOperations();
         }
@@ -1032,8 +1038,7 @@ namespace UnityEngine.Rendering
             m_EmptyIndexBuffer = null;
             CoreUtils.SafeRelease(m_EmptyDirectionsBuffer);
             m_EmptyDirectionsBuffer = null;
-            m_DynamicSkyPrecomputedDirections?.Cleanup();
-            m_DynamicSkyPrecomputedDirections = null;
+            DynamicSkyPrecomputedDirections.Cleanup();
 
             if (!m_ProbeReferenceVolumeInit) return;
 
@@ -1043,7 +1048,7 @@ namespace UnityEngine.Rendering
 
             if (!m_IsInitialized)
             {
-                Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
+                Debug.LogError("Adaptive Probe Volumes have not been initialized before calling Cleanup.");
                 return;
             }
 
@@ -1300,13 +1305,13 @@ namespace UnityEngine.Rendering
 
             if (bakingSet.chunkSizeInBricks != ProbeBrickPool.GetChunkSizeInBrickCount())
             {
-                Debug.LogError($"Trying to load Probe Volume data ({bakingSet.name}) baked with an older incompatible version of APV. Please rebake your data.");
+                Debug.LogError($"Trying to load Adaptive Probe Volumes data ({bakingSet.name}) baked with an older incompatible version of APV. Please rebake your data.");
                 return;
             }
 
             if (m_CurrentBakingSet != null && bakingSet != m_CurrentBakingSet)
             {
-                Debug.LogError($"Trying to load Probe Volume data for a scene from a different baking set than currently loaded ones. " +
+                Debug.LogError($"Trying to load Adaptive Probe Volumes data for a scene from a different baking set than currently loaded ones. " +
                                $"Please make sure all loaded scenes are in the same baking set.");
                 return;
             }
@@ -1319,7 +1324,7 @@ namespace UnityEngine.Rendering
                 {
                     if (bakingSet != toBeLoadedBakingSet.Item1)
                     {
-                        Debug.LogError($"Trying to load Probe Volume data for a scene from a different baking set from other scenes that are being loaded. " +
+                        Debug.LogError($"Trying to load Adaptive Probe Volumes data for a scene from a different baking set from other scenes that are being loaded. " +
                                     $"Please make sure all loaded scenes are in the same baking set.");
                         return;
                     }
@@ -1515,9 +1520,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Initialize the reference volume.
         /// </summary>
-        /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
-        /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
-        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeBlendingTextureMemoryBudget blendingMemoryBudget)
+        void InitProbeReferenceVolume()
         {
             if (!m_ProbeReferenceVolumeInit)
             {
@@ -1525,17 +1528,17 @@ namespace UnityEngine.Rendering
                 m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, skyOcclusion, (skyOcclusion && skyOcclusionShadingDirection));
                 m_BlendingPool = new ProbeBrickBlendingPool(m_BlendingMemoryBudget, m_SHBands);
 
-                m_Index = new ProbeBrickIndex(memoryBudget);
+                m_Index = new ProbeBrickIndex(m_MemoryBudget);
 
                 if (m_SupportGPUStreaming)
                 {
-                    m_DefragIndex = new ProbeBrickIndex(memoryBudget);
+                    m_DefragIndex = new ProbeBrickIndex(m_MemoryBudget);
                 }
 
                 InitializeGlobalIndirection();
 
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
-                    allocateRendertexture: false, allocateValidityData: true, skyOcclusion, (skyOcclusion && skyOcclusionShadingDirection), out m_TemporaryDataLocationMemCost);
+                    false, true, skyOcclusion, (skyOcclusion && skyOcclusionShadingDirection), out m_TemporaryDataLocationMemCost);
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -1557,26 +1560,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void InitDynamicSkyPrecomputedDirections()
-        {
-            m_DynamicSkyPrecomputedDirections = new DynamicSkyPrecomputedDirections();
-            m_DynamicSkyPrecomputedDirections.Allocate();
-        }
-
-#if UNITY_EDITOR
-        internal static Func<LightingSettings> _GetLightingSettingsOrDefaultsFallback;
-#endif
-
         ProbeReferenceVolume()
         {
             m_MinBrickSize = 1.0f;
-
-#if UNITY_EDITOR
-            Type lightMappingType = typeof(Lightmapping);
-            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
-            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
-            _GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
-#endif
         }
 
 #if UNITY_EDITOR
@@ -1606,7 +1592,7 @@ namespace UnityEngine.Rendering
             m_Index.GetRuntimeResources(ref rr);
             m_CellIndices.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
-            m_DynamicSkyPrecomputedDirections?.GetRuntimeResources(ref rr);
+            DynamicSkyPrecomputedDirections.GetRuntimeResources(ref rr);
             return rr;
         }
 
@@ -1647,16 +1633,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns></returns>
         public bool DataHasBeenLoaded() => m_LoadedCells.size != 0;
-
-        internal Vector3[] GetPrecomputedDirections()
-        {
-            if (m_DynamicSkyPrecomputedDirections!=null)
-            {
-                return m_DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
-            }
-            return null;
-        }
-
+          
         internal void Clear()
         {
             if (m_ProbeReferenceVolumeInit)
@@ -1669,12 +1646,12 @@ namespace UnityEngine.Rendering
                 finally
                 {
                     UnloadAllCells();
+                    m_ToBeLoadedCells.Clear();
                     m_Pool.Clear();
                     m_BlendingPool.Clear();
                     m_Index.Clear();
                     cells.Clear();
 
-                    Debug.Assert(m_ToBeLoadedCells.size == 0);
                     Debug.Assert(m_LoadedCells.size == 0);
                 }
             }
@@ -1744,7 +1721,9 @@ namespace UnityEngine.Rendering
             }
 
             if (skyOcclusion && skyOcclusionL0L1Data.Length > 0)
+            {
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionL0L1Data.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
+            }
 
             if (skyOcclusion && skyOcclusionShadingDirection && skyShadingDirectionIndices.Length > 0)
             {
@@ -1776,7 +1755,10 @@ namespace UnityEngine.Rendering
 
             UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
             if (skyOcclusion && skyOcclusionData.Length > 0)
+            {
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionData.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
+            }
+
             if (skyOcclusion && skyOcclusionShadingDirection && skyShadingDirectionIndices.Length > 0)
             {
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyShadingDirectionIndices, skyShadingDirectionIndices.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
@@ -1808,15 +1790,15 @@ namespace UnityEngine.Rendering
                 if (bypassBlending)
                 {
                     if (cell.blendingInfo.blendingFactor != scenarioBlendingFactor)
-                        PushDiskStreamingRequest(cell, lightingScenario, -1, OnStreamingComplete);
+                        PushDiskStreamingRequest(cell, lightingScenario, -1, m_OnStreamingComplete);
 
                     // As we bypass blending, we don't load the blending data so we want to avoid trying to blend them later on.
                     cell.blendingInfo.MarkUpToDate();
                 }
                 else
                 {
-                    PushDiskStreamingRequest(cell, lightingScenario, 0, OnBlendingStreamingComplete);
-                    PushDiskStreamingRequest(cell, otherScenario, 1, OnBlendingStreamingComplete);
+                    PushDiskStreamingRequest(cell, lightingScenario, 0, m_OnBlendingStreamingComplete);
+                    PushDiskStreamingRequest(cell, otherScenario, 1, m_OnBlendingStreamingComplete);
                 }
             }
             else
@@ -1882,10 +1864,50 @@ namespace UnityEngine.Rendering
 
         void UpdatePoolAndIndex(Cell cell, CellStreamingScratchBuffer dataBuffer, CellStreamingScratchBufferLayout layout, int poolIndex, CommandBuffer cmd)
         {
-            if (diskStreamingEnabled && m_DiskStreamingUseCompute)
+            if (diskStreamingEnabled)
             {
-                Debug.Assert(dataBuffer.buffer != null);
-                UpdatePool(cmd, cell.poolInfo.chunkList, dataBuffer, layout, poolIndex);
+                if (m_DiskStreamingUseCompute)
+                {
+                    Debug.Assert(dataBuffer.buffer != null);
+                    UpdatePool(cmd, cell.poolInfo.chunkList, dataBuffer, layout, poolIndex);
+                }
+                else
+                {
+                    int chunkCount = cell.poolInfo.chunkList.Count;
+                    int offsetAdjustment = -2 * (chunkCount * 4 * sizeof(uint)); // NOTE: account for offsets adding "2 * (chunkCount * 4 * sizeof(uint))" in the calculations from ProbeVolumeScratchBufferPool::GetOrCreateScratchBufferLayout()
+
+                    CellData.PerScenarioData data = default;
+                    data.shL0L1RxData = dataBuffer.stagingBuffer.GetSubArray(layout._L0L1rxOffset + offsetAdjustment, chunkCount * layout._L0Size).Reinterpret<ushort>(sizeof(byte));
+                    data.shL1GL1RyData = dataBuffer.stagingBuffer.GetSubArray(layout._L1GryOffset + offsetAdjustment, chunkCount * layout._L1Size);
+                    data.shL1BL1RzData = dataBuffer.stagingBuffer.GetSubArray(layout._L1BrzOffset + offsetAdjustment, chunkCount * layout._L1Size);
+
+                    NativeArray<byte> validityNeighMaskData = dataBuffer.stagingBuffer.GetSubArray(layout._ValidityOffset + offsetAdjustment, chunkCount * layout._ValiditySize);
+
+                    if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    {
+                        data.shL2Data_0 = dataBuffer.stagingBuffer.GetSubArray(layout._L2_0Offset + offsetAdjustment, chunkCount * layout._L2Size);
+                        data.shL2Data_1 = dataBuffer.stagingBuffer.GetSubArray(layout._L2_1Offset + offsetAdjustment, chunkCount * layout._L2Size);
+                        data.shL2Data_2 = dataBuffer.stagingBuffer.GetSubArray(layout._L2_2Offset + offsetAdjustment, chunkCount * layout._L2Size);
+                        data.shL2Data_3 = dataBuffer.stagingBuffer.GetSubArray(layout._L2_3Offset + offsetAdjustment, chunkCount * layout._L2Size);
+                    }
+
+                    NativeArray<ushort> skyOcclusionData = default;
+                    if (skyOcclusion && layout._SkyOcclusionSize > 0)
+                    {
+                        skyOcclusionData = dataBuffer.stagingBuffer.GetSubArray(layout._SkyOcclusionOffset + offsetAdjustment, chunkCount * layout._SkyOcclusionSize).Reinterpret<ushort>(sizeof(byte));
+                    }
+
+                    NativeArray<byte> skyOcclusionDirectionData = default;
+                    if (skyOcclusion && skyOcclusionShadingDirection && layout._SkyShadingDirectionSize > 0)
+                    {
+                        skyOcclusionDirectionData = dataBuffer.stagingBuffer.GetSubArray(layout._SkyShadingDirectionOffset + offsetAdjustment, chunkCount * layout._SkyShadingDirectionSize);
+                    }
+
+                    for (int chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex)
+                    {
+                        UpdatePool(cell.poolInfo.chunkList, data, validityNeighMaskData, skyOcclusionData, skyOcclusionDirectionData, chunkIndex, poolIndex);
+                    }
+                }
             }
             else
             {
@@ -1912,7 +1934,7 @@ namespace UnityEngine.Rendering
             {
                 if (diskStreamingEnabled)
                 {
-                    PushDiskStreamingRequest(cell, m_CurrentBakingSet.lightingScenario, -1, OnStreamingComplete);
+                    PushDiskStreamingRequest(cell, m_CurrentBakingSet.lightingScenario, -1, m_OnStreamingComplete);
                 }
                 else
                 {

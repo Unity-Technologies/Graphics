@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         RTHandle m_Source;
         private PassData m_PassData;
 
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+
         // Use specialed URP fragment shader pass for debug draw support and color space conversion/encoding support.
         // See CoreBlit.shader and BlitHDROverlay.shader
         static class BlitPassNames
@@ -101,6 +103,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
@@ -109,11 +112,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (resolveToDebugScreen)
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 ConfigureTarget(debugHandler.DebugScreenColorHandle, debugHandler.DebugScreenDepthHandle);
+                #pragma warning restore CS0618
             }
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -256,6 +263,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
+                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                if (cameraData.requiresDepthTexture && renderer != null && renderer.renderingModeActual != RenderingMode.Deferred)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
 
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);

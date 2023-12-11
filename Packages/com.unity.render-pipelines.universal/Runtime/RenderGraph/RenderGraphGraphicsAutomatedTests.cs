@@ -12,12 +12,10 @@ namespace UnityEngine.Rendering
         // RenderGraph tests can be enabled from the command line. Cache result to avoid GC.
         static bool activatedFromCommandLine
         {
-#if UNITY_EDITOR
-            get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-render-graph-reuse-tests");
-#elif RENDER_GRAPH_REUSE_TESTS_STANDALONE
+#if RENDER_GRAPH_REUSE_TESTS_STANDALONE
             get => true;
 #else
-            get => false;
+            get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-render-graph-reuse-tests");
 #endif
         }
 

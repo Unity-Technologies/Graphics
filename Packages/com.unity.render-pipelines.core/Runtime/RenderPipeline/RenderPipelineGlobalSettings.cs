@@ -25,5 +25,15 @@ namespace UnityEngine.Rendering
         public static TGlobalRenderPipelineSettings instance => s_Instance.Value;
         private static Lazy<TGlobalRenderPipelineSettings> s_Instance = new (() => GraphicsSettings.GetSettingsForRenderPipeline<TRenderPipeline>() as TGlobalRenderPipelineSettings);
 #endif
+
+        /// <summary>
+        /// Called when settings asset is reset in the editor.
+        /// </summary>
+        public virtual void Reset()
+        {
+#if UNITY_EDITOR
+            EditorGraphicsSettings.PopulateRenderPipelineGraphicsSettings(this);
+#endif
+        }
     }
 }

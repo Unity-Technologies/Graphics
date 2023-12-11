@@ -140,9 +140,9 @@ namespace UnityEditor.VFX.Test
         //[UnityTest] Not really a test but helper to profile the controller invalidation.
         public IEnumerator ExperimentCreateAllBlocksTiming([ValueSource(nameof(kApplyChange))] bool applyChanges, [ValueSource(nameof(kApplyChange))] bool blocks)
         {
-            var referenceBlock = VFXLibrary.GetBlocks().First(t => t.modelType == typeof(KillSphere));
-            var referenceOperator = VFXLibrary.GetOperators().First(t => t.modelType == typeof(DistanceToSphere));
-            var referenceContext = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXBasicUpdate));
+            var referenceBlock = VFXLibrary.GetBlocks().First(t => t.model is CollisionShape);
+            var referenceOperator = VFXLibrary.GetOperators().First(t => t.model is DistanceToSphere);
+            var referenceContext = VFXLibrary.GetContexts().First(t => t.model is VFXBasicUpdate);
 
             var param = new CreateAllBlockParam()
             {

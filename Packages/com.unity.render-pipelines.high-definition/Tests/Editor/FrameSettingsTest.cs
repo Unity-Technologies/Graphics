@@ -18,7 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             if (GraphicsSettings.currentRenderPipeline is not HDRenderPipelineAsset)
                 Assert.Ignore("This is an HDRP Tests, and the current pipeline is not HDRP.");
 
+#pragma warning disable 618 // Type or member is obsolete
             m_CameraFrameSettings = HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+#pragma warning restore 618
             m_RenderPipelineAsset = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
         }
 

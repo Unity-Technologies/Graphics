@@ -1,28 +1,11 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionTorusProvider : VariantProvider
+    sealed class PositionTorus : PositionShapeBase
     {
-        public override IEnumerable<Variant> GetVariants()
-        {
-            yield return new Variant(
-                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Torus)",
-                "Position/Position on shape",
-                typeof(PositionTorus),
-                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
-        }
-    }
-
-    [VFXInfo(variantProvider = typeof(PositionTorusProvider))]
-    class PositionTorus : PositionBase
-    {
-        public override string name { get { return string.Format(base.name, "Arc Torus"); } }
-        protected override float thicknessDimensions { get { return 2.0f; } }
-
         public class InputProperties
         {
             [Tooltip("Sets the torus used for positioning the particles.")]
@@ -31,57 +14,66 @@ namespace UnityEditor.VFX.Block
 
         public class CustomProperties
         {
+            [Range(0, 1), Tooltip("Sets the position along the height to emit particles from when ‘Custom Emission’ is used.")]
+            public float heightSequencer = 0.0f;
             [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
             public float arcSequencer = 0.0f;
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override IEnumerable<VFXNamedExpression> GetParameters(PositionShape positionBase, List<VFXNamedExpression> allSlots)
         {
-            get
+            VFXExpression thickness = null;
+            VFXExpression majorRadius = null;
+            VFXExpression minorRadius = null;
+            VFXExpression transformMatrix = null;
+
+            foreach (var slot in allSlots)
             {
-                var allSlots = GetExpressionsFromSlots(this);
-                foreach (var p in allSlots)
-                    yield return p;
+                if (slot.name.StartsWith("arcTorus")
+                    || slot.name == nameof(CustomProperties.arcSequencer)
+                    || slot.name == nameof(CustomProperties.heightSequencer))
+                    yield return slot;
 
-                var thickness = allSlots.FirstOrDefault(o => o.name == nameof(ThicknessProperties.Thickness)).exp;
-                var majorRadius = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_majorRadius").exp;
-                var minorRadius = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_minorRadius").exp;
-
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
-
-                var majorRadiusNotZero = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater, new VFXExpressionAbs(majorRadius), VFXOperatorUtility.EpsilonExpression[VFXValueType.Float]);
-                var r = new VFXExpressionBranch(majorRadiusNotZero, VFXOperatorUtility.Saturate(minorRadius / majorRadius), VFXOperatorUtility.ZeroExpression[VFXValueType.Float]);
-                yield return new VFXNamedExpression(r, "r"); // Saturate can be removed once degenerated torus are correctly handled
-
-                var transformMatrix = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_transform").exp;
-                var invTransposeTRS = VFXOperatorUtility.InverseTransposeTRS(transformMatrix);
-                yield return new VFXNamedExpression(invTransposeTRS, "arcTorus_torus_inverseTranspose");
+                if (slot.name == "arcTorus_torus_majorRadius")
+                    majorRadius = slot.exp;
+                else if (slot.name == "arcTorus_torus_minorRadius")
+                    minorRadius = slot.exp;
+                else if (slot.name == "arcTorus_torus_transform")
+                    transformMatrix = slot.exp;
+                else if (slot.name == nameof(PositionBase.ThicknessProperties.Thickness))
+                    thickness = slot.exp;
             }
+
+            yield return new VFXNamedExpression(CalculateVolumeFactor(positionBase.positionMode, majorRadius, thickness, 2.0f), "volumeFactor");
+
+            var majorRadiusNotZero = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater, new VFXExpressionAbs(majorRadius), VFXOperatorUtility.EpsilonExpression[VFXValueType.Float]);
+            var r = new VFXExpressionBranch(majorRadiusNotZero, VFXOperatorUtility.Saturate(minorRadius / majorRadius), VFXOperatorUtility.ZeroExpression[VFXValueType.Float]);
+            yield return new VFXNamedExpression(r, "r"); // Saturate can be removed once degenerated torus are correctly handled
+
+            var invTransposeTRS = VFXOperatorUtility.InverseTransposeTRS(transformMatrix);
+            yield return new VFXNamedExpression(invTransposeTRS, "arcTorus_torus_inverseTranspose");
         }
 
-        protected override bool needDirectionWrite => true;
-
-        public override string source
+        public override string GetSource(PositionShape positionBase)
         {
-            get
-            {
-                string outSource = @"";
-                if (spawnMode == SpawnMode.Random)
-                {
-                    outSource += @"float3 u = RAND3;";
-                    outSource += @"float arc = arcTorus_arc;";
-                }
-                else
-                {
-                    outSource += @"float3 u = float3(RAND, 1.0f, RAND);";
-                    outSource += @"float arc = arcTorus_arc * arcSequencer;";
-                }
 
-                outSource += @"
+            string outSource = @"";
+            if (positionBase.spawnMode == PositionShape.SpawnMode.Random)
+            {
+                outSource += @"float3 u = RAND3;";
+                outSource += @"float arc = arcTorus_arc;";
+            }
+            else
+            {
+                outSource += @"float3 u = float3(heightSequencer, 1.0f, RAND);";
+                outSource += @"float arc = arcTorus_arc * arcSequencer;";
+            }
+
+            outSource += @"
 float R = sqrt(volumeFactor + (1.0f - volumeFactor) * u.z);
 
 float sinTheta,cosTheta;
-sincos(u.x * UNITY_TWO_PI, sinTheta,cosTheta);
+sincos(u.x * UNITY_TWO_PI, sinTheta, cosTheta);
 
 float2 s1_1 = R * r * float2(cosTheta, sinTheta) + float2(1, 0);
 float2 s1_2 = R * r * float2(-cosTheta, sinTheta) + float2(1, 0);
@@ -100,21 +92,41 @@ else
     t = float3(s1_2.x, 0, s1_2.y);
 }
 
-float s, c;
-sincos(phi, c, s);
-float3 t2 = float3(c * t.x - s * t.y, c * t.y + s * t.x, t.z);
+float cosPhi, sinPhi;
+sincos(phi, cosPhi, sinPhi);
 
-float3 finalPos = arcTorus_torus_majorRadius * t2;
-float3 finalDir = t2;
+float3 finalDir = float3(cosPhi * t.x - sinPhi * t.y, cosPhi * t.y + sinPhi * t.x, t.z);
+float3 finalPos = arcTorus_torus_majorRadius * finalDir;
+
 finalPos = mul(arcTorus_torus_transform, float4(finalPos, 1.0f)).xyz;
-finalDir = mul(arcTorus_torus_inverseTranspose, float4(finalDir, 0.0f)).xyz;
-finalDir = normalize(finalDir);
-";
-                outSource += string.Format(composePositionFormatString, "finalPos");
-                outSource += string.Format(composeDirectionFormatString, "finalDir");
 
-                return outSource;
+float3 currentAxisY = float3(-cosPhi * cosTheta, -sinPhi * cosTheta, sinTheta);
+float3 currentAxisZ = float3((t.x + t.y*cosTheta)*sinPhi, -(t.x + t.y*cosTheta)*cosPhi, 0);
+
+finalDir = mul(arcTorus_torus_inverseTranspose, float4(finalDir, 0.0f)).xyz;
+currentAxisY = mul(arcTorus_torus_inverseTranspose, float4(currentAxisY, 0.0f)).xyz;
+currentAxisZ = mul(arcTorus_torus_inverseTranspose, float4(currentAxisZ, 0.0f)).xyz;
+finalDir = normalize(finalDir);
+currentAxisY = normalize(currentAxisY);
+currentAxisZ = normalize(currentAxisZ);
+
+float3 currentAxisX = cross(currentAxisY, currentAxisZ);
+";
+            outSource += string.Format(positionBase.composePositionFormatString, "finalPos");
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Axes))
+            {
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisX", "currentAxisX", "blendAxes") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisY", "currentAxisY", "blendAxes") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisZ", "currentAxisZ", "blendAxes") + "\n";
             }
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Direction))
+            {
+                outSource += string.Format(positionBase.composeDirectionFormatString, "finalDir");
+            }
+
+            return outSource;
         }
     }
 }

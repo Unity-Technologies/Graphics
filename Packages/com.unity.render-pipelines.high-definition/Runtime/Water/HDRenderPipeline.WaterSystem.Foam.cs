@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Texture tex = currentGenerator.texture;
                     if (!m_FoamTextureAtlas.IsCached(out var scaleBias, m_FoamTextureAtlas.GetTextureID(tex)) && outOfSpace)
-                        Debug.LogError($"No more space in the 2D Water Generator Altas to store the texture {tex}. To solve this issue, increase the resolution of the Generator Atlas Size in the current HDRP asset.");
+                        Debug.LogError($"No more space in the 2D Water Foam Altas to store the texture {tex}. To solve this issue, increase the resolution of the Foam Atlas Size in the current HDRP asset.");
 
                     if (m_FoamTextureAtlas.NeedsUpdate(tex, false))
                         m_FoamTextureAtlas.BlitTexture(cmd, scaleBias, tex, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_FoamTextureAtlas.GetTextureID(tex));
@@ -143,13 +143,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Material mat = currentGenerator.material;
                     if (!m_FoamTextureAtlas.IsCached(out var scaleBias, currentGenerator.GetMaterialAtlasingId()) && outOfSpace)
-                        Debug.LogError($"No more space in the 2D Water Generator Altas to store the material {mat}. To solve this issue, increase the resolution of the Generator Atlas Size in the current HDRP asset.");
+                        Debug.LogError($"No more space in the 2D Water Foam Altas to store the material {mat}. To solve this issue, increase the resolution of the Foam Atlas Size in the current HDRP asset.");
 
+                    if (currentGenerator.updateMode == CustomRenderTextureUpdateMode.Realtime || currentGenerator.shouldUpdate)
                     {
                         var size = (int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize;
                         cmd.SetRenderTarget(m_FoamTextureAtlas.AtlasTexture);
                         cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
                         cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.FoamGenerator, MeshTopology.Triangles, 3, 1, currentGenerator.mpb);
+
+                        currentGenerator.shouldUpdate = false;
                     }
 
                     data.scaleOffset = scaleBias;
@@ -219,8 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.Set<ShaderVariablesWater>(m_FoamMaterial, HDShaderIDs._ShaderVariablesWater);
 
                 // Reproject the previous frame's foam buffer
-                int tileC = ((int)currentWater.foamResolution + 7) / 8;
-                cmd.SetComputeVectorParam(m_WaterFoamCS, HDShaderIDs._PreviousFoamRegionData, currentWater.previousFoamData);
+                int tileC = HDUtils.DivRoundUp((int)currentWater.foamResolution, 8);
+                cmd.SetComputeVectorParam(m_WaterFoamCS, HDShaderIDs._PreviousFoamRegionScaleOffset, currentWater.previousFoamRegionScaleOffset);
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBuffer, currentFoamBuffer);
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_ReprojectFoamKernel, HDShaderIDs._WaterFoamBufferRW, tmpFoamBuffer);
                 cmd.DispatchCompute(m_WaterFoamCS, m_ReprojectFoamKernel, tileC, tileC, 1);
@@ -241,8 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_WaterFoamCS, m_PostProcessFoamKernel, tileC, tileC, 1);
 
                 // Update the foam data for the next frame
-                Vector3 waterPosition = currentWater.transform.position;
-                currentWater.previousFoamData = float4(currentWater.foamAreaSize.x, currentWater.foamAreaSize.y, currentWater.foamAreaOffset.x + waterPosition.x, currentWater.foamAreaOffset.y + waterPosition.z);
+                currentWater.previousFoamRegionScaleOffset = new float4(m_ShaderVariablesWater._FoamRegionScale, m_ShaderVariablesWater._FoamRegionOffset);
             }
         }
     }

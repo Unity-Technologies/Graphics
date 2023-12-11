@@ -201,6 +201,7 @@
     * [Underwater view](water-underwater-view.md)
     * [Materials in the Water System](water-materials-in-the-water-system.md)
     * [Scripting in the Water System](water-scripting-in-the-water-system.md)
+    * [Debug in the Water System](water-debug-mode.md)
   * [Understand atmospheric scattering](Atmospheric-Scattering.md)
 * [Camera and scene composition](camera-and-scene-composition.md)
   * [Graphics Compositor](graphics-compositor.md)

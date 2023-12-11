@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RTHandle[] colorHandles;
@@ -100,12 +101,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 colorHandles = k_ColorAttachment1;
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
                 ConfigureTarget(colorHandles, renderingData.cameraData.renderer.cameraDepthTargetHandle);
             else
                 ConfigureTarget(colorHandles, depthHandle);
 
             ConfigureClear(ClearFlag.All, Color.black);
+            #pragma warning restore CS0618
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
@@ -126,6 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -174,7 +179,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture, uint batchLayerMask = uint.MaxValue, bool postSetGlobalTextures = true)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -196,12 +201,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
+                param.filteringSettings.batchLayerMask = batchLayerMask;
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
 
                 UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
-                if (universalRenderer != null)
+                if (postSetGlobalTextures && universalRenderer != null)
                 {
                     var renderingMode = universalRenderer.renderingModeActual;
                     if (cameraNormalsTexture.IsValid() && renderingMode != RenderingMode.Deferred)

@@ -131,7 +131,6 @@ namespace UnityEngine.Rendering
 
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes = new ();
         public List<(Vector3Int position, Bounds bounds)> cells = new ();
-        public GIContributors contributors;
         public ProbeVolumeBakingSet bakingSet;
         public ProbeVolumeProfileInfo profile;
 
@@ -153,8 +152,6 @@ namespace UnityEngine.Rendering
                 ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.GetMaxSubdivMultiplier(), pv.GetMinSubdivMultiplier());
                 probeVolumes.Add((pv, volume, volume.CalculateAABB()));
             }
-
-            contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
 
             // Generate all the unique cell positions from probe volumes:
             HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();

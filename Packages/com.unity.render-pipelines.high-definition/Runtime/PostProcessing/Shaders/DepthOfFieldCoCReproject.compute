@@ -14,10 +14,14 @@ TEXTURE2D_X(_InputHistoryCoCTexture);
 RW_TEXTURE2D_X(float, _OutputCoCTexture);
 
 #ifdef ENABLE_MAX_BLENDING
+#if !defined(UNITY_CORE_SAMPLERS_INCLUDED)
     SAMPLER(sampler_PointClamp);
+#endif
     #define SAMPLER_STATE sampler_PointClamp
 #else
+#if !defined(UNITY_CORE_SAMPLERS_INCLUDED)
     SAMPLER(sampler_LinearClamp);
+#endif
     #define SAMPLER_STATE sampler_LinearClamp
 #endif
 

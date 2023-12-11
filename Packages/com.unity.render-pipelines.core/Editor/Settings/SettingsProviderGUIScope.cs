@@ -5,12 +5,12 @@ namespace UnityEditor.Rendering
     internal class SettingsProviderGUIScope : GUI.Scope
     {
         float m_LabelWidth;
-        public SettingsProviderGUIScope()
+        public SettingsProviderGUIScope(int offset = 10)
         {
             m_LabelWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 251;
             GUILayout.BeginHorizontal();
-            GUILayout.Space(10);
+            GUILayout.Space(offset);
             GUILayout.BeginVertical();
         }
 

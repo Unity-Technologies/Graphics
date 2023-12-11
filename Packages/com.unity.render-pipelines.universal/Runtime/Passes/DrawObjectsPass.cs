@@ -100,6 +100,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -107,7 +108,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            InitPassData(cameraData, ref m_PassData);
+            InitPassData(cameraData, ref m_PassData, uint.MaxValue);
             InitRendererLists(universalRenderingData, cameraData, lightData, ref m_PassData, context, default(RenderGraph), false);
 
             using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
@@ -163,6 +164,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalCameraData cameraData;
             internal bool isOpaque;
             internal bool shouldTransparentsReceiveShadows;
+            internal uint batchLayerMask;
             internal RendererListHandle rendererListHdl;
             internal RendererListHandle objectsWithErrorRendererListHdl;
             internal DebugRendererLists debugRendererLists;
@@ -176,11 +178,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData)
+        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData, uint batchLayerMask)
         {
             passData.cameraData = cameraData;
             passData.isOpaque = m_IsOpaque;
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
+            passData.batchLayerMask = batchLayerMask;
         }
 
         internal void InitRendererLists(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
@@ -191,6 +194,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 sortFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
 
             var filterSettings = m_FilteringSettings;
+            filterSettings.batchLayerMask = passData.batchLayerMask;
 #if UNITY_EDITOR
                 // When rendering the preview camera, we want the layer mask to be forced to Everything
                 if (cameraData.isPreviewCamera)
@@ -237,7 +241,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -247,7 +251,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Objects Pass", out var passData,
                 m_ProfilingSampler))
             {
-                InitPassData(cameraData, ref passData);
+                builder.UseAllGlobalTextures(true);
+
+                InitPassData(cameraData, ref passData, batchLayerMask);
 
                 if (colorTarget.IsValid())
                 {
@@ -348,12 +354,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
+            #pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = renderingData.commandBuffer;
@@ -379,7 +390,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
         {
             using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>("Draw Objects With Rendering Layers Pass", out var passData,
                 m_ProfilingSampler))
@@ -389,7 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                 UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-                InitPassData(cameraData, ref passData.basePassData);
+                InitPassData(cameraData, ref passData.basePassData, batchLayerMask);
                 passData.maskSize = maskSize;
 
                 passData.basePassData.albedoHdl = colorTarget;

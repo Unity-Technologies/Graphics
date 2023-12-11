@@ -1,14 +1,12 @@
 using System;
 using System.ComponentModel;
 
-// To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
-// we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
     [Category("Custom Post Process Orders")]
-    class CustomPostProcessOrdersSettings
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    class CustomPostProcessOrdersSettings : IRenderPipelineGraphicsSettings
     {
         #region Version
         internal enum Version : int
@@ -22,6 +20,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Current version.</summary>
         public int version => (int)m_Version;
         #endregion
+
+        bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
         #region SerializeFields
         [SerializeField]

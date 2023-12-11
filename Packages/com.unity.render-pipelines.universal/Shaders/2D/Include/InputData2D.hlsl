@@ -9,8 +9,12 @@ struct InputData2D
 
     #if defined(DEBUG_DISPLAY)
     float3 positionWS;
+    float4 positionCS;
+    
+    // Mipmap Streaming Debug
     float4 texelSize;
     float4 mipInfo;
+    float4 streamInfo;
     uint mipCount;
     #endif
 };

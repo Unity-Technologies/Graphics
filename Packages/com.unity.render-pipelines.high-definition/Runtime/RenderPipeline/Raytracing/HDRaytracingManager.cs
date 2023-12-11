@@ -507,12 +507,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     // If the light is flagged as baked and has been effectively been baked, skip it, except if we are path tracing
-                    bool isPathTracingEnabled = hdCamera.volumeStack.GetComponent<PathTracing>().enable.value;
+                    bool isPathTracingEnabled = hdCamera.IsPathTracingEnabled();
                     if (!isPathTracingEnabled && light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
                         continue;
 
-                    // If this light should not be included when ray tracing is active on the camera, skip it
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !hdLight.includeForRayTracing)
+                    // If this light should not be included when ray tracing is active on the camera, skip it, except if we are path tracing
+                    if (!isPathTracingEnabled && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !hdLight.includeForRayTracing)
+                        continue;
+
+                    // If path tracing is enabled and the light should not be included in path tracing, skip it
+                    if(isPathTracingEnabled && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !hdLight.includeForPathTracing)
                         continue;
 
                     // Flag that needs to be overriden by the light and tells us if the light will need the RTAS

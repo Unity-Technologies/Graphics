@@ -14,12 +14,21 @@ namespace UnityEngine.Rendering
                 var targetObject = property.serializedObject.targetObject;
                 var type = targetObject.GetType();
                 var defaultVolumeComponent = (VolumeComponent) CreateInstance(type);
+
                 Undo.RecordObject(targetObject, $"Revert property {property.propertyPath} from {property.serializedObject}");
                 SerializedObject serializedObject = new SerializedObject(defaultVolumeComponent);
-                var serializedProperty = serializedObject.FindProperty(property.propertyPath);
-                property.serializedObject.CopyFromSerializedProperty(serializedProperty);
+                if (property.propertyType == SerializedPropertyType.ObjectReference)
+                {
+                    property.objectReferenceValue = null;
+                }
+                else
+                {
+                    var serializedProperty = serializedObject.FindProperty(property.propertyPath);
+                    property.serializedObject.CopyFromSerializedProperty(serializedProperty);
+                    VolumeManager.instance.OnVolumeComponentChanged(targetObject as VolumeComponent);
+                }
+
                 property.serializedObject.ApplyModifiedProperties();
-                VolumeManager.instance.OnVolumeComponentChanged(targetObject as VolumeComponent);
             };
 
             return true;

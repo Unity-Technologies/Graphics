@@ -8,12 +8,12 @@ namespace UnityEngine.Rendering
     {
         static class Styles
         {
-            public static readonly GUIContent enableDilation = new GUIContent("Enable Dilation", "Replace invalid probe data with valid data from neighboring probes during baking.");
+            public static readonly GUIContent enableDilation = new GUIContent("Dilation", "Replace invalid probe data with valid data from neighboring probes during baking.");
             public static readonly GUIContent dilationDistance = new GUIContent("Search Radius", "How far to search from invalid probes when looking for valid neighbors. Higher values include more distant probes which may be unwanted.");
             public static readonly GUIContent dilationValidity = new GUIContent("Validity Threshold", "The threshold of backfaces seen by probes before they are invalidated during baking. Higher values mean the probe is more likely to be marked invalid.");
             public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iterations", "The number of times Unity repeats the Dilation calculation. This will cause the area of dilation to grow.");
             public static readonly GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "During dilation, weight the contribution of neighbouring probes by squared distance, rather than linear distance.");
-            public static readonly GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Enable Virtual Offset", "Push invalid probes outside of geometry to prevent backface hits. Produces better visual results than Dilation, but increases baking times.");
+            public static readonly GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Virtual Offset", "Push invalid probes outside of geometry to prevent backface hits. Produces better visual results than Dilation, but increases baking times.");
             public static readonly GUIContent virtualOffsetSearchMultiplier = EditorGUIUtility.TrTextContent("Search Distance Multiplier", "Determines the length of the sampling ray Unity uses to search for valid probe positions.");
             public static readonly GUIContent virtualOffsetBiasOutGeometry = EditorGUIUtility.TrTextContent("Geometry Bias", "Determines how far Unity pushes a probe out of geometry after a ray hit.");
             public static readonly GUIContent virtualOffsetRayOriginBias = EditorGUIUtility.TrTextContent("Ray Origin Bias", "Distance from the probe position used to determine the origin of the sampling ray.");
@@ -37,13 +37,8 @@ namespace UnityEngine.Rendering
             // prefab override logic works on the entire property.
             EditorGUI.BeginProperty(position, label, property);
 
-            using (new EditorGUI.IndentLevelScope())
-                if (ProbeVolumeLightingTab.Foldout(Styles.dilationSettingsTitle, ProbeVolumeLightingTab.Expandable.SettingsDilation, false))
-                    DrawDilationSettings(dilationSettings);
-
-            using (new EditorGUI.IndentLevelScope())
-                if (ProbeVolumeLightingTab.Foldout(Styles.virtualOffsetSettingsTitle, ProbeVolumeLightingTab.Expandable.SettingsVirtualOffset, false))
-                    DrawVirtualOffsetSettings(virtualOffsetSettings);
+            DrawDilationSettings(dilationSettings);
+            DrawVirtualOffsetSettings(virtualOffsetSettings);
 
             EditorGUI.EndProperty();
         }
@@ -52,8 +47,10 @@ namespace UnityEngine.Rendering
         {
             var enableDilation = dilationSettings.FindPropertyRelative("enableDilation");
             EditorGUILayout.PropertyField(enableDilation, Styles.enableDilation);
+            if (!enableDilation.boolValue)
+                return;
 
-            using (new EditorGUI.DisabledScope(!enableDilation.boolValue))
+            using (new EditorGUI.IndentLevelScope())
             {
                 var maxDilationSampleDistance = dilationSettings.FindPropertyRelative("dilationDistance");
                 var dilationValidityThreshold = dilationSettings.FindPropertyRelative("dilationValidityThreshold");
@@ -82,8 +79,10 @@ namespace UnityEngine.Rendering
         {
             var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
             EditorGUILayout.PropertyField(enableVirtualOffset, Styles.useVirtualOffset);
+            if (!enableVirtualOffset.boolValue)
+                return;
 
-            using (new EditorGUI.DisabledScope(!enableVirtualOffset.boolValue))
+            using (new EditorGUI.IndentLevelScope())
             {
                 var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
                 var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");

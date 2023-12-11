@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -18,6 +20,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmdBuf = renderingData.commandBuffer;

@@ -276,7 +276,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static Material CreateDefaultDecalMaterial(MonoBehaviour obj)
         {
-            string baseName = WaterSurfaceEditor.GetWaterResourcesPath(obj) + "/" + "New Water Decal Shader Graph";
+            string directory = WaterSurfaceEditor.GetWaterResourcesPath(obj);
+            System.IO.Directory.CreateDirectory(directory);
+
+            string baseName = directory + "/" + "New Water Decal Shader Graph";
             var path = AssetDatabase.GenerateUniqueAssetPath(baseName + ".shadergraph");
             var shader = ShaderGraph.WaterDecalSubTarget.CreateWaterDecalGraphAtPath(path);
 

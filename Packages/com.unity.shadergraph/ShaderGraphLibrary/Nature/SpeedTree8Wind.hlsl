@@ -1,8 +1,9 @@
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 
-#ifndef SPEEDTREE_WIND_INCLUDED
-#define SPEEDTREE_WIND_INCLUDED
+#ifndef SPEEDTREE_WIND_8_INCLUDED
+#define SPEEDTREE_WIND_8_INCLUDED
 
+#define SPEEDTREE_VERSION_8
 #include "SpeedTreeCommon.hlsl"
 
 ///////////////////////////////////////////////////////////////////////
@@ -886,7 +887,8 @@ float3 SpeedTreeWind(
     int geometryType = GetGeometryType(vTexcoord3, leafTwo);
     if (leafTwo) // leaf facing is done regardless of wind
     {   
-        vReturnPos = DoLeafFacing(vReturnPos, vTexcoord1, vTexcoord2); 
+        float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
+        vReturnPos = DoLeafFacing(vReturnPos, anchor); 
     }
     // ---------------------------------------------------------------------------------
 
@@ -957,4 +959,4 @@ void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 
     else
         outPos = vPos;
 }
-#endif // SPEEDTREE_WIND_INCLUDED
+#endif // SPEEDTREE_WIND_8_INCLUDED

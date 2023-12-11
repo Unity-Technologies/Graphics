@@ -172,7 +172,8 @@ namespace UnityEngine.Rendering.Universal
         internal static RenderGraph s_RenderGraph;
         internal static RTHandleResourcePool s_RTHandlePool;
 
-        private static bool useRenderGraph;
+        // internal for tests
+        internal static bool useRenderGraph;
 
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
@@ -196,13 +197,13 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             pipelineAsset = asset;
-#if UNITY_EDITOR
-            m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-#else
+
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
-#endif
 
             runtimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
+
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>();
+            Blitter.Initialize(shaders.coreBlitPS, shaders.coreBlitColorAndDepthPS);
 
             SetSupportedRenderingFeatures(pipelineAsset);
 
@@ -226,7 +227,8 @@ namespace UnityEngine.Rendering.Universal
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
             }
 
-            VolumeManager.instance.Initialize(m_GlobalSettings.volumeProfile, asset.volumeProfile);
+            var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
+            VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, asset.volumeProfile);
 
             // Configure initial XR settings
             MSAASamples msaaSamples = (MSAASamples)Mathf.Clamp(Mathf.NextPowerOfTwo(QualitySettings.antiAliasing), (int)MSAASamples.None, (int)MSAASamples.MSAA8x);
@@ -244,7 +246,11 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             s_RenderGraph = new RenderGraph("URPRenderGraph");
-            useRenderGraph = false;
+            useRenderGraph = !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode;
+
+#if !UNITY_EDITOR
+            Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
+#endif
 
             s_RTHandlePool = new RTHandleResourcePool();
 
@@ -258,16 +264,16 @@ namespace UnityEngine.Rendering.Universal
 
             apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
             SupportedRenderingFeatures.active.overridesLightProbeSystem = apvIsEnabled;
+            SupportedRenderingFeatures.active.skyOcclusion = apvIsEnabled;
             if (apvIsEnabled)
             {
-                var pvr = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = asset.probeVolumeMemoryBudget,
                     blendingMemoryBudget = asset.probeVolumeBlendingMemoryBudget,
                     shBands = asset.probeVolumeSHBands,
-                    supportGPUStreaming = asset.supportProbeVolumeStreaming,
-                    supportDiskStreaming = false,
+                    supportGPUStreaming = asset.supportProbeVolumeGPUStreaming,
+                    supportDiskStreaming = asset.supportProbeVolumeDiskStreaming,
                     supportScenarios = asset.supportProbeVolumeScenarios,
                     supportScenarioBlending = asset.supportProbeVolumeScenarioBlending,
 #pragma warning disable 618
@@ -349,8 +355,6 @@ namespace UnityEngine.Rendering.Universal
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
-            useRenderGraph = asset.enableRenderGraph;
-
             SetHDRState(cameras);
 
             // For XR and HDR, UI Overlay ownership must be enforced
@@ -374,13 +378,15 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.lightsUseColorTemperature = true;
-            GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
             XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.isAnyDebugUIActive)
                 UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateDisplayStats();
+
+            // This is for texture streaming
+            UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
 #endif
 
             SortCameras(cameras);
@@ -660,10 +666,10 @@ namespace UnityEngine.Rendering.Universal
 
             ScriptableRenderer.current = renderer;
 #if RENDER_GRAPH_OLD_COMPILER
-            s_RenderGraph.NativeRenderPassesEnabled = false;
+            s_RenderGraph.nativeRenderPassesEnabled = false;
             Debug.LogWarning("The native render pass compiler is disabled. Use this for debugging only. Mobile performance may be sub-optimal.");
 #else
-            s_RenderGraph.NativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler;
+            s_RenderGraph.nativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler;
 #endif
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -780,15 +786,20 @@ namespace UnityEngine.Rendering.Universal
                 if (useRenderGraph)
                 {
                     RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
-                    renderer.FinishRenderGraphRendering();
+                    renderer.FinishRenderGraphRendering(cmd);
                 }
                 else
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     using (new ProfilingScope(Profiling.Pipeline.Renderer.setup))
+                    {
                         renderer.Setup(context, ref legacyRenderingData);
+                    }
 
                     // Timing scope inside
                     renderer.Execute(context, ref legacyRenderingData);
+                    #pragma warning restore CS0618
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
@@ -1328,18 +1339,24 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = disableRenderScale ? 1.0f : settings.renderScale;
 
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode);
 
             if (cameraData.renderScale > 1.0f)
             {
                 cameraData.imageScalingMode = ImageScalingMode.Downscaling;
             }
-            else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)))
+            else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && ((cameraData.upscalingFilter == ImageUpscalingFilter.FSR) || (cameraData.upscalingFilter == ImageUpscalingFilter.STP))))
             {
-                // When FSR is enabled, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
-                // This allows us to run the FSR shader passes all the time since they improve visual quality even at 100% scale.
+                // When certain upscalers are enabled, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
+                // This allows us to run the upscaling shader passes all the time since they improve visual quality even at 100% scale.
 
                 cameraData.imageScalingMode = ImageScalingMode.Upscaling;
+
+                // When STP is enabled, we force temporal anti-aliasing on since it's a prerequisite.
+                if (cameraData.upscalingFilter == ImageUpscalingFilter.STP)
+                {
+                    cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
+                }
             }
             else
             {
@@ -1420,6 +1437,13 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
+            // enable GPU occlusion culling in game and scene views only
+            cameraData.useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
+                && renderer.supportsGPUOcclusion
+                && !XRSRPSettings.enabled
+                && camera.cameraType is CameraType.SceneView or CameraType.Game or CameraType.Preview;
+            cameraData.requiresDepthTexture |= cameraData.useGPUOcclusionCulling;
+
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
             // of camera stacking breaking render pass execution implicitly.
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
@@ -1452,7 +1476,8 @@ namespace UnityEngine.Rendering.Universal
             ApplyTaaRenderingDebugOverrides(ref cameraData.taaSettings);
 
             // Depends on the cameraTargetDesc, size and MSAA also XR modifications of those.
-            Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(cameraData);
+            TemporalAA.JitterFunc jitterFunc = cameraData.IsSTPEnabled() ? StpUtils.s_JitterFunc : TemporalAA.s_JitterFunc;
+            Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(cameraData, jitterFunc);
             cameraData.SetViewProjectionAndJitterMatrix(camera.worldToCameraMatrix, projectionMatrix, jitterMat);
 
             cameraData.worldSpaceCameraPos = camera.transform.position;
@@ -1474,15 +1499,26 @@ namespace UnityEngine.Rendering.Universal
 
         static UniversalRenderingData CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
         {
-            var universalLightData = frameData.Get<UniversalLightData>();
+            UniversalLightData universalLightData = frameData.Get<UniversalLightData>();
 
-            var data = frameData.Get<UniversalRenderingData>();
+            UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
             data.perObjectData = GetPerObjectLightFlags(universalLightData.additionalLightsCount, isForwardPlus);
-            data.commandBuffer = cmd;
+
+            // Render graph does not support RenderingData.commandBuffer as its execution timeline might break.
+            // RenderingData.commandBuffer is available only for the old non-RG execute code path.
+            if(useRenderGraph)
+                data.m_CommandBuffer = null;
+            else
+                data.m_CommandBuffer = cmd;
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
-            data.renderingMode = universalRenderer?.renderingModeActual ?? RenderingMode.Forward;
+            if (universalRenderer != null)
+            {
+                data.renderingMode = universalRenderer.renderingModeActual;
+                data.opaqueLayerMask = universalRenderer.opaqueLayerMask;
+                data.transparentLayerMask = universalRenderer.transparentLayerMask;
+            }
 
             return data;
         }
@@ -1728,6 +1764,12 @@ namespace UnityEngine.Rendering.Universal
             additionalCameraData.historyManager.RequestAccess<TemporalAA.PersistentData>();
             cameraData.taaPersistentData = additionalCameraData.historyManager.GetHistoryForWrite<TemporalAA.PersistentData>();
 
+            if (cameraData.IsSTPEnabled())
+            {
+                additionalCameraData.historyManager.RequestAccess<StpHistory>();
+                cameraData.stpHistory = additionalCameraData.historyManager.GetHistoryForWrite<StpHistory>();
+            }
+
             // Update TAA settings
             ref var taaSettings = ref additionalCameraData.taaSettings;
             cameraData.taaSettings = taaSettings;
@@ -1744,7 +1786,20 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
 #endif
-                bool allocation = cameraData.taaPersistentData.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                bool allocation;
+                if (cameraData.IsSTPEnabled())
+                {
+                    Debug.Assert(cameraData.stpHistory != null);
+
+                    // When STP is active, we don't require the full set of resources needed by TAA.
+                    cameraData.taaPersistentData.Reset();
+
+                    allocation = cameraData.stpHistory.Update(cameraData);
+                }
+                else
+                {
+                    allocation = cameraData.taaPersistentData.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                }
 
                 // Fill new history with current frame
                 // XR Multipass renders a "frame" per eye
@@ -1752,7 +1807,13 @@ namespace UnityEngine.Rendering.Universal
                     cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
             }
             else
+            {
                 cameraData.taaPersistentData.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
+
+                // In the case where STP is enabled, but TAA gets disabled for various reasons, we should release the STP history resources
+                if (cameraData.IsSTPEnabled())
+                    cameraData.stpHistory.Reset();
+            }
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
@@ -1925,13 +1986,15 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderScale">Scale being applied to the final image size</param>
         /// <param name="selection">Upscaling filter selected by the user</param>
         /// <returns>Either the original filter provided, or the best replacement available</returns>
-        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection)
+        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection, bool enableRenderGraph)
         {
             // By default we just use linear filtering since it's the most compatible choice
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
 
-            // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
-            if ((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
+            // Fall back to the automatic filter if the selected filter isn't supported on the current platform or rendering environment
+            if (((selection == UpscalingFilterSelection.FSR) && (!FSRUtils.IsSupported()))
+                || ((selection == UpscalingFilterSelection.STP) && (!STP.IsSupported() || !enableRenderGraph))
+            )
             {
                 selection = UpscalingFilterSelection.Auto;
             }
@@ -1980,6 +2043,13 @@ namespace UnityEngine.Rendering.Universal
                 case UpscalingFilterSelection.FSR:
                 {
                     filter = ImageUpscalingFilter.FSR;
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.STP:
+                {
+                    filter = ImageUpscalingFilter.STP;
 
                     break;
                 }

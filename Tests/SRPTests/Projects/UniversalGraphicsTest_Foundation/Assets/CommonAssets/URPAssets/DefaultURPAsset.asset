@@ -39,6 +39,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 458bd0c3cd85a465bb7a902869fb61eb, type: 2}
   - {fileID: 11400000, guid: 7155e055dd29f9944927bdffff6eb366, type: 2}
   - {fileID: 11400000, guid: 74a701ce533b14adb8f98f35425f3aeb, type: 2}
+  - {fileID: 11400000, guid: 846bf2a7afe0943388665d187143c7f6, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -58,6 +59,8 @@ MonoBehaviour:
   m_ProbeVolumeMemoryBudget: 1024
   m_ProbeVolumeBlendingMemoryBudget: 128
   m_SupportProbeVolumeStreaming: 0
+  m_SupportProbeVolumeScenarios: 0
+  m_SupportProbeVolumeScenarioBlending: 0
   m_ProbeVolumeSHBands: 1
   m_MainLightRenderingMode: 1
   m_MainLightShadowsSupported: 1
@@ -93,13 +96,13 @@ MonoBehaviour:
   m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_StoreActionsOptimization: 0
-  m_EnableRenderGraph: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
   m_UseFastSRGBLinearConversion: 0
   m_SupportDataDrivenLensFlare: 0
   m_SupportScreenSpaceLensFlare: 0
+  m_GPUResidentDrawerMode: 0
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512

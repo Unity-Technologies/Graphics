@@ -973,7 +973,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     }
                                     else
                                     {
-                                        // Used as a mutlisample-texture we need the msaa samples
+                                        // Used as a multisample-texture we need the msaa samples
                                         if (resourceData.bindMS)
                                         {
                                             needsMSAASamples = true;
@@ -1047,7 +1047,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 {
                                     if (resourceData.discard)
                                     {
-                                        currAttachment.storeAction = RenderBufferStoreAction.DontCare;
+                                        // Depth attachment always comes first if existing
+                                        bool isDepthAttachment = (nativePass.hasDepth && idx == 0);
+
+                                        // For color attachment, we only discard the MSAA buffers and keep the resolve texture
+                                        // This is a design decision due to the restrictive ImportResourceParams API, it could be revised later
+                                        currAttachment.storeAction = isDepthAttachment ? RenderBufferStoreAction.DontCare : RenderBufferStoreAction.Resolve;
 #if UNITY_EDITOR
                                         currStoreAudit = new StoreAudit(
                                             StoreReason.DiscardImported, -1, StoreReason.DiscardImported);
@@ -1327,6 +1332,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 bool inRenderPass = false;
                 previousCommandBuffer = rgContext.cmd;
 
+                // Having random access targets bound leads to all sorts of weird behavior so we clear them before executing the graph.
+                rgContext.cmd.ClearRandomWriteTargets();
+
                 for (int passIndex = 0; passIndex < contextData.passData.Length; passIndex++)
                 {
                     ref var pass = ref contextData.passData.ElementAt(passIndex);
@@ -1389,13 +1397,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                     if (pass.numRandomAccessResources > 0)
 					{
-                        //TODO: are we that paranoid? maybe clean it once at the beginning of the graph?
-                        rgContext.cmd.ClearRandomWriteTargets();
                         foreach (var randomWriteAttachment in pass.RandomWriteTextures(contextData))
-                        if (pass.numRandomAccessResources > 0)
-                    	{
+                        {
                             SetRandomWriteTarget(rgContext.cmd, resources, randomWriteAttachment.index, randomWriteAttachment.resource);
-                    	}
+                        }
 					}
 
 #if THROW_ON_SETRENDERTARGET_DEBUG
@@ -1406,6 +1411,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #endif
 
                     ExecuteGraphNode(ref rgContext, resources, passes[pass.passId]);
+
+                    // If we set any uavs clear them again so they are local to the pass
+                    if (pass.numRandomAccessResources > 0)
+                    {
+                        rgContext.cmd.ClearRandomWriteTargets();
+                    }
 
                     // should we insert a fence to sync between difference queues?
                     if (pass.insertGraphicsFence)

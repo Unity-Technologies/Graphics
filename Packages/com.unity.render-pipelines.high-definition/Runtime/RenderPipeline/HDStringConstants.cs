@@ -335,6 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaPostParameters1 = Shader.PropertyToID("_TaaPostParameters1");
         public static readonly int _TaaHistorySize = Shader.PropertyToID("_TaaHistorySize");
         public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
+        public static readonly int _NeighbourOffsets = Shader.PropertyToID("_NeighbourOffsets");
         public static readonly int _TaauParameters = Shader.PropertyToID("_TaauParameters");
         public static readonly int _TaaScales = Shader.PropertyToID("_TaaScales");
 
@@ -653,7 +654,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Water caustics
         public static readonly int _WaterCausticsDataBuffer = Shader.PropertyToID("_WaterCausticsDataBuffer");
         public static readonly int _WaterFoamBuffer = Shader.PropertyToID("_WaterFoamBuffer");
-        public static readonly int _PreviousFoamRegionData = Shader.PropertyToID("_PreviousFoamRegionData");
+        public static readonly int _PreviousFoamRegionScaleOffset = Shader.PropertyToID("_PreviousFoamRegionScaleOffset");
         public static readonly int _WaterFoamBufferRW = Shader.PropertyToID("_WaterFoamBufferRW");
         public static readonly int _CausticsNormalsMipOffset = Shader.PropertyToID("_CausticsNormalsMipOffset");
         public static readonly int _CausticGeometryResolution = Shader.PropertyToID("_CausticGeometryResolution");
@@ -748,6 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AlbedoAOV = Shader.PropertyToID("_AlbedoAOV");
         public static readonly int _NormalAOV = Shader.PropertyToID("_NormalAOV");
         public static readonly int _MotionVectorAOV = Shader.PropertyToID("_MotionVectorAOV");
+        public static readonly int _VolumetricScatteringAOV = Shader.PropertyToID("_VolumetricScatteringAOV");
 
         // Light Cluster
         public static readonly int _RaytracingLightCluster = Shader.PropertyToID("_RaytracingLightCluster");
@@ -950,6 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProceduralMaskParams2 = Shader.PropertyToID("_ProceduralMaskParams2");
         public static readonly int _Variants = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture = Shader.PropertyToID("_InputTexture");
+        public static readonly int _InputTexture2 = Shader.PropertyToID("_InputTexture2");
         public static readonly int _InputTextureArray = Shader.PropertyToID("_InputTextureArray");
         public static readonly int _InputTextureMSAA = Shader.PropertyToID("_InputTextureMSAA");
         public static readonly int _OutputTexture = Shader.PropertyToID("_OutputTexture");
@@ -1007,7 +1010,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlareData2 = Shader.PropertyToID("_FlareData2");
         public static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
         public static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
-        public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
         public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
         public static readonly int _FlareCloudOpacity = Shader.PropertyToID("_FlareCloudOpacity");
 

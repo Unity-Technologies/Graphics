@@ -43,8 +43,7 @@ namespace UnityEditor.VFX
 
         private void CompileExpressionContext(IEnumerable<VFXContext> contexts,
             VFXExpressionContextOption options,
-            VFXDeviceTarget target,
-            VFXExpression.Flags forbiddenFlags = VFXExpression.Flags.None)
+            VFXDeviceTarget target)
         {
             var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
 
@@ -180,20 +179,9 @@ namespace UnityEditor.VFX
 
                 var spawnerContexts = contexts.Where(o => o.contextType == VFXContextType.Spawner);
                 var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
-                CompileExpressionContext(spawnerContexts,
-                    options | VFXExpressionContextOption.PatchReadToEventAttribute,
-                    VFXDeviceTarget.CPU,
-                    VFXExpression.Flags.NotCompilableOnCPU);
-
-                CompileExpressionContext(otherContexts,
-                    options,
-                    VFXDeviceTarget.CPU,
-                    VFXExpression.Flags.NotCompilableOnCPU | VFXExpression.Flags.PerSpawn);
-
-                CompileExpressionContext(contexts,
-                    options | VFXExpressionContextOption.GPUDataTransformation,
-                    VFXDeviceTarget.GPU,
-                    VFXExpression.Flags.PerSpawn);
+                CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.PatchReadToEventAttribute, VFXDeviceTarget.CPU);
+                CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
+                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
@@ -279,7 +267,14 @@ namespace UnityEditor.VFX
                 {
                     var reduced = GetReduced(exp, target);
                     if (reduced.Is(check))
-                        throw new InvalidOperationException(string.Format("The expression {0} is not valid as it have the invalid flag: {1}", reduced, check));
+                    {
+                        var message = $"The expression \"{reduced.GetType().Name}\" is not valid as it have the flag: {check}";
+                        if (context.GetGraph().compileReporter is { } compileReporter)
+                        {
+                            compileReporter.RegisterError("CompileReduceExpressionFail", VFXErrorType.Error, message, context);
+                        }
+                        throw new InvalidOperationException(message);
+                    }
 
                     var mappedDataList = inMapper.GetData(exp);
                     foreach (var mappedData in mappedDataList)

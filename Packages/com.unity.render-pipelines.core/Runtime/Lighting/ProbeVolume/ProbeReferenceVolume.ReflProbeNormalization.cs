@@ -31,8 +31,6 @@ namespace UnityEngine.Rendering
         private static Dictionary<int, float> m_SHValidity = new Dictionary<int, float>();
         private static Dictionary<int, Vector3> m_RequestPositions = new Dictionary<int, Vector3>();
 
-        private static readonly Vector2 s_FreelistSentinel = new Vector2(float.MaxValue, float.MaxValue);
-
         /// <summary>
         /// Enqueue a request for probe rendering at the specified location.
         /// </summary>
@@ -80,6 +78,18 @@ namespace UnityEngine.Rendering
             return false;
         }
 
+        static internal bool GetPositionForRequest(int probeInstanceID, out Vector3 pos)
+        {
+            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            {
+                pos = m_RequestPositions[probeInstanceID];
+                return true;
+            }
+
+            pos = Vector3.negativeInfinity;
+            return false;
+        }
+
         /// <summary>
         /// Update the capture location for the probe request.
         /// </summary>
@@ -99,42 +109,29 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void AddRequestsToLightmapper()
+        static internal List<Vector3> GetProbeNormalizationRequests() => new List<Vector3>(m_RequestPositions.Values);
+
+        static internal void OnAdditionalProbesBakeCompleted(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, (new List<Vector3>(m_RequestPositions.Values)).ToArray());
-
-            Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
-            Lightmapping.bakeCompleted += OnAdditionalProbesBakeCompleted;
-        }
-
-        private void OnAdditionalProbesBakeCompleted()
-        {
-            Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
-
-            if (m_RequestPositions.Count == 0) return;
-
-            var sh = new NativeArray<SphericalHarmonicsL2>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            var bakedProbeOctahedralDepth = new NativeArray<float>(m_RequestPositions.Count * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-            if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth))
-            {
-                SetSHCoefficients(sh, validity);
-            }
-            else
-            {
-                Debug.LogWarning($"Failed to collect results for additional probes. (Bake Id {s_BakingID})");
-                ClearSHCoefficients();
-            }
+            SetSHCoefficients(sh, validity);
 
             ProbeReferenceVolume.instance.retrieveExtraDataAction?.Invoke(new ProbeReferenceVolume.ExtraDataActionInput());
-
-            sh.Dispose();
-            validity.Dispose();
-            bakedProbeOctahedralDepth.Dispose();
         }
 
-        private void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
+        static bool IsZero(in SphericalHarmonicsL2 s)
+        {
+            for (var r = 0; r < 3; ++r)
+            {
+                for (var c = 0; c < 9; ++c)
+                {
+                    if (s[r, c] != 0f)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        static void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
         {
             Debug.Assert(sh.Length == m_SHCoefficients.Count);
             Debug.Assert(sh.Length == validity.Length);
@@ -142,46 +139,23 @@ namespace UnityEngine.Rendering
             List<int> requestsInstanceIDs = new List<int>(m_SHCoefficients.Keys);
 
             for (int i = 0; i < sh.Length; ++i)
-            {
-                var v = validity[i];
-                var s = sh[i];
-
-                if (v < kValidSHThresh)
-                {
-                    var hasNonZeroValue = false;
-                    for (var r = 0; r < 3; ++r)
-                    {
-                        for (var c = 0; c < 9; ++c)
-                        {
-                            if (s[r, c] != 0f)
-                            {
-                                hasNonZeroValue = true;
-                                goto doubleBreak;
-                            }
-                        }
-                    }
-                    doubleBreak:
-
-                    if (!hasNonZeroValue)
-                    {
-                        // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution
-                        const float k = float.MaxValue;
-                        s.AddAmbientLight(new Color(k, k, k));
-                    }
-                }
-
-                m_SHCoefficients[requestsInstanceIDs[i]] = s;
-                m_SHValidity[requestsInstanceIDs[i]] = v;
-            }
+                SetSHCoefficients(requestsInstanceIDs[i], sh[i], validity[i]);
         }
 
-        private void ClearSHCoefficients()
+        static internal void SetSHCoefficients(int instanceID, SphericalHarmonicsL2 sh, float validity)
         {
-            foreach (var key in m_SHCoefficients.Keys)
+            if (validity < kValidSHThresh)
             {
-                m_SHCoefficients[key] = default;
-                m_SHValidity[key] = kInvalidSH;
+                if (IsZero(in sh))
+                {
+                    // Use max value as a sentinel to explicitly pass coefficients to light loop that cancel out reflection probe contribution
+                    const float k = float.MaxValue;
+                    sh.AddAmbientLight(new Color(k, k, k));
+                }
             }
+
+            m_SHCoefficients[instanceID] = sh;
+            m_SHValidity[instanceID] = validity;
         }
     }
 #endif

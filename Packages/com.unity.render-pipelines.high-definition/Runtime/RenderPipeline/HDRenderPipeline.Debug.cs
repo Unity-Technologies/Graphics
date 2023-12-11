@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugHDShadowMapMaterial;
         Material m_DebugLocalVolumetricFogMaterial;
         Material m_DebugBlitMaterial;
+        Material m_DebugDrawClustersBoundsMaterial;
 
         // Color monitors
         Material m_DebugVectorscope;
@@ -131,8 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool fullScreenDebugEnabled = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.None;
             bool lightingDebugEnabled = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow;
+            bool historyBufferViewEnabled = m_CurrentDebugDisplaySettings.data.historyBuffersView != -1;
+            bool mipmapDebuggingEnabled = m_CurrentDebugDisplaySettings.data.mipMapDebugSettings.debugMipMapMode != DebugMipMapMode.None;
 
-            return fullScreenDebugEnabled || lightingDebugEnabled;
+            return fullScreenDebugEnabled || lightingDebugEnabled || historyBufferViewEnabled || mipmapDebuggingEnabled;
         }
 
         unsafe void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd, bool aovOutput)
@@ -156,10 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None ||
                 m_CurrentDebugDisplaySettings.IsDebugExposureModeEnabled())
             {
-                // This is for texture streaming
-                m_CurrentDebugDisplaySettings.UpdateMaterials();
-
-
                 var lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 var materialDebugSettings = m_CurrentDebugDisplaySettings.data.materialDebugSettings;
 
@@ -207,6 +206,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
                 cb._DebugMipMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode();
+                cb._DebugMipMapOpacity = m_CurrentDebugDisplaySettings.GetDebugMipMapOpacity();
+                cb._DebugMipMapStatusMode = (int) m_CurrentDebugDisplaySettings.GetDebugMipMapStatusMode();
+                cb._DebugMipMapShowStatusCode = m_CurrentDebugDisplaySettings.GetDebugMipMapShowStatusCode() ? 1 : 0;
+                cb._DebugMipMapRecentlyUpdatedCooldown = m_CurrentDebugDisplaySettings.GetDebugMipMapRecentlyUpdatedCooldown();
                 cb._DebugIsLitShaderModeDeferred = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? 1 : 0;
                 cb._DebugMipMapModeTerrainTexture = (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture();
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
@@ -236,6 +239,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
 
                 cb._DebugAOVOutput = aovOutput ? 1 : 0;
+
+#if UNITY_EDITOR
+                cb._DebugCurrentRealTime = (float) EditorApplication.timeSinceStartup;
+#else
+                cb._DebugCurrentRealTime = Time.realtimeSinceStartup;
+#endif
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
@@ -599,6 +608,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetTexture(HDShaderIDs._DebugFullScreenTexture, data.input);
                         mpb.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
                         mpb.SetFloat(HDShaderIDs._FullScreenDebugMode, (float)data.debugDisplaySettings.data.fullScreenDebugMode);
+                        mpb.SetFloat(HDShaderIDs._ApplyExposure, data.debugDisplaySettings.data.SupportsExposure() && data.debugDisplaySettings.data.applyExposure ? 1 : 0);
                         if (data.debugDisplaySettings.data.enableDebugDepthRemap)
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(data.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, data.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, data.hdCamera.camera.nearClipPlane, data.hdCamera.camera.farClipPlane));
                         else // Setup neutral value
@@ -997,6 +1007,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void RenderOcclusionOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        {
+            GPUResidentDrawer.RenderDebugOcclusionTestOverlay(
+                renderGraph,
+                HDDebugDisplaySettings.Instance?.gpuResidentDrawerSettings ?? null,
+                hdCamera.camera.GetInstanceID(),
+                colorBuffer);
+        }
+
+        void RenderOccluderDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera)
+        {
+            var debugSettings = HDDebugDisplaySettings.Instance?.gpuResidentDrawerSettings ?? null;
+            if (debugSettings != null && debugSettings.occluderDebugViewEnable)
+            {
+                Rect rect = m_DebugOverlay.Next();
+                GPUResidentDrawer.RenderDebugOccluderOverlay(
+                    renderGraph,
+                    debugSettings,
+                    new Vector2(rect.x, rect.y), rect.height,
+                    colorBuffer);
+            }
+        }
+
         void RenderDebugOverlays(RenderGraph renderGraph,
             TextureHandle                    colorBuffer,
             TextureHandle                    depthBuffer,
@@ -1028,6 +1061,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderMonitorsOverlay(renderGraph, colorBuffer, hdCamera);
 
             ProbeReferenceVolume.instance.RenderFragmentationOverlay(renderGraph, colorBuffer, depthBuffer, m_DebugOverlay);
+
+            RenderOcclusionOverlay(renderGraph, colorBuffer, hdCamera);
+            RenderOccluderDebugOverlay(renderGraph, colorBuffer, hdCamera);
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
@@ -1583,6 +1619,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PushFullScreenDebugTexture(renderGraph, input, colorFormat, mipIndex);
             }
+        }
+
+        void PushFullScreenHistoryBuffer(RenderGraph renderGraph, TextureHandle input, HDCameraFrameHistoryType historyType, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        {
+            PushFullScreenDebugTexture(renderGraph, input, colorFormat);
         }
 
         void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)

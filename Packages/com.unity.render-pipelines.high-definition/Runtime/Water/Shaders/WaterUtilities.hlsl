@@ -241,7 +241,7 @@ float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
     simulationPos.x = objectPosition.x * patchData.x - objectPosition.z * patchData.y;
     simulationPos.z = objectPosition.x * patchData.y + objectPosition.z * patchData.x;
 
-    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset;
 
     // Return the simulation position
     return simulationPos;
@@ -257,11 +257,11 @@ float3 WaterSimulationPosition(float3 objectPosition)
 
     float2 gridSize = _GridSize;
     #ifndef WATER_DISPLACEMENT
-    gridSize *= _PatchOffset.w;
+    gridSize *= _GridSizeMultiplier;
     #endif
 
     // Scale and offset the position to where it should be
-    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset;
 
     #ifndef WATER_DISPLACEMENT
     // Clamp the mesh inside the region so that it's never empty
@@ -286,6 +286,18 @@ TEXTURE2D(_SimulationFoamMask);
 SAMPLER(sampler_SimulationFoamMask);
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
 
+float2 RotateUV(float2 uv)
+{
+    float2 axis1 = float2(_WaterSurfaceTransform[0].x, _WaterSurfaceTransform[2].x);
+    float2 axis2 = float2(-axis1.y, axis1.x);
+    return float2(dot(uv, axis1), dot(uv, axis2));
+}
+
+float2 EvaluateDeformationUV(float3 transformedPositionAWS)
+{
+    return RotateUV(transformedPositionAWS.xz - _DeformationRegionOffset) * _DeformationRegionScale + 0.5f;
+}
+
 // UV to sample the foam mask
 float2 EvaluateFoamMaskUV(float2 foamUV)
 {
@@ -293,9 +305,9 @@ float2 EvaluateFoamMaskUV(float2 foamUV)
 }
 
 // UV to sample the foam simulation
-float2 EvaluateFoamUV(float2 positionOS)
+float2 EvaluateFoamUV(float3 transformedPositionAWS)
 {
-    return positionOS * _FoamRegionScale - _FoamRegionOffset * _FoamRegionScale + 0.5f;
+    return RotateUV(transformedPositionAWS.xz - _FoamRegionOffset) * _FoamRegionScale + 0.5f;
 }
 
 // UV to sample the water mask
@@ -458,8 +470,7 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
 #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
     float3 positionAWS = GetAbsolutePositionWS(positionRWS).xyz;
-    float3 displacedPosition = positionAWS + displacementData.displacement;
-    float2 deformationUV = (displacedPosition.xz - _WaterDeformationCenter) / _WaterDeformationExtent + 0.5f;
+    float2 deformationUV = EvaluateDeformationUV(positionAWS + displacementData.displacement);
     float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
     displacementData.displacement += float3(0.0, verticalDeformation, 0.0);
     displacementData.lowFrequencyHeight += verticalDeformation;
@@ -624,8 +635,8 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
     #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
-    float2 deformationUV = (transformedAWS.xz - _WaterDeformationCenter) / _WaterDeformationExtent;
-    float2 deformationSG = SAMPLE_TEXTURE2D_LOD(_WaterDeformationSGBuffer, s_linear_clamp_sampler, deformationUV + 0.5f, 0);
+    float2 deformationUV = EvaluateDeformationUV(transformedAWS);
+    float2 deformationSG = SAMPLE_TEXTURE2D_LOD(_WaterDeformationSGBuffer, s_linear_clamp_sampler, deformationUV, 0);
     lFSurfaceGradient += deformationSG;
     surfaceGradient += deformationSG;
     #endif
@@ -652,7 +663,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
 #if !defined(IGNORE_FOAM_REGION)
     // Evaluate the foam region coordinates
-    float2 foamUV = EvaluateFoamUV(transformedAWS.xz);
+    float2 foamUV = EvaluateFoamUV(transformedAWS);
     if (_WaterFoamRegionResolution > 0 && all(foamUV == saturate(foamUV)))
     {
         float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, s_linear_clamp_sampler, foamUV).xy;

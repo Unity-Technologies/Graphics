@@ -11,3 +11,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.XR.Quantum.Editor.ShaderGraph")]
 [assembly: InternalsVisibleTo("Unity.ShaderGraphTool.Editor")]
 [assembly: InternalsVisibleTo("Unity.ShaderFoundry.Editor")]
+[assembly: InternalsVisibleTo("Unity.Environment.Editor.ShaderGraph")]

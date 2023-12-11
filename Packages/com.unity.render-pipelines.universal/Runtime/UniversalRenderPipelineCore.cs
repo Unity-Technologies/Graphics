@@ -73,7 +73,10 @@ namespace UnityEngine.Rendering.Universal
         Point,
 
         /// FidelityFX Super Resolution
-        FSR
+        FSR,
+
+        /// Scalable Temporal Post-Processing
+        STP
     }
 
     /// <summary>
@@ -97,7 +100,17 @@ namespace UnityEngine.Rendering.Universal
         internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
 
         // Non-rendergraph path only. Do NOT use with rendergraph!
-        internal ref CommandBuffer commandBuffer => ref frameData.Get<UniversalRenderingData>().commandBuffer;
+        internal ref CommandBuffer commandBuffer
+        {
+            get
+            {
+                ref var cmd = ref frameData.Get<UniversalRenderingData>().m_CommandBuffer;
+                if (cmd == null)
+                    Debug.LogError("RenderingData.commandBuffer is null. RenderGraph does not support this property. Please use the command buffer provided by the RenderGraphContext.");
+
+                return ref cmd;
+            }
+        }
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -452,6 +465,7 @@ namespace UnityEngine.Rendering.Universal
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
         /// </summary>
         /// <returns> True if the camera device projection matrix is flipped. </returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public bool IsCameraProjectionMatrixFlipped()
         {
             return frameData.Get<UniversalCameraData>().IsCameraProjectionMatrixFlipped();
@@ -582,7 +596,6 @@ namespace UnityEngine.Rendering.Universal
 
         // Post-process history reset has been triggered for this camera.
         internal bool resetHistory => frameData.Get<UniversalCameraData>().resetHistory;
-
 
         /// <summary>
         /// Camera at the top of the overlay camera stack
@@ -1405,6 +1418,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for APV with SH L2 </summary>
         public const string ProbeVolumeL2 = "PROBE_VOLUMES_L2";
+
+        /// <summary> Keyword used for opting out of lightmap texture arrays, when using BatchRendererGroup. </summary>
+        public const string USE_LEGACY_LIGHTMAPS = "USE_LEGACY_LIGHTMAPS";
 
         /// <summary> Keyword used for CopyDepth pass. </summary>
         public const string _OUTPUT_DEPTH = "_OUTPUT_DEPTH";

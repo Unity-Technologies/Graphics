@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -35,7 +36,9 @@ public class OutputTextureFeature : ScriptableRendererFeature
         }
         m_OutputTexturePassPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
         m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement);
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_OutputTexturePassPass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     protected override void Dispose(bool disposing)
@@ -68,6 +71,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
         // When empty this render pass will render to the active camera render target.
         // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         // The render pipeline will ensure target setup and clearing happens in a performant manner.
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
@@ -76,6 +80,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
         // Use <c>ScriptableRenderContext</c> to issue drawing commands or execute command buffers
         // https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.html
         // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -110,8 +115,10 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
+                builder.UseAllGlobalTextures(true);
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
+
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
 

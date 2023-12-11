@@ -23,11 +23,17 @@
     #endif
 #endif
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
+// ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
+// texture arrays. This minimizes batch breakages, but texture arrays aren't
+// supported in a performant way on all GPUs.
 #define SHADOWMASK_NAME unity_ShadowMasks
 #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMasks
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS , unity_LightmapIndex.x
 #else
+// ^ Lightmaps are not bound as texture arrays, but as individual textures. The
+// batch is broken every time lightmaps are changed, but this is well-supported
+// on all GPUs.
 #define SHADOWMASK_NAME unity_ShadowMask
 #define SHADOWMASK_SAMPLER_NAME samplerunity_ShadowMask
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS
@@ -123,12 +129,12 @@ ShadowSamplingData GetMainLightShadowSamplingData()
     ShadowSamplingData shadowSamplingData;
 
     // shadowOffsets are used in SampleShadowmapFiltered for low quality soft shadows.
-    shadowSamplingData.shadowOffset0 = _MainLightShadowOffset0;
-    shadowSamplingData.shadowOffset1 = _MainLightShadowOffset1;
+    shadowSamplingData.shadowOffset0 = half4(_MainLightShadowOffset0);
+    shadowSamplingData.shadowOffset1 = half4(_MainLightShadowOffset1);
 
     // shadowmapSize is used in SampleShadowmapFiltered otherwise
     shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
-    shadowSamplingData.softShadowQuality = _MainLightShadowParams.y;
+    shadowSamplingData.softShadowQuality = half(_MainLightShadowParams.y);
 
     return shadowSamplingData;
 }
@@ -155,7 +161,7 @@ ShadowSamplingData GetAdditionalLightShadowSamplingData(int index)
 // y: 1.0 if shadow is soft, 0.0 otherwise
 half4 GetMainLightShadowParams()
 {
-    return _MainLightShadowParams;
+    return half4(_MainLightShadowParams);
 }
 
 
@@ -276,14 +282,14 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real shadowStrength = shadowParams.x;
 
     // Quality levels are only for platforms requiring strict static branches
-    #if _SHADOWS_SOFT_LOW
+    #if defined(_SHADOWS_SOFT_LOW)
         attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif _SHADOWS_SOFT_MEDIUM
+    #elif defined(_SHADOWS_SOFT_MEDIUM)
         attenuation = SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif _SHADOWS_SOFT_HIGH
+    #elif defined(_SHADOWS_SOFT_HIGH)
         attenuation = SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-    #elif _SHADOWS_SOFT
-        if(shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
+    #elif defined(_SHADOWS_SOFT)
+        if (shadowParams.y > SOFT_SHADOW_QUALITY_OFF)
         {
             attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
         }
@@ -503,7 +509,7 @@ float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 // Deprecated: Use GetMainLightShadowParams instead.
 half GetMainLightShadowStrength()
 {
-    return _MainLightShadowData.x;
+    return half(_MainLightShadowData.x);
 }
 
 // Deprecated: Use GetAdditionalLightShadowParams instead.
@@ -511,9 +517,9 @@ half GetAdditionalLightShadowStrenth(int lightIndex)
 {
     #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            return _AdditionalShadowParams_SSBO[lightIndex].x;
+            return half(_AdditionalShadowParams_SSBO[lightIndex].x);
         #else
-            return _AdditionalShadowParams[lightIndex].x;
+            return half(_AdditionalShadowParams[lightIndex].x);
         #endif
     #else
         return half(1.0);

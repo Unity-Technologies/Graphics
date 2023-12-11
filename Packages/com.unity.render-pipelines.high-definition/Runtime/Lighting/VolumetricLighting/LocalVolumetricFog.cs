@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool alphaTexture = false;
                 if (textureMaterial == null && HDRenderPipelineGlobalSettings.instance != null)
                 {
-                    var runtimeShaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs;
+                    var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
                     textureMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.defaultFogVolumeShader);
                 }
 

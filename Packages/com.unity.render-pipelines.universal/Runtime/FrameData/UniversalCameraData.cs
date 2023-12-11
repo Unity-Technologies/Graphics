@@ -111,8 +111,11 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
             return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -125,8 +128,11 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // GetGPUProjectionMatrix takes a projection matrix and returns a GfxAPI adjusted version, does not set or get any state.
             return GL.GetGPUProjectionMatrix(GetProjectionMatrixNoJitter(viewIndex), IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
@@ -233,6 +239,9 @@ namespace UnityEngine.Rendering.Universal
         /// Returns true if XR rendering is enabled.
         /// </summary>
         public bool xrRendering;
+
+        // True if GPU occlusion culling should be used when rendering this camera.
+        internal bool useGPUOcclusionCulling;
 
         internal bool requireSrgbConversion
         {
@@ -383,8 +392,11 @@ namespace UnityEngine.Rendering.Universal
             var renderer = ScriptableRenderer.current;
             Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             if (renderer != null)
                 return IsHandleYFlipped(renderer.cameraColorTargetHandle) || targetTexture != null;
+            #pragma warning restore CS0618
 
             return true;
         }
@@ -417,6 +429,20 @@ namespace UnityEngine.Rendering.Universal
                 && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
                 && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
                 && postProcessEnabled;                                                                                             // No Postprocessing
+        }
+
+        /// <summary>
+        /// Returns true if the pipeline is configured to render with the STP upscaler
+        ///
+        /// When STP runs, it relies on much of the existing TAA infrastructure provided by URP's native TAA. Due to this, URP forces the anti-aliasing mode to
+        /// TAA when STP is enabled to ensure that most TAA logic remains active. A side effect of this behavior is that STP inherits all of the same configuration
+        /// restrictions as TAA and effectively cannot run if IsTemporalAAEnabled() returns false. The post processing pass logic that executes STP handles this
+        /// situation and STP should behave identically to TAA in cases where TAA support requirements aren't met at runtime.
+        /// </summary>
+        /// <returns>True if STP is enabled</returns>
+        internal bool IsSTPEnabled()
+        {
+            return (imageScalingMode == ImageScalingMode.Upscaling) && (upscalingFilter == ImageUpscalingFilter.STP);
         }
 
         /// <summary>
@@ -521,6 +547,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal TemporalAA.PersistentData taaPersistentData;
 
+        /// <summary>
+        /// The STP history data. It contains both persistent state and textures.
+        /// </summary>
+        internal StpHistory stpHistory;
+
         // TAA settings.
         internal TemporalAA.Settings taaSettings;
 
@@ -529,7 +560,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get => taaSettings.resetHistoryFrames != 0;
         }
-
 
         /// <summary>
         /// Camera at the top of the overlay camera stack
@@ -572,6 +602,7 @@ namespace UnityEngine.Rendering.Universal
             requiresOpaqueTexture = false;
             postProcessingRequiresDepthTexture = false;
             xrRendering = false;
+            useGPUOcclusionCulling = false;
             defaultOpaqueSortFlags = SortingCriteria.None;
             xr = default;
             maxShadowDistance = 0.0f;
@@ -588,6 +619,7 @@ namespace UnityEngine.Rendering.Universal
             worldSpaceCameraPos = default;
             backgroundColor = Color.black;
             taaPersistentData = null;
+            stpHistory = null;
             taaSettings = default;
             baseCamera = null;
             stackAnyPostProcessingEnabled = false;

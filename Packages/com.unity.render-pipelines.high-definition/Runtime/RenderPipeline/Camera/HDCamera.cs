@@ -44,8 +44,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 invViewProjMatrix;
             /// <summary>Non-jittered View Projection matrix.</summary>
             public Matrix4x4 nonJitteredViewProjMatrix;
+            /// <summary>Non-jittered View Projection matrix.</summary>
+            public Matrix4x4 nonJitteredInvViewProjMatrix;
             /// <summary>Previous view matrix from previous frame.</summary>
             public Matrix4x4 prevViewMatrix;
+            /// <summary>Non-jittered Projection matrix from previous frame.</summary>
+            public Matrix4x4 prevProjMatrix;
             /// <summary>Non-jittered View Projection matrix from previous frame.</summary>
             public Matrix4x4 prevViewProjMatrix;
             /// <summary>Non-jittered Inverse View Projection matrix from previous frame.</summary>
@@ -68,6 +72,14 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>World Space camera position from previous frame.</summary>
             public Vector3 prevWorldSpaceCameraPos;
             internal float pad2;
+
+            /// <summary>View matrix from the frame before the previous frame.</summary>
+            public Matrix4x4 prevPrevViewMatrix;
+            /// <summary>Non-jittered projection matrix from the frame before the previous frame.</summary>
+            public Matrix4x4 prevPrevProjMatrix;
+            /// <summary>World Space camera position from the frame before the previous frame.</summary>
+            public Vector3 prevPrevWorldSpaceCameraPos;
+            internal float pad3;
         };
 
         /// <summary>Camera name.</summary>
@@ -178,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDCamera GetOrCreate(Camera camera, int xrMultipassId, HistoryChannel historyChannel)
         {
             HDCamera hdCamera;
-            
+
             if (historyChannel == HistoryChannel.HistoryChannelCount)
                 throw new System.Exception("No camera can be created with this history channel " + historyChannel + " (internal use only)");
 
@@ -226,11 +238,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             throw new System.Exception("All 8 user history channels are already existing for camera " + camera.name + " and XR pass " + xrMultipassId + ", use FreeUserHistoryChannel() or use an existing one.");
         }
-        
+
         // internal only for now, to be publicly available when history API is implemented in SRP Core
         /// <summary>
         /// Free given user history channel for a pair of camera and XR multi-pass Id if existing.
-        /// </summary>        
+        /// </summary>
         /// <param name="camera">Camera.</param>
         /// <param name="xrMultipassId">XR multi-pass Id.</param>
         /// <param name="channel">User history channel to remove.</param>
@@ -254,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // internal only for now, to be publicly available when history API is implemented in SRP Core
         /// <summary>
         /// Free all existing user history channels for a pair of camera and XR multi-pass Id.
-        /// </summary>        
+        /// </summary>
         /// <param name="camera">Camera.</param>
         /// <param name="xrMultipassId">XR multi-pass Id.</param>
         /// <returns></returns>
@@ -281,11 +293,6 @@ namespace UnityEngine.Rendering.HighDefinition
             colorPyramidHistoryIsValid = false;
             colorPyramidHistoryValidFrames = 0;
             dofHistoryIsValid = false;
-
-            // Reset the volumetric cloud offset animation data
-            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
-            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
-            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
 
             // Camera was potentially Reset() so we need to reset timers on the renderers.
             if (visualSky != null)
@@ -325,6 +332,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle GetCurrentFrameRT(int id)
         {
             return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        /// <summary>
+        /// Returns the id RTHandle of a particular frame.
+        /// </summary>
+        /// <param name="id">Id of the history RTHandle.</param>
+        /// <param name="frame">Index of the desired frame.</param>
+        /// <returns>The RTHandle of the requested frame.</returns>
+        public RTHandle GetFrameRT(int id, int frame)
+        {
+            return m_HistoryRTSystem.GetFrameRT(id, frame);
+        }
+
+        /// <summary>
+        /// Returns the number of frames for a particular id RTHandle.
+        /// </summary>
+        /// <param name="id">Id of the history RTHandle.</param>
+        /// <returns>The frame count.</returns>
+        public int GetHistoryFrameCount(int id)
+        {
+            return m_HistoryRTSystem.GetNumFramesAllocated(id);
         }
 
         #endregion
@@ -373,19 +401,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // A combination of masks that define the validity state of the history
             public int flagMask;
         }
-
-        /// <summary>
-        /// Struct that holds volumetric clouds animation data accumulated over time
-        /// </summary>
-        internal struct VolumetricCloudsAnimationData
-        {
-            public Vector2 cloudOffset;
-            public float verticalShapeOffset;
-            public float verticalErosionOffset;
-        }
-
-        // This property allows us to track the volumetric cloud animation data
-        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
         internal struct PlanetData
         {
@@ -438,6 +453,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool rayTracingAccumulation = true;
         internal bool animateMaterials;
         internal float lastTime;
+        internal float currentRenderDeltaTime;
+        internal float lastRenderDeltaTime;
 
         // This value is used to limit the taaFrameIndex value to a reasonable numeric range. The taaFrameIndex value is uploaded to shaders as a float so we should avoid letting it get too large to avoid precision issues.
         // NOTE: We assume this value is always a power of two when using it modulate taaFrameIndex
@@ -799,6 +816,37 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureTextures.previous = currentTexture;
         }
 
+        // STP uses a custom history texture management system in order to simplify code sharing with other SRPs
+        private STP.HistoryContext m_stpHistory = new STP.HistoryContext();
+
+        // When STP is enabled, this function updates the state of the history used by STP.
+        internal void RequestStpHistory(out bool useHwDrs, out bool hasValidHistory, out STP.HistoryContext history)
+        {
+            // This function should only be called when STP is enabled
+            Debug.Assert(IsSTPEnabled());
+
+            bool isDynResEnabled = DynResRequest.enabled;
+
+            // When HW DRS is not enabled, STP is only functional when the dynamic resolution is forced to a fixed value
+            if (isDynResEnabled && !DynResRequest.hardwareEnabled)
+                Debug.Assert(DynResRequest.forcingResolution);
+
+            Vector2Int preUpscaleSize = new Vector2Int(actualWidth, actualHeight);
+            Vector2Int postUpscaleSize = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
+
+            useHwDrs = isDynResEnabled && DynResRequest.hardwareEnabled;
+
+            STP.HistoryUpdateInfo info;
+            info.preUpscaleSize = preUpscaleSize;
+            info.postUpscaleSize = postUpscaleSize;
+            info.useHwDrs = useHwDrs;
+            info.useTexArray = TextureXR.useTexArray;
+
+            hasValidHistory = m_stpHistory.Update(ref info);
+
+            history = m_stpHistory;
+        }
+
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
@@ -882,6 +930,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool cameraRequested;
             public bool hardwareEnabled;
             public DynamicResUpscaleFilter filter;
+            public bool forcingResolution;
         }
 
         internal DynamicResolutionRequest DynResRequest { set; get; }
@@ -894,7 +943,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 enabled = dynResHandler.DynamicResolutionEnabled(),
                 cameraRequested = cameraRequestedDynamicRes,
                 hardwareEnabled = dynResHandler.HardwareDynamicResIsEnabled(),
-                filter = dynResHandler.filter
+                filter = dynResHandler.filter,
+                forcingResolution = dynResHandler.forcingResolution
             };
         }
 
@@ -938,7 +988,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsTAAUEnabled()
         {
-            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled() && !IsFSR2Enabled();
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() &&
+                ((DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU) || IsSTPEnabled()) &&
+                !IsDLSSEnabled() &&
+                !IsFSR2Enabled();
+        }
+
+        internal bool IsSTPEnabled()
+        {
+            return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderSTP;
         }
 
         internal bool IsPathTracingEnabled()
@@ -1080,6 +1138,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 time = 0;
                 lastTime = 0;
+            }
+
+            // Keep track of the delta time for the current frame, and the previous frame.
+            // STP uses this information to reproject motion vectors across frames.
+            if (isFirstFrame)
+            {
+                currentRenderDeltaTime = Time.deltaTime;
+                lastRenderDeltaTime = currentRenderDeltaTime;
+            }
+            else
+            {
+                lastRenderDeltaTime = currentRenderDeltaTime;
+                currentRenderDeltaTime = Time.deltaTime;
             }
 
             // Make sure that the shadow history identification array is allocated and is at the right size
@@ -1457,6 +1528,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._CameraViewProjMatrix = mainViewConstants.viewProjMatrix;
             cb._InvViewProjMatrix = mainViewConstants.invViewProjMatrix;
             cb._NonJitteredViewProjMatrix = mainViewConstants.nonJitteredViewProjMatrix;
+            cb._NonJitteredInvViewProjMatrix = mainViewConstants.nonJitteredInvViewProjMatrix;
             cb._PrevViewProjMatrix = mainViewConstants.prevViewProjMatrix;
             cb._PrevInvViewProjMatrix = mainViewConstants.prevInvViewProjMatrix;
             cb._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
@@ -1564,6 +1636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._XRViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].viewProjMatrix[j];
                     cb._XRInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].invViewProjMatrix[j];
                     cb._XRNonJitteredViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredViewProjMatrix[j];
+                    cb._XRNonJitteredInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredInvViewProjMatrix[j];
                     cb._XRPrevViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrix[j];
                     cb._XRPrevInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevInvViewProjMatrix[j];
                     cb._XRViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].viewProjectionNoCameraTrans[j];
@@ -1930,16 +2003,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (isFirstFrame)
                 {
+                    viewConstants.prevPrevWorldSpaceCameraPos = cameraPosition;
+                    viewConstants.prevPrevViewMatrix = gpuView;
+                    viewConstants.prevPrevProjMatrix = gpuNonJitteredProj;
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewMatrix = gpuView;
+                    viewConstants.prevProjMatrix = gpuNonJitteredProj;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
                     viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
                 }
                 else
                 {
+                    viewConstants.prevPrevWorldSpaceCameraPos = viewConstants.prevWorldSpaceCameraPos;
+                    viewConstants.prevPrevViewMatrix = viewConstants.prevViewMatrix;
+                    viewConstants.prevPrevProjMatrix = viewConstants.prevProjMatrix;
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
                     viewConstants.prevViewMatrix = viewConstants.viewMatrix;
+                    viewConstants.prevProjMatrix = viewConstants.nonJitteredProjMatrix;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
                     viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }
@@ -1953,6 +2034,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.viewProjMatrix = gpuProj * gpuView;
             viewConstants.invViewProjMatrix = viewConstants.viewProjMatrix.inverse;
             viewConstants.nonJitteredViewProjMatrix = gpuNonJitteredProj * gpuView;
+            viewConstants.nonJitteredInvViewProjMatrix = viewConstants.nonJitteredViewProjMatrix.inverse;
             viewConstants.worldSpaceCameraPos = cameraPosition;
             viewConstants.worldSpaceCameraPosViewOffset = Vector3.zero;
             viewConstants.viewProjectionNoCameraTrans = gpuVPNoTrans;
@@ -2114,7 +2196,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
-            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
+            // Note: We make an exception for STP since it cannot produce correct results without a specific jitter pattern.
+            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter && !IsSTPEnabled())
             {
                 taaJitter = Vector4.zero;
                 return origProj;
@@ -2127,10 +2210,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            // The variance between 0 and the actual halton sequence values reveals noticeable
-            // instability in Unity's shadow maps, so we avoid index 0.
-            float jitterX = HaltonSequence.Get(taaFrameIndex + 1, 2) - 0.5f;
-            float jitterY = HaltonSequence.Get(taaFrameIndex + 1, 3) - 0.5f;
+            float jitterX;
+            float jitterY;
+            if (IsSTPEnabled())
+            {
+                Vector2 stpJit = STP.Jit16(taaFrameIndex);
+                jitterX = stpJit.x;
+                jitterY = stpJit.y;
+            }
+            else
+            {
+                // The variance between 0 and the actual halton sequence values reveals noticeable
+                // instability in Unity's shadow maps, so we avoid index 0.
+                jitterX = HaltonSequence.Get(taaFrameIndex + 1, 2) - 0.5f;
+                jitterY = HaltonSequence.Get(taaFrameIndex + 1, 3) - 0.5f;
+            }
 
             if (!(IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled() || camera.cameraType == CameraType.SceneView))
             {
@@ -2261,6 +2355,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
             virtualTextureFeedback?.Cleanup();
 #endif
+
+            m_stpHistory.Dispose();
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
@@ -2283,6 +2379,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var historySystem = aovHistory.Value;
                 historySystem.ReleaseAll();
             }
+
+            m_stpHistory.Dispose();
         }
 
         Rect GetPixelRect()

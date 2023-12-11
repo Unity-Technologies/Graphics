@@ -13,9 +13,10 @@ void TerrainLitShade(float2 uv, inout TerrainLitSurfaceData surfaceData)
     surfaceData.ao = metallicTex.g;
 }
 
-void TerrainLitDebug(float2 uv, inout float3 baseColor)
+void TerrainLitDebug(float2 uv, uint2 screenSpaceCoords, out float3 baseColor)
 {
 #ifdef DEBUG_DISPLAY
-    baseColor = GetTextureDataDebug(_DebugMipMapMode, uv, _MainTex, _MainTex_TexelSize, _MainTex_MipInfo, baseColor);
+    SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_MainTex);
+    baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv, _MainTex);
 #endif
 }

@@ -51,8 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>The legacy light probe system.</summary>
             [InspectorName("Light Probe Groups")]
             LegacyLightProbes = 0,
-            /// <summary>Probe Volume system.</summary>
-            ProbeVolumes = 1,
+            /// <summary>Adaptive Probe Volumes system.</summary>
+            AdaptiveProbeVolumes = 1,
         }
 
 
@@ -151,14 +151,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Water Properties
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
-                supportWaterDeformation = false,
+                supportWaterDeformation = true,
                 deformationAtlasSize = WaterAtlasSize.AtlasSize512,
                 maximumDeformerCount = 64,
-                supportWaterFoam = false,
+                supportWaterFoam = true,
                 foamAtlasSize = WaterAtlasSize.AtlasSize512,
-                supportWaterExclusion = false,
-                waterCPUSimulation = false,
-                
+                supportWaterExclusion = true,
+                waterScriptInteractionsMode = WaterScriptInteractionsMode.GPUReadback,
+                waterFullCPUSimulation = false,
+
                 supportScreenSpaceLensFlare = true,
                 supportDataDrivenLensFlare = true,
                 supportRayTracing = false,
@@ -166,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedRayTracingMode = SupportedRayTracingMode.Both,
                 lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
-                lightProbeSystem = LightProbeSystem.ProbeVolumes,
+                lightProbeSystem = LightProbeSystem.AdaptiveProbeVolumes,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeBlendingMemoryBudget = ProbeVolumeBlendingTextureMemoryBudget.MemoryBudgetLow,
                 supportProbeVolumeScenarios = false,
@@ -277,8 +278,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportWaterFoam;
         /// <summary>Defines the resolution of the foam system atlas.</summary>
         public WaterAtlasSize foamAtlasSize;
-        /// <summary>Enable water CPU simulation.</summary>
-        public bool waterCPUSimulation;
+        /// <summary>Defines if the script interactions should simulate water on CPU or fetch simulation from the GPU.</summary>
+        [Tooltip("Defines if the script interactions should simulate water on CPU or fetch simulation from the GPU.")]
+        public WaterScriptInteractionsMode waterScriptInteractionsMode;
+        /// <summary>Defines if the CPU simulation should be evaluated at full resolution or half resolution.</summary>
+        [Tooltip("Defines if the CPU simulation should be evaluated at full resolution or half resolution.")]
+        public bool waterFullCPUSimulation;
 
         // Compute Thickness
         /// <summary>Sample Compute Thickness algorithm.</summary>
@@ -289,6 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask computeThicknessLayerMask;
 
         /// <summary>Names for rendering layers.</summary>
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
         public string[] renderingLayerNames
         {
             get { return (string[])HDRenderPipelineGlobalSettings.instance.renderingLayerNames.Clone(); }
@@ -362,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
-        
+
         // Post Processing
         /// <summary>Support Screen Space Lens Flare.</summary>
         public bool supportScreenSpaceLensFlare;
@@ -370,14 +376,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDataDrivenLensFlare;
 
         /// <summary>Support runtime debug display.</summary>
-        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead.@from(23.1)", false)]
+        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead. #from(23.1)", false)]
         public bool supportRuntimeDebugDisplay
         {
-            get => !HDRenderPipelineGlobalSettings.instance.stripDebugVariants;
-            set => HDRenderPipelineGlobalSettings.instance.stripDebugVariants = !value;
+            get => !HDRenderPipelineGlobalSettings.instance.m_StripDebugVariants;
+            set => HDRenderPipelineGlobalSettings.instance.m_StripDebugVariants = !value;
         }
 
-        internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.ProbeVolumes);
+        internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.AdaptiveProbeVolumes);
         [FormerlySerializedAs("supportProbeVolume")]
         [Obsolete("Use lightProbeSystem instead", false)]
         internal bool oldSupportProbeVolume;

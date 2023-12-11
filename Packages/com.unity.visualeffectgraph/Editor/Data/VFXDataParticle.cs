@@ -756,7 +756,7 @@ namespace UnityEditor.VFX
         }
 
         public override void FillDescs(
-            VFXCompileErrorReporter reporter,
+            IVFXErrorReporter reporter,
             VFXCompilationMode compilationMode,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
@@ -1401,8 +1401,8 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
-                        reporter?.RegisterError(context.GetSlotByPath(true, mapping.name), "GPUNodeLinkedTOCPUSlot", VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input.");
-                        throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
+                        reporter?.RegisterError("GPUNodeLinkedTOCPUSlot", VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input.", context.GetSlotByPath(true, mapping.name));
+                        throw new InvalidOperationException("Can not link a GPU operator to a system wide (CPU) input: " + mapping.name);
                     }
                 }
 
@@ -1727,19 +1727,27 @@ namespace UnityEditor.VFX
             set { m_GraphValuesLayout = value; }
         }
 
-        public void GenerateSystemUniformMapper(VFXExpressionGraph graph, VFXCompiledData compiledData)
+        public void GenerateSystemUniformMapper(VFXExpressionGraph graph, VFXCompiledData compiledData, ref Dictionary<VFXContext, VFXExpressionMapper> gpuMappers)
         {
             VFXUniformMapper uniformMapper = null;
             foreach (var context in m_Contexts)
             {
                 var gpuMapper = graph.BuildGPUMapper(context);
+                gpuMappers[context] = gpuMapper;
                 var contextUniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader, true);
 
                 // SG inputs if needed
-                VFXShaderGraphHelpers.GetShaderGraphParameter(context, out var fragInputNames, out var vertInputNames);
+                var shaderGraph = VFXShaderGraphHelpers.GetShaderGraph(context);
+                VFXSGInputs contextSGInputs = null;
+                if (shaderGraph)
+                {
+                    var firstTaskOfContext = compiledData.contextToCompiledData[context].tasks.First();
+                    var cpuMapper = compiledData.taskToCompiledData[firstTaskOfContext].cpuMapper;
 
-                var contextSGInputs = (fragInputNames?.Count > 0) || (vertInputNames?.Count > 0)
-                                      ? new VFXSGInputs(gpuMapper, contextUniformMapper, vertInputNames, fragInputNames) : null;
+                    contextSGInputs = new VFXSGInputs(cpuMapper, gpuMapper, contextUniformMapper, shaderGraph);
+                    if (contextSGInputs.IsEmpty())
+                        contextSGInputs = null;
+                }
 
                 // Add gpu and uniform mapper
                 foreach (var task in compiledData.contextToCompiledData[context].tasks)

@@ -135,6 +135,7 @@
 #endif // Do we have half?
 
 #if REAL_IS_HALF
+#define HALF_IS_FLOAT 0
 #define half min16float
 #define half2 min16float2
 #define half3 min16float3
@@ -146,6 +147,8 @@
 #define half3x4 min16float3x4
 #define half4x3 min16float4x3
 #define half4x4 min16float4x4
+#else
+#define HALF_IS_FLOAT (!defined(UNITY_DEVICE_SUPPORTS_NATIVE_16BIT))
 #endif
 
 #if REAL_IS_HALF
@@ -988,7 +991,7 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL)
     #define MIP_COUNT_SUPPORTED 1
 #endif
     // TODO: Bug workaround, switch defines GLCORE when it shouldn't

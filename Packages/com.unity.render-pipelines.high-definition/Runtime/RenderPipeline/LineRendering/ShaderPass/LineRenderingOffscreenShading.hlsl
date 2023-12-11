@@ -87,7 +87,7 @@ void OffscreenShadingFillFragInputs(uint2 positionViewport, inout FragInputs out
     // Configure the fragment.
     {
         output.tangentToWorld = BuildTangentToWorld(float4(T, 1), N);
-        output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_I_VP);
+        output.positionRWS    = ComputeWorldSpacePosition(positionCS, UNITY_MATRIX_UNJITTERED_I_VP);
         output.positionSS     = ClipSpaceToRasterSpacePosition(positionCS);
         output.positionPixel  = output.positionSS.xy;
         output.isFrontFace    = true;

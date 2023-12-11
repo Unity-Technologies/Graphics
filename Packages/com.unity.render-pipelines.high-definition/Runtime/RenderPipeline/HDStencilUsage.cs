@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SMAA = (1 << 2),              // Subpixel Morphological Antialiasing
         // Reserved TraceReflectionRay = (1 << 3) for transparent SSR or RTR
         Refractive = (1 << 4),        // Indicates there's a refractive object
-        WaterSurface = (1 << 5),      // Reserved for water surface usage
+        WaterSurface = (1 << 5),      // Reserved for water surface usage (If update the value of 'STENCILUSAGE_WATER_SURFACE' in LensFlareCommon.hlsl)
 
         // --- Following are user bits, we don't touch them inside HDRP and is up to the user to handle them ---
         UserBit0 = (1 << 6),

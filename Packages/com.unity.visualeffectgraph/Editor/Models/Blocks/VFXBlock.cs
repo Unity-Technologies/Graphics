@@ -188,6 +188,13 @@ namespace UnityEditor.VFX
             return m_TransientData;
         }
 
+        public override void RefreshErrors()
+        {
+            if (enabled)
+            {
+                base.RefreshErrors();
+            }
+        }
 
         internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {

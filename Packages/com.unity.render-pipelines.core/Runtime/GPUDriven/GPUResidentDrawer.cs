@@ -12,7 +12,7 @@ using static UnityEngine.ObjectDispatcher;
 using Unity.Jobs;
 using static UnityEngine.Rendering.RenderersParameters;
 using Unity.Jobs.LowLevel.Unsafe;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -36,6 +36,24 @@ namespace UnityEngine.Rendering
         #region Public API
 
         /// <summary>
+        /// Utility function to test if instance occlusion culling is enabled
+        /// </summary>
+        /// <returns>True if instance occlusion culling is enabled</returns>
+        public static bool IsInstanceOcclusionCullingEnabled()
+        {
+            if (s_Instance == null)
+                return false;
+
+            if (s_Instance.settings.mode != GPUResidentDrawerMode.InstancedDrawing)
+                return false;
+
+            if (s_Instance.settings.enableOcclusionCulling)
+                    return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Utility function for updating data post cull in begin camera rendering
         /// </summary>
         /// <param name="context">
@@ -44,6 +62,64 @@ namespace UnityEngine.Rendering
         public static void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
         {
             s_Instance?.batcher.PostCullBeginCameraRendering(context);
+        }
+
+        /// <summary>
+        /// Utility function to run an occlusion test in compute to update indirect draws.
+        /// This function will dispatch compute shaders to run the given occlusion test and
+        /// update all indirect draws in the culling output for the given view.
+        /// The next time a renderer list that uses this culling output is drawn, these
+        /// indirect draw commands will contain only the instances that passed the given
+        /// occlusion test.
+        /// </summary>
+        /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
+        /// <param name="settings">The view to update and occlusion test to use.</param>
+        public static void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings)
+        {
+            s_Instance?.batcher.InstanceOcclusionTest(renderGraph, settings);
+        }
+
+        /// <summary>
+        /// Utility function used to update occluders using a depth buffer.
+        /// This function will dispatch compute shaders to read the given depth buffer
+        /// and build a mip pyramid of closest depths for use during occlusion culling.
+        /// The next time an occlusion test is issed for this view, instances will be
+        /// tested against the updated occluders.
+        /// </summary>
+        /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
+        /// <param name="occluderParameters">Parameter to specify the view and depth buffer to read.</param>
+        public static void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParameters)
+        {
+            s_Instance?.batcher.UpdateInstanceOccluders(renderGraph, occluderParameters);
+        }
+
+        #endregion
+
+        #region Public Debug API
+
+        /// <summary>
+        /// Utility function to render an occlusion test heatmap debug overlay.
+        /// </summary>
+        /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
+        /// <param name="debugSettings">The rendering debugger debug settings to read parameters from.</param>
+        /// <param name="viewInstanceID">The instance ID of the camera using a GPU occlusion test.</param>
+        /// <param name="colorBuffer">The color buffer to render the overlay on.</param>
+        public static void RenderDebugOcclusionTestOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, int viewInstanceID, TextureHandle colorBuffer)
+        {
+            s_Instance?.batcher.occlusionCullingCommon.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, viewInstanceID, colorBuffer);
+        }
+
+        /// <summary>
+        /// Utility function visualise the occluder pyramid in a debug overlay.
+        /// </summary>
+        /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
+        /// <param name="debugSettings">The rendering debugger debug settings to read parameters from.</param>
+        /// <param name="screenPos">The screen position to render the overlay at.</param>
+        /// <param name="maxHeight">The maximum screen height of the overlay.</param>
+        /// <param name="colorBuffer">The color buffer to render the overlay on.</param>
+        public static void RenderDebugOccluderOverlay(RenderGraph renderGraph, DebugDisplayGPUResidentDrawer debugSettings, Vector2 screenPos, float maxHeight, TextureHandle colorBuffer)
+        {
+            s_Instance?.batcher.occlusionCullingCommon.RenderDebugOccluderOverlay(renderGraph, debugSettings, screenPos, maxHeight, colorBuffer);
         }
 
         #endregion
@@ -150,30 +226,46 @@ namespace UnityEngine.Rendering
         private static GPUResidentDrawerSettings GetGlobalSettingsFromRPAsset()
         {
             var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
-                return mbAsset.gpuResidentDrawerSettings;
+            if (renderPipelineAsset is not IGPUResidentRenderPipeline mbAsset)
+                return new GPUResidentDrawerSettings();
 
-            return new GPUResidentDrawerSettings();
+            var settings = mbAsset.gpuResidentDrawerSettings;
+            if (IsForcedOnViaCommandLine())
+                settings.mode = GPUResidentDrawerMode.InstancedDrawing;
+
+            if (IsOcclusionForcedOnViaCommandLine())
+                settings.enableOcclusionCulling = true;
+
+            return settings;
         }
 
+        /// <summary>
+        /// Is GRD forced on via the command line via -force-gpuresidentdrawer. Editor only.
+        /// </summary>
+        /// <returns>true if forced on</returns>
         private static bool IsForcedOnViaCommandLine()
         {
-#if UNITY_EDITOR && GPU_RESIDENT_DRAWER_ALLOW_FORCE_ON
-            foreach (var arg in Environment.GetCommandLineArgs())
-            {
-                if (arg.Equals("-force-gpuresidentdrawer", StringComparison.InvariantCultureIgnoreCase))
-                    return true;
-            }
-#endif
+#if UNITY_EDITOR
+            return s_IsForcedOnViaCommandLine;
+#else
             return false;
+#endif
         }
 
-		internal static void Reinitialize()
+        /// <summary>
+        /// Is occlusion culling forced on via the command line via -force-gpuocclusion. Editor only.
+        /// </summary>
+        /// <returns>true if forced on</returns>
+        private static bool IsOcclusionForcedOnViaCommandLine()
         {
-			Reinitialize(false);
-		}
+#if UNITY_EDITOR
+            return s_IsOcclusionForcedOnViaCommandLine;
+#else
+            return false;
+#endif
+        }
 
-        internal static void Reinitialize(bool forceSupported)
+        internal static void Reinitialize()
         {
             var settings = GetGlobalSettingsFromRPAsset();
 
@@ -183,7 +275,7 @@ namespace UnityEngine.Rendering
             try
 #endif
             {
-                Recreate(settings, forceSupported);
+                Recreate(settings);
             }
 #if UNITY_EDITOR
             catch (Exception exception)
@@ -204,14 +296,8 @@ namespace UnityEngine.Rendering
             s_Instance = null;
         }
 
-        private static void Recreate(GPUResidentDrawerSettings settings, bool forceSupported)
+        private static void Recreate(GPUResidentDrawerSettings settings)
         {
-            if (IsForcedOnViaCommandLine())
-            {
-                forceSupported = true;
-                settings.mode = GPUResidentDrawerMode.InstancedDrawing;
-            }
-
             CleanUp();
 
             // nothing to create
@@ -229,7 +315,7 @@ namespace UnityEngine.Rendering
 #endif
 
             bool supported = true;
-            if (!forceSupported)
+            if (!IsForcedOnViaCommandLine())
             {
                 var mbAsset = GraphicsSettings.currentRenderPipeline as IGPUResidentRenderPipeline;
                 if (mbAsset == null)
@@ -265,12 +351,31 @@ namespace UnityEngine.Rendering
         private MeshRendererDrawer m_MeshRendererDrawer;
 
 #if UNITY_EDITOR
+        private static readonly bool s_IsForcedOnViaCommandLine;
+        private static readonly bool s_IsOcclusionForcedOnViaCommandLine;
+
         private NativeList<int> m_FrameCameraIDs;
         private bool m_FrameUpdateNeeded = false;
 
         static GPUResidentDrawer()
         {
 			Lightmapping.bakeCompleted += Reinitialize;
+
+#if GPU_RESIDENT_DRAWER_ALLOW_FORCE_ON
+            foreach (var arg in Environment.GetCommandLineArgs())
+            {
+                if (arg.Equals("-force-gpuresidentdrawer", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Debug.Log("GPU Resident Drawer forced on via commandline");
+                    s_IsForcedOnViaCommandLine = true;
+                }
+                if (arg.Equals("-force-gpuocclusion", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Debug.Log("GPU occlusion culling forced on via commandline");
+                    s_IsOcclusionForcedOnViaCommandLine = true;
+                }
+            }
+#endif
         }
 #endif
 
@@ -290,7 +395,9 @@ namespace UnityEngine.Rendering
             rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount, speedTreeNum: maxTreeInstanceCount);
             rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
             rbcDesc.smallMeshScreenPercentage = settings.smallMeshScreenPercentage;
+            rbcDesc.enableBoundingSpheresInstanceData = settings.enableOcclusionCulling;
             rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
+            rbcDesc.useLegacyLightmaps = settings.useLegacyLightmaps;
 
             var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();
 #if UNITY_EDITOR
@@ -325,6 +432,19 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
 
+            // Depending on a UI setting, we want to either keep lightmaps as texture arrays,
+            // or instead opt out and keep them as individual textures.
+            // Accordingly, we set the keyword globally across all shaders.
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            if (settings.useLegacyLightmaps)
+            {
+                Shader.EnableKeyword(useLegacyLightmapsKeyword);
+            }
+            else
+            {
+                Shader.DisableKeyword(useLegacyLightmapsKeyword);
+            }
+
             InsertIntoPlayerLoop();
         }
 
@@ -343,6 +463,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
 
             RemoveFromPlayerLoop();
+
+            const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
+            Shader.DisableKeyword(useLegacyLightmapsKeyword);
 
             m_ChangedMaterials.Clear();
             m_ChangedMaterials = null;
@@ -472,7 +595,8 @@ namespace UnityEngine.Rendering
             if (changed.Length == 0 && destroyed.Length == 0)
                 return;
 
-            m_BatchersContext.lightmapManager.RecreateLightmaps();
+            // The lightmap manager is null if lightmap texture arrays are disabled.
+            m_BatchersContext.lightmapManager?.RecreateLightmaps();
         }
 
         private void ProcessMaterials(IList<Object> changed, NativeArray<int> changedID, NativeArray<int> destroyedID)
@@ -481,11 +605,12 @@ namespace UnityEngine.Rendering
                 return;
 
             var destroyedLightmappedMaterialsID = new NativeList<int>(Allocator.TempJob);
-            m_BatchersContext.lightmapManager.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
+			// The lightmap manager is null if lightmap texture arrays are disabled.
+            m_BatchersContext.lightmapManager?.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
             m_Batcher.DestroyMaterials(destroyedLightmappedMaterialsID.AsArray());
             destroyedLightmappedMaterialsID.Dispose();
 
-            m_BatchersContext.lightmapManager.UpdateMaterials(changed, changedID);
+            m_BatchersContext.lightmapManager?.UpdateMaterials(changed, changedID);
             m_Batcher.DestroyMaterials(destroyedID);
         }
 

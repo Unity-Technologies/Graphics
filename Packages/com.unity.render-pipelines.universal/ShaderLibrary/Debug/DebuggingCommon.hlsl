@@ -7,6 +7,7 @@
 #if defined(DEBUG_DISPLAY)
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreaming.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
 // Material settings...
@@ -18,6 +19,11 @@ int _DebugMaterialValidationMode;
 int _DebugFullScreenMode;
 int _DebugSceneOverrideMode;
 int _DebugMipInfoMode;
+int _DebugMipMapStatusMode;
+int _DebugMipMapShowStatusCode;
+half _DebugMipMapOpacity;
+half _DebugMipMapRecentlyUpdatedCooldown;
+int _DebugMipMapTerrainTextureMode;
 int _DebugValidationMode;
 
 // Lighting settings...
@@ -37,6 +43,12 @@ float4 _DebugColor;
 float4 _DebugColorInvalidMode;
 float4 _DebugValidateBelowMinThresholdColor;
 float4 _DebugValidateAboveMaxThresholdColor;
+
+// Not particular to any settings; used by MipMap debugging because we don't have reliable access to _Time.y
+float _DebugCurrentRealTime;
+
+// We commonly need to undo a previous TRANSFORM_TEX to get UV0s back, followed by a TRANSFORM_TEX with the UV0s / _ST of the StreamingDebugTex... hence, this macro.
+#define UNDO_TRANSFORM_TEX(uv, undoTex)    ((uv - undoTex##_ST.zw) / undoTex##_ST.xy)
 
 half3 GetDebugColor(uint index)
 {
@@ -115,6 +127,124 @@ bool CalculateColorForDebugSceneOverride(out half4 color)
         return true;
     }
 }
+
+half4 BlitScreenSpaceDigit(half4 originalColor, uint2 screenSpaceCoords, int digit, uint spacing, bool invertColors)
+{
+    half4 outColor = originalColor;
+
+    const uint2 pixCoord = screenSpaceCoords / 2;
+    const uint2 tileSize = uint2(spacing, spacing);
+    const int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
+
+    UNITY_LOOP for (int i = 0; i <= 1; ++i)
+    {
+        // 0 == shadow, 1 == text
+        if (SampleDebugFontNumber2Digits(coord + i, digit))
+        {
+            outColor = (i == 0)
+                ? (invertColors ? half4(1, 1, 1, 1) : half4(0, 0, 0, 1))
+                : (invertColors ? half4(0, 0, 0, 1) : half4(1, 1, 1, 1));
+        }
+    }
+
+    return outColor;
+}
+
+void GetHatchedColor(uint2 screenSpaceCoords, half4 hatchingColor, inout half4 debugColor)
+{
+    const uint spacing = 16; // increase spacing compared to the legend (easier on the eyes)
+    const uint thickness = 3;
+    if((screenSpaceCoords.x + screenSpaceCoords.y) % spacing < thickness)
+        debugColor = hatchingColor;
+}
+
+void GetHatchedColor(uint2 screenSpaceCoords, inout half4 debugColor)
+{
+    GetHatchedColor(screenSpaceCoords, half4(0.1, 0.1, 0.1, 1), debugColor);
+}
+
+// Keep in sync with GetTextureDataDebug in HDRP's Runtime/Debug/DebugDisplay.hlsl
+bool CalculateColorForDebugMipmapStreaming(in uint mipCount, uint2 screenSpaceCoords, in float4 texelSize, in float2 uv, in float4 mipInfo, in float4 streamInfo, in half3 originalColor, inout half4 debugColor)
+{
+    bool hasDebugColor = false;
+    bool needsHatching;
+
+    switch (_DebugMipInfoMode)
+    {
+        case DEBUGMIPINFOMODE_NONE:
+            hasDebugColor = false;
+            break;
+
+        case DEBUGMIPINFOMODE_MIP_COUNT:
+            debugColor = half4(GetDebugMipCountColor(mipCount, needsHatching), 1);
+            if (needsHatching)
+            {
+                half4 hatchingColor = half4(GetDebugMipCountHatchingColor(mipCount), 1);
+                GetHatchedColor(screenSpaceCoords, hatchingColor, debugColor);
+            }
+
+            if (mipCount > 0 && mipCount <= 14)
+                debugColor = BlitScreenSpaceDigit(debugColor, screenSpaceCoords, mipCount, 32, true);
+
+            hasDebugColor = true;
+            break;
+
+        case DEBUGMIPINFOMODE_MIP_RATIO:
+            debugColor = half4(GetDebugMipColorIncludingMipReduction(originalColor, mipCount, texelSize, uv, mipInfo), 1);
+            hasDebugColor = true;
+            break;
+
+        case DEBUGMIPINFOMODE_MIP_STREAMING_PERFORMANCE:
+            debugColor = half4(GetDebugStreamingMipColor(mipCount, mipInfo, streamInfo, needsHatching), 1);
+            if (needsHatching)
+                GetHatchedColor(screenSpaceCoords, debugColor);
+
+            hasDebugColor = true;
+            break;
+
+        case DEBUGMIPINFOMODE_MIP_STREAMING_STATUS:
+            if(_DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_TEXTURE)
+                debugColor = half4(GetDebugStreamingStatusColor(streamInfo, needsHatching), 1);
+            else
+                debugColor = half4(GetDebugPerMaterialStreamingStatusColor(streamInfo, needsHatching), 1);
+            if (needsHatching)
+                GetHatchedColor(screenSpaceCoords, debugColor);
+
+            if (_DebugMipMapShowStatusCode && _DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_TEXTURE && !IsStreaming(streamInfo))
+            {
+                if (GetStatusCode(streamInfo, false) != kMipmapDebugStatusCodeNotSet && GetStatusCode(streamInfo, false) != kMipmapDebugStatusCodeNoTexture) // we're ignoring these because there's just one status anyway (so the color itself is enough)
+                    debugColor = BlitScreenSpaceDigit(debugColor, screenSpaceCoords, GetStatusCode(streamInfo, false), 16, false);
+            }
+
+            hasDebugColor = true;
+            break;
+
+        case DEBUGMIPINFOMODE_MIP_STREAMING_PRIORITY:
+            debugColor = half4(GetDebugStreamingPriorityColor(streamInfo), 1);
+            hasDebugColor = true;
+            break;
+
+        case DEBUGMIPINFOMODE_MIP_STREAMING_ACTIVITY:
+            debugColor = half4(GetDebugStreamingRecentlyUpdatedColor(_DebugCurrentRealTime, _DebugMipMapRecentlyUpdatedCooldown, _DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_MATERIAL, streamInfo), 1);
+            hasDebugColor = true;
+            break;
+
+        default:
+            hasDebugColor = TryGetDebugColorInvalidMode(debugColor);
+            break;
+    }
+
+    // Blend the original color with the debug color
+    if(hasDebugColor)
+        debugColor = lerp(half4(originalColor, 1), debugColor, _DebugMipMapOpacity);
+
+    return hasDebugColor;
+}
+
+#else
+
+// When "DEBUG_DISPLAY" isn't defined this macro just returns the original UVs.
+#define UNDO_TRANSFORM_TEX(uv, undoTex)    uv
 
 #endif
 

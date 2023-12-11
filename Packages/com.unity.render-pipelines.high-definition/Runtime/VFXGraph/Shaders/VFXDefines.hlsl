@@ -1,17 +1,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialBlendModeEnum.cs.hlsl"
 
 #if VFX_BLENDMODE_ALPHA
-    #define _BlendMode BLENDMODE_ALPHA
+    #define _BlendMode BLENDINGMODE_ALPHA
 #elif VFX_BLENDMODE_ADD
-    #define _BlendMode BLENDMODE_ADDITIVE
+    #define _BlendMode BLENDINGMODE_ADDITIVE
 #elif VFX_BLENDMODE_PREMULTIPLY
-    #define _BlendMode BLENDMODE_PREMULTIPLY
+    #define _BlendMode BLENDINGMODE_PREMULTIPLY
 #else
     //Opaque, doesn't really matter what we specify, but a definition is needed to avoid compilation errors.
-    #define _BlendMode BLENDMODE_ALPHA
+    #define _BlendMode BLENDINGMODE_ALPHA
 #endif
 
 #if HDRP_LIT

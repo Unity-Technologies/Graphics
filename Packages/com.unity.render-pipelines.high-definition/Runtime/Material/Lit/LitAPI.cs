@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             bool excludeFromTUAndAA = BaseLitAPI.CompatibleWithExcludeFromTUAndAA(material) && material.GetInt(kExcludeFromTUAndAA) != 0;
-            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS, excludeFromTUAndAA: excludeFromTUAndAA);
+            BaseLitAPI.SetupStencil(material, receivesLighting: true, receiveSSR, material.GetMaterialType() == MaterialId.LitSSS, excludeFromTUAndAA: excludeFromTUAndAA);
             BaseLitAPI.SetupDisplacement(material);
 
             if (material.HasProperty(kNormalMapSpace))
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (material.HasProperty(kMaterialID))
             {
-                MaterialId materialId = material.GetMaterialId();
+                MaterialId materialId = material.GetMaterialType();
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == MaterialId.LitSSS);
                 CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == MaterialId.LitTranslucent || (materialId == MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
 

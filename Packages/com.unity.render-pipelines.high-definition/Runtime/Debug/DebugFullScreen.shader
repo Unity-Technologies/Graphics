@@ -29,6 +29,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
+            float _ApplyExposure;
             float4 _FullScreenDebugDepthRemap;
             float _TransparencyOverdrawMaxPixelCost;
             float _QuadOverdrawMaxQuadCost;
@@ -188,13 +189,51 @@ Shader "Hidden/HDRP/DebugFullScreen"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
+                // Note: If mipmap debug mode is enabled, we don't render other full screen debug modes
                 // and the value of _FullScreenDebugMode is forced to 0
-                if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW)
+                if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
                 {
+                    // just passing through
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+
+                    // draw legend
+                    switch(_DebugMipMapMode)
+                    {
+                        case DEBUGMIPMAPMODE_MIP_COUNT:
+                            DrawMipCountLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_RATIO:
+                            DrawMipRatioLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_STATUS:
+                            if (_DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_TEXTURE)
+                                DrawMipStreamingStatusLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, _DebugMipMapShowStatusCode, color.rgb);
+                            else
+                                DrawMipStreamingStatusPerMaterialLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_PERFORMANCE:
+                            DrawTextureStreamingPerformanceLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_PRIORITY:
+                            DrawMipPriorityLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, color.rgb);
+                            break;
+                        case DEBUGMIPMAPMODE_MIP_STREAMING_ACTIVITY:
+                            DrawMipRecentlyUpdatedLegend(input.texcoord / _RTHandleScale.xy, _ScreenSize, _DebugMipMapStatusMode == DEBUGMIPMAPSTATUSMODE_MATERIAL, color.rgb);
+                            break;
+                    }
+
                     return color;
                 }
+
+                // Note: If the single shadow debug mode is enabled, we don't render other full screen debug modes
+                // and the value of _FullScreenDebugMode is forced to 0
+                if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _FullScreenDebugMode == FULLSCREENDEBUGMODE_NONE)
+                {
+                    float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    color *= _ApplyExposure > 0.0 ? GetCurrentExposureMultiplier() : 1.0;
+                    return color;
+                }
+
                 // SSAO
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_AMBIENT_OCCLUSION)
                 {
@@ -552,6 +591,17 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint2 samplePosition = (uint2)((input.texcoord / _RTHandleScale.xy) * _DebugViewportSize.xy);
                     samplePosition.y = _DebugViewportSize.y - samplePosition.y;
                     return LOAD_TEXTURE2D_X(_DebugFullScreenTexture, samplePosition);
+                }
+
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_STP)
+                {
+                    uint2 samplePosition = (uint2)((input.texcoord / _RTHandleScale.xy) * _DebugViewportSize.xy);
+                    float4 stp = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, samplePosition);
+
+                    // This is encoded in gamma 2.0 (so the square is needed to get it back to linear).
+                    stp.rgb *= stp.rgb;
+
+                    return stp;
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

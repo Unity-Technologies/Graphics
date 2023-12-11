@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using Unity.Mathematics;
 using Unity.Collections;
+using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
@@ -145,19 +146,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Water CPU Simulation
         /// <summary>
-        /// When enabled, HDRP will evaluate the water simulation on the CPU for C# script requests. Enabling this will significantly increase the CPU cost of the feature.
+        /// When enabled, the Water System allows you to make height requests from a C# script.
         /// </summary>
-        public bool cpuSimulation = false;
-
-        /// <summary>
-        /// Specifies if the CPU simulation should be evaluated on CPU, or results should be fetched from the GPU with a few frames latency.
-        /// </summary>
-        public bool cpuLowLatency = false;
-
-        /// <summary>
-        /// Specifies if the CPU simulation should be evaluated at full or half resolution. When in full resolution, the visual fidelity will be higher but the cost of the simulation will increase.
-        /// </summary>
-        public bool cpuFullResolution = false;
+        [Tooltip("When enabled, the Water System allows you to make height requests from a C# script."), FormerlySerializedAs("cpuSimulation")]
+        public bool scriptInteractions = false;
 
         /// <summary>
         /// Specifies if the CPU simulation should evaluate the ripples as part of the simulation. Including ripples will allow a higher visual fidelity but the cost of the simulation will increase.
@@ -368,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the rendering layers that affect the water surface.
         /// </summary>
         [Tooltip("Specifies the rendering layers that affect the water surface.")]
-        public RenderingLayerMask renderingLayerMask = RenderingLayerMask.Default;
+        public RenderingLayerMask renderingLayerMask = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
         /// <summary>
         /// Sets the debug mode for a given water surface.
@@ -481,22 +473,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         /// <summary>
-        /// Function that returns the water surface CPU simulation resolution.
-        /// </summary>
-        /// <returns>A value of time WaterSimulationResolution that defines the current water surface CPU simulation resolution.</returns>
-        public WaterSimulationResolution GetSimulationResolutionCPU()
-        {
-            int resolution;
-            if (simulation.simulationResolution != 64)
-                resolution = cpuFullResolution ? simulation.simulationResolution : simulation.simulationResolution / 2;
-            else
-                resolution = simulation.simulationResolution;
-            return (WaterSimulationResolution)resolution;
-        }
-
-        static internal NativeArray<float4> s_EmptyNativeArray;
-
-        /// <summary>
         /// Function that fills a WaterSimSearchData with the data of the current water surface.
         /// </summary>
         /// <param name="wsd">The water simulation search data to fill.</param>
@@ -504,7 +480,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool FillWaterSearchData(ref WaterSimSearchData wsd)
         {
             var hdrp = HDRenderPipeline.currentPipeline;
-            if (hdrp == null|| !hdrp.m_ActiveWaterSimulationCPU || !cpuSimulation)
+            if (hdrp == null || !scriptInteractions)
                 return false;
 
             if (simulation != null && simulation.ValidResources((int)hdrp.m_WaterBandResolution, numActiveBands))
@@ -514,24 +490,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Simulation
                 wsd.activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(surfaceType, ripples, cpuEvaluateRipples);
-                wsd.lowLatency = cpuLowLatency;
+                wsd.cpuSimulation = !hdrp.m_GPUReadbackMode;
                 wsd.spectrum = simulation.spectrum;
                 wsd.rendering = simulation.rendering;
 
-                if (cpuLowLatency)
+                if (wsd.cpuSimulation)
                 {
                     if (simulation.cpuBuffers == null)
                         return false;
 
-                    wsd.simulationRes = (int)GetSimulationResolutionCPU();
+                    wsd.simulationRes = (int)hdrp.m_WaterCPUSimulationResolution;
                     wsd.displacementDataCPU = simulation.cpuBuffers.displacementBufferCPU;
-                    wsd.displacementDataGPU = s_EmptyNativeArray.Reinterpret<half4>(4 * sizeof(float));
+                    wsd.displacementDataGPU = wsd.displacementDataCPU.Reinterpret<half4>(4 * sizeof(float));
                 }
                 else
                 {
+                    if (!displacementBufferSynchronizer.TryGetBuffer(out wsd.displacementDataGPU))
+                        return false;
+
                     wsd.simulationRes = simulation.simulationResolution;
-                    wsd.displacementDataGPU = displacementBufferSynchronizer.CurrentBuffer();
-                    wsd.displacementDataCPU = s_EmptyNativeArray;
+                    wsd.displacementDataCPU = wsd.displacementDataGPU.Reinterpret<float4>(2 * sizeof(float));
 
                     if (wsd.displacementDataGPU.Length == 0 || displacementBufferSynchronizer.CurrentSlices() < wsd.activeBandCount)
                         return false;
@@ -684,7 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal float3 UpVector()
         {
-            return IsInstancedQuads() ? float3(0, 1, 0) : transform.up;
+            return transform.up;
         }
 
         internal void ReleaseResources()

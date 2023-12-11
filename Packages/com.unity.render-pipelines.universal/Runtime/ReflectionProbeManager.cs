@@ -10,6 +10,7 @@ namespace UnityEngine.Rendering.Universal
         int2 m_Resolution;
         RenderTexture m_AtlasTexture0;
         RenderTexture m_AtlasTexture1;
+        RTHandle m_AtlasTexture0Handle;
         BuddyAllocator m_AtlasAllocator;
         Dictionary<int, CachedProbe> m_Cache;
         Dictionary<int, int> m_WarningCache;
@@ -50,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public RenderTexture atlasRT => m_AtlasTexture0;
+        public RTHandle atlasRTHandle => m_AtlasTexture0Handle;
 
         public static ReflectionProbeManager Create()
         {
@@ -80,6 +82,7 @@ namespace UnityEngine.Rendering.Universal
             m_AtlasTexture0.filterMode = FilterMode.Bilinear;
             m_AtlasTexture0.hideFlags = HideFlags.HideAndDontSave;
             m_AtlasTexture0.Create();
+            m_AtlasTexture0Handle = RTHandles.Alloc(m_AtlasTexture0);
 
             m_AtlasTexture1 = new RenderTexture(m_AtlasTexture0.descriptor);
             m_AtlasTexture1.name = "URP Reflection Probe Atlas";
@@ -313,6 +316,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_AtlasTexture0)
             {
                 m_AtlasTexture0.Release();
+                m_AtlasTexture0Handle.Release();
             }
 
             this = default;

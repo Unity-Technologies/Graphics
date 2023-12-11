@@ -44,8 +44,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // Combine pass via hardware blending.
         Material m_CloudCombinePass;
 
-        // The animation time is shared for all cameras
-        internal float m_VolumetricCloudsTime;
+        // Animation time is shared for all cameras, but only updated by the main camera
+        internal struct VolumetricCloudsAnimationData
+        {
+            internal float time;
+            public Vector2 cloudOffset;
+            public float verticalShapeOffset;
+            public float verticalErosionOffset;
+        }
+
+        internal VolumetricCloudsAnimationData m_CloudsAnimationData;
 
         struct VolumetricCloudsCameraData
         {
@@ -98,7 +106,13 @@ namespace UnityEngine.Rendering.HighDefinition
             AllocatePresetTextures();
 
             // Initialize cloud animation
-            m_VolumetricCloudsTime = -1.0f;
+            m_CloudsAnimationData = new()
+            {
+                time = -1.0f,
+                cloudOffset = new Vector2(0.0f, 0.0f),
+                verticalShapeOffset = 0.0f,
+                verticalErosionOffset = 0.0f,
+            };
 
             // Initialize the additional sub components
             InitializeVolumetricCloudsMap();
@@ -313,10 +327,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
             // We apply a minus to see something moving in the right direction
             cb._WindDirection = new Vector2(-Mathf.Cos(theta), -Mathf.Sin(theta));
-            cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
+            cb._WindVector = m_CloudsAnimationData.cloudOffset;
 
-            cb._VerticalShapeWindDisplacement = hdCamera.volumetricCloudsAnimationData.verticalShapeOffset;
-            cb._VerticalErosionWindDisplacement = hdCamera.volumetricCloudsAnimationData.verticalErosionOffset;
+            cb._VerticalShapeWindDisplacement = m_CloudsAnimationData.verticalShapeOffset;
+            cb._VerticalErosionWindDisplacement = m_CloudsAnimationData.verticalErosionOffset;
 
             cb._LargeWindSpeed = settings.cloudMapSpeedMultiplier.value;
             cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
@@ -481,38 +495,33 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GetCameraType(hdCamera) != TVolumetricCloudsCameraType.Default)
                 return;
 
-            // Animation time should be independent from camera
-            float totalTime = Time.realtimeSinceStartup;
-
-            // The system needs to updated if this is not the first frame and the previous frame history is valid
-            if (m_VolumetricCloudsTime != -1.0f && EvaluateVolumetricCloudsHistoryValidity(hdCamera))
+            // The system needs to updated if the previous frame history is valid
+            if (EvaluateVolumetricCloudsHistoryValidity(hdCamera))
             {
-                // Compute the delta time
-                float deltaTime = totalTime - m_VolumetricCloudsTime;
+                float totalTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+                float deltaTime = totalTime - m_CloudsAnimationData.time;
+                if (m_CloudsAnimationData.time == -1.0f)
+                    deltaTime = 0.0f;
 
                 #if UNITY_EDITOR
                 if (UnityEditor.EditorApplication.isPaused)
                     deltaTime = 0.0f;
                 #endif
 
-                // Compute the theta angle for the wind direction
-                float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
+                // Conversion from km/h to m/s is the 0.277778f factor
+                // We apply a minus to see something moving in the right direction
+                deltaTime *= -0.277778f;
 
                 // Compute the wind direction
+                float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
                 Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
 
-                // Conversion  from km/h to m/s  is the 0.277778f factor
-                // We apply a minus to see something moving in the right direction
-                Vector2 windVector = 0.277778f * deltaTime * settings.globalWindSpeed.GetValue(hdCamera) * -windDirection;
-
                 // Animate the offsets
-                hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;
-                hdCamera.volumetricCloudsAnimationData.verticalShapeOffset += -settings.verticalShapeWindSpeed.value * deltaTime * 0.277778f;
-                hdCamera.volumetricCloudsAnimationData.verticalErosionOffset += -settings.verticalErosionWindSpeed.value * deltaTime * 0.277778f;
+                m_CloudsAnimationData.time = totalTime;
+                m_CloudsAnimationData.cloudOffset += deltaTime * settings.globalWindSpeed.GetValue(hdCamera) * windDirection;
+                m_CloudsAnimationData.verticalShapeOffset += deltaTime * settings.verticalShapeWindSpeed.value;
+                m_CloudsAnimationData.verticalErosionOffset += deltaTime * settings.verticalErosionWindSpeed.value;
             }
-
-            // Update the time
-            m_VolumetricCloudsTime = totalTime;
         }
 
         class VolumetricCloudsCombineOpaqueData

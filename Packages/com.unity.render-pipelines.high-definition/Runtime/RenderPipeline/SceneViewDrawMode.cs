@@ -22,7 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraMode.drawMode != DrawCameraMode.DeferredNormal &&
                 cameraMode.drawMode != DrawCameraMode.ValidateAlbedo &&
                 cameraMode.drawMode != DrawCameraMode.ValidateMetalSpecular &&
-                cameraMode.drawMode != DrawCameraMode.SpriteMask;
+                cameraMode.drawMode != DrawCameraMode.SpriteMask &&
+                cameraMode.drawMode != DrawCameraMode.TextureStreaming;
         }
 
         static void UpdateSceneViewStates()

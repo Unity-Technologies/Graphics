@@ -2,7 +2,7 @@
 #define __SHADERBASE_H__
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 
 #ifdef MSAA_ENABLED
     TEXTURE2D_X_MSAA(float, g_depth_tex) : register( t0 );

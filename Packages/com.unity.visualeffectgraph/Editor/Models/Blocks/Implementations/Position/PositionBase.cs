@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -17,6 +18,14 @@ namespace UnityEditor.VFX.Block
             Volume,
             ThicknessAbsolute,
             ThicknessRelative
+        }
+
+        [Flags]
+        public enum Orientation
+        {
+            None = 0,
+            Direction = 1,
+            Axes = 2,
         }
 
         public enum SpawnMode
@@ -50,7 +59,7 @@ namespace UnityEditor.VFX.Block
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
-        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Add;
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Overwrite;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on AxisX/Y/Z. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode compositionAxes = AttributeCompositionMode.Overwrite;
@@ -63,7 +72,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Controls whether particles are spawned randomly, or can be controlled by a deterministic input.")]
         public SpawnMode spawnMode;
 
-        public override string name => VFXBlockUtility.GetNameString(compositionPosition) + " Position (Shape: {0})";
+        public override string name => VFXBlockUtility.GetNameString(compositionPosition) + " Position On {0}";
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
@@ -90,23 +99,6 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXAttributeInfo(VFXAttribute.AxisX, readWriteMode);
                     yield return new VFXAttributeInfo(VFXAttribute.AxisY, readWriteMode);
                     yield return new VFXAttributeInfo(VFXAttribute.AxisZ, readWriteMode);
-                }
-            }
-        }
-
-        public override IEnumerable<VFXNamedExpression> parameters
-        {
-            get
-            {
-                var allSlot = GetExpressionsFromSlots(this);
-                foreach (var p in allSlot.Where(e => e.name != "Thickness"))
-                    yield return p;
-
-                if (supportsVolumeSpawning)
-                {
-                    var thickness = allSlot.FirstOrDefault(o => o.name == "Thickness").exp;
-                    var radius = base.parameters.FirstOrDefault(o => o.name.EndsWith("radius")).exp;
-                    yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius, thickness), "volumeFactor");
                 }
             }
         }
@@ -157,42 +149,12 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected virtual float thicknessDimensions { get { return 3.0f; } }
-
-        protected VFXExpression CalculateVolumeFactor(PositionMode positionMode, VFXExpression radius, VFXExpression thickness)
-        {
-            VFXExpression factor = VFXValue.Constant(0.0f);
-
-            switch (positionMode)
-            {
-                case PositionMode.Surface:
-                    factor = VFXValue.Constant(0.0f);
-                    break;
-                case PositionMode.Volume:
-                    factor = VFXValue.Constant(1.0f);
-                    break;
-                case PositionMode.ThicknessAbsolute:
-                case PositionMode.ThicknessRelative:
-                {
-                    if (positionMode == PositionMode.ThicknessAbsolute)
-                    {
-                        thickness = thickness / radius;
-                    }
-
-                    factor = VFXOperatorUtility.Saturate(thickness);
-                    break;
-                }
-            }
-
-            return new VFXExpressionPow(VFXValue.Constant(1.0f) - factor, VFXValue.Constant(thicknessDimensions));
-        }
-
-        protected string composePositionFormatString
+        public string composePositionFormatString
         {
             get { return VFXBlockUtility.GetComposeString(compositionPosition, "position", "{0}", "blendPosition") + "\n"; }
         }
 
-        protected string composeDirectionFormatString
+        public string composeDirectionFormatString
         {
             get { return VFXBlockUtility.GetComposeString(compositionDirection, "direction", "{0}", "blendDirection") + "\n"; }
         }

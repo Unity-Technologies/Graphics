@@ -146,6 +146,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     ++EditorGUI.indentLevel;
                     serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                    EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
+					EditorGUILayout.PropertyField(serialized.useLegacyLightmaps, Styles.useLegacyLightmaps);
                     --EditorGUI.indentLevel;
 
                     if (brgStrippingError)
@@ -154,6 +156,8 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.HelpBox(Styles.lightModeErrorMessage.text, MessageType.Warning, true);
                     if (staticBatchingWarning)
                         EditorGUILayout.HelpBox(Styles.staticBatchingInfoMessage.text, MessageType.Info, true);
+                    if (serialized.gpuResidentDrawerEnableOcclusionCullingInCameras.boolValue && GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
+                        EditorGUILayout.HelpBox(Styles.renderGraphNotEnabledErrorMessage.text, MessageType.Info, true);
                 }
             }
         }
@@ -196,6 +200,20 @@ namespace UnityEditor.Rendering.Universal
                 }
 
                 --EditorGUI.indentLevel;
+            }
+            else if (serialized.asset.upscalingFilter == UpscalingFilterSelection.STP)
+            {
+                // Warn users if they attempt to enable STP without render graph
+                if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
+                {
+                    EditorGUILayout.HelpBox(Styles.stpRequiresRenderGraph, MessageType.Warning, true);
+                }
+
+                // Warn users about performance expectations if they attempt to enable STP on a mobile platform
+                if (PlatformAutoDetect.isShaderAPIMobileDefined)
+                {
+                    EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
+                }
             }
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
@@ -248,7 +266,14 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUILayout.PropertyField(serialized.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.probeVolumeSHBands, Styles.probeVolumeSHBands);
-                EditorGUILayout.PropertyField(serialized.supportProbeVolumeStreaming, Styles.supportProbeVolumeStreaming);
+
+                EditorGUILayout.PropertyField(serialized.supportProbeVolumeGPUStreaming, Styles.supportProbeVolumeGPUStreaming);
+                EditorGUI.BeginDisabledGroup(!serialized.supportProbeVolumeGPUStreaming.boolValue);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(serialized.supportProbeVolumeDiskStreaming, Styles.supportProbeVolumeDiskStreaming);
+                EditorGUI.indentLevel--;
+                EditorGUI.EndDisabledGroup();
+
                 EditorGUILayout.PropertyField(serialized.supportProbeVolumeScenarios, Styles.supportProbeVolumeScenarios);
                 if (serialized.supportProbeVolumeScenarios.boolValue)
                 {

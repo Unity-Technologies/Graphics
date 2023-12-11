@@ -686,7 +686,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = oldIndentLevel;
         }
 
-
         static void DrawCelestialBodyContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
@@ -1226,7 +1225,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
-            EditorGUILayout.PropertyField(serialized.includeForRayTracing, s_Styles.includeLightForRayTracing);
+            if (lightType != LightType.Disc)
+            {
+                EditorGUILayout.PropertyField(serialized.includeForRayTracing, s_Styles.includeLightForRayTracing);
+            }
+            EditorGUILayout.PropertyField(serialized.includeForPathTracing, s_Styles.includeLightForPathTracing);
 
             if (EditorGUI.EndChangeCheck())
             {

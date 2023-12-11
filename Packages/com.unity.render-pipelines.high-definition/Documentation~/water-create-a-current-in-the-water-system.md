@@ -24,9 +24,9 @@ You can create a Current map texture in any  image-editing software. The image c
 
 ![](Images/watersystem-curent.png)
 
-The Red and Green channels contain the 2D direction of the current and the Blue channel contains the influence of the current map. Black areas use the default direction, which is +X.
-For direction, a value of 0.5 is neutral.
-When importing a current map in the editor, make sure to that the sRGB checkbox is disabled.
+The Red and Green channels contain the 2D direction of the current and the Blue channel contains the influence of the current map. 
+The default direction is +X, as a result, the neutral value for a current map is (1, 0.5, 1). 
+When importing a current map in the editor, make sure to that the sRGB checkbox is disabled in the texture importer.
 
 The following images display each channel of the current map included in the River sample scene.
 * The red channel of a current map: ![](Images/watersystem-curent-r.png)

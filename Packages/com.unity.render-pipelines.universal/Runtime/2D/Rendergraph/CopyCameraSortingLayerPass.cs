@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_CopyCameraSortingLayerPass);
         private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Copy");
-        public static readonly string k_CameraSortingLayerTexture = "_CameraSortingLayerTexture";
+        internal static readonly string k_CameraSortingLayerTexture = "_CameraSortingLayerTexture";
         private static readonly int k_CameraSortingLayerTextureId = Shader.PropertyToID(k_CameraSortingLayerTexture);
         static Material m_BlitMaterial;
 
@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = blitMaterial;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();
@@ -66,13 +67,13 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(passData.source);
                 builder.AllowPassCulling(false);
 
+                builder.SetGlobalTextureAfterPass(destination, k_CameraSortingLayerTextureId);
+
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     Execute(context.cmd, data.source);
                 });
             }
-
-            RenderGraphUtils.SetGlobalTexture(graph, k_CameraSortingLayerTextureId, destination, "Set Camera Sorting Layer Texture");
         }
     }
 }

@@ -21,6 +21,8 @@ namespace UnityEditor.VFX
 
     abstract class VFXData : VFXModel
     {
+        public const uint kMaxContexts = 16;
+
         public abstract VFXDataType type { get; }
 
         public virtual uint staticSourceCount
@@ -40,6 +42,8 @@ namespace UnityEditor.VFX
         {
             get { return owners.Where(o => o.CanBeCompiled()); }
         }
+
+        public bool hasTooManyContext => m_Contexts?.Count > kMaxContexts;
 
         public string title;
 
@@ -126,7 +130,7 @@ namespace UnityEditor.VFX
         }
 
         public virtual void FillDescs(
-            VFXCompileErrorReporter reporter,
+            IVFXErrorReporter reporter,
             VFXCompilationMode compilationMode,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
@@ -395,9 +399,8 @@ namespace UnityEditor.VFX
             m_StoredCurrentAttributes.Clear();
             m_LocalCurrentAttributes.Clear();
             m_ReadSourceAttributes.Clear();
-            int contextCount = m_Contexts.Count;
-            if (contextCount > 16)
-                throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", contextCount));
+            if (hasTooManyContext)
+                throw new InvalidOperationException($"Too many contexts within the same system: {m_Contexts.Count} > 16");
 
             foreach (var kvp in m_AttributesToContexts)
             {

@@ -7,11 +7,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal void ApplyCommonPreset(WaterSurface waterSurface)
         {
             waterSurface.timeMultiplier = 1.0f;
-            waterSurface.cpuSimulation = false;
-            waterSurface.cpuLowLatency = false;
-            waterSurface.cpuFullResolution = false;
+            waterSurface.scriptInteractions = false;
             waterSurface.cpuEvaluateRipples = false;
-            waterSurface.renderingLayerMask = (RenderingLayerMask)GraphicsSettings.defaultRenderingLayerMask;
+            waterSurface.renderingLayerMask = (RenderingLayerMask)(uint)UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
             // Simulation
             waterSurface.waterMask = null;
@@ -69,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.surfaceType = WaterSurfaceType.OceanSeaLake;
             waterSurface.geometryType = WaterGeometryType.Infinite;
             waterSurface.geometryType = WaterGeometryType.Infinite;
-            waterSurface.cpuSimulation = true;
+            waterSurface.scriptInteractions = true;
 
             // Swell
             waterSurface.repetitionSize = 500.0f;
@@ -145,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the various parameters
             waterSurface.surfaceType = WaterSurfaceType.Pool;
             waterSurface.geometryType = WaterGeometryType.InstancedQuads;
-            waterSurface.cpuSimulation = false;
+            waterSurface.scriptInteractions = false;
             waterSurface.tessellation = false;
 
             // Make the time multiplier a bit slower

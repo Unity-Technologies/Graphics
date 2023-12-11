@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal
                 bool msaaSamplesChangedThisFrame = false;
 #if !UNITY_EDITOR
                 // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
-                if (m_CreateColorTexture && renderGraph.NativeRenderPassesEnabled && Screen.msaaSamples > 1)
+                if (m_CreateColorTexture && renderGraph.nativeRenderPassesEnabled && Screen.msaaSamples > 1)
                 {
                     msaaSamplesChangedThisFrame = true;
                     Screen.SetMSAASamples(1);
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-         
+
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
             var cameraTargetFilterMode = FilterMode.Bilinear;
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
@@ -420,21 +420,16 @@ namespace UnityEngine.Rendering.Universal
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             CommonResourceData commonResourceData = frameData.GetOrCreate<CommonResourceData>();
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             InitializeLayerBatches();
 
             CreateResources(renderGraph);
 
-            var isTargetFlipped = commonResourceData.isActiveTargetBackBuffer;
-            if (IsGLDevice())
-                isTargetFlipped = !cameraData.IsCameraProjectionMatrixFlipped();
-
-            SetupRenderGraphCameraProperties(renderGraph, isTargetFlipped);
+            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);
-#endif  
+#endif
 
             OnBeforeRendering(renderGraph);
 
@@ -468,8 +463,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             ShadowCasterGroup2DManager.CacheValues();
-
             ShadowRendering.CallOnBeforeRender(cameraData.camera, m_Renderer2DData.lightCullResult);
+
+            RendererLighting.lightBatch.Reset();
         }
 
         private void OnMainRendering(RenderGraph renderGraph)
@@ -489,9 +485,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
-
-            RendererLighting.lightBatch.Reset();
-
+         
             // Main render passes
 
             // Normal Pass
@@ -509,7 +503,7 @@ namespace UnityEngine.Rendering.Universal
             // Default Render Pass
             for (var i = 0; i < m_BatchCount; i++)
             {
-                if (!renderGraph.NativeRenderPassesEnabled && i == 0)
+                if (!renderGraph.nativeRenderPassesEnabled && i == 0)
                 {
                     RTClearFlags clearFlags = (RTClearFlags)GetCameraClearFlag(cameraData);
                     if (clearFlags != RTClearFlags.None)
@@ -519,7 +513,7 @@ namespace UnityEngine.Rendering.Universal
                 ref var layerBatch = ref m_LayerBatches[i];
 
                 LayerUtility.GetFilterSettings(m_Renderer2DData, ref m_LayerBatches[i], cameraSortingLayerBoundsIndex, out var filterSettings);
-                m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, i, ref filterSettings);
+                m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches, i, ref filterSettings);
 
                 // Shadow Volumetric Pass
                 m_ShadowPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches[i], i, true);
@@ -536,7 +530,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CopyCameraSortingLayerPass.Render(renderGraph, commonResourceData.activeColorTexture, universal2DResourceData.cameraSortingLayerTexture);
 
                         filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref layerBatch, i, ref filterSettings);
+                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches, i, ref filterSettings);
                     }
                     else if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound)
                     {
@@ -640,11 +634,11 @@ namespace UnityEngine.Rendering.Universal
             bool shouldRenderUI = cameraData.rendersOverlayUI;
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
-                m_DrawOverlayUIPass.RenderOverlay(renderGraph, cameraData.camera, in finalColorHandle, in finalDepthHandle);
+                m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in finalColorHandle, in finalDepthHandle);
 
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
-            DebugHandler?.Setup(renderingData.commandBuffer, cameraData.isPreviewCamera);
-            DebugHandler?.Render(renderGraph, renderingData.commandBuffer, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
+            DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
+            DebugHandler?.Render(renderGraph, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
 
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.backBufferColor, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);

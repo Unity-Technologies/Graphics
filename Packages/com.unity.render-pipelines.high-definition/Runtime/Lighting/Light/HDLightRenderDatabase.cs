@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float angularDiameter;
         public float volumetricFadeDistance;
         public bool includeForRayTracing;
+        public bool includeForPathTracing;
         public bool useScreenSpaceShadows;
         public bool useRayTracedShadows;
         public bool colorShadow;

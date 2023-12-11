@@ -1,0 +1,177 @@
+#pragma kernel ResetDrawArgs
+#pragma kernel CopyInstances
+#pragma kernel CullInstances
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceOcclusionCuller.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceOcclusionCullerShaderVariables.cs.hlsl"
+
+#pragma multi_compile _ USE_ARRAY
+#pragma multi_compile _ OCCLUSION_DEBUG
+#include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingCommon.hlsl"
+
+#pragma multi_compile _ OCCLUSION_FIRST_PASS OCCLUSION_SECOND_PASS
+
+#if defined(OCCLUSION_FIRST_PASS) || defined(OCCLUSION_SECOND_PASS)
+#define OCCLUSION_ANY_PASS
+#endif
+
+#define DRAW_ARGS_INDEX(N)                      (5*(_DrawInfoAllocIndex + (N)))
+#define DRAW_ARGS_INDEX_INDIRECT_DISPATCH       DRAW_ARGS_INDEX(_DrawInfoCount)
+#define DRAW_ARGS_INDEX_INSTANCE_COUNTER        (DRAW_ARGS_INDEX_INDIRECT_DISPATCH + 3)
+
+#define INSTANCE_INFO_OFFSET_SECOND_PASS(N)     (_InstanceInfoCount + (N))
+
+// buffers allocate 2 sets of instance info per instance (for the second pass)
+#define INSTANCE_ALLOC_INDEX                    (_InstanceInfoAllocIndex/2)
+
+StructuredBuffer<IndirectDrawInfo> _DrawInfo;
+RWStructuredBuffer<IndirectInstanceInfo> _InstanceInfo;
+RWStructuredBuffer<uint> _DrawArgs;
+RWByteAddressBuffer _InstanceIndices;
+ByteAddressBuffer _InstanceDataBuffer;
+RWStructuredBuffer<int> _OcclusionDebugCounters;
+
+IndirectDrawInfo LoadDrawInfo(uint drawInfoOffset)
+{
+    return _DrawInfo[_DrawInfoAllocIndex + drawInfoOffset];
+}
+
+uint GetInstanceInfoCount()
+{
+#ifdef OCCLUSION_SECOND_PASS
+    return _DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER];
+#else
+    return _InstanceInfoCount;
+#endif
+}
+
+IndirectInstanceInfo LoadInstanceInfo(uint instanceInfoOffset)
+{
+#ifdef OCCLUSION_SECOND_PASS
+    return _InstanceInfo[_InstanceInfoAllocIndex + INSTANCE_INFO_OFFSET_SECOND_PASS(instanceInfoOffset)];
+#else
+    return _InstanceInfo[_InstanceInfoAllocIndex + instanceInfoOffset];
+#endif
+}
+
+SphereBound LoadInstanceBoundingSphere(uint instanceID)
+{
+    float4 data = asfloat(_InstanceDataBuffer.Load4(_BoundingSphereInstanceDataAddress + instanceID * 16));
+    SphereBound b;
+    b.center = data.xyz; 
+    b.radius = data.w;
+    return b;
+}
+
+[numthreads(64,1,1)]
+void ResetDrawArgs(uint drawInfoOffset : SV_DispatchThreadID)
+{
+    if (drawInfoOffset < _DrawInfoCount)
+    {
+        IndirectDrawInfo drawInfo = LoadDrawInfo(drawInfoOffset);
+
+        uint argsBase = DRAW_ARGS_INDEX(drawInfoOffset);
+        _DrawArgs[argsBase + 0] = drawInfo.indexCount;   // IndirectDrawIndexedArgs.indexCountPerInstance
+        _DrawArgs[argsBase + 1] = 0;                     // IndirectDrawIndexedArgs.instanceCount
+        _DrawArgs[argsBase + 2] = drawInfo.firstIndex;   // IndirectDrawIndexedArgs.startIndex
+        _DrawArgs[argsBase + 3] = drawInfo.baseVertex;   // IndirectDrawIndexedArgs.baseVertexIndex
+        _DrawArgs[argsBase + 4] = 0;                     // IndirectDrawIndexedArgs.startInstance
+    }
+
+    if (drawInfoOffset == 0)
+    {
+#ifdef OCCLUSION_SECOND_PASS
+        // convert to dispatch args
+        uint argsBase = DRAW_ARGS_INDEX_INDIRECT_DISPATCH;
+        _DrawArgs[argsBase + 0] = (_DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER] + 63)/64;
+        _DrawArgs[argsBase + 1] = 1;
+        _DrawArgs[argsBase + 2] = 1;
+#else
+        // zero the instance count
+        _DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER] = 0;
+#endif
+    }
+}
+
+[numthreads(64, 1, 1)]
+void CopyInstances(uint dispatchIdx : SV_DispatchThreadID)
+{
+    if (dispatchIdx < _DrawInfoCount)
+    {
+        IndirectDrawInfo drawInfo = LoadDrawInfo(dispatchIdx);
+
+        uint argsBase = DRAW_ARGS_INDEX(dispatchIdx);
+        _DrawArgs[argsBase + 0] = drawInfo.indexCount;          // IndirectDrawIndexedArgs.indexCountPerInstance
+        _DrawArgs[argsBase + 1] = drawInfo.maxInstanceCount;    // IndirectDrawIndexedArgs.instanceCount
+        _DrawArgs[argsBase + 2] = drawInfo.firstIndex;          // IndirectDrawIndexedArgs.startIndex
+        _DrawArgs[argsBase + 3] = drawInfo.baseVertex;          // IndirectDrawIndexedArgs.baseVertexIndex
+        _DrawArgs[argsBase + 4] = 0;                            // IndirectDrawIndexedArgs.startInstance
+    }
+
+    if (dispatchIdx < _InstanceInfoCount)
+    {
+        IndirectInstanceInfo instanceInfo = LoadInstanceInfo(dispatchIdx);
+
+        uint writeIndex = INSTANCE_ALLOC_INDEX + dispatchIdx;
+        _InstanceIndices.Store(writeIndex << 2, instanceInfo.instanceIndexAndCrossFade);
+    }
+}
+
+[numthreads(64,1,1)]
+void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+{
+    SET_SLICE_INDEX(groupId.y);
+
+    uint instanceInfoCount = GetInstanceInfoCount();
+    if (instanceInfoOffset < instanceInfoCount)
+    {
+        IndirectInstanceInfo instanceInfo = LoadInstanceInfo(instanceInfoOffset);
+        uint drawOffset = instanceInfo.drawOffsetAndSplitMask >> 8;
+        uint splitMask = instanceInfo.drawOffsetAndSplitMask & 0xff;
+
+        // check renderer list filtering (only run occlusion culling for this cascade)
+        // TODO: plumb through other state per draw command to filter here?
+        if ((splitMask & _RendererListSplitMask) == 0)
+            return;
+
+        bool isVisible = true;
+
+#ifdef OCCLUSION_ANY_PASS
+        int instanceID = instanceInfo.instanceIndexAndCrossFade & 0xffffff;
+        SphereBound boundingSphere = LoadInstanceBoundingSphere(instanceID);
+
+        isVisible = IsOcclusionVisible(boundingSphere);
+        
+#ifdef OCCLUSION_FIRST_PASS
+        // if we failed the occlusion check, then add to the list for the second pass
+        if (!isVisible)
+        {
+            uint writeIndex = 0;
+            InterlockedAdd(_DrawArgs[DRAW_ARGS_INDEX_INSTANCE_COUNTER], 1, writeIndex);
+            _InstanceInfo[_InstanceInfoAllocIndex + INSTANCE_INFO_OFFSET_SECOND_PASS(writeIndex)] = instanceInfo;
+        }
+#endif
+#endif
+
+        // track stats if necessary
+        if (_DebugCounterIndex >= 0)
+        {
+            // TODO: sum each within wave, first thread in wave issues atomic add to memory
+            int counterIndex = isVisible ? INSTANCEOCCLUSIONTESTDEBUGCOUNTER_NOT_OCCLUDED : INSTANCEOCCLUSIONTESTDEBUGCOUNTER_OCCLUDED;
+            int resultUnused = 0;
+            InterlockedAdd(_OcclusionDebugCounters[_DebugCounterIndex*INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT + counterIndex], 1, resultUnused);
+        }
+
+        if (isVisible)
+        {
+            uint argsBase = DRAW_ARGS_INDEX(drawOffset);
+            uint offsetWithinDraw = 0;
+            InterlockedAdd(_DrawArgs[argsBase + 1], 1, offsetWithinDraw);   // IndirectDrawIndexedArgs.instanceCount
+
+            IndirectDrawInfo drawInfo = LoadDrawInfo(drawOffset);
+            uint writeIndex = drawInfo.firstInstanceGlobalIndex + offsetWithinDraw;
+            _InstanceIndices.Store(writeIndex << 2, instanceInfo.instanceIndexAndCrossFade);
+        }
+    }
+}

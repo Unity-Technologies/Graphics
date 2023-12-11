@@ -1067,6 +1067,9 @@ namespace UnityEngine.Rendering
         /// <returns>A new Material instance using the shader found at the provided path.</returns>
         public static Material CreateEngineMaterial(string shaderPath)
         {
+            if (string.IsNullOrEmpty(shaderPath))
+                throw new ArgumentException(nameof(shaderPath));
+
             Shader shader = Shader.Find(shaderPath);
             if (shader == null)
             {
@@ -1074,11 +1077,7 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            var mat = new Material(shader)
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            return mat;
+            return CreateEngineMaterial(shader);
         }
 
         /// <summary>
@@ -1095,11 +1094,11 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            var mat = new Material(shader)
+
+            return new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
-            return mat;
         }
 
         /// <summary>
@@ -1609,6 +1608,18 @@ namespace UnityEngine.Rendering
         public static int GetMipCount(float size)
         {
             return Mathf.FloorToInt(Mathf.Log(size, 2.0f)) + 1;
+        }
+
+        /// <summary>
+        /// Divides one value by another and rounds up to the next integer.
+        /// This is often used to calculate dispatch dimensions for compute shaders.
+        /// </summary>
+        /// <param name="value">The value to divide.</param>
+        /// <param name="divisor">The value to divide by.</param>
+        /// <returns>The value divided by the divisor rounded up to the next integer.</returns>
+        public static int DivRoundUp(int value, int divisor)
+        {
+            return (value + (divisor - 1)) / divisor;
         }
 
         /// <summary>

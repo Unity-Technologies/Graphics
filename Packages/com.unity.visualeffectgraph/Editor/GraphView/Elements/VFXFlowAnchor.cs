@@ -127,7 +127,7 @@ namespace UnityEditor.VFX.UI
                 return false;
             }
 
-            var model = (VFXContext)descriptor.CreateInstance();
+            var model = (VFXContext)descriptor.unTypedModel;
             return direction == Direction.Input
                 ? VFXContext.CanLink(model, controller.context.model)
                 : VFXContext.CanLink(controller.context.model, model);
@@ -221,6 +221,7 @@ namespace UnityEditor.VFX.UI
             else if (!exists)
             {
                 VFXFilterWindow.Show(
+                    view,
                     Event.current.mousePosition - new Vector2(376 * 0.5f * view.scale, 0),
                     view.ViewToScreenPosition(Event.current.mousePosition),
                     new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext) }));

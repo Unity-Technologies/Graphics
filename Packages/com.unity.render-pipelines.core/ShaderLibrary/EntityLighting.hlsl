@@ -199,13 +199,19 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
     return (decodeInstructions.x * PositivePow(alpha, decodeInstructions.y)) * encodedIrradiance.rgb;
 }
 
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
+// ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
+// texture arrays. This minimizes batch breakages, but texture arrays aren't
+// supported in a performant way on all GPUs.
 #define TEXTURE2D_LIGHTMAP_PARAM TEXTURE2D_ARRAY_PARAM
 #define TEXTURE2D_LIGHTMAP_ARGS TEXTURE2D_ARRAY_ARGS
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D_ARRAY
 #define LIGHTMAP_EXTRA_ARGS float2 uv, float slice
 #define LIGHTMAP_EXTRA_ARGS_USE uv, slice
 #else
+// ^ Lightmaps are not bound as texture arrays, but as individual textures. The
+// batch is broken every time lightmaps are changed, but this is well-supported
+// on all GPUs.
 #define TEXTURE2D_LIGHTMAP_PARAM TEXTURE2D_PARAM
 #define TEXTURE2D_LIGHTMAP_ARGS TEXTURE2D_ARGS
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D

@@ -11,7 +11,11 @@
             #if USE_FLIPBOOK
                 ${VFXLoadParameter:{invFlipBookSize}}
                 ${VFXLoadParameter:{flipBookSize}}
-                VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, uv, attributes.texIndex);
+                #if USE_FLIPBOOK_INTERPOLATION
+                    VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, uv, attributes.texIndex, attributes.texIndexBlend);
+                #else
+                    VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, uv, attributes.texIndex);
+                #endif
                 uv = uvData.uvs.xy;
             #endif
             #if HDRP_USE_BASE_COLOR_MAP && USE_ALPHA_TEST

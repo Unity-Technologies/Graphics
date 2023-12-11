@@ -40,7 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.labelWidth *= 0.5f;
 
             serialized.Apply();
-            VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxWarnings);
+            if (needRefreshVfxWarnings)
+                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded();
         }
     }
 }

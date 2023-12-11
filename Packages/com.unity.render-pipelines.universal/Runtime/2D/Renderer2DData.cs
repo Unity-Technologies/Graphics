@@ -58,45 +58,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         uint m_MaxShadowRenderTextureCount = 1;
 
-        [SerializeField, Reload("Shaders/2D/Light2D.shader")]
-        Shader m_LightShader = null;
-
-        [SerializeField, Reload("Shaders/Utils/CoreBlit.shader")]
-        Shader m_CoreBlitShader = null;
-
-        [SerializeField, Reload("Shaders/Utils/CoreBlitColorAndDepth.shader")]
-        Shader m_CoreBlitColorAndDepthPS = null;
-
-        [SerializeField, Reload("Shaders/Utils/BlitHDROverlay.shader")]
-        Shader m_BlitHDROverlay;
-
-        [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
-        Shader m_SamplingShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Projected.shader")]
-        Shader m_ProjectedShadowShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Shadow-Sprite.shader")]
-        Shader m_SpriteShadowShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
-        Shader m_SpriteUnshadowShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Shadow-Geometry.shader")]
-        Shader m_GeometryShadowShader = null;
-
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
-        Shader m_GeometryUnshadowShader = null;
-
-        [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
-        Shader m_FallbackErrorShader;
-
         [SerializeField]
         PostProcessData m_PostProcessData = null;
-
-        [SerializeField, Reload("Runtime/2D/Data/Textures/FalloffLookupTexture.png")]
-        [HideInInspector]
-        private Texture2D m_FallOffLookup = null;
 
         /// <summary>
         /// HDR Emulation Scale allows platforms to use HDR lighting by compressing the number of expressible colors in exchange for extra intensity range.
@@ -109,18 +72,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
-        internal Texture2D fallOffLookup => m_FallOffLookup;
-        internal Shader lightShader => m_LightShader;
-        internal Shader coreBlitPS => m_CoreBlitShader;
-        internal Shader coreBlitAdndDepthPS => m_CoreBlitColorAndDepthPS;
-        internal Shader blitHDROverlay => m_BlitHDROverlay;
-        internal Shader samplingShader => m_SamplingShader;
         internal PostProcessData postProcessData { get => m_PostProcessData; set { m_PostProcessData = value; } }
-        internal Shader spriteShadowShader => m_SpriteShadowShader;
-        internal Shader spriteUnshadowShader => m_SpriteUnshadowShader;
-        internal Shader geometryShadowShader => m_GeometryShadowShader;
-        internal Shader geometryUnshadowShader => m_GeometryUnshadowShader;
-        internal Shader projectedShadowShader => m_ProjectedShadowShader;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;

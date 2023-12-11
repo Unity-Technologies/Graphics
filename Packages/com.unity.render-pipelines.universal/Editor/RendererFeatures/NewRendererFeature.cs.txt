@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.RenderGraphModule;
 
 public class #SCRIPTNAME# : ScriptableRendererFeature
 {
@@ -34,13 +34,15 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
                 // Make use of frameData to access resources and camera data through the dedicated containers.
                 // Eg:
                 // UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                // UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
                 // Setup pass inputs and outputs through the builder interface.
                 // Eg:
-                // builder.UseTexture(resourceData.activeColorTexture);
+                // builder.UseTexture(sourceTexture);
                 // TextureHandle destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, cameraData.cameraTargetDescriptor, "Destination Texture", false);
-                // builder.UseTextureFragment(destination, 0);
+                
+                // This sets the render target of the pass to the active color texture. Change it to your own render target as needed.
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
 
                 // Assigns the ExecutePass function to the render pass delegate. This will be called by the render graph when executing the pass.
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));

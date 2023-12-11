@@ -10,7 +10,7 @@
     padding-bottom: 0px;
     margin-left:0;
     margin-right:0;
-    overflow:hidden;
+    overflow:visible;
 }
 #block-container .VFXNodeUI.node.first
 {

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -29,6 +30,7 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
         // When empty this render pass will render to the active camera render target.
         // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         // The render pipeline will ensure target setup and clearing happens in a performant manner.
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
@@ -37,6 +39,7 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
         // Use <c>ScriptableRenderContext</c> to issue drawing commands or execute command buffers
         // https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.html
         // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -56,8 +59,10 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
 
             UniversalRenderer renderer = renderingData.cameraData.renderer as UniversalRenderer;
 
+            #pragma warning disable CS0618 // Type or member is obsolete
             ConfigureTarget(renderer?.cameraColorTargetHandle);
             ConfigureClear(ClearFlag.Color, Color.yellow);
+            #pragma warning restore CS0618 // Type or member is obsolete
 
             if (m_Material)
             {
@@ -120,7 +125,9 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
         }
 
         m_ScriptablePass.Setup(m_Material);
+        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_ScriptablePass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     protected override void Dispose(bool disposing)

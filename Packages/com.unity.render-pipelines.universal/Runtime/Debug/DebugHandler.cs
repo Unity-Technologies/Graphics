@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -11,9 +13,11 @@ namespace UnityEngine.Rendering.Universal
         #region Property Id Constants
 
         static readonly int k_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
+        static readonly int k_DebugCurrentRealTimeId = Shader.PropertyToID("_DebugCurrentRealTime");
 
         static readonly int k_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
         static readonly int k_DebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
+        static readonly int k_DebugFontId = Shader.PropertyToID("_DebugFont");
         static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
         static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
         static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
@@ -25,6 +29,11 @@ namespace UnityEngine.Rendering.Universal
 
         // Rendering settings...
         static readonly int k_DebugMipInfoModeId = Shader.PropertyToID("_DebugMipInfoMode");
+        static readonly int k_DebugMipMapStatusModeId = Shader.PropertyToID("_DebugMipMapStatusMode");
+        static readonly int k_DebugMipMapShowStatusCodeId = Shader.PropertyToID("_DebugMipMapShowStatusCode");
+        static readonly int k_DebugMipMapOpacityId = Shader.PropertyToID("_DebugMipMapOpacity");
+        static readonly int k_DebugMipMapRecentlyUpdatedCooldownId = Shader.PropertyToID("_DebugMipMapRecentlyUpdatedCooldown");
+        static readonly int k_DebugMipMapTerrainTextureModeId = Shader.PropertyToID("_DebugMipMapTerrainTextureMode");
         static readonly int k_DebugSceneOverrideModeId = Shader.PropertyToID("_DebugSceneOverrideMode");
         static readonly int k_DebugFullScreenModeId = Shader.PropertyToID("_DebugFullScreenMode");
         static readonly int k_DebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
@@ -52,6 +61,16 @@ namespace UnityEngine.Rendering.Universal
 
         #endregion
 
+        #region Pass Data
+
+        private static readonly ProfilingSampler s_DebugSetupSampler = new ProfilingSampler(nameof(Setup));
+        private static readonly ProfilingSampler s_DebugFinalValidationSampler = new ProfilingSampler(nameof(UpdateShaderGlobalPropertiesForFinalValidationPass));
+
+        DebugSetupPassData s_DebugSetupPassData = new DebugSetupPassData();
+        DebugFinalValidationPassData s_DebugFinalValidationPassData = new DebugFinalValidationPassData();
+
+        #endregion
+
         readonly Material m_ReplacementMaterial;
         readonly Material m_HDRDebugViewMaterial;
 
@@ -59,10 +78,14 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_DebugScreenColorHandle;
         RTHandle m_DebugScreenDepthHandle;
 
+        readonly UniversalRenderPipelineRuntimeTextures m_RuntimeTextures;
+
         bool m_HasDebugRenderTarget;
         bool m_DebugRenderTargetSupportsStereo;
         Vector4 m_DebugRenderTargetPixelRect;
-        RenderTargetIdentifier m_DebugRenderTargetIdentifier;
+        RTHandle m_DebugRenderTarget;
+
+        RTHandle m_DebugFontTexture;
 
         readonly UniversalRenderPipelineDebugDisplaySettings m_DebugDisplaySettings;
 
@@ -88,7 +111,8 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
             m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
             m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
+            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None ||
+            m_DebugDisplaySettings.renderingSettings.mipInfoMode != DebugMipInfoMode.None;
 
         /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
@@ -133,6 +157,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal int stpDebugViewIndex { get { return RenderingSettings.stpDebugViewIndex; } }
+
         internal DebugHandler()
         {
             m_DebugDisplaySettings = UniversalRenderPipelineDebugDisplaySettings.Instance;
@@ -144,6 +170,12 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_HDRDebugViewPass = new HDRDebugViewPass(m_HDRDebugViewMaterial);
+
+            m_RuntimeTextures = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeTextures>();
+            if (m_RuntimeTextures != null)
+            {
+                m_DebugFontTexture = RTHandles.Alloc(m_RuntimeTextures.debugFontTexture);
+            }
         }
 
         public void Dispose()
@@ -151,6 +183,7 @@ namespace UnityEngine.Rendering.Universal
             m_HDRDebugViewPass.Dispose();
             m_DebugScreenColorHandle?.Release();
             m_DebugScreenDepthHandle?.Release();
+            m_DebugFontTexture?.Release();
             CoreUtils.Destroy(m_HDRDebugViewMaterial);
             CoreUtils.Destroy(m_ReplacementMaterial);
         }
@@ -171,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
             textureHeightPercent = RenderingSettings.fullScreenDebugModeOutputSizeScreenPercent;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
-        
+
         internal static void ConfigureColorDescriptorForDebugScreen(ref RenderTextureDescriptor descriptor, int cameraWidth, int cameraHeight)
         {
             descriptor.width = cameraWidth;
@@ -181,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.useDynamicScale = true;
             descriptor.depthStencilFormat = GraphicsFormat.None;
         }
-        
+
         internal static void ConfigureDepthDescriptorForDebugScreen(ref RenderTextureDescriptor descriptor, GraphicsFormat depthStencilFormat, int cameraWidth, int cameraHeight)
         {
             descriptor.width = cameraWidth;
@@ -262,11 +295,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect, bool supportsStereo)
+        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo)
         {
             m_HasDebugRenderTarget = true;
             m_DebugRenderTargetSupportsStereo = supportsStereo;
-            m_DebugRenderTargetIdentifier = renderTargetIdentifier;
+            m_DebugRenderTarget = renderTarget;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
         }
 
@@ -275,18 +308,58 @@ namespace UnityEngine.Rendering.Universal
             m_HasDebugRenderTarget = false;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, UniversalCameraData cameraData, bool isFinalPass)
+        class DebugFinalValidationPassData
+        {
+            public bool isFinalPass;
+            public bool resolveFinalTarget;
+            public bool isActiveForCamera;
+            public bool hasDebugRenderTarget;
+
+            public TextureHandle debugRenderTargetHandle;
+            public int debugTexturePropertyId;
+
+            public Vector4 debugRenderTargetPixelRect;
+            public int debugRenderTargetSupportsStereo;
+
+            public TextureHandle debugFontTextureHandle;
+
+            // NOTE: The settings are references.
+            // It's assumed they're the same for the whole frame. Build timeline != execution timeline!
+            // Ideally these would be copied without any allocs.
+            public DebugDisplaySettingsRendering renderingSettings;
+        }
+
+        DebugFinalValidationPassData InitDebugFinalValidationPassData(DebugFinalValidationPassData passData, UniversalCameraData cameraData, bool isFinalPass)
+        {
+            passData.isFinalPass = isFinalPass;
+            passData.resolveFinalTarget = cameraData.resolveFinalTarget;
+            passData.isActiveForCamera = IsActiveForCamera(cameraData.isPreviewCamera);
+            passData.hasDebugRenderTarget = m_HasDebugRenderTarget;
+
+            passData.debugRenderTargetHandle = TextureHandle.nullHandle;
+            passData.debugTexturePropertyId = m_DebugRenderTargetSupportsStereo ? k_DebugTexturePropertyId : k_DebugTextureNoStereoPropertyId;
+
+            passData.debugRenderTargetPixelRect = m_DebugRenderTargetPixelRect;
+            passData.debugRenderTargetSupportsStereo = m_DebugRenderTargetSupportsStereo ? 1 : 0;
+
+            passData.debugFontTextureHandle = TextureHandle.nullHandle;
+
+            passData.renderingSettings = RenderingSettings;
+
+            return passData;
+        }
+
+        static void UpdateShaderGlobalPropertiesForFinalValidationPass(RasterCommandBuffer cmd, DebugFinalValidationPassData data)
         {
             // Ensure final validation & fullscreen debug modes are only done once in the very final pass, for the last camera on the stack.
-            bool isFinal = isFinalPass && cameraData.resolveFinalTarget;
+            bool isFinal = data.isFinalPass && data.resolveFinalTarget;
             if (!isFinal)
             {
                 cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
                 return;
             }
 
-            if (IsActiveForCamera(cameraData.isPreviewCamera))
+            if (data.isActiveForCamera)
             {
                 cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
             }
@@ -295,50 +368,123 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, false);
             }
 
-            if (m_HasDebugRenderTarget)
+            if (data.hasDebugRenderTarget)
             {
-                cmd.SetGlobalTexture(m_DebugRenderTargetSupportsStereo ? k_DebugTexturePropertyId : k_DebugTextureNoStereoPropertyId, m_DebugRenderTargetIdentifier);
-                cmd.SetGlobalVector(k_DebugTextureDisplayRect, m_DebugRenderTargetPixelRect);
-                cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, m_DebugRenderTargetSupportsStereo ? 1 : 0);
+                if(data.debugRenderTargetHandle.IsValid())
+                    cmd.SetGlobalTexture(data.debugTexturePropertyId,  data.debugRenderTargetHandle);
+
+                cmd.SetGlobalVector(k_DebugTextureDisplayRect, data.debugRenderTargetPixelRect);
+                cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, data.debugRenderTargetSupportsStereo);
             }
 
-            var renderingSettings = m_DebugDisplaySettings.renderingSettings;
+            var renderingSettings = data.renderingSettings;
             if (renderingSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
             {
                 cmd.SetGlobalInteger(k_ValidationChannelsId, (int)renderingSettings.validationChannels);
                 cmd.SetGlobalFloat(k_RangeMinimumId, renderingSettings.validationRangeMin);
                 cmd.SetGlobalFloat(k_RangeMaximumId, renderingSettings.validationRangeMax);
             }
+
+            if (renderingSettings.mipInfoMode != DebugMipInfoMode.None)
+            {
+                // some (not all) of these need text rendering
+                cmd.SetGlobalTexture(k_DebugFontId, data.debugFontTextureHandle);
+            }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Setup(CommandBuffer cmd, bool isPreviewCamera)
+        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBuffer cmd, UniversalCameraData cameraData, bool isFinalPass)
         {
-            if (IsActiveForCamera(isPreviewCamera))
+            UpdateShaderGlobalPropertiesForFinalValidationPass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), InitDebugFinalValidationPassData(s_DebugFinalValidationPassData, cameraData, isFinalPass));
+            cmd.SetGlobalTexture(s_DebugFinalValidationPassData.debugTexturePropertyId,  m_DebugRenderTarget);
+            if (RenderingSettings.mipInfoMode != DebugMipInfoMode.None)
+            {
+                // some (not all) of these need text rendering
+                cmd.SetGlobalTexture(k_DebugFontId, m_RuntimeTextures.debugFontTexture);
+            }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal void UpdateShaderGlobalPropertiesForFinalValidationPass(RenderGraph renderGraph, UniversalCameraData cameraData, bool isFinalPass)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<DebugFinalValidationPassData>(nameof(UpdateShaderGlobalPropertiesForFinalValidationPass), out var passData, s_DebugFinalValidationSampler))
+            {
+                InitDebugFinalValidationPassData(passData, cameraData, isFinalPass);
+                passData.debugRenderTargetHandle = renderGraph.ImportTexture(m_DebugRenderTarget);
+                passData.debugFontTextureHandle = renderGraph.ImportTexture(m_DebugFontTexture);
+
+                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
+                builder.SetGlobalTextureAfterPass(passData.debugRenderTargetHandle, passData.debugTexturePropertyId);
+                builder.SetGlobalTextureAfterPass(passData.debugFontTextureHandle, k_DebugFontId);
+                builder.UseTexture(passData.debugRenderTargetHandle);
+                builder.UseTexture(passData.debugFontTextureHandle);
+                builder.SetRenderFunc(static (DebugFinalValidationPassData data, RasterGraphContext context) =>
+                {
+                    UpdateShaderGlobalPropertiesForFinalValidationPass(context.cmd, data);
+                });
+            }
+        }
+
+        class DebugSetupPassData
+        {
+            public bool isActiveForCamera;
+
+            // NOTE: The settings are references.
+            // It's assumed they're the same for the whole frame. Build timeline != execution timeline!
+            // Ideally these would be copied without any allocs.
+            public DebugDisplaySettingsMaterial  materialSettings;
+            public DebugDisplaySettingsRendering renderingSettings;
+            public DebugDisplaySettingsLighting  lightingSettings;
+        }
+
+        DebugSetupPassData InitDebugSetupPassData(DebugSetupPassData passData, bool isPreviewCamera)
+        {
+            passData.isActiveForCamera = IsActiveForCamera(isPreviewCamera);
+            passData.materialSettings  = MaterialSettings;
+            passData.renderingSettings = RenderingSettings;
+            passData.lightingSettings  = LightingSettings;
+            return passData;
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        static void Setup(RasterCommandBuffer cmd, DebugSetupPassData passData)
+        {
+            if (passData.isActiveForCamera)
             {
                 cmd.SetKeyword(ShaderGlobalKeywords.DEBUG_DISPLAY, true);
 
                 // Material settings...
-                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
-                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.vertexAttributeDebugMode);
+                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)passData.materialSettings.materialDebugMode);
+                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)passData.materialSettings.vertexAttributeDebugMode);
 
-                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.materialValidationMode);
+                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)passData.materialSettings.materialValidationMode);
 
                 // Rendering settings...
-                cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.mipInfoMode);
-                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.sceneOverrideMode);
-                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.fullScreenDebugMode);
-                cmd.SetGlobalInteger(k_DebugMaxPixelCost, (int)RenderingSettings.maxOverdrawCount);
-                cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
+                cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)passData.renderingSettings.mipInfoMode);
+                cmd.SetGlobalInteger(k_DebugMipMapStatusModeId, (int)passData.renderingSettings.mipDebugStatusMode);
+                cmd.SetGlobalInteger(k_DebugMipMapShowStatusCodeId, passData.renderingSettings.mipDebugStatusShowCode ? 1 : 0);
+                cmd.SetGlobalFloat(k_DebugMipMapOpacityId, passData.renderingSettings.mipDebugOpacity);
+                cmd.SetGlobalFloat(k_DebugMipMapRecentlyUpdatedCooldownId, passData.renderingSettings.mipDebugRecentUpdateCooldown);
+                cmd.SetGlobalFloat(k_DebugMipMapTerrainTextureModeId, (int)passData.renderingSettings.mipDebugTerrainTexture);
+                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)passData.renderingSettings.sceneOverrideMode);
+                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)passData.renderingSettings.fullScreenDebugMode);
+                cmd.SetGlobalInteger(k_DebugMaxPixelCost, (int)passData.renderingSettings.maxOverdrawCount);
+                cmd.SetGlobalInteger(k_DebugValidationModeId, (int)passData.renderingSettings.validationMode);
                 cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
                 cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
                 // Lighting settings...
-                cmd.SetGlobalFloat(k_DebugLightingModeId, (int)LightingSettings.lightingDebugMode);
-                cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)LightingSettings.lightingFeatureFlags);
+                cmd.SetGlobalFloat(k_DebugLightingModeId, (int)passData.lightingSettings.lightingDebugMode);
+                cmd.SetGlobalInteger(k_DebugLightingFeatureFlagsId, (int)passData.lightingSettings.lightingFeatureFlags);
 
                 // Set-up any other persistent properties...
                 cmd.SetGlobalColor(k_DebugColorInvalidModePropertyId, Color.red);
+#if UNITY_EDITOR
+                cmd.SetGlobalFloat(k_DebugCurrentRealTimeId, (float)EditorApplication.timeSinceStartup);
+#else
+                cmd.SetGlobalFloat(k_DebugCurrentRealTimeId, Time.realtimeSinceStartup);
+#endif
             }
             else
             {
@@ -347,11 +493,32 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal void Render(RenderGraph renderGraph, CommandBuffer cmd, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
+        internal void Setup(CommandBuffer cmd, bool isPreviewCamera)
+        {
+            Setup(CommandBufferHelpers.GetRasterCommandBuffer(cmd), InitDebugSetupPassData(s_DebugSetupPassData, isPreviewCamera));
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal void Setup(RenderGraph renderGraph, bool isPreviewCamera)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<DebugSetupPassData>(nameof(Setup), out var passData, s_DebugSetupSampler))
+            {
+                InitDebugSetupPassData(passData, isPreviewCamera);
+                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
+                builder.SetRenderFunc(static (DebugSetupPassData data, RasterGraphContext context) =>
+                {
+                    Setup(context.cmd, data);
+                });
+            }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayTexture, TextureHandle dstColor)
         {
             if (IsActiveForCamera(cameraData.isPreviewCamera) && HDRDebugViewIsActive(cameraData.resolveFinalTarget))
             {
-                m_HDRDebugViewPass.RenderHDRDebug(renderGraph, cmd, cameraData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
+                m_HDRDebugViewPass.RenderHDRDebug(renderGraph, cameraData, srcColor, overlayTexture, dstColor, LightingSettings.hdrDebugMode);
             }
         }
 

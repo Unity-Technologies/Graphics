@@ -24,8 +24,12 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            var newPositionSphere = ScriptableObject.CreateInstance<PositionSphere>();
-            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionSphere, this);
+            var newPositionSphereV2 = ScriptableObject.CreateInstance<PositionSphereDeprecatedV2>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionSphereV2, this);
+
+            var newPositionSphere = ScriptableObject.CreateInstance<PositionShape>();
+            SanitizeHelper.MigrateBlockPositionToComposed(GetGraph(), GetParent().position, newPositionSphere, newPositionSphereV2, PositionShapeBase.Type.Sphere);
+
             ReplaceModel(newPositionSphere, this);
         }
 

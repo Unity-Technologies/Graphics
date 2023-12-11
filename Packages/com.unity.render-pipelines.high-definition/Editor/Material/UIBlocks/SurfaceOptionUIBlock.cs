@@ -71,8 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string lowResTransparencyNotSupportedText = "Low resolution transparency is not enabled in the current HDRP Asset. The selected Pass will be Default.";
 
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
-            public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
-            public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
+            public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendingMode));
+            public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendingMode)) as int[];
 
             public static GUIContent surfaceTypeText = new GUIContent("Surface Type", "Controls whether the Material supports transparency or not");
             public static GUIContent transparentPrepassText = new GUIContent("Appear in Refraction", "When enabled, HDRP handles objects with this Material before the refraction pass.");

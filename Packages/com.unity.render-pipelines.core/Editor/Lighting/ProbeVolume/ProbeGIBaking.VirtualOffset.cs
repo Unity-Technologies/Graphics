@@ -8,213 +8,225 @@ namespace UnityEngine.Rendering
 {
     partial class ProbeGIBaking
     {
-        static int k_MaxProbeCountPerBatch = 65535;
-
-        static RayTracingContext m_RayTracingContext;
-        static IRayTracingAccelStruct m_RayTracingAccelerationStructure;
-        static IRayTracingShader m_RayTracingShader;
-
-        static int _Probes, _Offsets;
-
-        static void BuildAccelerationStructure(GIContributors? contribs, int mask)
+        struct VirtualOffsetBaking
         {
-            var contributors = contribs.HasValue ? contribs.Value : GIContributors.Find(GIContributors.ContributorFilter.All);
+            static int k_MaxProbeCountPerBatch = 65535;
 
-            foreach (var renderer in contributors.renderers)
+            static readonly int _Probes = Shader.PropertyToID("_Probes");
+            static readonly int _Offsets = Shader.PropertyToID("_Offsets");
+
+            // Duplicated in HLSL
+            struct ProbeData
             {
-                int layerMask = 1 << renderer.component.gameObject.layer;
-                if ((layerMask & mask) == 0)
-                    continue;
+                public Vector3 position;
+                public float originBias;
+                public float tMax;
+                public float geometryBias;
+                public int probeIndex;
+                internal float _;
+            };
 
-                var mesh = renderer.component.GetComponent<MeshFilter>().sharedMesh;
-                if (mesh == null)
-                    continue;
+            int batchPosIdx;
+            Vector3[] positions;
+            Dictionary<int, TouchupsPerCell> cellToVolumes;
+            ProbeData[] probeData;
+            Vector3[] batchResult;
 
-                int subMeshCount = mesh.subMeshCount;
-                for (int i = 0; i < subMeshCount; ++i)
+            float scaleForSearchDist;
+            float rayOriginBias;
+            float geometryBias;
+
+            // Output buffer
+            public Vector3[] offsets;
+
+            private IRayTracingAccelStruct m_AccelerationStructure;
+            private GraphicsBuffer probeBuffer;
+            private GraphicsBuffer offsetBuffer;
+            private GraphicsBuffer scratchBuffer;
+
+            public ulong currentStep => (ulong)batchPosIdx;
+            public ulong stepCount => positions == null ? 0 : (ulong)positions.Length;
+
+            public void Initialize(ProbeVolumeBakingSet bakingSet, Vector3[] probePositions)
+            {
+                var voSettings = bakingSet.settings.virtualOffsetSettings;
+                scaleForSearchDist = voSettings.searchMultiplier;
+                rayOriginBias = voSettings.rayOriginBias;
+                geometryBias = voSettings.outOfGeoOffset;
+
+                batchPosIdx = 0;
+                positions = null;
+                offsets = null;
+
+                if (!voSettings.useVirtualOffset)
+                    return;
+
+                offsets = new Vector3[probePositions.Length];
+                cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
+
+                if (scaleForSearchDist == 0.0f)
                 {
-                    m_RayTracingAccelerationStructure.AddInstance(new MeshInstanceDesc(mesh, i)
+                    if (hasAppliers)
+                        DoApplyVirtualOffsetsFromAdjustmentVolumes(probePositions, offsets, cellToVolumes);
+                    return;
+                }
+
+                positions = probePositions;
+                probeData = new ProbeData[k_MaxProbeCountPerBatch];
+                batchResult = new Vector3[k_MaxProbeCountPerBatch];
+
+                var computeBufferTarget = GraphicsBuffer.Target.CopyDestination | GraphicsBuffer.Target.CopySource
+                    | GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.Raw;
+
+                // Create acceletation structure
+                m_AccelerationStructure = BuildAccelerationStructure(voSettings.collisionMask);
+                var virtualOffsetShader = s_TracingContext.shaderVO;
+
+                probeBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<ProbeData>());
+                offsetBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<Vector3>());
+                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure, virtualOffsetShader,
+                    (uint)k_MaxProbeCountPerBatch, 1, 1);
+
+                var cmd = new CommandBuffer();
+                m_AccelerationStructure.Build(cmd, scratchBuffer);
+                Graphics.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
+            static IRayTracingAccelStruct BuildAccelerationStructure(int mask)
+            {
+                var accelStruct = s_TracingContext.CreateAccelerationStructure();
+                var contributors = m_BakingBatch.contributors;
+
+                foreach (var renderer in contributors.renderers)
+                {
+                    int layerMask = 1 << renderer.component.gameObject.layer;
+                    if ((layerMask & mask) == 0)
+                        continue;
+
+                    var mesh = renderer.component.GetComponent<MeshFilter>().sharedMesh;
+                    if (mesh == null)
+                        continue;
+
+                    int subMeshCount = mesh.subMeshCount;
+                    for (int i = 0; i < subMeshCount; ++i)
                     {
-                        localToWorldMatrix = renderer.component.transform.localToWorldMatrix,
+                        accelStruct.AddInstance(new MeshInstanceDesc(mesh, i)
+                        {
+                            localToWorldMatrix = renderer.component.transform.localToWorldMatrix,
+                            enableTriangleCulling = false
+                        });
+                    }
+                }
+
+                foreach (var terrain in contributors.terrains)
+                {
+                    int layerMask = 1 << terrain.component.gameObject.layer;
+                    if ((layerMask & mask) == 0)
+                        continue;
+
+                    accelStruct.AddTerrain(new TerrainDesc(terrain.component)
+                    {
+                        localToWorldMatrix = terrain.component.transform.localToWorldMatrix,
                         enableTriangleCulling = false
                     });
                 }
+
+                return accelStruct;
             }
 
-            foreach (var terrain in contributors.terrains)
+            public void RunVirtualOffsetStep()
             {
-                int layerMask = 1 << terrain.component.gameObject.layer;
-                if ((layerMask & mask) == 0)
-                    continue;
+                if (batchPosIdx >= positions.Length)
+                    return;
 
-                m_RayTracingAccelerationStructure.AddTerrain(new TerrainDesc(terrain.component)
+                var cmd = new CommandBuffer();
+                var virtualOffsetShader = s_TracingContext.shaderVO;
+
+                virtualOffsetShader.SetAccelerationStructure(cmd, "_AccelStruct", m_AccelerationStructure);
+                virtualOffsetShader.SetBufferParam(cmd, _Probes, probeBuffer);
+                virtualOffsetShader.SetBufferParam(cmd, _Offsets, offsetBuffer);
+
+                // Run one batch of computations
+                float cellSize = m_ProfileInfo.cellSizeInMeters;
+                float minBrickSize = m_ProfileInfo.minBrickSize;
                 {
-                    localToWorldMatrix = terrain.component.transform.localToWorldMatrix,
-                    enableTriangleCulling = false
-                });
-            }
-        }
-
-        static void CreateRayTracingResources()
-        {
-            if (m_RayTracingContext != null)
-                return;
-
-            var backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Compute : RayTracingBackend.Compute;
-
-            var resources = ScriptableObject.CreateInstance<RayTracingResources>();
-            ResourceReloader.ReloadAllNullIn(resources, "Packages/com.unity.rendering.light-transport");
-
-            m_RayTracingContext = new RayTracingContext(backend, resources);
-            Type type = BackendHelpers.GetTypeOfShader(backend);
-            string filename = BackendHelpers.GetFileNameOfShader(backend, $"Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset");
-            Object shader = AssetDatabase.LoadAssetAtPath($"Packages/com.unity.render-pipelines.core/{filename}", type);
-            m_RayTracingShader = m_RayTracingContext.CreateRayTracingShader(shader);
-            m_RayTracingAccelerationStructure = m_RayTracingContext.CreateAccelerationStructure(new AccelerationStructureOptions());
-
-            _Probes = Shader.PropertyToID("_Probes");
-            _Offsets = Shader.PropertyToID("_Offsets");
-        }
-
-        // Duplicated in HLSL
-        struct ProbeData
-        {
-            public Vector3 position;
-            public float originBias;
-            public float tMax;
-            public float geometryBias;
-            public int probeIndex;
-            internal float _;
-        };
-
-        static void ApplyVirtualOffsets(GIContributors? contributors, Vector3[] positions, out Vector3[] offsets)
-        {
-            var voSettings = m_BakingSet.settings.virtualOffsetSettings;
-            if (!voSettings.useVirtualOffset)
-            {
-                offsets = null;
-                return;
-            }
-
-            var cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
-            offsets = new Vector3[positions.Length];
-
-            var scaleForSearchDist = voSettings.searchMultiplier;
-            if (scaleForSearchDist == 0.0f)
-            {
-                if (hasAppliers)
-                    DoApplyVirtualOffsetsFromAdjustmentVolumes(positions, offsets, cellToVolumes);
-                return;
-            }
-
-            var computeBufferTarget = GraphicsBuffer.Target.CopyDestination | GraphicsBuffer.Target.CopySource
-                | GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.Raw;
-
-            // Allocate shared data
-            CreateRayTracingResources();
-            BuildAccelerationStructure(contributors, voSettings.collisionMask);
-
-            var cmd = new CommandBuffer();
-            var probeData = new ProbeData[k_MaxProbeCountPerBatch];
-            var batchResult = new Vector3[k_MaxProbeCountPerBatch];
-            using var probeBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<ProbeData>());
-            using var offsetBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<Vector3>());
-            using var scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_RayTracingAccelerationStructure, m_RayTracingShader,
-                (uint)k_MaxProbeCountPerBatch, 1, 1);
-
-            // Setup RT structure
-            m_RayTracingAccelerationStructure.Build(cmd, scratchBuffer);
-            m_RayTracingShader.SetAccelerationStructure(cmd, "_AccelStruct", m_RayTracingAccelerationStructure);
-            m_RayTracingShader.SetBufferParam(cmd, _Probes, probeBuffer);
-            m_RayTracingShader.SetBufferParam(cmd, _Offsets, offsetBuffer);
-
-            // Run virtual offset in batches
-            int batchPosIdx = 0;
-            float cellSize = m_ProfileInfo.cellSizeInMeters;
-            while (batchPosIdx < positions.Length)
-            {
-                // Prepare batch
-                int probeCountInBatch = 0;
-                var batchPosStart = batchPosIdx;
-                do
-                {
-                    float rayOriginBias = voSettings.rayOriginBias;
-                    float geometryBias = voSettings.outOfGeoOffset;
-
-                    int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
-                    var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
-                    var searchDistance = (brickSize * m_ProfileInfo.minBrickSize) / ProbeBrickPool.kBrickCellCount;
-                    var distanceSearch = scaleForSearchDist * searchDistance;
-
-                    int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
-                    if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
+                    // Prepare batch
+                    int probeCountInBatch = 0;
+                    do
                     {
-                        bool adjusted = false;
-                        foreach (var (touchup, obb, center, offset) in volumes.appliers)
+                        int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
+                        var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
+                        var searchDistance = (brickSize * minBrickSize) / ProbeBrickPool.kBrickCellCount;
+                        var distanceSearch = scaleForSearchDist * searchDistance;
+
+                        int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
+                        if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
                         {
-                            if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                            bool adjusted = false;
+                            foreach (var (touchup, obb, center, offset) in volumes.appliers)
                             {
-                                positions[batchPosIdx] += offset;
-                                offsets[batchPosIdx] = offset;
-                                adjusted = true;
-                                break;
+                                if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                                {
+                                    positions[batchPosIdx] += offset;
+                                    offsets[batchPosIdx] = offset;
+                                    adjusted = true;
+                                    break;
+                                }
+                            }
+
+                            if (adjusted)
+                                continue;
+
+                            foreach (var (touchup, obb, center) in volumes.overriders)
+                            {
+                                if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                                {
+                                    rayOriginBias = touchup.rayOriginBias;
+                                    geometryBias = touchup.geometryBias;
+                                    break;
+                                }
                             }
                         }
 
-                        if (adjusted)
-                            continue;
-
-                        foreach (var (touchup, obb, center) in volumes.overriders)
+                        probeData[probeCountInBatch++] = new ProbeData
                         {
-                            if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
-                            {
-                                rayOriginBias = touchup.rayOriginBias;
-                                geometryBias = touchup.geometryBias;
-                                break;
-                            }
-                        }
+                            position = positions[batchPosIdx],
+                            originBias = rayOriginBias,
+                            tMax = distanceSearch,
+                            geometryBias = geometryBias,
+                            probeIndex = batchPosIdx,
+                        };
                     }
+                    while (++batchPosIdx < positions.Length && probeCountInBatch < k_MaxProbeCountPerBatch);
 
-                    probeData[probeCountInBatch++] = new ProbeData
-                    {
-                        position = positions[batchPosIdx],
-                        originBias = rayOriginBias,
-                        tMax = distanceSearch,
-                        geometryBias = geometryBias,
-                        probeIndex = batchPosIdx,
-                    };
+                    // Execute job
+                    cmd.SetBufferData(probeBuffer, probeData);
+                    virtualOffsetShader.Dispatch(cmd, scratchBuffer, (uint)probeCountInBatch, 1, 1);
+
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    offsetBuffer.GetData(batchResult);
+                    for (int i = 0; i < probeCountInBatch; i++)
+                        offsets[probeData[i].probeIndex] = batchResult[i];
                 }
-                while (++batchPosIdx < positions.Length && probeCountInBatch < k_MaxProbeCountPerBatch);
 
-                // Execute job
-                cmd.SetBufferData(probeBuffer, probeData);
-                m_RayTracingShader.Dispatch(cmd, scratchBuffer, (uint)probeCountInBatch, 1, 1);
-
-                Graphics.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                offsetBuffer.GetData(batchResult);
-                for (int i = 0; i < probeCountInBatch; i++)
-                {
-                    positions[probeData[i].probeIndex] += batchResult[i];
-                    offsets[probeData[i].probeIndex] = batchResult[i];
-                }
+                cmd.Dispose();
             }
 
-            m_RayTracingAccelerationStructure.ClearInstances();
-            cmd.Dispose();
+            public void Dispose()
+            {
+                if (positions == null)
+                    return;
 
-            // If bake is triggered from the lighting pannel, we don't Dispose buffers now
-            if (ProbeVolumeLightingTab.instance == null)
-                Dispose();
-        }
+                m_AccelerationStructure.Dispose();
+                probeBuffer.Dispose();
+                offsetBuffer.Dispose();
+                scratchBuffer?.Dispose();
 
-        static internal void Dispose()
-        {
-            m_RayTracingAccelerationStructure?.Dispose();
-            m_RayTracingAccelerationStructure = null;
-            m_RayTracingContext?.Dispose();
-            m_RayTracingContext = null;
+                this = default;
+            }
         }
 
         static internal void RecomputeVOForDebugOnly()
@@ -223,7 +235,6 @@ namespace UnityEngine.Rendering
             if (prv.perSceneDataList.Count == 0)
                 return;
 
-            var contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
             SetBakingContext(prv.perSceneDataList);
 
             if (!m_BakingSet.HasBeenBaked())
@@ -233,7 +244,7 @@ namespace UnityEngine.Rendering
             CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize());
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
-            m_BakingBatch = new BakingBatch(128, cellCount);
+            var bakingBatch = new BakingBatch(cellCount);
             m_ProfileInfo = new ProbeVolumeProfileInfo();
             ModifyProfileFromLoadedData(m_BakingSet);
 
@@ -252,43 +263,49 @@ namespace UnityEngine.Rendering
                 {
                     var pos = bakingCell.probePositions[i];
                     int brickSubdiv = bakingCell.bricks[i / 64].subdivisionLevel;
-                    int probeHash = m_BakingBatch.GetProbePositionHash(pos);
+                    int probeHash = bakingBatch.GetProbePositionHash(pos);
 
                     if (positionToIndex.TryGetValue(probeHash, out var index))
                     {
                         indices[i] = index;
-                        int oldBrickLevel = m_BakingBatch.uniqueBrickSubdiv[probeHash];
+                        int oldBrickLevel = bakingBatch.uniqueBrickSubdiv[probeHash];
                         if (brickSubdiv < oldBrickLevel)
-                            m_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
+                            bakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                     }
                     else
                     {
                         positionToIndex[probeHash] = uniqueIndex;
                         indices[i] = uniqueIndex;
-                        m_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
+                        bakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                         positionList.Add(pos);
                         uniqueIndex++;
                     }
                 }
 
                 bakingCell.probeIndices = indices;
-                m_BakingBatch.cells.Add(bakingCell);
+                bakingBatch.cells.Add(bakingCell);
 
                 // We need to force rebuild debug stuff.
                 cell.debugProbes = null;
             }
 
-            ApplyVirtualOffsets(contributors, positionList.ToArray(), out m_BakingBatch.virtualOffsets);
+            VirtualOffsetBaking job = new();
+            job.Initialize(m_BakingSet, positionList.ToArray());
 
-            foreach (var cell in m_BakingBatch.cells)
+            while (job.currentStep < job.stepCount)
+                job.RunVirtualOffsetStep();
+
+            foreach (var cell in bakingBatch.cells)
             {
                 int numProbes = cell.probePositions.Length;
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = cell.probeIndices[i];
-                    cell.offsetVectors[i] = m_BakingBatch.virtualOffsets[j];
+                    cell.offsetVectors[i] = job.offsets[j];
                 }
             }
+
+            job.Dispose();
 
             // Unload it all as we are gonna load back with newly written cells.
             foreach (var sceneData in prv.perSceneDataList)
@@ -298,7 +315,7 @@ namespace UnityEngine.Rendering
             prv.PerformPendingOperations();
 
             // Write back the assets.
-            WriteBakingCells(m_BakingBatch.cells.ToArray());
+            WriteBakingCells(bakingBatch.cells.ToArray());
 
             foreach (var data in prv.perSceneDataList)
                 data.ResolveCellData();
@@ -306,8 +323,6 @@ namespace UnityEngine.Rendering
             // We can now finally reload.
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-
-            m_BakingBatch = null;
 
             foreach (var sceneData in prv.perSceneDataList)
             {
@@ -428,35 +443,6 @@ namespace UnityEngine.Rendering
             }
 
             return matIndices;
-        }
-
-        static void AddInstance(IRayTracingAccelStruct accelStruct, MeshRenderer renderer, uint mask, uint[] perSubMeshMaterialIDs)
-        {
-            var mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
-            int subMeshCount = mesh.subMeshCount;
-
-            for (int i = 0; i < subMeshCount; ++i)
-            {
-                var instanceDesc = new MeshInstanceDesc(mesh, i);
-                instanceDesc.localToWorldMatrix = renderer.transform.localToWorldMatrix;
-                instanceDesc.mask = mask;
-                instanceDesc.materialID = perSubMeshMaterialIDs[i];
-
-                instanceDesc.enableTriangleCulling = true;
-                instanceDesc.frontTriangleCounterClockwise = false;
-
-                accelStruct.AddInstance(instanceDesc);
-            }
-        }
-
-        static void AddInstance(IRayTracingAccelStruct accelStruct, Terrain terrain, uint mask, uint materialID)
-        {
-            var terrainDesc = new TerrainDesc(terrain);
-            terrainDesc.localToWorldMatrix = terrain.transform.localToWorldMatrix;
-            terrainDesc.mask = mask;
-            terrainDesc.materialID = materialID;
-
-            accelStruct.AddTerrain(terrainDesc);
         }
     }
 }

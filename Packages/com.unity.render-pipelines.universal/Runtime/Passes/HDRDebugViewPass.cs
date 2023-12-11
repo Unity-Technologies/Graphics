@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -95,14 +96,14 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetRenderTarget(cmd, destTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare, ClearFlag.None, Color.clear);
 
                 Vector4 debugParameters = new Vector4(ShaderConstants._SizeOfHDRXYMapping, ShaderConstants._SizeOfHDRXYMapping, 0, 0);
-                
+
                 cmd.SetRandomWriteTarget(ShaderConstants._CIExyUAVIndex, xyTarget);
                 data.material.SetVector(ShaderConstants._HDRDebugParamsId, debugParameters);
                 data.material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, data.luminanceParameters);
-                
+
                 Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 Blitter.BlitTexture(cmd, sourceTexture, viewportScale, data.material, 0);
-                
+
                 cmd.ClearRandomWriteTargets();
             }
         }
@@ -117,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 data.material.SetTexture(ShaderConstants._xyTextureId, xyTarget);
-                
+
                 Vector4 debugParameters = new Vector4(ShaderConstants._SizeOfHDRXYMapping, ShaderConstants._SizeOfHDRXYMapping, 0, 0);
                 data.material.SetVector(ShaderConstants._HDRDebugParamsId, debugParameters);
                 data.material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, data.luminanceParameters);
@@ -164,6 +165,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
@@ -200,11 +202,15 @@ namespace UnityEngine.Rendering.Universal
             //HDR DebugView - should always be the last stack of the camera
             CoreUtils.SetRenderTarget(cmd, destTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             ExecuteHDRDebugViewFinalPass(rasterCmd, dataDebugView, sourceTexture, destTexture, xyTarget);
+
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             dataDebugView.cameraData.renderer.ConfigureCameraTarget(destTexture, destTexture);
+            #pragma warning restore CS0618
         }
 
         //RenderGraph path
-        internal void RenderHDRDebug(RenderGraph renderGraph, CommandBuffer cmd, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
+        internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
         {
             bool requiresCIExyData = hdrDebugMode != HDRDebugMode.ValuesAbovePaperWhite;
             Vector4 luminanceParameters = GetLuminanceParameters(cameraData);

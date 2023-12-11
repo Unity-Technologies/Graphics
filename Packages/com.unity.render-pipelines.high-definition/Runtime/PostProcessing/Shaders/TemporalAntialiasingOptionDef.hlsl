@@ -21,7 +21,7 @@
 #define NO_FILTERING 0
 #define BOX_FILTER 1
 #define BLACKMAN_HARRIS 2
-#define UPSCALE 3
+#define UPSAMPLE 3
 
 // Clip option
 #define DIRECT_CLIP 0

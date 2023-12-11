@@ -18,7 +18,9 @@ struct Attributes
 struct Varyings
 {
     float4 positionCS   : SV_POSITION;
-    float2 uv           : TEXCOORD0;
+    #if defined(_ALPHATEST_ON)
+        float2 uv       : TEXCOORD0;
+    #endif
     float3 normalWS     : TEXCOORD1;
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -32,7 +34,9 @@ Varyings DepthNormalsVertex(Attributes input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    output.uv         = TRANSFORM_TEX(input.texcoord, _BaseMap);
+    #if defined(_ALPHATEST_ON)
+        output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+    #endif
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangentOS);

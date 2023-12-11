@@ -16,7 +16,8 @@
     width: auto;
 }
 
-/* Allow foldout headers inside ListViews to start from the left */
+/* Allow the imgui foldout headers inside ListViews to start from the left edge all the way to the right */
 .unity-list-view {
-    margin-left: -13px;
+    margin-left: -31px;
+    margin-right: -6px;
 }

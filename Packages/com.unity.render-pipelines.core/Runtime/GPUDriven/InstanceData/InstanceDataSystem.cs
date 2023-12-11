@@ -40,6 +40,8 @@ namespace UnityEngine.Rendering
 
         private bool m_EnableBoundingSpheres;
 
+        public bool hasBoundingSpheres { get { return m_EnableBoundingSpheres; } }
+
         public CPUInstanceData.ReadOnly instanceData { get { return m_InstanceData.AsReadOnly(); } }
         public CPUSharedInstanceData.ReadOnly sharedInstanceData { get { return m_SharedInstanceData.AsReadOnly(); } }
         public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceData.instances.GetSubArray(0, m_InstanceData.instancesLength); } }

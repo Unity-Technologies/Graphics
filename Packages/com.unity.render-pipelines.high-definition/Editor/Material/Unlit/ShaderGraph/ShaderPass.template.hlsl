@@ -12,10 +12,17 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #endif
 
     #if defined(DEBUG_DISPLAY)
-    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-    {
-        // TODO
-    }
+    #if !defined(SHADER_STAGE_RAY_TRACING)
+    // Mipmap mode debugging isn't supported with ray tracing as it relies on derivatives
+        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+        {
+            #ifdef FRAG_INPUTS_USE_TEXCOORD0
+                surfaceData.color = GET_TEXTURE_STREAMING_DEBUG(posInput.positionSS, fragInputs.texCoord0);
+            #else
+                surfaceData.color = GET_TEXTURE_STREAMING_DEBUG_NO_UV(posInput.positionSS);
+            #endif
+        }
+    #endif
     #endif
 
     #ifdef _ENABLE_SHADOW_MATTE

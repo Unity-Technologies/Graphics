@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Callbacks;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.Rendering.Universal.Analytics;
 using UnityEditor.Rendering.Universal.ShaderGUI;
@@ -116,6 +117,7 @@ namespace UnityEditor.Rendering.Universal
             s_NeedsSavingAssets = false;
         }
 
+        [RunAfterClass(typeof(UniversalRenderPipelineGlobalSettingsPostprocessor))]
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             string upgradeLog = "";

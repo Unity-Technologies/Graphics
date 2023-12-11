@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 // This must be included first before we declare any global constant buffer and will onyl affect ray tracing shaders
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
 
@@ -166,6 +166,9 @@ TEXTURE2D_X(_RenderingLayerMaskTexture);
 
 TEXTURE2D_ARRAY(_ThicknessTexture);
 StructuredBuffer<uint> _ThicknessReindexMap;
+
+// Mipmap Streaming Debug
+TEXTURE2D(unity_MipmapStreaming_DebugTex);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesXR.cs.hlsl"
 

@@ -138,7 +138,12 @@ namespace UnityEngine.Rendering.Universal
 
             bool shouldAdd = m_SSAOPass.Setup(ref m_Settings, ref renderer, ref m_Material, ref m_BlueNoise256Textures);
             if (shouldAdd)
+            {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderer.EnqueuePass(m_SSAOPass);
+                #pragma warning restore CS0618
+            }
         }
 
         /// <inheritdoc/>

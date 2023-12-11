@@ -149,7 +149,7 @@ void SixWayBakedDiffuseLighting(BSDFData bsdfData, inout BuiltinData builtinData
 {
     builtinData.bakeDiffuseLighting = 0;
 
-    bool alphaPremultipled = (_BlendMode == BLENDMODE_PREMULTIPLY);
+    bool alphaPremultipled = (_BlendMode == BLENDINGMODE_PREMULTIPLY);
 
     const float3 L0 = float3(bsdfData.bakeDiffuseLighting0.w, bsdfData.bakeDiffuseLighting1.w, bsdfData.bakeDiffuseLighting2.w);
     const float3 diffuseGIData[3] = { bsdfData.bakeDiffuseLighting0.xyz, bsdfData.bakeDiffuseLighting1.xyz, bsdfData.tangentWS.w * bsdfData.bakeDiffuseLighting2.xyz};
@@ -293,7 +293,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float3 weights = dir >= 0 ? bsdfData.rightTopBack.xyz : bsdfData.leftBottomFront.xyz;
     float3 sqrDir = dir*dir;
 
-    cbsdf.diffR = GetTransmissionWithAbsorption(dot(sqrDir, weights), bsdfData.diffuseColor, bsdfData.absorptionRange, (_BlendMode == BLENDMODE_PREMULTIPLY));
+    cbsdf.diffR = GetTransmissionWithAbsorption(dot(sqrDir, weights), bsdfData.diffuseColor, bsdfData.absorptionRange, (_BlendMode == BLENDINGMODE_PREMULTIPLY));
 
     return cbsdf;
 }

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
@@ -12,6 +13,9 @@ namespace UnityEngine.Rendering.Universal
         Material m_Material;
         float m_intensity;
 
+        static readonly int s_MotionVectorTexture = Shader.PropertyToID("_MotionVectorTexture");
+        static readonly int s_MotionVectorDepthTexture = Shader.PropertyToID("_MotionVectorDepthTexture");
+
         public CaptureMotionVectorsPass(Material material)
         {
             m_Material = material;
@@ -23,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
             m_intensity = intensity;
         }
 
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer rawcmd = CommandBufferPool.Get();
@@ -66,6 +71,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+                if (resourceData.motionVectorColor.IsValid())
+                    builder.UseGlobalTexture(s_MotionVectorTexture);
+                if (resourceData.motionVectorDepth.IsValid())
+                    builder.UseGlobalTexture(s_MotionVectorDepthTexture);
 
                 TextureHandle color = resourceData.activeColorTexture;
                 passData.target = color;

@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
-                AddProperty(blendModeText, () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
+                AddProperty(blendModeText, () => systemData.blendingMode, (newValue) => systemData.blendingMode = newValue);
                 AddProperty(enableTransparentFogText, () => builtinData.transparencyFog, (newValue) => builtinData.transparencyFog = newValue);
                 if (renderingPassValue == HDRenderQueue.RenderQueueType.PreRefraction)
                     AddProperty(perPixelSortingText, () => builtinData.transparentPerPixelSorting, (newValue) => builtinData.transparentPerPixelSorting = newValue);

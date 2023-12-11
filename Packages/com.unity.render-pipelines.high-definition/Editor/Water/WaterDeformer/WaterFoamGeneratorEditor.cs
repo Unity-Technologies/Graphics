@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Material params
         SerializedProperty m_Resolution;
+        SerializedProperty m_UpdateMode;
         SerializedProperty m_Material;
         Editor m_MaterialEditor;
 
@@ -35,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Material parameters
             m_Resolution = o.Find(x => x.resolution);
+            m_UpdateMode = o.Find(x => x.updateMode);
             m_Material = o.Find(x => x.material);
 
             m_BoxHandle = new HierarchicalBox(k_HandleColor, new[] { k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor, k_HandleColor })
@@ -99,6 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if ((target as WaterFoamGenerator).IsValidMaterial())
                     {
                         WaterDeformerEditor.ResolutionField(m_Resolution, WaterDeformerEditor.k_Resolution);
+                        EditorGUILayout.PropertyField(m_UpdateMode);
                         CommonFields();
 
                         if ((target as WaterFoamGenerator).HasPropertyBlock())

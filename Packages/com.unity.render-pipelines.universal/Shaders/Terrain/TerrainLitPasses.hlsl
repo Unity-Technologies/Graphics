@@ -132,7 +132,7 @@ void NormalMapMix(float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, 
         nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
 
         // avoid risk of NaN when normalizing.
-        #if HAS_HALF
+        #if !HALF_IS_FLOAT
             nrm.z += half(0.01);
         #else
             nrm.z += 1e-5f;
@@ -231,6 +231,43 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
         color.rgb = MixFog(color.rgb, fogCoord);
     #endif
 
+    #endif
+}
+
+void SetupTerrainDebugTextureData(inout InputData inputData, float2 uv)
+{
+    #if defined(DEBUG_DISPLAY)
+        #if defined(TERRAIN_SPLAT_ADDPASS)
+            if (_DebugMipInfoMode != DEBUGMIPINFOMODE_NONE)
+            {
+                discard; // Layer 4 & beyond are done additively, doesn't make sense for the mipmap streaming debug views -> stop.
+            }
+        #endif
+
+        switch (_DebugMipMapTerrainTextureMode)
+        {
+            case DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Control), _Control);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat0), _Splat0);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER1:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat1), _Splat1);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER2:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat2), _Splat2);
+                break;
+            case DEBUGMIPMAPMODETERRAINTEXTURE_LAYER3:
+                SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, TRANSFORM_TEX(uv, _Splat3), _Splat3);
+                break;
+            default:
+                break;
+        }
+
+        // no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
+        // also, set the per-material status to "4" to indicate warnings
+        inputData.streamInfo = float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f);
     #endif
 }
 
@@ -388,7 +425,7 @@ void SplatmapFragment(
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
+    SetupTerrainDebugTextureData(inputData, IN.uvMainAndLM.xy);
 
 #if defined(_DBUFFER)
     half3 specular = half3(0.0h, 0.0h, 0.0h);

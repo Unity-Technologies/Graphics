@@ -40,6 +40,9 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_VODirection = new GUIContent("Direction", "Rotate the axis along which probes will be pushed when applying Virtual Offset.");
             internal static readonly GUIContent s_VODistance = new GUIContent("Distance", "Determines how far probes are pushed in the direction of the Virtual Offset.");
 
+            internal static readonly GUIContent skyOcclusionSampleCount = new GUIContent("Sample Count", "Controls the number of samples per probe for sky occlusion baking.");
+            internal static readonly GUIContent skyOcclusionMaxBounces = new GUIContent("Max Bounces", "Controls the number of bounces per light path for sky occlusion baking.");
+
             internal static readonly EditMode.SceneViewEditMode VirtualOffsetEditMode = (EditMode.SceneViewEditMode)110;
             internal static readonly EditMode.SceneViewEditMode SkyDirectionEditMode = (EditMode.SceneViewEditMode)110;
 
@@ -124,11 +127,11 @@ namespace UnityEditor.Rendering
 
             public static void DrawTouchupContent(SerializedProbeTouchupVolume serialized, Editor owner)
             {
-                ProbeTouchupVolume ptv = (serialized.serializedObject.targetObject as ProbeTouchupVolume);
+                ProbeTouchupVolume ptv = (owner.target as ProbeTouchupVolume);
 
                 var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(ptv.gameObject.scene);
                 bool useVirtualOffset = bakingSet != null ? bakingSet.settings.virtualOffsetSettings.useVirtualOffset : false;
-                bool useSkyOcclusion = bakingSet.bakedSkyShadingDirection && bakingSet.bakedSkyOcclusion;
+                bool useSkyOcclusion = bakingSet != null ? bakingSet.bakedSkyShadingDirection && bakingSet.bakedSkyOcclusion : false;
 
                 var hiddenMode = (int)ProbeTouchupVolume.Mode.IntensityScale;
                 var availableValues = (int[])Enum.GetValues(typeof(ProbeTouchupVolume.Mode));
@@ -188,7 +191,6 @@ namespace UnityEditor.Rendering
                     {
                         EditorGUILayout.HelpBox("Override Virtual Offset can be used only if Virtual Offset is enabled for the Baking Set.", MessageType.Warning);
                     }
-
                 }
                 else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.InvalidateProbes)
                 {
@@ -197,10 +199,29 @@ namespace UnityEditor.Rendering
                         ProbeGIBaking.RecomputeValidityAfterBake();
                     }
                 }
+                else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideSampleCount)
+                {
+                    EditorGUILayout.LabelField("Probes", EditorStyles.miniBoldLabel);
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.directSampleCount);
+                        EditorGUILayout.PropertyField(serialized.indirectSampleCount);
+                        EditorGUILayout.PropertyField(serialized.sampleCountMultiplier);
+                        EditorGUILayout.PropertyField(serialized.maxBounces);
+                    }
+
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Sky Occlusion", EditorStyles.miniBoldLabel);
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        EditorGUILayout.PropertyField(serialized.skyOcclusionSampleCount, Styles.skyOcclusionSampleCount);
+                        EditorGUILayout.PropertyField(serialized.skyOcclusionMaxBounces, Styles.skyOcclusionMaxBounces);
+                    }
+                }
                 else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.IntensityScale)
                 {
-                    EditorGUILayout.HelpBox("Overriding the intensity of probes can break the physical plausibility of lighting. This may result in unwanted visual inconsistencies.", MessageType.Info, wide: true);
                     EditorGUILayout.PropertyField(serialized.intensityScale);
+                    EditorGUILayout.HelpBox("Overriding the intensity of probes can break the physical plausibility of lighting. This may result in unwanted visual inconsistencies.", MessageType.Info, wide: true);
                 }
 				else if (serialized.mode.intValue == (int)ProbeTouchupVolume.Mode.OverrideSkyDirection)
                 {
@@ -233,9 +254,21 @@ namespace UnityEditor.Rendering
 
                     if (!useSkyOcclusion)
                     {
-                        EditorGUILayout.HelpBox("Override sky occlusion shading direction can be used only if Probe Volumes were baked with sky occlusion on.", MessageType.Warning);
+                        EditorGUILayout.HelpBox("Override sky occlusion shading direction can be used only if Adaptive Probe Volumes were baked with sky occlusion on.", MessageType.Warning);
                     }
                 }
+
+                /*
+                if (owner.targets.Length == 1)
+                {
+                    EditorGUILayout.Space();
+                    using (new EditorGUI.DisabledScope(bakingSet == null))
+                    {
+                        if (GUILayout.Button("Bake"))
+                            ProbeGIBaking.BakeAdjustmentVolume(bakingSet, ptv);
+                    }
+                }
+                */
             }
 
             internal static Bounds GetBounds(SerializedProbeTouchupVolume serialized, Editor owner)
@@ -333,7 +366,7 @@ namespace UnityEditor.Rendering
                 {
                     ArrowHandle(0, Quaternion.Euler(touchupVolume.virtualOffsetRotation), touchupVolume.virtualOffsetDistance);
                 }
-                
+
             }
             using (new Handles.DrawingScope(Matrix4x4.TRS(touchupVolume.transform.position, Quaternion.identity, Vector3.one)))
             {

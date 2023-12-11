@@ -8,17 +8,19 @@ namespace UnityEditor.Rendering.HighDefinition
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
         public override int Priority => 100;
-        private HDRenderPipelineRuntimeResources.ShaderResources m_ShaderResources;
+        private HDRenderPipelineRuntimeShaders m_ShaderResources;
         private HDRenderPipelineRuntimeMaterials m_MaterialResources;
 
         public CommonShaderPreprocessor()
         {
-            m_ShaderResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            m_ShaderResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             m_MaterialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            bool stripDebugVariants = HDRPBuildData.instance.stripDebugVariants;
+
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
             var settings = hdrpAsset.currentPlatformRenderPipelineSettings;
@@ -34,10 +36,20 @@ namespace UnityEditor.Rendering.HighDefinition
                         return true;
                 }
 
+                if (stripDebugVariants && snippet.passName.StartsWith(HDRenderPipeline.k_WaterMaskPass))
+                    return true;
+
                 if (shader == m_ShaderResources.waterCausticsPS ||
                     shader == m_ShaderResources.waterFoamPS ||
                     shader == m_ShaderResources.waterPS ||
                     shader == m_MaterialResources.waterExclusionMaterial.shader)
+                    return true;
+            }
+
+            // Volumetric clouds
+            if (!settings.supportVolumetricClouds)
+            {
+                if (shader == m_ShaderResources.volumetricCloudsCombinePS)
                     return true;
             }
 
@@ -97,14 +109,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // If requested by the render pipeline settings, or if we are in a release build,
             // don't compile fullscreen debug display variant
             bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
-            if (isFullScreenDebugPass && m_StripDebugVariants)
+            if (isFullScreenDebugPass && stripDebugVariants)
                 return true;
 
             // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
             // We also don't want it in release build.
             // However our AOV API rely on several debug display shader. In case AOV API is requested at runtime (like for the Graphics Compositor)
             // we allow user to make explicit request for it and it bypass other request
-            if (m_StripDebugVariants && !settings.supportRuntimeAOVAPI)
+            if (stripDebugVariants && !settings.supportRuntimeAOVAPI)
             {
                 if (shader == m_ShaderResources.debugDisplayLatlongPS ||
                     shader == m_ShaderResources.debugViewMaterialGBufferPS ||

@@ -69,7 +69,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (m_IntegrateHDRISkyMaterial == null)
                 {
-                    var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS;
+                    var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+                    var shader = shaders.integrateHdriSkyPS;
                     m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(shader);
                 }
 

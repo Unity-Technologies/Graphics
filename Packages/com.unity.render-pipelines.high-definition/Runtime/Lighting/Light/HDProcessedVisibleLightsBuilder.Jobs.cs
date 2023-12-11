@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly]
             public bool enableRayTracing;
             [ReadOnly]
+            public bool enablePathTracing;
+            [ReadOnly]
             public bool showDirectionalLight;
             [ReadOnly]
             public bool showPunctualLight;
@@ -251,7 +253,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ref HDLightRenderData lightRenderData = ref GetLightData(dataIndex);
 
-                if (enableRayTracing && !lightRenderData.includeForRayTracing)
+                if (enableRayTracing && !enablePathTracing && !lightRenderData.includeForRayTracing)
+                    return;
+
+                if (enableRayTracing && enablePathTracing && !lightRenderData.includeForPathTracing)
                     return;
 
                 float3 lightPosition = visibleLight.GetPosition();
@@ -340,6 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 pixelCount = hdCamera.actualWidth * hdCamera.actualHeight,
                 enableAreaLights = ShaderConfig.s_AreaLights != 0,
                 enableRayTracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rayTracingState,
+                enablePathTracing = hdCamera.IsPathTracingEnabled() && rayTracingState,
                 showDirectionalLight = debugDisplaySettings.data.lightingDebugSettings.showDirectionalLight,
                 showPunctualLight = debugDisplaySettings.data.lightingDebugSettings.showPunctualLight,
                 showAreaLight = debugDisplaySettings.data.lightingDebugSettings.showAreaLight,

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HideInInspector]
     [Category("Resources/Editor Assets")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    class HDRenderPipelineEditorAssets : IRenderPipelineResources
+    class HDRenderPipelineEditorAssets : IRenderPipelineResources, IDefaultVolumeProfileAsset
     {
         public int version => 0;
 

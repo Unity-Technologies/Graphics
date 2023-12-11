@@ -46,8 +46,6 @@ namespace UnityEngine.Rendering
 
                 bool validResources = rr.index != null && rr.L0_L1rx != null && rr.L1_G_ry != null && rr.L1_B_rz != null;
                 validResources &= (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2 && rr.L2_0 != null) || refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL1;
-                validResources &= rr.SkyOcclusionL0L1 != null;
-                validResources &= rr.SkyShadingDirectionIndices != null;
 
                 if (validResources)
                 {

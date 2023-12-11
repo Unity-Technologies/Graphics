@@ -110,10 +110,59 @@ namespace UnityEditor.VFX
                 desc.hasAlphaClipping = actualShaderGraph.alphaClipping;
 
                 var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(actualShaderGraph);
-                foreach (var property in shaderGraphProperties)
+                foreach (var sgProperty in shaderGraphProperties)
                 {
-                    desc.properties.Add(property);
-                    desc.propertiesGpuExpressions.Add((ExpressionFromSlot)property.property.name);
+                    desc.properties.Add(sgProperty.property);
+
+                    if (sgProperty.keywordsMapping == null)
+                    {
+                        desc.propertiesGpuExpressions.Add((ExpressionFromSlot)sgProperty.property.property.name);
+                    }
+                    else
+                    {
+                        if (sgProperty.property.property.type == typeof(bool))
+                        {
+                            var keyword = sgProperty.keywordsMapping[0];
+                            desc.propertiesCpuExpressions.Add(new ShaderKeywordExpressionFromSlot(sgProperty.property.property.name, keyword));
+                        }
+                        if (sgProperty.property.property.type == typeof(uint))
+                        {
+                            for (uint index = 0; index < sgProperty.keywordsMapping.Length; ++index)
+                            {
+                                var keyword = sgProperty.keywordsMapping[index];
+                                desc.propertiesCpuExpressions.Add(new ShaderKeywordExpressionFromSlot(sgProperty.property.property.name, keyword, index));
+                            }
+                        }
+
+                        if (!sgProperty.multiCompile)
+                        {
+                            VFXSlot matchingSlot = null;
+                            foreach (var slot in parent.inputSlots)
+                            {
+                                if (sgProperty.property.property.name == slot.property.name)
+                                {
+                                    matchingSlot = slot;
+                                    break;
+                                }
+                            }
+
+                            if (matchingSlot != null)
+                            {
+                                var exp = matchingSlot.GetExpression();
+                                var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
+                                context.RegisterExpression(exp);
+                                context.Compile();
+                                exp = context.GetReduced(exp);
+
+                                if (!exp.Is(VFXExpression.Flags.Constant))
+                                {
+                                    desc.errors.Add(new("ErrorShaderFeatureNonConstant", VFXErrorType.Error,
+                                        $"The ShaderGraph uses shader_feature for the exposed property '{sgProperty.property.property.name}'." +
+                                        $"\nSwitch to multi_compile for any keyword dynamically computed."));
+                                }
+                            }
+                        }
+                    }
                 }
 
                 foreach (var texture in VFXShaderGraphHelpers.GetTextureConstant(actualShaderGraph))

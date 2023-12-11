@@ -106,13 +106,59 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public DebugFullScreenMode fullScreenDebugMode { get; set; } = DebugFullScreenMode.None;
 
+        internal int stpDebugViewIndex { get; set; } = 0;
+
         /// <summary>
         /// Size of the debug fullscreen overlay, as percentage of the screen size.
         /// </summary>
         public int fullScreenDebugModeOutputSizeScreenPercent { get; set; } = 50;
 
         internal DebugSceneOverrideMode sceneOverrideMode { get; set; } = DebugSceneOverrideMode.None;
-        internal DebugMipInfoMode mipInfoMode { get; set; } = DebugMipInfoMode.None;
+
+        /// <summary>
+        /// Texture mipmap streaming debug mode.
+        /// </summary>
+        public DebugMipInfoMode mipInfoMode { get; set; } = DebugMipInfoMode.None;
+
+        /// <summary>
+        /// Show detailed status codes for the Mipmap Streaming Status debug view.
+        /// </summary>
+        public bool mipDebugStatusShowCode { get; set; } = false;
+
+        /// <summary>
+        /// Aggregation mode for showing debug information per texture or aggregated for each material.
+        /// </summary>
+        public DebugMipMapStatusMode mipDebugStatusMode { get; set; } = DebugMipMapStatusMode.Material;
+
+        /// <summary>
+        /// Opacity of texture mipmap streaming debug colors.
+        /// </summary>
+        public float mipDebugOpacity { get; set; } = 1.0f;
+
+        /// <summary>
+        /// Timespan during which a texture upload should be visualized as recently updated.
+        /// </summary>
+        public float mipDebugRecentUpdateCooldown { get; set; } = 3.0f;
+
+        /// <summary>
+        /// The material texture slot for which texture mipmap streaming debug information is shown.
+        /// </summary>
+        public int mipDebugMaterialTextureSlot { get; set; } = 0;
+
+        /// <summary>
+        /// Whether to debug a specific texture slot in the material, or to show the debug data for the entire material.
+        ///
+        /// By default we will show information for the entire material (and not a specific texture slot) where it makes sense.
+        /// </summary>
+        public bool showInfoForAllSlots { get; set; } = true;
+        internal bool canAggregateData {
+            get { return mipInfoMode == DebugMipInfoMode.MipStreamingStatus || mipInfoMode == DebugMipInfoMode.MipStreamingActivity; }
+        }
+
+        /// <summary>
+        /// The terrain layer for which texture mipmap streaming debug information is shown.
+        /// </summary>
+        public DebugMipMapModeTerrainTexture mipDebugTerrainTexture { get; set; } = DebugMipMapModeTerrainTexture.Control;
 
         /// <summary>
         /// Current debug post processing mode.
@@ -177,11 +223,20 @@ namespace UnityEngine.Rendering.Universal
             public const string RangeValidationSettingsContainerName = "Pixel Range Settings";
 
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
+            public static readonly NameAndTooltip StpDebugViews = new() { name = "STP Debug Views", tooltip = "Debug visualizations provided by STP." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
             public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: This platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
             public static readonly NameAndTooltip OverdrawMode = new() { name = "Overdraw Mode", tooltip = "Debug anywhere materials that overdrawn pixels top of each other." };
             public static readonly NameAndTooltip MaxOverdrawCount = new() { name = "Max Overdraw Count", tooltip = "Maximum overdraw count allowed for a single pixel." };
+            public static readonly NameAndTooltip MipMapDisableMipCaching = new() {name = "Disable Mip Caching", tooltip = "By disabling mip caching, the data on GPU accurately reflects what the TextureStreamer calculates. While this can significantly increase CPU-to-GPU traffic, it can be an invaluable tool to validate that the Streamer behaves as expected."};
+            public static readonly NameAndTooltip MipMapDebugView = new() { name = "Debug View", tooltip = "Use the drop-down to select a mipmap property to debug." };
+            public static readonly NameAndTooltip MipMapDebugOpacity = new() { name = "Debug Opacity", tooltip = "Opacity of texture mipmap streaming debug colors." };
+            public static readonly NameAndTooltip MipMapMaterialTextureSlot = new() { name = "Material Texture Slot", tooltip = "Use the drop-down to select the material texture slot to debug (does not affect terrain).\n\nThe slot indices follow the default order by which texture properties appear in the Material Inspector.\nThe default order is itself defined by the order in which (non-hidden) texture properties appear in the shader's \"Properties\" block." };
+            public static readonly NameAndTooltip MipMapTerrainTexture = new() { name = "Terrain Texture", tooltip = "Use the drop-down to select the terrain Texture to debug the mipmap for." };
+            public static readonly NameAndTooltip MipMapDisplayStatusCodes = new() { name = "Display Status Codes", tooltip = "Show detailed status codes indicating why textures are not streaming or highlighting points of attention." };
+            public static readonly NameAndTooltip MipMapActivityTimespan = new() { name = "Activity Timespan", tooltip = "How long a texture should be shown as \"recently updated\"." };
+            public static readonly NameAndTooltip MipMapCombinePerMaterial = new() { name = "Combined per Material", tooltip = "Combine the information over all slots per material." };
             public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
             public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
             public static readonly NameAndTooltip HDR = new() { name = "HDR", tooltip = "Use the checkbox to disable High Dynamic Range in the scene." };
@@ -204,6 +259,18 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => panel.data.fullScreenDebugMode = (DebugFullScreenMode)value,
                 getIndex = () => (int)panel.data.fullScreenDebugMode,
                 setIndex = (value) => panel.data.fullScreenDebugMode = (DebugFullScreenMode)value
+            };
+
+            internal static DebugUI.Widget CreateStpDebugViews(SettingsPanel panel) => new DebugUI.EnumField
+            {
+                nameAndTooltip = Strings.StpDebugViews,
+                isHiddenCallback = () => panel.data.fullScreenDebugMode != DebugFullScreenMode.STP,
+                enumNames = STP.debugViewDescriptions,
+                enumValues = STP.debugViewIndices,
+                getter = () => (int)panel.data.stpDebugViewIndex,
+                setter = (value) => panel.data.stpDebugViewIndex = value,
+                getIndex = () => (int)panel.data.stpDebugViewIndex,
+                setIndex = (value) => panel.data.stpDebugViewIndex = value
             };
 
             internal static DebugUI.Widget CreateMapOverlaySize(SettingsPanel panel) => new DebugUI.Container()
@@ -279,6 +346,125 @@ namespace UnityEngine.Rendering.Universal
                         max = () => 500
                     }
                 }
+            };
+
+            internal static DebugUI.Widget CreateMipMapDebugWidget(SettingsPanel panel) => new DebugUI.Container()
+            {
+                displayName = "Mipmap Streaming",
+                children =
+                {
+                    new DebugUI.BoolField()
+                    {
+                        nameAndTooltip = Strings.MipMapDisableMipCaching,
+                        getter = () => Texture.streamingTextureDiscardUnusedMips,
+                        setter = (value) => Texture.streamingTextureDiscardUnusedMips = value,
+                    },
+                    CreateMipMapMode(panel),
+                    CreateMipMapDebugSettings(panel)
+                }
+            };
+
+            internal static DebugUI.Widget CreateMipMapMode(SettingsPanel panel) => new DebugUI.EnumField()
+            {
+                nameAndTooltip = Strings.MipMapDebugView,
+                autoEnum = typeof(DebugMipInfoMode),
+                getter = () => (int)panel.data.mipInfoMode,
+                setter = (value) => panel.data.mipInfoMode = (DebugMipInfoMode)value,
+                getIndex = () => (int)panel.data.mipInfoMode,
+                setIndex = (value) => panel.data.mipInfoMode = (DebugMipInfoMode)value
+            };
+
+            internal static DebugUI.Widget CreateMipMapDebugSettings(SettingsPanel panel)
+            {
+                const int maxMaterialTextureSlotCount = 64;
+                GUIContent[] texSlotStrings = new GUIContent[maxMaterialTextureSlotCount];
+                int[] texSlotValues = new int[maxMaterialTextureSlotCount];
+                for (int i = 0; i < maxMaterialTextureSlotCount; ++i)
+                {
+                    texSlotStrings[i] = new GUIContent(string.Format("Slot {0}", i));
+                    texSlotValues[i] = i;
+                }
+
+                return new DebugUI.Container()
+                {
+                    isHiddenCallback = () => panel.data.mipInfoMode == DebugMipInfoMode.None,
+                    children =
+                    {
+                        new DebugUI.FloatField
+                        {
+                            nameAndTooltip = Strings.MipMapDebugOpacity,
+                            getter = () => panel.data.mipDebugOpacity,
+                            setter = value => { panel.data.mipDebugOpacity = value; },
+                            min = () => 0.0f,
+                            max = () => 1.0f
+                        },
+
+                        CreateMipMapDebugSlotSelector(panel, () => panel.data.canAggregateData, texSlotStrings, texSlotValues), // if we can aggregate, we want to show this under a checkbox instead (see next)
+
+                        new DebugUI.BoolField()
+                        {
+                            isHiddenCallback = () => !panel.data.canAggregateData,
+                            nameAndTooltip = Strings.MipMapCombinePerMaterial,
+                            getter = () => panel.data.showInfoForAllSlots,
+                            setter = value =>
+                            {
+                                panel.data.showInfoForAllSlots = value;
+                                panel.data.mipDebugStatusMode = value ? DebugMipMapStatusMode.Material : DebugMipMapStatusMode.Texture;
+                            },
+                        },
+                        new DebugUI.Container()
+                        {
+                            isHiddenCallback = () => !panel.data.canAggregateData || panel.data.showInfoForAllSlots,
+                            children =
+                            {
+                                CreateMipMapDebugSlotSelector(panel, () => false, texSlotStrings, texSlotValues),
+                                CreateMipMapShowStatusCodeToggle(panel)
+                            }
+                        },
+
+                        new DebugUI.EnumField
+                        {
+                            nameAndTooltip = Strings.MipMapTerrainTexture,
+                            getter = () => (int)panel.data.mipDebugTerrainTexture,
+                            setter = value => panel.data.mipDebugTerrainTexture = (DebugMipMapModeTerrainTexture)value,
+                            autoEnum = typeof(DebugMipMapModeTerrainTexture),
+                            getIndex = () => (int)panel.data.mipDebugTerrainTexture,
+                            setIndex = value => panel.data.mipDebugTerrainTexture = (DebugMipMapModeTerrainTexture)value
+                        },
+
+                        CreateMipMapDebugCooldownSlider(panel),
+                    }
+                };
+            }
+
+            internal static DebugUI.Widget CreateMipMapDebugSlotSelector(SettingsPanel panel, Func<bool> hiddenCB, GUIContent[] texSlotStrings, int[] texSlotValues) => new DebugUI.EnumField()
+            {
+                isHiddenCallback = hiddenCB,
+                nameAndTooltip = Strings.MipMapMaterialTextureSlot,
+                getter = () => panel.data.mipDebugMaterialTextureSlot,
+                setter = value => panel.data.mipDebugMaterialTextureSlot = value,
+                getIndex = () => panel.data.mipDebugMaterialTextureSlot,
+                setIndex = value => panel.data.mipDebugMaterialTextureSlot = value,
+                enumNames = texSlotStrings,
+                enumValues = texSlotValues,
+            };
+
+            internal static DebugUI.Widget CreateMipMapDebugCooldownSlider(SettingsPanel panel) => new DebugUI.FloatField()
+            {
+                isHiddenCallback = () => panel.data.mipInfoMode != DebugMipInfoMode.MipStreamingActivity,
+                nameAndTooltip = Strings.MipMapActivityTimespan,
+                getter = () => panel.data.mipDebugRecentUpdateCooldown,
+                setter = value => panel.data.mipDebugRecentUpdateCooldown = value,
+                min = () => 0.0f,
+                max = () => 60.0f
+            };
+
+            internal static DebugUI.Widget CreateMipMapShowStatusCodeToggle(SettingsPanel panel) => new DebugUI.BoolField()
+            {
+                isHiddenCallback = () => panel.data.mipInfoMode != DebugMipInfoMode.MipStreamingStatus,
+                nameAndTooltip = Strings.MipMapDisplayStatusCodes,
+                getter = () => panel.data.mipDebugStatusShowCode,
+                setter = (value) => panel.data.mipDebugStatusShowCode = value,
             };
 
             internal static DebugUI.Widget CreatePostProcessing(SettingsPanel panel) => new DebugUI.EnumField
@@ -371,6 +557,7 @@ namespace UnityEngine.Rendering.Universal
                     children =
                     {
                         WidgetFactory.CreateMapOverlays(this),
+                        WidgetFactory.CreateStpDebugViews(this),
                         WidgetFactory.CreateMapOverlaySize(this),
                         WidgetFactory.CreateHDR(this),
                         WidgetFactory.CreateMSAA(this),
@@ -380,6 +567,7 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateWireframeNotSupportedWarning(this),
                         WidgetFactory.CreateOverdrawMode(this),
                         WidgetFactory.CreateMaxOverdrawCount(this),
+                        WidgetFactory.CreateMipMapDebugWidget(this),
                     }
                 });
 
@@ -447,6 +635,12 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public bool TryGetScreenClearColor(ref Color color)
         {
+            if (mipInfoMode != DebugMipInfoMode.None)
+            {
+                color = Color.black;
+                return true;
+            }
+
             switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.None:

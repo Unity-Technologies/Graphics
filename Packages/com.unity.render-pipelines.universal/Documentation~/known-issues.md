@@ -27,11 +27,11 @@ The following scenario shows how the error occurs:
 
 To avoid the issue, do not give the URP Renderer asset the same name as the Renderer Feature asset.
 
-To see updates on this issue, refer to the [Unity Issue Tracker](https://issuetracker.unity3d.com/issues/parent-and-child-nested-scriptable-object-assets-switch-places-when-parent-scriptable-object-asset-is-renamed).
+To find updates on this issue, refer to the [Unity Issue Tracker](https://issuetracker.unity3d.com/issues/parent-and-child-nested-scriptable-object-assets-switch-places-when-parent-scriptable-object-asset-is-renamed).
 
 ## Warning about \_AdditionalLights property when upgrading the URP package
 
-In certain cases, you might see the following warning when upgrading the URP package to a newer version:
+In certain cases, you might receive the following warning when upgrading the URP package to a newer version:
 
 ```
 Property (_AdditionalLights<...>) exceeds previous array size (256 vs 16). Cap to previous size.

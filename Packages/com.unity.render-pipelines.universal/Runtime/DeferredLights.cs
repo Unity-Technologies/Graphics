@@ -93,6 +93,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             "_GBuffer6"
         };
 
+        internal static readonly int[] k_GBufferShaderPropertyIDs = new int[]
+        {
+            Shader.PropertyToID(k_GBufferNames[0]),
+            Shader.PropertyToID(k_GBufferNames[1]),
+            Shader.PropertyToID(k_GBufferNames[2]),
+            Shader.PropertyToID(k_GBufferNames[3]),
+            Shader.PropertyToID(k_GBufferNames[4]),
+            Shader.PropertyToID(k_GBufferNames[5]),
+            Shader.PropertyToID(k_GBufferNames[6]),
+        };
+
         static readonly string[] k_StencilDeferredPassNames = new string[]
         {
             "Stencil Volume",
@@ -270,6 +281,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalCameraData cameraData;
             internal UniversalLightData lightData;
             internal DeferredLights deferredLights;
+
+            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
+            internal Vector2Int cameraTargetSizeCopy;
         };
         /// <summary>
         /// Sets up the ForwardLight data for RenderGraph execution
@@ -280,6 +294,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 s_SetupDeferredLights))
             {
                 passData.cameraData = cameraData;
+                passData.cameraTargetSizeCopy = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                 passData.lightData = lightData;
                 passData.deferredLights = this;
 
@@ -287,19 +302,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((SetupLightPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.lightData);
+                    data.deferredLights.SetupLights(CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd), data.cameraData, data.cameraTargetSizeCopy, data.lightData, true);
                 });
             }
         }
 
-        internal void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData)
+        internal void SetupLights(CommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, UniversalLightData lightData, bool isRenderGraph = false)
         {
             Profiler.BeginSample(k_SetupLights);
 
             Camera camera = cameraData.camera;
             // Support for dynamic resolution.
-            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraData.cameraTargetDescriptor.width) : cameraData.cameraTargetDescriptor.width;
-            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraData.cameraTargetDescriptor.height) : cameraData.cameraTargetDescriptor.height;
+            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraTargetSizeCopy.x) : cameraTargetSizeCopy.x;
+            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraTargetSizeCopy.y) : cameraTargetSizeCopy.y;
 
             // inspect lights in lightData.visibleLights and convert them to entries in m_stencilVisLights
             PrecomputeLights(
@@ -335,7 +350,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, isShadowMask);
                     cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
-                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && (cameraData.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView));
+                    cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, this.UseFramebufferFetch && (cameraData.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView || isRenderGraph));
                     cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, UseLightLayers && !CoreUtils.IsSceneLightingDisabled(camera));
 
                     RenderingLayerUtils.SetupProperties(cmd, RenderingLayerMaskSize);

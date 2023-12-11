@@ -328,6 +328,7 @@ namespace UnityEditor.VFX.UI
             m_TextField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             m_TextField.Q(TextField.textInputUssName).RegisterCallback<FocusOutEvent>(OnTitleBlur, TrickleDown.TrickleDown);
 
+            this.Q("selection-border").SendToBack();
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<DragExitedEvent>(OnDragExited);
@@ -803,7 +804,7 @@ namespace UnityEditor.VFX.UI
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            VFXFilterWindow.Show(referencePosition, screenPosition, m_BlockProvider);
+            VFXFilterWindow.Show(view, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
@@ -854,7 +855,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!descriptor.modelType.IsSubclassOf(typeof(VFXAbstractParticleOutput)))
                 return false;
-            var toContext = (VFXContext)descriptor.CreateInstance();
+            var toContext = (VFXContext)descriptor.unTypedModel;
             foreach (var links in controller.model.inputFlowSlot.Select((t, i) => new { index = i, links = t.link }))
             {
                 foreach (var link in links.links)
@@ -870,7 +871,7 @@ namespace UnityEditor.VFX.UI
         void OnConvertContext(DropdownMenuAction action)
         {
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXFilterWindow.Show(action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+            VFXFilterWindow.Show(view, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
         }
 
         void ConvertContext(Variant variant, Vector2 mPos)

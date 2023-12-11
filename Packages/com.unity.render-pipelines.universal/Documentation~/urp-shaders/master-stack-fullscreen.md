@@ -19,13 +19,13 @@ This section contains information on the blocks that this Master Stack material 
 
 ## <a name="vertex-context"></a>Vertex context
 
-The Vertex context represents the vertex stage of this shader. Unity executes any block you connect to this context in the vertex function of this shader. For more information, see [Master Stack](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Master-Stack.html).
+The Vertex context represents the vertex stage of this shader. Unity executes any block you connect to this context in the vertex function of this shader. For more information, refer to [Master Stack](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Master-Stack.html).
 
 Vertex blocks are not compatible with the Fullscreen Master Stack.
 
 ## <a name="fragment-context"></a>Fragment context
 
-The Fragment context represents the fragment (or pixel) stage of this shader. Unity executes any block you connect to this context in the fragment function of this shader. For more information, see [Master Stack](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Master-Stack.html).
+The Fragment context represents the fragment (or pixel) stage of this shader. Unity executes any block you connect to this context in the fragment function of this shader. For more information, refer to [Master Stack](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/Master-Stack.html).
 
 ### Default
 
@@ -72,7 +72,7 @@ The properties in the Graph Settings window control the overall appearance of th
 |                             | **Premultiply**                                              | Multiplies the RGB values of the transparent shader by its alpha value, then applies a similar effect to the shader as **Alpha**.  `BlendMode` operation: `Blend One OneMinusSrcAlpha` |
 |                             | **Additive**                                                 | Adds the color values of the full-screen shader and the Camera output together. `BlendMode` operation: `Blend One One` |
 |                             | **Multiply**                                                 | Multiplies the color of the full-screen shader with the color of the Camera’s output. `BlendMode` operation: `Blend DstColor Zero` |
-|                             | **Custom**                                                   | Set every parameter of the blending equation manually. For more information, see [Custom blend modes](#custom-blend-modes). |
+|                             | **Custom**                                                   | Set every parameter of the blending equation manually. For more information, refer to [Custom blend modes](#custom-blend-modes). |
 | **Depth Test **                 | Specifies the function this shader uses to perform the depth test. |                                                              |
 |                             | **Disabled**                                                 | Does not perform a depth test.                               |
 |                             | **Never**                                                    | The depth test never passes.                                 |
@@ -88,8 +88,8 @@ The properties in the Graph Settings window control the overall appearance of th
 |                             | **LinearEye**                                                | Converts the depth value into a value scaled to world space. This new value represents the depth (in meters) from the near to the far plane of the Camera. |
 |                             | **Linear01**                                                 | Uses a linear depth value range between 0 and 1.             |
 |                             | **Raw**                                                      | Does not convert the depth buffer value. Use this setting with a nonlinear depth value or when you directly sample the depth value from the depth buffer. |
-| Enable Stencil              | This property gives you control over all stencil fields.  See [Stencil properties](#stencil-properties) for information about the options that become available when you enable this property. |                                                              |
-| Custom Editor GUI           | Accepts the full name of a C# class that inherits [`FullscreenShaderGUI`](https://docs.unity3d.com/Packages/com.unity.shadergraph@15.0/api/UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenShaderGUI.html). For information on how to use a custom editor, see [ShaderLab: assigning a custom editor](https://docs.unity3d.com/2021.2/Documentation/Manual/SL-CustomEditor.html). |                                                              |
+| Enable Stencil              | This property gives you control over all stencil fields. Refer to [Stencil properties](#stencil-properties) for information about the options that become available when you enable this property. |                                                              |
+| Custom Editor GUI           | Accepts the full name of a C# class that inherits [`FullscreenShaderGUI`](https://docs.unity3d.com/Packages/com.unity.shadergraph@15.0/api/UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenShaderGUI.html). For information on how to use a custom editor, refer to [ShaderLab: assigning a custom editor](https://docs.unity3d.com/2021.2/Documentation/Manual/SL-CustomEditor.html). |                                                              |
 
 ## <a name="custom-blend-modes"></a>Custom Blend Mode
 
@@ -97,7 +97,7 @@ Use the **Custom** blend mode to create a blend mode different from those availa
 
 In the blend mode properties, **Src** (source) refers to the full-screen shader itself. **Dst** (destination) refers to the Scene camera’s raw output, which this shader doesn't affect. The blending operation applies the source contents to the destination contents to produce a rendering result.
 
-For more information on the blending equation, see [ShaderLab command: Blend](https://docs.unity3d.com/Manual/SL-Blend.html).
+For more information on the blending equation, refer to [ShaderLab command: Blend](https://docs.unity3d.com/Manual/SL-Blend.html).
 
 ### Color Blend Mode
 
@@ -107,7 +107,7 @@ Determines the blending equation Unity uses for the red, green, and blue channel
 | ------------------- | ------------------------------------------------------------ |
 | **Src Color**       | Sets the blend mode of the source color.                     |
 | **Dst Color**       | Sets the blend mode of the destination color.                |
-| **Color Operation** | Determines how to combine the source and destination color during the blending process. For information on these options see [ShaderLab command: BlendOp](https://docs.unity3d.com/Manual/SL-BlendOp.html) |
+| **Color Operation** | Determines how to combine the source and destination color during the blending process. For information on these options refer to [ShaderLab command: BlendOp](https://docs.unity3d.com/Manual/SL-BlendOp.html) |
 
 ### Alpha Blend Mode
 
@@ -115,13 +115,13 @@ Determines the blending equation Unity uses for the alpha channel. Each setting 
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
-|**Src**                  | Sets the blend mode of the source alpha. For information on these options, see [Valid parameter values](https://docs.unity3d.com/Manual/SL-Blend.html#valid-parameter-values). |
-| **Dst**                  | Sets the blend mode of the destination alpha. For information on these options, see[Valid parameter values](https://docs.unity3d.com/Manual/SL-Blend.html). |
-| **Blend Operation Alpha** | Determines how to combine the source and destination alpha during the blending process. For more information on these options, see [ShaderLab command: BlendOp](https://docs.unity3d.com/Manual/SL-BlendOp.html) |
+|**Src**                  | Sets the blend mode of the source alpha. For information on these options, refer to [Valid parameter values](https://docs.unity3d.com/Manual/SL-Blend.html#valid-parameter-values). |
+| **Dst**                  | Sets the blend mode of the destination alpha. For information on these options, refer to [Valid parameter values](https://docs.unity3d.com/Manual/SL-Blend.html). |
+| **Blend Operation Alpha** | Determines how to combine the source and destination alpha during the blending process. For more information on these options, refer to [ShaderLab command: BlendOp](https://docs.unity3d.com/Manual/SL-BlendOp.html) |
 
 ## <a name="stencil-properties"></a>Stencil properties
 
-These properties affect how this full-screen Shader Graph uses the stencil buffer. For more information on the stencil buffer, see [SL-Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
+These properties affect how this full-screen Shader Graph uses the stencil buffer. For more information on the stencil buffer, refer to [SL-Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
 
 | **Property**        | **Description**                                              |                                                              |
 | ------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -138,9 +138,9 @@ These properties affect how this full-screen Shader Graph uses the stencil buffe
 |                     | **Not Equal**                                                | The stencil test passes if the pixel's depth value is not equal to the value stored in the depth buffer. |
 |                     | **Greater Equal**                                            | The stencil test passes if the pixel's depth value is greater than or equal to the value stored in the depth buffer. |
 |                     | **Always**                                                   | The stencil test always passes,and Unity does not compare the pixel's depth value to the value it has stored in the depth buffer. |
-| **Pass**                | Determines the operation this shader executes if the stencil test succeeds. <br/>For more information on this property’s options, see [pass and fail options](#stencil-pass-fail). |                                                              |
-| **Fail**                | Determines the operation this shader executes if the stencil test fails. <br/>For more information on this property’s options, see [pass and fail options](#stencil-pass-fail). |                                                              |
-| **Depth Fail**          | Determines the operation this shader executes if the depth test fails. This option has no effect if the depth test **Comparison** value is **Never** or **Disabled.** <br/>For more information on this property’s options, see [pass and fail options](#stencil-pass-fail). |                                                              |
+| **Pass**                | Determines the operation this shader executes if the stencil test succeeds. <br/>For more information on this property’s options, refer to [pass and fail options](#stencil-pass-fail). |                                                              |
+| **Fail**                | Determines the operation this shader executes if the stencil test fails. <br/>For more information on this property’s options, refer to [pass and fail options](#stencil-pass-fail). |                                                              |
+| **Depth Fail**          | Determines the operation this shader executes if the depth test fails. This option has no effect if the depth test **Comparison** value is **Never** or **Disabled.** <br/>For more information on this property’s options, refer to [pass and fail options](#stencil-pass-fail). |                                                              |
 
 ### <a name="stencil-pass-fail"></a>Pass and Fail options
 

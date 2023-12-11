@@ -1908,13 +1908,19 @@ namespace UnityEditor.VFX.UI
             return ui.groupInfos.Last();
         }
 
-        public void GroupNodes(IEnumerable<VFXNodeController> nodes)
+        public void GroupNodes(VFXNodeController[] nodes)
         {
-            foreach (var g in groupNodes) // remove nodes from other exisitings groups
+            // If a node from the selection already belongs to a group, remove it from this group
+            foreach (var g in groupNodes.ToArray())
             {
                 g.RemoveNodes(nodes);
+                if (g.nodes.Count() ==0)
+                {
+                    RemoveGroupNode(g);
+                }
             }
-            VFXUI.GroupInfo info = PrivateAddGroupNode(Vector2.zero);
+
+            var info = PrivateAddGroupNode(Vector2.zero);
 
             info.contents = nodes.Select(t => new VFXNodeID(t.model, t.id)).ToArray();
 

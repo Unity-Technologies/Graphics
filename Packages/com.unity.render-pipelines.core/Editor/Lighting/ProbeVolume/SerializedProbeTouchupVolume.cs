@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+
 namespace UnityEditor.Rendering
 {
     internal class SerializedProbeTouchupVolume
@@ -15,24 +17,38 @@ namespace UnityEditor.Rendering
         internal SerializedProperty rayOriginBias;
         internal SerializedProperty skyDirection;
 
-        internal SerializedObject serializedObject;
+        internal SerializedProperty directSampleCount;
+        internal SerializedProperty indirectSampleCount;
+        internal SerializedProperty sampleCountMultiplier;
+        internal SerializedProperty maxBounces;
+
+        internal SerializedProperty skyOcclusionSampleCount;
+        internal SerializedProperty skyOcclusionMaxBounces;
 
         internal SerializedProbeTouchupVolume(SerializedObject obj)
         {
-            serializedObject = obj;
+            var o = new PropertyFetcher<ProbeTouchupVolume>(obj);
 
-            shape = serializedObject.FindProperty("shape");
-            size = serializedObject.FindProperty("size");
-            radius = serializedObject.FindProperty("radius");
+            shape = o.Find(x => x.shape);
+            size = o.Find(x => x.size);
+            radius = o.Find(x => x.radius);
 
-            mode = serializedObject.FindProperty("mode");
-            intensityScale = serializedObject.FindProperty("intensityScale");
-            overriddenDilationThreshold = serializedObject.FindProperty("overriddenDilationThreshold");
-            virtualOffsetRotation = serializedObject.FindProperty("virtualOffsetRotation");
-            virtualOffsetDistance = serializedObject.FindProperty("virtualOffsetDistance");
-            geometryBias = serializedObject.FindProperty("geometryBias");
-            rayOriginBias = serializedObject.FindProperty("rayOriginBias");
-            skyDirection = serializedObject.FindProperty("skyDirection");
+            mode = o.Find(x => x.mode);
+            intensityScale = o.Find(x => x.intensityScale);
+            overriddenDilationThreshold = o.Find(x => x.overriddenDilationThreshold);
+            virtualOffsetRotation = o.Find(x => x.virtualOffsetRotation);
+            virtualOffsetDistance = o.Find(x => x.virtualOffsetDistance);
+            geometryBias = o.Find(x => x.geometryBias);
+            rayOriginBias = o.Find(x => x.rayOriginBias);
+            skyDirection = o.Find(x => x.skyDirection);
+
+            directSampleCount = o.Find(x => x.directSampleCount);
+            indirectSampleCount = o.Find(x => x.indirectSampleCount);
+            sampleCountMultiplier = o.Find(x => x.sampleCountMultiplier);
+            maxBounces = o.Find(x => x.maxBounces);
+
+            skyOcclusionSampleCount = o.Find(x => x.skyOcclusionSampleCount);
+            skyOcclusionMaxBounces = o.Find(x => x.skyOcclusionMaxBounces);
         }
     }
 }

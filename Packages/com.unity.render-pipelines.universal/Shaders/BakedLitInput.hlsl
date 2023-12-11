@@ -2,6 +2,7 @@
 #define UNIVERSAL_BAKEDLIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
@@ -10,6 +11,7 @@ CBUFFER_START(UnityPerMaterial)
     half _Glossiness;
     half _Metallic;
     half _Surface;
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS;
 CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED

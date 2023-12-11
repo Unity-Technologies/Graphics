@@ -4,11 +4,19 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
     float4 _MainTex_ST;
     half4 _BaseColor;
     half _Cutoff;
+
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Control);
+    float4 _Splat0_TexelSize, _Splat1_TexelSize, _Splat2_TexelSize, _Splat3_TexelSize;
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat0);
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat1);
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat2);
+    UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat3);
 CBUFFER_END
 
 #define _Surface 0.0 // Terrain is always opaque

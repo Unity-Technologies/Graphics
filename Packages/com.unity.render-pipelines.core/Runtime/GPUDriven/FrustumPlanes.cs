@@ -43,12 +43,31 @@ namespace UnityEngine.Rendering
             return (i >> 31) != 0;
         }
 
+        internal NativeArray<Plane> SilhouettePlaneSubArray()
+        {
+            return planes.AsArray().GetSubArray(lightFacingPlaneCount, planes.Length - lightFacingPlaneCount);
+        }
+
         internal NativeArray<Plane> CopyLightFacingFrustumPlanes(Allocator allocator)
         {
             var facingPlanes = new NativeArray<Plane>(lightFacingPlaneCount, allocator, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < lightFacingPlaneCount; ++i)
                 facingPlanes[i] = planes[i];
             return facingPlanes;
+        }
+
+        internal static ReceiverPlanes CreateEmptyForTesting(Allocator allocator)
+        {
+            return new ReceiverPlanes()
+            {
+                planes = new NativeList<Plane>(allocator),
+                lightFacingPlaneCount = 0,
+            };
+        }
+
+        internal void Dispose()
+        {
+            planes.Dispose();
         }
 
         internal static ReceiverPlanes Create(in BatchCullingContext cc, Allocator allocator)
@@ -185,6 +204,10 @@ namespace UnityEngine.Rendering
             public float4 ny;
             public float4 nz;
             public float4 d;
+            // Store absolute values of plane normals to avoid recalculating per instance
+            public float4 nxAbs;
+            public float4 nyAbs;
+            public float4 nzAbs;
 
             public PlanePacket4(NativeArray<Plane> planes, int offset, int limit)
             {
@@ -196,6 +219,9 @@ namespace UnityEngine.Rendering
                 ny = new float4(p0.normal.y, p1.normal.y, p2.normal.y, p3.normal.y);
                 nz = new float4(p0.normal.z, p1.normal.z, p2.normal.z, p3.normal.z);
                 d = new float4(p0.distance, p1.distance, p2.distance, p3.distance);
+                nxAbs = math.abs(nx);
+                nyAbs = math.abs(ny);
+                nzAbs = math.abs(nz);
             }
         }
 
@@ -253,7 +279,7 @@ namespace UnityEngine.Rendering
             return result;
         }
 
-        internal static uint ComputeSplitVisibilityMask(NativeArray<PlanePacket4> planePackets, NativeArray<SplitInfo> splitInfos, AABB bounds)
+        internal static uint ComputeSplitVisibilityMask(NativeArray<PlanePacket4> planePackets, NativeArray<SplitInfo> splitInfos, in AABB bounds)
         {
             float4 cx = bounds.center.xxxx;
             float4 cy = bounds.center.yyyy;
@@ -276,7 +302,7 @@ namespace UnityEngine.Rendering
                 {
                     PlanePacket4 p = planePackets[packetBase + i];
                     float4 distances = p.nx*cx + p.ny*cy + p.nz*cz + p.d;
-                    float4 radii = math.abs(p.nx)*ex + math.abs(p.ny)*ey + math.abs(p.nz)*ez;
+                    float4 radii = p.nxAbs*ex + p.nyAbs*ey + p.nzAbs*ez;
 
                     isCulled = isCulled | (distances + radii < float4.zero);
                 }
@@ -300,6 +326,20 @@ namespace UnityEngine.Rendering
 
         public NativeArray<SplitInfo> splitInfos;
         public float3x3 worldToLightSpaceRotation;
+
+        internal static ReceiverSphereCuller CreateEmptyForTesting(Allocator allocator)
+        {
+            return new ReceiverSphereCuller()
+            {
+                splitInfos = new NativeArray<SplitInfo>(0, allocator),
+                worldToLightSpaceRotation = float3x3.identity,
+            };
+        }
+
+        internal void Dispose()
+        {
+            splitInfos.Dispose();
+        }
 
         internal bool UseReceiverPlanes()
         {
@@ -372,7 +412,7 @@ namespace UnityEngine.Rendering
             NativeArray<Plane> lightFacingFrustumPlanes,
             NativeArray<SplitInfo> splitInfos,
             float3x3 worldToLightSpaceRotation,
-            AABB bounds)
+            in AABB bounds)
         {
             float3 casterCenterWorldSpace = bounds.center;
             float3 casterCenterLightSpace = math.mul(worldToLightSpaceRotation, bounds.center);

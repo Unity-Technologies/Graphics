@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
         {
             if (dilationShader == null)
             {
-                dilationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeVolumeCellDilation.compute");
+                dilationShader = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().dilationShader;
                 dilationKernel = dilationShader.FindKernel("DilateCell");
             }
         }

@@ -35,6 +35,17 @@ Shader "Hidden/HDRP/WaterDeformation"
         int deformerID : DEFORMER_ID;
     };
 
+    float2 GetDeformationUV(float2 transformedPositionAWS)
+    {
+        float2 deformationPosition = transformedPositionAWS - _DeformationRegionOffset;
+
+        float2 axis1 = _WaterForwardXZ;
+        float2 axis2 = float2(-axis1.y, axis1.x);
+        deformationPosition = float2(dot(deformationPosition, axis1), dot(deformationPosition, axis2));
+
+        return deformationPosition * _DeformationRegionScale;
+    }
+
     Varyings Vert(Attributes input)
     {
         Varyings varyings;
@@ -43,7 +54,7 @@ Shader "Hidden/HDRP/WaterDeformation"
         // Grab the current deformer
         WaterDeformerData currentDeformer = _WaterDeformerData[varyings.deformerID];
 
-        // Comphte the object space position of the quad
+        // Compute the object space position of the quad
         varyings.deformerPosOS = deformerCorners[input.vertexID] * currentDeformer.regionSize * 0.5;
         varyings.centeredPos = deformerCorners[input.vertexID].xy;
         varyings.normalizedPos = varyings.centeredPos * 0.5 + 0.5;
@@ -53,10 +64,13 @@ Shader "Hidden/HDRP/WaterDeformation"
         float sinRot = sin(currentDeformer.rotation);
         float x = varyings.deformerPosOS.x * cosRot - sinRot * varyings.deformerPosOS.y;
         float y = varyings.deformerPosOS.x * sinRot + cosRot * varyings.deformerPosOS.y;
-        varyings.positionWS = currentDeformer.position.xz * 2 + float2(x, y) * 2;
+        varyings.positionWS = currentDeformer.position.xz + float2(x, y);
 
-        // Remap  the position into the normalized area space
-        float2 vertexPositionCS = (varyings.positionWS - _WaterDeformationCenter * 2) / (_WaterDeformationExtent);
+        // Remap the position into the normalized area space
+        float2 vertexPositionCS = GetDeformationUV(varyings.positionWS);
+
+        vertexPositionCS *= 2.0f;
+        varyings.positionWS *= 2.0f;
 
         // Output the clip space position
         varyings.positionHS = float4(vertexPositionCS.x, -vertexPositionCS.y, 0.5, 1.0);
@@ -82,7 +96,7 @@ Shader "Hidden/HDRP/WaterDeformation"
         }
         else if (deform.type == WATERDEFORMERTYPE_BOW_WAVE)
         {
-                // TODO: Move this into a shared file and refactor (BowWaveUtilities.hlsl)
+            // TODO: Move this into a shared file and refactor (BowWaveUtilities.hlsl)
             // First we need to remap the coordinates for the function evaluation
             float2 normPos = input.deformerPosOS / (deform.regionSize * 0.5);
             float transitionSize = 0.1;

@@ -11,16 +11,12 @@ namespace UnityEditor.Rendering.HighDefinition
         // General
         static public readonly GUIContent k_SurfaceType = EditorGUIUtility.TrTextContent("Surface Type", "Specifies the nature of the water body that the water system needs to simulate.");
         static public readonly GUIContent k_GeometryType = EditorGUIUtility.TrTextContent("Geometry Type", "Specifies the type of geometry used to render the water surface. Quad stretches a unique grid over the size of the water surface. Custom allows you to specify a set of mesh renderers used to render the water surface for better culling. Instanced Quads creates a finite water surface with multiple instanced grids to keep a higher vertex density. Infinite generates a surface that extends to the far plane (or closer if the number of LODs is reached).");
-        static public string[] k_GeometryTypeEnum = { WaterGeometryType.Quad.ToString(), WaterGeometryType.Custom.ToString(), WaterGeometryType.InstancedQuads.ToString() };
+        static public GUIContent[] k_GeometryTypeEnum = { new GUIContent(WaterGeometryType.Quad.ToString()), new GUIContent(WaterGeometryType.Custom.ToString()), new GUIContent(WaterGeometryType.InstancedQuads.ToString()) };
         static public readonly GUIContent k_MeshRenderers = EditorGUIUtility.TrTextContent("Mesh Renderers", "Sets the geometries to use when rendering in custom geometry type mode.");
-        public static readonly string k_FixTransform = "Infinite water surfaces do not support rotation or scale.";
-        public static readonly GUIContent k_ResetTransformPopup = EditorGUIUtility.TrTextContent("Reset Transform");
 
         // CPU Simulation
-        static public readonly GUIContent k_CPUSimulation = EditorGUIUtility.TrTextContent("Script Interactions", "When enabled, the Water System allows you to make height requests from a C# script.");
-        static public readonly GUIContent k_CPULowLatency = EditorGUIUtility.TrTextContent("Low Latency", "When enabled, the simulation is recomputed on CPU. This option returns more accurate results but significantly increases the CPU cost of the feature. When disabled, results comes from the GPU simulation with a few frames latency but at no extra cost.");
         static public readonly GUIContent k_CPUFullResolution = EditorGUIUtility.TrTextContent("Full Resolution", "Specifies if the simulation is evaluated at full or half resolution in Low Latency mode. When in full resolution in Low Latency mode, the visual fidelity is higher but the cost of the simulation increases.");
-        static public readonly GUIContent k_CPUEvaluateRipples = EditorGUIUtility.TrTextContent("Evaluate Ripples", "When enabled, ripples are included when evaluating the water simulation for script interactions. Including ripples allows a higher visual fidelity but the cost of the simulation increases.");
+        static public readonly GUIContent k_CPUEvaluateRipples = EditorGUIUtility.TrTextContent("Evaluate Ripples", "When enabled, ripples are included when evaluating the water simulation for script interactions. Including ripples allows a higher visual fidelity but the CPU cost increases.");
 
         // Simulation
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");

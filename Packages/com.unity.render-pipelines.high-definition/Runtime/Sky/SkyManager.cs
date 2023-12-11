@@ -153,6 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_StandardSkyboxMaterial; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material m_BlitCubemapMaterial;
         Material m_OpaqueAtmScatteringMaterial;
+        int[] m_OpaqueFogPassNames;
 
         SphericalHarmonicsL2 m_BlackAmbientProbe = new SphericalHarmonicsL2();
 
@@ -417,6 +418,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.blitCubemapPS);
 
             m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(m_RenderPipeline.runtimeShaders.opaqueAtmosphericScatteringPS);
+            m_OpaqueFogPassNames = new int[4] {
+                m_OpaqueAtmScatteringMaterial.FindPass("Default"),
+                m_OpaqueAtmScatteringMaterial.FindPass("MSAA"),
+                m_OpaqueAtmScatteringMaterial.FindPass("Polychromatic Alpha"),
+                m_OpaqueAtmScatteringMaterial.FindPass("MSAA + Polychromatic Alpha")
+            };
 
             m_ComputeAmbientProbeCS = m_RenderPipeline.runtimeShaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuse");
@@ -1417,6 +1424,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public Matrix4x4 pixelCoordToViewDirWS;
             public Material opaqueAtmosphericalScatteringMaterial;
+            public int passIndex;
             public int fogDebugPassIndex;
             public bool pbrFog;
             public bool msaa;
@@ -1475,14 +1483,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                passData.polychromaticAlpha = waterEnabled || Fog.IsPBRFogEnabled(hdCamera);
+                passData.polychromaticAlpha = (waterEnabled || Fog.IsPBRFogEnabled(hdCamera)) && !passData.volumetricFogDebug;
                 if (passData.polychromaticAlpha)
                 {
+                    passData.passIndex = m_OpaqueFogPassNames[passData.msaa ? 3 : 2];
                     passData.colorBuffer = builder.ReadTexture(colorBuffer);
                     passData.outputColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorBuffer));
                 }
                 else
                 {
+                    passData.passIndex = m_OpaqueFogPassNames[passData.msaa ? 1 : 0];
                     passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.outputColorBuffer = colorBuffer;
                 }
@@ -1497,7 +1507,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // The texture can be null when volumetrics are disabled.
                         if (data.volumetricLighting.IsValid())
-                            mpb.SetTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
 
                         if (data.polychromaticAlpha)
                         {
@@ -1527,14 +1537,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
                             // We load from the color buffer, perform blending manually, and store to a new color buffer.
 
-                            int passIndex = data.msaa ? data.opaqueAtmosphericalScatteringMaterial.FindPass("MSAA + Polychromatic Alpha") : data.opaqueAtmosphericalScatteringMaterial.FindPass("Polychromatic Alpha");
                             mpb.SetTexture(data.msaa ? HDShaderIDs._ColorTextureMS : HDShaderIDs._ColorTexture, data.colorBuffer);
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, passIndex);
+                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, data.passIndex);
                         }
                         else
                         {
-                            int passIndex = data.msaa ? data.opaqueAtmosphericalScatteringMaterial.FindPass("MSAA") : data.opaqueAtmosphericalScatteringMaterial.FindPass("Default");
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, passIndex);
+                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, data.passIndex);
 
                             if (data.volumetricFogDebug)
                             {
@@ -1642,7 +1650,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Happens sometime in the tests.
             if (m_StandardSkyboxMaterial == null && HDRenderPipelineGlobalSettings.instance != null)
-                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.skyboxCubemapPS);
+            {
+                var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+                m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(shaders.skyboxCubemapPS);
+            }
 
             if (m_StandardSkyboxMaterial == null)
                 Debug.LogError("Unable to create the default Skybox material. Baking cancelled.");

@@ -48,6 +48,8 @@ namespace UnityEditor.VFX.UI
         private VisualElement m_RotationBadge;
         private VisualElement m_AgeBadge;
 
+        public override bool isCollapsed => ClassListContains(k_HiddenStyleClass);
+
         void CollectAllTextureSlotsRecursive(IVFXSlotContainer slotContainer, HashSet<VFXSlot> allLinkedSlots)
         {
             foreach (var inputSlot in slotContainer.inputSlots)

@@ -189,14 +189,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             s_ForceVFXFakeTargetVisible = false;
         }
 
-        sealed class MultiShaderTarget : UnityEditor.ShaderGraph.Target
+        abstract class TestShaderTarget : UnityEditor.ShaderGraph.Target
         {
-            public MultiShaderTarget()
-            {
-                displayName = "MultiShader Test Target";
-                isHidden = false;
-            }
-
             public override void GetActiveBlocks(ref UnityEditor.ShaderGraph.TargetActiveBlockContext context)
             {
                 context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.BaseColor);
@@ -240,7 +234,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 return pass;
             }
 
-            public static SubShaderDescriptor BuildSubShader(string additionaShaderID)
+            public static SubShaderDescriptor BuildSubShader()
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -248,29 +242,35 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     renderType = "Opaque",
                     renderQueue = "Geometry",
                     generatesPreview = true,
-                    passes = new PassCollection(),
-                    additionalShaderID = additionaShaderID
+                    passes = new PassCollection()
                 };
                 result.passes.Add(BuildPass());
                 return result;
             }
 
-            public override void Setup(ref TargetSetupContext context)
-            {
-                var ss = BuildSubShader(null);              // primary shader
-                var ss2 = BuildSubShader("{Name}-second");
-                context.AddSubShader(ss);
-                context.AddSubShader(ss2);
-            }
-
             public override bool IsActive() => true;
-            public override bool WorksWithSRP(UnityEngine.Rendering.RenderPipelineAsset scriptableRenderPipeline)
-            {
-                return true;
-            }
+
+            public override bool WorksWithSRP(UnityEngine.Rendering.RenderPipelineAsset scriptableRenderPipeline) => true;
 
             public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, System.Action onChange, System.Action<System.String> registerUndo)
             {
+            }
+        }
+
+        sealed class MultiShaderTarget : TestShaderTarget
+        {
+            public MultiShaderTarget()
+            {
+                displayName = "MultiShader Test Target";
+                isHidden = false;
+            }
+
+            public override void Setup(ref TargetSetupContext context)
+            {
+                context.AddSubShader(BuildSubShader()); // primary shader
+                var ss2 = BuildSubShader();
+                ss2.additionalShaderID = "{Name}-second";
+                context.AddSubShader(ss2);
             }
         }
 
@@ -309,6 +309,43 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(2, shaderCount);
 
             AssetDatabase.DeleteAsset(path);
+        }
+
+        sealed class DependencyShaderNameTarget : TestShaderTarget
+        {
+            public DependencyShaderNameTarget()
+            {
+                displayName = "DependencyShaderName Test Target";
+                isHidden = false;
+            }
+
+            public override void Setup(ref TargetSetupContext context)
+            {
+                var ss = BuildSubShader();
+                ss.shaderDependencies = new()
+                {
+                    new ShaderDependency() { dependencyName = "TestDep1", shaderName = "Name-blah" },
+                    new ShaderDependency() { dependencyName = "TestDep2", shaderName = "{Name}-blah" }
+                };
+                context.AddSubShader(ss);
+            }
+        }
+
+        [Test]
+        public void ShaderNamesAreCorrectReplacedForDependencies()
+        {
+            GraphData graph = new GraphData();
+            graph.AddContexts();
+
+            var testTarget = new DependencyShaderNameTarget();
+            graph.SetTargetActive(testTarget);
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, "MyTestShader");
+            var shaderCodeString = generator.generatedShader;
+            Assert.IsTrue(shaderCodeString.Contains("Dependency \"TestDep1\" = \"Name-blah\""));
+            Assert.IsTrue(shaderCodeString.Contains("Dependency \"TestDep2\" = \"MyTestShader-blah\""));
         }
     }
 }

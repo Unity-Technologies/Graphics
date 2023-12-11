@@ -208,6 +208,52 @@ namespace UnityEngine.Rendering.HighDefinition
             builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
         }
 
+        enum OccluderPass
+        {
+            None,
+            DepthPrepass,
+            GBuffer
+        }
+
+        OccluderPass GetOccluderPass(HDCamera hdCamera)
+        {
+            bool useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
+                                          && !XRSRPSettings.enabled
+                                          && hdCamera.camera.cameraType is CameraType.Game or CameraType.SceneView or CameraType.Preview;
+            if (!useGPUOcclusionCulling)
+                return OccluderPass.None;
+
+            bool fullDepthPrepass = (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred && hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering))
+                || hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward;
+            if (fullDepthPrepass || m_Asset.currentPlatformRenderPipelineSettings.gpuResidentDrawerSettings.useDepthPrepassForOccluders)
+                return OccluderPass.DepthPrepass;
+
+            return OccluderPass.GBuffer;
+        }
+
+        void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
+        {
+            var occluderParameters = new OccluderParameters(hdCamera.camera.GetInstanceID())
+            {
+                viewMatrix = hdCamera.mainViewConstants.viewMatrix,
+                invViewMatrix = hdCamera.mainViewConstants.invViewMatrix,
+                gpuProjMatrix = hdCamera.mainViewConstants.projMatrix,
+                viewOffsetWorldSpace = hdCamera.mainViewConstants.worldSpaceCameraPos,
+
+                depthTexture = depthTexture,
+                depthOffset = new Vector2Int(0, 0),
+                depthSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight),
+                depthSliceCount = TextureXR.useTexArray ? 1 : 0,
+            };
+            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParameters);
+        }
+
+        void InstanceOcclusionTest(RenderGraph renderGraph, HDCamera hdCamera, OcclusionTest occlusionTest)
+        {
+            var occlusionSettings = new OcclusionCullingSettings(hdCamera.camera.GetInstanceID(), occlusionTest);
+            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, occlusionSettings);
+        }
+
         PrepassOutput RenderPrepass(RenderGraph renderGraph,
             TextureHandle colorBuffer,
             TextureHandle sssBuffer,
@@ -246,16 +292,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyCameraMipBias(hdCamera);
 
-                bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result);
+                OccluderPass occluderPass = GetOccluderPass(hdCamera);
+
+                bool shouldRenderMotionVectorAfterGBuffer = false;
+                bool needsOccluderUpdate = (occluderPass == OccluderPass.DepthPrepass);
+                for (int passIndex = 0; passIndex < (needsOccluderUpdate ? 2 : 1); ++passIndex)
+                {
+                    uint batchLayerMask = uint.MaxValue;
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: test everything against previous frame final depth pyramid
+                        // second pass: re-test culled against current frame intermediate depth pyramid
+                        OcclusionTest occlusionTest = (passIndex == 0) ? OcclusionTest.TestAll : OcclusionTest.TestCulled;
+                        InstanceOcclusionTest(renderGraph, hdCamera, occlusionTest);
+                        batchLayerMask = occlusionTest.GetBatchLayerMask();
+                    }
+
+                    shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, batchLayerMask, hdCamera, ref result);
+                    if (!shouldRenderMotionVectorAfterGBuffer)
+                    {
+                        // If objects motion vectors are enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
+                        // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
+                        RenderObjectsMotionVectors(renderGraph, cullingResults, batchLayerMask, hdCamera, result);
+                    }
+
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: make current frame intermediate depth pyramid
+                        // second pass: make current frame final depth pyramid, set occlusion test results for later passes
+                        UpdateInstanceOccluders(renderGraph, hdCamera, result.depthBuffer);
+                        if (passIndex != 0)
+                            InstanceOcclusionTest(renderGraph, hdCamera, OcclusionTest.TestAll);
+                    }
+                }
 
                 ResetCameraMipBias(hdCamera);
-
-                if (!shouldRenderMotionVectorAfterGBuffer)
-                {
-                    // If objects motion vectors are enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
-                    // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
-                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
-                }
 
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
@@ -280,14 +351,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
 
-                RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, cullingResults, hdCamera);
+                needsOccluderUpdate = (occluderPass == OccluderPass.GBuffer);
+                for (int passIndex = 0; passIndex < (needsOccluderUpdate ? 2 : 1); ++passIndex)
+                {
+                    uint batchLayerMask = uint.MaxValue;
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: test everything against previous frame final depth pyramid
+                        // second pass: re-test culled against current frame intermediate depth pyramid
+                        OcclusionTest occlusionTest = (passIndex == 0) ? OcclusionTest.TestAll : OcclusionTest.TestCulled;
+                        InstanceOcclusionTest(renderGraph, hdCamera, occlusionTest);
+                        batchLayerMask = occlusionTest.GetBatchLayerMask();
+                    }
+
+                    RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, cullingResults, batchLayerMask, hdCamera);
+
+                    if (needsOccluderUpdate)
+                    {
+                        // first pass: make current frame intermediate depth pyramid
+                        // second pass: make current frame final depth pyramid, set occlusion test results for later passes
+                        UpdateInstanceOccluders(renderGraph, hdCamera, result.depthBuffer);
+                        if (passIndex != 0)
+                            InstanceOcclusionTest(renderGraph, hdCamera, OcclusionTest.TestAll);
+                    }
+                }
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
                     // See the call RenderObjectsMotionVectors() above and comment
                     // We need to complete the depth prepass before patching the normal buffer with decals
                     // Note: This pass will overwrite the deferred stencil bit as it happens after GBuffer pass
-                    RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, result);
+                    RenderObjectsMotionVectors(renderGraph, cullingResults, uint.MaxValue, hdCamera, result);
                 }
 
                 // Now that all prepass are rendered, we can patch the normal buffer
@@ -382,7 +476,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Lit Deferred: We always render depth prepass for alpha tested (optimization), other deferred material are render based on engine configuration.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render all materials
         // True is returned if motion vector must be rendered after GBuffer pass
-        bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, ref PrepassOutput output)
+        bool RenderDepthPrepass(RenderGraph renderGraph, CullingResults cull, uint batchLayerMask, HDCamera hdCamera, ref PrepassOutput output)
         {
             // Guidelines:
             // Lit shader can be in deferred or forward mode. In this case we use "DepthOnly" pass with "GBuffer" or "Forward" pass name
@@ -450,15 +544,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //             Range Opaque..OpaqueDecalAlphaTest for forward - depth + normal
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
-            {
+            bool msaa = hdCamera.msaaEnabled;
+            if (!output.depthAsColor.IsValid() && msaa)
                 output.depthAsColor = CreateDepthAsColorBuffer(renderGraph, hdCamera.msaaSamples);
+            if (!output.normalBuffer.IsValid())
                 output.normalBuffer = CreateNormalBuffer(renderGraph, hdCamera, hdCamera.msaaSamples);
 
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return false;
-            }
 
-            bool msaa = hdCamera.msaaEnabled;
             bool outputLayerMask = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer);
             bool decalsEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
             bool fullDeferredPrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering);
@@ -484,7 +578,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         renderQueueRange: fullDeferredPrepass ? HDRenderQueue.k_RenderQueue_AllOpaque :
                         (decalsEnabled ? HDRenderQueue.k_RenderQueue_OpaqueDecalAndAlphaTest : HDRenderQueue.k_RenderQueue_OpaqueAlphaTest),
                         stateBlock: m_AlphaToMaskBlock,
-                        excludeObjectMotionVectors: excludeMotion)));
+                        excludeObjectMotionVectors: excludeMotion,
+                        batchLayerMask: batchLayerMask)));
 
                     output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                     if (outputLayerMask)
@@ -508,8 +603,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 int mrtIndex = 0;
                 if (msaa)
-                    output.depthAsColor = builder.UseColorBuffer(CreateDepthAsColorBuffer(renderGraph, hdCamera.msaaSamples), mrtIndex++);
-                output.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, hdCamera, hdCamera.msaaSamples), mrtIndex++);
+                    builder.UseColorBuffer(output.depthAsColor, mrtIndex++);
+                builder.UseColorBuffer(output.normalBuffer, mrtIndex++);
 
                 if (outputLayerMask)
                     builder.UseColorBuffer(output.renderingLayersBuffer, mrtIndex++);
@@ -519,13 +614,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderStateBlock? stateBlock = hdCamera.msaaEnabled ? null : m_AlphaToMaskBlock;
 
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
-                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled)));
+                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled,
+                        batchLayerMask: batchLayerMask)));
                 }
                 else if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 {
                     // Forward only material that output normal buffer
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
-                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthForwardOnlyPassNames, stateBlock: m_AlphaToMaskBlock, excludeObjectMotionVectors: objectMotionEnabled)));
+                        CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthForwardOnlyPassNames, stateBlock: m_AlphaToMaskBlock, excludeObjectMotionVectors: objectMotionEnabled,
+                        batchLayerMask: batchLayerMask)));
                 }
 
                 builder.SetRenderFunc(
@@ -538,7 +635,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return shouldRenderMotionVectorAfterGBuffer;
         }
 
-        void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, in PrepassOutput output)
+        void RenderObjectsMotionVectors(RenderGraph renderGraph, CullingResults cull, uint batchLayerMask, HDCamera hdCamera, in PrepassOutput output)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors) ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -585,7 +682,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.msaaEnabled)
                     stateBlock = m_AlphaToMaskBlock;
                 passData.rendererList = builder.UseRendererList(
-                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
+                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock, batchLayerMask: batchLayerMask)));
 
                 builder.SetRenderFunc(
                     (DrawRendererListPassData data, RenderGraphContext context) =>
@@ -612,12 +709,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetupGBufferTargets(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, FrameSettings frameSettings, RenderGraphBuilder builder)
         {
+            prepassOutput.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
+
+            // If the gbuffer targets are already set up, then assume we are setting up for the second gbuffer pass when doing two-pass occlusion culling.
+            // We want to continue to render to the same targets as the first pass in this case, so just mark them as used for this pass and early out.
+            if (prepassOutput.gbuffer.gBufferCount != 0)
+            {
+                prepassOutput.gbuffer = WriteGBuffer(prepassOutput.gbuffer, builder);
+                return;
+            }
+
             bool clearGBuffer = NeedClearGBuffer(hdCamera);
             bool renderingLayers = frameSettings.IsEnabled(FrameSettingsField.LightLayers) || frameSettings.IsEnabled(FrameSettingsField.RenderingLayerMaskBuffer);
             bool shadowMasks = frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
 
             int currentIndex = 0;
-            prepassOutput.depthBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
             prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(sssBuffer, currentIndex++);
             prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(prepassOutput.normalBuffer, currentIndex++);
 
@@ -691,9 +797,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return gBufferOutput;
         }
 
+        static GBufferOutput WriteGBuffer(GBufferOutput gBufferOutput, RenderGraphBuilder builder)
+        {
+            // We do the reads "in place" because we don't want to allocate a struct with dynamic arrays each time we do that and we want to keep loops for code sanity.
+            for (int i = 0; i < gBufferOutput.gBufferCount; ++i)
+                gBufferOutput.mrt[i] = builder.UseColorBuffer(gBufferOutput.mrt[i], i);
+
+            return gBufferOutput;
+        }
+
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, HDCamera hdCamera)
+        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, uint batchLayerMask, HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -711,7 +826,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameSettings = frameSettings;
                 SetupGBufferTargets(renderGraph, hdCamera, sssBuffer, vtFeedbackBuffer, ref prepassOutput, frameSettings, builder);
                 passData.rendererList = builder.UseRendererList(
-                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting)));
+                    renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_GBufferName, m_CurrentRendererConfigurationBakedLighting,
+                        batchLayerMask: batchLayerMask)));
 
                 passData.dBuffer = ReadDBuffer(prepassOutput.dbuffer, builder);
 
@@ -1035,7 +1151,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<CopyDepthPassData>("Copy depth buffer", out var passData, ProfilingSampler.Get(HDProfileId.CopyDepthBuffer)))
                 {
                     var depthMipchainSize = hdCamera.depthMipChainSize;
-                    passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
+
+                    //HACK - HACK - HACK - Do not remove, please take a gpu capture and analyze the placement of fences.
+                    // Reason: The following issue occurs when Async compute for gpu light culling is enabled.
+                    // In vulkan, dx12 and consoles the first read of a texture always triggers a depth decompression
+                    // (in vulkan is seen as a vk event, in dx12 as a barrier, and in gnm as a straight up depth decompress compute job).
+                    // Unfortunately, the current render graph implementation only see's the current texture as a read since the abstraction doesnt go too low.
+                    // The GfxDevice has no context of passes so it can't put the barrier in the right spot... so for now hacking this by *assuming* this is the first read. :( 
+                    passData.inputDepth = builder.ReadWriteTexture(output.resolvedDepthBuffer);
+                    //passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
 
                     passData.outputDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(depthMipchainSize.x, depthMipchainSize.y, true, true)
                         { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" }));

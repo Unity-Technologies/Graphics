@@ -102,7 +102,11 @@ ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK && defined(VFX_VARYING_UV)
 	#if USE_FLIPBOOK_ARRAY_LAYOUT
 		${VFXLoadParameter:{flipBookSize}}
-		VFXUVData uvData = GetUVData(flipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
+		#if USE_FLIPBOOK_INTERPOLATION
+			VFXUVData uvData = GetUVData(flipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex, attributes.texIndexBlend);
+		#else
+			VFXUVData uvData = GetUVData(flipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
+		#endif
 		o.VFX_VARYING_UV.xyz = uvData.uvs.xyz;
 		#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
 			o.VFX_VARYING_UV.w = uvData.uvs.w;
@@ -115,7 +119,11 @@ ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 	#else
 		${VFXLoadParameter:{invFlipBookSize}}
 		${VFXLoadParameter:{flipBookSize}}
-		VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
+		#if USE_FLIPBOOK_INTERPOLATION
+			VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex, attributes.texIndexBlend);
+		#else
+			VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
+		#endif
 		o.VFX_VARYING_UV.xy = uvData.uvs.xy;
 		#if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
 			o.VFX_VARYING_UV.zw = uvData.uvs.zw;

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
+using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly Color k_HandleColor = new Color(0 / 255f, 0xE5 / 255f, 0xFF / 255f, 1f).gamma;
 
         SerializedReflectionProxyVolumeComponent m_SerializedData;
-        static ReflectionProxyVolumeComponent[] s_TypedTargets;
+        static List<ReflectionProxyVolumeComponent> s_TypedTargets = new List<ReflectionProxyVolumeComponent>();
 
         private static Lazy<HierarchicalSphere> s_SphereHandle = new Lazy<HierarchicalSphere>(() =>
         {
@@ -30,12 +30,17 @@ namespace UnityEditor.Rendering.HighDefinition
             return value;
         });
 
-        void OnEnable()
+        private void OnEnable()
         {
             m_SerializedData = new SerializedReflectionProxyVolumeComponent(serializedObject);
-            System.Array.Resize(ref s_TypedTargets, serializedObject.targetObjects.Length);
-            for (int i = 0; i < serializedObject.targetObjects.Length; ++i)
-                s_TypedTargets[i] = (ReflectionProxyVolumeComponent)serializedObject.targetObjects[i];
+            s_TypedTargets.Capacity = serializedObject.targetObjects.Length;
+            foreach (var targetObject in serializedObject.targetObjects)
+                s_TypedTargets.Add((ReflectionProxyVolumeComponent)targetObject);
+        }
+
+        private void OnDisable()
+        {
+            s_TypedTargets.Clear();
         }
 
         public override void OnInspectorGUI()
@@ -50,53 +55,51 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(ReflectionProxyVolumeComponent proxyVolumeComponent, GizmoType gizmoType)
         {
-                for (int i = 0; i < s_TypedTargets.Length; ++i)
+            foreach (var comp in s_TypedTargets)
+            {
+                var tr = comp.transform;
+                var prox = comp.proxyVolume;
+
+                var matrix = Matrix4x4.TRS(Vector3.zero, tr.rotation, Vector3.one);
+                if (matrix.ValidTRS())
                 {
-                    var comp = s_TypedTargets[i];
-                    var tr = comp.transform;
-                    var prox = comp.proxyVolume;
-
-                    var matrix = Matrix4x4.TRS(Vector3.zero, tr.rotation, Vector3.one);
-                    if (matrix.ValidTRS())
+                    using (new Handles.DrawingScope(matrix))
                     {
-                        using (new Handles.DrawingScope(matrix))
+                        switch (prox.shape)
                         {
-                            switch (prox.shape)
-                            {
-                                case ProxyShape.Box:
-                                    s_BoxHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
-                                    s_BoxHandle.Value.size = prox.boxSize;
-                                    EditorGUI.BeginChangeCheck();
-                                    s_BoxHandle.Value.DrawHull(true);
-                                    s_BoxHandle.Value.DrawHandle();
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        Undo.RecordObjects(new Object[] {tr, comp}, "Update Proxy Volume Size");
-                                        tr.position = tr.rotation * s_BoxHandle.Value.center;
-                                        prox.boxSize = s_BoxHandle.Value.size;
-                                    }
+                            case ProxyShape.Box:
+                                s_BoxHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
+                                s_BoxHandle.Value.size = prox.boxSize;
+                                EditorGUI.BeginChangeCheck();
+                                s_BoxHandle.Value.DrawHull(true);
+                                s_BoxHandle.Value.DrawHandle();
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObjects(new Object[] {tr, comp}, "Update Proxy Volume Size");
+                                    tr.position = tr.rotation * s_BoxHandle.Value.center;
+                                    prox.boxSize = s_BoxHandle.Value.size;
+                                }
 
-                                    break;
-                                case ProxyShape.Sphere:
-                                    s_SphereHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
-                                    s_SphereHandle.Value.radius = prox.sphereRadius;
-                                    EditorGUI.BeginChangeCheck();
-                                    s_SphereHandle.Value.DrawHull(true);
-                                    s_SphereHandle.Value.DrawHandle();
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        Undo.RecordObjects(new Object[] {tr, comp}, "Update Proxy Volume Size");
-                                        tr.position = tr.rotation * s_SphereHandle.Value.center;
-                                        prox.sphereRadius = s_SphereHandle.Value.radius;
-                                    }
+                                break;
+                            case ProxyShape.Sphere:
+                                s_SphereHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
+                                s_SphereHandle.Value.radius = prox.sphereRadius;
+                                EditorGUI.BeginChangeCheck();
+                                s_SphereHandle.Value.DrawHull(true);
+                                s_SphereHandle.Value.DrawHandle();
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObjects(new Object[] {tr, comp}, "Update Proxy Volume Size");
+                                    tr.position = tr.rotation * s_SphereHandle.Value.center;
+                                    prox.sphereRadius = s_SphereHandle.Value.radius;
+                                }
 
-                                    break;
-                                case ProxyShape.Infinite:
-                                    break;
-                            }
+                                break;
+                            case ProxyShape.Infinite:
+                                break;
                         }
                     }
-
+                }
             }
         }
     }

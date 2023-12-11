@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -65,8 +66,8 @@ namespace UnityEngine.Rendering.Universal
             // Make sure texture has enough bits to encode all rendering layers in urp global settings
             if (UniversalRenderPipelineGlobalSettings.instance)
             {
-                int count = UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames.Length;
-                MaskSize maskSize = RenderingLayerUtils.GetMaskSize(count);
+                int count =  RenderingLayerMask.GetLastDefinedRenderingLayerIndex();
+                MaskSize maskSize = GetMaskSize(count);
                 combinedMaskSize = Combine(combinedMaskSize, maskSize);
             }
 
@@ -105,8 +106,8 @@ namespace UnityEngine.Rendering.Universal
             // Make sure texture has enough bits to encode all rendering layers in urp global settings
             if (UniversalRenderPipelineGlobalSettings.instance)
             {
-                int count = UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames.Length;
-                MaskSize maskSize = RenderingLayerUtils.GetMaskSize(count);
+                int count =  RenderingLayerMask.GetLastDefinedRenderingLayerIndex();
+                MaskSize maskSize = GetMaskSize(count);
                 combinedMaskSize = Combine(combinedMaskSize, maskSize);
             }
 
@@ -156,7 +157,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (UniversalRenderPipelineGlobalSettings.instance)
             {
-                uint validRenderingLayers = UniversalRenderPipelineGlobalSettings.instance.validRenderingLayers;
+                uint validRenderingLayers = RenderingLayerMask.GetDefinedRenderingLayersCombinedMaskValue();
                 return validRenderingLayers & renderingLayers;
             }
             return renderingLayers;

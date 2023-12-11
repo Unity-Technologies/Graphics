@@ -7,7 +7,6 @@ namespace UnityEditor.VFX.Block
     class PositionCircleDeprecated : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Circle (deprecated)"); } }
-        protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
         {
@@ -25,8 +24,12 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            var newPositionCircle = ScriptableObject.CreateInstance<PositionCircle>();
-            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionCircle, this);
+            var newPositionCircleV2 = ScriptableObject.CreateInstance<PositionCircleDeprecatedV2>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionCircleV2, this);
+
+            var newPositionCircle = ScriptableObject.CreateInstance<PositionShape>();
+            SanitizeHelper.MigrateBlockPositionToComposed(GetGraph(), GetParent().position, newPositionCircle, newPositionCircleV2, PositionShapeBase.Type.Circle);
+
             ReplaceModel(newPositionCircle, this);
         }
 

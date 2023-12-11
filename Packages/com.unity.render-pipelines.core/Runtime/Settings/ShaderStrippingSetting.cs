@@ -24,8 +24,10 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Class that stores shader stripping settings shared between all pipelines
     /// </summary>
-    [Serializable][Category("Shader Stripping")]
-    public class ShaderStrippingSetting
+    [Serializable]
+    [Category("Additional Shader Stripping Settings")]
+    [SupportedOnRenderPipeline]
+    public class ShaderStrippingSetting : IRenderPipelineGraphicsSettings
     {
         #region Version
         internal enum Version : int
@@ -39,6 +41,8 @@ namespace UnityEngine.Rendering
         /// <summary>Current version.</summary>
         public int version => (int)m_Version;
         #endregion
+
+        bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
         #region SerializeFields
         [SerializeField][InspectorName("Export Variants")]
@@ -61,7 +65,7 @@ namespace UnityEngine.Rendering
         public bool exportShaderVariants
         {
             get => m_ExportShaderVariants;
-            set => m_ExportShaderVariants = value;
+            set => this.SetValueAndNotify(ref m_ExportShaderVariants, value);
         }
 
         /// <summary>
@@ -71,7 +75,7 @@ namespace UnityEngine.Rendering
         public ShaderVariantLogLevel shaderVariantLogLevel
         {
             get => m_ShaderVariantLogLevel;
-            set => m_ShaderVariantLogLevel = value;
+            set => this.SetValueAndNotify(ref m_ShaderVariantLogLevel, value);
         }
 
         /// <summary>
@@ -81,7 +85,7 @@ namespace UnityEngine.Rendering
         public bool stripRuntimeDebugShaders
         {
             get => m_StripRuntimeDebugShaders;
-            set => m_StripRuntimeDebugShaders = value;
+            set => this.SetValueAndNotify(ref m_StripRuntimeDebugShaders, value);
         }
         #endregion
     }

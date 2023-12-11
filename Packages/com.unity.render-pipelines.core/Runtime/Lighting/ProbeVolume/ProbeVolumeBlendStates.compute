@@ -65,7 +65,7 @@ void BlendScenarios(uint3 probe : SV_DispatchThreadID, uint3 brick : SV_GroupID)
     APVSample state1 = LoadAndDecodeAPV(resources1, probe + srcChunk);
 
     // Blend
-    state0 = BlendAPVSamples(state0, state1, _LerpFactor);
+    state0 = BlendAPVSamples(state0, state1, half(_LerpFactor));
 
     // Store
     APVResourcesRW output;

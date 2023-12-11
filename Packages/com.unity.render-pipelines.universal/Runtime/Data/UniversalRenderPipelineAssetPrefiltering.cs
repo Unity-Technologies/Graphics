@@ -171,6 +171,10 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
         [SerializeField] private bool m_PrefilterNativeRenderPass = false;
 
+        // Use legacy lightmaps (GPU resident drawer)
+        [ShaderKeywordFilter.SelectOrRemove(true,     keywordNames: ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS)]
+        [SerializeField] private bool m_PrefilterUseLegacyLightmaps = false;
+
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
         /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
@@ -183,6 +187,7 @@ namespace UnityEngine.Rendering.Universal
             public PrefilteringModeAdditionalLights additionalLightsPrefilteringMode;
             public PrefilteringMode additionalLightsShadowsPrefilteringMode;
             public PrefilteringMode screenSpaceOcclusionPrefilteringMode;
+            public bool useLegacyLightmaps;
 
             public bool stripXRKeywords;
             public bool stripHDRKeywords;
@@ -220,6 +225,7 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilteringModeAdditionalLight        = prefilteringData.additionalLightsPrefilteringMode;
             m_PrefilteringModeAdditionalLightShadows = prefilteringData.additionalLightsShadowsPrefilteringMode;
             m_PrefilteringModeScreenSpaceOcclusion   = prefilteringData.screenSpaceOcclusionPrefilteringMode;
+            m_PrefilterUseLegacyLightmaps            = prefilteringData.useLegacyLightmaps;
 
             m_PrefilterXRKeywords                    = prefilteringData.stripXRKeywords;
             m_PrefilterHDROutput                     = prefilteringData.stripHDRKeywords;

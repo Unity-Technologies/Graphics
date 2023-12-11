@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
             (uint)FrameSettingsField.DirectSpecularLighting,
             (uint)FrameSettingsField.RayTracing,
             (uint)FrameSettingsField.RaytracingVFX,
-            (uint)FrameSettingsField.ProbeVolume,
+            (uint)FrameSettingsField.AdaptiveProbeVolume,
             (uint)FrameSettingsField.VolumetricClouds,
             (uint)FrameSettingsField.Water,
 
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             (uint)FrameSettingsField.RayTracing,
             (uint)FrameSettingsField.RaytracingVFX,
             // (uint)FrameSettingsField.EnableSkyReflection,
-            (uint)FrameSettingsField.ProbeVolume,
+            (uint)FrameSettingsField.AdaptiveProbeVolume,
             (uint)FrameSettingsField.DirectSpecularLighting,
             // (uint)FrameSettingsField.VolumetricClouds,
             // (uint)FrameSettingsField.Water,
@@ -205,11 +205,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             (uint)FrameSettingsField.WaterDeformation,
             (uint)FrameSettingsField.WaterExclusion,
-            (uint)FrameSettingsField.ProbeVolume,
+            (uint)FrameSettingsField.AdaptiveProbeVolume,
             // (uint)FullResolutionCloudsForSky
         };
 
-        public static uint[] GetFrameSettingsRenderTypeBitDatas(FrameSettingsRenderType defaultFrameSettingsRenderType)
+        static uint[] GetFrameSettingsRenderTypeBitDatas(FrameSettingsRenderType defaultFrameSettingsRenderType)
         {
             switch (defaultFrameSettingsRenderType)
             {

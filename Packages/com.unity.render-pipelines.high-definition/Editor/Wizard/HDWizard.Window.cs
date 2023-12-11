@@ -95,9 +95,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpAssetQualityAssigned = new ConfigStyle(
                 label: L10n.Tr("Assigned - Quality"),
                 error: L10n.Tr("The RenderPipelineAsset assigned in the current Quality must be null or a HDRenderPipelineAsset. If it is null, the asset for the current Quality will be the one in Graphics Settings. (The Fix or Fix All button will nullify it)"));
-            public static readonly ConfigStyle hdrpRuntimeResources = new ConfigStyle(
-                label: L10n.Tr("Runtime resources"),
-                error: L10n.Tr("There is an issue with the runtime resources!"));
             public static readonly ConfigStyle hdrpBatcher = new ConfigStyle(
                 label: L10n.Tr("SRP Batcher"),
                 error: L10n.Tr("SRP Batcher must be enabled!"));

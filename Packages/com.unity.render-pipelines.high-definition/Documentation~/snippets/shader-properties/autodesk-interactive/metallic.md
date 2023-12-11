@@ -1,4 +1,4 @@
 <tr>
-<td>**Metallic**</td>
-<td>Determines how metal-like the surface is.<br/>If you enable **UseMetallicMap**, HDRP ignores this property.</td>
+<td><strong>Metallic</strong></td>
+<td>Determines how metal-like the surface is.<br/>If you enable <strong>UseMetallicMap</strong>, HDRP ignores this property.</td>
 </tr>

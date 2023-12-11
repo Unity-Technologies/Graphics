@@ -9,8 +9,6 @@ using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
-
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.VFX.HDRP
@@ -79,13 +77,13 @@ namespace UnityEditor.VFX.HDRP
             {
                 switch (blendModeFloat)
                 {
-                    case (int)BlendMode.Alpha:
+                    case (int)BlendingMode.Alpha:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.Alpha;
                         break;
-                    case (int)BlendMode.Additive:
+                    case (int)BlendingMode.Additive:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.Additive;
                         break;
-                    case (int)BlendMode.Premultiply:
+                    case (int)BlendingMode.Premultiply:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied;
                         break;
                 }
@@ -137,12 +135,12 @@ namespace UnityEditor.VFX.HDRP
         }
 
         // List of shader properties that currently are not supported for exposure in VFX shaders (for HDRP).
-        private static readonly Dictionary<Type, string> s_UnsupportedHDRPShaderPropertyTypes = new Dictionary<Type, string>()
+        private static readonly (Type, string)[] s_UnsupportedHDRPShaderPropertyTypes = new[]
         {
-            { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
+            (typeof(DiffusionProfileShaderProperty), "Diffusion Profile" ),
         };
 
-        public override IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
+        public override IEnumerable<(Type, string)> GetUnsupportedShaderPropertyType()
         {
             return base.GetUnsupportedShaderPropertyType().Concat(s_UnsupportedHDRPShaderPropertyTypes);
         }

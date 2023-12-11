@@ -260,6 +260,9 @@ SAMPLER(samplerunity_ShadowMask);
 TEXTURE2D_ARRAY(unity_ShadowMasks);
 SAMPLER(samplerunity_ShadowMasks);
 
+// Mipmap Streaming Debug
+TEXTURE2D(unity_MipmapStreaming_DebugTex);
+
 // ----------------------------------------------------------------------------
 
 // TODO: all affine matrices should be 3x4.

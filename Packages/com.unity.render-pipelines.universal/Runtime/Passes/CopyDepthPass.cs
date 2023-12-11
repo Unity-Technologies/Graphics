@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : new ProfilingSampler(nameof(CopyDepthPass));
             m_PassData = new PassData();
             CopyToDepth = copyToDepth;
-            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthShader);
+            m_CopyDepthMaterial = copyDepthShader != null ? CoreUtils.CreateEngineMaterial(copyDepthShader) : null;
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
@@ -69,12 +69,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
             var isDepth = (destination.rt && destination.rt.graphicsFormat == GraphicsFormat.None);
             descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
+
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
+
             // This is a temporary workaround for Editor as not setting any depth here
             // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
 #if UNITY_EDITOR
@@ -85,8 +90,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
 #endif
             ConfigureTarget(destination);
+
             if (m_ShouldClear)
                 ConfigureClear(ClearFlag.All, Color.black);
+
+            #pragma warning restore CS0618
         }
 
         private class PassData
@@ -98,16 +106,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int msaaSamples;
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
+
+            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
+            internal Vector2Int cameraTargetSizeCopy;
         }
 
         /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            var cameraData = renderingData.frameData.Get<UniversalCameraData>();
+
             m_PassData.copyDepthMaterial = m_CopyDepthMaterial;
             m_PassData.msaaSamples = MssaSamples;
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
             m_PassData.copyToDepth = CopyToDepth;
-            m_PassData.cameraData = renderingData.frameData.Get<UniversalCameraData>();
+            m_PassData.cameraData = cameraData;
+            m_PassData.cameraTargetSizeCopy = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
             var cmd = renderingData.commandBuffer;
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -196,7 +211,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (isGameViewFinalTarget)
                     cmd.SetViewport(passData.cameraData.pixelRect);
                 else
-                    cmd.SetViewport(new Rect(0, 0, passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height));
+                    cmd.SetViewport(new Rect(0, 0, passData.cameraTargetSizeCopy.x, passData.cameraTargetSizeCopy.y));
 
                 copyDepthMaterial.SetTexture(Shader.PropertyToID("_CameraDepthAttachment"), source);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
@@ -209,7 +224,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             destination = k_CameraTarget;
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -248,6 +266,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyDepthMaterial = m_CopyDepthMaterial;
                 passData.msaaSamples = MssaSamples;
                 passData.cameraData = cameraData;
+                passData.cameraTargetSizeCopy = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth;
 

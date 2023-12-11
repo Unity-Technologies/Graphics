@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetWireframe(true);
 
                     // Evaluate the normals
-                    int numTiles = (m_ShaderVariablesWater._WaterDeformationResolution + 7) / 8;
+                    int numTiles = HDUtils.DivRoundUp(m_ShaderVariablesWater._DeformationRegionResolution, 8);
 
                     // First we need to clear the edge pixel and blur the deformation a bit
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBuffer, currentWater.deformationSGBuffer);

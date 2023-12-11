@@ -6,8 +6,10 @@ using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable][Category("Frame Settings (Default Values)")]
-    class RenderingPathFrameSettings
+    [Serializable]
+    [Category("Frame Settings (Default Values)")]
+    [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    class RenderingPathFrameSettings : IRenderPipelineGraphicsSettings
     {
         #region Version
         internal enum Version : int
@@ -21,6 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Current version.</summary>
         public int version => (int)m_Version;
         #endregion
+
+        bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
         #region SerializeFields
         [SerializeField] FrameSettings m_Camera = FrameSettingsDefaults.Get(FrameSettingsRenderType.Camera);

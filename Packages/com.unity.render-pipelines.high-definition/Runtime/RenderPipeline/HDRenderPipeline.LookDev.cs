@@ -20,14 +20,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
         {
-            var lookDevVolumeProfile = HDRenderPipelineGlobalSettings.instance.lookDevVolumeProfile;
-            if (lookDevVolumeProfile == null)
+            var lookDevVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
+            if (lookDevVolumeSettings.volumeProfile == null)
             {
-                lookDevVolumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
+                lookDevVolumeSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(GraphicsSettings
                     .GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
-                HDRenderPipelineGlobalSettings.instance.lookDevVolumeProfile = lookDevVolumeProfile;
             }
 
+            var lookDevVolumeProfile = lookDevVolumeSettings.volumeProfile;
             int newHashCode = lookDevVolumeProfile.GetHashCode();
             if (newHashCode != volumeProfileHash)
             {

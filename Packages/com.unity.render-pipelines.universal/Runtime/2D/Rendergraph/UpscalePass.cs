@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
             destination?.Release();
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;

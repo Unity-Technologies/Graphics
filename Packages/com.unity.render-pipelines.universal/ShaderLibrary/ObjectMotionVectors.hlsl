@@ -47,7 +47,7 @@ struct Varyings
     float4 positionCSNoJitter         : POSITION_CS_NO_JITTER;
     float4 previousPositionCSNoJitter : PREV_POSITION_CS_NO_JITTER;
 #if _ALPHATEST_ON
-    float2 uv                   : TEXCOORD0;
+    float2 uv                         : TEXCOORD0;
 #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO

@@ -47,10 +47,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     GraphicsSettings.GetRenderPipelineSettings<HDRPRayTracingResources>()
                         .ForEachFieldOfType<ComputeShader>(computeShader => rayTracingComputeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
-                    var runtimeShaders = hdrpGlobalSettingsInstance.renderPipelineResources.shaders;
+                    var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
                     runtimeShaders?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
-                    stripDebugVariants = !isDevelopmentBuild || hdrpGlobalSettingsInstance.stripDebugVariants;
+                    stripDebugVariants = !isDevelopmentBuild || GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().stripRuntimeDebugShaders;
                 }
             }
 

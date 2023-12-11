@@ -10,7 +10,6 @@ namespace UnityEditor.VFX.Block
         public HeightMode heightMode;
 
         public override string name { get { return string.Format(base.name, "Cone (deprecated)"); } }
-        protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
         {
@@ -26,34 +25,16 @@ namespace UnityEditor.VFX.Block
             public float ArcSequencer = 0.0f;
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
-        {
-            get
-            {
-                var allSlots = GetExpressionsFromSlots(this);
-                foreach (var p in allSlots.Where(e => e.name != "Thickness"))
-                    yield return p;
-
-
-                VFXExpression radius0 = inputSlots[0][1].GetExpression();
-                VFXExpression radius1 = inputSlots[0][2].GetExpression();
-                VFXExpression height = inputSlots[0][3].GetExpression();
-                VFXExpression tanSlope = (radius1 - radius0) / height;
-                VFXExpression slope = new VFXExpressionATan(tanSlope);
-
-                var thickness = allSlots.Where(o => o.name == nameof(ThicknessProperties.Thickness)).FirstOrDefault();
-                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, radius0, thickness.exp), "volumeFactor");
-
-                yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
-            }
-        }
-
         protected override bool needDirectionWrite => true;
 
         public override void Sanitize(int version)
         {
-            var newPositionCone = ScriptableObject.CreateInstance<PositionCone>();
-            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionCone, this);
+            var newPositionConeV2 = ScriptableObject.CreateInstance<PositionConeDeprecatedV2>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newPositionConeV2, this);
+
+            var newPositionCone = ScriptableObject.CreateInstance<PositionShape>();
+            SanitizeHelper.MigrateBlockPositionToComposed(GetGraph(), GetParent().position, newPositionCone, newPositionConeV2, PositionShapeBase.Type.Cone);
+
             ReplaceModel(newPositionCone, this);
         }
 

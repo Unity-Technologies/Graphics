@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask;
 
@@ -31,34 +32,6 @@ namespace UnityEditor.VFX.HDRP
             blendMode = BlendMode.Opaque;
             cullMode = CullMode.Back;
         }
-
-        public override IEnumerable<VFXAttributeInfo> attributes
-        {
-            get
-            {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                if (colorMode != ColorMode.None)
-                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.PivotZ, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleX, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.ScaleZ, VFXAttributeMode.Read);
-                if (usesFlipbook)
-                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
-            }
-        }
-
 
         public enum BlendSource
         {
@@ -93,22 +66,26 @@ namespace UnityEditor.VFX.HDRP
              "When enabled, modifies the smoothness of the surface it projects onto using the (A) channel of the Mask Map if one is provided.")]
         private bool affectSmoothness = true;
 
+        private void GetDecalSupport(out bool supportDecals, out bool enableDecalLayers, out bool metalAndAODecals)
+        {
+            var renderingPathFrameSettings = GraphicsSettings
+                .GetRenderPipelineSettings<RenderingPathFrameSettings>()?
+                .GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
 
-        private bool supportDecals => HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecals &&
-        HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).IsEnabled(FrameSettingsField.Decals);
-        private bool enableDecalLayers =>
-            supportDecals
-            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportDecalLayers
-            && HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).IsEnabled(FrameSettingsField.DecalLayers);
+            var pipelineSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
 
-        private bool metalAndAODecals =>
-            supportDecals
-            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
+            supportDecals = pipelineSettings.supportDecals &&
+                            renderingPathFrameSettings?.IsEnabled(FrameSettingsField.Decals) == true;
 
+            enableDecalLayers = supportDecals && pipelineSettings.supportDecalLayers &&
+                                renderingPathFrameSettings?.IsEnabled(FrameSettingsField.DecalLayers) == true;
+
+            metalAndAODecals = supportDecals && pipelineSettings.decalSettings.perChannelMask;
+        }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField,
          Tooltip("Specify the layer mask for the decals. Unity renders decals on all meshes where at least one Rendering Layer value matches.")]
-        private RenderingLayerMask decalLayer = RenderingLayerMask.DecalLayerDefault;
+        private RenderingLayerMask decalLayer = (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
         private bool affectsAOAndHasMaskMap => affectAmbientOcclusion && useMaskMap;
         public override bool HasSorting() => (sort == SortActivationMode.On) || (sort == SortActivationMode.Auto);
@@ -255,6 +232,8 @@ namespace UnityEditor.VFX.HDRP
                 yield return "castShadows";
                 yield return "materialType";
 
+                GetDecalSupport(out var _, out var enableDecalLayers, out var __);
+
                 if (!enableDecalLayers)
                     yield return "decalLayer";
                 if (!affectBaseColor)
@@ -384,6 +363,9 @@ namespace UnityEditor.VFX.HDRP
         internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
+
+            GetDecalSupport(out var supportDecals, out var enableDecalLayers, out var metalAndAODecals);
+
             if (!supportDecals)
             {
                 manager.RegisterError("DecalsDisabled", VFXErrorType.Warning,

@@ -216,7 +216,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
         opacity = 1 - caustics * absorptionTint;
 
         #ifdef _ENABLE_FOG_ON_TRANSPARENT
-        if (_PreRefractionPass == 0 && hasExcluder)
+        if (_PreRefractionPass != 0 && hasExcluder)
         {
             // If we are here, this means we are seing a transparent that is in front of an opaque with an excluder
             // Use case is a looking through a boat window from the exterior. We need to opacify the object to make underwater
@@ -266,7 +266,7 @@ void ComputeRefractionSplitColor(PositionInputs posInput, inout float4 outColor,
         outColor            = 0;
 
         // Because we don't have control over shader blend mode (to be compatible with VT and MV), we handle blending manually
-        if (_BlendMode == BLENDMODE_ADDITIVE)
+        if (_BlendMode == BLENDINGMODE_ADDITIVE)
             outBeforeRefractionColor.a = outBeforeRefractionAlpha.a = 0;
     }
     else

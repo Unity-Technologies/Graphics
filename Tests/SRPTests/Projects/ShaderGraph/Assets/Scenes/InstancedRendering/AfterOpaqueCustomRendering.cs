@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -14,6 +15,7 @@ public class AfterOpaqueCustomRendering : MonoBehaviour
         // When empty this render pass will render to the active camera render target.
         // You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         // The render pipeline will ensure target setup and clearing happens in a performant manner.
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
         }
@@ -22,6 +24,7 @@ public class AfterOpaqueCustomRendering : MonoBehaviour
         // Use <c>ScriptableRenderContext</c> to issue drawing commands or execute command buffers
         // https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.html
         // You don't have to call ScriptableRenderContext.submit, the render pipeline will call it at specific points in the pipeline.
+        [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(name: "AfterOpaqueCustomPass");
@@ -50,6 +53,8 @@ public class AfterOpaqueCustomRendering : MonoBehaviour
 
     private void OnBeginCamera(ScriptableRenderContext ctx, Camera camera)
     {
+        #pragma warning disable CS0618 // Type or member is obsolete
         camera.GetUniversalAdditionalCameraData().scriptableRenderer.EnqueuePass(m_ScriptablePass);
+        #pragma warning restore CS0618 // Type or member is obsolete
     }
 }

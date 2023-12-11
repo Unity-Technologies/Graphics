@@ -171,10 +171,8 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
         if (VFXViewWindow.GetAllWindows().All(x => x.graphView?.controller?.graph.visualEffectResource.GetInstanceID() != m_CurrentGraph.visualEffectResource.GetInstanceID() || !x.hasFocus))
         {
-            using var reporter = new VFXCompileErrorReporter(new VFXErrorManager());
-            VFXGraph.compileReporter = reporter;
+            // Do we need a compileReporter here?
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_CurrentGraph.visualEffectResource));
-            VFXGraph.compileReporter = null;
         }
     }
 

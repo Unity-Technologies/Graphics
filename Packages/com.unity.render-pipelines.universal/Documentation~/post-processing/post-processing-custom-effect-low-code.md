@@ -42,12 +42,12 @@ You must create a Fullscreen Shader Graph to create a custom post-processing eff
 Once you've created a compatible Shader Graph and Material, you can use the Material with a Full Screen Pass Renderer Feature to create a custom post-processing effect.
 
 1. In the Project window, select a URP Renderer.
-2. In the Inspector, click **Add Renderer Feature** and select **Full Screen Pass Renderer Feature**. For more information on adding Renderer Features see [How to add a Renderer Feature to a Renderer](./../urp-renderer-feature-how-to-add.md).
+2. In the Inspector, click **Add Renderer Feature** and select **Full Screen Pass Renderer Feature**. For more information on adding Renderer Features refer to [How to add a Renderer Feature to a Renderer](./../urp-renderer-feature-how-to-add.md).
 3. Set the **Post Process Material** to the Material you created with the Fullscreen Shader Graph.
 4. Set **Injection Point** to **After Rendering Post Processing**.
 5. Set **Requirements** to **Color**.
 
-You should now see the effect in both Scene view and Game view.
+You should now notice the effect in both Scene view and Game view.
 
 ![Example scene with a grayscale custom post-processing effect.](../Images/post-proc/custom-effect/grayscale-custom-effect.png)
 <br/>*Example scene with a grayscale custom post-processing effect.*

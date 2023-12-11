@@ -7,6 +7,7 @@ using System.IO;
 using UnityEditor.Experimental.GraphView;
 
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 
@@ -28,7 +29,6 @@ namespace UnityEditor.VFX.UI
 
         static List<VFXViewWindow> s_VFXWindows = new();
 
-        ShortcutHandler m_ShortcutHandler;
         VisualEffect m_pendingAttachment;
 
         static VFXViewWindow()
@@ -54,30 +54,6 @@ namespace UnityEditor.VFX.UI
                 s_VFXWindows.Add(this);
                 DisableViewDataPersistence();
             }
-        }
-
-        protected void SetupFramingShortcutHandler(VFXView view)
-        {
-            m_ShortcutHandler = new ShortcutHandler(
-                new Dictionary<Event, ShortcutDelegate>
-                {
-                    { Event.KeyboardEvent("a"), view.FrameAll },
-                    { Event.KeyboardEvent("f"), view.FrameSelection },
-                    { Event.KeyboardEvent("o"), view.FrameOrigin },
-                    { Event.KeyboardEvent("^#>"), view.FramePrev },
-                    { Event.KeyboardEvent("^>"), view.FrameNext },
-                    { Event.KeyboardEvent("F7"), view.OnCompile },
-                    { Event.KeyboardEvent("#d"), view.OutputToDot },
-                    { Event.KeyboardEvent("^&d"), view.DuplicateSelectionWithEdges },
-                    { Event.KeyboardEvent("^#d"), view.OutputToDotReduced },
-                    { Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding },
-                    { Event.KeyboardEvent("^r"), view.ReinitComponents },
-                    { Event.KeyboardEvent("F5"), view.ReinitComponents },
-                    { Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents },
-                    { Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents },
-                    { Event.KeyboardEvent("p"), view.m_ProfilingBoard.ExpandAllGraphPanels },
-                    { Event.KeyboardEvent("#p"), view.m_ProfilingBoard.CloseAllGraphPanels },
-                });
         }
 
         [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
@@ -116,13 +92,21 @@ namespace UnityEditor.VFX.UI
 
         public static void RefreshErrors(VFXModel model)
         {
-            if (model != null &&
-                model.GetGraph() is { } graph &&
-                GetWindow(graph, false, false) is { } window &&
-                window.graphView != null &&
-                window.graphView.controller != null)
+            Profiler.BeginSample("VFXViewWindow.RefreshErrors");
+            try
             {
-                window.graphView.RefreshErrors(model);
+                if (model != null &&
+                    model.GetGraph() is { } graph &&
+                    GetWindow(graph, false, false) is { } window &&
+                    window.graphView != null &&
+                    window.graphView.controller != null)
+                {
+                    window.graphView.RefreshErrors(model);
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
             }
         }
 
@@ -303,20 +287,11 @@ namespace UnityEditor.VFX.UI
             VFXManagerEditor.CheckVFXManager();
 
             graphView = new VFXView();
-            SetupFramingShortcutHandler(graphView);
 
             rootVisualElement.Add(graphView);
 
             autoCompile = true;
             autoReinit = true;
-
-            graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
-            graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-
-            if (rootVisualElement.panel != null)
-            {
-                rootVisualElement.AddManipulator(m_ShortcutHandler);
-            }
 
             if (graphView?.controller == null && m_DisplayedResource != null)
             {
@@ -340,8 +315,6 @@ namespace UnityEditor.VFX.UI
             {
                 if (graphView.controller != null)
                     VFXAnalytics.GetInstance().OnGraphClosed(graphView);
-                graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
-                graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.Dispose();
                 graphView = null;
             }
@@ -380,16 +353,6 @@ namespace UnityEditor.VFX.UI
             }
 
             return false;
-        }
-
-        void OnEnterPanel(AttachToPanelEvent e)
-        {
-            rootVisualElement.AddManipulator(m_ShortcutHandler);
-        }
-
-        void OnLeavePanel(DetachFromPanelEvent e)
-        {
-            rootVisualElement.RemoveManipulator(m_ShortcutHandler);
         }
 
         void OnFocus()
@@ -432,18 +395,12 @@ namespace UnityEditor.VFX.UI
 
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
-                            VFXGraph.explicitCompile = true;
-                            graphView.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
-                            using (var reporter = new VFXCompileErrorReporter(graphView.errorManager))
+                            using (graphView.StartCompilationErrorReport(graph, true))
                             {
-                                VFXGraph.compileReporter = reporter;
                                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
-                                graph.SetExpressionGraphDirty(
-                                    false); // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
-                                VFXGraph.compileReporter = null;
                             }
-
-                            VFXGraph.explicitCompile = false;
+                            // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
+                            graph.SetExpressionGraphDirty(false);
                         }
                         else
                             graph.RecompileIfNeeded(true, true);

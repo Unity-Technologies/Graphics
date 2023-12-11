@@ -345,6 +345,9 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
     //GetSample(s, PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_DEPTH, ATMOSPHERIC_SCATTERING_MAX_DISTANCE, t, dt);
     //EvaluateAtmosphericColor(O, V, t, skyColor, skyTransmittance);
 
+    // Make sure first slice is all black. Looks better for bilinear at close range
+    if (s == 0) skyColor = 0.0f;
+
     skyColor = Desaturate(skyColor, _ColorSaturation);
     _AtmosphericScatteringLUT_RW[uint3(coord, s)] = skyColor * _IntensityMultiplier * GetCurrentExposureMultiplier();
 }

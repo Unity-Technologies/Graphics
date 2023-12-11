@@ -1,23 +1,20 @@
-# Volume Overrides
+# Configure Volume Overrides
 
-**Volume Overrides** let you change or extend the default properties in a [Volume Profile](Volume-Profile.md).
+## Add a Volume Override
 
-URP implements post-processing effects as Volume Overrides. For example, the following image shows the Vignette post-processing effect in the URP Template SampleScene.
+To add a Volume Override to a **Volume** component:
 
-![Vignette post-processing effect in the URP Template SampleScene](Images/post-proc/post-proc-as-volume-override.png)
+1. Select the GameObject with the **Volume** component.
+2. In the Inspector window, select **Add Override**.
+3. Select a Volume Override, or use the search field to search for one.
 
-In a the Volume Override, checkboxes to the left of each property let you enable or disable specific properties. If you disable a property, URP uses the Volume’s default value for that property instead. To turn all properties on or off, use the **All** or **None** shortcuts above the property list.
+For example, select **Add Override** then **Motion Blur** to configure properties that relate to the [Motion Blur](Post-processing-Motion-Blur.md) effect.
 
-![Volume Override property list](Images/post-proc/volume-override-property-list.png)
+## Configure Volume Override properties
 
-## <a name="volume-add-override"></a>How to add a Volume Override to a Volume component
+When you enable a property in a Volume Override, URP applies the property to the Volume Profile. The property also becomes editable.
 
-To add a Volume Override to a Volume component:
+You can also do the following:
 
-1. Select a GameObject with the Volume component.
-
-2. In the Inspector window, click Add Override.
-
-    ![Add Override](Images/post-proc/volume-add-override.png)
-
-    Use the search field to search for an Override, or select an Override from the menu.
+- Select **All** to enable all properties.
+- Select **None** to disable all properties.

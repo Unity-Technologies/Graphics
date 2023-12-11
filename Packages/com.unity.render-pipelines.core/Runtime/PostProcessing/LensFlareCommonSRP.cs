@@ -1,5 +1,7 @@
-using UnityEngine.Experimental.Rendering;
 using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -32,8 +34,8 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private static System.Collections.Generic.List<LensFlareCompInfo> m_Data = new System.Collections.Generic.List<LensFlareCompInfo>();
-        private static System.Collections.Generic.List<int> m_AvailableIndicies = new System.Collections.Generic.List<int>();
+        private static List<LensFlareCompInfo> m_Data = new List<LensFlareCompInfo>();
+        private static List<int> m_AvailableIndicies = new List<int>();
 
         /// <summary>
         /// Max lens-flares-with-occlusion supported
@@ -66,6 +68,21 @@ namespace UnityEngine.Rendering
         public static RTHandle occlusionRT = null;
 
         private static int frameIdx = 0;
+
+        internal static readonly int _FlareOcclusionRemapTex = Shader.PropertyToID("_FlareOcclusionRemapTex");
+        internal static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+        internal static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
+        internal static readonly int _FlareCloudOpacity = Shader.PropertyToID("_FlareCloudOpacity");
+        internal static readonly int _FlareSunOcclusionTex = Shader.PropertyToID("_FlareSunOcclusionTex");
+        internal static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
+        internal static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
+        internal static readonly int _FlareData0 = Shader.PropertyToID("_FlareData0");
+        internal static readonly int _FlareData1 = Shader.PropertyToID("_FlareData1");
+        internal static readonly int _FlareData2 = Shader.PropertyToID("_FlareData2");
+        internal static readonly int _FlareData3 = Shader.PropertyToID("_FlareData3");
+        internal static readonly int _FlareData4 = Shader.PropertyToID("_FlareData4");
+        internal static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
+        internal static readonly int _FlareRadialTint = Shader.PropertyToID("_FlareRadialTint");
 
         internal static readonly int _FlareWaterGBuffer3Thickness = Shader.PropertyToID("_FlareWaterGBuffer3Thickness");
         internal static readonly int _FlareOcclusionPermutation = Shader.PropertyToID("_FlareOcclusionPermutation");
@@ -430,6 +447,7 @@ namespace UnityEngine.Rendering
             if (autoRotate)
             {
                 Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
+
                 rotation += -Mathf.Rad2Deg * Mathf.Atan2(pos.y, pos.x);
             }
             rotation *= Mathf.Deg2Rad;
@@ -439,11 +457,13 @@ namespace UnityEngine.Rendering
             return new Vector4(localCos0, localSin0, positionOffset.x + rayOff0.x * translationScale.x, -positionOffset.y + rayOff0.y * translationScale.y);
         }
 
-        static Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0)
+        static Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0, Vector2 vAspectRatio)
         {
             Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
+            //rayOff.y /= vAspectRatio.x;
+            //globalCos0 *= vAspectRatio.x;
             return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
-                globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+                               globalSin0 * rayOff.x + globalCos0 * rayOff.y);
         }
 
         static Vector3 WorldToViewport(Camera camera, bool isLocalLight, bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 positionWS)
@@ -613,6 +633,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
+        [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters.")]
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
@@ -652,6 +673,43 @@ namespace UnityEngine.Rendering
         /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
+            float actualWidth, float actualHeight,
+            bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
+            Vector3 cameraPositionWS,
+            Matrix4x4 viewProjMatrix,
+            UnsafeCommandBuffer cmd,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
+        {
+            ComputeOcclusion(
+                lensFlareShader, cam,
+                actualWidth, actualHeight,
+                usePanini, paniniDistance, paniniCropToFit, isCameraRelative,
+                cameraPositionWS,
+                viewProjMatrix,
+                cmd.m_WrappedCommandBuffer,
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
+        }
+
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
+        /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
@@ -663,6 +721,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
+        [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters.")]
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
@@ -671,6 +730,49 @@ namespace UnityEngine.Rendering
             Rendering.CommandBuffer cmd,
             bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
+        {
+            ComputeOcclusion(lensFlareShader, cam,
+                actualWidth, actualHeight,
+                usePanini, paniniDistance, paniniCropToFit, isCameraRelative,
+                cameraPositionWS,
+                viewProjMatrix,
+                cmd,
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
+        }
+
+        static bool ForceSingleElement(LensFlareDataElementSRP element)
+        {
+            return !element.allowMultipleElement
+                || element.count == 1
+                || element.flareType == SRPLensFlareType.Ring;
+        }
+
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
+        /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
+            float actualWidth, float actualHeight,
+            bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
+            Vector3 cameraPositionWS,
+            Matrix4x4 viewProjMatrix,
+            Rendering.CommandBuffer cmd,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
         {
             if (!IsOcclusionRTCompatible())
                 return;
@@ -818,8 +920,8 @@ namespace UnityEngine.Rendering
                     cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
 
-                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 2.0f * viewportPos.y - 1.0f);
-                if (SystemInfo.graphicsUVStartsAtTop)
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, -(2.0f * viewportPos.y - 1.0f));
+                if (!SystemInfo.graphicsUVStartsAtTop && isDirLight)
                     screenPos.y = -screenPos.y;
 
                 Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
@@ -840,7 +942,7 @@ namespace UnityEngine.Rendering
 
                 cmd.SetGlobalVector(_FlareData3, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, 1.0f)), 1.0f / 3.0f));
 
-                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0, vScreenRatio);
                 Vector4 flareData0 = GetFlareData0(screenPos, Vector2.one, rayOff, vScreenRatio, 0.0f, position, 0.0f, Vector2.zero, false);
 
                 cmd.SetGlobalVector(_FlareData0, flareData0);
@@ -862,6 +964,351 @@ namespace UnityEngine.Rendering
 
             ++frameIdx;
             frameIdx %= maxLensFlareWithOcclusionTemporalSample;
+        }
+
+        /// <summary>
+        /// Function that process a single element of a LensFlareDataSRP, this function is used on scene/game view and on the inspector for the thumbnail.
+        /// </summary>
+        /// <param name="element">Single LensFlare asset we need to process.</param>
+        /// <param name="cmd">Command Buffer.</param>
+        /// <param name="globalColorModulation">Color Modulation from Component?</param>
+        /// <param name="light">Light used for the modulation of this singe element.</param>
+        /// <param name="compIntensity">Intensity from Component.</param>
+        /// <param name="scale">Scale from component</param>
+        /// <param name="lensFlareShader">Shader used on URP or HDRP.</param>
+        /// <param name="screenPos">Screen Position</param>
+        /// <param name="compAllowOffScreen">Allow Lens Flare offscreen</param>
+        /// <param name="vScreenRatio">Screen Ratio</param>
+        /// <param name="flareData1">_FlareData1 used internally by the shader.</param>
+        /// <param name="preview">true if we are on preview on the inspector</param>
+        /// <param name="depth">Depth counter for recursive call of 'ProcessLensFlareSRPElementsSingle'.</param>
+        public static void ProcessLensFlareSRPElementsSingle(LensFlareDataElementSRP element, Rendering.CommandBuffer cmd, Color globalColorModulation, Light light,
+            float compIntensity, float scale, Material lensFlareShader, Vector2 screenPos, bool compAllowOffScreen, Vector2 vScreenRatio, Vector4 flareData1, bool preview, int depth)
+        {
+            if (element == null ||
+                element.visible == false ||
+                (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
+                element.localIntensity <= 0.0f ||
+                element.count <= 0 ||
+                (element.flareType == SRPLensFlareType.LensFlareDataSRP && element.lensFlareDataSRP == null))
+                return;
+
+            if (element.flareType == SRPLensFlareType.LensFlareDataSRP && element.lensFlareDataSRP != null)
+            {
+                ProcessLensFlareSRPElements(ref element.lensFlareDataSRP.elements, cmd, globalColorModulation, light, compIntensity, scale, lensFlareShader, screenPos, compAllowOffScreen, vScreenRatio, flareData1, preview, depth + 1);
+                return;
+            }
+
+            Color colorModulation = globalColorModulation;
+            if (light != null && element.modulateByLightColor)
+            {
+                if (light.useColorTemperature)
+                    colorModulation *= light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                else
+                    colorModulation *= light.color;
+            }
+
+            Color curColor = colorModulation;
+
+            float currentIntensity = element.localIntensity * compIntensity;
+
+            if (currentIntensity <= 0.0f)
+                return;
+
+            Texture texture = element.lensFlareTexture;
+            float usedAspectRatio;
+            if (element.flareType == SRPLensFlareType.Image)
+                usedAspectRatio = element.preserveAspectRatio ? ((((float)texture.height) / (float)texture.width)) : 1.0f;
+            else
+                usedAspectRatio = 1.0f;
+
+            float rotation = element.rotation;
+
+            Vector2 elemSizeXY;
+            if (element.preserveAspectRatio)
+            {
+                if (usedAspectRatio >= 1.0f)
+                {
+                    elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.y);
+                }
+                else
+                {
+                    elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y * usedAspectRatio);
+                }
+            }
+            else
+            {
+                elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
+            }
+            float scaleSize = 0.1f; // Arbitrary value
+            Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
+            float combinedScale = scaleSize * element.uniformScale * scale;
+            size *= combinedScale;
+
+            curColor *= element.tint;
+
+            float angularOffset = SystemInfo.graphicsUVStartsAtTop ? element.angularOffset : -element.angularOffset;
+            float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
+            float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
+
+            float position = 2.0f * element.position;
+
+            SRPLensFlareBlendMode blendMode = element.blendMode;
+            int materialPass;
+#if UNITY_EDITOR
+            if (!preview)
+#endif
+            {
+                if (blendMode == SRPLensFlareBlendMode.Additive)
+                    materialPass = lensFlareShader.FindPass("LensFlareAdditive");
+                else if (blendMode == SRPLensFlareBlendMode.Screen)
+                    materialPass = lensFlareShader.FindPass("LensFlareScreen");
+                else if (blendMode == SRPLensFlareBlendMode.Premultiply)
+                    materialPass = lensFlareShader.FindPass("LensFlarePremultiply");
+                else if (blendMode == SRPLensFlareBlendMode.Lerp)
+                    materialPass = lensFlareShader.FindPass("LensFlareLerp");
+                else
+                    materialPass = lensFlareShader.FindPass("LensFlareOcclusion");
+            }
+#if UNITY_EDITOR
+            else
+            {
+                if (element.inverseSDF)
+                    materialPass = lensFlareShader.FindPass("FlarePreviewInverted");
+                else
+                    materialPass = lensFlareShader.FindPass("FlarePreviewNotInverted");
+            }
+#endif
+
+            flareData1.x = (float)element.flareType;
+            if (ForceSingleElement(element))
+                cmd.SetGlobalVector(_FlareData1, flareData1);
+
+            if (element.flareType == SRPLensFlareType.Circle ||
+                element.flareType == SRPLensFlareType.Polygon ||
+                element.flareType == SRPLensFlareType.Ring)
+            {
+                if (element.inverseSDF)
+                {
+                    cmd.EnableShaderKeyword("FLARE_INVERSE_SDF");
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
+                }
+            }
+            else
+            {
+                cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
+            }
+
+            if (element.lensFlareTexture != null)
+                cmd.SetGlobalTexture(_FlareTex, element.lensFlareTexture);
+
+            if (element.tintColorType != SRPLensFlareColorType.Constant)
+                cmd.SetGlobalTexture(_FlareRadialTint, element.tintGradient.GetTexture());
+
+            float usedGradientPosition = Mathf.Clamp01((1.0f - element.edgeOffset) - 1e-6f);
+            if (element.flareType == SRPLensFlareType.Polygon)
+                usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
+
+            Vector2 ComputeLocalSize(Vector2 rayOff, Vector2 rayOff0, Vector2 curSize, AnimationCurve distortionCurve)
+            {
+                Vector2 rayOffZ = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0, vScreenRatio);
+                Vector2 localRadPos;
+                float localRadius;
+                if (!element.distortionRelativeToCenter)
+                {
+                    localRadPos = (rayOff - rayOff0) * 0.5f;
+                    localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                }
+                else
+                {
+                    localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
+                    localRadius = Mathf.Clamp01(localRadPos.magnitude); // l2 norm (instead of l1 norm)
+                }
+
+                float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
+                return new Vector2(Mathf.Lerp(curSize.x, element.targetSizeDistortion.x * combinedScale / usedAspectRatio, localLerpValue),
+                    Mathf.Lerp(curSize.y, element.targetSizeDistortion.y * combinedScale, localLerpValue));
+            }
+
+            float usedSDFRoundness = element.sdfRoundness;
+
+            Vector4 data3 =
+                new Vector4(compAllowOffScreen ? 1.0f : -1.0f,
+                            usedGradientPosition,
+                            Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - element.fallOff))),
+                            element.flareType == SRPLensFlareType.Ring ? element.ringThickness : 1.0f / (float)element.sideCount);
+            cmd.SetGlobalVector(_FlareData3, data3);
+            if (element.flareType == SRPLensFlareType.Polygon)
+            {
+                float invSide = 1.0f / (float)element.sideCount;
+                float rCos = Mathf.Cos(Mathf.PI * invSide);
+                float roundValue = rCos * usedSDFRoundness;
+                float r = rCos - roundValue;
+                float an = 2.0f * Mathf.PI * invSide;
+                float he = r * Mathf.Tan(0.5f * an);
+                cmd.SetGlobalVector(_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+            }
+            else if (element.flareType == SRPLensFlareType.Ring)
+            {
+                cmd.SetGlobalVector(_FlareData4, new Vector4(element.noiseAmplitude, element.noiseFrequency, element.noiseSpeed, 0.0f));
+            }
+            else
+            {
+                cmd.SetGlobalVector(_FlareData4, new Vector4(usedSDFRoundness, 0.0f, 0.0f, 0.0f));
+            }
+
+            cmd.SetGlobalVector(_FlareData5, new Vector4((float)(element.tintColorType), currentIntensity, element.shapeCutOffSpeed, element.shapeCutOffRadius));
+            if (ForceSingleElement(element))
+            {
+                Vector2 localSize = size;
+                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0, vScreenRatio);
+                if (element.enableRadialDistortion)
+                {
+                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0, vScreenRatio);
+                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                }
+                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation, position, angularOffset, element.positionOffset, element.autoRotate);
+
+                cmd.SetGlobalVector(_FlareData0, flareData0);
+                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                cmd.SetGlobalVector(_FlareColorValue, curColor);
+
+                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
+            }
+            else
+            {
+                float dLength = 2.0f * element.lengthSpread / ((float)(element.count - 1));
+
+                if (element.distribution == SRPLensFlareDistribution.Uniform)
+                {
+                    float uniformAngle = 0.0f;
+                    for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                    {
+                        Vector2 localSize = size;
+                        Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0, vScreenRatio);
+                        if (element.enableRadialDistortion)
+                        {
+                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0, vScreenRatio);
+                            localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                        }
+
+                        float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                        Color col = element.colorGradient.Evaluate(timeScale);
+
+                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + uniformAngle, position, angularOffset, element.positionOffset, element.autoRotate);
+                        cmd.SetGlobalVector(_FlareData0, flareData0);
+
+                        flareData1.y = (float)elemIdx;
+                        cmd.SetGlobalVector(_FlareData1, flareData1);
+                        cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                        cmd.SetGlobalVector(_FlareColorValue, curColor * col);
+
+                        UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
+                        position += dLength;
+                        uniformAngle += element.uniformAngle;
+                    }
+                }
+                else if (element.distribution == SRPLensFlareDistribution.Random)
+                {
+                    Random.State backupRandState = UnityEngine.Random.state;
+                    Random.InitState(element.seed);
+                    Vector2 side = new Vector2(globalSin0, globalCos0);
+                    side *= element.positionVariation.y;
+                    float RandomRange(float min, float max)
+                    {
+                        return Random.Range(min, max);
+                    }
+
+                    for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                    {
+                        float localIntensity = RandomRange(-1.0f, 1.0f) * element.intensityVariation + 1.0f;
+
+                        Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0, vScreenRatio);
+                        Vector2 localSize = size;
+                        if (element.enableRadialDistortion)
+                        {
+                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0, vScreenRatio);
+                            localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                        }
+
+                        localSize += localSize * (element.scaleVariation * RandomRange(-1.0f, 1.0f));
+
+                        Color randCol = element.colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
+
+                        Vector2 localPositionOffset = element.positionOffset + RandomRange(-1.0f, 1.0f) * side;
+
+                        float localRotation = rotation + RandomRange(-Mathf.PI, Mathf.PI) * element.rotationVariation;
+
+                        if (localIntensity > 0.0f)
+                        {
+                            Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, localRotation, position, angularOffset, localPositionOffset, element.autoRotate);
+                            cmd.SetGlobalVector(_FlareData0, flareData0);
+                            flareData1.y = (float)elemIdx;
+                            cmd.SetGlobalVector(_FlareData1, flareData1);
+                            cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                            cmd.SetGlobalVector(_FlareColorValue, curColor * randCol * localIntensity);
+
+                            UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
+                        }
+
+                        position += dLength;
+                        position += 0.5f * dLength * RandomRange(-1.0f, 1.0f) * element.positionVariation.x;
+                    }
+                    Random.state = backupRandState;
+                }
+                else if (element.distribution == SRPLensFlareDistribution.Curve)
+                {
+                    for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                    {
+                        float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                        Color col = element.colorGradient.Evaluate(timeScale);
+
+                        float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
+
+                        float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
+                        Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0, vScreenRatio);
+                        Vector2 localSize = size;
+                        if (element.enableRadialDistortion)
+                        {
+                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0, vScreenRatio);
+                            localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                        }
+                        float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
+                        localSize *= sizeCurveValue;
+
+                        float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale) * (180.0f - (180.0f / (float)element.count));
+
+                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + angleFromCurve, localPos, angularOffset, element.positionOffset, element.autoRotate);
+                        cmd.SetGlobalVector(_FlareData0, flareData0);
+                        flareData1.y = (float)elemIdx;
+                        cmd.SetGlobalVector(_FlareData1, flareData1);
+                        cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                        cmd.SetGlobalVector(_FlareColorValue, curColor * col);
+
+                        UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
+                    }
+                }
+            }
+        }
+
+        static void ProcessLensFlareSRPElements(ref LensFlareDataElementSRP[] elements, Rendering.CommandBuffer cmd, Color globalColorModulation, Light light,
+            float compIntensity, float scale, Material lensFlareShader, Vector2 screenPos, bool compAllowOffScreen, Vector2 vScreenRatio, Vector4 flareData1, bool preview, int depth)
+        {
+            if (depth > 16)
+            {
+                Debug.LogWarning("LensFlareSRPAsset contains too deep recursive asset (> 16). Be careful to not have recursive aggregation, A contains B, B contains A, ... which will produce an infinite loop.");
+                return;
+            }
+
+            foreach (LensFlareDataElementSRP element in elements)
+            {
+                ProcessLensFlareSRPElementsSingle(element, cmd, globalColorModulation, light, compIntensity, scale, lensFlareShader, screenPos, compAllowOffScreen, vScreenRatio, flareData1, preview, depth);
+            }
         }
 
         /// <summary>
@@ -897,6 +1344,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
@@ -916,13 +1364,54 @@ namespace UnityEngine.Rendering
                 isCameraRelative,
                 cameraPositionWS,
                 viewProjMatrix,
+                cmd,
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture,
+                colorBuffer,
+                GetLensFlareLightAttenuation,
+                debugView);
+        }
+
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
+        /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
+        /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
+        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
+            bool usePanini, float paniniDistance, float paniniCropToFit,
+            bool isCameraRelative,
+            Vector3 cameraPositionWS,
+            Matrix4x4 viewProjMatrix,
+            UnsafeCommandBuffer cmd,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
+            Rendering.RenderTargetIdentifier colorBuffer,
+            System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
+            bool debugView)
+        {
+            DoLensFlareDataDrivenCommon(lensFlareShader, cam, actualWidth, actualHeight,
+                usePanini, paniniDistance, paniniCropToFit,
+                isCameraRelative,
+                cameraPositionWS,
+                viewProjMatrix,
                 cmd.m_WrappedCommandBuffer,
                 taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture,
                 colorBuffer,
                 GetLensFlareLightAttenuation,
-                _FlareOcclusionRemapTex, _FlareOcclusionTex, _FlareOcclusionIndex,
-                _FlareCloudOpacity, _FlareSunOcclusionTex,
-                _FlareTex, _FlareColorValue, _FlareData0, _FlareData1, _FlareData2, _FlareData3, _FlareData4,
                 debugView);
         }
 
@@ -959,6 +1448,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
@@ -971,6 +1461,50 @@ namespace UnityEngine.Rendering
             int _FlareOcclusionRemapTex, int _FlareOcclusionTex, int _FlareOcclusionIndex,
             int _FlareCloudOpacity, int _FlareSunOcclusionTex,
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
+            bool debugView)
+        {
+            DoLensFlareDataDrivenCommon(lensFlareShader, cam, actualWidth, actualHeight,
+                usePanini, paniniDistance, paniniCropToFit,
+                isCameraRelative,
+                cameraPositionWS,
+                viewProjMatrix,
+                cmd,
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture,
+                colorBuffer,
+                GetLensFlareLightAttenuation,
+                debugView);
+        }
+
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="usePanini">Set if use Panani Projection</param>
+        /// <param name="paniniDistance">Distance used for Panini projection</param>
+        /// <param name="paniniCropToFit">CropToFit parameter used for Panini projection</param>
+        /// <param name="isCameraRelative">Set if camera is relative</param>
+        /// <param name="cameraPositionWS">Camera World Space position</param>
+        /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="taaEnabled">Set if TAA is enabled</param>
+        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
+        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
+        /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
+        /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
+        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
+            bool usePanini, float paniniDistance, float paniniCropToFit,
+            bool isCameraRelative,
+            Vector3 cameraPositionWS,
+            Matrix4x4 viewProjMatrix,
+            Rendering.CommandBuffer cmd,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
+            Rendering.RenderTargetIdentifier colorBuffer,
+            System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             bool debugView)
         {
 #if UNITY_EDITOR
@@ -1059,6 +1593,12 @@ namespace UnityEngine.Rendering
                     positionWS = comp.transform.position;
                 }
 
+                // After positionWS computation, lightOverride do not change the position
+                if (comp.lightOverride != null)
+                {
+                    light = comp.lightOverride;
+                }
+
                 viewportPos = WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS);
 
                 if (usePanini && cam == Camera.main)
@@ -1120,7 +1660,6 @@ namespace UnityEngine.Rendering
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)viewportPos;
                 Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + cam.transform.up * adjustedOcclusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
-                cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
                 if (comp.useOcclusion)
                 {
@@ -1144,290 +1683,10 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareOcclusionIndex, new Vector4((float)info.index, 0.0f, 0.0f, 0.0f));
                 cmd.SetGlobalTexture(_FlareOcclusionRemapTex, comp.occlusionRemapCurve.GetTexture());
 
-                foreach (LensFlareDataElementSRP element in data.elements)
-                {
-                    if (element == null ||
-                        element.visible == false ||
-                        (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
-                        element.localIntensity <= 0.0f ||
-                        element.count <= 0 ||
-                        element.localIntensity <= 0.0f)
-                        continue;
-
-                    Color colorModulation = globalColorModulation;
-                    if (light != null && element.modulateByLightColor)
-                    {
-                        if (light.useColorTemperature)
-                            colorModulation *= light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-                        else
-                            colorModulation *= light.color;
-                    }
-
-                    Color curColor = colorModulation;
-
-                    float currentIntensity = element.localIntensity * compIntensity;
-
-                    if (currentIntensity <= 0.0f)
-                        continue;
-
-                    Texture texture = element.lensFlareTexture;
-                    float usedAspectRatio;
-                    if (element.flareType == SRPLensFlareType.Image)
-                        usedAspectRatio = element.preserveAspectRatio ? ((((float)texture.height) / (float)texture.width)) : 1.0f;
-                    else
-                        usedAspectRatio = 1.0f;
-
-                    float rotation = element.rotation;
-
-                    Vector2 elemSizeXY;
-                    if (element.preserveAspectRatio)
-                    {
-                        if (usedAspectRatio >= 1.0f)
-                        {
-                            elemSizeXY = new Vector2(element.sizeXY.x / usedAspectRatio, element.sizeXY.y);
-                        }
-                        else
-                        {
-                            elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y * usedAspectRatio);
-                        }
-                    }
-                    else
-                    {
-                        elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
-                    }
-                    float scaleSize = 0.1f; // Arbitrary value
-                    Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
-                    float combinedScale = scaleByDistance * scaleSize * element.uniformScale * comp.scale;
-                    size *= combinedScale;
-
-                    curColor *= element.tint;
-                    curColor *= currentIntensity;
-
-                    float angularOffset = SystemInfo.graphicsUVStartsAtTop ? element.angularOffset : -element.angularOffset;
-                    float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
-                    float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
-
-                    float position = 2.0f * element.position;
-
-                    SRPLensFlareBlendMode blendMode = element.blendMode;
-                    int materialPass;
-                    if (blendMode == SRPLensFlareBlendMode.Additive)
-                        materialPass = lensFlareShader.FindPass("LensFlareAdditive");
-                    else if (blendMode == SRPLensFlareBlendMode.Screen)
-                        materialPass = lensFlareShader.FindPass("LensFlareScreen");
-                    else if (blendMode == SRPLensFlareBlendMode.Premultiply)
-                        materialPass = lensFlareShader.FindPass("LensFlarePremultiply");
-                    else if (blendMode == SRPLensFlareBlendMode.Lerp)
-                        materialPass = lensFlareShader.FindPass("LensFlareLerp");
-                    else
-                        materialPass = lensFlareShader.FindPass("LensFlareOcclusion");
-
-                    if (element.flareType == SRPLensFlareType.Image)
-                    {
-                        cmd.DisableShaderKeyword("FLARE_CIRCLE");
-                        cmd.DisableShaderKeyword("FLARE_POLYGON");
-                    }
-                    else if (element.flareType == SRPLensFlareType.Circle)
-                    {
-                        cmd.EnableShaderKeyword("FLARE_CIRCLE");
-                        cmd.DisableShaderKeyword("FLARE_POLYGON");
-                    }
-                    else if (element.flareType == SRPLensFlareType.Polygon)
-                    {
-                        cmd.DisableShaderKeyword("FLARE_CIRCLE");
-                        cmd.EnableShaderKeyword("FLARE_POLYGON");
-                    }
-
-                    if (element.flareType == SRPLensFlareType.Circle ||
-                        element.flareType == SRPLensFlareType.Polygon)
-                    {
-                        if (element.inverseSDF)
-                        {
-                            cmd.EnableShaderKeyword("FLARE_INVERSE_SDF");
-                        }
-                        else
-                        {
-                            cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
-                        }
-                    }
-                    else
-                    {
-                        cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
-                    }
-
-                    if (element.lensFlareTexture != null)
-                        cmd.SetGlobalTexture(_FlareTex, element.lensFlareTexture);
-
-                    float usedGradientPosition = Mathf.Clamp01((1.0f - element.edgeOffset) - 1e-6f);
-                    if (element.flareType == SRPLensFlareType.Polygon)
-                        usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
-
-                    Vector2 ComputeLocalSize(Vector2 rayOff, Vector2 rayOff0, Vector2 curSize, AnimationCurve distortionCurve)
-                    {
-                        Vector2 rayOffZ = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                        Vector2 localRadPos;
-                        float localRadius;
-                        if (!element.distortionRelativeToCenter)
-                        {
-                            localRadPos = (rayOff - rayOff0) * 0.5f;
-                            localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
-                        }
-                        else
-                        {
-                            localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
-                            localRadius = Mathf.Clamp01(localRadPos.magnitude); // l2 norm (instead of l1 norm)
-                        }
-
-                        float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
-                        return new Vector2(Mathf.Lerp(curSize.x, element.targetSizeDistortion.x * combinedScale / usedAspectRatio, localLerpValue),
-                            Mathf.Lerp(curSize.y, element.targetSizeDistortion.y * combinedScale, localLerpValue));
-                    }
-
-                    float usedSDFRoundness = element.sdfRoundness;
-
-                    cmd.SetGlobalVector(_FlareData3, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(Mathf.Lerp(0.0f, 4.0f, Mathf.Clamp01(1.0f - element.fallOff))), 1.0f / (float)element.sideCount));
-                    if (element.flareType == SRPLensFlareType.Polygon)
-                    {
-                        float invSide = 1.0f / (float)element.sideCount;
-                        float rCos = Mathf.Cos(Mathf.PI * invSide);
-                        float roundValue = rCos * usedSDFRoundness;
-                        float r = rCos - roundValue;
-                        float an = 2.0f * Mathf.PI * invSide;
-                        float he = r * Mathf.Tan(0.5f * an);
-                        cmd.SetGlobalVector(_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
-                    }
-                    else
-                    {
-                        cmd.SetGlobalVector(_FlareData4, new Vector4(usedSDFRoundness, 0.0f, 0.0f, 0.0f));
-                    }
-
-                    if (!element.allowMultipleElement || element.count == 1)
-                    {
-                        Vector2 localSize = size;
-                        Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                        if (element.enableRadialDistortion)
-                        {
-                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                            localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
-                        }
-                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation, position, angularOffset, element.positionOffset, element.autoRotate);
-
-                        cmd.SetGlobalVector(_FlareData0, flareData0);
-                        cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                        cmd.SetGlobalVector(_FlareColorValue, curColor);
-
-                        UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
-                    }
-                    else
-                    {
-                        float dLength = 2.0f * element.lengthSpread / ((float)(element.count - 1));
-
-                        if (element.distribution == SRPLensFlareDistribution.Uniform)
-                        {
-                            float uniformAngle = 0.0f;
-                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
-                            {
-                                Vector2 localSize = size;
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                                if (element.enableRadialDistortion)
-                                {
-                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
-                                }
-
-                                float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
-
-                                Color col = element.colorGradient.Evaluate(timeScale);
-
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + uniformAngle, position, angularOffset, element.positionOffset, element.autoRotate);
-                                cmd.SetGlobalVector(_FlareData0, flareData0);
-                                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(_FlareColorValue, curColor * col);
-
-                                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
-                                position += dLength;
-                                uniformAngle += element.uniformAngle;
-                            }
-                        }
-                        else if (element.distribution == SRPLensFlareDistribution.Random)
-                        {
-                            Random.State backupRandState = UnityEngine.Random.state;
-                            Random.InitState(element.seed);
-                            Vector2 side = new Vector2(globalSin0, globalCos0);
-                            side *= element.positionVariation.y;
-                            float RandomRange(float min, float max)
-                            {
-                                return Random.Range(min, max);
-                            }
-
-                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
-                            {
-                                float localIntensity = RandomRange(-1.0f, 1.0f) * element.intensityVariation + 1.0f;
-
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                                Vector2 localSize = size;
-                                if (element.enableRadialDistortion)
-                                {
-                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
-                                }
-
-                                localSize += localSize * (element.scaleVariation * RandomRange(-1.0f, 1.0f));
-
-                                Color randCol = element.colorGradient.Evaluate(RandomRange(0.0f, 1.0f));
-
-                                Vector2 localPositionOffset = element.positionOffset + RandomRange(-1.0f, 1.0f) * side;
-
-                                float localRotation = rotation + RandomRange(-Mathf.PI, Mathf.PI) * element.rotationVariation;
-
-                                if (localIntensity > 0.0f)
-                                {
-                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, localRotation, position, angularOffset, localPositionOffset, element.autoRotate);
-                                    cmd.SetGlobalVector(_FlareData0, flareData0);
-                                    cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                    cmd.SetGlobalVector(_FlareColorValue, curColor * randCol * localIntensity);
-
-                                    UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
-                                }
-
-                                position += dLength;
-                                position += 0.5f * dLength * RandomRange(-1.0f, 1.0f) * element.positionVariation.x;
-                            }
-                            Random.state = backupRandState;
-                        }
-                        else if (element.distribution == SRPLensFlareDistribution.Curve)
-                        {
-                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
-                            {
-                                float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
-
-                                Color col = element.colorGradient.Evaluate(timeScale);
-
-                                float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
-
-                                float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
-                                Vector2 localSize = size;
-                                if (element.enableRadialDistortion)
-                                {
-                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
-                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
-                                }
-                                float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
-                                localSize *= sizeCurveValue;
-
-                                float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale) * (180.0f - (180.0f / (float)element.count));
-
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + angleFromCurve, localPos, angularOffset, element.positionOffset, element.autoRotate);
-                                cmd.SetGlobalVector(_FlareData0, flareData0);
-                                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(_FlareColorValue, curColor * col);
-
-                                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, materialPass);
-                            }
-                        }
-                    }
-                }
+                Vector4 flareData1 = new Vector4(0.0f, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth);
+                ProcessLensFlareSRPElements(ref data.elements, cmd, globalColorModulation, light,
+                    compIntensity, scaleByDistance * comp.scale, lensFlareShader,
+                    screenPos, comp.allowOffScreen, vScreenRatio, flareData1, false, 0);
             }
         }
 

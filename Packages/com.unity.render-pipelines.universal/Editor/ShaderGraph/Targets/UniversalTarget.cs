@@ -459,6 +459,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
 
+            collector.AddShaderProperty(MipmapStreamingShaderProperties.kDebugTex);
 
             // SubTarget blocks
             m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
@@ -1674,6 +1675,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
         const string kFoveatedRenderingKeywords = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
         const string kFoveatedRendering = "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl";
+        const string kMipmapDebugMacros = "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl";
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
@@ -1690,6 +1692,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
             { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
             { kFoveatedRendering, IncludeLocation.Pregraph },
+            { kMipmapDebugMacros, IncludeLocation.Pregraph}
         };
 
         public static readonly IncludeCollection DOTSPregraph = new IncludeCollection
@@ -2247,11 +2250,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = ShaderKeywordStrings.LOD_FADE_CROSSFADE,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
-            
+
             // Note: SpeedTree shaders used to have their own PS-based Crossfade,
             //       as well as a VS-based smooth LOD transition effect.
             //       These shaders need the LOD_FADE_CROSSFADE keyword in the VS
-            //       to skip the VS-based effect. 
+            //       to skip the VS-based effect.
             // Note: DOTS instancing uses a different instance index encoding
             //       when crossfade is active, so all stages are affected by the
             //       LOD_FADE_CROSSFADE keyword.
@@ -2276,6 +2279,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor UseLegacyLightmaps = new KeywordDescriptor()
+        {
+            displayName = "Use Legacy Lightmaps",
+            referenceName = ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
         };
     }
     #endregion

@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Shader resources needed in URP for XR.
         /// </summary>
-        [Reload("Runtime/Data/XRSystemData.asset")]
+        //[Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData;
 #endif
 

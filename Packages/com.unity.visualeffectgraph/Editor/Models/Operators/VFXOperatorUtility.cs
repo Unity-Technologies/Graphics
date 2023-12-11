@@ -26,6 +26,7 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<VFXValueType, VFXExpression> MinusOneExpression = GenerateExpressionConstant(-1.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> HalfExpression = GenerateExpressionConstant(0.5f);
         public static readonly Dictionary<VFXValueType, VFXExpression> ZeroExpression = GenerateExpressionConstant(0.0f);
+        public static readonly Dictionary<VFXValueType, VFXExpression> NaNExpression = GenerateExpressionConstant(float.NaN);
         public static readonly Dictionary<VFXValueType, VFXExpression> TwoExpression = GenerateExpressionConstant(2.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> ThreeExpression = GenerateExpressionConstant(3.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> TenExpression = GenerateExpressionConstant(10.0f);
@@ -731,6 +732,25 @@ namespace UnityEditor.VFX
             var compareK = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, sqrLengthK, epsilon);
 
             var condition = new VFXExpressionLogicalOr(compareI, new VFXExpressionLogicalOr(compareJ, compareK));
+            return condition;
+        }
+
+        static public VFXExpression IsTRSMatrixUniformScaled(VFXExpression matrix)
+        {
+            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+
+            var sqrLengthI = Dot(i, i);
+            var sqrLengthJ = Dot(j, j);
+            var sqrLengthK = Dot(k, k);
+
+            // Same check as in Matrix4x4.cpp
+            var maxSqrLength = Max3(sqrLengthI, sqrLengthJ, sqrLengthK);
+            var minSqrLength = Min3(sqrLengthI, sqrLengthJ, sqrLengthK);
+            var ratio = Sqrt(maxSqrLength) / Sqrt(minSqrLength);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, ratio, VFXValue.Constant(1.0f) + EpsilonExpression[VFXValueType.Float]);
+
             return condition;
         }
 

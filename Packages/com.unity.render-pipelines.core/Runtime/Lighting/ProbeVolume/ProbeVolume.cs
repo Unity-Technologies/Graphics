@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     [CoreRPHelpURL("probevolumes-settings#probe-volume-properties", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/Probe Volume")]
+    [AddComponentMenu("Rendering/Adaptive Probe Volume")]
     public partial class ProbeVolume : MonoBehaviour
     {
         /// <summary>Indicates which renderers should be considerer for the Probe Volume bounds when baking</summary>
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering
         /// The highest subdivision level override
         /// </summary>
         [HideInInspector]
-        public int highestSubdivLevelOverride = -1;
+        public int highestSubdivLevelOverride = ProbeBrickIndex.kMaxSubdivisionLevels;
 
         /// <summary>
         /// If the subdivision levels need to be overriden
@@ -212,13 +212,19 @@ namespace UnityEngine.Rendering
                 if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
                     return true;
 
-                cellSizeInMeters = bakingSet.cellSizeInMeters;
+                // Use the non-backed data to display real-time info
+                cellSizeInMeters = ProbeVolumeBakingSet.GetMinBrickSize(bakingSet.minDistanceBetweenProbes) * ProbeVolumeBakingSet.GetCellSizeInBricks(bakingSet.simplificationLevels);
             }
+            Camera activeCamera = Camera.current;
+#if UNITY_EDITOR
+            if (activeCamera == null)
+                activeCamera = UnityEditor.SceneView.lastActiveSceneView.camera;
+#endif
 
-            if (Camera.current == null)
+            if (activeCamera == null)
                 return true;
 
-            var cameraTransform = Camera.current.transform;
+            var cameraTransform = activeCamera.transform;
 
             Vector3 cellCenterWS = cellPosition * cellSizeInMeters + Vector3.one * (cellSizeInMeters / 2.0f);
 
@@ -228,7 +234,7 @@ namespace UnityEngine.Rendering
             if (roundedDownDist > ProbeReferenceVolume.instance.probeVolumeDebug.subdivisionViewCullingDistance)
                 return true;
 
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.current);
+            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
             var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);

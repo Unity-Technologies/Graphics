@@ -11,15 +11,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public static GlobalGPUResidentDrawerSettings NewDefault() => new GlobalGPUResidentDrawerSettings()
         {
             mode = GPUResidentDrawerMode.Disabled,
-            smallMeshScreenPercentage = 0.0f
+            smallMeshScreenPercentage = 0.0f,
+            enableOcclusionCullingInCameras = false,
+            useDepthPrepassForOccluders = true,
+            useLegacyLightmaps = false,
         };
 
         /// <summary>batching mode of macro batcher.</summary>
         public GPUResidentDrawerMode mode;
 
+        /// <summary>Whether to use texture arrays for lightmaps.</summary>
+        public bool useLegacyLightmaps;
+
         /// <summary>
         /// Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled.
         /// </summary>
         public float smallMeshScreenPercentage;
+
+        /// <summary>Enables occlusion culling in cameras</summary>
+        public bool enableOcclusionCullingInCameras;
+
+        /// <summary>Uses the depth prepass for occluders</summary>
+        public bool useDepthPrepassForOccluders;
     }
 }

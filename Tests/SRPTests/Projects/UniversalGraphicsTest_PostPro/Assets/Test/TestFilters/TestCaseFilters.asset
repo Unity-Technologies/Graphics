@@ -64,6 +64,20 @@ MonoBehaviour:
     Reason: https://fogbugz.unity3d.com/f/cases/1395088
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
+    - {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
+    - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
+    - {fileID: 102900000, guid: dae18011523ae4713bfdd80c9845d81f, type: 3}
+    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Instability on Quest OpenGLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -83,8 +97,8 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
     - {fileID: 102900000, guid: aee9f891d65e44daf811d30053402efd, type: 3}
     - {fileID: 102900000, guid: b51c203a350144f97ba208c293ab8333, type: 3}
-    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
     - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
+    - {fileID: 102900000, guid: 06d3d04c77b97ba40969b415bc9a25dd, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
@@ -112,6 +126,18 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 74cb351d2fc32de4d812e3f2f08744e7, type: 3}
+    - {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
+    - {fileID: 102900000, guid: aee9f891d65e44daf811d30053402efd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: UUM-56935
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 3b35fafd77d2d4677aeb56ab2ba0f743, type: 3}
@@ -158,18 +184,26 @@ MonoBehaviour:
       TAA is broken)
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 9e498e31909a6427582110fd758d2f9d, type: 3}
-    - {fileID: 102900000, guid: 743d01f5817f118469f5095b0192f5ce, type: 3}
-    - {fileID: 102900000, guid: d0fe400c29908d94e9cd70045224370d, type: 3}
-    - {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
-    - {fileID: 102900000, guid: dae18011523ae4713bfdd80c9845d81f, type: 3}
-    ColorSpace: 1
+    - {fileID: 102900000, guid: 1a7776e5343210f439cfe2e361eba611, type: 3}
+    ColorSpace: -1
     BuildPlatform: 13
-    GraphicsDevice: 11
+    GraphicsDevice: 4
     Architecture: 0
     XrSdk: OculusLoader
     StereoModes: 0
-    Reason: Instability on Quest OpenGLES3
+    Reason: Instability on Quest - frame captured appears to not always have a consistent
+      index
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
+    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: ANT-1473
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
@@ -185,17 +219,6 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
     - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 4
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: ANT-1473
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 8bf4b7781b2a77a4987ae2a487e42414, type: 3}
-    - {fileID: 102900000, guid: cef44dde9c315e54fa9e5cfe6a04edbb, type: 3}
     ColorSpace: 1
     BuildPlatform: 20
     GraphicsDevice: 11
@@ -214,3 +237,33 @@ MonoBehaviour:
     StereoModes: 0
     Reason: Instability on Quest - frame captured appears to not always have a consistent
       index
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4ef59c3ae21f842c5858909f4d07493f, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Occlusion not working on OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4ef59c3ae21f842c5858909f4d07493f, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Occlusion not working on OpenGL
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2b1e933506b286343a1128073e1d94e4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: GLES3 not supported by STP

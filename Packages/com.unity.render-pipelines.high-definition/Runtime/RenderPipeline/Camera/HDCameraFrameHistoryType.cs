@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -43,8 +45,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedIndirectDiffuseLF,
         /// <summary>Ray traced subsurface buffer.</summary>
         RayTracedSubSurface,
-        /// <summary>Path tracing buffer.</summary>
-        PathTracing,
+        /// <summary>Main path tracing output buffer.</summary>
+        PathTracingOutput,
         /// <summary>Temporal antialiasing history after DoF.</summary>
         TemporalAntialiasingPostDoF,
         /// <summary>Volumetric clouds buffer 0.</summary>
@@ -54,12 +56,33 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Screen Space Reflection Accumulation.</summary>
         ScreenSpaceReflectionAccumulation,
         /// <summary>Path-traced Albedo AOV.</summary>
-        AlbedoAOV,
+        PathTracingAlbedo,
         /// <summary>Path-traced Normal AOV.</summary>
-        NormalAOV,
+        PathTracingNormal,
         /// <summary>Path-traced motion vector AOV.</summary>
-        MotionVectorAOV,
+        PathTracingMotionVector,
+        /// <summary>Path-traced volumetrics scattering AOV.</summary>
+        PathTracingVolumetricFog,
         /// <summary>Denoised path-traced frame history.</summary>
-        DenoiseHistory
+        PathTracingDenoised,
+        /// <summary>Denoised vpath-traced volumetrics scattering frame history.</summary>
+        PathTracingVolumetricFogDenoised,
+
+        // For retro compatibility
+        /// <summary>Main path tracing output buffer. It is recommended to use the PathTracingOutput enum value instead.</summary>
+        [Obsolete]
+        PathTracing = PathTracingOutput,
+        /// <summary>Path-traced Albedo AOV. It is recommended to use the PathTracingAlbedo enum value instead.</summary>
+        [Obsolete]
+        AlbedoAOV = PathTracingAlbedo,
+        /// <summary>Path-traced Normal AOV. It is recommended to use the PathTracingNormal enum value instead.</summary>
+        [Obsolete]
+        NormalAOV = PathTracingNormal,
+        /// <summary>Path-traced motion vector AOV. It is recommended to use the PathTracingMotionVector enum value instead.</summary>
+        [Obsolete]
+        MotionVectorAOV = PathTracingMotionVector,
+        /// <summary>Denoised path-traced frame history. It is recommended to use the PathTracingDenoised enum value instead.</summary>
+        [Obsolete]
+        DenoiseHistory = PathTracingDenoised
     }
 }

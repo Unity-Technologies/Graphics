@@ -455,6 +455,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         internal bool cameraCanRenderFSR2 = false;
 
+        /// internal state set by the runtime whether STP is enabled or not on this camera, depending on the results of all other settings.
+        [ExcludeCopy]
+        internal bool cameraCanRenderSTP = false;
+
         /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>
         [Tooltip("If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.")]
         public bool fsrOverrideSharpness = false;
@@ -786,8 +790,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // By doing that, we force the update of frame settings debug data once. Otherwise, when the Rendering Debugger is opened,
             // Wrong data is registered to the undo system because it did not get the chance to be updated once.
-            FrameSettings dummy = new FrameSettings();
-            FrameSettingsHistory.AggregateFrameSettings(ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
+            FrameSettings dummy = new FrameSettings(); //don't require full init as will be fully reset in AggregateFrameSettings
+            if (GraphicsSettings.TryGetRenderPipelineSettings<RenderingPathFrameSettings>(out var renderingPathFrameSettings))
+                FrameSettingsHistory.AggregateFrameSettings(renderingPathFrameSettings, ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
 
             RegisterDebug();
 

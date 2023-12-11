@@ -1,13 +1,12 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEngine.Rendering.HighDefinition
 {
     // Extension class to setup material keywords on unlit materials
     static class BaseUnlitAPI
@@ -85,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (material.HasProperty(kBlendMode))
                 {
-                    BlendMode blendMode = material.GetBlendMode();
+                    var blendMode = material.GetBlendMode();
 
                     // When doing off-screen transparency accumulation, we change blend factors as described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
                     switch (blendMode)
@@ -93,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Alpha
                         // color: src * src_a + dst * (1 - src_a)
                         // src * src_a is done in the shader as it allow to reduce precision issue when using _BLENDMODE_PRESERVE_SPECULAR_LIGHTING (See Material.hlsl)
-                        case BlendMode.Alpha:
+                        case BlendingMode.Alpha:
                             material.SetInt(HDShaderIDs._SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt(HDShaderIDs._DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             if (needOffScreenBlendFactor)
@@ -111,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Additive
                         // color: src * src_a + dst
                         // src * src_a is done in the shader
-                        case BlendMode.Additive:
+                        case BlendingMode.Additive:
                             material.SetInt(HDShaderIDs._SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt(HDShaderIDs._DstBlend, (int)UnityEngine.Rendering.BlendMode.One);
                             if (needOffScreenBlendFactor)
@@ -129,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // PremultipliedAlpha
                         // color: src * src_a + dst * (1 - src_a)
                         // src is supposed to have been multiplied by alpha in the texture on artists side.
-                        case BlendMode.Premultiply:
+                        case BlendingMode.Premultiply:
                             material.SetInt(HDShaderIDs._SrcBlend, (int)UnityEngine.Rendering.BlendMode.One);
                             material.SetInt(HDShaderIDs._DstBlend, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             if (needOffScreenBlendFactor)
@@ -232,7 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetColor(kEmissionColor, Color.white); // kEmissionColor must always be white to allow our own material to control the GI (this allow to fallback from builtin unity to our system).
                                                                 // as it happen with old material that it isn't the case, we force it.
 #if UNITY_EDITOR
-                MaterialEditor.FixupEmissiveFlag(material);
+                UnityEditor.MaterialEditor.FixupEmissiveFlag(material);
 #endif
             }
 

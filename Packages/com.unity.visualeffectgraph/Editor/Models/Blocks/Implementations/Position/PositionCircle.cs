@@ -1,29 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
+using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class PositionCircleProvider : VariantProvider
+    sealed class PositionCircle : PositionShapeBase
     {
-        public override IEnumerable<Variant> GetVariants()
-        {
-            yield return new Variant(
-                VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) + " Position (Shape: Circle)",
-                "Position/Position on shape",
-                typeof(PositionCircle),
-                new[] {new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite)});
-        }
-    }
-
-    [VFXHelpURL("Block-SetPosition(Circle)")]
-    [VFXInfo(variantProvider = typeof(PositionCircleProvider))]
-    class PositionCircle : PositionBase
-    {
-        public override string name { get { return string.Format(base.name, "Arc Circle"); } }
-        protected override float thicknessDimensions { get { return 2.0f; } }
-
         public class InputProperties
         {
             [Tooltip("Sets the circle used for positioning the particles.")]
@@ -36,68 +19,81 @@ namespace UnityEditor.VFX.Block
             public float arcSequencer = 0.0f;
         }
 
-        protected override bool needDirectionWrite => true;
-
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override IEnumerable<VFXNamedExpression> GetParameters(PositionShape positionBase, List<VFXNamedExpression> allSlots)
         {
-            get
+            VFXExpression arcCircle_arc = null;
+            VFXExpression arcCircleRadius = null;
+            VFXExpression arcCircle_transform = null;
+            VFXExpression arcSequencer = null;
+            VFXExpression thickness = null;
+
+            foreach (var slot in allSlots)
             {
-                var allSlot = GetExpressionsFromSlots(this);
-                var arcCircle_arc = allSlot.FirstOrDefault(o => o.name == "arcCircle_arc").exp;
-                var arcCircleRadius = allSlot.FirstOrDefault(o => o.name == "arcCircle_circle_radius").exp;
-                var arcSequencer = allSlot.FirstOrDefault(o => o.name == "arcSequencer").exp;
-
-                VFXExpression theta = null;
-                if (spawnMode == SpawnMode.Random)
-                    theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this, 0));
-                else
-                    theta = arcCircle_arc * arcSequencer;
-
-                var one = VFXOperatorUtility.OneExpression[VFXValueType.Float];
-
-                var thickness = allSlot.FirstOrDefault(o => o.name == nameof(ThicknessProperties.Thickness)).exp;
-                var volumeFactor = CalculateVolumeFactor(positionMode, arcCircleRadius, thickness);
-                var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true, new RandId(this, 1)));
-                var sinTheta = new VFXExpressionSin(theta);
-                var cosTheta = new VFXExpressionCos(theta);
-
-                yield return new VFXNamedExpression(rNorm, "rNorm");
-                yield return new VFXNamedExpression(sinTheta, "sinTheta");
-                yield return new VFXNamedExpression(cosTheta, "cosTheta");
-
-                if (compositionPosition == AttributeCompositionMode.Blend)
-                    yield return allSlot.FirstOrDefault(o => o.name == "blendPosition");
-                if (compositionDirection == AttributeCompositionMode.Blend)
-                    yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
-
-                var eulerAngle = allSlot.FirstOrDefault(o => o.name == "arcCircle_circle_angles").exp;
-                var center = allSlot.FirstOrDefault(o => o.name == "arcCircle_circle_center").exp;
-
-                var transform = allSlot.FirstOrDefault(o => o.name == "arcCircle_circle_transform").exp;
-                var radiusScale = VFXOperatorUtility.UniformScaleMatrix(arcCircleRadius);
-                var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
-
-                var invFinalTransform = VFXOperatorUtility.InverseTransposeTRS(transform);
-                yield return new VFXNamedExpression(finalTransform, "transform");
-                yield return new VFXNamedExpression(invFinalTransform, "inverseTranspose");
+                if (slot.name == "arcCircle_arc")
+                    arcCircle_arc = slot.exp;
+                else if (slot.name == "arcCircle_circle_radius")
+                    arcCircleRadius = slot.exp;
+                else if (slot.name == "arcSequencer")
+                    arcSequencer = slot.exp;
+                else if (slot.name == "arcCircle_circle_transform")
+                    arcCircle_transform = slot.exp;
+                else if (slot.name == nameof(PositionBase.ThicknessProperties.Thickness))
+                    thickness = slot.exp;
             }
+
+            VFXExpression theta;
+            if (positionBase.spawnMode == PositionBase.SpawnMode.Random)
+                theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this, 0));
+            else
+                theta = arcCircle_arc * arcSequencer;
+
+            var one = VFXOperatorUtility.OneExpression[VFXValueType.Float];
+
+            var volumeFactor = CalculateVolumeFactor(positionBase.positionMode, arcCircleRadius, thickness, 2.0f);
+            var rNorm = VFXOperatorUtility.Sqrt(volumeFactor + (one - volumeFactor) * new VFXExpressionRandom(true, new RandId(this, 1)));
+            var sinTheta = new VFXExpressionSin(theta);
+            var cosTheta = new VFXExpressionCos(theta);
+
+            yield return new VFXNamedExpression(rNorm, "rNorm");
+            yield return new VFXNamedExpression(sinTheta, "sinTheta");
+            yield return new VFXNamedExpression(cosTheta, "cosTheta");
+
+            var radiusScale = VFXOperatorUtility.UniformScaleMatrix(arcCircleRadius);
+            var finalTransform = new VFXExpressionTransformMatrix(arcCircle_transform, radiusScale);
+
+            var invFinalTransform = VFXOperatorUtility.InverseTransposeTRS(arcCircle_transform);
+            yield return new VFXNamedExpression(finalTransform, "transform");
+            yield return new VFXNamedExpression(invFinalTransform, "inverseTranspose");
         }
 
-        public override string source
+        public override string GetSource(PositionShape positionBase)
         {
-            get
-            {
-                var outSource = @"
-float3 finalDir = float3(sinTheta, cosTheta, 0.0f);
+            var outSource = @"
+float3 currentAxisY = float3(sinTheta, cosTheta, 0.0f);
 float3 finalPos = float3(sinTheta, cosTheta, 0.0f) * rNorm;
 finalPos = mul(transform, float4(finalPos, 1.0f)).xyz;
-finalDir = mul(inverseTranspose, float4(finalDir, 0.0f)).xyz;
-finalDir = normalize(finalDir);
+currentAxisY = mul(inverseTranspose, float4(currentAxisY, 0.0f)).xyz;
+currentAxisY = normalize(currentAxisY);
+float3 currentAxisZ = mul(inverseTranspose, float4(0.0f, 0.0f, 1.0f, 0.0f)).xyz;
+currentAxisZ = normalize(currentAxisZ);
+float3 currentAxisX = cross(currentAxisY, currentAxisZ);
 ";
-                outSource += string.Format(composeDirectionFormatString, "finalDir") + "\n";
-                outSource += string.Format(composePositionFormatString, "finalPos") + "\n";
-                return outSource;
+            outSource += string.Format(positionBase.composePositionFormatString, "finalPos") + "\n";
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Axes))
+            {
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisX", "currentAxisX", "blendAxes") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisY", "currentAxisY", "blendAxes") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisZ", "currentAxisZ", "blendAxes") + "\n";
             }
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Direction))
+            {
+                outSource += string.Format(positionBase.composeDirectionFormatString, "currentAxisY") + "\n";
+            }
+
+            return outSource;
         }
+
     }
 }

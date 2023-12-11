@@ -1,0 +1,110 @@
+#pragma kernel StpTaa
+
+#pragma multi_compile _ ENABLE_DEBUG_MODE
+#pragma multi_compile _ ENABLE_LARGE_KERNEL
+
+#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_NATIVE_16BIT
+
+#pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#define STP_TAA 1
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/STP/StpCommon.hlsl"
+
+//
+// Input
+//
+
+TEXTURE2D_X(_StpIntermediateColor);
+TEXTURE2D_X(_StpIntermediateWeights);
+
+//
+// History Input/Output
+//
+
+TEXTURE2D_X(_StpPriorFeedback);
+TYPED_TEXTURE2D_X(uint, _StpDepthMotion);
+TEXTURE2D_X(_StpConvergence);
+
+RW_TEXTURE2D_X(float4, _StpFeedback);
+RW_TEXTURE2D_X(float4, _StpOutput);
+
+#if defined(STP_16BIT)
+StpH4 StpTaaCtl4H(StpF2 p) { return (StpH4)GATHER_RED_TEXTURE2D_X(_StpIntermediateWeights, s_point_clamp_sampler, p); }
+StpH4 StpTaaCol4RH(StpF2 p) { return (StpH4)GATHER_RED_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpH4 StpTaaCol4GH(StpF2 p) { return (StpH4)GATHER_GREEN_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpH4 StpTaaCol4BH(StpF2 p) { return (StpH4)GATHER_BLUE_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpH4 StpTaaCol4AH(StpF2 p) { return (StpH4)GATHER_ALPHA_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpH1 StpTaaConH(StpF2 p) { return (StpH1)SAMPLE_TEXTURE2D_X_LOD(_StpConvergence, s_linear_clamp_sampler, p, 0); }
+StpH1 StpTaaDitH(StpW2 o) { return StpDitH1(o); }
+StpU4 StpTaaMot4H(StpF2 p) { return GATHER_RED_TEXTURE2D_X(_StpDepthMotion, s_point_clamp_sampler, p); }
+StpH4 StpTaaPriFedH(StpF2 p) { return (StpH4)SAMPLE_TEXTURE2D_X_LOD(_StpPriorFeedback, s_linear_clamp_sampler, p, 0); }
+StpH4 StpTaaPriFed4RH(StpF2 p) { return (StpH4)GATHER_RED_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpH4 StpTaaPriFed4GH(StpF2 p) { return (StpH4)GATHER_GREEN_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpH4 StpTaaPriFed4BH(StpF2 p) { return (StpH4)GATHER_BLUE_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+#endif
+
+#if defined(STP_32BIT)
+StpMF4 StpTaaCtl4F(StpF2 p) { return (StpMF4)GATHER_RED_TEXTURE2D_X(_StpIntermediateWeights, s_point_clamp_sampler, p); }
+StpMF4 StpTaaCol4RF(StpF2 p) { return (StpMF4)GATHER_RED_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpMF4 StpTaaCol4GF(StpF2 p) { return (StpMF4)GATHER_GREEN_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpMF4 StpTaaCol4BF(StpF2 p) { return (StpMF4)GATHER_BLUE_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpMF4 StpTaaCol4AF(StpF2 p) { return (StpMF4)GATHER_ALPHA_TEXTURE2D_X(_StpIntermediateColor, s_point_clamp_sampler, p); }
+StpMF1 StpTaaConF(StpF2 p) { return (StpMF1)SAMPLE_TEXTURE2D_X_LOD(_StpConvergence, s_linear_clamp_sampler, p, 0); }
+StpMF1 StpTaaDitF(StpMU2 o) { return (StpMF1)StpDitF1(o); }
+StpU4 StpTaaMot4F(StpF2 p) { return GATHER_RED_TEXTURE2D_X(_StpDepthMotion, s_point_clamp_sampler, p); }
+StpMF4 StpTaaPriFedF(StpF2 p) { return (StpMF4)SAMPLE_TEXTURE2D_X_LOD(_StpPriorFeedback, s_linear_clamp_sampler, p, 0); }
+StpMF4 StpTaaPriFed4RF(StpF2 p) { return (StpMF4)GATHER_RED_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpMF4 StpTaaPriFed4GF(StpF2 p) { return (StpMF4)GATHER_GREEN_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+StpMF4 StpTaaPriFed4BF(StpF2 p) { return (StpMF4)GATHER_BLUE_TEXTURE2D_X(_StpPriorFeedback, s_point_clamp_sampler, p); }
+#endif
+
+#define THREADING_BLOCK_SIZE STP_GROUP_SIZE
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+[numthreads(STP_GROUP_SIZE, 1, 1)]
+void StpTaa(Threading::Group group)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(group.groupID.z);
+
+#if defined(STP_16BIT)
+    StpW1 lane = StpW1_(group.groupIndex);
+    StpW2 groupPos = ComputeGroupPos(StpW2(group.groupID.xy));
+    StpW2 pos = groupPos + StpRemapLaneTo8x16H(lane);
+#else
+    StpMU1 lane = StpMU1_(group.groupIndex);
+    StpMU2 groupPos = ComputeGroupPos(StpMU2(group.groupID.xy));
+    StpMU2 pos = groupPos + StpRemapLaneTo8x16F(lane);
+#endif
+
+    half4 feedback;
+    half4 output;
+
+#if defined(STP_16BIT)
+    StpTaaH(
+        lane,
+        pos,
+#else
+    StpTaaF(
+        lane,
+        pos,
+#endif
+        feedback,
+        output,
+
+        asuint(_StpTaaConstants0),
+        asuint(_StpTaaConstants1),
+        asuint(_StpTaaConstants2),
+        asuint(_StpTaaConstants3)
+    );
+
+    _StpFeedback[COORD_TEXTURE2D_X(pos)] = feedback;
+    _StpOutput[COORD_TEXTURE2D_X(pos)] = output;
+}
+

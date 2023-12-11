@@ -46,9 +46,12 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            var newKillSphere = ScriptableObject.CreateInstance<KillSphere>();
+            var newKillSphere = ScriptableObject.CreateInstance<KillSphereDeprecatedV2>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newKillSphere, this);
-            ReplaceModel(newKillSphere, this);
+            var newKillSphereShape = ScriptableObject.CreateInstance<CollisionShape>();
+            newKillSphereShape.SetSettingValue("behavior", CollisionBase.Behavior.Kill);
+            SanitizeHelper.MigrateBlockCollisionShapeToComposed(newKillSphereShape, newKillSphere, CollisionShapeBase.Type.Sphere);
+            ReplaceModel(newKillSphereShape, this);
         }
 
         public override string source

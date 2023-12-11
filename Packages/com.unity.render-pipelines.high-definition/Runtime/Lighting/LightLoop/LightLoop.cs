@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxAreaLightsOnScreen = 1024;
         internal const int k_MaxDecalsOnScreen = 2048;
         internal const int k_MaxPlanarReflectionsOnScreen = 16;
-        internal const int k_MaxCubeReflectionsOnScreen = 64;
+        internal const int k_MaxCubeReflectionsOnScreen = 128;
         internal const int k_MaxLightsPerClusterCell = ShaderConfig.LightClusterMaxCellElementCount;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
@@ -951,7 +951,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to verify and flush any pending asset loading for probe volume.
             if (supportProbeVolume && ProbeReferenceVolume.instance.isInitialized)
             {
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AdaptiveProbeVolume))
                 {
                     ProbeReferenceVolume.instance.PerformPendingOperations();
                     if (hdCamera.camera.cameraType != CameraType.Reflection &&
@@ -2047,7 +2047,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Misc
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
-            cb._SpecularFade       = m_GlobalSettings.specularFade ? 1 : 0;
+            cb._SpecularFade       = m_SpecularFadeSettings.enabled ? 1 : 0;
         }
 
         void PushLightDataGlobalParams(CommandBuffer cmd)

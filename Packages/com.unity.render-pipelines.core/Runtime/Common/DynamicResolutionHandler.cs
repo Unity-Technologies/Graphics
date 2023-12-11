@@ -117,8 +117,13 @@ namespace UnityEngine.Rendering
         public bool runUpscalerFilterOnFullResolution
         {
             set { m_RunUpscalerFilterOnFullResolution = value; }
-            get { return m_RunUpscalerFilterOnFullResolution || filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres; }
+            get { return m_RunUpscalerFilterOnFullResolution || (filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres); }
         }
+
+        /// <summary>
+        /// True if the resolution is being forced to a fixed value rather than varying dynamically within a range. Otherwise, false.
+        /// </summary>
+        public bool forcingResolution { get { return m_ForcingRes; } }
 
         private DynamicResolutionType type;
 

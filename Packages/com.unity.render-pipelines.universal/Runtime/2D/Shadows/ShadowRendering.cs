@@ -71,76 +71,101 @@ namespace UnityEngine.Rendering.Universal
 
         private static Material CreateMaterial(Shader shader, int offset, int pass)
         {
-            Material material;  // pairs of color channels
-            material = CoreUtils.CreateEngineMaterial(shader);
+            Material material = CoreUtils.CreateEngineMaterial(shader);
             material.SetInt(k_ShadowColorMaskID, 1 << (offset + 1));
             material.SetPass(pass);
 
             return material;
         }
 
+        private static Material GetProjectedShadowMaterial(
+            Material material,
+            Func<Renderer2DResources, Shader> shaderFunc,
+            int offset, int pass)
+        {
+
+#if !UNITY_EDITOR // In standalone builds, shaders are never changed. We can early exit
+            if (material != null)
+                return material;
+#endif
+
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
+                return null;
+
+            var shader = shaderFunc(renderer2DResources);
+
+            if (material != null)
+            {
+                if (material.shader != shader)
+                    material = null;
+            }
+
+            if (material == null)
+            {
+                material = CoreUtils.CreateEngineMaterial(shader);
+                material.SetInt(k_ShadowColorMaskID, 1 << (offset + 1));
+                material.SetPass(pass);
+            }
+
+            return material;
+        }
+
         internal static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
         {
-            //rendererData.projectedShadowMaterial = null;
-            if (rendererData.projectedShadowMaterial == null || rendererData.projectedShadowShader != rendererData.projectedShadowMaterial.shader)
-            {
-                rendererData.projectedShadowMaterial = CreateMaterial(rendererData.projectedShadowShader, 0, 0);
-            }
+            rendererData.projectedShadowMaterial = GetProjectedShadowMaterial(
+                rendererData.projectedShadowMaterial,
+                r => r.projectedShadowShader,
+                0, 0);
 
             return rendererData.projectedShadowMaterial;
         }
 
         internal static Material GetProjectedUnshadowMaterial(this Renderer2DData rendererData)
         {
-            //rendererData.projectedShadowMaterial = null;
-            if (rendererData.projectedUnshadowMaterial == null  || rendererData.projectedShadowShader != rendererData.projectedUnshadowMaterial.shader)
-            {
-                rendererData.projectedUnshadowMaterial = CreateMaterial(rendererData.projectedShadowShader, 1, 1);
-            }
+            rendererData.projectedUnshadowMaterial = GetProjectedShadowMaterial(
+                rendererData.projectedUnshadowMaterial,
+                r => r.projectedShadowShader,
+                1, 1);
 
             return rendererData.projectedUnshadowMaterial;
         }
 
         private static Material GetSpriteShadowMaterial(this Renderer2DData rendererData)
         {
-            //rendererData.spriteSelfShadowMaterial = null;
-            if (rendererData.spriteSelfShadowMaterial == null || rendererData.spriteShadowShader != rendererData.spriteSelfShadowMaterial.shader)
-            {
-                rendererData.spriteSelfShadowMaterial = CreateMaterial(rendererData.spriteShadowShader, 0, 0);
-            }
+            rendererData.spriteSelfShadowMaterial = GetProjectedShadowMaterial(
+                rendererData.spriteSelfShadowMaterial,
+                r => r.spriteShadowShader,
+                0, 0);
 
             return rendererData.spriteSelfShadowMaterial;
         }
 
         private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData)
         {
-            //rendererData.spriteUnshadowMaterial = null;
-            if (rendererData.spriteUnshadowMaterial == null ||  rendererData.spriteUnshadowShader != rendererData.spriteUnshadowMaterial.shader)
-            {
-                rendererData.spriteUnshadowMaterial = CreateMaterial(rendererData.spriteUnshadowShader, 1, 0);
-            }
+            rendererData.spriteUnshadowMaterial = GetProjectedShadowMaterial(
+                rendererData.spriteUnshadowMaterial,
+                r => r.spriteUnshadowShader,
+                1, 0);
 
             return rendererData.spriteUnshadowMaterial;
         }
 
         private static Material GetGeometryShadowMaterial(this Renderer2DData rendererData)
         {
-            //rendererData.spriteSelfShadowMaterial = null;
-            if (rendererData.geometrySelfShadowMaterial == null || rendererData.geometryShadowShader != rendererData.geometrySelfShadowMaterial.shader)
-            {
-                rendererData.geometrySelfShadowMaterial = CreateMaterial(rendererData.geometryShadowShader, 0, 0);
-            }
+            rendererData.geometrySelfShadowMaterial = GetProjectedShadowMaterial(
+                rendererData.geometrySelfShadowMaterial,
+                r => r.geometryShadowShader,
+                0, 0);
 
             return rendererData.geometrySelfShadowMaterial;
         }
 
         private static Material GetGeometryUnshadowMaterial(this Renderer2DData rendererData)
         {
-            //rendererData.spriteUnshadowMaterial = null;
-            if (rendererData.geometryUnshadowMaterial == null || rendererData.geometryUnshadowShader != rendererData.geometryUnshadowMaterial.shader)
-            {
-                rendererData.geometryUnshadowMaterial = CreateMaterial(rendererData.geometryUnshadowShader, 1, 0);
-            }
+            rendererData.geometryUnshadowMaterial = GetProjectedShadowMaterial(
+                rendererData.geometryUnshadowMaterial,
+                r => r.geometryUnshadowShader,
+                1, 0);
 
             return rendererData.geometryUnshadowMaterial;
         }
@@ -419,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
                             cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial, submeshIndex, 0);
 
                         }
-                    }   
+                    }
                 }
                 else
                 {

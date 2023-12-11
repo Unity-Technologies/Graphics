@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return null;
             }
 
-            var shaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
 
             switch (index)
             {

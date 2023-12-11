@@ -389,11 +389,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideReferenceName = kPerPixelSorting,
             });
 
+            // This adds utility properties for mipmap streaming debugging, only to HLSL since there's no need to expose ShaderLab properties
+            // This is, by definition, HLSLDeclaration.UnityPerMaterial
+            collector.AddShaderProperty(MipmapStreamingShaderProperties.kDebugTex);
+
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 systemData.surfaceType,
-                systemData.blendMode,
+                systemData.blendingMode,
                 systemData.sortPriority,
                 systemData.transparentZWrite,
                 systemData.transparentCullMode,
@@ -418,7 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
             material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1 : 0);
             material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)systemData.blendMode);
+            material.SetFloat(kBlendMode, (int)systemData.blendingMode);
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)systemData.zTest);
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);

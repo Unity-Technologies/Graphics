@@ -82,6 +82,7 @@ Specifies the shape of the water surface.
 The options are:
 <ul>
 <li><b>Quad</b>: Based on a square.</li>
+<li><b>InstanceQuads</b>: Creates a finite water surface with multiple instanced grids to keep a higher vertex density.</li>
 <li><b>Custom Mesh</b>: Based  on a Mesh you provide. Overrides the vertical position of the vertices to keep the surface of the water consistently level.</li>
 <li><b>Infinite</b> (<b>Ocean, Sea, or Lake</b> only): Bounds the water surface with the Global Volume.</li>
 </ul>
@@ -93,7 +94,7 @@ The options are:
 <b>Script Interactions <a name="scriptinteractions"></a></b>
 </td>
 <td>
-Enable to have HDRP calculate the height of the water simulation on the CPU. Increases visual fidelity but demands more from the CPU. See <a href="water-scripting-in-the-water-system.md">Scripting in the Water System</a> for more information.
+Enable to have the ability to query the water surface position and current direction from the simulation. See <a href="water-scripting-in-the-water-system.md">Scripting in the Water System</a> for more information.
 </td>
 </tr>
 
@@ -235,17 +236,17 @@ Simulation Band properties
 
 <tr>
 <td>
-<b>Amplitude Multiplier</b>
+<b>Amplitude Dimmer</b>
 </td>
 <td>
-<b>Amplitude Multiplier</b> (<b>Ocean, Sea, or Lake</b>)<br/>
+<b>Amplitude Dimmer</b> (<b>Ocean, Sea, or Lake</b>)<br/>
 <ul>
 <li><b>First band</b>: The degree to which amplitude attenuates on the first frequency band of the Swell.</li>
 <li><b>Second Band</b>: The degree to which amplitude attenuates on the second frequency band of the Swell.</li></UL>
 
 <br/>
-<b>Amplitude Multiplier</b> (<b>River</b>)<br/>
-A multiplier that determines the degree to which amplitude can attenuate on the Agitation frequency band. For example, if your <b>Amplitude</b> value is 10 meters and you set this property to 0.5, your <b>Agitation</b> is 5 meters high.<br/>
+<b>Amplitude Dimmer</b> (<b>River</b>)<br/>
+A dimmer that determines the degree to which amplitude can attenuate on the Agitation frequency band. For example, if your <b>Amplitude</b> value is 10 meters and you set this property to 0.5, your <b>Agitation</b> is 5 meters high.<br/>
 
 
 </td>
@@ -839,20 +840,20 @@ X
 
 <tr>
 <td>
-<b>Decal Layer Mask</b>
+<b>Rendering Layer Mask</b>
 </td>
 <td>
-Specifies the decal layers that render on the water surface. To use this feature, enable <b>Decal Layers</b> in your <a href="HDRP-Asset.md#decallayers">HDRP Asset</a>.
+Specifies the rendering layers that render on the water surface. To use this feature, enable <b>Decal Layers</b> and/or <b>Light Layers</b> in your HDRP Asset</a>.
 </td>
 </tr>
 
 
 <tr>
 <td>
-<b>Light Layer Mask</b>
+<b>Debug Mode</b>
 </td>
 <td>
-Specifies the light layers that affect the water surface. To use this feature, enable <b>Light Layers</b> in your <a href="HDRP-Asset.md#lightlayers">HDRP Asset</a>.
+Specifies the view of the debug mode used for the water surface.
 </td>
 </tr>
 
@@ -890,7 +891,7 @@ See  <a href="water-the-water-system-volume-override.md">The Water System Volume
 
 <tr>
 <td>
-<b>Enable</b>
+<b>State</b>
 </td>
 <td>
 Enable the override to render water surfaces.
@@ -905,76 +906,12 @@ Enable the override to render water surfaces.
 
 <tr>
 <td>
-<b>Min Grid Size</b>
+<b>Triangle Size</b>
 </td>
 <td>
-Determines the minimum water grid size in meters. The Grid is the geometry Unity uses to render the water, which is always a square. <b>Min Grid Size</b> determines the size of the central patch for the closest <a href ="https://docs.unity3d.com/Manual/LevelOfDetail.html">Level of Detail</a> (LOD), and the other LOD sizes are mulipliers of <b>Min Grid Size</b>.
+Sets the size of the triangle edge in screen space.
 </td>
 </tr>
-
-<tr>
-<td>
-<b>Max Grid Size</b>
-</td>
-<td>
-Determines the maximum water grid size in meters.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Elevation Transition</b>
-</td>
-<td>
-Determines the elevation at which Unity reaches the maximum water grid size.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Num Level of Details</b>
-</td>
-<td>
-The Patch is the size of the area on which Unity runs the simulation for a particular Simulation Band. Determines the number of LOD patches that Unity renders for water. One level of detail (LOD) means one patch represents the water surface. Two LOD levels means that 8 patches surround the the central patch, three LODs means 16 patches around the central one, and this formula remains the same as the LOD level increases.
-</td>
-</tr>
-
-<tr>
-<td colspan ="2">
-Tessellation<br/>
-(<a href="#additionalproperties">Additional property set</a>)<br/>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Max Tessellation Factor</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>.  The maximum <a href="Tessellation.md">tessellation</a> factor for the water surface.
-Determines how many subdivisions the water surface can have.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Tessellation Factor Fade Start</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. Determines the distance from the camera at which the tessellation factor begins to decrease.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Tessellation Factor Fade Range</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>.  Determines the distance from the camera at which the tessellation factor reaches 0.
-</td>
-</tr>
-
-
 
 <tr>
 <td colspan="2">

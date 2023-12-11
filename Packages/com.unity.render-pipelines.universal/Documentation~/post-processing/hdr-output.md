@@ -36,11 +36,11 @@ Tone mapping is the first step in the HDR Output process. In this step, Unity ba
 * **Maximum brightness**
 * **Paper white brightness**
  
-For more information on these properties, see [Important tone mapping values](#important-tone-mapping-values).
+For more information on these properties, refer to [Important tone mapping values](#important-tone-mapping-values).
 
 At the same time, Unity performs the color space conversion. Unity converts the colors from the default Rec. 709 color space to the target display's color space. This maps the colors in the scene to the wider gamut of colors of the target display and ensures Unity utilizes the full color gamut available on the display.
 
-For more information, see [HDR tone mapping in URP](#hdr-tone-mapping-in-urp) and [configure HDR tone mapping settings](#configure-hdr-tone-mapping-settings).
+For more information, refer to [HDR tone mapping in URP](#hdr-tone-mapping-in-urp) and [configure HDR tone mapping settings](#configure-hdr-tone-mapping-settings).
 
 ### Transfer function
 
@@ -72,7 +72,7 @@ As a result, Paper White values determine the brightness of UI elements in HDR m
 
 ## Configure HDR tone mapping settings
 
-You can select and adjust tone mapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR tone mapping configuration with a script (see the [HDROutputSettings API](#the-hdroutputsettings-api)).
+You can select and adjust tone mapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR tone mapping configuration with a script. For more information on this, refer to the [HDROutputSettings API](#the-hdroutputsettings-api).
 
 After you enable **Allow HDR Display Output**, HDR tone mapping options become visible in the Volume component.
 
@@ -167,8 +167,10 @@ This debug view uses a color coded gradient to indicate parts of the Scene that 
 URP only supports HDR Output on the following platforms:
 
 * Windows with DirectX 11, DirectX 12 or Vulkan
-* Devices that use Metal
+* MacOS devices that use Metal
+* iOS 16+ devices
 * Consoles
 * XR devices with HDR support
+* Android devices that use Vulkan and GLES
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.

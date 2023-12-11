@@ -67,7 +67,7 @@ The following properties exist in all Deformer types.
 |                 | **Disk**     | Create a foam generator in the shape of a disk.                  |
 |                 | **Rectangle**        | Create a foam generator in the shape of a Rectangle. |
 |                 | **Texture**    | Customize the shape of a foam generator with a texture. For information about the properties specific to this type, see [Texture](#foam-generator-type-texture). |
-|                 | **Material**   | Customize the shape of a foam generator with a ShaderGraph. For information about the properties specific to this type, see [Texture](#foam-generator-type-material). |
+|                 | **Material**   | Customize the shape of a foam generator with a ShaderGraph. For information about the properties specific to this type, see [Material](#foam-generator-type-material). |
 | **Surface Foam Dimmer**   |                | Control the dimmer for the surface foam. The higher the value, the more surface foam appears.                     |
 | **Deep Foam Dimmer**   |                | Control the dimmer for the deep foam. The higher the value, the more deep foam appears.                     |
 
@@ -96,6 +96,8 @@ These properties are specific to the Material foam generator type.
 
 ## Limitations
 This foam implementation is monochromatic. You cannot add a tint to represent algae, for example.
+
+The foam injected using the custom foam input in the water shader graph is not affected when disabling foam on a water surface. 
 
 ## Additional resources
 * <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the Water System</a>

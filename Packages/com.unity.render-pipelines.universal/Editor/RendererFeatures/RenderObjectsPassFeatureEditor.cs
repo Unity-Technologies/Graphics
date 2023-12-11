@@ -6,6 +6,22 @@ using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
 using System.Reflection;
 
+namespace UnityEditor.Rendering.Universal
+{
+    /// <summary>
+    /// Editor script for the <c>RenderObjects</c> renderer feature.
+    /// </summary>
+    [CustomEditor(typeof(RenderObjects), true)]
+    public class ScriptableRendererFeatureEditor : Editor
+    {
+        /// <inheritdoc/>
+        public override void OnInspectorGUI()
+        {
+            DrawPropertiesExcluding(serializedObject, "m_Script");
+        }
+    }
+}
+
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [CustomPropertyDrawer(typeof(RenderObjects.RenderObjectsSettings), true)]

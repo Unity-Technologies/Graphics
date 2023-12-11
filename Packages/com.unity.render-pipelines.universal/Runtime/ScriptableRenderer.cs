@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler setupRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(SetupRenderPasses)}");
             public static readonly ProfilingSampler clearRenderingState = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
-            public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
+            public static readonly ProfilingSampler internalFinishRenderingCommon = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRenderingCommon)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
             internal static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
             internal static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
@@ -56,7 +56,11 @@ namespace UnityEngine.Rendering.Universal
             public static class RenderPass
             {
                 private const string k_Name = nameof(ScriptableRenderPass);
+
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 public static readonly ProfilingSampler configure = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderPass.Configure)}");
+                #pragma warning restore CS0618
 
                 public static readonly ProfilingSampler setRenderPassAttachments = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetRenderPassAttachments)}");
             }
@@ -139,7 +143,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetCameraMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData.universalCameraData, setInverseMatrices, cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         /// <summary>
@@ -154,7 +161,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, UniversalCameraData cameraData, bool setInverseMatrices)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetCameraMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), cameraData, setInverseMatrices, cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         internal static void SetCameraMatrices(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool setInverseMatrices, bool isTargetFlipped)
@@ -210,33 +220,36 @@ namespace UnityEngine.Rendering.Universal
         /// <typeparam name="T">Base type for the CommandBuffer</typeparam>
         void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
-            SetPerCameraShaderVariables(cmd, cameraData, cameraData.IsCameraProjectionMatrixFlipped());
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
+            SetPerCameraShaderVariables(cmd, cameraData, new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height), cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
-        void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData, bool isTargetFlipped)
+        void SetPerCameraShaderVariables(RasterCommandBuffer cmd, UniversalCameraData cameraData, Vector2Int cameraTargetSizeCopy, bool isTargetFlipped)
         {
             using var profScope = new ProfilingScope(Profiling.setPerCameraShaderVariables);
 
             Camera camera = cameraData.camera;
 
-            float scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
-            float scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            float scaledCameraTargetWidth = (float)cameraTargetSizeCopy.x;
+            float scaledCameraTargetHeight = (float)cameraTargetSizeCopy.y;
             float cameraWidth = (float)camera.pixelWidth;
             float cameraHeight = (float)camera.pixelHeight;
 
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
-                cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
-                cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+                cameraWidth = (float)cameraTargetSizeCopy.x;
+                cameraHeight = (float)cameraTargetSizeCopy.y;
 
                 useRenderPassEnabled = false;
             }
 
             if (camera.allowDynamicResolution)
             {
-                scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
-                scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
+                scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
+                scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
             float near = camera.nearClipPlane;
@@ -277,11 +290,11 @@ namespace UnityEngine.Rendering.Universal
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
             cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, cameraData.worldSpaceCameraPos);
             cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f + 1.0f / scaledCameraTargetWidth, 1.0f + 1.0f / scaledCameraTargetHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
-            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f / scaledCameraWidth, 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight));
             cmd.SetKeyword(ShaderGlobalKeywords.SCREEN_COORD_OVERRIDE, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
@@ -292,7 +305,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
-            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
+            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraTargetWidth, 2.0f), 0.0f);
             // Temporal Anti-aliasing can use negative mip bias to increase texture sharpness and new information for the jitter.
             float taaMipBias = Math.Min(cameraData.taaSettings.mipBias, 0.0f);
             mipBias = Math.Min(mipBias, taaMipBias);
@@ -364,7 +377,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetPerCameraClippingPlaneProperties(RasterCommandBuffer cmd, UniversalCameraData cameraData)
         {
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             SetPerCameraClippingPlaneProperties(cmd, in cameraData, cameraData.IsCameraProjectionMatrixFlipped());
+            #pragma warning restore CS0618
         }
 
         private void SetPerCameraClippingPlaneProperties(RasterCommandBuffer cmd, in UniversalCameraData cameraData, bool isTargetFlipped)
@@ -427,6 +443,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraColorTargetHandle in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public RTHandle cameraColorTargetHandle
         {
             get
@@ -448,6 +465,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         virtual internal RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return null;
@@ -460,6 +478,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         virtual internal RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
         {
             return null;
@@ -478,6 +497,7 @@ namespace UnityEngine.Rendering.Universal
         /// It's only valid to call cameraDepthTargetHandle in the scope of <c>ScriptableRenderPass</c>.
         /// <seealso cref="ScriptableRenderPass"/>.
         /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public RTHandle cameraDepthTargetHandle
         {
             get
@@ -705,12 +725,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorTarget">Camera color target. Pass k_CameraTarget if rendering to backbuffer.</param>
         /// <param name="depthTarget">Camera depth target. Pass k_CameraTarget if color has depth or rendering to backbuffer.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget)
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget, RTHandle resolveTarget)
         {
             m_CameraColorTarget = colorTarget;
@@ -719,6 +741,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // This should be removed when early camera color target assignment is removed.
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
         {
             m_CameraColorTarget = colorTarget;
@@ -732,6 +755,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
 
         /// <summary>
@@ -740,6 +764,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
         }
@@ -860,6 +885,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.renderer = this;
                 passData.cameraData = frameData.Get<UniversalCameraData>();
+                passData.cameraTargetSizeCopy = new Vector2Int(passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height);
                 passData.isTargetBackbuffer = isTargetBackbuffer;
 
                 builder.AllowPassCulling(false);
@@ -880,12 +906,12 @@ namespace UnityEngine.Rendering.Universal
                     if (data.cameraData.renderType == CameraRenderType.Base)
                     {
                         context.cmd.SetupCameraProperties(data.cameraData.camera);
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, !yFlip);
                     }
                     else
                     {
                         // Set new properties
-                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, !yFlip);
+                        data.renderer.SetPerCameraShaderVariables(context.cmd, data.cameraData, data.cameraTargetSizeCopy, !yFlip);
                         data.renderer.SetPerCameraClippingPlaneProperties(context.cmd, in data.cameraData, !yFlip);
                         data.renderer.SetPerCameraBillboardProperties(context.cmd, data.cameraData);
                     }
@@ -1051,6 +1077,9 @@ namespace UnityEngine.Rendering.Universal
             internal ScriptableRenderer renderer;
             internal UniversalCameraData cameraData;
             internal bool isTargetBackbuffer;
+
+            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
+            internal Vector2Int cameraTargetSizeCopy;
         };
 
 
@@ -1095,12 +1124,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal void FinishRenderGraphRendering()
+        internal void FinishRenderGraphRendering(CommandBuffer cmd)
         {
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            OnFinishRenderGraphRendering();
-            InternalFinishRendering(cameraData.resolveFinalTarget, renderingData);
+            OnFinishRenderGraphRendering(cmd);
+            InternalFinishRenderingCommon(cmd, cameraData.resolveFinalTarget);
         }
 
         /// <summary>
@@ -1108,7 +1136,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context"></param>
         /// <param name="renderingData"></param>
-        internal virtual void OnFinishRenderGraphRendering()
+        internal virtual void OnFinishRenderGraphRendering(CommandBuffer cmd)
         {
         }
 
@@ -1187,6 +1215,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
         /// <param name="renderingData">Current render state information.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
@@ -1237,7 +1266,12 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(Profiling.RenderPass.configure))
                 {
                     foreach (var pass in activeRenderPassQueue)
+                    {
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
                         pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                        #pragma warning restore CS0618
+                    }
 
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
@@ -1354,7 +1388,7 @@ namespace UnityEngine.Rendering.Universal
                     DrawGizmos(context, camera, GizmoSubset.PostImageEffects, ref renderingData);
                 }
 
-                InternalFinishRendering(context, cameraData.resolveFinalTarget);
+                InternalFinishRenderingExecute(context, cmd, cameraData.resolveFinalTarget);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -1371,6 +1405,7 @@ namespace UnityEngine.Rendering.Universal
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
@@ -1496,6 +1531,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRendererFeature.SetupRenderPasses(ScriptableRenderer, in RenderingData)"/>
         /// </summary>
         /// <param name="renderingData"></param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         protected void SetupRenderPasses(in RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(Profiling.setupRenderPasses);
@@ -1551,6 +1587,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = null;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void ExecuteBlock(int blockIndex, in RenderBlocks renderBlocks,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
@@ -1566,11 +1603,13 @@ namespace UnityEngine.Rendering.Universal
                 context.Submit();
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         private bool IsRenderPassEnabled(ScriptableRenderPass renderPass)
         {
             return renderPass.useNativeRenderPass && useRenderPassEnabled;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, UniversalCameraData cameraData, ref RenderingData renderingData)
         {
             // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
@@ -1602,7 +1641,10 @@ namespace UnityEngine.Rendering.Universal
                 ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData); // cmdBuffer is executed inside
             else
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderPass.Execute(context, ref renderingData);
+                #pragma warning restore CS0618
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -1630,6 +1672,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, UniversalCameraData cameraData)
         {
             Camera camera = cameraData.camera;
@@ -1906,6 +1949,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1930,6 +1974,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         void EndXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1952,6 +1997,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal static void SetRenderTarget(CommandBuffer cmd, RTHandle colorAttachment, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -1981,6 +2027,7 @@ namespace UnityEngine.Rendering.Universal
                     depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal static void SetRenderTarget(CommandBuffer cmd, RTHandle colorAttachment, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -2016,6 +2063,7 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         static void SetRenderTarget(CommandBuffer cmd,
             RTHandle colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -2035,6 +2083,7 @@ namespace UnityEngine.Rendering.Universal
                     depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         static void SetRenderTarget(CommandBuffer cmd, RTHandle[] colorAttachments, RenderTargetIdentifier[] colorAttachmentIDs, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;
@@ -2080,7 +2129,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     m_ActiveRenderPassQueue[i].OnCameraSetup(renderingData.commandBuffer, ref renderingData);
+                    #pragma warning restore CS0618
                 }
             }
 
@@ -2088,20 +2140,26 @@ namespace UnityEngine.Rendering.Universal
             renderingData.commandBuffer.Clear();
         }
 
-        void InternalFinishRendering(bool resolveFinalTarget, UniversalRenderingData renderingData)
+        // Common ScriptableRenderer.Execute and RenderGraph path
+        void InternalFinishRenderingCommon(CommandBuffer cmd, bool resolveFinalTarget)
         {
-            using (new ProfilingScope(Profiling.internalFinishRendering))
+            using (new ProfilingScope(Profiling.internalFinishRenderingCommon))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                    m_ActiveRenderPassQueue[i].FrameCleanup(renderingData.commandBuffer);
+                    m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
                 // Happens when rendering the last camera in the camera stack.
                 if (resolveFinalTarget)
                 {
                     for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(renderingData.commandBuffer);
+                    {
+                        // Disable obsolete warning for internal usage
+                        #pragma warning disable CS0618
+                        m_ActiveRenderPassQueue[i].OnFinishCameraStackRendering(cmd);
+                        #pragma warning restore CS0618
+                    }
 
-                    FinishRendering(renderingData.commandBuffer);
+                    FinishRendering(cmd);
 
                     // We finished camera stacking and released all intermediate pipeline textures.
                     m_IsPipelineExecuting = false;
@@ -2110,16 +2168,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
+        // ScriptableRenderer.Execute path
+        void InternalFinishRenderingExecute(ScriptableRenderContext context, CommandBuffer cmd, bool resolveFinalTarget)
         {
-            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
-
-            InternalFinishRendering(resolveFinalTarget, renderingData);
+            InternalFinishRenderingCommon(cmd, resolveFinalTarget);
 
             ResetNativeRenderPassFrameData();
 
-            context.ExecuteCommandBuffer(renderingData.commandBuffer);
-            renderingData.commandBuffer.Clear();
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)
@@ -2225,5 +2282,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal virtual bool supportsNativeRenderPassRendergraphCompiler { get => false; }
+
+        /// <summary>
+        /// Used to determine if this renderer supports the use of GPU occlusion culling.
+        /// </summary>
+        public virtual bool supportsGPUOcclusion => false;
     }
 }

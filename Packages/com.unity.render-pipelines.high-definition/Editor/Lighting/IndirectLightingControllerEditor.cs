@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_IndirectDiffuseLightingMultiplier, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Multiplier", "Sets the multiplier for indirect diffuse lighting.\nIt affect Ambient Probe, Light Probes, Lightmaps, Light Probe Volumes, Screen Space Global Illumination, Raytrace Global Illumination."));
+            PropertyField(m_IndirectDiffuseLightingMultiplier, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Multiplier", "Sets the multiplier for indirect diffuse lighting.\nIt affect Ambient Probe, Light Probes, Lightmaps, Adaptive Probe Volumes, Screen Space Global Illumination, Raytrace Global Illumination."));
             using (new EditorGUI.DisabledScope(!HDUtils.hdrpSettings.supportLightLayers))
             {
                 PropertyField(m_IndirectDiffuseLightingLayers, EditorGUIUtility.TrTextContent("Indirect Diffuse Rendering Layer Mask", "The Indirect Diffuse Lighting Multiplier only affects Renderers with a matching Rendering Layer Mask.\nThis is only available when Light Layers are enabled."));

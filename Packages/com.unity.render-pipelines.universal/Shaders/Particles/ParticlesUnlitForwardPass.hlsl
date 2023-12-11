@@ -141,7 +141,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     InitializeSurfaceData(particleParams, surfaceData);
     InputData inputData;
     InitializeInputData(input, surfaceData, inputData);
-    SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
+    SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
 

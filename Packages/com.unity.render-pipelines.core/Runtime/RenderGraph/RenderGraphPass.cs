@@ -117,9 +117,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // Check if the pass has any render targets set-up
         public bool HasRenderAttachments()
         {
-            // Temporarily disabled until case UUM-53711 is fixed
-            return true;
-            //return depthBuffer.IsValid() || colorBuffers[0].IsValid() || colorBufferMaxIndex > 0;
+            return depthBuffer.IsValid() || colorBuffers[0].IsValid() || colorBufferMaxIndex > 0;
         }
 
         // Checks if the resource is involved in this pass

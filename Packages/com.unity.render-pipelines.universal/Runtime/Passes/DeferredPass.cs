@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
@@ -26,18 +27,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // ScriptableRenderPass
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
         {
             var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
             var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
-            if (m_DeferredLights.UseFramebufferFetch)
-                ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
 
+            if (m_DeferredLights.UseFramebufferFetch)
+            {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
+                ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
+                #pragma warning restore CS0618
+            }
+
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             // TODO: Cannot currently bind depth texture as read-only!
             ConfigureTarget(lightingAttachment, depthAttachment);
+            #pragma warning restore CS0618
         }
 
         // ScriptableRenderPass
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -101,7 +113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
-                if (renderGraph.NativeRenderPassesEnabled)
+                if (renderGraph.nativeRenderPassesEnabled)
                     GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
 
                 builder.AllowPassCulling(false);

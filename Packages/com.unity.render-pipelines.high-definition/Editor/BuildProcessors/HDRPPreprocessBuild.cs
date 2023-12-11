@@ -7,13 +7,25 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
+using ShaderPrefilteringData = UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset.ShaderPrefilteringData;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
+    // Shader features that can be used to configure shader prefiltering.
+    // Prefiltering can apply complex rules that cannot be properly defined during scriptable stripping.
+    [Flags]
+    enum ShaderFeatures : long
+    {
+        None = 0,
+        UseLegacyLightmaps = (1L << 0),
+    }
+
     class HDRPPreprocessBuild : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
 
         private static HDRPBuildData m_BuildData = null;
+        private static List<ShaderFeatures> s_SupportedFeaturesList = new();
 
         public void OnPreprocessBuild(BuildReport report)
         {
@@ -30,6 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 ConfigureMinimumMaxLoDValueForAllQualitySettings();
 
                 LogIncludedAssets(m_BuildData.renderPipelineAssets);
+
+                GatherShaderFeatures();
             }
         }
 
@@ -81,6 +95,68 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 QualitySettings.maximumLODLevel = GetMinimumMaxLoDValue(renderPipeline);
             });
+        }
+
+        private static void GatherShaderFeatures()
+        {
+            s_SupportedFeaturesList.Clear();
+            using (ListPool<HDRenderPipelineAsset>.Get(out List<HDRenderPipelineAsset> hdrpAssets))
+            {
+                bool buildingForHDRP = EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets(hdrpAssets);
+                if (buildingForHDRP)
+                {
+                    // Get Supported features & update data used for Shader Prefiltering and Scriptable Stripping
+                    GetSupportedShaderFeaturesFromAssets(ref hdrpAssets, ref s_SupportedFeaturesList);
+                }
+            }
+        }
+
+        private static void GetSupportedShaderFeaturesFromAssets(ref List<HDRenderPipelineAsset> hdrpAssets, ref List<ShaderFeatures> rendererFeaturesList)
+        {
+            for (int hdrpAssetIndex = 0; hdrpAssetIndex < hdrpAssets.Count; hdrpAssetIndex++)
+            {
+                // Get the asset and check if it's valid
+                HDRenderPipelineAsset hdrpAsset = hdrpAssets[hdrpAssetIndex];
+                if (hdrpAsset == null)
+                    continue;
+
+                // Check the asset for supported features
+                ShaderFeatures hdrpAssetShaderFeatures = GetSupportedShaderFeaturesFromAsset(ref hdrpAsset);
+
+                // Creates a struct containing all the prefiltering settings for this asset
+                ShaderPrefilteringData spd = CreatePrefilteringSettings(ref hdrpAssetShaderFeatures);
+
+                // Update the Prefiltering settings for this URP asset
+                hdrpAsset.UpdateShaderKeywordPrefiltering(ref spd);
+
+                // Mark the asset dirty so it can be serialized once the build is finished
+                EditorUtility.SetDirty(hdrpAsset);
+            }
+        }
+
+        private static ShaderFeatures GetSupportedShaderFeaturesFromAsset(ref HDRenderPipelineAsset hdrpAsset)
+        {
+            ShaderFeatures hdrpAssetShaderFeatures = ShaderFeatures.None;
+
+            if (hdrpAsset.useLegacyLightmaps)
+                hdrpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
+
+            return hdrpAssetShaderFeatures;
+        }
+
+        private static ShaderPrefilteringData CreatePrefilteringSettings(ref ShaderFeatures shaderFeatures)
+        {
+            ShaderPrefilteringData spd = new();
+
+            spd.useLegacyLightmaps = IsFeatureEnabled(shaderFeatures, ShaderFeatures.UseLegacyLightmaps);
+
+            return spd;
+        }
+
+        // Checks whether a ShaderFeature is enabled or not
+        private static bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
+        {
+            return (featureMask & feature) != 0;
         }
 
         public void OnPostprocessBuild(BuildReport report)

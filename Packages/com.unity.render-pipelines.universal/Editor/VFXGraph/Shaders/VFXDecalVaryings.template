@@ -44,8 +44,12 @@ ${VFXBegin:VFXURPDecalVaryingsMacros}
 #if USE_FLIPBOOK_MOTIONVECTORS
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants.xy
 #define VFX_VARYING_TEXINDEX builtInInterpolants.z
+#define VFX_VARYING_TEXINDEXBLEND builtInInterpolants.w
 #else
-#define VFX_VARYING_TEXINDEX texIndex
+#define VFX_VARYING_TEXINDEX texIndices.x
+#if USE_FLIPBOOK_INTERPOLATION
+#define VFX_VARYING_TEXINDEXBLEND texIndices.y
+#endif
 #endif
 #endif
 
@@ -95,9 +99,12 @@ VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
 // x: motion vectors scale X
 // y: motion vectors scale Y
 // z: texIndex
-nointerpolation float3 builtInInterpolants : TEXCOORD2;
+// w: texIndexBlend
+nointerpolation float4 builtInInterpolants : TEXCOORD2;
 #else
-nointerpolation float texIndex : TEXCOORD2;
+// x: texIndex
+// y: texIndexBlend
+nointerpolation float2 texIndices : TEXCOORD2;
 #endif
 #endif
 

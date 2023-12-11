@@ -60,7 +60,7 @@ dragCoefficient *= side.x * side.y;
 ";
                 }
 
-                return source + "velocity *= max(0.0,(1.0 - (dragCoefficient * deltaTime) / mass));";
+                return source + "velocity *= exp(-(dragCoefficient * deltaTime) / mass);";
             }
         }
     }

@@ -11,8 +11,8 @@ namespace UnityEditor.VFX.Block
         {
             return new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional }
                 .Select(x => new Variant(
-                    $"Set position {x}",
-                    "Position/Position sequential",
+                    $"Position On {x}",
+                    "Position/Sequential",
                     typeof(PositionSequential),
                     new[]
                     {
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.Block
         [Tooltip("Specifies how the sequence should behave at the end. It can either wrap back to the beginning, clamp, or continue in a mirrored direction.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        public override string name { get { return string.Format("{0} Position (Sequential: {1})", VFXBlockUtility.GetNameString(compositionPosition), shape); } }
+        public override string name { get { return string.Format("{0} Position Sequential On {1}", VFXBlockUtility.GetNameString(compositionPosition), shape); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
@@ -316,6 +316,24 @@ namespace UnityEditor.VFX.Block
                     source += VFXBlockUtility.GetComposeString(compositionTargetPosition, "targetPosition", s_computedTargetPosition, "blendTargetPosition");
                 }
                 return source;
+            }
+        }
+
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (shape == SequentialShape.Circle)
+            {
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+                var expression = inputSlots.Single(x => x.name == nameof(InputPropertiesCircle.Count)).GetExpression();
+                context.RegisterExpression(expression);
+                context.Compile();
+
+                if (context.GetReduced(expression) is var countExpression &&
+                    countExpression.Is(VFXExpression.Flags.Constant) &&
+                    countExpression.Get<uint>() == 0)
+                {
+                    manager.RegisterError("CircleCountIsZero", VFXErrorType.Warning, "A circle with Count = 0 is not valid");
+                }
             }
         }
     }

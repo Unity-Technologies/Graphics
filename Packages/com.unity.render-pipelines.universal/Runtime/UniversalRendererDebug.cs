@@ -1,4 +1,3 @@
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -10,14 +9,14 @@ namespace UnityEngine.Rendering.Universal
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
-                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+                if (DebugHandler.TryGetFullscreenDebugMode(out _))
                     return true;
             }
 
             return false;
         }
 
-        void CreateDebugTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
+        void CreateDebugTexture(RenderTextureDescriptor descriptor)
         {
             var debugTexDescriptor = descriptor;
             debugTexDescriptor.useMipMap = false;
@@ -28,6 +27,23 @@ namespace UnityEngine.Rendering.Universal
             RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphDebugTextureHandle, debugTexDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_RenderingDebuggerTexture");
         }
 
+        private Rect CalculateUVRect(UniversalCameraData cameraData, float width, float height)
+        {
+            float normalizedSizeX = width / cameraData.pixelWidth;
+            float normalizedSizeY = height / cameraData.pixelHeight;
+
+            return new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
+        }
+
+        private Rect CalculateUVRect(UniversalCameraData cameraData, int textureHeightPercent)
+        {
+            var relativeSize = Mathf.Clamp01(textureHeightPercent / 100f);
+            var width = relativeSize * cameraData.pixelWidth;
+            var height = relativeSize * cameraData.pixelHeight;
+
+            return CalculateUVRect(cameraData, width, height);
+        }
+
         private void SetupRenderGraphFinalPassDebug(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -36,11 +52,11 @@ namespace UnityEngine.Rendering.Universal
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
                 if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent) &&
-                    (fullScreenDebugMode != DebugFullScreenMode.ReflectionProbeAtlas || m_Clustering))
+                    (fullScreenDebugMode != DebugFullScreenMode.ReflectionProbeAtlas || m_Clustering) &&
+                    (fullScreenDebugMode != DebugFullScreenMode.STP))
                 {
-                    Camera camera = cameraData.camera;
-                    float screenWidth = camera.pixelWidth;
-                    float screenHeight = camera.pixelHeight;
+                    float screenWidth = cameraData.pixelWidth;
+                    float screenHeight = cameraData.pixelHeight;
 
                     var relativeSize = Mathf.Clamp01(textureHeightPercent / 100f);
                     var height = relativeSize * screenHeight;
@@ -69,7 +85,7 @@ namespace UnityEngine.Rendering.Universal
                         // if we want to visualize RG internal resources, we need to create an RTHandle external to RG and copy to it the textures to visualize
                         // this is required because the lifetime of these resources is limited to the RenderGraph execution, and we cannot access the actual resources here
 
-                        CreateDebugTexture(renderGraph, cameraData.cameraTargetDescriptor);
+                        CreateDebugTexture(cameraData.cameraTargetDescriptor);
 
                         ImportResourceParams importParams = new ImportResourceParams();
                         importParams.clearOnFirstUse = false;
@@ -104,16 +120,52 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
 
-                    float normalizedSizeX = width / screenWidth;
-                    float normalizedSizeY = height / screenHeight;
-
-                    Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
-
-                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle.nameID, normalizedRect, supportsStereo);
+                    Rect uvRect = CalculateUVRect(cameraData, width, height);
+                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, supportsStereo);
                 }
                 else
                 {
                     DebugHandler.ResetDebugRenderTarget();
+                }
+            }
+
+            if (DebugHandler != null)
+            {
+                if (!DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent))
+                {
+                    var debugSettings = DebugHandler.DebugDisplaySettings.gpuResidentDrawerSettings;
+
+                    GPUResidentDrawer.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, cameraData.camera.GetInstanceID(), resourceData.activeColorTexture);
+
+                    float screenHeight = cameraData.camera.pixelHeight;
+                    float maxHeight = screenHeight * textureHeightPercent / 100.0f;
+                    GPUResidentDrawer.RenderDebugOccluderOverlay(renderGraph, debugSettings, new Vector2(0.0f, screenHeight - maxHeight), maxHeight, resourceData.activeColorTexture);
+                }
+            }
+        }
+
+        private void SetupAfterPostRenderGraphFinalPassDebug(RenderGraph renderGraph, ContextContainer frameData)
+        {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
+            {
+                if (DebugHandler.TryGetFullscreenDebugMode(out var debugFullscreenMode, out int textureHeightPercent) &&
+                    (debugFullscreenMode == DebugFullScreenMode.STP))
+                {
+                    CreateDebugTexture(cameraData.cameraTargetDescriptor);
+
+                    ImportResourceParams importParams = new ImportResourceParams();
+                    importParams.clearOnFirstUse = false;
+                    importParams.discardOnLastUse = false;
+                    TextureHandle debugTexture = renderGraph.ImportTexture(m_RenderGraphDebugTextureHandle, importParams);
+
+                    CopyToDebugTexture(renderGraph, resourceData.stpDebugView, debugTexture);
+
+                    Rect uvRect = CalculateUVRect(cameraData, textureHeightPercent);
+
+                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, true);
                 }
             }
         }

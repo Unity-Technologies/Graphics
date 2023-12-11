@@ -6,7 +6,20 @@ namespace UnityEngine.Rendering.Universal
     public class UniversalRenderingData : ContextItem
     {
         // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
-        internal CommandBuffer commandBuffer;
+        // NOTE: internal for a ref return in legacy RenderingData.commandBuffer.
+        internal CommandBuffer m_CommandBuffer;
+
+        // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
+        internal CommandBuffer commandBuffer
+        {
+            get
+            {
+                if (m_CommandBuffer == null)
+                    Debug.LogError("UniversalRenderingData.commandBuffer is null. RenderGraph does not support this property. Please use the command buffer provided by the RenderGraphContext.");
+
+                return m_CommandBuffer;
+            }
+        }
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -35,14 +48,26 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingMode renderingMode { get; internal set; }
 
+        /// <summary>
+        /// The layer mask set on the renderer to filter opaque objects.
+        /// </summary>
+        public LayerMask opaqueLayerMask { get; internal set; }
+
+        /// <summary>
+        /// The layer mask set on the renderer to filter transparent objects.
+        /// </summary>
+        public LayerMask transparentLayerMask { get; internal set; }
+
         /// <inheritdoc/>
         public override void Reset()
         {
-            commandBuffer = default;
+            m_CommandBuffer = default;
             cullResults = default;
             supportsDynamicBatching = default;
             perObjectData = default;
             renderingMode = default;
+            opaqueLayerMask = -1;
+            transparentLayerMask = -1;
         }
     }
 }

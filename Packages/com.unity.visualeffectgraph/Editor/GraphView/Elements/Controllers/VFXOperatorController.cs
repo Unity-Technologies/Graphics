@@ -56,11 +56,11 @@ namespace UnityEditor.VFX.UI
             get { return false; }
         }
 
-        public void ConvertToProperty(bool exposed = false)
+        public VFXParameter ConvertToProperty(bool exposed = false)
         {
             var desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.modelType == ((VFXInlineOperator)model).type);
             if (desc == null)
-                return;
+                return null;
 
             var param = viewController.AddVFXParameter(Vector2.zero, desc.variant, false); // parameters should have zero for position, position is help by the nodes
             param.SetSettingValue("m_Exposed", exposed);
@@ -76,10 +76,13 @@ namespace UnityEditor.VFX.UI
             var paramController = viewController.GetParameterController(param);
             paramController.value = inputPorts[0].value;
             var paramNodeController = paramController.nodes.FirstOrDefault();
-            if (paramNodeController == null)
-                return;
-            viewController.PutInSameGroupNodeAs(paramNodeController, this);
-            viewController.RemoveElement(this);
+            if (paramNodeController != null)
+            {
+                viewController.PutInSameGroupNodeAs(paramNodeController, this);
+                viewController.RemoveElement(this);
+            }
+
+            return param;
         }
     }
 

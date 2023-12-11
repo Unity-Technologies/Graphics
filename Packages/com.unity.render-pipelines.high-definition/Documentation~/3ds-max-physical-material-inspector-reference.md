@@ -29,6 +29,7 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
   </tr>
 </thead>
 <tbody>
+
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
 [!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
 [!include[](snippets/shader-properties/surface-options/blending-mode.md)]
@@ -45,6 +46,7 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
 [!include[](snippets/shader-properties/surface-options/receive-decals.md)]
 [!include[](snippets/shader-properties/surface-options/receive-ssr.md)]
 [!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
+
 </tbody>
 </table>
 
@@ -54,6 +56,7 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/arnold/base-color-weight.md)]
 [!include[](snippets/shader-properties/arnold/base-color.md)]
 [!include[](snippets/shader-properties/arnold/base-color-map.md)]
@@ -82,6 +85,7 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
 [!include[](snippets/shader-properties/arnold/coat-weight.md)]
 [!include[](snippets/shader-properties/arnold/coat-color.md)]
 [!include[](snippets/shader-properties/arnold/coat-ior.md)]
+
 </table>
 
 ### Advanced Options
@@ -95,9 +99,11 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
   </tr>
 </thead>
 <tbody>
+
 [!include[](snippets/shader-properties/general/enable-gpu-instancing.md)]
 [!include[](snippets/shader-properties/general/emission.md)]
 [!include[](snippets/shader-properties/general/emission-global-illumination.md)]
 [!include[](snippets/shader-properties/general/motion-vector-for-vertex-animation.md)]
+
 </tbody>
 </table>

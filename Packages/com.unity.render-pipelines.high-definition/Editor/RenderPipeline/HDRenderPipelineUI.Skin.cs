@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -127,7 +128,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportWaterFoamContent = EditorGUIUtility.TrTextContent("Foam", "When enabled, HDRP allocates additional memory to support water foam.");
             public static readonly GUIContent foamAtlasSizeContent = EditorGUIUtility.TrTextContent("Foam Atlas Size", "Specifies the size of the atlas used to store texture water foam.");
             public static readonly GUIContent supportWaterExclusionContent = EditorGUIUtility.TrTextContent("Exclusion", "When enabled, HDRP allocates a stencil bit to support water excluders.");
-            public static readonly GUIContent cpuSimulationContent = EditorGUIUtility.TrTextContent("Script Interactions", "When enabled, HDRP allocates memory for the water simulation on the CPU. This allows you to enable CPU simulation on water surfaces to query height information.");
 
             // High Quality Line Rendering
             public static readonly GUIContent highQualityLineRenderingSubTitle = EditorGUIUtility.TrTextContent("High Quality Line Rendering");
@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxDirectionalContent = EditorGUIUtility.TrTextContent("Maximum Directional on Screen", "Sets the maximum number of Directional Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
-            public static readonly GUIContent maxCubeProbesContent = EditorGUIUtility.TrTextContent("Maximum Cube Reflection Probes on Screen", "Sets the maximum number of Cube Reflection Probes HDRP can handle on screen at once.");
+            public static readonly GUIContent maxCubeProbesContent = EditorGUIUtility.TrTextContent("Maximum Cube Reflection Probes on Screen", "Sets the maximum number of Cube Reflection Probes HDRP can handle on screen at once. This value is capped to " + HDRenderPipeline.k_MaxCubeReflectionsOnScreen + " for performance reasons");
             public static readonly GUIContent maxPlanarProbesContent = EditorGUIUtility.TrTextContent("Maximum Planar Reflection Probes on Screen", "Sets the maximum number of Planar Reflection Probes HDRP can handle on screen at once.");
             public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Clustered Decals on Screen", "Sets the maximum number of decals that can affect transparent GameObjects on screen.");
             public static readonly GUIContent maxLightPerCellContent = EditorGUIUtility.TrTextContent("Maximum Lights per Cell (Ray Tracing)", "Sets the maximum number of lights HDRP can handle in each cell of the ray tracing light cluster.");
@@ -311,12 +311,17 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string FSR2FeatureDetectedMsg = "Unity detected AMD Fidelity FX 2 Super Resolution and will ignore the Fallback Upscale Filter.";
             public const string FSR2FeatureNotDetectedMsg = "Unity cannot detect Unity detected AMD Fidelity FX 2 Super Resolution and will use the Fallback Upscale Filter instead.";
 
+            public const string STPSwDrsWarningMsg = "STP cannot support dynamic resolution without hardware dynamic resolution mode. You can use the forced screen percentage feature to guarantee a fixed resoution for STP or HDRP will fall back to the next best supported upscaling filter instead.";
+
+            public const string hwDrsUnsupportedWarningMsg = "The current graphics device does not support hardware dynamic resolution mode. HDRP will automatically fall back to software dynamic resolution mode.";
+
             public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
             public static readonly GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by AMD FidelityFX Super Resolution.");
 
             public static readonly GUIContent maxPercentage = EditorGUIUtility.TrTextContent("Maximum Screen Percentage", "Sets the maximum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent dynResType = EditorGUIUtility.TrTextContent("Dynamic Resolution Type", "Specifies the type of dynamic resolution that HDRP uses.");
+            public static readonly GUIContent dynResTypeWarning = EditorGUIUtility.TrTextContent("The current graphics API does not support hardware dynamic resolution mode. HDRP will automatically fall back to software dynamic resolution mode.");
             public static readonly GUIContent useMipBias = EditorGUIUtility.TrTextContent("Use Mip Bias", "Offsets the mip bias to recover more detail. This only works if the camera is utilizing TAA.");
             public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Default Upscale Filter", "Specifies the filter that HDRP uses for upscaling unless overwritten by API by the user.");
             public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Default Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if DLSS is not detected. Can be overwritten via API.");
@@ -345,8 +350,14 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent[] shadowBitDepthNames = { new GUIContent("32 bit"), new GUIContent("16 bit") };
             public static readonly int[] shadowBitDepthValues = { (int)DepthBits.Depth32, (int)DepthBits.Depth16 };
 
-            public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
+            public static readonly GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
             public static readonly GUIContent smallMeshScreenPercentage = EditorGUIUtility.TrTextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.");
+            public static readonly GUIContent enableOcclusionCullingInCameras = EditorGUIUtility.TrTextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.");
+            public static readonly GUIContent useDepthPrepassForOccluders = EditorGUIUtility.TrTextContent("Occluders From Depth Prepass", "Always builds occluders from the depth pre-pass. If this flag is on, or the Full Depth Prepass within Deferred frame setting is enabled, or Lit Shader Mode is Forward Only, occluders are built during the depth pre-pass.  Otherwise occluders are built during the gbuffer pass.");
+            public static GUIContent useLegacyLightmaps = EditorGUIUtility.TrTextContent("Use Legacy Lightmaps",
+                "When enabled, lightmaps will be bound as individual textures instead of as a single texture array. This causes the batch to break if a new lightmap needs to be bound, potentially increasing the number of draw calls."
+                + "This can reduce memory usage and may improve performance on certain hardware that doesn't support texture arrays efficiently."
+            );
 
             public static GUIContent brgShaderStrippingErrorMessage =
                 EditorGUIUtility.TrTextContent("\"BatchRendererGroup Variants\" setting must be \"Keep All\". To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");

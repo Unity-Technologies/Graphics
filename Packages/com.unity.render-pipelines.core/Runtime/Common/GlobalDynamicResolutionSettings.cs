@@ -63,7 +63,12 @@ namespace UnityEngine.Rendering
         /// AMD FidelityFX Super Resolution (FSR2).
         /// </summary>
         [InspectorName("FidelityFX Super Resolution 2.0 (FSR2)")]
-        FSR2 = 1
+        FSR2 = 1,
+        /// <summary>
+        /// Scalable Temporal Post-Processing
+        /// </summary>
+        [InspectorName("Scalable Temporal Post-Processing (STP)")]
+        STP = 2
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -90,7 +95,7 @@ namespace UnityEngine.Rendering
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             
             FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
-            advancedUpscalersByPriority = new List<AdvancedUpscalers>() { },
+            advancedUpscalersByPriority = new List<AdvancedUpscalers>() { AdvancedUpscalers.STP },
 
             fsrOverrideSharpness = false,
             fsrSharpness = FSRUtils.kDefaultSharpnessLinear

@@ -129,17 +129,19 @@ namespace UnityEditor.Rendering.HighDefinition
         
         internal static Material CreateNewWaterMaterialAndShader(MonoBehaviour component)
         {
-            string folderName = GetWaterResourcesPath(component);
+            string directory = GetWaterResourcesPath(component);
+            System.IO.Directory.CreateDirectory(directory);
 
             // Make sure they don't already exist
-            var path = $"{folderName}/{component.name}.shadergraph";
+            var path = $"{directory}/{component.name}.shadergraph";
             if (AssetDatabase.AssetPathExists(path))
             {
                 Debug.LogWarning($"A Water Shader or Material at {path} already exists.");
                 return null;
             }
 
-            var shader = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.waterPS;
+            var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+            var shader = shaders.waterPS;
             if (!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), path))
             {
                 Debug.LogWarning($"Failed to copy the Water Shader Graph to {path}");

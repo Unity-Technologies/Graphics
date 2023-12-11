@@ -12,8 +12,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                $"{VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite)} Position (Mesh)",
-                "Position/Position on mesh",
+                "Position On Static Mesh",
+                "Position",
                 typeof(PositionMesh),
                 new[]
                 {
@@ -22,8 +22,8 @@ namespace UnityEditor.VFX.Block
                 });
 
             yield return new Variant(
-                $"{VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite)} Position (Skinned Mesh)",
-                "Position/Position on mesh",
+                "Position On Skinned Mesh",
+                "Position",
                 typeof(PositionMesh),
                 new[]
                 {
@@ -52,14 +52,6 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies the transform to apply to the root bone retrieved from the Skinned Mesh Renderer.")]
         private SampleMesh.SkinnedRootTransform skinnedTransform = SampleMesh.SkinnedRootTransform.ApplyLocalRootTransform;
 
-        [Flags]
-        enum Orientation
-        {
-            None = 0,
-            Direction = 1,
-            Axes = 2,
-        }
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Orient particles conform to the geometry of the mesh they are sampled from.\nThe AxisX/AxisY/AxisZ attributes and/or the attribute direction can be written.")]
         private Orientation applyOrientation = Orientation.Direction;
 
@@ -68,9 +60,9 @@ namespace UnityEditor.VFX.Block
             get
             {
                 if (sourceMesh == SampleMesh.SourceType.Mesh)
-                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position (Mesh)";
+                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position On Static Mesh";
                 else
-                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position (Skinned Mesh)";
+                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position On Skinned Mesh";
             }
         }
 

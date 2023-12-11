@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                 }
 
-                var volumeProfile = HDRenderPipelineGlobalSettings.instance.volumeProfile;
+                var volumeProfile = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>().volumeProfile;
                 if (volumeProfile == null)
                 {
                     EditorGUI.HelpBox(r, $"The current {nameof(VolumeProfile)} is null, please assign one on Graphics Settings > HDRP", MessageType.Error);

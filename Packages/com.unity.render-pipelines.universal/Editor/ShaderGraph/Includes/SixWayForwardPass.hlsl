@@ -36,6 +36,8 @@ void InitializeInputData(Varyings input, bool frontFace, out InputData inputData
     #else
     inputData.vertexSH = input.sh;
     #endif
+
+    inputData.positionCS = input.positionCS;
     #endif
 }
 
@@ -84,8 +86,11 @@ void frag(
     InputData inputData;
     InitializeInputData(unpacked, frontFace, inputData);
 
-    // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
-    //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord1.xy, _MainTex);
+    #ifdef VARYINGS_NEED_TEXCOORD0
+        SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0);
+    #else
+        SETUP_DEBUG_TEXTURE_DATA_NO_UV(inputData);
+    #endif
     SixWaySurfaceData surfaceData;
     surfaceData.rightTopBack = surfaceDescription.RightTopBack * INV_PI;
     surfaceData.leftBottomFront = surfaceDescription.LeftBottomFront * INV_PI;

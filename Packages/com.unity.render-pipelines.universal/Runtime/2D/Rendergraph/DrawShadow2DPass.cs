@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         TextureHandle[] intermediateTexture = new TextureHandle[1];
         static List<Light2D> intermediateLight = new List<Light2D>(1);
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();

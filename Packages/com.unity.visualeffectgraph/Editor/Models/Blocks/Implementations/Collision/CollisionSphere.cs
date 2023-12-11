@@ -1,105 +1,165 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXHelpURL("Block-CollideWithSphere")]
-    [VFXInfo(name = "Collide with Sphere", category = "Collision")]
-    class CollisionSphere : CollisionBase
+    class CollisionSphere : CollisionShapeBase
     {
-        public override string name => "Collide with Sphere";
-
         public class InputProperties
         {
             [Tooltip("Sets the sphere with which particles can collide.")]
             public TSphere sphere = TSphere.defaultValue;
         }
 
-        public override IEnumerable<VFXNamedExpression> parameters
+        public override IEnumerable<VFXNamedExpression> GetParameters(CollisionBase collisionBase, IEnumerable<VFXNamedExpression> collisionBaseParameters)
         {
-            get
+            VFXExpression transform = null;
+            VFXExpression radius = null;
+
+            foreach (var param in collisionBaseParameters)
             {
-                VFXExpression transform = null;
-                VFXExpression radius = null;
-
-                foreach (var param in base.parameters)
+                if (param.name.StartsWith("sphere"))
                 {
-                    if (param.name.StartsWith("sphere"))
-                    {
-                        if (param.name == "sphere_transform")
-                            transform = param.exp;
-                        if (param.name == "sphere_radius")
-                            radius = param.exp;
+                    if (param.name == "sphere_transform")
+                        transform = param.exp;
+                    if (param.name == "sphere_radius")
+                        radius = param.exp;
 
-                        continue; //exclude all automatic sphere inputs
-                    }
-                    yield return param;
+                    continue; //exclude all automatic sphere inputs
                 }
-
-                VFXExpression finalTransform;
-
-                //Integrate directly the radius into the common transform matrix
-                var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
-                finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
-
-                var isZeroScaled = VFXOperatorUtility.IsTRSMatrixZeroScaled(finalTransform);
-                yield return new VFXNamedExpression(isZeroScaled, "isZeroScaled");
-
-                yield return new VFXNamedExpression(finalTransform, "fieldTransform");
-                yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
-                if (radiusMode != RadiusMode.None)
-                {
-                    var scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
-                    yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invFieldScale");
-                }
+                yield return param;
             }
+
+            VFXExpression finalTransform;
+
+            //Integrate directly the radius into the common transform matrix
+            var radiusScale = VFXOperatorUtility.UniformScaleMatrix(radius);
+            finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
+
+            var isZeroScaled = VFXOperatorUtility.IsTRSMatrixZeroScaled(finalTransform);
+            yield return new VFXNamedExpression(isZeroScaled, "isZeroScaled");
+
+            var isUniformScaled = VFXOperatorUtility.IsTRSMatrixUniformScaled(finalTransform);
+            yield return new VFXNamedExpression(isUniformScaled, "isUniformScale");
+
+            yield return new VFXNamedExpression(finalTransform, "fieldTransform");
+            yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
+            
+            VFXExpression scale = new VFXExpressionExtractScaleFromMatrix(finalTransform);
+            yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(scale), "invScale");
+            yield return new VFXNamedExpression(scale, "scale");                
         }
 
-        public override string source
+        public override string GetSource(CollisionBase collisionBase)
         {
-            get
-            {
-                var Source = @"
+
+            var Source = string.Format("const bool kUseParticleRadius = {0};\n",
+                collisionBase.radiusMode == CollisionBase.RadiusMode.None ? "false" : "true");
+
+            Source += @"
 if (isZeroScaled)
     return;
 
-float3 nextPos = position + velocity * deltaTime;
-float3 tNextPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
-";
-                if (radiusMode == RadiusMode.None)
-                {
-                    //radius == 0.0f, we could avoid a sqrt before the branch
-                    Source += @"
-float sqrLength  = dot(tNextPos, tNextPos);
-if (colliderSign * sqrLength <= colliderSign)
+// Scale the ellipsoid to account for particle radius. This is not exactly correct as solving the distance function of an ellipsoid
+// d(x,y,z) = r does not define an ellipsoid for r != 0 but it's a good enough approximation. The error will be noticeable only for very squashed ellipoids at boundaries
+float3 s = float3(1,1,1);
+if (kUseParticleRadius)
 {
-    float dist = sqrt(sqrLength);";
-                }
-                else
-                {
-                    //The computation of relativeScale is pretty naive See : https://github.cds.internal.unity3d.com/unity/vfx-graphics/pull/258/files#r162621
-                    //We can potentially take inspirations from https://iquilezles.org/www/articles/ellipsoids/ellipsoids.htm to improve these collisions
-                    Source += @"
-float dist = max(length(tNextPos), VFX_EPSILON);
-float3 relativeScale = (tNextPos/dist) * invFieldScale;
-float radiusCorrection = radius * length(relativeScale);
-dist -= radiusCorrection * colliderSign;
-if (colliderSign * dist <= colliderSign)
-{";
-                }
-                Source += @"
-    float3 n = colliderSign * (tNextPos/dist);
-    float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
-    tPos -= n * (dist - 1.0f) * colliderSign;
-    position = mul(fieldTransform, float4(tPos.xyz, 1.0f)).xyz;
-    n = VFXSafeNormalize(mul(float4(n, 0.0f), invFieldTransform).xyz);
-";
+    s = (colliderSign * radius) * invScale + 1.0f;
+    fieldTransform = mul(fieldTransform, GetScaleMatrix44(s));
+    invFieldTransform = mul(GetScaleMatrix44(rcp(s)), invFieldTransform);
+}
 
-                Source += collisionResponseSource;
-                Source += @"
-}";
-                return Source;
-            }
+float3 tVel = mul(invFieldTransform, float4(velocity, 0.0f)).xyz;
+float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
+float3 dPos = tVel * deltaTime;
+ 
+// unit sphere / ray intersection
+float a = dot(dPos,dPos);
+float b = dot(tPos,dPos);
+float c = dot(tPos,tPos) - 1.0f;
+
+float d = b*b - a*c;
+tHit = -1.0f;
+if (d >= 0) // Line intersection
+{
+    d = sqrt(d);
+    float t0 = -(b + d);
+    float t1 = -(b - d);
+    tHit = t0 >= 0 ? t0 : t1;
+}
+
+if (tHit >= 0 && tHit < a) // Intersection with ray
+{
+    hit = true;
+    tHit /= a;
+    tPos += tHit * dPos; // Point of intersection
+}
+else if (c * colliderSign < 0) // Inside volume
+{
+    hit = true;
+    tHit = 0.0f;
+    if (isUniformScale) // Fast path for spheres
+    {
+        // Simply teleport on closest point on sphere
+        tPos *= rsqrt(c + 1);
+    }
+    else
+    {
+#ifdef FAST_COLLISIONS
+        float3 u = invScale;
+        float3 n = normalize(tPos * u);
+        b = dot(tPos,n);
+        d = sqrt(b*b - c);
+        tPos -= (b - d) * n;
+#else
+        // Find closest point on ellipsoid   
+        // https://www.geometrictools.com/Documentation/DistancePointEllipseEllipsoid.pdf
+        float3 z = abs(tPos) + VFX_EPSILON;
+        float3 r = scale * s;
+        float minScale = Min3(r.x, r.y, r.z);
+        r *= rcp(minScale); 
+        r = r * r;
+        float3 m = r * z;
+        float t0 = -1;
+        if (r.y < r.x)
+            t0 += r.z < r.y ? z.z : z.y;
+        else
+            t0 += r.z < r.x ? z.z : z.x;
+        float t1 = colliderSign > 0 ? 0 : length(m) - 1;
+
+        // Find root using bisection with N iteration
+        const int ITERATION_COUNT = 16;
+        float t = 0;
+        int i = 0;
+        for (i = 0; i < ITERATION_COUNT; ++i)
+        {
+            t = (t0 + t1) * 0.5f;
+            float3 ratio = m * rcp(t + r);
+            float dr = dot(ratio,ratio) - 1;
+            if (abs(min(dr,t1 - t0)) < VFX_EPSILON * 10)
+                break;
+            else if (dr > 0)
+                t0 = t;
+            else
+                t1 = t;
+        }
+        tPos *= (r + VFX_EPSILON * colliderSign) / (t + r);
+#endif
+    }
+}
+
+if (hit)
+{
+    hitPos = mul(fieldTransform, float4(tPos, 1.0f)).xyz;
+    hitNormal = VFXSafeNormalize(mul(float4(tPos * colliderSign, 0.0f), invFieldTransform).xyz);
+}
+";              
+
+            return Source;
+
         }
     }
 }

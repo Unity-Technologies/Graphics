@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Defines the constant buffer register that will be used as binding point for the Probe Volumes constant buffer.
+    /// Defines the constant buffer register that will be used as binding point for the Adaptive Probe Volumes constant buffer.
     /// </summary>
     public enum APVConstantBufferRegister
     {

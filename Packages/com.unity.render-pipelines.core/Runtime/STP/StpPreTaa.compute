@@ -1,0 +1,117 @@
+#pragma kernel StpPreTaa
+
+#pragma multi_compile _ ENABLE_DEBUG_MODE
+#pragma multi_compile _ ENABLE_LARGE_KERNEL
+
+#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_NATIVE_16BIT
+
+#pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#define STP_DIL 1
+#define STP_SAA 1
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/STP/StpCommon.hlsl"
+
+//
+// Input
+//
+
+TEXTURE2D_X(_StpIntermediateConvergence);
+
+//
+// Intermediate Output
+//
+
+RW_TEXTURE2D_X(float, _StpIntermediateWeights);
+
+//
+// History Input/Output
+//
+
+TEXTURE2D_X(_StpLuma);
+RW_TEXTURE2D_X(float, _StpConvergence);
+
+// DIL
+#if defined(STP_16BIT)
+StpH1 StpDilDitH(StpW2 o) { return StpDitH1(o); }
+StpH1 StpDilConH(StpF2 p) { return (StpH1)SAMPLE_TEXTURE2D_X_LOD(_StpIntermediateConvergence, s_linear_clamp_sampler, p, 0).r; }
+StpH4 StpDilCon4H(StpF2 p) { return (StpH4)GATHER_RED_TEXTURE2D_X(_StpIntermediateConvergence, s_point_clamp_sampler, p); }
+#endif
+#if defined(STP_32BIT)
+StpMF1 StpDilDitF(StpMU2 o) { return StpDitF1(o); }
+StpMF1 StpDilConF(StpF2 p) { return (StpMF1)SAMPLE_TEXTURE2D_X_LOD(_StpIntermediateConvergence, s_linear_clamp_sampler, p, 0).r; }
+StpMF4 StpDilCon4F(StpF2 p) { return (StpMF4)GATHER_RED_TEXTURE2D_X(_StpIntermediateConvergence, s_point_clamp_sampler, p); }
+#endif
+
+// SAA
+#if defined(STP_16BIT)
+StpH4 StpSaaLum4H(StpF2 p) { return (StpH4)GATHER_RED_TEXTURE2D_X(_StpLuma, s_point_clamp_sampler, p); }
+#endif
+#if defined(STP_32BIT)
+StpMF4 StpSaaLum4F(StpF2 p) { return (StpMF4)GATHER_RED_TEXTURE2D_X(_StpLuma, s_point_clamp_sampler, p); }
+#endif
+
+#define THREADING_BLOCK_SIZE STP_GROUP_SIZE
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Threading.hlsl"
+
+[numthreads(STP_GROUP_SIZE, 1, 1)]
+void StpPreTaa(Threading::Group group)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(group.groupID.z);
+
+#if defined(STP_16BIT)
+    StpW1 lane = StpW1_(group.groupIndex);
+    StpW2 groupPos = ComputeGroupPos(StpW2(group.groupID.xy));
+    StpW2 pos = groupPos + StpRemapLaneTo8x16H(lane);
+    StpW2 dilationSize = StpW2(asuint(_StpDilConstants0.zw)); // TODO: 16-bit packed constant?
+#else
+    StpMU1 lane = StpMU1_(group.groupIndex);
+    StpMU2 groupPos = ComputeGroupPos(StpMU2(group.groupID.xy));
+    StpMU2 pos = groupPos + StpRemapLaneTo8x16F(lane);
+    StpMU2 dilationSize = StpMU2(asuint(_StpDilConstants0).zw);
+#endif
+
+    // The dilation logic only runs for a subset of the input image size
+    if (all(groupPos < dilationSize))
+    {
+        half convergence;
+
+#if defined(STP_16BIT)
+        StpDilH(
+#else
+        StpDilF(
+#endif
+            convergence,
+
+            pos,
+
+            asuint(_StpDilConstants0)
+        );
+
+        _StpConvergence[COORD_TEXTURE2D_X(pos)] = convergence;
+    }
+
+    half weights;
+
+#if defined(STP_16BIT)
+    StpSaaH(
+#else
+    StpSaaF(
+#endif
+        weights,
+
+        pos,
+
+        // SAA uses the same constants as the pattern matcher
+        asuint(_StpSetupConstants0)
+    );
+
+    _StpIntermediateWeights[COORD_TEXTURE2D_X(pos)] = weights;
+}
+

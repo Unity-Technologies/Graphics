@@ -62,7 +62,7 @@ real3 SHEvalLinearL2(real3 N, real4 shBr, real4 shBg, real4 shBb, real4 shC)
     return x2 + x3;
 }
 
-#if HAS_HALF
+#if !HALF_IS_FLOAT
 half3 SampleSH9(half4 SHCoefficients[7], half3 N)
 {
     half4 shAr = SHCoefficients[0];

@@ -255,6 +255,36 @@ MonoBehaviour:
     Reason: crash on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 595c23bc5cc0b4620b698d14bbd4b0ec, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: platform independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 595c23bc5cc0b4620b698d14bbd4b0ec, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: platform independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 595c23bc5cc0b4620b698d14bbd4b0ec, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: platform independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 0ab0b142387a4e7469f3ed9d0e03b84f, type: 3}
     ColorSpace: -1
     BuildPlatform: -2

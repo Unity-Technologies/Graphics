@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionProbeVolume(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightProbeSystem, Styles.lightProbeSystemContent);
-            if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.ProbeVolumes)
+            if (serialized.renderPipelineSettings.lightProbeSystem.intValue == (int)LightProbeSystem.AdaptiveProbeVolumes)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
@@ -582,6 +582,10 @@ namespace UnityEditor.Rendering.HighDefinition
             advancedUpscalersAvailable |= (1 << (int)AdvancedUpscalers.DLSS);
 #endif
 
+            // STP is always available & detected because its implementation doesn't depend on a native module
+            advancedUpscalersDetectedMask |= (1 << (int)AdvancedUpscalers.STP);
+            advancedUpscalersAvailable |= (1 << (int)AdvancedUpscalers.STP);
+
             for (int i = 0; i < serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.arraySize; ++i)
             {
                 int upscalerMaskValue = 1 << serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(i).intValue;
@@ -643,9 +647,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                     //if it doesnt then add item
                                     if(!containsSelection)
                                     {
-                                        int newIndex = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.arraySize;
-                                        serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.InsertArrayElementAtIndex(newIndex);
-                                        var newElement = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(list.index);
+                                        int index = list.count > 0 ? list.index : 0;
+                                        serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.InsertArrayElementAtIndex(index);
+                                        var newElement = serialized.renderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.GetArrayElementAtIndex(index);
                                         newElement.enumValueIndex = (int)possible[selected];
                                         serialized.serializedObject.ApplyModifiedProperties();
                                     }
@@ -758,6 +762,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 #endif
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
+                bool isHwDrs = (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.intValue == (int)DynamicResolutionType.Hardware);
+                bool gfxDeviceSupportsHwDrs = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);
+
+                if (isHwDrs && !gfxDeviceSupportsHwDrs)
+                {
+                    EditorGUILayout.HelpBox($"{Styles.dynResTypeWarning}", MessageType.Warning, wide: true);
+                }
+
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
                 {
                     using (new EditorGUI.DisabledGroupScope(true))
@@ -788,6 +800,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
 
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage, Styles.forceScreenPercentage);
+
+                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
+                    && serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
+                {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.hasMultipleDifferentValues;
+                    float forcePercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    forcePercentage = EditorGUILayout.DelayedFloatField(Styles.forcedScreenPercentage, forcePercentage);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue = Mathf.Clamp(forcePercentage, 0.0f, 100.0f);
+                    EditorGUI.showMixedValue = false;
+                }
+
+                if (serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues)
+                {
+                    using (new EditorGUI.DisabledGroupScope(true))
+                        EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
+                }
+
                 if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
                     && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
                 {
@@ -797,6 +829,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.HelpBox(Styles.DLSSIgnorePercentages, MessageType.Info);
                     }
 #endif
+
+                    // Show a warning if STP is selected with software DRS and a dynamic scaling range
+                    bool containsSTP = ((1 << (int)AdvancedUpscalers.STP) & advancedUpscalersEnabledMask) != 0;
+                    if (containsSTP && (!isHwDrs || !gfxDeviceSupportsHwDrs))
+                    {
+                        EditorGUILayout.HelpBox($"{Styles.STPSwDrsWarningMsg}", MessageType.Warning, wide: true);
+                    }
+
                     float minPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
                     float maxPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue;
 
@@ -813,27 +853,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, minPercentage, 100.0f);
 
                     EditorGUI.showMixedValue = false;
-                }
-
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage, Styles.forceScreenPercentage);
-
-                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
-                    && serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
-                {
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.hasMultipleDifferentValues;
-                    float forcePercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    forcePercentage = EditorGUILayout.DelayedFloatField(Styles.forcedScreenPercentage, forcePercentage);
-                    if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue = Mathf.Clamp(forcePercentage, 0.0f, 100.0f);
-                    EditorGUI.showMixedValue = false;
-                }
-
-
-                if (serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues)
-                {
-                    using (new EditorGUI.DisabledGroupScope(true))
-                        EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
 
                 {
@@ -932,7 +951,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterExclusion, Styles.supportWaterExclusionContent);
 
                 // CPU Simulation
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterCPUSimulation, Styles.cpuSimulationContent);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterScriptInteractionsMode);
+
+                if (serialized.renderPipelineSettings.waterScriptInteractionsMode.intValue == (int)WaterScriptInteractionsMode.CPUSimulation)
+                {
+                    EditorGUI.indentLevel++;
+                    if (serialized.renderPipelineSettings.waterSimulationResolution.intValue != (int)WaterSimulationResolution.Low64)
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterFullCPUSimulation);
+                    EditorGUI.indentLevel--;
+                }
+
             }
             --EditorGUI.indentLevel;
         }
@@ -1271,6 +1299,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, gpuResidentDrawerSettings.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras, Styles.enableOcclusionCullingInCameras);
+                if ((GPUResidentDrawerMode)gpuResidentDrawerSettings.mode.intValue == GPUResidentDrawerMode.InstancedDrawing && gpuResidentDrawerSettings.enableOcclusionCullingInCameras.boolValue)
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.gpuResidentDrawerSettings.useDepthPrepassForOccluders, Styles.useDepthPrepassForOccluders);
+                    --EditorGUI.indentLevel;
+                }
+                EditorGUILayout.PropertyField(gpuResidentDrawerSettings.useLegacyLightmaps, Styles.useLegacyLightmaps);
                 --EditorGUI.indentLevel;
 
                 if(brgStrippingError)

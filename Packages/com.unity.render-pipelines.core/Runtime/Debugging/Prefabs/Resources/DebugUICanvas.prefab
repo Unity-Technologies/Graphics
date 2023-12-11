@@ -33,7 +33,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -57,6 +56,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -194,3 +194,6 @@ MonoBehaviour:
   - type: UnityEngine.Rendering.DebugUI+ObjectPopupField, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     prefab: {fileID: 4224455051203994714, guid: 48fb043c850cadc4a883b53785e14c6e, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+RuntimeDebugShadersMessageBox, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224053494956566916, guid: 10a25524b0986f9488b430e2829bbbe8, type: 3}

@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var runtimeShaders = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders;
+            var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
             m_SkyHDRIMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.hdriSkyPS);
             m_RenderCubemapID = m_SkyHDRIMaterial.FindPass("FragBaking");
             m_RenderFullscreenSkyID = m_SkyHDRIMaterial.FindPass("FragRender");

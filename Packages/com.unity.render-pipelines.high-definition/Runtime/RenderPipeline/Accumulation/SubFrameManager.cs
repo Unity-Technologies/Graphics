@@ -35,13 +35,54 @@ namespace UnityEngine.Rendering.HighDefinition
     // Struct storing per-camera data, to handle accumulation and dirtiness
     internal struct CameraData
     {
+#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
+        // Struct storing denoiser data
+        internal struct DenoiserData
+        {
+            public CommandBufferDenoiser denoiser;
+            public bool validHistory;
+            public bool activeRequest;
+            public bool discardRequest;
+
+            public void Init()
+            {
+                denoiser = new CommandBufferDenoiser();
+                activeRequest = false;
+                discardRequest = false;
+            }
+
+            public void Dispose()
+            {
+                denoiser.DisposeDenoiser();
+            }
+
+            public void ResetRequest()
+            {
+                validHistory = false;
+                discardRequest = true;
+            }
+
+            public void InitRequest()
+            {
+                activeRequest = true;
+                discardRequest = false;
+            }
+
+            public void EndRequest(bool success)
+            {
+                validHistory = success;
+                activeRequest = false;
+            }
+        }
+#endif
+
         public void ResetIteration()
         {
             accumulatedWeight = 0.0f;
             currentIteration = 0;
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-            validDenoiseHistory = false;
-            discardDenoiseRequest = true;
+            colorDenoiserData.ResetRequest();
+            volumetricFogDenoiserData.ResetRequest();
 #endif
         }
 
@@ -54,10 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float accumulatedWeight;
         public uint currentIteration;
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-        public CommandBufferDenoiser denoiser;
-        public bool validDenoiseHistory;
-        public bool activeDenoiseRequest;
-        public bool discardDenoiseRequest;
+        public DenoiserData colorDenoiserData;
+        public DenoiserData volumetricFogDenoiserData;
 #endif
     }
 
@@ -86,9 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 camData.ResetIteration();
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-                camData.denoiser = new CommandBufferDenoiser();
-                camData.activeDenoiseRequest = false;
-                camData.discardDenoiseRequest = false;
+                camData.colorDenoiserData.Init();
+                camData.volumetricFogDenoiserData.Init();
 #endif
                 m_CameraCache.Add(camID, camData);
             }
@@ -155,10 +193,12 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (int camID in m_CameraCache.Keys.ToList())
             {
                 CameraData camData = GetCameraData(camID);
-                if (camData.denoiser != null)
+                if (camData.colorDenoiserData.denoiser != null || camData.volumetricFogDenoiserData.denoiser != null)
                 {
-                    camData.validDenoiseHistory = false;
-                    camData.discardDenoiseRequest = true;
+                    camData.colorDenoiserData.ResetRequest();
+                    camData.colorDenoiserData.activeRequest = false;
+                    camData.volumetricFogDenoiserData.ResetRequest();
+                    camData.volumetricFogDenoiserData.activeRequest = false;
                     SetCameraData(camID, camData);
                 }
             }
@@ -403,14 +443,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var aov in AOVs)
                 {
                     // If shutter interval is zero, then we only want the motion vectors of the first sub-frame, otherwise accumulate as usual
-                    if (m_SubFrameManager.isRecording && m_SubFrameManager.shutterInterval == 0 && aov.Item2 == HDCameraFrameHistoryType.MotionVectorAOV && m_SubFrameManager.GetCameraData(camID).currentIteration > 0)
+                    if (m_SubFrameManager.isRecording && m_SubFrameManager.shutterInterval == 0 && aov.Item2 == HDCameraFrameHistoryType.PathTracingMotionVector && m_SubFrameManager.GetCameraData(camID).currentIteration > 0)
                         continue;
 
                     RenderAccumulation(renderGraph, hdCamera, aov.Item1, TextureHandle.nullHandle, aov.Item2, frameWeights, needExposure);
                 }
             }
 
-            RenderAccumulation(renderGraph, hdCamera, inputTexture, outputTexture, HDCameraFrameHistoryType.PathTracing, frameWeights, needExposure);
+            RenderAccumulation(renderGraph, hdCamera, inputTexture, outputTexture, HDCameraFrameHistoryType.PathTracingOutput, frameWeights, needExposure);
         }
 
         void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, HDCameraFrameHistoryType historyType, Vector4 frameWeights, bool needExposure)

@@ -1,0 +1,60 @@
+.frame-settings-field 
+{
+	flex-grow: 1;
+}
+
+.frame-settings-field > Label
+{
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.frame-settings-override-checkbox
+{
+	margin: 2px 0px 3px 1px;
+}
+
+.frame-settings-override-checkbox #unity-checkmark
+{
+	background-size: 80% 80%;
+}
+
+.frame-settings-override-header 
+{
+	flex-direction: row;
+}
+
+.frame-settings-override-header > Button
+{
+	background-color: transparent;
+	border-width: 0px;
+	font-size: 10px;
+	padding-bottom: 0px;
+	/* there is no var for disabled label color yet. See FrameSettingsLight.uss and FrameSettingsDark.uss */
+}
+
+.frame-settings-override-header > #All
+{
+	margin-right: 0px;
+}
+
+.frame-settings-override-header > #None
+{
+	margin-left: 0px;
+}
+
+.frame-settings-override-header > Button:hover
+{
+	color: var(--unity-colors-label-text);
+}
+
+.project-settings-section__content #frame-settings-header
+{
+	-unity-font-style: bold;
+	padding-top: 5px;
+}
+
+.project-settings-section__content #frame-settings-section-header > Toggle
+{
+	background-color: var(--unity-colors-helpbox-background);
+}

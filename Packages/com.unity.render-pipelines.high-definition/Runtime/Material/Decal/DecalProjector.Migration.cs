@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Decal and light layers are now shared on 16 bits instead of using 8 separate bits
                 // Decal use the last 8 bits so they need to be shifted
                 // If a decal projector was created before decal layer feature, just keep default value
-                if (decal.m_DecalLayerMask != RenderingLayerMask.DecalLayerDefault)
+                if (decal.m_DecalLayerMask != (RenderingLayerMask) (uint) UnityEngine.RenderingLayerMask.defaultRenderingLayerMask)
                     decal.m_DecalLayerMask = (RenderingLayerMask)((int)decal.m_DecalLayerMask << 8);
             })
         );

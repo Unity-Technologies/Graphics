@@ -43,6 +43,11 @@ namespace UnityEditor.VFX.Test
         [OneTimeTearDown]
         public void CleanUp()
         {
+            Time.captureFramerate = 0;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = 1.0f/60.0f;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = 1.0f/20.0f;
+            ShaderUtil.allowAsyncCompilation = true;
+
             VFXTestCommon.DeleteAllTemporaryGraph();
             GameObject.DestroyImmediate(m_mainObject);
             GameObject.DestroyImmediate(m_mainCamera);
@@ -305,8 +310,7 @@ namespace UnityEditor.VFX.Test
         [UnityTest]
         public IEnumerator Check_VFXRenderer_DefaultRenderingLayerNames()
         {
-            //The content of default rendering layer names is retrieved by reflection.
-            var layerNames = VisualEffectEditor.RendererEditor.s_DefaultRenderingLayerNames;
+            var layerNames = RenderingLayerMask.GetDefinedRenderingLayerNames();
             Assert.IsNotNull(layerNames);
             Assert.IsTrue(layerNames.Length != 0);
             Assert.IsFalse(layerNames.Any(o => string.IsNullOrEmpty(o)));

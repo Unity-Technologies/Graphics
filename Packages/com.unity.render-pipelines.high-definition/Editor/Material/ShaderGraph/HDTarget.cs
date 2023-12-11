@@ -504,8 +504,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 success = false;
             }
+            var isDebugOutputNeed =
+                GraphicsSettings.TryGetRenderPipelineSettings<AnalyticDerivativeSettings>(
+                    out var analyticDerivativeSettings) && analyticDerivativeSettings.debugOutput;
 
-            if (HDRenderPipelineGlobalSettings.instance.analyticDerivativeDebugOutput)
+            if (isDebugOutputNeed)
             {
                 string cleanName = primaryShaderName.Replace("/", "_").Replace("\\", "_"); ;
                 string dstDebugBasePath = "Temp/ShaderDerivative_" + cleanName + "__" + passName + "__";
@@ -1852,6 +1855,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+        };
+
+        public static  KeywordDescriptor UseLegacyLightmaps = new KeywordDescriptor()
+        {
+            displayName = "Use Legacy Lightmaps",
+            referenceName = "USE_LEGACY_LIGHTMAPS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
         };
     }
     #endregion

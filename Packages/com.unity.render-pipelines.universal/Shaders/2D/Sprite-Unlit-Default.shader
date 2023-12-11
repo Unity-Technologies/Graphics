@@ -27,6 +27,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
             #if defined(DEBUG_DISPLAY)
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/InputData2D.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
@@ -60,6 +61,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+            float4 _MainTex_TexelSize;
+            UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
@@ -95,7 +98,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_DATA_2D(inputData, i.positionWS);
+                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {
@@ -115,6 +118,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
             #if defined(DEBUG_DISPLAY)
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/InputData2D.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
@@ -148,6 +152,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+            float4 _MainTex_TexelSize;
+            UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
@@ -183,7 +189,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_DATA_2D(inputData, i.positionWS);
+                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {

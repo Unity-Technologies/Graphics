@@ -32,6 +32,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 UnityEditor.AssetDatabase.CopyAsset(UnityEditor.AssetDatabase.GetAssetPath(profileInResourcesFolder), path);
                 profile = UnityEditor.AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
             }
+            else
+            {
+                profile.components.Clear();
+                foreach (var resourceComponent in profileInResourcesFolder.components)
+                {
+                    var c = profile.Add(resourceComponent.GetType());
+                    for (int i = 0; i < c.parameters.Count; i++)
+                    {
+                        c.parameters[i].SetValue(resourceComponent.parameters[i]);
+                    }
+                }
+
+            }
 
             return profile;
         }
@@ -149,6 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 diffusionProfileList.ReplaceWithArray(array);
                 EditorUtility.SetDirty(volumeProfile);
+                VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
 
                 return ok;
             }
@@ -189,26 +203,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public DiffusionProfileRegisterScope()
             {
-                var globalSettings = HDRenderPipelineGlobalSettings.instance;
+                var defaultVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+                var diffusionProfileSettings = GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>();
+                m_RegisterProfiles = defaultVolumeSettings != null && diffusionProfileSettings is { autoRegister: true };
 
-                if (globalSettings == null || globalSettings.autoRegisterDiffusionProfiles == false)
+            }
+
+            public void Dispose()
+            {
+                if (m_Profiles.Count == 0)
                     return;
 
-                if (globalSettings.volumeProfile == null)
+                var defaultVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+                if (defaultVolumeSettings.volumeProfile == null)
                 {
                     Debug.LogError($"Invalid {nameof(VolumeProfile)} to auto register {nameof(DiffusionProfileSettings)}. Please use set one in Graphics Settings > HDRP.");
                     return;
                 }
 
-                m_RegisterProfiles = true;
-            }
-
-            public void Dispose()
-            {
                 DiffusionProfileSettings[] array = new DiffusionProfileSettings[m_Profiles.Count];
                 m_Profiles.CopyTo(array);
 
-                VolumeUtils.TryAddDiffusionProfiles(HDRenderPipelineGlobalSettings.instance.volumeProfile, array);
+                VolumeUtils.TryAddDiffusionProfiles(defaultVolumeSettings?.volumeProfile, array);
                 m_Profiles.Clear();
             }
         }

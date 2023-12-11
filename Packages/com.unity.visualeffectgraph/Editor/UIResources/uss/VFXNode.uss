@@ -32,6 +32,11 @@
 .VFXNodeUI.node #node-border > #title
 {
     justify-content:flex-start;
+    border-radius: 6px 6px 0 0;
+}
+
+.VFXNodeUI.node.collapsed #node-border > #title {
+    border-radius: 6px;
 }
 
 .VFXNodeUI.node #node-border > #title > #title-label
@@ -44,6 +49,7 @@
 .VFXNodeUI #contents
 {
     background-color: rgba(63,63,63,0.8);
+    border-radius: 0 0 6px 6px;
 }
 
 
@@ -93,6 +99,7 @@
     padding-top: 6px;
     padding-bottom: 6px;
     flex: 1 1 auto;
+    border-radius: 0 0 6px 0;
 }
 
 #line

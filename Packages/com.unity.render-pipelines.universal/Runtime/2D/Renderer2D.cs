@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -65,11 +66,19 @@ namespace UnityEngine.Rendering.Universal
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.coreBlitPS);
-            m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.blitHDROverlay);
-            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                    out var shadersResources))
+            {
+                m_BlitMaterial = CoreUtils.CreateEngineMaterial(shadersResources.coreBlitPS);
+                m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
+                m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
+            }
 
-            m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
+            {
+                m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial, renderer2DResources.fallOffLookup);
+            }
+
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
@@ -96,24 +105,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_Renderer2DData.lightCullResult = new Light2DCullResult();
 
-            // Initialize Blitter if UniversalRenderPipeline hasn't done so
-            bool initBlitter = Blitter.GetBlitMaterial(TextureDimension.Tex2D) == null;
-            var asset = UniversalRenderPipeline.asset;
-            if (asset != null)
-            {
-                foreach (var rendererData in asset.m_RendererDataList)
-                {
-                    if (rendererData is UniversalRendererData)
-                    {
-                        initBlitter = false;
-                        break;
-                    }
-                }
-            }
-
-            if (initBlitter)
-                Blitter.Initialize(data.coreBlitPS, data.coreBlitAdndDepthPS);
-
             LensFlareCommonSRP.mergeNeeded = 0;
             LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
             LensFlareCommonSRP.Initialize();
@@ -122,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_Renderer2DData.Dispose();
-            m_Render2DLightingPass.Dispose();
+            m_Render2DLightingPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_ColorTextureHandle?.Release();
             m_DepthTextureHandle?.Release();
@@ -262,6 +253,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
@@ -297,7 +289,7 @@ namespace UnityEngine.Rendering.Universal
                         RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
                         RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, descriptor, name: "_DebugScreenColor");
-                        
+
                         RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
                         RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
@@ -377,7 +369,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_Render2DLightingPass.Setup(renderPassInputs.requiresDepthTexture || m_UseDepthStencilBuffer);
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
+            #pragma warning restore CS0618
             EnqueuePass(m_Render2DLightingPass);
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
@@ -466,11 +461,14 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorBufferSystem.Swap();
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             //Check if we are using the depth that is attached to color buffer
             if (m_DepthTextureHandle.nameID != BuiltinRenderTextureType.CameraTarget)
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_DepthTextureHandle);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
+            #pragma warning restore CS0618
 
             m_ColorTextureHandle = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ColorTextureHandle.nameID);
@@ -478,11 +476,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ColorTextureHandle.nameID);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetBackBuffer(cmd);

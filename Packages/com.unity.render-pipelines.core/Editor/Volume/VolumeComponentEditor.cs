@@ -189,12 +189,25 @@ namespace UnityEditor.Rendering
             set => m_Inspector = value;
         }
 
-        /// <summary>
-        /// Obtains the <see cref="Volume"/> that is being edited from this volume component
-        /// </summary>
-        protected Volume volume => inspector?.target as Volume;
+        internal void SetVolume(Volume v)
+        {
+            volume = v;
+        }
 
-        VolumeProfile volumeProfile => inspector?.target as VolumeProfile;
+        /// <summary>
+        /// Obtains the <see cref="Volume"/> that is being edited if editing a scene volume, otherwise null.
+        /// </summary>
+        protected Volume volume { get; private set; }
+
+        internal void SetVolumeProfile(VolumeProfile p)
+        {
+            volumeProfile = p;
+        }
+
+        /// <summary>
+        /// Obtains the <see cref="VolumeProfile"/> that is being edited.
+        /// </summary>
+        VolumeProfile volumeProfile { get; set; }
 
         List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
@@ -239,9 +252,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         public new void Repaint()
         {
-            inspector?.Repaint();
-
-            // Volume Component Editors can be shown in the ProjectSettings window (default volume profile)
+            // Volume Component Editors can be shown in the Graphics Settings window (default volume profile)
             // This will force a repaint of the whole window, otherwise, additional properties highlight animation does not work properly.
             SettingsService.RepaintAllSettingsWindow();
 
@@ -268,12 +279,11 @@ namespace UnityEditor.Rendering
         {
             activeProperty = serializedObject.FindProperty("active");
 
-            var inspectorKey = inspector != null ? inspector.GetType().Name : string.Empty;
-
+            string inspectorKey = string.Empty;
             bool expandedByDefault = true;
             if (!enableOverrides)
             {
-                inspectorKey += "-default"; // Ensures the default VolumeProfile editor doesn't share expander state with other editors
+                inspectorKey += "default"; // Ensures the default VolumeProfile editor doesn't share expander state with other editors
                 expandedByDefault = false;
             }
 
@@ -427,6 +437,13 @@ namespace UnityEditor.Rendering
                 () => VolumeProfileUtils.AssignValuesToProfile(VolumeManager.instance.globalDefaultProfile, targetComponent, property));
         }
 
+        /// <summary>
+        /// Unity calls this method after drawing the header for each VolumeComponentEditor
+        /// </summary>
+        protected virtual void OnBeforeInspectorGUI()
+        {
+        }
+
         internal bool OnInternalInspectorGUI()
         {
             if (serializedObject == null || serializedObject.targetObject == null)
@@ -435,6 +452,7 @@ namespace UnityEditor.Rendering
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
+                OnBeforeInspectorGUI();
                 if (enableOverrides)
                     TopRowFields();
                 else
@@ -594,7 +612,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="property">The property to obtain the attributes and handle the decorators</param>
         /// <param name="title">A custom label and/or tooltip that might be updated by <see cref="TooltipAttribute"/> and/or by <see cref="InspectorNameAttribute"/></param>
-        void HandleDecorators(SerializedDataParameter property, GUIContent title)
+        internal void HandleDecorators(SerializedDataParameter property, GUIContent title)
         {
             foreach (var attr in property.attributes)
             {

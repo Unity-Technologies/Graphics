@@ -9,5 +9,6 @@ namespace UnityEngine.Rendering
     {
         public List<(Vector3Int position, Bounds bounds, Brick[] bricks)> cells = new ();
         public Dictionary<Vector3Int, HashSet<string>> scenesPerCells = new Dictionary<Vector3Int, HashSet<string>>();
+        public GIContributors? contributors = null;
     }
 }

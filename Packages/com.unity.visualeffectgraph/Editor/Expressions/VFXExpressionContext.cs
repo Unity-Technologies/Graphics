@@ -103,7 +103,13 @@ namespace UnityEditor.VFX
                 if (exp.Is(Flags.Value) && ((exp.m_Flags & (flag | Flags.InvalidOnCPU)) != flag))
                     return false;
 
-                return reducedParents.All(e => (e.m_Flags & (flag | Flags.InvalidOnCPU)) == flag);
+                foreach (var parent in reducedParents)
+                {
+                    if ((parent.m_Flags & (flag | Flags.InvalidOnCPU)) != flag)
+                        return false;
+                }
+
+                return true;
             }
 
             private VFXExpression PatchVFXExpression(VFXExpression input, VFXExpression targetExpression, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
@@ -229,15 +235,16 @@ namespace UnityEditor.VFX
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
-                    var parents = expression.parents.Select(e =>
+                    var parents = new VFXExpression[expression.parents.Length];
+                    for (var i = 0; i < expression.parents.Length; i++)
                     {
-                        var parent = Compile(e);
+                        var parent = Compile(expression.parents[i]);
                         bool currentGPUTransformation = gpuTransformation
                             && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
                             && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
                         parent = PatchVFXExpression(parent, expression, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
-                        return parent;
-                    }).ToArray();
+                        parents[i] = parent;
+                    }
 
                     if (ShouldEvaluate(expression, parents))
                     {

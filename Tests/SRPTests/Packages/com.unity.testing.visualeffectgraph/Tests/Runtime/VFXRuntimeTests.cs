@@ -498,6 +498,79 @@ namespace UnityEngine.VFX.Test
         }
 #endif
 
+        struct VFXBatchedEffectInfoContent
+        {
+            public string assetName;
+            public VFXBatchedEffectInfo infos;
+        }
+
+        VFXBatchedEffectInfoContent ConvertBatchInfo(VFXBatchedEffectInfo batchInfo)
+        {
+            return new VFXBatchedEffectInfoContent()
+            {
+                assetName = batchInfo.vfxAsset.name,
+                infos = batchInfo
+            };
+        }
+
+        string DumpBatchInfo(IEnumerable<VFXBatchedEffectInfoContent> batchInfos)
+        {
+            var str = new StringBuilder();
+            foreach (var batchInfo in batchInfos.OrderBy(o => o.assetName))
+            {
+                str.Append($"{batchInfo.assetName}");
+                str.Append($" - activeBatchCount:{batchInfo.infos.activeBatchCount}");
+                str.Append($" - inactiveBatchCount:{batchInfo.infos.inactiveBatchCount}");
+                str.Append($" - activeInstanceCount:{batchInfo.infos.activeInstanceCount}");
+                str.Append($" - unbatchedInstanceCount:{batchInfo.infos.unbatchedInstanceCount}");
+                str.Append($" - totalInstanceCapacity:{batchInfo.infos.totalInstanceCapacity}");
+                str.Append($" - maxInstancePerBatchCapacity:{batchInfo.infos.maxInstancePerBatchCapacity}");
+                //Not relevant for this test:
+                //str.Append($" - totalGPUSizeInBytes:{batchInfo.totalGPUSizeInBytes}");
+                //str.Append($" - totalCPUSizeInBytes:{batchInfo.totalCPUSizeInBytes}");
+                str.AppendLine();
+            }
+            return str.ToString();
+        }
+
+        //@gabriel: See VFXG-414, the following test is inspecting the instancing status of the test 025_ShaderKeywords.
+        [UnityTest]
+        public IEnumerator Load_Keyword_Scene_With_Instancing()
+        {
+            SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/025_ShaderKeywords.unity");
+            yield return null;
+
+            List<VisualEffectAsset> vfxAssets = new();
+            var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
+            foreach (var vfx in vfxComponents)
+            {
+                if (!vfxAssets.Contains(vfx.visualEffectAsset))
+                {
+                    vfxAssets.Add(vfx.visualEffectAsset);
+                }
+            }
+
+            List<VFXBatchedEffectInfoContent> batchInfos = new();
+            foreach (var asset in vfxAssets)
+            {
+                var batchInfo = VFXManager.GetBatchedEffectInfo(asset);
+                batchInfos.Add(ConvertBatchInfo(batchInfo));
+            }
+
+            var expectedBatchInfos = new[]
+            {
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Constant_MultiCompile", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 1, unbatchedInstanceCount = 1, totalInstanceCapacity = 1, maxInstancePerBatchCapacity = 1} },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Constant_ShaderFeature", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 1, unbatchedInstanceCount = 1, totalInstanceCapacity = 1, maxInstancePerBatchCapacity = 1 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Exposed", infos = new VFXBatchedEffectInfo() { activeBatchCount = 48, inactiveBatchCount = 0, activeInstanceCount = 48, unbatchedInstanceCount = 48, totalInstanceCapacity = 48, maxInstancePerBatchCapacity = 1 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Random", infos = new VFXBatchedEffectInfo() { activeBatchCount = 12, inactiveBatchCount = 0, activeInstanceCount = 12, unbatchedInstanceCount = 12, totalInstanceCapacity = 12, maxInstancePerBatchCapacity = 1 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Random_Animate", infos = new VFXBatchedEffectInfo() { activeBatchCount = 12, inactiveBatchCount = 0, activeInstanceCount = 12, unbatchedInstanceCount = 12, totalInstanceCapacity = 12, maxInstancePerBatchCapacity = 1 } },
+            };
+
+            var expectedBatchInfosDump = DumpBatchInfo(expectedBatchInfos);
+            var actualBatchInfosDump = DumpBatchInfo(batchInfos);
+            Assert.AreEqual(expectedBatchInfosDump, actualBatchInfosDump, $"{actualBatchInfosDump}\nvs.\n\n{expectedBatchInfosDump}");
+        }
+
         [OneTimeTearDown]
         public void TearDown()
         {

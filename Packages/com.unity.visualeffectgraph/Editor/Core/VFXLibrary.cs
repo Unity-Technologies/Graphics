@@ -86,6 +86,7 @@ namespace UnityEditor.VFX
         string name { get; }
         string category { get; }
         Type modelType { get; }
+        VFXModel unTypedModel { get; }
         public string[] synonyms { get; }
         Variant variant { get; }
         IVFXModelDescriptor[] subVariantDescriptors { get; }
@@ -119,6 +120,7 @@ namespace UnityEditor.VFX
         public IVFXModelDescriptor[] subVariantDescriptors => m_SubvariantDescriptors.Value;
         public VFXInfoAttribute infoAttribute { get; }
         public T model => m_CachedModel.Value;
+        public VFXModel unTypedModel => m_CachedModel.Value;
 
         protected internal bool isCachedModelCreated => m_CachedModel.IsValueCreated;
 

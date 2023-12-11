@@ -44,6 +44,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent enableLODCrossFadeText = EditorGUIUtility.TrTextContent("LOD Cross Fade", "Controls whether LOD Cross Fade enabled or disabled.");
             public static GUIContent lodCrossFadeDitheringTypeText = EditorGUIUtility.TrTextContent("LOD Cross Fade Dithering Type", "Controls the LOD Cross Fade Dithering Type that will be used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.");
             public static GUIContent shEvalModeText = EditorGUIUtility.TrTextContent("SH Evaluation Mode", "Defines the Spherical Harmonic (SH) lighting evaluation type (per vertex, per pixel, or mixed).");
+            public static readonly string stpRequiresRenderGraph = "STP is selected but Render Graph is not enabled. STP requires Render Graph in order to function. Unity will fall back to the Automatic option.";
+            public static readonly string stpMobilePlatformWarning = "STP is selected for use on a mobile platform. STP is only supported on modern compute-capable hardware and its performance overhead may make it impractical on lower-end devices.";
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
@@ -54,10 +56,11 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightProbeSystemContent = EditorGUIUtility.TrTextContent("Light Probe System", "What system to use for Light Probes.");
             public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the 3D textures used to store lighting data from probes. Depth is fixed.");
             public static readonly GUIContent probeVolumeBlendingMemoryBudget = EditorGUIUtility.TrTextContent("Blending Memory Budget", "Determines the width and height of the 3D textures used to store light scenario blending data from probes. Depth is fixed.");
-            public static readonly GUIContent supportProbeVolumeStreaming = EditorGUIUtility.TrTextContent("Enable Streaming", "Enable steaming of Cells in the Probe Volume system.");
-            public static readonly GUIContent supportProbeVolumeScenarios = EditorGUIUtility.TrTextContent("Enable Lighting Scenarios", "Enable Lighting Scenario Baking in the Probe Volume system.");
-            public static readonly GUIContent supportProbeVolumeScenarioBlending = EditorGUIUtility.TrTextContent("Enable Lighting Scenario Blending", "Enable Lighting Scenario Blending in the Probe Volume system.\nNote: Lighting Scenario Blending requires Compute Shader support.");
-            public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "The number of Spherical Harmonic bands used by Probe Volumes to store lighting data. Choosing L2 provides better quality but with higher memory and runtime costs.");
+            public static readonly GUIContent supportProbeVolumeGPUStreaming = EditorGUIUtility.TrTextContent("Enable GPU Streaming", "Enable steaming of Cells for Adaptive Probe Volumes.");
+            public static readonly GUIContent supportProbeVolumeDiskStreaming = EditorGUIUtility.TrTextContent("Enable Disk Streaming", "Enable steaming of Cells from disk for Adaptive Probe Volumes.");
+            public static readonly GUIContent supportProbeVolumeScenarios = EditorGUIUtility.TrTextContent("Enable Lighting Scenarios", "Enable Lighting Scenario Baking for Adaptive Probe Volumes.");
+            public static readonly GUIContent supportProbeVolumeScenarioBlending = EditorGUIUtility.TrTextContent("Enable Lighting Scenario Blending", "Enable Lighting Scenario Blending for Adaptive Probe Volumes.\nNote: Lighting Scenario Blending requires Compute Shader support.");
+            public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "The number of Spherical Harmonic bands used by Adaptive Probe Volumes to store lighting data. Choosing L2 provides better quality but with higher memory and runtime costs.");
 
             // Additional lights
             public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Additional lights support.");
@@ -120,7 +123,12 @@ namespace UnityEditor.Rendering.Universal
 
             // GPU Resident Drawer
             public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
+            public static GUIContent useLegacyLightmaps = EditorGUIUtility.TrTextContent("Use Legacy Lightmaps",
+                "When enabled, lightmaps will be bound as individual textures instead of as a single texture array. This causes the batch to break if a new lightmap needs to be bound, potentially increasing the number of draw calls."
+                + "This can reduce memory usage and may improve performance on certain hardware that doesn't support texture arrays efficiently."
+            );
             public static GUIContent smallMeshScreenPercentage = EditorGUIUtility.TrTextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.");
+            public static GUIContent gpuResidentDrawerEnableOcclusionCullingInCameras = EditorGUIUtility.TrTextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.");
 
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = EditorGUIUtility.TrTextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime");
@@ -144,6 +152,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
             public static GUIContent lightModeErrorMessage =
                 EditorGUIUtility.TrTextContent("Rendering Path must be set to Forward+ for correct lighting and reflections. One or more entries in the RendererList are not set to this mode.");
+            public static GUIContent renderGraphNotEnabledErrorMessage =
+                EditorGUIUtility.TrTextContent("Render Graph must be enabled to use occlusion culling.");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };

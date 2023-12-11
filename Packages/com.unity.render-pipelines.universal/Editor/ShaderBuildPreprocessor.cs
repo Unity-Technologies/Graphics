@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1L << 28),
         AdditionalLightsKeepOffVariants = (1L << 29),
         ShadowsKeepOffVariants = (1L << 30),
-        // Unused = (1L << 31),
+        UseLegacyLightmaps = (1L << 31),
         DecalLayers = (1L << 32),
         OpaqueWriteRenderingLayers = (1L << 33),
         GBufferWriteRenderingLayers = (1L << 34),
@@ -236,17 +236,20 @@ namespace UnityEditor.Rendering.Universal
         // Retrieves the global and platform settings used in the project...
         private static void GetGlobalAndPlatformSettings(bool isDevelopmentBuild)
         {
-            UniversalRenderPipelineGlobalSettings globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            if (globalSettings)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderStrippingSetting>(out var shaderStrippingSettings))
             {
-                s_StripUnusedPostProcessingVariants = globalSettings.stripUnusedPostProcessingVariants;
-                s_StripDebugDisplayShaders = !isDevelopmentBuild || globalSettings.stripDebugVariants;
-                s_StripUnusedVariants = globalSettings.stripUnusedVariants;
-                s_StripScreenCoordOverrideVariants = globalSettings.stripScreenCoordOverrideVariants;
+                s_StripDebugDisplayShaders = !isDevelopmentBuild || shaderStrippingSettings.stripRuntimeDebugShaders;
             }
             else
             {
                 s_StripDebugDisplayShaders = true;
+            }
+
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPShaderStrippingSetting>(out var urpShaderStrippingSettings))
+            {
+                s_StripUnusedPostProcessingVariants = urpShaderStrippingSettings.stripUnusedPostProcessingVariants;
+                s_StripUnusedVariants               = urpShaderStrippingSettings.stripUnusedVariants;
+                s_StripScreenCoordOverrideVariants  = urpShaderStrippingSettings.stripScreenCoordOverrideVariants;
             }
 
             #if XR_MANAGEMENT_4_0_1_OR_NEWER
@@ -426,6 +429,9 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.supportDataDrivenLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.DataDrivenLensFlare;
 
+            if (urpAsset.useLegacyLightmaps)
+                urpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
+
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(
                 ref urpAsset,
@@ -508,7 +514,8 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
 
             #if ENABLE_VR && ENABLE_XR_MODULE
-            rsd.needsProcedural                   = rsd.isUniversalRenderer && universalRendererData.xrSystemData != null;
+            var xrResourcesAreValid = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>()?.valid ?? false;
+            rsd.needsProcedural                   = rsd.isUniversalRenderer && xrResourcesAreValid;
             #else
             rsd.needsProcedural                   = false;
             #endif
@@ -911,6 +918,9 @@ namespace UnityEditor.Rendering.Universal
                    !IsFeatureEnabled(shaderFeatures, ShaderFeatures.DepthNormalPassRenderingLayers)
                 && !IsFeatureEnabled(shaderFeatures, ShaderFeatures.GBufferWriteRenderingLayers)
                 && !IsFeatureEnabled(shaderFeatures, ShaderFeatures.OpaqueWriteRenderingLayers);
+
+            // Disable lightmap texture arrays (GPU resident drawer)
+            spd.useLegacyLightmaps = IsFeatureEnabled(shaderFeatures, ShaderFeatures.UseLegacyLightmaps);
 
             // Screen Space Ambient Occlusion
             spd.screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Remove;

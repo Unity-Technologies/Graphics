@@ -74,8 +74,8 @@ namespace UnityEditor.VFX.HDRP
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.ScaleY, VFXAttributeMode.Read);
 
-                if (usesFlipbook)
-                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
+                foreach (var attribute in flipbookAttributes)
+                    yield return attribute;
             }
         }
 
@@ -118,6 +118,14 @@ namespace UnityEditor.VFX.HDRP
         {
             VFXQuadStripOutput.SanitizeOrient(this, version, UseCustomZAxis);
             base.Sanitize(version);
+        }
+
+        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (GetAttributesInfos().Any(x => x.mode.HasFlag(VFXAttributeMode.Write) && x.attrib.Equals(VFXAttribute.Position)))
+            {
+                manager.RegisterError("WritePositionInStrip", VFXErrorType.Warning, VFXQuadStripOutput.WriteToPositionMessage);
+            }
         }
     }
 }

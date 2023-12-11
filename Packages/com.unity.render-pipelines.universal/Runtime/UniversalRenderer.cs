@@ -163,6 +163,8 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
+        internal LayerMask opaqueLayerMask { get; set; }
+        internal LayerMask transparentLayerMask { get; set; }
 
         /// <summary>
         /// Constructor for the Universal Renderer.
@@ -174,13 +176,25 @@ namespace UnityEngine.Rendering.Universal
             PlatformAutoDetect.Initialize();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>(out var xrResources))
+                Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
 #endif
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
-            m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitHDROverlay);
-            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
-            m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
-            m_CameraMotionVecMaterial = CoreUtils.CreateEngineMaterial(data.shaders.cameraMotionVector);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                    out var shadersResources))
+            {
+                m_BlitMaterial = CoreUtils.CreateEngineMaterial(shadersResources.coreBlitPS);
+                m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
+                m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
+            }
+
+            Shader copyDephPS = null;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRendererResources>(
+                    out var universalRendererShaders))
+            {
+                copyDephPS = universalRendererShaders.copyDepthPS;
+                m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(universalRendererShaders.stencilDeferredPS);
+                m_CameraMotionVecMaterial = CoreUtils.CreateEngineMaterial(universalRendererShaders.cameraMotionVector);
+            }
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -191,6 +205,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
+            opaqueLayerMask = data.opaqueLayerMask;
+            transparentLayerMask = data.transparentLayerMask;
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false)
             {
@@ -239,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass
-            m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, data.shaders.copyDepthPS);
+            m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, copyDephPS);
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -247,7 +263,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderingModeRequested == RenderingMode.Forward || renderingModeRequested == RenderingMode.ForwardPlus)
             {
-                m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, data.shaders.copyDepthPS, true, true);
+                m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDephPS, true, true);
             }
 
             if (this.renderingModeRequested == RenderingMode.Deferred)
@@ -275,7 +291,7 @@ namespace UnityEngine.Rendering.Universal
                     new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
                 };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
-                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, data.shaders.copyDepthPS, true);
+                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, copyDephPS, true);
                 m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingDeferredLights, m_DeferredLights);
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
             }
@@ -288,7 +304,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_CopyDepthPass = new CopyDepthPass(
                 copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox,
-                data.shaders.copyDepthPS,
+                copyDephPS,
                 shouldClear: true,
                 copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents);
 
@@ -306,7 +322,7 @@ namespace UnityEngine.Rendering.Universal
             // History generation passes for "raw color/depth". These execute only if explicitly requested by users.
             // VFX system particles uses these. See RawColorHistory.cs.
             m_HistoryRawColorCopyPass = new CopyColorPass(RenderPassEvent.BeforeRenderingPostProcessing, m_SamplingMaterial, m_BlitMaterial, customPassName: "CopyColorPass.RawColorHistory");
-            m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, data.shaders.copyDepthPS, false, RenderingUtils.MultisampleDepthResolveSupported(), customPassName: "CopyDepthPass.RawDepthHistory");
+            m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, copyDephPS, false, RenderingUtils.MultisampleDepthResolveSupported(), customPassName: "CopyDepthPass.RawDepthHistory");
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
             m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
@@ -326,9 +342,9 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
 
 #if UNITY_EDITOR
-            m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, data.shaders.copyDepthPS);
-            var debugShaders = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>();
-            m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders?.probeVolumeSamplingDebugComputeShader);
+            m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, copyDephPS);
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>(out var debugShaders))
+                m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders.probeVolumeSamplingDebugComputeShader);
 #endif
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -459,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         case DebugFullScreenMode.Depth:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.nameID, normalizedRect, true);
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture, normalizedRect, true);
                             break;
                         }
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
@@ -474,7 +490,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                         case DebugFullScreenMode.ReflectionProbeAtlas:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRT, normalizedRect, false);
+                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRTHandle, normalizedRect, false);
                             break;
                         }
                         default:
@@ -555,7 +571,22 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        internal bool HasPassesRequiringIntermediateTexture()
+        {
+            if (activeRenderPassQueue.Count == 0)
+                return false;
+
+            foreach (var pass in activeRenderPassQueue)
+            {
+                if (pass.requiresIntermediateTexture)
+                    return true;
+            }
+
+            return false;
+        }
+
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
@@ -617,6 +648,7 @@ namespace UnityEngine.Rendering.Universal
             bool isPreviewCamera = cameraData.isPreviewCamera;
             var createColorTexture = ((HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always) && !isPreviewCamera) ||
                 (Application.isEditor && m_Clustering);
+            createColorTexture |= HasPassesRequiringIntermediateTexture();
 
             // Gather render pass history requests and update history textures.
             UpdateCameraHistory(cameraData);
@@ -1153,8 +1185,11 @@ namespace UnityEngine.Rendering.Universal
                 else
                     renderOpaqueForwardPass = m_RenderOpaqueForwardPass;
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 renderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 renderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
+                #pragma warning restore CS0618
 
                 // If there is any custom render pass renders to opaque pass' target before opaque pass,
                 // we can't clear color as it contains the valid rendering output.
@@ -1167,7 +1202,12 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO: investigate DX XR clear issues.
                 if (SystemInfo.usesLoadStoreActions)
 #endif
-                renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
+                {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
+                    renderOpaqueForwardPass.ConfigureClear(opaqueForwardPassClearFlag, Color.black);
+                    #pragma warning restore CS0618
+                }
 
                 EnqueuePass(renderOpaqueForwardPass);
             }
@@ -1254,8 +1294,11 @@ namespace UnityEngine.Rendering.Universal
                         transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
                 }
 
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
+                #pragma warning restore CS0618
                 EnqueuePass(m_RenderTransparentForwardPass);
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
@@ -1442,7 +1485,10 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawColorCopyPass.Setup(m_ActiveCameraColorAttachment, colorHistory.GetCurrentTexture(multipassId), Downsampling.None);
                             // See pass creation for actual execution order.
+                            // Disable obsolete warning for internal usage
+                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawColorCopyPass);
+                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1468,7 +1514,10 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, depthHistory.GetCurrentTexture(multipassId));
                             // See pass creation for actual execution order.
+                            // Disable obsolete warning for internal usage
+                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawDepthCopyPass);
+                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1476,6 +1525,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = frameData.Get<UniversalRenderingData>();
@@ -1486,7 +1536,7 @@ namespace UnityEngine.Rendering.Universal
                 universalRenderingData, cameraData, lightData);
 
             if (this.renderingModeActual == RenderingMode.Deferred)
-                m_DeferredLights.SetupLights(renderingData.commandBuffer, cameraData, lightData);
+                m_DeferredLights.SetupLights(renderingData.commandBuffer, cameraData, new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height), lightData);
         }
 
         /// <inheritdoc />
@@ -1557,10 +1607,15 @@ namespace UnityEngine.Rendering.Universal
             // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
             if (useRenderPassEnabled && m_DeferredLights.UseFramebufferFetch)
             {
+                // Disable obsolete warning for internal usage
+                #pragma warning disable CS0618
                 m_GBufferPass.Configure(null, cameraTargetDescriptor);
                 m_DeferredPass.Configure(null, cameraTargetDescriptor);
+                #pragma warning restore CS0618
             }
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
@@ -1573,6 +1628,7 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredPass);
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
+            #pragma warning restore CS0618
         }
 
         private struct RenderPassInputSummary
@@ -1648,8 +1704,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget)
                 {
+                    // Disable obsolete warning for internal usage
+                    #pragma warning disable CS0618
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                     ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
+                    #pragma warning restore CS0618
+
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
                     //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
                     cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
@@ -1774,11 +1834,14 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorBufferSystem.Swap();
 
+            // Disable obsolete warning for internal usage
+            #pragma warning disable CS0618
             //Check if we are using the depth that is attached to color buffer
             if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
-                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ActiveCameraDepthAttachment);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
+            #pragma warning restore CS0618
 
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
@@ -1786,11 +1849,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd);
         }
 
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         internal override RTHandle GetCameraColorBackBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetBackBuffer(cmd);
@@ -1804,7 +1869,8 @@ namespace UnityEngine.Rendering.Universal
         internal override bool supportsNativeRenderPassRendergraphCompiler
         {
             get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3    // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 // UUM-56295
             ;
         }

@@ -13,7 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
-            public static readonly string customPostProcessNotInGlobalSettingsText = "This Custom Postprocess is not registered in the Global Settings.";
+            public const string helpBoxLabel = "Custom Post Process Orders";
+            public const string helpBoxMessage = "This Custom Post Process is not registered in ProjectSettings > Graphics.";
         }
 
         /// <summary>
@@ -26,14 +27,14 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </remarks>
         public override void OnInspectorGUI()
         {
-            if (!HDRenderPipelineGlobalSettings.instance?.IsCustomPostProcessRegistered(target.GetType()) ?? false)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<CustomPostProcessOrdersSettings>(out var customPPOrders) && customPPOrders.IsCustomPostProcessRegistered(target.GetType()))
             {
-                HDEditorUtils.GlobalSettingsHelpBox(Styles.customPostProcessNotInGlobalSettingsText,
-                    MessageType.Error, HDRenderPipelineGlobalSettingsUI.Styles.customPostProcessOrderLabel.text);
-                return;
+                base.OnInspectorGUI();
             }
-
-            base.OnInspectorGUI();
+            else
+            {
+                HDEditorUtils.GlobalSettingsHelpBox(Styles.helpBoxMessage, MessageType.Error, Styles.helpBoxLabel);
+            }
         }
     }
 }

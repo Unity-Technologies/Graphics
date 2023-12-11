@@ -108,17 +108,27 @@ namespace UnityEngine.Rendering
 
         internal class CellStreamingScratchBuffer
         {
-            public CellStreamingScratchBuffer(int chunkCount, int chunkSize)
+            public CellStreamingScratchBuffer(int chunkCount, int chunkSize, bool allocateGraphicsBuffers)
             {
+                this.chunkCount = chunkCount;
+
                 // With a stride of 4 (one uint)
                 // Number of elements for chunk data: chunkCount * chunkSize / 4
                 // Number of elements for dest chunk data (Vector4Int): chunkCount * 4;
                 var bufferSize = chunkCount * chunkSize / 4 + chunkCount * 4;
-                for (int i = 0; i < 2; i++)
-                    m_GraphicsBuffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Raw, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSize, 4);
+
+                // Account for additional padding needed
+                bufferSize += 2 * chunkCount * sizeof(uint);
+
+                if (allocateGraphicsBuffers)
+                {
+                    for (int i = 0; i < 2; i++)
+                        m_GraphicsBuffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Raw, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSize, sizeof(uint));
+                }
+
                 m_CurrentBuffer = 0;
 
-                stagingBuffer = new NativeArray<byte>(bufferSize * 4, Allocator.Persistent);
+                stagingBuffer = new NativeArray<byte>(bufferSize * sizeof(uint), Allocator.Persistent);
             }
 
             public void Swap()
@@ -129,7 +139,7 @@ namespace UnityEngine.Rendering
             public void Dispose()
             {
                 for (int i = 0; i < 2; ++i)
-                    m_GraphicsBuffers[i].Dispose();
+                    m_GraphicsBuffers[i]?.Dispose();
                 stagingBuffer.Dispose();
             }
 
@@ -138,6 +148,7 @@ namespace UnityEngine.Rendering
             // We could have double buffered at the CellStreamingScratchBuffer level itself but it would consume more memory (native+graphics buffer x2)
             public GraphicsBuffer buffer => m_GraphicsBuffers[m_CurrentBuffer];
             public NativeArray<byte> stagingBuffer; // Contains data streamed from disk. To be copied into the graphics buffer.
+            public int chunkCount { get; }
 
             int m_CurrentBuffer;
             GraphicsBuffer[] m_GraphicsBuffers = new GraphicsBuffer[2];
@@ -354,6 +365,15 @@ namespace UnityEngine.Rendering
         bool m_DiskStreamingUseCompute = false;
         ProbeVolumeScratchBufferPool m_ScratchBufferPool;
 
+        CellStreamingRequest.OnStreamingCompleteDelegate m_OnStreamingComplete;
+        CellStreamingRequest.OnStreamingCompleteDelegate m_OnBlendingStreamingComplete;
+
+        void InitStreaming()
+        {
+            m_OnStreamingComplete = OnStreamingComplete;
+            m_OnBlendingStreamingComplete = OnBlendingStreamingComplete;
+        }
+
         void CleanupStreaming()
         {
             // Releases all active and pending canceled requests.
@@ -379,6 +399,9 @@ namespace UnityEngine.Rendering
             m_StreamingRequestsPool = new ObjectPool<CellStreamingRequest>((val) => val.Clear(), null);
             m_ActiveStreamingRequests.Clear();
             m_StreamingQueue.Clear();
+
+            m_OnStreamingComplete = null;
+            m_OnBlendingStreamingComplete = null;
         }
 
         internal void ScenarioBlendingChanged(bool scenarioChanged)
@@ -451,7 +474,7 @@ namespace UnityEngine.Rendering
                 requiredIndexChunks += cell.desc.indexChunkCount;
             }
 
-            foreach (var cell in m_LoadedCells) 
+            foreach (var cell in m_LoadedCells)
             {
                 ComputeCellStreamingScore(cell, cameraPosition, cameraDirection);
 
@@ -1042,7 +1065,7 @@ namespace UnityEngine.Rendering
             var cellDesc = cell.desc;
             var cellData = cell.data;
 
-            if (!m_ScratchBufferPool.AllocateScratchBuffer(cellDesc.shChunkCount, out var cellStreamingScratchBuffer, out var layout))
+            if (!m_ScratchBufferPool.AllocateScratchBuffer(cellDesc.shChunkCount, out var cellStreamingScratchBuffer, out var layout, m_DiskStreamingUseCompute))
                 return false;
 
             if (!m_CurrentBakingSet.HasValidSharedData())
@@ -1056,8 +1079,6 @@ namespace UnityEngine.Rendering
                 Debug.LogError($"One or more data file missing for baking set {m_CurrentBakingSet.name} scenario {lightingScenario}. Cannot load scenario data.");
                 return false;
             }
-
-            var scratchBuffer = cellStreamingScratchBuffer.buffer;
 
             if (probeVolumeDebug.verboseStreamingLog)
             {
@@ -1077,7 +1098,6 @@ namespace UnityEngine.Rendering
             request.bytesWritten = 0;
 
             var mappedBuffer = request.scratchBuffer.stagingBuffer;
-            int mappedBufferSize = scratchBuffer.count * scratchBuffer.stride;
 
             var mappedBufferBaseAddr = (byte*)mappedBuffer.GetUnsafePtr();
             var mappedBufferAddr = mappedBufferBaseAddr;
@@ -1246,9 +1266,12 @@ namespace UnityEngine.Rendering
                             // We need to go through a temporary buffer and copy into the GraphicsBuffer when streaming is done.
                             // This can be a first step to later on, use compressed data on disk to lighten the I/O load and decompress
                             // directly in the graphics buffer.
-                            var mappedBuffer = request.scratchBuffer.buffer.LockBufferForWrite<byte>(0, request.scratchBuffer.buffer.count * request.scratchBuffer.buffer.stride);
-                            mappedBuffer.CopyFrom(request.scratchBuffer.stagingBuffer);
-                            request.scratchBuffer.buffer.UnlockBufferAfterWrite<byte>(request.scratchBuffer.stagingBuffer.Length);
+                            if (request.scratchBuffer.buffer != null)
+                            {
+                                var mappedBuffer = request.scratchBuffer.buffer.LockBufferForWrite<byte>(0, request.scratchBuffer.stagingBuffer.Length);
+                                mappedBuffer.CopyFrom(request.scratchBuffer.stagingBuffer);
+                                request.scratchBuffer.buffer.UnlockBufferAfterWrite<byte>(request.scratchBuffer.stagingBuffer.Length);
+                            }
                             request.onStreamingComplete(request, cmd);
 
                             // We can release here because the GraphicsBuffer inside the scratchBuffer is double buffered.
@@ -1359,11 +1382,11 @@ namespace UnityEngine.Rendering
             }
         }
 
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
         void LogStreaming(string log)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             Debug.Log(log);
-#endif
         }
     }
 }

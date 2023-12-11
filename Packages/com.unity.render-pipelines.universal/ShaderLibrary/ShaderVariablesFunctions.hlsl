@@ -218,7 +218,7 @@ half AlphaClip(half alpha, half cutoff)
 // NOTE: When _ALPHATEST_ON is not defined, this function is effectively a no-op.
 real AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
-#ifdef _ALPHATEST_ON
+#if defined(_ALPHATEST_ON)
     if (IsAlphaDiscardEnabled())
         alpha = AlphaClip(alpha, cutoff + offset);
 #endif
@@ -403,7 +403,7 @@ float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 
 half3 MixFog(half3 fragColor, half fogFactor)
 {
-    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
+    return MixFogColor(fragColor, half3(unity_FogColor.rgb), fogFactor);
 }
 
 float3 MixFog(float3 fragColor, float fogFactor)
@@ -521,6 +521,12 @@ uint DecodeMeshRenderingLayer(float renderingLayer)
     // - Parameter f is float instead of real
     uint maxInt = _RenderingLayerMaxInt;
     return (uint)(renderingLayer * maxInt + 0.5); // Round instead of truncating
+}
+
+// TODO: implement
+float GetCurrentExposureMultiplier()
+{
+    return 1;
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
