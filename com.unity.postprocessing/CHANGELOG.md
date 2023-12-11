@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed obsolete FormatUsage error
+- Fixed non-scalar logical operation error
 - Fixed MSVO to support platforms with limited storage texture support
 - Fixed compute based effects not supported on WebGL and Android OpenGL (IN-2999)
 - Fixed grid gizmo is visible through geometry when Post Process Layer is enabled (IN-10318)

@@ -179,7 +179,7 @@ half3 SRGBToLinear(half3 c)
 #else
     half3 linearRGBLo = c / 12.92;
     half3 linearRGBHi = PositivePow((c + 0.055) / 1.055, half3(2.4, 2.4, 2.4));
-    half3 linearRGB = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
+    half3 linearRGB = half3((c.x <= 0.04045) ? linearRGBLo.x : linearRGBHi.x, (c.y <= 0.04045) ? linearRGBLo.y : linearRGBHi.y, (c.z <= 0.04045) ? linearRGBLo.z : linearRGBHi.z);
     return linearRGB;
 #endif
 }
@@ -212,7 +212,7 @@ half3 LinearToSRGB(half3 c)
 #else
     half3 sRGBLo = c * 12.92;
     half3 sRGBHi = (PositivePow(c, half3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-    half3 sRGB = (c <= 0.0031308) ? sRGBLo : sRGBHi;
+    half3 sRGB = half3((c.x <= 0.0031308) ? sRGBLo.x : sRGBHi.x, (c.y <= 0.0031308) ? sRGBLo.y : sRGBHi.y, (c.z <= 0.0031308) ? sRGBLo.z : sRGBHi.z);
     return sRGB;
 #endif
 }
