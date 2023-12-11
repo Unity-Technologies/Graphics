@@ -1,69 +1,51 @@
-# Volumes
+# Understand volumes
 
-The Universal Render Pipeline (URP) uses the Volume framework. Volumes can override or extend Scene properties depending on the Camera position relative to each Volume.
+The Universal Render Pipeline (URP) uses volumes for [post-processing](integration-with-post-processing.md#post-proc-how-to) effects. Volumes can override or extend scene properties depending on the camera position relative to each volume.
 
-URP uses the Volume framework for [post-processing](integration-with-post-processing.md#post-proc-how-to) effects.
+You can create the following dedicated volume GameObjects:
 
-URP implements dedicated GameObjects for Volumes: **Global Volume**, **Box Volume**, **Sphere Volume**, **Convex Mesh Volume**.
+- Global Volume
+- Box Volume
+- Sphere Volume
+- Convex Mesh Volume
 
-![Volume types](Images/post-proc/volume-volume-types.png)
+You can also add a Volume component to any GameObject. A scene can contain multiple GameObjects with Volume components. You can add multiple Volume components to a GameObject.
 
-The Volume component contains the **Mode** property that defines whether the Volume is Global or Local.
+At runtime, URP goes through all the enabled Volume components attached to active GameObjects in the scene, and determines each volume's contribution to the final scene settings. URP uses the camera position and the Volume component properties to calculate the contribution. URP interpolates values from all volumes with a non-zero contribution to calculate the final property values.
 
-![Volume Mode property](Images/post-proc/volume-mode-prop.png)
+## Global and local volumes
 
-With Mode set to **Global**, Volumes affect the Camera everywhere in the scene. With Mode set to **Local**, Volumes affect the Camera if the Camera is within the bounds of the Collider. For more information, refer to [How to use Local Volumes](#volume-local).
+There are two types of volume:
 
-You can add a **Volume** component to any GameObject. A scene can contain multiple GameObjects with Volume components. You can add multiple Volume components to a GameObject.
+- Global volumes affect the camera everywhere in the scene.
+- Local volumes affect the camera only if the camera is near the bounds of the collider on the parent GameObject.
 
-The Volume component references a [Volume Profile](Volume-Profile.md), which contains the Scene properties. A Volume Profile contains default values for every property and hides them by default. [Volume Overrides](VolumeOverrides.md) let you change or extend the default properties in a [Volume Profile](Volume-Profile.md).
+Refer to [Set up a volume](set-up-a-volume.md) for more information.
 
-At runtime, URP goes through all of the enabled Volume components attached to active GameObjects in the scene, and determines each Volume's contribution to the final Scene settings. URP uses the Camera position and the Volume component properties to calculate the contribution. URP interpolates values from all Volumes with a non-zero contribution to calculate the final property values.
+## Volume Profiles and Volume Overrides
 
-## Volume component properties
+Each Volume component references a Volume Profile, which contains scene properties in one or more Volume Overrides. Each Volume Override controls different settings. 
 
-Volumes components contain properties that control how they affect Cameras and how they interact with other Volumes.
+![Vignette post-processing effect in the URP Template SampleScene](Images/post-proc/post-proc-as-volume-override.png)
+A GameObject with a global volume. The Volume Profile has **Vignette** and **Tonemapping** Volume Overrides.
 
-![](/Images/Inspectors/Volume1.png)
+Refer to the following for more information: 
 
-| Property           | Description                                                  |
-| :----------------- | :----------------------------------------------------------- |
-| **Mode**           | Use the drop-down to select the method that URP uses to calculate whether this Volume can affect a Camera:<br />&#8226; **Global**: Makes the Volume have no boundaries and allow it to affect every Camera in the scene.<br />&#8226; **Local**: Allows you to specify boundaries for the Volume so that the Volume only affects Cameras inside the boundaries. Add a Collider to the Volume's GameObject and use that to set the boundaries. |
-| **Blend Distance** | The furthest distance from the Volume’s Collider that URP starts blending from. A value of 0 means URP applies this Volume’s overrides immediately upon entry.<br />This property only appears when you select **Local** from the **Mode** drop-down. |
-| **Weight**         | The amount of influence the Volume has on the scene. URP applies this multiplier to the value it calculates using the Camera position and Blend Distance. |
-| **Priority**       | URP uses this value to determine which Volume it uses when Volumes have an equal amount of influence on the scene. URP uses Volumes with higher priorities first. |
-| **Profile**        | A Volume Profile Asset that contains the Volume Components that store the properties URP uses to handle this Volume. |
+- [Create a Volume Profile](Volume-Profile.md)
+- [Configure Volume Overrides](VolumeOverrides.md)
 
-## Volume Profiles
+## Default volumes
 
-The **Profile** field stores a [Volume Profile](Volume-Profile.md), which is an Asset that contains the properties that URP uses to render the scene. You can edit this Volume Profile, or assign a different Volume Profile to the **Profile** field. You can also create a Volume Profile or clone the current one by clicking the **New** and **Clone** buttons respectively.
+All URP scenes have two default global volumes:
 
-## <a name="volume-local"></a>How to use Local Volumes
+- The Default Volume for your whole project, which uses the Volume Profile set in **Project Settings** > **URP Global Settings** > **Default Volume Profile**.
+- The global volume for the active quality level, which uses the Volume Profile set in the active [URP Asset](universalrp-asset.md) > **Volumes** > **Volume Profile**.
 
-This section describes how to use a Local Volume to implement a location-based post-processing effect.
+URP evaluates the default volumes only when you first load a scene or when you change the [quality level](https://docs.unity3d.com/Manual/class-QualitySettings.html), instead of every frame. If you use only the default volumes in a scene, URP has less work to do at runtime.
 
-In this example, URP applies a post-processing effect when the Camera is within a certain Box Collider.
+URP sets the default volumes to the lowest priority, so any volume you add to a scene overrides them.
 
-1. In the scene, create a new Box Volume (**GameObject > Volume > Box Volume**).
+Refer to the following for more information:
 
-2. Select the Box Volume. In Inspector, In the **Volume** component, In the **Profile** field, click **New**.
-
-    ![Create new Volume Profile.](Images/post-proc/volume-box-new-profile.png)
-
-    Unity creates the new Volume Profile and adds the **Add Override** button to the Volume component.
-
-    ![New Volume Profile created.](Images/post-proc/volume-new-profile-created.png)
-
-3. If you have other Volumes in the scene, change the value of the Priority property to ensure that the Overrides from this Volume have higher priority than those of other Volumes.
-
-    ![Volume priority](Images/post-proc/volume-priority.png)
-
-3. Click [Add Override](VolumeOverrides.md#volume-add-override). In the Volume Overrides dialog box, select a post-processing effect.
-
-4. In the Collider component, adjust the Size and the Center properties so that the Collider occupies the volume where you want the local post-processing effect to be.
-
-    ![Adjust the Box Collider size and position.](Images/post-proc/volume-box-collider.png)
-
-    Ensure that the **Is Trigger** check box is selected.
-
-Now, when the Camera is within the bounds of the Volume's Box Collider, URP uses the Volume Overrides from the Box Volume.
+- [Configure the Default Volume](set-up-a-volume.md#configure-the-default-volume)
+- [Configure the global volume for a quality level](set-up-a-volume.md#configure-the-global-volume-for-a-quality-level)
