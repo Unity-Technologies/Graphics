@@ -1,4 +1,6 @@
 <tr>
-<td>**UseRoughnessMap**</td>
-<td>Toggles whether the material uses the **RoughnessMap** property or the **Roughness** property to set the roughness of its surface. Enable this checkbox to use the **RoughnessMap** property, disable this checkbox to use the **Roughness** property.</td>
+<td><strong>UseRoughnessMap</strong></td>
+<td></td>
+<td></td>
+<td>Toggles whether the material uses the <strong>RoughnessMap</strong> property or the <strong>Roughness</strong> property to set the roughness of its surface. Enable this checkbox to use the <strong>RoughnessMap</strong> property, disable this checkbox to use the <strong>Roughness</strong> property.</td>
 </tr>

@@ -1,6 +1,6 @@
 <tr>
-<td>**Coat Normal World Space**</td>
+<td><strong>Coat Normal World Space</strong></td>
 <td>The normal, in world space, for the coat.</td>
-<td>&#8226; **Material** set to **StackLit** <br/>&#8226; **Coat** enabled <br/>&#8226; **Coat Normal** enabled <br/>&#8226; **Fragment Normal Space** set to **World**</td>
+<td>&#8226; <strong>Material</strong> set to <strong>StackLit</strong> <br/>&#8226; <strong>Coat</strong> enabled <br/>&#8226; <strong>Coat Normal</strong> enabled <br/>&#8226; <strong>Fragment Normal Space</strong> set to <strong>World</strong></td>
 <td>CoordinateSpace.World</td>
 </tr>
