@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -28,6 +29,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -37,6 +39,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: UUM-27717
@@ -46,6 +49,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 43
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: UUM-27717
@@ -55,6 +59,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Post Process needs fixing
@@ -64,6 +69,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Post Process needs fixing
@@ -73,6 +79,27 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: PS4 Pro doesn't accept backbuffer target resolution
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 606833216bc06f442aeede4ae93a98be, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Mask Shader not rendering
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 606833216bc06f442aeede4ae93a98be, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Mask Shader not rendering
