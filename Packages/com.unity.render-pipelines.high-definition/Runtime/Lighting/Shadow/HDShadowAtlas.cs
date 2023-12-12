@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
             internal bool useSharedTexture;
             internal int width;
             internal int height;
-            internal int atlasShaderID;
             internal int maxShadowRequests;
             internal string name;
             internal bool isShadowCache;
@@ -30,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal RenderTextureFormat format;
             internal ConstantBuffer<ShaderVariablesGlobal> cb;
 
-            internal HDShadowAtlasInitParameters(HDRenderPipeline renderPipeline, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID,
+            internal HDShadowAtlasInitParameters(HDRenderPipeline renderPipeline, RenderGraph renderGraph, bool useSharedTexture, int width, int height,
                                                  Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
             {
                 this.renderPipeline = renderPipeline;
@@ -38,7 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 this.useSharedTexture = useSharedTexture;
                 this.width = width;
                 this.height = height;
-                this.atlasShaderID = atlasShaderID;
                 this.clearMaterial = clearMaterial;
                 this.maxShadowRequests = maxShadowRequests;
                 this.initParams = initParams;
@@ -79,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         string m_MomentCopyName;
         string m_IntermediateSummedAreaName;
         string m_SummedAreaName;
-        int m_AtlasShaderID;
         HDRenderPipeline m_RenderPipeline;
 
         // Moment shadow data
@@ -126,7 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MomentCopyName = m_Name + "MomentCopy";
             m_IntermediateSummedAreaName = m_Name + "IntermediateSummedArea";
             m_SummedAreaName = m_Name + "SummedAreaFinal";
-            m_AtlasShaderID = initParams.atlasShaderID;
             m_ClearMaterial = initParams.clearMaterial;
             m_BlurAlgorithm = initParams.blurAlgorithm;
             m_RenderPipeline = initParams.renderPipeline;

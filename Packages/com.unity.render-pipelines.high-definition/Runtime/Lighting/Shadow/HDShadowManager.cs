@@ -735,7 +735,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 useSharedTexture: false,
                 initParams.punctualLightShadowAtlas.shadowAtlasResolution,
                 initParams.punctualLightShadowAtlas.shadowAtlasResolution,
-                HDShaderIDs._ShadowmapAtlas,
                 m_ClearShadowMaterial,
                 initParams.maxShadowRequests,
                 initParams, m_GlobalShaderVariables)
@@ -755,7 +754,6 @@ namespace UnityEngine.Rendering.HighDefinition
             dirAtlasInitParams.useSharedTexture = true;
             dirAtlasInitParams.width = 1;
             dirAtlasInitParams.height = 1;
-            dirAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapCascadeAtlas;
             dirAtlasInitParams.blurAlgorithm = cascadeBlur;
             dirAtlasInitParams.depthBufferBits = initParams.directionalShadowsDepthBits;
             dirAtlasInitParams.name = "Cascade Shadow Map Atlas";
@@ -771,7 +769,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaAtlasInitParams.useSharedTexture = false;
                 areaAtlasInitParams.width = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.height = initParams.areaLightShadowAtlas.shadowAtlasResolution;
-                areaAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapAreaAtlas;
                 areaAtlasInitParams.blurAlgorithm = GetAreaLightShadowBlurAlgorithm();
                 areaAtlasInitParams.depthBufferBits = initParams.areaLightShadowAtlas.shadowAtlasDepthBits;
                 areaAtlasInitParams.name = "Area Light Shadow Map Atlas";
@@ -791,7 +788,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedPunctualAtlasInitParams.useSharedTexture = true;
             cachedPunctualAtlasInitParams.width = initParams.cachedPunctualLightShadowAtlas;
             cachedPunctualAtlasInitParams.height = initParams.cachedPunctualLightShadowAtlas;
-            cachedPunctualAtlasInitParams.atlasShaderID = HDShaderIDs._CachedShadowmapAtlas;
             cachedPunctualAtlasInitParams.name = "Cached Shadow Map Atlas";
             cachedPunctualAtlasInitParams.isShadowCache = true;
 
@@ -802,7 +798,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cachedAreaAtlasInitParams.useSharedTexture = true;
                 cachedAreaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
                 cachedAreaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
-                cachedAreaAtlasInitParams.atlasShaderID = HDShaderIDs._CachedAreaLightShadowmapAtlas;
                 cachedAreaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
                 cachedAreaAtlasInitParams.isShadowCache = true;
 

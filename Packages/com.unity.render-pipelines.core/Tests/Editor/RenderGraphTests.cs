@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(4, compiledPasses.size);
@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(2, compiledPasses.size);
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(4, compiledPasses.size);
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.Tests
                     builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
                 }
 
-                m_RenderGraph.CompileRenderGraph();
+                m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
             });
         }
 
@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(6, compiledPasses.size);
@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(3, compiledPasses.size);
@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(3, compiledPasses.size);
@@ -421,7 +421,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(3, compiledPasses.size);
@@ -455,7 +455,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(3, compiledPasses.size);
@@ -480,7 +480,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
             }
 
-            m_RenderGraph.CompileRenderGraph();
+            m_RenderGraph.CompileRenderGraph(m_RenderGraph.ComputeGraphHash());
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(2, compiledPasses.size);
@@ -570,6 +570,193 @@ namespace UnityEngine.Rendering.Tests
                 builder.UseTexture(texture0, AccessFlags.Read);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
+        }
+
+        [Test]
+        public void ComputeHashDifferentPerResolution()
+        {
+            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
+
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(256, 256) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+            }
+
+            var hash0 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(512, 512) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture1, 0);
+                builder.SetRenderFunc< RenderGraphTestPassData>(RenderFunc);
+            }
+
+            var hash1 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            Assert.AreNotEqual(hash0, hash1);
+        }
+
+        [Test]
+        public void ComputeHashDifferentForMSAA()
+        {
+            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
+
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, msaaSamples = MSAASamples.None });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+            }
+
+            var hash0 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, msaaSamples = MSAASamples.MSAA4x });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+            }
+
+            var hash1 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            Assert.AreNotEqual(hash0, hash1);
+        }
+
+        [Test]
+        public void ComputeHashDifferentForRenderFunc()
+        {
+            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
+            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
+
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+            }
+
+            var hash0 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
+            }
+
+            var hash1 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            Assert.AreNotEqual(hash0, hash1);
+        }
+
+        [Test]
+        public void ComputeHashDifferentForMorePasses()
+        {
+            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
+            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
+            static void RenderFunc3(RenderGraphTestPassData data, RenderGraphContext context) { }
+
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+            }
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
+                builder.ReadTexture(texture0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
+            }
+
+            var hash0 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+            }
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc3);
+            }
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
+                builder.ReadTexture(texture0);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
+            }
+
+            var hash1 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            Assert.AreNotEqual(hash0, hash1);
+        }
+
+        [Test]
+        public void ComputeHashSameForOneSetup()
+        {
+            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
+            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
+            static void RenderFunc3(RenderGraphTestPassData data, RenderGraphContext context) { }
+
+            static void RecordRenderGraph(RenderGraph renderGraph)
+            {
+                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+                    builder.UseColorBuffer(texture0, 0);
+                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
+                }
+
+                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                {
+                    builder.UseColorBuffer(texture0, 0);
+                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc3);
+                }
+
+                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+                {
+                    builder.WriteTexture(renderGraph.ImportBackbuffer(0));
+                    builder.ReadTexture(texture0);
+                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
+                }
+            }
+
+            RecordRenderGraph(m_RenderGraph);
+
+            var hash0 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            RecordRenderGraph(m_RenderGraph);
+
+            var hash1 = m_RenderGraph.ComputeGraphHash();
+            m_RenderGraph.ClearCompiledGraph();
+
+            Assert.AreEqual(hash0, hash1);
         }
 
         /*

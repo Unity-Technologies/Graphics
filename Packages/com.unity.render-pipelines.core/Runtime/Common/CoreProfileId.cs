@@ -8,6 +8,6 @@ namespace UnityEngine.Rendering
         APVIndexDefragUpdate,
         APVDiskStreamingUpdate,
         APVDiskStreamingUpdatePool,
-        APVSamplingDebug
+        APVSamplingDebug,
     }
 }

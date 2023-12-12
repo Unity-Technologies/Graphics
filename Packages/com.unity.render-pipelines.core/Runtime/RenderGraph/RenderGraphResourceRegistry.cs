@@ -168,19 +168,31 @@ namespace UnityEngine.Rendering.RenderGraphModule
         List<CoreRendererList> m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
+        void CheckTextureResource(TextureResource texResource)
+        {
+            if (texResource.graphicsResource == null && !texResource.imported)
+                throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+        }
+
         internal RTHandle GetTexture(in TextureHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
             var texResource = GetTextureResource(handle.handle);
-            var resource = texResource.graphicsResource;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (resource == null && !texResource.imported)
-                throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
-#endif
+            CheckTextureResource(texResource);
+            return texResource.graphicsResource;
+        }
 
-            return resource;
+        // This index overload will not check frame validity.
+        // Its only purpose is because the NRP compiled graph stores resource handles that would not be frame valid when reused.
+        internal RTHandle GetTexture(int index)
+        {
+            var texResource = GetTextureResource(index);
+            CheckTextureResource(texResource);
+            return texResource.graphicsResource;
         }
 
         internal bool TextureNeedsFallback(in TextureHandle handle)
@@ -217,19 +229,33 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return CoreRendererList.nullRendererList;
         }
 
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
+        void CheckBufferResource(BufferResource bufferResoruce)
+        {
+            if (bufferResoruce.graphicsResource == null)
+                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+        }
+
         internal GraphicsBuffer GetBuffer(in BufferHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
             var bufferResource = GetBufferResource(handle.handle);
-            var resource = bufferResource.graphicsResource;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (resource == null)
-                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
-#endif
+            CheckBufferResource(bufferResource);
 
-            return resource;
+            return bufferResource.graphicsResource;
+        }
+
+        // This index overload will not check frame validity.
+        // Its only purpose is because the NRP compiled graph stores resource handles that would not be frame valid when reused.
+        internal GraphicsBuffer GetBuffer(int index)
+        {
+            var bufferResource = GetBufferResource(index);
+            CheckBufferResource(bufferResource);
+
+            return bufferResource.graphicsResource;
         }
 
         internal RayTracingAccelerationStructure GetRayTracingAccelerationStructure(in RayTracingAccelerationStructureHandle handle)
@@ -245,6 +271,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
 
             return resource;
+        }
+
+        internal int GetSharedResourceCount(RenderGraphResourceType type)
+        {
+            return m_RenderGraphResources[(int)type].sharedResourcesCount;
         }
 
         private RenderGraphResourceRegistry()
@@ -639,7 +670,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal void GetRenderTargetInfo(ResourceHandle res, out RenderTargetInfo outInfo)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (res.IsValid() == false || res.iType != (int)RenderGraphResourceType.Texture)
+            if (res.iType != (int)RenderGraphResourceType.Texture)
             {
                 outInfo = new RenderTargetInfo();
                 throw new ArgumentException("Invalid Resource Handle passed to GetRenderTargetInfo");
@@ -772,6 +803,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource;
         }
 
+        internal TextureResource GetTextureResource(int index)
+        {
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[index] as TextureResource;
+        }
+
         internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Texture);
@@ -860,6 +896,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Buffer);
             return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource;
+        }
+
+        BufferResource GetBufferResource(int index)
+        {
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[index] as BufferResource;
         }
 
         RayTracingAccelerationStructureResource GetRayTracingAccelerationStructureResource(in ResourceHandle handle)

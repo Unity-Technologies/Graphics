@@ -112,6 +112,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public RenderTexture rt { get { return m_RT; } }
         /// <summary>
+        /// Texture associated with the RTHandle when constructed from an external Texture or RenderTexture
+        /// </summary>
+        public Texture externalTexture { get { return m_ExternalTexture; } }
+        /// <summary>
         /// RenderTargetIdentifier associated with the RTHandle
         /// </summary>
         public RenderTargetIdentifier nameID { get { return m_NameID; } }

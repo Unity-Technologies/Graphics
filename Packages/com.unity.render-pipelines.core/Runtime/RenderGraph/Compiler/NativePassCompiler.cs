@@ -17,24 +17,43 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         internal RenderGraphInputInfo graph;
-        internal CompilerContextData contextData;
+        internal CompilerContextData contextData = null;
+        internal CompilerContextData defaultContextData;
         internal CommandBuffer previousCommandBuffer;
         Stack<int> toVisitPassIds;
 
-        public NativePassCompiler()
+        RenderGraphCompilationCache m_CompilationCache;
+        
+        internal const int k_EstimatedPassCount = 100;
+        internal const int k_EstimatedResourceCountPerType = 50;
+
+        public NativePassCompiler(RenderGraphCompilationCache cache)
         {
-            int estNumPasses = 100;
-            contextData = new CompilerContextData(estNumPasses, 50);
-            toVisitPassIds = new Stack<int>(estNumPasses);
+            m_CompilationCache = cache;
+            defaultContextData = new CompilerContextData(k_EstimatedPassCount, k_EstimatedResourceCountPerType);
+            toVisitPassIds = new Stack<int>(k_EstimatedPassCount);
         }
 
-        public void Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, bool disableCulling, string debugName)
+        public bool Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, bool disableCulling, string debugName, bool useCompilationCaching, int graphHash, int frameIndex)
         {
+            bool cached = false;
+            if (!useCompilationCaching)
+                contextData = defaultContextData;
+            else
+                cached = m_CompilationCache.GetCompilationCache(graphHash, frameIndex, out contextData);
+
             graph.m_ResourcesForDebugOnly = resources;
             graph.m_RenderPasses = renderPasses;
             graph.disableCulling = disableCulling;
             graph.debugName = debugName;
 
+            Clear(clearContextData: !useCompilationCaching);
+
+            return cached;
+        }
+
+        public void Compile(RenderGraphResourceRegistry resources)
+        {
             SetupContextData(resources);
 
             BuildGraph();
@@ -50,9 +69,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             PrepareNativeRenderPasses();
         }
 
-        public void Clear()
+        public void Clear(bool clearContextData)
         {
-            contextData.Clear();
+            if (clearContextData)
+                contextData.Clear();
             toVisitPassIds.Clear();
         }
 
@@ -65,6 +85,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             NRPRGComp_Compile,
             NRPRGComp_Execute,
+            NRPRGComp_PrepareNativePass,
             NRPRGComp_SetupContextData,
             NRPRGComp_BuildGraph,
             NRPRGComp_CullNodes,
@@ -319,6 +340,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // In the future we want to try adding any available (i.e. that has no data dependencies on any future results) future pass
                 // and allow merging that into the pass thus greedily reordering passes. But reordering requires a lot of API validation
                 // that ensures rendering behaves accordingly with reordered passes so we don't allow that for now.
+
+                // !!! Compilation caching warning !!!
+                // Merging of passes is highly dependent on render texture properties.
+                // When caching the render graph compilation, we hash a subset of those render texture properties to make sure we recompile the graph if needed.
+                // We only hash a subset for performance reason so if you add logic here that will change the behavior of pass merging,
+                // make sure that the relevant properties are hashed properly. See RenderGraphPass.ComputeHash()
 
                 int activeNativePassId = -1;
 
@@ -666,7 +693,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     // so we need to explicitly clear it as loadaction.clear only works on fb attachments of course not texturereads
                                     // TODO: Should this be a performance warning?? Maybe rare enough in practice?
                                     resources.forceManualClearOfResourceDisabled = usedAsFragmentThisPass;
-                                    resources.CreatePooledResource(rgContext, res);
+                                    resources.CreatePooledResource(rgContext, res.iType, res.index);
                                     resources.forceManualClearOfResourceDisabled = false;
                                 }
                             }
@@ -682,7 +709,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (pointTo.isImported == false)
                         {
                             resources.forceManualClearOfResourceDisabled = false;
-                            resources.CreatePooledResource(rgContext, create);
+                            resources.CreatePooledResource(rgContext, create.iType, create.index);
                             resources.forceManualClearOfResourceDisabled = false;
                         }
                     }
@@ -693,8 +720,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         void PrepareNativeRenderPass(ref NativePassData nativePass)
         {
-            using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_ExecuteBeginRenderpassCommand)))
+            using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_PrepareNativePass)))
             {
+
                 ref readonly var firstGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass);
                 ref readonly var lastGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass + nativePass.numGraphPasses - 1);
 
@@ -1089,13 +1117,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             RenderGraphResourceRegistry resources,
             ref NativePassData nativePass)
         {
+            //using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_ExecuteBeginRenderpassCommand)))
+            //{
             ref var attachments = ref nativePass.attachments;
             var attachmentCount = attachments.size;
+
             ref readonly var firstGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass);
             var w = firstGraphPass.fragmentInfoWidth;
             var h = firstGraphPass.fragmentInfoHeight;
             var d = firstGraphPass.fragmentInfoVolumeDepth;
             var s = firstGraphPass.fragmentInfoSamples;
+
             ref var passes = ref contextData.nativeSubPassData;
 
             passNamesForDebug.Clear();
@@ -1136,7 +1168,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Set up the RT pointers
                 if (attachments[i].memoryless == false)
                 {
-                    var rthandle = resources.GetTexture(new TextureHandle(attachments[i].handle));
+                    var rthandle = resources.GetTexture(attachments[i].handle.index);
 
                     //HACK: Always set the loadstore target even if StoreAction == DontCare or Resolve
                     //and LoadAction == Clear or DontCare
@@ -1218,6 +1250,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             AtomicSafetyHandle.Release(safetyHandle);
 #endif
             CommandBuffer.ThrowOnSetRenderTarget = true;
+            //}
         }
 
         const int ArbitraryMaxNbMergedPasses = 16;
@@ -1240,7 +1273,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
                                 if (resInfo.isImported == false && resInfo.memoryLess == false)
                                 {
-                                    resources.ReleasePooledResource(rgContext, res);
+                                    resources.ReleasePooledResource(rgContext, res.iType, res.index);
                                 }
                             }
                         }
@@ -1253,7 +1286,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ref readonly var pointTo = ref contextData.UnversionedResourceData(destroy);
                         if (pointTo.isImported == false)
                         {
-                            resources.ReleasePooledResource(rgContext, destroy);
+                            resources.ReleasePooledResource(rgContext, destroy.iType, destroy.index);
                         }
                     }
                 }
@@ -1264,12 +1297,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             if (resource.type == RenderGraphResourceType.Texture)
             {
-                var tex = resources.GetTexture(new TextureHandle(resource));
+                var tex = resources.GetTexture(resource.index);
                 cmd.SetRandomWriteTarget(index, tex);
             }
             else if (resource.type == RenderGraphResourceType.Buffer)
             {
-                var buff = resources.GetBuffer(new BufferHandle(resource));
+                var buff = resources.GetBuffer(resource.index);
                 // Default is to preserve the value
                 if (preserveCounterValue)
                 {

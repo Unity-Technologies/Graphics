@@ -9,20 +9,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         NativeRenderPassCompiler.NativePassCompiler nativeCompiler = null;
 
-        internal NativeRenderPassCompiler.NativePassCompiler CompileNativeRenderGraph()
+        internal NativeRenderPassCompiler.NativePassCompiler CompileNativeRenderGraph(int graphHash)
         {
             using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(NativeRenderPassCompiler.NativePassCompiler.NativeCompilerProfileId.NRPRGComp_Compile)))
             {
                 if (nativeCompiler == null)
-                {
-                    nativeCompiler = new NativeRenderPassCompiler.NativePassCompiler();
-                }
-                else
-                {
-                    nativeCompiler.Clear();
-                }
+                    nativeCompiler = new NativeRenderPassCompiler.NativePassCompiler(m_CompilationCache);
 
-                nativeCompiler.Initialize(this.m_Resources, this.m_RenderPasses, this.m_DebugParameters.disablePassCulling, this.name);
+                bool compilationIsCached = nativeCompiler.Initialize(m_Resources, m_RenderPasses, m_DebugParameters.disablePassCulling, name, m_EnableCompilationCaching, graphHash, m_ExecutionCount);
+                if (!compilationIsCached)
+                    nativeCompiler.Compile(m_Resources);
 
                 var passData = nativeCompiler.contextData.passData;
                 int numPasses = passData.Length;

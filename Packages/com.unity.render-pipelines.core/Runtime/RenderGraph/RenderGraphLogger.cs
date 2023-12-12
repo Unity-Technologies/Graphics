@@ -98,6 +98,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 result += builder.ToString();
             }
 
+            m_LogMap.Clear();
+
             return result;
         }
     }
