@@ -276,7 +276,7 @@ HDRP ray tracing in Unity has the following limitations:
 - Doesn't support the volumetric part of the [fog](Override-Fog.md).
 - Doesn't support tessellation.
 - Doesn't support per pixel displacement (parallax occlusion mapping, height map, depth offset).
-- Doesn't support VFX and Terrain.
+- Doesn't support VFX.
 - Doesn't have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
 - Doesn't support MSAA.
 - Doesn't support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
