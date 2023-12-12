@@ -9,49 +9,50 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// </summary>
     public sealed class RenderGraphObjectPool
     {
-        abstract class SharedObjectPoolBase
-        {
-            protected static List<SharedObjectPoolBase> s_AllocatedPools = new List<SharedObjectPoolBase>();
+        // Only used to clear all existing pools at once from here when needed 
+        static DynamicArray<SharedObjectPoolBase> s_AllocatedPools = new DynamicArray<SharedObjectPoolBase>();
 
-            protected abstract void Clear();
-
-            public static void ClearAll()
-            {
-                foreach (var pool in s_AllocatedPools)
-                    pool.Clear();
-            }
+        // Non abstract class instead of an interface to store it in a DynamicArray
+        class SharedObjectPoolBase
+        {        
+            public SharedObjectPoolBase() {}
+            public virtual void Clear() {}
         }
 
-        class SharedObjectPool<T> : SharedObjectPoolBase where T : new()
+        class SharedObjectPool<T> : SharedObjectPoolBase where T : class, new()
         {
-            Stack<T> m_Pool = new Stack<T>();
-
-            public T Get()
+            private static readonly Pool.ObjectPool<T> s_Pool = AllocatePool();
+            
+            private static Pool.ObjectPool<T> AllocatePool()
             {
-                var result = m_Pool.Count == 0 ? new T() : m_Pool.Pop();
-                return result;
+                var newPool = new Pool.ObjectPool<T>(() => new T(), null, null);
+                // Storing instance to clear the static pool of the same type if needed
+                s_AllocatedPools.Add(new SharedObjectPool<T>());
+                return newPool;
             }
 
-            public void Release(T value)
+            /// <summary>
+            /// Clear the pool using SharedObjectPool instance.
+            /// </summary>
+            /// <returns></returns>
+            public override void Clear()
             {
-                m_Pool.Push(value);
+                s_Pool.Clear();
             }
+            
+            /// <summary>
+            /// Get a new instance from the pool.
+            /// </summary>
+            /// <returns></returns>
+            public static T Get() => s_Pool.Get();
 
-            static SharedObjectPool<T> AllocatePool()
-            {
-                var pool = new SharedObjectPool<T>();
-                s_AllocatedPools.Add(pool);
-                return pool;
-            }
-
-            override protected void Clear()
-            {
-                m_Pool.Clear();
-            }
-
-            static readonly Lazy<SharedObjectPool<T>> s_Instance = new Lazy<SharedObjectPool<T>>(AllocatePool);
-            public static SharedObjectPool<T> sharedPool => s_Instance.Value;
+            /// <summary>
+            /// Release an object to the pool.
+            /// </summary>
+            /// <param name="toRelease">instance to release.</param>
+            public static void Release(T toRelease) => s_Pool.Release(toRelease);
         }
+
 
         Dictionary<(Type, int), Stack<object>> m_ArrayPool = new Dictionary<(Type, int), Stack<object>>();
         List<(object, (Type, int))> m_AllocatedArrays = new List<(object, (Type, int))>();
@@ -85,7 +86,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>A new clean MaterialPropertyBlock.</returns>
         public MaterialPropertyBlock GetTempMaterialPropertyBlock()
         {
-            var result = SharedObjectPool<MaterialPropertyBlock>.sharedPool.Get();
+            var result = SharedObjectPool<MaterialPropertyBlock>.Get();
             result.Clear();
             m_AllocatedMaterialPropertyBlocks.Add(result);
             return result;
@@ -104,23 +105,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             foreach (var mpb in m_AllocatedMaterialPropertyBlocks)
             {
-                SharedObjectPool<MaterialPropertyBlock>.sharedPool.Release(mpb);
+                SharedObjectPool<MaterialPropertyBlock>.Release(mpb);
             }
 
             m_AllocatedMaterialPropertyBlocks.Clear();
         }
 
         // Regular pooling API. Only internal use for now
-        internal T Get<T>() where T : new()
+        internal T Get<T>() where T : class, new()
         {
-            var pool = SharedObjectPool<T>.sharedPool;
-            return pool.Get();
+            return SharedObjectPool<T>.Get();
         }
 
-        internal void Release<T>(T value) where T : new()
+        internal void Release<T>(T value) where T : class, new()
         {
-            var pool = SharedObjectPool<T>.sharedPool;
-            pool.Release(value);
+            SharedObjectPool<T>.Release(value);
         }
 
         internal void Cleanup()
@@ -128,7 +127,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_AllocatedArrays.Clear();
             m_AllocatedMaterialPropertyBlocks.Clear();
             m_ArrayPool.Clear();
-            SharedObjectPoolBase.ClearAll();
+
+            // Removing all objects in the pools
+            foreach (var pool in s_AllocatedPools)
+                pool.Clear();
         }
     }
 }
