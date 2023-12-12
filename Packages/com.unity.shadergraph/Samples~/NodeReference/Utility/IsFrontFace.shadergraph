@@ -146,6 +146,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "eee16095a8634db0a6081b3f809753c6"
@@ -344,6 +345,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -647,7 +649,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "813e11cf97064f93b08593da5534025d",
     "m_Title": "Is Front Face Node",
-    "m_Content": "The Is Front Face Node returns true if the current rederring face is pointing toward the camera.  It returns false if it's facing away from the camera.",
+    "m_Content": "The Is Front Face Node returns true if the current rendering face is pointing toward the camera.  It returns false if it's facing away from the camera.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -1025,6 +1027,7 @@
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInTarget",
     "m_ObjectId": "eee16095a8634db0a6081b3f809753c6",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "18f1553e943e45fab2d1b9f0be5f57d9"
     },

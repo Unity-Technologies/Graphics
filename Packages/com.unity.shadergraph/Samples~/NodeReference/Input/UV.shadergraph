@@ -582,6 +582,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "1d61a74e1aa64c5b9c228010464afd33"
@@ -1013,6 +1014,7 @@
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInTarget",
     "m_ObjectId": "1d61a74e1aa64c5b9c228010464afd33",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "4238e9db0cc9493084fb1cd69af7e981"
     },
@@ -2108,6 +2110,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -3501,7 +3504,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "b3bd59cdc1b34355bde0f7a613982d3d",
     "m_Title": "UV Node",
-    "m_Content": "The UV node bring's the mesh's UV coordinates into the shader. UV coordinates are a way of translating 3D space into 2D.\n\nIt's like peeling an orange and laying the peel out flat. The orange represents your 3d model, and the flattened peel represents the UV coordinates.",
+    "m_Content": "The UV node brings the mesh's UV coordinates into the shader. UV coordinates are a way of translating 3D space into 2D.\n\nIt's like peeling an orange and laying the peel out flat. The orange represents your 3d model, and the flattened peel represents the UV coordinates.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
