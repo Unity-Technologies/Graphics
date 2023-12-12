@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering
             /// </summary>
             protected abstract string defaultVolumeProfilePath { get; }
 
-            void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer drawer, ref GenericDropdownMenu menu)
+            void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer drawer, ref GenericMenu menu)
             {
                 menu.AddSeparator("");
 

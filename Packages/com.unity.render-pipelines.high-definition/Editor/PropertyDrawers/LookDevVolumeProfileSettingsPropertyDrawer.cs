@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public class LookDevVolumeProfileSettingsContextMenu : IRenderPipelineGraphicsSettingsContextMenu<LookDevVolumeProfileSettings>
         {
-            public void PopulateContextMenu(LookDevVolumeProfileSettings setting, PropertyDrawer drawer, ref GenericDropdownMenu menu)
+            public void PopulateContextMenu(LookDevVolumeProfileSettings setting, PropertyDrawer drawer, ref GenericMenu menu)
             {
                 menu.AddSeparator("");
 

@@ -259,7 +259,7 @@ namespace UnityEditor.Rendering
         /// <param name="onComponentEditorsExpandedCollapsed">Callback when all editors are collapsed or expanded</param>
         /// <param name="canCreateNewProfile">Whether it is allowed to create a new profile</param>
         public static void AddVolumeProfileContextMenuItems(
-            ref GenericDropdownMenu menu,
+            ref GenericMenu menu,
             VolumeProfile volumeProfile,
             List<VolumeComponentEditor> componentEditors,
             bool overrideStateOnReset,
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering
         {
             if (canCreateNewProfile)
             {
-                menu.AddItem(Styles.newVolumeProfile.text, false, () =>
+                menu.AddItem(Styles.newVolumeProfile, false, () =>
                 {
                     VolumeProfileFactory.CreateVolumeProfileWithCallback(defaultVolumeProfilePath,
                         onNewVolumeProfileCreated);
@@ -278,14 +278,14 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                menu.AddDisabledItem(Styles.newVolumeProfile.text, false);
+                menu.AddDisabledItem(Styles.newVolumeProfile, false);
             }
 
             if (volumeProfile != null)
             {
                 if (canCreateNewProfile)
                 {
-                    menu.AddItem(Styles.clone.text, false, () =>
+                    menu.AddItem(Styles.clone, false, () =>
                     {
                         var pathName = AssetDatabase.GenerateUniqueAssetPath(AssetDatabase.GetAssetPath(volumeProfile));
                         var clone = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName, volumeProfile);
@@ -294,17 +294,17 @@ namespace UnityEditor.Rendering
                 }
                 else
                 {
-                    menu.AddDisabledItem(Styles.clone.text, false);
+                    menu.AddDisabledItem(Styles.clone, false);
                 }
 
                 menu.AddSeparator(string.Empty);
 
-                menu.AddItem(Styles.collapseAll.text, false, () =>
+                menu.AddItem(Styles.collapseAll, false, () =>
                 {
                     SetComponentEditorsExpanded(componentEditors, false);
                     onComponentEditorsExpandedCollapsed?.Invoke();
                 });
-                menu.AddItem(Styles.expandAll.text, false, () =>
+                menu.AddItem(Styles.expandAll, false, () =>
                 {
                     SetComponentEditorsExpanded(componentEditors, true);
                     onComponentEditorsExpandedCollapsed?.Invoke();
@@ -313,28 +313,28 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.showAllAdditionalProperties.text, false,
+            menu.AddItem(Styles.showAllAdditionalProperties, false,
                 CoreRenderPipelinePreferences.Open);
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.openInRenderingDebugger.text, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
+            menu.AddItem(Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
 
             if (volumeProfile != null)
             {
                 menu.AddSeparator(string.Empty);
 
-                menu.AddItem(Styles.copyAllSettings.text, false,
+                menu.AddItem(Styles.copyAllSettings, false,
                     () => VolumeComponentCopyPaste.CopySettings(volumeProfile.components));
 
                 if (VolumeComponentCopyPaste.CanPaste(volumeProfile.components))
-                    menu.AddItem(Styles.pasteSettings.text, false, () =>
+                    menu.AddItem(Styles.pasteSettings, false, () =>
                     {
                         VolumeComponentCopyPaste.PasteSettings(volumeProfile.components);
                         VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
                     });
                 else
-                    menu.AddDisabledItem(Styles.pasteSettings.text, false);
+                    menu.AddDisabledItem(Styles.pasteSettings, false);
             }
         }
 
