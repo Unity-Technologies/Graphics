@@ -126,6 +126,7 @@ MonoBehaviour:
       type: 3}
     planarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2,
       type: 3}
+    skyLUTGenerator: {fileID: 7200000, guid: 79224112d91b32241be6b65802863db4, type: 3}
     cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5,
       type: 3}

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ObjectPool<RefCountedData> m_DataPool = new ObjectPool<RefCountedData>(null, null);
             Dictionary<int, RefCountedData> m_CachedData = new Dictionary<int, RefCountedData>();
 
-            public PrecomputationData Get(int hash)
+            public PrecomputationData Get(BuiltinSkyParameters builtinParams, int hash)
             {
                 RefCountedData result;
                 if (m_CachedData.TryGetValue(hash, out result))
@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     result = m_DataPool.Get();
                     result.refCount = 1;
-                    result.data.Allocate();
+                    result.data.Allocate(builtinParams);
                     m_CachedData.Add(hash, result);
                     return result.data;
                 }
@@ -52,20 +52,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PrecomputationData
         {
-            // We compute at most one bounce per frame for perf reasons.
-            // We need to store the frame index because more than one render can happen during a frame (cubemap update + regular rendering).
-            int m_LastPrecomputedBounce;
-            int m_LastFrameComputation;
+            RTHandle m_GroundIrradianceTable, m_MultiScatteringLut;
+            RTHandle[] m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS
 
-            RTHandle[] m_GroundIrradianceTables;    // All orders, one order
-            RTHandle[] m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
-
-            RTHandle AllocateGroundIrradianceTable(int index)
+            RTHandle AllocateGroundIrradianceTable()
             {
                 var table = RTHandles.Alloc((int)PbrSkyConfig.GroundIrradianceTableSize, 1,
                     colorFormat: s_ColorFormat,
                     enableRandomWrite: true,
-                    name: string.Format("GroundIrradianceTable{0}", index));
+                    name: "GroundIrradianceTable");
 
                 Debug.Assert(table != null);
 
@@ -89,199 +84,94 @@ namespace UnityEngine.Rendering.HighDefinition
                 return table;
             }
 
-            public void Allocate()
+            public void Allocate(BuiltinSkyParameters builtinParams)
             {
-                m_LastFrameComputation = -1;
-                m_LastPrecomputedBounce = 0;
+                var cmd = builtinParams.commandBuffer;
+                var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
-                // No temp tables.
-                m_GroundIrradianceTables = new RTHandle[2];
-                m_GroundIrradianceTables[0] = AllocateGroundIrradianceTable(0);
+                m_MultiScatteringLut = RTHandles.Alloc(
+                    (int)PbrSkyConfig.MultiScatteringLutWidth,
+                    (int)PbrSkyConfig.MultiScatteringLutHeight,
+                    colorFormat: s_ColorFormat,
+                    wrapMode: TextureWrapMode.Clamp,
+                    enableRandomWrite: true,
+                    name: "MultiScatteringLUT");
 
-                m_InScatteredRadianceTables = new RTHandle[5];
+                RenderMultiScatteringLut(cmd);
+
+                m_GroundIrradianceTable = AllocateGroundIrradianceTable();
+
+                m_InScatteredRadianceTables = new RTHandle[3];
                 m_InScatteredRadianceTables[0] = AllocateInScatteredRadianceTable(0);
                 m_InScatteredRadianceTables[1] = AllocateInScatteredRadianceTable(1);
                 m_InScatteredRadianceTables[2] = AllocateInScatteredRadianceTable(2);
+
+                PrecomputeTables(cmd);
             }
 
             public void Release()
             {
-                RTHandles.Release(m_GroundIrradianceTables[0]); m_GroundIrradianceTables[0] = null;
-                RTHandles.Release(m_GroundIrradianceTables[1]); m_GroundIrradianceTables[1] = null;
-                RTHandles.Release(m_InScatteredRadianceTables[0]); m_InScatteredRadianceTables[0] = null;
-                RTHandles.Release(m_InScatteredRadianceTables[1]); m_InScatteredRadianceTables[1] = null;
-                RTHandles.Release(m_InScatteredRadianceTables[2]); m_InScatteredRadianceTables[2] = null;
-                RTHandles.Release(m_InScatteredRadianceTables[3]); m_InScatteredRadianceTables[3] = null;
-                RTHandles.Release(m_InScatteredRadianceTables[4]); m_InScatteredRadianceTables[4] = null;
+                if (m_MultiScatteringLut != null)
+                {
+                    RTHandles.Release(m_MultiScatteringLut); m_MultiScatteringLut = null;
+                }
+
+                RTHandles.Release(m_GroundIrradianceTable);
+                RTHandles.Release(m_InScatteredRadianceTables[0]);
+                RTHandles.Release(m_InScatteredRadianceTables[1]);
+                RTHandles.Release(m_InScatteredRadianceTables[2]);
+
+                m_GroundIrradianceTable = null;
+                m_InScatteredRadianceTables = null;
+            }
+
+            void RenderMultiScatteringLut(CommandBuffer cmd)
+            {
+                cmd.SetComputeTextureParam(s_SkyLUTGenerator, s_MultiScatteringKernel, HDShaderIDs._MultiScatteringLUT_RW, m_MultiScatteringLut);
+
+                cmd.DispatchCompute(s_SkyLUTGenerator, s_MultiScatteringKernel,
+                    (int)PbrSkyConfig.MultiScatteringLutWidth,
+                    (int)PbrSkyConfig.MultiScatteringLutHeight,
+                    1);
             }
 
             void PrecomputeTables(CommandBuffer cmd)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.InScatteredRadiancePrecomputation)))
                 {
-                    int order = m_LastPrecomputedBounce + 1;
-                    {
-                        // For efficiency reasons, multiple scattering is computed in 2 passes:
-                        // 1. Gather the in-scattered radiance over the entire sphere of directions.
-                        // 2. Accumulate the in-scattered radiance along the ray.
-                        // Single scattering performs both steps during the same pass.
+                    // Multiple scattering LUT
+                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, 0, HDShaderIDs._AirSingleScatteringTable, m_InScatteredRadianceTables[0]);
+                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, 0, HDShaderIDs._AerosolSingleScatteringTable, m_InScatteredRadianceTables[1]);
+                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, 0, HDShaderIDs._MultipleScatteringTable, m_InScatteredRadianceTables[2]);
+                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, 0, HDShaderIDs._MultiScatteringLUT, m_MultiScatteringLut);
 
-                        int firstPass = Math.Min(order - 1, 2);
-                        int accumPass = 3;
-                        int numPasses = Math.Min(order, 2);
+                    // Emulate a 4D dispatch with a "deep" 3D dispatch.
+                    cmd.DispatchCompute(s_InScatteredRadiancePrecomputationCS, 0, (int)PbrSkyConfig.InScatteredRadianceTableSizeX / 4,
+                        (int)PbrSkyConfig.InScatteredRadianceTableSizeY / 4,
+                        (int)PbrSkyConfig.InScatteredRadianceTableSizeZ / 4 *
+                        (int)PbrSkyConfig.InScatteredRadianceTableSizeW);
 
-                        for (int i = 0; i < numPasses; i++)
-                        {
-                            int pass = (i == 0) ? firstPass : accumPass;
+                    // Ground irradiance LUT
+                    cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, 0, HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
+                    cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, 0, HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
+                    cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, 0, HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[2]);
 
-                            switch (pass)
-                            {
-                                case 0:
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._AirSingleScatteringTable, m_InScatteredRadianceTables[0]);
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._AerosolSingleScatteringTable, m_InScatteredRadianceTables[1]);
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTable, m_InScatteredRadianceTables[2]); // MS orders
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTableOrder, m_InScatteredRadianceTables[3]); // One order
-                                    break;
-                                case 1:
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._GroundIrradianceTexture, m_GroundIrradianceTables[1]);    // One order
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTable, m_InScatteredRadianceTables[4]); // Temp
-                                    break;
-                                case 2:
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[3]); // One order
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._GroundIrradianceTexture, m_GroundIrradianceTables[1]);    // One order
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTable, m_InScatteredRadianceTables[4]); // Temp
-                                    break;
-                                case 3:
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[4]); // Temp
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTableOrder, m_InScatteredRadianceTables[3]); // One order
-                                    cmd.SetComputeTextureParam(s_InScatteredRadiancePrecomputationCS, pass, HDShaderIDs._MultipleScatteringTable, m_InScatteredRadianceTables[2]); // MS orders
-                                    break;
-                                default:
-                                    Debug.Assert(false);
-                                    break;
-                            }
+                    cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, 0, HDShaderIDs._GroundIrradianceTable, m_GroundIrradianceTable);
 
-                            // Re-illuminate the sky with each bounce.
-                            // Emulate a 4D dispatch with a "deep" 3D dispatch.
-                            cmd.DispatchCompute(s_InScatteredRadiancePrecomputationCS, pass, (int)PbrSkyConfig.InScatteredRadianceTableSizeX / 4,
-                                (int)PbrSkyConfig.InScatteredRadianceTableSizeY / 4,
-                                (int)PbrSkyConfig.InScatteredRadianceTableSizeZ / 4 *
-                                (int)PbrSkyConfig.InScatteredRadianceTableSizeW);
-                        }
-
-                        {
-                            // Used by all passes.
-                            cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._GroundIrradianceTable, m_GroundIrradianceTables[0]); // All orders
-                            cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._GroundIrradianceTableOrder, m_GroundIrradianceTables[1]); // One order
-                        }
-
-                        switch (firstPass)
-                        {
-                            case 0:
-                                break;
-                            case 1:
-                                cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
-                                cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
-                                break;
-                            case 2:
-                                cmd.SetComputeTextureParam(s_GroundIrradiancePrecomputationCS, firstPass, HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[3]); // One order
-                                break;
-                            default:
-                                Debug.Assert(false);
-                                break;
-                        }
-
-                        // Re-illuminate the ground with each bounce.
-                        cmd.DispatchCompute(s_GroundIrradiancePrecomputationCS, firstPass, (int)PbrSkyConfig.GroundIrradianceTableSize / 64, 1, 1);
-                    }
+                    cmd.DispatchCompute(s_GroundIrradiancePrecomputationCS, 0, (int)PbrSkyConfig.GroundIrradianceTableSize / 64, 1, 1);
                 }
             }
 
             public void BindGlobalBuffers(CommandBuffer cmd)
             {
-                // TODO: ground irradiance table? Volume SH? Something else?
-                if (m_LastPrecomputedBounce > 0)
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
-                    cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
-                    cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[2]);
-                }
-                else
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, CoreUtils.blackVolumeTexture);
-                    cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, CoreUtils.blackVolumeTexture);
-                    cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, CoreUtils.blackVolumeTexture);
-                }
             }
 
-            public void BindBuffers(CommandBuffer cmd, MaterialPropertyBlock mpb)
+            public void BindBuffers(MaterialPropertyBlock mpb)
             {
-                if (m_LastPrecomputedBounce != 0)
-                {
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundIrradianceTexture, m_GroundIrradianceTables[0]);
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[2]);
-                }
-                else
-                {
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundIrradianceTexture, Texture2D.blackTexture);
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AirSingleScatteringTexture, CoreUtils.blackVolumeTexture);
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._AerosolSingleScatteringTexture, CoreUtils.blackVolumeTexture);
-                    s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._MultipleScatteringTexture, CoreUtils.blackVolumeTexture);
-                }
-            }
-
-            public bool Update(BuiltinSkyParameters builtinParams, PhysicallyBasedSky pbrSky)
-            {
-                if (builtinParams.frameIndex <= m_LastFrameComputation)
-                    return false;
-
-                m_LastFrameComputation = builtinParams.frameIndex;
-
-                if (m_LastPrecomputedBounce == 0)
-                {
-                    // Allocate temp tables if needed
-                    if (m_GroundIrradianceTables[1] == null)
-                    {
-                        m_GroundIrradianceTables[1] = AllocateGroundIrradianceTable(1);
-                    }
-
-                    if (m_InScatteredRadianceTables[3] == null)
-                    {
-                        m_InScatteredRadianceTables[3] = AllocateInScatteredRadianceTable(3);
-                    }
-
-                    if (m_InScatteredRadianceTables[4] == null)
-                    {
-                        m_InScatteredRadianceTables[4] = AllocateInScatteredRadianceTable(4);
-                    }
-                }
-
-                if (m_LastPrecomputedBounce == pbrSky.numberOfBounces.value)
-                {
-                    // Free temp tables.
-                    // This is a deferred release (one frame late)!
-                    RTHandles.Release(m_GroundIrradianceTables[1]);
-                    RTHandles.Release(m_InScatteredRadianceTables[3]);
-                    RTHandles.Release(m_InScatteredRadianceTables[4]);
-                    m_GroundIrradianceTables[1] = null;
-                    m_InScatteredRadianceTables[3] = null;
-                    m_InScatteredRadianceTables[4] = null;
-                }
-
-                if (m_LastPrecomputedBounce < pbrSky.numberOfBounces.value)
-                {
-                    PrecomputeTables(builtinParams.commandBuffer);
-                    m_LastPrecomputedBounce++;
-
-                    // If the sky is realtime, an upcoming update will update the sky lighting. Otherwise we need to force an update.
-                    return builtinParams.skySettings.updateMode != EnvironmentUpdateMode.Realtime;
-                }
-
-                return false;
+                mpb.SetTexture(HDShaderIDs._GroundIrradianceTexture, m_GroundIrradianceTable);
+                mpb.SetTexture(HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
+                mpb.SetTexture(HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
+                mpb.SetTexture(HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[2]);
             }
         }
 
@@ -292,8 +182,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Precomputed data below.
         PrecomputationData m_PrecomputedData;
 
-        static ComputeShader s_GroundIrradiancePrecomputationCS;
-        static ComputeShader s_InScatteredRadiancePrecomputationCS;
         Material m_PbrSkyMaterial;
         static MaterialPropertyBlock s_PbrSkyMaterialProperties;
 
@@ -301,9 +189,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ShaderVariablesPhysicallyBasedSky m_ConstantBuffer;
         int m_ShaderVariablesPhysicallyBasedSkyID = Shader.PropertyToID("ShaderVariablesPhysicallyBasedSky");
+        static GraphicsFormat s_ColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
 
-        static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
+        static ComputeShader s_SkyLUTGenerator;
+        static int s_MultiScatteringKernel;
 
+        static ComputeShader s_GroundIrradiancePrecomputationCS;
+        static ComputeShader s_InScatteredRadiancePrecomputationCS;
 
         public PhysicallyBasedSkyRenderer()
         {
@@ -312,16 +204,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void Build()
         {
             var hdrpResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            if (hdPipeline != null)
+                s_ColorFormat = hdPipeline.GetColorBufferFormat();
 
             // Shaders
+            s_SkyLUTGenerator = hdrpResources.shaders.skyLUTGenerator;
+            s_MultiScatteringKernel = s_SkyLUTGenerator.FindKernel("MultiScatteringLUT");
+
             s_GroundIrradiancePrecomputationCS = hdrpResources.shaders.groundIrradiancePrecomputationCS;
             s_InScatteredRadiancePrecomputationCS = hdrpResources.shaders.inScatteredRadiancePrecomputationCS;
-            s_PbrSkyMaterialProperties = new MaterialPropertyBlock();
 
             m_PbrSkyMaterial = CoreUtils.CreateEngineMaterial(hdrpResources.shaders.physicallyBasedSkyPS);
-
-            Debug.Assert(s_GroundIrradiancePrecomputationCS != null);
-            Debug.Assert(s_InScatteredRadiancePrecomputationCS != null);
+            s_PbrSkyMaterialProperties = new MaterialPropertyBlock();
         }
 
         public override void SetGlobalSkyData(CommandBuffer cmd, BuiltinSkyParameters builtinParams)
@@ -427,11 +323,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_LastPrecomputationParamHash != 0)
                     s_PrecomputaionCache.Release(m_LastPrecomputationParamHash);
-                m_PrecomputedData = s_PrecomputaionCache.Get(currPrecomputationParamHash);
+                m_PrecomputedData = s_PrecomputaionCache.Get(builtinParams, currPrecomputationParamHash);
                 m_LastPrecomputationParamHash = currPrecomputationParamHash;
             }
 
-            return m_PrecomputedData.Update(builtinParams, pbrSky);
+            return false;
         }
 
         // 'renderSunDisk' parameter is not supported.
@@ -440,6 +336,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
+
+            m_PrecomputedData.BindGlobalBuffers(builtinParams.commandBuffer);
+            m_PrecomputedData.BindBuffers(s_PbrSkyMaterialProperties);
 
             // TODO: the following expression is somewhat inefficient, but good enough for now.
             Vector3 cameraPos = builtinParams.worldSpaceCameraPos;
@@ -451,8 +350,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraPos = planetCenter - Mathf.Max(R, r) * cameraToPlanetCenter.normalized;
 
             bool simpleEarthMode = pbrSky.type.value == PhysicallyBasedSkyModel.EarthSimple;
-
-            CommandBuffer cmd = builtinParams.commandBuffer;
 
             // Precomputation is done, shading is next.
             Quaternion planetRotation = Quaternion.Euler(pbrSky.planetRotation.value.x,
@@ -473,8 +370,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1, builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation, planetRotationMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation, Matrix4x4.Rotate(spaceRotation));
-
-            m_PrecomputedData.BindBuffers(cmd, s_PbrSkyMaterialProperties);
 
             int hasGroundAlbedoTexture = 0;
 

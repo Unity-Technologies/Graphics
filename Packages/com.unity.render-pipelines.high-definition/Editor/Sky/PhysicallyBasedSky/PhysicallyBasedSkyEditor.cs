@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ZenithTint;
         SerializedDataParameter m_HorizonZenithShift;
 
-        SerializedDataParameter m_NumberOfBounces;
-
         GUIContent m_ModelTypeLabel = new GUIContent("Type", "Specifies a preset to simplify the interface.");
 
         GUIContent[] m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
@@ -90,8 +88,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HorizonTint = Unpack(o.Find(x => x.horizonTint));
             m_ZenithTint = Unpack(o.Find(x => x.zenithTint));
             m_HorizonZenithShift = Unpack(o.Find(x => x.horizonZenithShift));
-
-            m_NumberOfBounces = Unpack(o.Find(x => x.numberOfBounces));
         }
 
         public override void OnInspectorGUI()
@@ -174,7 +170,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.Space();
             DrawHeader("Miscellaneous");
-            PropertyField(m_NumberOfBounces);
 
             base.CommonSkySettingsGUI();
         }
