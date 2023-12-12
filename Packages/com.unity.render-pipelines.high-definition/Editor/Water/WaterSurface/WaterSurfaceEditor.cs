@@ -12,40 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static readonly string[] swellModeNames = new string[] { "Inherit from Swell", "Custom" };
         internal static readonly string[] agitationModeNames = new string[] { "Inherit from Agitation", "Custom" };
-        static readonly int popupWidth = 70;
         static readonly int doubleFieldMargin = 10;
-
-        public static void Draw(GUIContent title, SerializedProperty mode, SerializedProperty parameter, string[] modeNames)
-        {
-            // Save and reset the indent level
-            int previousIndentLevel = EditorGUI.indentLevel;
-            EditorGUI.indentLevel = 0;
-
-            Rect rect = EditorGUILayout.GetControlRect();
-            rect.xMax -= popupWidth + 2;
-
-            var popupRect = rect;
-            popupRect.x = rect.xMax + 2;
-            popupRect.width = popupWidth;
-            mode.enumValueIndex = EditorGUI.Popup(popupRect, mode.enumValueIndex, modeNames);
-
-            if (mode.enumValueIndex == (int)WaterPropertyOverrideMode.Inherit)
-            {
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUI.showMixedValue = true;
-            }
-
-            // Restore the indent level before leaving
-            EditorGUI.indentLevel = previousIndentLevel;
-
-            parameter.floatValue = EditorGUI.FloatField(rect, title, parameter.floatValue);
-
-            if (mode.intValue == (int)WaterPropertyOverrideMode.Inherit)
-            {
-                EditorGUI.showMixedValue = false;
-                EditorGUI.EndDisabledGroup();
-            }
-        }
 
         public static void DrawMultiPropertiesGUI(GUIContent label, GUIContent subLabel0, SerializedProperty subContent0, GUIContent subLabel1, SerializedProperty subContent1)
         {
@@ -66,7 +33,13 @@ namespace UnityEditor.Rendering.HighDefinition
             // Evaluate the space for the first label
             EditorGUIUtility.labelWidth = EditorStyles.label.CalcSize(subLabel0).x + 4;
             // Draw the first property
-            subContent0.floatValue = EditorGUI.FloatField(speedRect, subLabel0, subContent0.floatValue);
+            using (new EditorGUI.MixedValueScope(subContent0.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float value = EditorGUI.FloatField(speedRect, subLabel0, subContent0.floatValue);
+                if (EditorGUI.EndChangeCheck())
+                    subContent0.floatValue = value;
+            }
 
             // Second field
             var orientationRect = prefixLabel;
@@ -76,7 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition
             // Evaluate the space for the second label
             EditorGUIUtility.labelWidth = EditorStyles.label.CalcSize(subLabel1).x + 2;
             // Draw the second property
-            subContent1.floatValue = EditorGUI.FloatField(orientationRect, subLabel1, subContent1.floatValue);
+            using (new EditorGUI.MixedValueScope(subContent1.hasMultipleDifferentValues))
+            {
+                EditorGUI.BeginChangeCheck();
+                float value = EditorGUI.FloatField(orientationRect, subLabel1, subContent1.floatValue);
+                if (EditorGUI.EndChangeCheck())
+                    subContent1.floatValue = value;
+            }
 
             // Restore the previous label width
             EditorGUIUtility.labelWidth = previousLabelWith;
@@ -84,28 +63,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Restore the indent level before leaving
             EditorGUI.indentLevel = previousIndentLevel;
         }
-
-        public static void DrawMultiPropertiesGUI(GUIContent label, SerializedProperty mode, string[] modeNames, GUIContent sublabel,
-                                                    GUIContent subLabel0, SerializedProperty subContent0, GUIContent subLabel1, SerializedProperty subContent1)
-        {
-            mode.enumValueIndex = EditorGUILayout.Popup(label, mode.enumValueIndex, modeNames);
-
-            if (mode.enumValueIndex == (int)WaterPropertyOverrideMode.Inherit)
-            {
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUI.showMixedValue = true;
-            }
-
-            DrawMultiPropertiesGUI(sublabel, subLabel0, subContent0, subLabel1, subContent1);
-
-            if (mode.intValue == (int)WaterPropertyOverrideMode.Inherit)
-            {
-                EditorGUI.showMixedValue = false;
-                EditorGUI.EndDisabledGroup();
-            }
-        }
     }
 
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(WaterSurface))]
     sealed partial class WaterSurfaceEditor : Editor
     {
@@ -207,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            serialized.m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, serialized.m_TimeMultiplier.floatValue, 0.0f, 10.0f);
+            EditorGUILayout.PropertyField(serialized.m_TimeMultiplier, k_TimeMultiplier);
 
             using (new BoldLabelScope())
                 EditorGUILayout.PropertyField(serialized.m_ScriptInteractions);
@@ -351,6 +311,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void SanitizeExtentsVector2(SerializedProperty prop)
         {
+            if (prop.hasMultipleDifferentValues)
+                return;
+
             Vector2 v2 = prop.vector2Value;
             v2.x = Mathf.Max(v2.x, 0.1f);
             v2.y = Mathf.Max(v2.y, 0.1f);

@@ -294,6 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
+            cb._MaxStepSize = settings.altitudeRange.value / 8.0f;
 
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 

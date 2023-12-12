@@ -27,12 +27,13 @@ CloudRay BuildRay(uint2 intermediateCoord)
 {
     CloudRay ray;
     ZERO_INITIALIZE(CloudRay, ray);
+    float2 positionCS = _LowResolutionEvaluation ? intermediateCoord * 2 : intermediateCoord;
 
     // Compute the position of the point from which the ray will start
     ray.originWS = GetCameraPositionWS();
 
     // Compute the view direction
-    ray.direction = GetCloudViewDirWS(_LowResolutionEvaluation ? intermediateCoord * 2 : intermediateCoord);
+    ray.direction = GetCloudViewDirWS(positionCS);
 
     // Compute the max ray length
     ray.maxRayLength = FLT_MAX;
@@ -41,7 +42,8 @@ CloudRay BuildRay(uint2 intermediateCoord)
     if (_ValidSceneDepth)
     {
         float depthValue = LOAD_TEXTURE2D_X(_VolumetricCloudsSourceDepth, intermediateCoord.xy).x;
-        if (depthValue != UNITY_RAW_FAR_CLIP_VALUE) ray.maxRayLength = LinearEyeDepth(depthValue, _ZBufferParams);
+        if (depthValue != UNITY_RAW_FAR_CLIP_VALUE)
+            ray.maxRayLength = LinearEyeDepth(positionCS * _ScreenSize.zw, depthValue, _InvProjParams) * rcp(dot(ray.direction, -UNITY_MATRIX_V[2].xyz));
     }
     #endif
 

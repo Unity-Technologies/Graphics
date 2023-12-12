@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
+        [Range(0, 1)]
         public float largeCurrentMapInfluence = 1.0f;
         #endregion
 
@@ -51,6 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
+        [Range(0, 1)]
         public float ripplesCurrentMapInfluence = 1.0f;
         #endregion
 

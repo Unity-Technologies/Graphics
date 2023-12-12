@@ -384,8 +384,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   numPrimarySteps:
-    m_OverrideState: 0
-    m_Value: 48
+    m_OverrideState: 1
+    m_Value: 128
   numLightSteps:
     m_OverrideState: 0
     m_Value: 8

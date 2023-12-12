@@ -522,13 +522,14 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             // - Far plane
             float totalDistance = min(rayMarchRange.end, cloudRay.maxRayLength) - rayMarchRange.start;
 
+            // Evaluate our integration step
+            float stepS = min(totalDistance / (float)_NumPrimarySteps, _MaxStepSize);
+            totalDistance = stepS * _NumPrimarySteps;
+
             // Compute the environment lighting that is going to be used for the cloud evaluation
-            float3 rayMarchStartPS = ConvertToPS (cloudRay.originWS) + rayMarchRange.start * cloudRay.direction;
+            float3 rayMarchStartPS = ConvertToPS(cloudRay.originWS) + rayMarchRange.start * cloudRay.direction;
             float3 rayMarchEndPS = rayMarchStartPS + totalDistance * cloudRay.direction;
             cloudRay.envLighting = EvaluateEnvironmentLighting(cloudRay, rayMarchStartPS, rayMarchEndPS);
-
-            // Evaluate our integration step
-            float stepS = totalDistance / (float)_NumPrimarySteps;
 
             // Tracking the number of steps that have been made
             int currentIndex = 0;
@@ -536,11 +537,9 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             // Normalization value of the depth
             float meanDistanceDivider = 0.0f;
 
-            // Current position for the evaluation
-            float3 currentPositionWS = cloudRay.originWS + rayMarchRange.start * cloudRay.direction;
-
-            // Current Distance that has been marched
-            float currentDistance = 0;
+            // Current position for the evaluation, apply blue noise to start position
+            float currentDistance = cloudRay.integrationNoise;
+            float3 currentPositionWS = cloudRay.originWS + (rayMarchRange.start + currentDistance) * cloudRay.direction;
 
             // Initialize the values for the optimized ray marching
             bool activeSampling = true;
@@ -592,9 +591,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         activeSampling = false;
 
                     // Do the next step
-                    float relativeStepSize = lerp(cloudRay.integrationNoise, 1.0, saturate(currentIndex));
-                    currentPositionWS += cloudRay.direction * stepS * relativeStepSize;
-                    currentDistance += stepS * relativeStepSize;
+                    currentPositionWS += cloudRay.direction * stepS;
+                    currentDistance += stepS;
                 }
                 else
                 {

@@ -440,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4 zBufferParams;
         internal Vector4 unity_OrthoParams;
         internal Vector4 projectionParams;
+        internal Vector4 invProjectionParams;
         internal Vector4 screenParams;
         internal int volumeLayerMask;
         internal Transform volumeAnchor;
@@ -1536,6 +1537,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateScalesAndScreenSizesCB(ref cb);
             cb._ZBufferParams = zBufferParams;
             cb._ProjectionParams = projectionParams;
+            cb._InvProjParams = invProjectionParams;
             cb.unity_OrthoParams = unity_OrthoParams;
             cb._ScreenParams = screenParams;
             for (int i = 0; i < 6; ++i)
@@ -2095,6 +2097,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             projectionParams = new Vector4(flipProj ? -1 : 1, n, f, 1.0f / f);
+
+            invProjectionParams = new Vector4(projMatrix[2, 0] / projMatrix[0, 0], projMatrix[2, 1] / projMatrix[1, 1], 1.0f, projMatrix[2, 2]) / projMatrix[2, 3];
+            invProjectionParams = new Vector4(invProjectionParams.x * 2.0f, invProjectionParams.y * 2, invProjectionParams.z, invProjectionParams.w - invProjectionParams.x - invProjectionParams.y);
 
             float orthoHeight = camera.orthographic ? 2 * camera.orthographicSize : 0;
             float orthoWidth = orthoHeight * camera.aspect;

@@ -35,11 +35,12 @@ MonoBehaviour:
     waterSimulationResolution: 128
     supportWaterExclusion: 1
     supportWaterDeformation: 1
-    deformationAtlasSize: 512
+    deformationAtlasSize: 1024
     maximumDeformerCount: 64
     supportWaterFoam: 1
-    foamAtlasSize: 512
-    waterCPUSimulation: 1
+    foamAtlasSize: 1024
+    waterScriptInteractionsMode: 0
+    waterFullCPUSimulation: 0
     supportComputeThickness: 0
     computeThicknessResolution: 1
     computeThicknessLayerMask:

@@ -62,7 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the size of the deformer in meters.
         /// </summary>
-        [Min(1.0f)]
         public Vector2 regionSize = new Vector2(20.0f, 20.0f);
 
         /// <summary>

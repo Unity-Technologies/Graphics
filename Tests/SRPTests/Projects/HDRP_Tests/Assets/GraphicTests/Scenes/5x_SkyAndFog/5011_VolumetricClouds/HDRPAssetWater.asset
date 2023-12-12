@@ -39,7 +39,8 @@ MonoBehaviour:
     maximumDeformerCount: 64
     supportWaterFoam: 1
     foamAtlasSize: 512
-    waterCPUSimulation: 0
+    waterScriptInteractionsMode: 0
+    waterFullCPUSimulation: 0
     supportComputeThickness: 0
     computeThicknessResolution: 1
     computeThicknessLayerMask:
@@ -69,6 +70,8 @@ MonoBehaviour:
     highQualityLineRenderingMemoryBudget: 128
     msaaSampleCount: 1
     supportMotionVectors: 1
+    supportScreenSpaceLensFlare: 1
+    supportDataDrivenLensFlare: 1
     supportDitheringCrossFade: 1
     supportRuntimeAOVAPI: 0
     supportTerrainHole: 0
@@ -116,7 +119,8 @@ MonoBehaviour:
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
-      shadowFilteringQuality: 1
+      punctualShadowFilteringQuality: 1
+      directionalShadowFilteringQuality: 1
       areaShadowFilteringQuality: 0
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
@@ -163,11 +167,16 @@ MonoBehaviour:
     dynamicResolutionSettings:
       enabled: 0
       useMipBias: 0
-      enableDLSS: 0
+      advancedUpscalersByPriority: 
       DLSSPerfQualitySetting: 0
       DLSSInjectionPoint: 0
       DLSSUseOptimalSettings: 0
       DLSSSharpness: 0
+      FSR2EnableSharpness: 0
+      FSR2Sharpness: 0
+      FSR2UseOptimalSettings: 0
+      FSR2QualitySetting: 0
+      FSR2InjectionPoint: 0
       fsrOverrideSharpness: 0
       fsrSharpness: 0.92
       maxPercentage: 100
@@ -178,6 +187,7 @@ MonoBehaviour:
       forcedPercentage: 100
       lowResTransparencyMinimumThreshold: 0
       rayTracingHalfResThreshold: 50
+      enableDLSS: 0
     lowresTransparentSettings:
       enabled: 1
       checkerboardDepthBuffer: 1
@@ -302,6 +312,12 @@ MonoBehaviour:
       - 0.666
       - 0.666
       - 0.5
+    gpuResidentDrawerSettings:
+      mode: 0
+      useLegacyLightmaps: 0
+      smallMeshScreenPercentage: 0
+      enableOcclusionCullingInCameras: 0
+      useDepthPrepassForOccluders: 1
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 
@@ -333,7 +349,10 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 24
+  m_CompositorCustomVolumeComponentsList:
+    m_InjectionPoint: 1
+    m_CustomPostProcessTypesAsString: []
+  m_Version: 25
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -519,8 +538,6 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 0
     materialQuality: 0
-  m_ObsoleteRenderPipelineResources: {fileID: 0}
-  m_ObsoleteRenderPipelineRayTracingResources: {fileID: 0}
   m_ObsoleteBeforeTransparentCustomPostProcesses: []
   m_ObsoleteBeforePostProcessCustomPostProcesses: []
   m_ObsoleteAfterPostProcessCustomPostProcesses: []
@@ -528,3 +545,4 @@ MonoBehaviour:
   m_ObsoleteShaderVariantLogLevel: 0
   m_ObsoleteLensAttenuation: 0
   m_ObsoleteDiffusionProfileSettingsList: []
+  m_PrefilterUseLegacyLightmaps: 0

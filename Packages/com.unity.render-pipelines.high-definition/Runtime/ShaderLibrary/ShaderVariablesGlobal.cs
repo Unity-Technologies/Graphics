@@ -88,6 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // w = 1/far plane
         public Vector4 _ProjectionParams;
 
+        // Parameters used to linearize the Z buffer
+        // Correctly handles oblique projection matrices
+        // https://jcgt.org/published/0005/04/03/paper.pdf
+        public Vector4 _InvProjParams;
+
         // x = orthographic camera's width
         // y = orthographic camera's height
         // z = unused

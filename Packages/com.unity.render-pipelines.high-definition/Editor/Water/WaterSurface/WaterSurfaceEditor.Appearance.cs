@@ -199,10 +199,14 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Smoothness", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
+                EditorGUI.BeginChangeCheck();
                 Vector2 remap = new Vector2(serialized.m_EndSmoothness.floatValue, serialized.m_StartSmoothness.floatValue);
                 EditorGUILayout.MinMaxSlider(k_SmoothnessRange, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                serialized.m_EndSmoothness.floatValue = remap.x;
-                serialized.m_StartSmoothness.floatValue = remap.y;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.m_EndSmoothness.floatValue = remap.x;
+                    serialized.m_StartSmoothness.floatValue = remap.y;
+                }
 
                 // Fade range
                 WaterPropertyParameterDrawer.DrawMultiPropertiesGUI(k_SmoothnessFadeRange, k_SmoothnessFadeStart, serialized.m_SmoothnessFadeStart, k_SmoothnessFadeDistance, serialized.m_SmoothnessFadeDistance);
@@ -213,25 +217,24 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 CoreEditorUtils.ColorFieldLinear(serialized.m_RefractionColor, k_RefractionColor);
-                serialized.m_MaxRefractionDistance.floatValue = EditorGUILayout.Slider(k_MaxRefractionDistance, serialized.m_MaxRefractionDistance.floatValue, 0.0f, 3.5f);
-                serialized.m_AbsorptionDistance.floatValue = EditorGUILayout.Slider(k_AbsorptionDistance, serialized.m_AbsorptionDistance.floatValue, 0.0f, 100.0f);
+                EditorGUILayout.PropertyField(serialized.m_MaxRefractionDistance, k_MaxRefractionDistance);
+                EditorGUILayout.PropertyField(serialized.m_AbsorptionDistance, k_AbsorptionDistance);
             }
 
             EditorGUILayout.LabelField("Scattering", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
                 CoreEditorUtils.ColorFieldLinear(serialized.m_ScatteringColor, k_ScatteringColor);
-                serialized.m_AmbientScattering.floatValue = EditorGUILayout.Slider(k_AmbientScattering, serialized.m_AmbientScattering.floatValue, 0.0f, 1.0f);
-                serialized.m_HeightScattering.floatValue = EditorGUILayout.Slider(k_HeightScattering, serialized.m_HeightScattering.floatValue, 0.0f, 1.0f);
-                serialized.m_DisplacementScattering.floatValue = EditorGUILayout.Slider(k_DisplacementScattering, serialized.m_DisplacementScattering.floatValue, 0.0f, 1.0f);
+                EditorGUILayout.PropertyField(serialized.m_AmbientScattering, k_AmbientScattering);
+                EditorGUILayout.PropertyField(serialized.m_HeightScattering, k_HeightScattering);
+                EditorGUILayout.PropertyField(serialized.m_DisplacementScattering, k_DisplacementScattering);
 
                 // Given the low amplitude of the pool waves, it doesn't make any sense to have the tip scattering term available to users
                 if (surfaceType != WaterSurfaceType.Pool)
-                    serialized.m_DirectLightTipScattering.floatValue = EditorGUILayout.Slider(k_DirectLightTipScattering, serialized.m_DirectLightTipScattering.floatValue, 0.0f, 1.0f);
-                serialized.m_DirectLightBodyScattering.floatValue = EditorGUILayout.Slider(k_DirectLightBodyScattering, serialized.m_DirectLightBodyScattering.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_DirectLightTipScattering, k_DirectLightTipScattering);
+                EditorGUILayout.PropertyField(serialized.m_DirectLightBodyScattering, k_DirectLightBodyScattering);
 
                 EditorGUILayout.PropertyField(serialized.m_MaximumHeightOverride);
-                serialized.m_MaximumHeightOverride.floatValue = Mathf.Max(serialized.m_MaximumHeightOverride.floatValue, 0.0f);
             }
 
             // Caustics
@@ -244,7 +247,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_CausticsResolution);
                     int bandCount = HDRenderPipeline.EvaluateBandCount(surfaceType, serialized.m_Ripples.boolValue);
 
-                    if (bandCount != 1)
+                    if (bandCount != 1 && !serialized.m_SurfaceType.hasMultipleDifferentValues && !serialized.m_Ripples.hasMultipleDifferentValues)
                     {
                         int bandIdx = HDRenderPipeline.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount);
 
@@ -281,27 +284,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     EditorGUILayout.PropertyField(serialized.m_CausticsVirtualPlaneDistance, k_CausticsVirtualPlaneDistance);
-                    serialized.m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(serialized.m_CausticsVirtualPlaneDistance.floatValue, 0.001f);
-
                     EditorGUILayout.PropertyField(serialized.m_CausticsTilingFactor, k_CausticsTilingFactor);
-                    serialized.m_CausticsTilingFactor.floatValue = Mathf.Max(serialized.m_CausticsTilingFactor.floatValue, 0.01f);
                     
                     if (WaterSurfaceUI.ShowAdditionalProperties())
                     {
                         EditorGUILayout.PropertyField(serialized.m_CausticsIntensity, k_CausticsInstensity);
-                        serialized.m_CausticsIntensity.floatValue = Mathf.Max(serialized.m_CausticsIntensity.floatValue, 0.0f);
-
                         EditorGUILayout.PropertyField(serialized.m_CausticsPlaneBlendDistance);
-                        serialized.m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(serialized.m_CausticsPlaneBlendDistance.floatValue, 0.0f);
-
                         EditorGUILayout.PropertyField(serialized.m_CausticsDirectionalShadow, k_CausticsDirectionalShadow);
 
                         if (serialized.m_CausticsDirectionalShadow.boolValue)
                         {
                             using (new IndentLevelScope())
-                            {
-                                serialized.m_CausticsDirectionalShadowDimmer.floatValue = EditorGUILayout.Slider(k_CausticsDirectionalShadowDimmer, serialized.m_CausticsDirectionalShadowDimmer.floatValue, 0.0f, 1.0f);
-                            }
+                                EditorGUILayout.PropertyField(serialized.m_CausticsDirectionalShadowDimmer, k_CausticsDirectionalShadowDimmer);
                         }
                     }
 
@@ -341,22 +335,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     else
                     {
                         EditorGUILayout.PropertyField(serialized.m_VolumeDepth);
-                        serialized.m_VolumeDepth.floatValue = Mathf.Max(serialized.m_VolumeDepth.floatValue, 0.0f);
-
                         EditorGUILayout.PropertyField(serialized.m_VolumeHeight);
-                        serialized.m_VolumeHeight.floatValue = Mathf.Max(serialized.m_VolumeHeight.floatValue, 0.0f);
                     }
 
                     // Priority
                     EditorGUILayout.PropertyField(serialized.m_VolumePriority);
-                    serialized.m_VolumePriority.intValue = serialized.m_VolumePriority.intValue > 0 ? serialized.m_VolumePriority.intValue : 0;
 
                     // View distance
                     EditorGUILayout.PropertyField(serialized.m_AbsorptionDistanceMultiplier);
-                    serialized.m_AbsorptionDistanceMultiplier.floatValue = Mathf.Max(serialized.m_AbsorptionDistanceMultiplier.floatValue, 0.0f);
 
                     // Color pyramid offset
-                    serialized.m_ColorPyramidOffset.intValue = EditorGUILayout.IntSlider(k_ColorPyramidOffset, serialized.m_ColorPyramidOffset.intValue, 0, 4);
+                    EditorGUILayout.PropertyField(serialized.m_ColorPyramidOffset, k_ColorPyramidOffset);
 
                     // Scattering color for underwater
                     EditorGUILayout.PropertyField(serialized.m_UnderWaterScatteringColorMode, k_UnderWaterScatteringColorMode);
@@ -370,7 +359,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_UnderWaterRefraction, k_UnderWaterRefraction);
 
                     // Ambient probe contribution
-                    serialized.m_UnderWaterAmbientProbeContribution.floatValue = EditorGUILayout.Slider(k_UnderWaterAmbientProbeContribution, serialized.m_UnderWaterAmbientProbeContribution.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_UnderWaterAmbientProbeContribution, k_UnderWaterAmbientProbeContribution);
                 }
             }
         }

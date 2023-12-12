@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
+        [Range(WaterConsts.k_SwellMinPatchSize, WaterConsts.k_SwellMaxPatchSize)]
         public float repetitionSize = 500.0f;
 
         /// <summary>
@@ -34,16 +34,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
+        [Range(0, WaterConsts.k_SwellMaximumWindSpeed)]
         public float largeWindSpeed = 30.0f;
 
         /// <summary>
         ///
         /// </summary>
+        [Range(0, 1.0f)]
         public float largeChaos = 0.8f;
 
         /// <summary>
         ///
         /// </summary>
+        [Range(0, 1.0f)]
         public float largeBand0Multiplier = 1.0f;
 
         /// <summary>
@@ -54,37 +57,32 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float largeBand0FadeStart = 1500.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float largeBand0FadeDistance = 3000.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
+        [Range(0, 1.0f)]
         public float largeBand1Multiplier = 1.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public FadeMode largeBand1FadeMode = FadeMode.Automatic;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float largeBand1FadeStart = 300.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float largeBand1FadeDistance = 800.0f;
         #endregion
 
@@ -97,43 +95,38 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public WaterPropertyOverrideMode ripplesMotionMode = WaterPropertyOverrideMode.Inherit;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float ripplesOrientationValue = 0.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
+        [Range(0, WaterConsts.k_RipplesMaxWindSpeed)]
         public float ripplesWindSpeed = 8.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
+        [Range(0.0f, 1.0f)]
         public float ripplesChaos = 0.8f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public FadeMode ripplesFadeMode = FadeMode.Automatic;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float ripplesFadeStart = 50.0f;
 
         /// <summary>
         ///
         /// </summary>
-        [Tooltip("")]
         public float ripplesFadeDistance = 200.0f;
         #endregion
 
