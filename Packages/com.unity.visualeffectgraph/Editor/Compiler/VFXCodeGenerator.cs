@@ -388,25 +388,42 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
         }
 
-        internal static void BuildContextBlocks(VFXContext context, VFXTaskCompiledData taskData,
-            out string blockFunctionContent,
-            out string blockCallFunctionContent)
+        internal static Dictionary<VFXExpression, string> BuildExpressionToName(VFXContext context, VFXTaskCompiledData taskData)
+        {
+            var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
+            foreach (var attribute in context.GetData().GetAttributes())
+            {
+                var expression = new VFXAttributeExpression(attribute.attrib);
+                expressionToName.Add(expression, expression.GetCodeString(null));
+            }
+            return expressionToName;
+        }
+
+        internal static void BuildContextBlocks(VFXContext context, VFXTaskCompiledData taskData, Dictionary<VFXExpression, string> expressionToName,
+            out VFXShaderWriter blockFunction,
+            out VFXShaderWriter blockCallFunction)
         {
             //< Block processor
-            var blockFunction = new VFXShaderWriter();
-            var blockCallFunction = new VFXShaderWriter();
+            blockFunction = new VFXShaderWriter();
+            blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
             {
+                // Custom HLSL Blocks
+                if (current is IHLSLCodeHolder hlslCodeHolder)
+                {
+                    blockFunction.Write(hlslCodeHolder.customCode);
+                }
                 BuildBlock(taskData, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
             }
 
-            blockFunctionContent = blockFunction.builder.ToString();
-            blockCallFunctionContent = blockCallFunction.builder.ToString();
+            // Custom HLSL Operators
+            foreach (var group in taskData.hlslCodeHolders.GroupBy(x => x.customCode.GetHashCode()))
+            {
+                blockFunction.Write(group.First().customCode);
+            }
         }
 
         internal static void BuildParameterBuffer(VFXTaskCompiledData taskData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent, out bool needsGraphValueStruct) //TODO: pass all in one? Do we need some info out of that method?
@@ -461,11 +478,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 var fragInputsGeneration = new VFXShaderWriter();
                 string surfaceSetter = useFragInputs ? "output.vfx" : "output";
 
-                var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
+                var expressionToNameLocal = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
 
                 // Expression tree
                 foreach (var interp in taskData.SGInputs.interpolators)
-                    fragInputsGeneration.WriteVariable(interp.Key, expressionToName);
+                    fragInputsGeneration.WriteVariable(interp.Key, expressionToNameLocal);
                 fragInputsGeneration.WriteLine();
 
 
@@ -478,7 +495,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                         inputExpStr = exp.GetCodeString(null); // From constant
                     else if (taskData.SGInputs.IsInterpolant(exp))
                     {
-                        inputExpStr = expressionToName[exp]; // From interpolator
+                        inputExpStr = expressionToNameLocal[exp]; // From interpolator
                     }
                     else
                         inputExpStr = $"graphValues.{taskData.uniformMapper.GetName(exp)}"; // From uniform
@@ -500,11 +517,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (taskData.SGInputs != null)
             {
                 var interpolantsGenerationWriter = new VFXShaderWriter();
-                var expressionToName = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
+                var expressionToNameLocal = new Dictionary<VFXExpression, string>(taskData.uniformMapper.expressionToCode);
 
                 // Expression tree
                 foreach (var interp in taskData.SGInputs.interpolators)
-                    interpolantsGenerationWriter.WriteVariable(interp.Key, expressionToName);
+                    interpolantsGenerationWriter.WriteVariable(interp.Key, expressionToNameLocal);
 
                 interpolantsGenerationWriter.WriteLine();
 
@@ -512,7 +529,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 foreach (var interp in taskData.SGInputs.interpolators)
                 {
                     var (exp, name) = (interp.Key, interp.Value);
-                    interpolantsGenerationWriter.WriteAssignement(exp.valueType, $"output.{name}", expressionToName[exp]);
+                    interpolantsGenerationWriter.WriteAssignement(exp.valueType, $"output.{name}", expressionToNameLocal[exp]);
                     interpolantsGenerationWriter.WriteLine();
                 }
 
@@ -638,36 +655,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteLine();
 
             globalDeclaration.WriteEventBuffers(eventListOutName, taskData.linkedEventOut.Length);
-
-            //< Block processor
-            var blockFunction = new VFXShaderWriter();
-            var blockCallFunction = new VFXShaderWriter();
-            var blockDeclared = new HashSet<string>();
-
-            var expressionToName = context.GetData().GetAttributes()
-                .Select(x => new VFXAttributeExpression(x.attrib) as VFXExpression)
-                .ToDictionary(x => x, x => x.GetCodeString(null));
-            expressionToName = expressionToName
-                .Union(taskData.uniformMapper.expressionToCode)
-                .ToDictionary(s => s.Key, s => s.Value);
-
-
-            int cpt = 0;
-            foreach (var current in context.activeFlattenedChildrenWithImplicit)
-            {
-                // Custom HLSL Blocks
-                if (current is IHLSLCodeHolder hlslCodeHolder)
-                {
-                    blockFunction.Write(hlslCodeHolder.customCode);
-                }
-                BuildBlock(taskData, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
-            }
-
-            // Custom HLSL Operators
-            foreach (var group in taskData.hlslCodeHolders.GroupBy(x => x.customCode.GetHashCode()))
-            {
-                blockFunction.Write(group.First().customCode);
-            }
+            
+            var expressionToName = BuildExpressionToName(context, taskData);
+            BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction);
 
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
