@@ -205,7 +205,6 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - Volumetric [fog](create-a-local-fog-effect.md).
 - [Tessellation](Tessellation.md).
 - Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.
-- VFX.
 - MSAA.
 - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
 - [Orthographic projection](hdrp-camera-component-reference.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
