@@ -39,6 +39,10 @@ namespace UnityEngine.Rendering
             public int totalProbeCount;
             public ulong stepCount;
 
+            // Cancellation
+            public bool cancel;
+            public bool failed;
+
             public void Init(ProbeVolumeBakingSet bakingSet, BakeJob[] bakeJobs, Vector3[] probePositions, List<Vector3> requests)
             {
                 var result = InputExtraction.ExtractFromScene(out input);
@@ -70,6 +74,9 @@ namespace UnityEngine.Rendering
 
             public void Dispose()
             {
+                if (failed)
+                    Debug.LogError("Probe Volume Baking failed.");
+
                 if (jobs == null)
                     return;
 
@@ -176,7 +183,7 @@ namespace UnityEngine.Rendering
 
             // Use our counter to determine when baking is done
             ulong bakeProbes = s_BakeData.virtualOffsetJob.currentStep + (ulong)s_BakeData.bakedProbeCount + s_BakeData.skyOcclusionJob.currentStep;
-            if (bakeProbes >= s_BakeData.stepCount)
+            if (bakeProbes >= s_BakeData.stepCount || s_BakeData.failed)
             {
                 FinalizeBake();
                 done = true;
@@ -194,8 +201,10 @@ namespace UnityEngine.Rendering
                     ref var job = ref s_BakeData.jobs[i];
                     if (job.indices.Length != 0)
                     {
-                        context.Bake(job, ref s_BakeData.irradianceResults, ref s_BakeData.validityResults);
-                        s_BakeData.bakedProbeCount += job.indices.Length;
+                        bool success = context.Bake(job, ref s_BakeData.irradianceResults, ref s_BakeData.validityResults, ref s_BakeData.cancel);                        
+                        if (success) 
+                            s_BakeData.bakedProbeCount += job.indices.Length;
+                        s_BakeData.failed = !success;
                     }
                 }
             }
@@ -226,30 +235,33 @@ namespace UnityEngine.Rendering
 
         static void FinalizeBake()
         {
-            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.FinalizingBake))
+            if (!s_BakeData.failed)
             {
-                int probeCount = s_BakeData.positions.Length;
-                int requestCount = s_BakeData.additionalRequests.Count;
-
-                if (probeCount != 0)
+                using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.FinalizingBake))
                 {
-                    try
-                    {
-                        ApplyPostBakeOperations(s_BakeData.irradianceResults, s_BakeData.validityResults,
-                            s_BakeData.virtualOffsetJob.offsets,
-                            s_BakeData.skyOcclusionJob.occlusionResults, s_BakeData.skyOcclusionJob.directionResults);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError(e);
-                    }
-                }
+                    int probeCount = s_BakeData.positions.Length;
+                    int requestCount = s_BakeData.additionalRequests.Count;
 
-                if (requestCount != 0)
-                {
-                    var additionalIrradiance = s_BakeData.irradianceResults.GetSubArray(s_BakeData.irradianceResults.Length - requestCount, requestCount);
-                    var additionalValidity = s_BakeData.validityResults.GetSubArray(s_BakeData.validityResults.Length - requestCount, requestCount);
-                    AdditionalGIBakeRequestsManager.OnAdditionalProbesBakeCompleted(additionalIrradiance, additionalValidity);
+                    if (probeCount != 0)
+                    {
+                        try
+                        {
+                            ApplyPostBakeOperations(s_BakeData.irradianceResults, s_BakeData.validityResults,
+                                s_BakeData.virtualOffsetJob.offsets,
+                                s_BakeData.skyOcclusionJob.occlusionResults, s_BakeData.skyOcclusionJob.directionResults);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError(e);
+                        }
+                    }
+
+                    if (requestCount != 0)
+                    {
+                        var additionalIrradiance = s_BakeData.irradianceResults.GetSubArray(s_BakeData.irradianceResults.Length - requestCount, requestCount);
+                        var additionalValidity = s_BakeData.validityResults.GetSubArray(s_BakeData.validityResults.Length - requestCount, requestCount);
+                        AdditionalGIBakeRequestsManager.OnAdditionalProbesBakeCompleted(additionalIrradiance, additionalValidity);
+                    }
                 }
             }
 
@@ -263,7 +275,7 @@ namespace UnityEngine.Rendering
         {
             if (s_BakeData.bakingThread != null)
             {
-                s_BakeData.bakingThread.Abort();
+                s_BakeData.cancel = true;
                 s_BakeData.bakingThread.Join();
             }
 
@@ -464,7 +476,11 @@ namespace UnityEngine.Rendering
             public BufferID combinedSHBufferId;
             public BufferID irradianceBufferId;
 
-            static readonly float s_PushOffset = 0.0001f;
+            NativeArray<SphericalHarmonicsL2> jobIrradianceResults;
+            NativeArray<float> jobValidityResults;
+
+            const float k_PushOffset = 0.0001f;
+            const int k_MaxProbeCountPerBatch = 128 * 1024;
 
             static readonly int sizeOfFloat = 4;
             static readonly int SHL2RGBElements = 3 * 9;
@@ -505,10 +521,9 @@ namespace UnityEngine.Rendering
                 var positionsBytes = (ulong)(sizeOfFloat * 3 * probeCount);
                 positionsBufferID = ctx.CreateBuffer(positionsBytes);
 
-                // Allocate temporary buffers
-                // TODO: We should use the probe count of the largest job
-                var shBytes = (ulong)(sizeSHL2RGB * probeCount);
-                var validityBytes = (ulong)(sizeOfFloat * probeCount);
+                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
+                var shBytes = (ulong)(sizeSHL2RGB * batchSize);
+                var validityBytes = (ulong)(sizeOfFloat * batchSize);
 
                 directRadianceBufferId = ctx.CreateBuffer(shBytes);
                 indirectRadianceBufferId = ctx.CreateBuffer(shBytes);
@@ -518,14 +533,15 @@ namespace UnityEngine.Rendering
                 boostedIndirectSHBufferId = ctx.CreateBuffer(shBytes);
                 combinedSHBufferId = ctx.CreateBuffer(shBytes);
                 irradianceBufferId = ctx.CreateBuffer(shBytes);
+
+                jobIrradianceResults = new NativeArray<SphericalHarmonicsL2>(batchSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                jobValidityResults = new NativeArray<float>(batchSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             }
 
-            public void Bake(in BakeJob job, ref NativeArray<SphericalHarmonicsL2> irradianceResults, ref NativeArray<float> validityResults)
+            public bool Bake(in BakeJob job, ref NativeArray<SphericalHarmonicsL2> irradianceResults, ref NativeArray<float> validityResults, ref bool cancel)
             {
-                int probeCount = job.indices.Length;
-
-                // Get the correct slice of position as all job share the same array
-                var positionsSlice = new BufferSlice<Vector3>(positionsBufferID, (ulong)job.startOffset);
+                // Divide the job into batches of 128k probes to reduce memory usage.
+                int batchCount = CoreUtils.DivRoundUp(job.indices.Length, k_MaxProbeCountPerBatch);
 
                 // Get slices for all buffers because the API require those
                 // All jobs use overlapping slices as they are not run simultaneously
@@ -537,103 +553,112 @@ namespace UnityEngine.Rendering
                 var combinedSHSlice = new BufferSlice<SphericalHarmonicsL2>(combinedSHBufferId, 0);
                 var irradianceSlice = new BufferSlice<SphericalHarmonicsL2>(irradianceBufferId, 0);
 
-
-                /// Baking
-
-                // Prepare lightmapper
-                integrator.Prepare(ctx, world, positionsSlice, s_PushOffset, job.maxBounces);
-                integrator.SetProgressReporter(job.progress);
-
-                // Bake direct radiance
-                using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateDirectRadiance))
+                // Loop over all batches
+                for (int batchIndex = 0; batchIndex < batchCount; batchIndex++)
                 {
-                    var integrationResult = integrator.IntegrateDirectRadiance(ctx, 0, probeCount, job.directSampleCount, job.ignoreEnvironement, job.ignoreEnvironement, directRadianceSlice);
-                    Assert.AreEqual(IProbeIntegrator.ResultType.Success, integrationResult.type, "Failed to bake direct radiance: " + integrationResult.type);
-                }
+                    int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
+                    int probeCount = Mathf.Min(job.indices.Length - batchOffset, k_MaxProbeCountPerBatch);
 
-                // Bake indirect radiance
-                using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateIndirectRadiance))
-                {
-                    var integrationResult = integrator.IntegrateIndirectRadiance(ctx, 0, probeCount, job.indirectSampleCount, job.ignoreEnvironement, job.ignoreEnvironement, indirectRadianceSlice);
-                    Assert.AreEqual(IProbeIntegrator.ResultType.Success, integrationResult.type, "Failed to bake indirect radiance: " + integrationResult.type);
-                }
+                    // Get the correct slice of position as all jobs share the same array.
+                    var positionsSlice = new BufferSlice<Vector3>(positionsBufferID, (ulong)(job.startOffset + batchOffset));
 
-                // Bake validity
-                using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateValidity))
-                {
-                    var validityResult = integrator.IntegrateValidity(ctx, 0, probeCount, job.validitySampleCount, validitySlice);
-                    Assert.AreEqual(IProbeIntegrator.ResultType.Success, validityResult.type, "Failed to bake validity: " + validityResult.type);
-                }
+                    /// Baking
 
+                    // Prepare integrator.
+                    integrator.Prepare(ctx, world, positionsSlice, k_PushOffset, job.maxBounces);
+                    integrator.SetProgressReporter(job.progress);
 
-                /// Postprocess
-
-                using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.Postprocess))
-                {
-                    // Apply windowing to direct component.
-                    bool windowOk = postProcessor.WindowSphericalHarmonicsL2(ctx, directRadianceSlice, windowedDirectRadianceSlice, probeCount);
-                    Assert.IsTrue(windowOk);
-
-                    // Apply indirect intensity multiplier to indirect radiance
-                    if (job.indirectScale.Equals(1.0f) == false)
+                    // Bake direct radiance
+                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateDirectRadiance))
                     {
-                        boostedIndirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(boostedIndirectSHBufferId, 0);
-                        bool multiplyOk = postProcessor.ScaleSphericalHarmonicsL2(ctx, indirectRadianceSlice, boostedIndirectRadianceSlice, probeCount, job.indirectScale);
-                        Assert.IsTrue(multiplyOk);
+                        var integrationResult = integrator.IntegrateDirectRadiance(ctx, 0, probeCount, job.directSampleCount, job.ignoreEnvironement, job.ignoreEnvironement, directRadianceSlice);
+                        if (integrationResult.type != IProbeIntegrator.ResultType.Success) return false;
+                        if (cancel) return true;
                     }
 
-                    // Combine direct and indirect radiance
-                    bool addOk = postProcessor.AddSphericalHarmonicsL2(ctx, windowedDirectRadianceSlice, boostedIndirectRadianceSlice, combinedSHSlice, probeCount);
-                    Assert.IsTrue(addOk);
+                    // Bake indirect radiance
+                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateIndirectRadiance))
+                    {
+                        var integrationResult = integrator.IntegrateIndirectRadiance(ctx, 0, probeCount, job.indirectSampleCount, job.ignoreEnvironement, job.ignoreEnvironement, indirectRadianceSlice);
+                        if (integrationResult.type != IProbeIntegrator.ResultType.Success) return false;
+                        if (cancel) return true;
+                    }
 
-                    // Convert radiance to irradiance
-                    bool convolvedOk = postProcessor.ConvolveRadianceToIrradiance(ctx, combinedSHSlice, irradianceSlice, probeCount);
-                    Assert.IsTrue(convolvedOk);
+                    // Bake validity
+                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateValidity))
+                    {
+                        var validityResult = integrator.IntegrateValidity(ctx, 0, probeCount, job.validitySampleCount, validitySlice);
+                        if (validityResult.type != IProbeIntegrator.ResultType.Success) return false;
+                        if (cancel) return true;
+                    }
 
-                    // Transform to the format expected by the Unity renderer
-                    bool convertedOk = postProcessor.ConvertToUnityFormat(ctx, irradianceSlice, combinedSHSlice, probeCount);
-                    Assert.IsTrue(convertedOk);
+                    /// Postprocess
 
-                    // Apply de-ringing to combined SH
-                    bool deringOk = postProcessor.DeringSphericalHarmonicsL2(ctx, combinedSHSlice, combinedSHSlice, probeCount);
-                    Assert.IsTrue(deringOk);
+                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.Postprocess))
+                    {
+                        // Apply windowing to direct component.
+                        if (!postProcessor.WindowSphericalHarmonicsL2(ctx, directRadianceSlice, windowedDirectRadianceSlice, probeCount))
+                            return false;
+
+                        // Apply indirect intensity multiplier to indirect radiance
+                        if (job.indirectScale.Equals(1.0f) == false)
+                        {
+                            boostedIndirectRadianceSlice = new BufferSlice<SphericalHarmonicsL2>(boostedIndirectSHBufferId, 0);
+                            if (!postProcessor.ScaleSphericalHarmonicsL2(ctx, indirectRadianceSlice, boostedIndirectRadianceSlice, probeCount, job.indirectScale))
+                                return false;
+                        }
+
+                        // Combine direct and indirect radiance
+                        if (!postProcessor.AddSphericalHarmonicsL2(ctx, windowedDirectRadianceSlice, boostedIndirectRadianceSlice, combinedSHSlice, probeCount))
+                            return false;
+
+                        // Convert radiance to irradiance
+                        if (!postProcessor.ConvolveRadianceToIrradiance(ctx, combinedSHSlice, irradianceSlice, probeCount))
+                            return false;
+
+                        // Transform to the format expected by the Unity renderer
+                        if (!postProcessor.ConvertToUnityFormat(ctx, irradianceSlice, combinedSHSlice, probeCount))
+                            return false;
+
+                        // Apply de-ringing to combined SH
+                        if (!postProcessor.DeringSphericalHarmonicsL2(ctx, combinedSHSlice, combinedSHSlice, probeCount))
+                            return false;
+                    }
+
+                    /// Read results
+
+                    // Schedule read backs to get results back from GPU memory into CPU memory.
+                    var irradianceReadEvent = ctx.ReadBuffer(combinedSHSlice, jobIrradianceResults);
+                    var validityReadEvent = ctx.ReadBuffer(validitySlice, jobValidityResults);
+                    if (!ctx.Flush()) return false;
+
+                    using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.ReadBack))
+                    {
+                        // Wait for read backs to complete.
+                        bool waitResult = ctx.Wait(irradianceReadEvent) && ctx.Wait(validityReadEvent);
+                        if (!waitResult) return false;
+                    }
+
+                    // Write the batch results into the final buffer
+                    for (int i = 0; i < probeCount; i++)
+                    {
+                        var dst = job.indices[i + batchOffset];
+                        irradianceResults[dst] = jobIrradianceResults[i];
+                        validityResults[dst] = jobValidityResults[i];
+                    }
+
+                    if (cancel)
+                        return true;
                 }
 
-
-                /// Read results
-
-                var jobIrradianceResults = new NativeArray<SphericalHarmonicsL2>(probeCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                var jobValidityResults = new NativeArray<float>(probeCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-
-                // Schedule read backs to get results back from GPU memory into CPU memory.
-                var irradianceReadEvent = ctx.ReadBuffer(combinedSHSlice, jobIrradianceResults);
-                var validityReadEvent = ctx.ReadBuffer(validitySlice, jobValidityResults);
-                bool flushOk = ctx.Flush();
-                Assert.IsTrue(flushOk);
-
-                using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.ReadBack))
-                {
-                    // Wait for read backs to complete.
-                    bool waitResult = ctx.Wait(irradianceReadEvent);
-                    Debug.Assert(waitResult, "Failed to read irradiance from context.");
-                    waitResult = ctx.Wait(validityReadEvent);
-                    Debug.Assert(waitResult, "Failed to read validity from context.");
-                }
-
-                // Write the job results to the final buffer
-                for (int i = 0; i < probeCount; i++)
-                {
-                    var dst = job.indices[i];
-                    irradianceResults[dst] = jobIrradianceResults[i];
-                    validityResults[dst] = jobValidityResults[i];
-                }
-
-                jobIrradianceResults.Dispose();
-                jobValidityResults.Dispose();
+                return true;
             }
 
             public void Dispose()
             {
+                jobIrradianceResults.Dispose();
+                jobValidityResults.Dispose();
+
                 ctx.DestroyBuffer(positionsBufferID);
                 ctx.DestroyBuffer(directRadianceBufferId);
                 ctx.DestroyBuffer(indirectRadianceBufferId);
@@ -783,7 +808,8 @@ namespace UnityEngine.Rendering
             InputExtraction.ExtractFromScene(out input);
 
             var context = BakeContext.New(input, positions);
-            context.Bake(job, ref irradianceResults, ref validityResults);
+            bool cancel = false;
+            context.Bake(job, ref irradianceResults, ref validityResults, ref cancel);
             job.Dispose();
 
             sh = irradianceResults[0];
