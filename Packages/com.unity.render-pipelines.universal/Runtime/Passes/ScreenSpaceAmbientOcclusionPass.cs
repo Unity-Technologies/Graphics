@@ -39,8 +39,8 @@ namespace UnityEngine.Rendering.Universal
         private const string k_AmbientOcclusionParamName = "_AmbientOcclusionParam";
 
         // Statics
+        internal static readonly int s_AmbientOcclusionParamID = Shader.PropertyToID(k_AmbientOcclusionParamName);
         private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
-        private static readonly int s_AmbientOcclusionParamID = Shader.PropertyToID(k_AmbientOcclusionParamName);
         private static readonly int s_SSAOBlueNoiseParamsID = Shader.PropertyToID("_SSAOBlueNoiseParams");
         private static readonly int s_BlueNoiseTextureID = Shader.PropertyToID("_BlueNoiseTexture");
         private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering.Universal
                 InitSetupPassData(ref passData);
                 passData.cameraColor = resourceData.cameraColor;
                 passData.cameraData = cameraData;
-                passData.ambientOcclusionParams = new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength);
+                passData.ambientOcclusionParams = new Vector4(1f, 0f, 0f, m_CurrentSettings.DirectLightingStrength);
 
                 // Shader keyword changes are considered as global state modifications
                 builder.AllowGlobalStateModification(true);
@@ -702,7 +702,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Set the global SSAO Params
-                cmd.SetGlobalVector(s_AmbientOcclusionParamID, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                cmd.SetGlobalVector(s_AmbientOcclusionParamID, new Vector4(1f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
                 #if ENABLE_VR && ENABLE_XR_MODULE
                     // Cleanup, making sure it doesn't stay enabled for a pass after that should not have it on
                     if (isFoveatedEnabled)
