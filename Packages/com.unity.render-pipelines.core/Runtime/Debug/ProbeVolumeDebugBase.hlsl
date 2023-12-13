@@ -57,6 +57,7 @@ StructuredBuffer<float4> _positionNormalBuffer;
 uniform float4 _DebugArrowColor; // arrow color for position and normal debug
 uniform float4 _DebugLocator01Color; // locator color for final sampling position debug
 uniform float4 _DebugLocator02Color; // locator color for normal and view bias sampling position debug
+uniform float4 _DebugEmptyProbeData; // probe color for missing data
 uniform bool _ForceDebugNormalViewBias; // additional locator to debug Normal Bias and View Bias without AntiLeak Reduction Mode
 uniform bool _DebugSamplingNoise = false;
 uniform sampler2D _NumbersTex;
@@ -282,22 +283,25 @@ float3 CalculateDiffuseLighting(v2f i)
 
     float3 skyShadingDirection = normal;
     if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
-    {
-        uint index = 255;
+    {   
         if (_EnableSkyOcclusionShadingDirection > 0)
         {
-            index = apvRes.SkyShadingDirectionIndices[texLoc].r * 255;
+            float value = 1.0f / GetCurrentExposureMultiplier();
+
+            uint index = apvRes.SkyShadingDirectionIndices[texLoc].r * 255;
             if (index != 255)
                 skyShadingDirection = apvRes.SkyPrecomputedDirections[index].rgb;
+            else
+                return float3(value, 0.0f, 0.0f);
+
+            if (dot(normal, skyShadingDirection) > 0.95)
+                return float3(0.0f, value, 0.0f);
+            return float3(0.0f, 0.0f, 0.0f);
         }
-        float value = 1.0f / GetCurrentExposureMultiplier();
-
-        if (index == 255)
-            return float3(value, 0.0f, 0.0f);
-
-        if (dot(normal, skyShadingDirection) > 0.95)
-            return float3(0.0f, value, 0.0f);
-        return float3(0.0f, 0.0f, 0.0f);
+        else
+        {
+            return _DebugEmptyProbeData / GetCurrentExposureMultiplier();
+        }
     }
     else
     {
@@ -310,7 +314,12 @@ float3 CalculateDiffuseLighting(v2f i)
         }
 
         if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH)
-            return skyOcclusion / GetCurrentExposureMultiplier();
+        {
+            if(_SkyOcclusionIntensity > 0)
+                return skyOcclusion / GetCurrentExposureMultiplier();
+            else
+                return _DebugEmptyProbeData / GetCurrentExposureMultiplier();
+        }
 
         float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
         float3 L0 = L0_L1Rx.xyz;

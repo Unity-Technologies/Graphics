@@ -42,7 +42,6 @@ namespace UnityEditor.Rendering
         SerializedProperty m_SkyOcclusionBakingSamples;
         SerializedProperty m_SkyOcclusionBakingBounces;
         SerializedProperty m_SkyOcclusionAverageAlbedo;
-        SerializedProperty m_SkyOcclusionBackFaceCulling;
         SerializedProperty m_SkyOcclusionShadingDirection;
 
         ProbeVolumeBakingSet bakingSet => target as ProbeVolumeBakingSet;
@@ -51,7 +50,7 @@ namespace UnityEditor.Rendering
         {
             public static readonly GUIContent scenariosTitle = new GUIContent("Lighting Scenarios");
             public static readonly GUIContent placementTitle = new GUIContent("Probe Placement");
-            public static readonly GUIContent settingsTitle = new GUIContent("Probe Invalidity Settings");
+            public static readonly GUIContent invaliditySettingsTitle = new GUIContent("Probe Invalidity Settings");
             public static readonly GUIContent skyOcclusionSettingsTitle = new GUIContent("Sky Occlusion Settings");
 
             public static readonly GUIContent keepSamePlacement = new GUIContent("Probe Positions", "If set to Don't Recalculate, probe positions are not recalculated when baking. Allows baking multiple Scenarios that include small differences in Scene geometry.");
@@ -73,13 +72,13 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent renderersLayerMask = new GUIContent("Layer Mask", "Specify Layers to use when generating probe positions.");
             public static readonly GUIContent rendererFilterSettings = new GUIContent("Renderer Filter Settings");
 
-            public static readonly GUIContent skyOcclusion = new GUIContent("Sky Occlusion", "When occlusion is baked, probe volumes can react to sky lighting changes at runtime. This will increase the memory footprint for probe volumes.");
-            public static readonly GUIContent skyOcclusionBakingSamples = new GUIContent("Samples", "Control the number of samples used for Sky Occlusion baking. Increasing this value may improve the quality but increases the time required for baking to complete.");
-            public static readonly GUIContent skyOcclusionBakingBounces = new GUIContent("Bounces", "Control the number of bounces used for Sky Occlusion baking.");
-            public static readonly GUIContent skyOcclusionAverageAlbedo = new GUIContent("Albedo Override", "Bounced lighting for Sky Occlusion does not take material properties such as color and roughness into account. Thus a single color is applied to all materials. The colors range from 0 (black) to 1 (white).");
-            public static readonly GUIContent skyOcclusionBackFaceCulling = new GUIContent("Backface Culling", "Enable backface culling for Sky Occlusion baking.");
-            public static readonly GUIContent skyOcclusionShadingDirection = new GUIContent("Sky Direction", "In addition to Sky Occlusion, bake the most suitable direction to sample the ambient probe at runtime. Without it, surface normals would be used as a fallback and might lead to inaccuracies when updating the probes with the sky color.");
-            public static readonly GUIContent cpuLightmapperNotSupportedWarning = new GUIContent("The Progressive CPU Lightmapper is not supported with Sky Occlusion. Use Progressive GPU lightmapper instead in Lightmapping settings.");
+            public static readonly GUIContent skyOcclusion = new GUIContent("Sky Occlusion", "Choose whether to generate Sky Occlusion data for probes within this Probe Volume. When enabled, Scenes can be dynamically re-lit when the sky is changed. This feature increases memory usage.");
+            public static readonly GUIContent skyOcclusionBakingSamples = new GUIContent("Samples", "The number of samples used to calculate the influence of the sky when baking probes. Increasing this value improves the accuracy of Sky Occlusion data, but increases the time required to generate baked lighting.");
+            public static readonly GUIContent skyOcclusionBakingBounces = new GUIContent("Bounces", "The maximum number of bounces allowed for each Sky Occlusion sample. Increasing this value particularly improves the accuracy of occlusion data in areas of the Scene with complicated routes to the sky.");
+            public static readonly GUIContent skyOcclusionAverageAlbedo = new GUIContent("Albedo Override", "Sky Occlusion does not consider the albedo of materials in the Scene when calculating bounced light from the sky. Albedo Override determines the value used instead. Lower values darken and higher values will brighten the Scene.");
+            public static readonly GUIContent skyOcclusionShadingDirection = new GUIContent("Sky Direction", "For each probe, additionally bake the most suitable direction to use for sampling the Scene’s Ambient Probe. When disabled, surface normals are used instead. Sky Direction improves visual quality at the expense of memory.");
+            public static readonly GUIContent cpuLightmapperNotSupportedWarning = new GUIContent("Sky Occlusion is not supported by the current lightmapper. Ensure that Progressive GPU is selected in Lightmapper Settings.");
+            
 
 
             // Probe Settings section
@@ -102,7 +101,6 @@ namespace UnityEditor.Rendering
             m_SkyOcclusionBakingSamples = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBakingSamples));
             m_SkyOcclusionBakingBounces = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBakingBounces));
             m_SkyOcclusionAverageAlbedo = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionAverageAlbedo));
-            m_SkyOcclusionBackFaceCulling = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionBackFaceCulling));
             m_SkyOcclusionShadingDirection = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionShadingDirection));
 
             if (ProbeReferenceVolume.instance.supportScenarioBlending)
@@ -226,9 +224,9 @@ namespace UnityEditor.Rendering
             EditorGUILayout.Space();
         }
 
-        void ProbeSettingsGUI()
+        void ProbeInvaliditySettingsGUI()
         {
-            if (!ProbeVolumeLightingTab.Foldout(Styles.settingsTitle, ProbeVolumeLightingTab.Expandable.InvaliditySettings, true, ResetProbeSettings))
+            if (!ProbeVolumeLightingTab.Foldout(Styles.invaliditySettingsTitle, ProbeVolumeLightingTab.Expandable.InvaliditySettings, true, ResetProbeSettings))
                 return;
 
             using (new EditorGUI.IndentLevelScope())
@@ -237,7 +235,7 @@ namespace UnityEditor.Rendering
             EditorGUILayout.Space();
         }
 
-        void SkyOcclusionSettings()
+        void SkyOcclusionSettingsGUI()
         {
             if (!SupportedRenderingFeatures.active.skyOcclusion)
                 return;
@@ -247,11 +245,12 @@ namespace UnityEditor.Rendering
             EditorGUI.indentLevel++;
 
             var lightmapper = ProbeVolumeLightingTab.GetLightingSettings().lightmapper;
-            if (lightmapper == LightingSettings.Lightmapper.ProgressiveCPU)
+            bool cpuLightmapperSelected = lightmapper == LightingSettings.Lightmapper.ProgressiveCPU;
+            if (cpuLightmapperSelected)
             {
                 EditorGUILayout.HelpBox(Styles.cpuLightmapperNotSupportedWarning.text, MessageType.Warning);
             }
-            else
+            using (new EditorGUI.DisabledScope(cpuLightmapperSelected))
             {
                 EditorGUILayout.PropertyField(m_SkyOcclusion, Styles.skyOcclusion);
 
@@ -262,7 +261,6 @@ namespace UnityEditor.Rendering
                     EditorGUILayout.PropertyField(m_SkyOcclusionBakingBounces, Styles.skyOcclusionBakingBounces);
                     EditorGUILayout.PropertyField(m_SkyOcclusionAverageAlbedo, Styles.skyOcclusionAverageAlbedo);
                     EditorGUILayout.PropertyField(m_SkyOcclusionShadingDirection, Styles.skyOcclusionShadingDirection);
-                    EditorGUILayout.PropertyField(m_SkyOcclusionBackFaceCulling, Styles.skyOcclusionBackFaceCulling);
                     EditorGUI.indentLevel--;
                 }
             }
@@ -277,8 +275,8 @@ namespace UnityEditor.Rendering
 
             ProbePlacementGUI();
             LightingScenariosGUI();
-            ProbeSettingsGUI();
-            SkyOcclusionSettings();
+            SkyOcclusionSettingsGUI();
+            ProbeInvaliditySettingsGUI();
 
             serializedObject.ApplyModifiedProperties();
         }
