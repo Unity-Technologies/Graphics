@@ -3325,8 +3325,8 @@ StpInF2 imgF) {
 //------------------------------------------------------------------------------------------------------------------------------
         StpMF3 penC = StpSatMF3(c + (f - dG) * StpMF3_(StpMF1_(0.9875) * match));
         StpMF2 penWF;
-        penWF.x = pen * StpMF2(STP_TAA_PEN_W, STP_TAA_PEN_F1);
-        penWF.y = pen * lerp(StpMF1_(STP_TAA_PEN_W), StpMF1_(STP_TAA_PEN_F1), cnv);
+        penWF.x = pen * StpMF1_(STP_TAA_PEN_W);
+        penWF.y = pen * lerp(StpMF1_(STP_TAA_PEN_F0), StpMF1_(STP_TAA_PEN_F1), cnv);
         StpMF2 penNotWF = StpMF2_(1.0) - penWF;
         rF.rgb = t + (f - dT);
         rF.rgb = rF.rgb * StpMF3_(blnT) + f * StpMF3_(bln);
