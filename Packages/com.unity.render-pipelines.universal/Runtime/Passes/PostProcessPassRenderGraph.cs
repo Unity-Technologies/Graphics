@@ -1986,8 +1986,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
-                // TODO: this uses renderingData.commandBuffer in the RenderGraph path!! Fix it to run in a proper RenderGraph pass
-                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderingData.commandBuffer, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
+                debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
                 RenderUberPost(renderGraph, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, resolveToDebugScreen);
             }
