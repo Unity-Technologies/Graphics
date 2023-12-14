@@ -146,6 +146,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "eee16095a8634db0a6081b3f809753c6"
@@ -645,7 +646,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "813e11cf97064f93b08593da5534025d",
     "m_Title": "Is Front Face Node",
-    "m_Content": "The Is Front Face Node returns true if the current rederring face is pointing toward the camera.  It returns false if it's facing away from the camera.",
+    "m_Content": "The Is Front Face Node returns true if the current rendering face is pointing toward the camera.  It returns false if it's facing away from the camera.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

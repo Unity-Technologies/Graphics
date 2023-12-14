@@ -582,6 +582,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "1d61a74e1aa64c5b9c228010464afd33"
@@ -3499,7 +3500,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "b3bd59cdc1b34355bde0f7a613982d3d",
     "m_Title": "UV Node",
-    "m_Content": "The UV node bring's the mesh's UV coordinates into the shader. UV coordinates are a way of translating 3D space into 2D.\n\nIt's like peeling an orange and laying the peel out flat. The orange represents your 3d model, and the flattened peel represents the UV coordinates.",
+    "m_Content": "The UV node brings the mesh's UV coordinates into the shader. UV coordinates are a way of translating 3D space into 2D.\n\nIt's like peeling an orange and laying the peel out flat. The orange represents your 3d model, and the flattened peel represents the UV coordinates.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

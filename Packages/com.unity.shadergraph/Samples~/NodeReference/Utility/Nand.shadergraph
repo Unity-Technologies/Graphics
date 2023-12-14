@@ -103,6 +103,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "72822b9b0aba40108a93cf19d5a8389e"
@@ -202,8 +203,8 @@
     "m_ObjectId": "0f66091aa8054adaae0347b1c1b37e2a",
     "m_Title": "False",
     "m_Position": {
-        "x": -412.0001525878906,
-        "y": 292.66668701171877
+        "x": -414.0,
+        "y": 308.0
     }
 }
 
@@ -212,17 +213,17 @@
     "m_Type": "UnityEditor.ShaderGraph.NandNode",
     "m_ObjectId": "171d2411f8ea4c3f9bb60b189724f6d1",
     "m_Group": {
-        "m_Id": "0f66091aa8054adaae0347b1c1b37e2a"
+        "m_Id": "5dbb312fccc2445288f0f49918fd8103"
     },
     "m_Name": "Nand",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -386.666748046875,
-            "y": 351.3333435058594,
-            "width": 131.33335876464845,
-            "height": 102.6666259765625
+            "x": -609.0,
+            "y": 470.0000305175781,
+            "width": 130.0,
+            "height": 100.99996948242188
         }
     },
     "m_Slots": [
@@ -831,10 +832,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -386.666748046875,
-            "y": 466.0,
-            "width": 131.33335876464845,
-            "height": 102.6666259765625
+            "x": -388.99993896484377,
+            "y": 367.0000305175781,
+            "width": 129.99996948242188,
+            "height": 100.99996948242188
         }
     },
     "m_Slots": [

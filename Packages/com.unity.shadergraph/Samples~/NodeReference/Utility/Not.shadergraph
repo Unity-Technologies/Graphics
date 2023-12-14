@@ -87,6 +87,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "d8bc9bbc516f4a9193a55d2af3a866ce"
@@ -267,7 +268,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "3a92d5d4d7794d5e8a78689c9baa7b1d",
     "m_Title": "Not Node",
-    "m_Content": "The Node Node inverts the boolean input value. If the input value is true then it returns false, but if input value is false then it returns true.",
+    "m_Content": "The Not Node inverts the boolean input value. If the input value is true then it returns false, but if input value is false then it returns true.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
