@@ -640,6 +640,7 @@ namespace UnityEngine.Rendering
 
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
             {
+
                 Vector3[] positions = RunPlacement();
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
             }
@@ -1744,6 +1745,7 @@ namespace UnityEngine.Rendering
 
             m_BakingSet.validityMaskChunkSize = validityMaskChunkSize;
 
+
             // Brick data
             using var bricks = new NativeArray<Brick>(m_TotalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
@@ -2163,7 +2165,7 @@ namespace UnityEngine.Rendering
                     // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
                     var filteredContributors = ctx.contributors.Filter(ctx.bakingSet, cell.bounds, overlappingProbeVolumes);
 
-                    if (overlappingProbeVolumes.Count == 0 && filteredContributors.Count == 0)
+                    if (filteredContributors.Count == 0 && !overlappingProbeVolumes.Any(v => v.component.fillEmptySpaces))
                         continue;
 
                     var bricks = ProbePlacement.SubdivideCell(cell.bounds, ctx, gpuResources, filteredContributors, overlappingProbeVolumes);

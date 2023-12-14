@@ -789,6 +789,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightLists.perTileLogBaseTweak.IsValid())
                     data.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
             }
+            else
+            {
+                data.perVoxelOffset = BufferHandle.nullHandle;
+                data.perTileLogBaseTweak = BufferHandle.nullHandle;
+            }
             data.rendererList = builder.UseRendererList(rendererList);
             if (IsComputeThicknessNeeded(hdCamera))
             {

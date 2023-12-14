@@ -680,7 +680,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel = oldIndentLevel;
         }
 
-
         static void DrawCelestialBodyContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
