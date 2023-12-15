@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering
             // Simplified for typical history textures:
             // Sampling is usually bilinear & clamp. Point sample can be a texture.Load() or done with inline samplers.
             // No shadows, no mipmaps, no aniso.
-            m_owner.AllocBuffer(id, count, ref desc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 1, 0, name);
+            m_owner.AllocBuffer(id, count, ref desc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, name);
             return GetCurrentFrameRT(0);
         }
 
