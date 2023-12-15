@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
             private const string k_Name = nameof(ScriptableRenderer);
             public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
             public static readonly ProfilingSampler sortRenderPasses = new ProfilingSampler($"Sort Render Passes");
-            public static readonly ProfilingSampler recordRenderGraph = new ProfilingSampler($"Record Render Graph");
+            public static readonly ProfilingSampler recordRenderGraph = new ProfilingSampler($"On Record Render Graph");
             public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
             public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Parameters");
             public static readonly ProfilingSampler vfxProcessCamera = new ProfilingSampler($"VFX Process Camera");
@@ -1090,33 +1090,36 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData"></param>
         internal void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
-            OnBeginRenderGraphFrame();
-
-            using (new ProfilingScope(Profiling.sortRenderPasses))
+            using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RecordRenderGraph)))
             {
-                // Sort the render pass queue
-                SortStable(m_ActiveRenderPassQueue);
-            }
+                OnBeginRenderGraphFrame();
 
-            InitRenderGraphFrame(renderGraph);
+                using (new ProfilingScope(Profiling.sortRenderPasses))
+                {
+                    // Sort the render pass queue
+                    SortStable(m_ActiveRenderPassQueue);
+                }
 
-            using (new ProfilingScope(Profiling.recordRenderGraph))
-            {
-                OnRecordRenderGraph(renderGraph, context);
-            }
+                InitRenderGraphFrame(renderGraph);
 
-            OnEndRenderGraphFrame();
+                using (new ProfilingScope(Profiling.recordRenderGraph))
+                {
+                    OnRecordRenderGraph(renderGraph, context);
+                }
 
-            // The editor scene view still relies on some builtin passes (i.e. drawing the scene grid). The builtin
-            // passes are not explicitly setting RTs and rely on the last active render target being set. Unfortunately
-            // this does not play nice with the NRP RG path, since we don't use the SetRenderTarget API anymore.
-            // For this reason, as a workaround, in editor scene view we set explicitly set the RT to SceneViewRT.
-            // TODO: this will go away once we remove the builtin dependencies and implement the grid in SRP.
+                OnEndRenderGraphFrame();
+
+                // The editor scene view still relies on some builtin passes (i.e. drawing the scene grid). The builtin
+                // passes are not explicitly setting RTs and rely on the last active render target being set. Unfortunately
+                // this does not play nice with the NRP RG path, since we don't use the SetRenderTarget API anymore.
+                // For this reason, as a workaround, in editor scene view we set explicitly set the RT to SceneViewRT.
+                // TODO: this will go away once we remove the builtin dependencies and implement the grid in SRP.
 #if UNITY_EDITOR
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            if (cameraData.isSceneViewCamera)
-                SetEditorTarget(renderGraph);
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                if (cameraData.isSceneViewCamera)
+                    SetEditorTarget(renderGraph);
 #endif
+            }
         }
 
         /// <summary>

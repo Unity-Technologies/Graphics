@@ -1858,6 +1858,9 @@ namespace UnityEngine.Rendering.Universal
         DrawTransparentObjects,
         DrawScreenSpaceUI,
 
+        //Full Record Render Graph
+        RecordRenderGraph,
+
         // RenderObjectsPass
         //RenderObjects,
 
