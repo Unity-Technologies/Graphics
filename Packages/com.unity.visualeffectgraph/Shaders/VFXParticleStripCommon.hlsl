@@ -1,10 +1,21 @@
+
 #define STRIP_FIRST_INDEX 0
 #define STRIP_NEXT_INDEX 1
 #define STRIP_PREV_NEXT_INDEX 2
 #define STRIP_MIN_ALIVE 3
 #define STRIP_MAX_ALIVE 4
-#define STRIP_DATA_X(buffer,data,stripIndex) buffer[(stripIndex * 5) + (data)]
-#define STRIP_DATA(data,stripIndex) STRIP_DATA_X(stripDataBuffer,data,stripIndex)
+
+#if VFX_USE_INSTANCING
+#define STRIP_DATA_OFFSET instancingBatchSize
+#else
+#define STRIP_DATA_OFFSET 1
+#endif
+#define STRIP_DATA_INDEX(instanceIndex, stripIndex) ((instanceIndex * STRIP_COUNT) + stripIndex)
+#define STRIP_DATA_X(buffer,data,bufferIndex) buffer[STRIP_DATA_OFFSET + (bufferIndex * 5) + (data)]
+#define STRIP_DATA(data,bufferIndex) STRIP_DATA_X(stripDataBuffer,data,bufferIndex)
+
+#define STRIP_PARTICLE_COUNTER(instanceIndex) stripDataBuffer[instanceIndex]
+
 #define STRIP_PARTICLE_IN_EDGE (id & 1)
 
 struct StripData
@@ -23,7 +34,7 @@ const StripData GetStripDataFromStripIndex(uint stripIndex, uint instanceIndex)
     stripData.stripIndex = stripIndex;
     stripData.capacity = PARTICLE_PER_STRIP_COUNT;
 
-    uint bufferIndex = (instanceIndex * STRIP_COUNT) + stripIndex;
+    uint bufferIndex = STRIP_DATA_INDEX(instanceIndex, stripIndex);
     stripData.firstIndex = STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex);
     stripData.nextIndex = STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex);
     stripData.prevNextIndex = STRIP_DATA(STRIP_PREV_NEXT_INDEX, bufferIndex);

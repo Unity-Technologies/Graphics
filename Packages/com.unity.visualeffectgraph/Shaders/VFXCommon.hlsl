@@ -905,6 +905,11 @@ uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint dispatchWidth)
 
 #include "VFXNoise.hlsl"
 
+//////////////////////
+// Instancing Utils //
+//////////////////////
+#include "VFXInstancing.hlsl"
+
 ////////////
 // Strips //
 ////////////
@@ -916,12 +921,6 @@ uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint dispatchWidth)
 ////////////////////////////
 
 #include "VFXBoundsUtils.hlsl"
-
-
-//////////////////////
-// Instancing Utils //
-//////////////////////
-#include "VFXInstancing.hlsl"
 
 ///////////////////////////
 // Shape Distances Utils //

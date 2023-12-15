@@ -29,8 +29,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            bool killableStrips = vfxData.type == VFXDataType.ParticleStrip && vfxData.IsAttributeStored(VFXAttribute.Alive);
-            m_CanReadbackAliveCount = !receivesGPUEvent && !killableStrips;
+            m_CanReadbackAliveCount = !receivesGPUEvent;
 
             title = "Particle System Info";
             AddToClassList("VFXSystemProfiler");
@@ -113,7 +112,7 @@ namespace UnityEditor.VFX.UI
 
             Label mainLabel = new Label
             {
-                text = "System CPU Update :",
+                text = "System CPU Update:",
                 style = { flexGrow = 1, paddingBottom = 2, paddingTop = 2}
             };
             Label timingLabel = new Label
@@ -140,7 +139,7 @@ namespace UnityEditor.VFX.UI
             Label descLabel = new Label
             {
                 style = { flexGrow = 1 },
-                text = "GPU System time :",
+                text = "GPU System time:",
             };
             m_AggregatedGPULabel = new Label
             {
@@ -168,7 +167,7 @@ namespace UnityEditor.VFX.UI
             Foldout gpuMemFoldout = new Foldout()
             {
                 style = { flexGrow = 1 },
-                text = "GPU Memory :",
+                text = "GPU Memory:",
             };
 
             Label totalGpuMemLabel = AddLabelToFoldout(gpuMemFoldout);
@@ -177,7 +176,7 @@ namespace UnityEditor.VFX.UI
             Label descLabel = new Label
             {
                 style = { flexGrow = 1 },
-                text = "Particle Attributes Size :",
+                text = "Particle Attributes Size:",
             };
             Label memValueLabel = new Label
             {

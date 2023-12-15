@@ -68,9 +68,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 	if (index < nbMax)
 	{
-        ${VFXLoadGraphValues}
+#if HAS_STRIPS
+		if (index == 0)
+		{
+			STRIP_PARTICLE_COUNTER(instanceIndex) = 0;
+		}
+#endif
 
-        VFXAttributes attributes = (VFXAttributes)0;
+		${VFXLoadGraphValues}
+
+		VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_USE_ALIVE_CURRENT
@@ -82,9 +89,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			attributes.oldVelocity = attributes.velocity;
 #endif
 #if HAS_STRIPS
-            const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
-            InitStripAttributes(index, attributes, stripData);
-            uint stripDataIndex = stripData.stripIndex + instanceIndex * STRIP_COUNT;
+			const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
+			InitStripAttributes(index, attributes, stripData);
 #endif
 
 #if VFX_UPDATE_SKIP_ZERO_DELTA_TIME
@@ -104,9 +110,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 
 #if HAS_STRIPS
+				uint bufferIndex = STRIP_DATA_INDEX(instanceIndex, stripData.stripIndex);
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
-				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripDataIndex), relativeIndexInStrip);
-				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripDataIndex), relativeIndexInStrip);
+				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, bufferIndex), relativeIndexInStrip);
+				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, bufferIndex), relativeIndexInStrip);
 #endif
 			}
 			else

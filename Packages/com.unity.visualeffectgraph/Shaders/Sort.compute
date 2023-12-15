@@ -89,21 +89,17 @@ uint GetElementCount(uint instanceIndex)
     return inputSequence[instanceIndex].value;
 }
 
-#pragma warning(push)
-#pragma warning(disable : 4000)
 bool CompareKVP(KVP kvp0, KVP kvp1)
 {
-#if DECREASING_ORDER
     if (kvp0.key == kvp1.key)
         return kvp0.value < kvp1.value; // value always in ascending order
-    return kvp0.key > kvp1.key;
+    else
+#if DECREASING_ORDER
+        return kvp0.key > kvp1.key;
 #else
-    if (kvp0.key == kvp1.key)
-        return kvp0.value < kvp1.value;
-    return kvp0.key < kvp1.key;
+        return kvp0.key < kvp1.key;
 #endif
 }
-#pragma warning(pop)
 
 uint GetLDSIndex(uint index)
 {
