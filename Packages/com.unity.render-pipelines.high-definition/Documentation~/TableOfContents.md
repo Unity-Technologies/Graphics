@@ -281,6 +281,7 @@
         * [Troubleshoot a custom post-processing effect](rendering-troubleshoot-custom-post-processes.md)
         * [Understand and fix Not a Number (NAN) and Infinite (Inf) values](Post-Processing-Propagating-NaNs.md)
         * [Known issues](Known-Issues.md)
+  * [Stencil Buffer Usage](Stencil-Usage.md)
 
 
 * [Reference](Reference.md)  
