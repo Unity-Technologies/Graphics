@@ -137,5 +137,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/221_ShadowMask_ShaderGraph.unity
     guid: c53e60919f143ad40b950bea9827efc5
+  - enabled: 1
+    path: Assets/Scenes/222_Forward+_ReflectionProbes_Mip_blending.unity
+    guid: 44cd1c9124e14d04494dcd058598b2ab
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
