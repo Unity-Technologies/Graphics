@@ -1121,14 +1121,17 @@ namespace UnityEngine.Rendering.Universal
         {
             internal TextureHandle destinationTexture;
             internal RenderTextureDescriptor sourceDescriptor;
-            internal Camera camera;
+            internal UniversalCameraData cameraData;
             internal Material material;
-            internal bool usePanini;
+            internal Rect viewport;
             internal float paniniDistance;
             internal float paniniCropToFit;
+            internal float width;
+            internal float height;
+            internal bool usePanini;
         }
 
-        void LensFlareDataDrivenComputeOcclusion(RenderGraph renderGraph, UniversalResourceData resourceData, Camera camera)
+        void LensFlareDataDrivenComputeOcclusion(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData)
         {
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
@@ -1139,8 +1142,11 @@ namespace UnityEngine.Rendering.Universal
                 TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
                 passData.destinationTexture = occlusionHandle;
                 builder.UseTexture(occlusionHandle, AccessFlags.Write);
-                passData.camera = camera;
+                passData.cameraData = cameraData;
+                passData.viewport = cameraData.pixelRect;
                 passData.material = m_Materials.lensFlareDataDriven;
+                passData.width = (float)m_Descriptor.width;
+                passData.height = (float)m_Descriptor.height;
                 if (m_PaniniProjection.IsActive())
                 {
                     passData.usePanini = true;
@@ -1159,32 +1165,87 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc(
                     (LensFlarePassData data, UnsafeGraphContext ctx) =>
                     {
-                        var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(data.camera.projectionMatrix, true);
-                        var gpuVP = gpuNonJitteredProj * data.camera.worldToCameraMatrix;
+                        Camera camera = data.cameraData.camera;
+                        XRPass xr = data.cameraData.xr;
+
+                        Matrix4x4 nonJitteredViewProjMatrix0;
+                        int xrId0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        // Not VR or Multi-Pass
+                        if (xr.enabled)
+                        {
+                            if (xr.singlePassEnabled)
+                            {
+                                nonJitteredViewProjMatrix0 = GL.GetGPUProjectionMatrix(data.cameraData.GetProjectionMatrixNoJitter(0), true) * data.cameraData.GetViewMatrix(0);
+                                xrId0 = 0;
+                            }
+                            else
+                            {
+                                var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                                nonJitteredViewProjMatrix0 = gpuNonJitteredProj * camera.worldToCameraMatrix;
+                                xrId0 = data.cameraData.xr.multipassId;
+                            }
+                        }
+                        else
+                        {
+                            nonJitteredViewProjMatrix0 = GL.GetGPUProjectionMatrix(data.cameraData.GetProjectionMatrixNoJitter(0), true) * data.cameraData.GetViewMatrix(0);
+                            xrId0 = 0;
+                        }
+#else
+                        var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                        nonJitteredViewProjMatrix0 = gpuNonJitteredProj * camera.worldToCameraMatrix;
+                        xrId0 = xr.multipassId;
+#endif
 
                         LensFlareCommonSRP.ComputeOcclusion(
-                            data.material, data.camera,
-                            (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
+                            data.material, camera, xr, xr.multipassId,
+                            data.width, data.height,
                             data.usePanini, data.paniniDistance, data.paniniCropToFit, true,
-                            data.camera.transform.position,
-                            gpuVP,
+                            camera.transform.position,
+                            nonJitteredViewProjMatrix0,
                             ctx.cmd,
                             false, false, null, null, null);
+
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                        if (xr.enabled && xr.singlePassEnabled)
+                        {
+                            //ctx.cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
+
+                            for (int xrIdx = 1; xrIdx < xr.viewCount; ++xrIdx)
+                            {
+                                Matrix4x4 gpuVPXR = GL.GetGPUProjectionMatrix(data.cameraData.GetProjectionMatrixNoJitter(xrIdx), true) * data.cameraData.GetViewMatrix(xrIdx);
+
+                                // Bypass single pass version
+                                LensFlareCommonSRP.ComputeOcclusion(
+                                    data.material, camera, xr, xrIdx,
+                                    data.width, data.height,
+                                    data.usePanini, data.paniniDistance, data.paniniCropToFit, true,
+                                    camera.transform.position,
+                                    gpuVPXR,
+                                    ctx.cmd,
+                                    false, false, null, null, null);
+                            }
+                        }
+#endif
                     });
             }
         }
 
-        public void RenderLensFlareDataDriven(RenderGraph renderGraph, UniversalResourceData resourceData, Camera camera, in TextureHandle destination)
+        public void RenderLensFlareDataDriven(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle destination)
         {
             using (var builder = renderGraph.AddUnsafePass<LensFlarePassData>("Lens Flare Data Driven Pass", out var passData, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
             {
                 // Use WriteTexture here because DoLensFlareDataDrivenCommon will call SetRenderTarget internally.
-                // TODO RENDERGRAPH: convert SRP core lensflare to be rendergraph friendly
+                // TODO RENDERGRAPH: convert SRP core lens flare to be rendergraph friendly
                 passData.destinationTexture = destination;
                 builder.UseTexture(destination, AccessFlags.Write);
                 passData.sourceDescriptor = m_Descriptor;
-                passData.camera = camera;
+                passData.cameraData = cameraData;
                 passData.material = m_Materials.lensFlareDataDriven;
+                passData.width = (float)m_Descriptor.width;
+                passData.height = (float)m_Descriptor.height;
+                passData.viewport = cameraData.pixelRect;
                 if (m_PaniniProjection.IsActive())
                 {
                     passData.usePanini = true;
@@ -1207,25 +1268,55 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 }
 
-                builder.SetRenderFunc((LensFlarePassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc((LensFlarePassData data, UnsafeGraphContext ctx) =>
                 {
-                    var cmd = context.cmd;
-                    var camera = data.camera;
+                    Camera camera = data.cameraData.camera;
+                    XRPass xr = data.cameraData.xr;
 
-                    var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
-                    var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    // Not VR or Multi-Pass
+                    if (!xr.enabled ||
+                        (xr.enabled && !xr.singlePassEnabled))
+#endif
+                    {
+                        var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                        Matrix4x4 nonJitteredViewProjMatrix0 = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
-                    LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                        data.material, camera, (float)data.sourceDescriptor.width, (float)data.sourceDescriptor.height,
-                        data.usePanini, data.paniniDistance, data.paniniCropToFit,
-                        true,
-                        camera.transform.position,
-                        gpuVP,
-                        cmd,
-                        false, false, null, null,
-                        data.destinationTexture,
-                        (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
-                        false);
+                        LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
+                            data.material, data.cameraData.camera, data.viewport, xr, data.cameraData.xr.multipassId,
+                            data.width, data.height,
+                            data.usePanini, data.paniniDistance, data.paniniCropToFit,
+                            true,
+                            camera.transform.position,
+                            nonJitteredViewProjMatrix0,
+                            ctx.cmd,
+                            false, false, null, null,
+                            data.destinationTexture,
+                            (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                            false);
+                    }
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    else
+                    {
+                        for (int xrIdx = 0; xrIdx < xr.viewCount; ++xrIdx)
+                        {
+                            Matrix4x4 nonJitteredViewProjMatrix_k = GL.GetGPUProjectionMatrix(data.cameraData.GetProjectionMatrixNoJitter(xrIdx), true) * data.cameraData.GetViewMatrix(xrIdx);
+
+                            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
+                                data.material, data.cameraData.camera, data.viewport, xr, data.cameraData.xr.multipassId,
+                                data.width, data.height,
+                                data.usePanini, data.paniniDistance, data.paniniCropToFit,
+                                true,
+                                camera.transform.position,
+                                nonJitteredViewProjMatrix_k,
+                                ctx.cmd,
+                                false, false, null, null,
+                                data.destinationTexture,
+                                (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                                false);
+                        }
+                    }
+#endif
                 });
             }
         }
@@ -1441,14 +1532,26 @@ namespace UnityEngine.Rendering.Universal
             internal FinalBlitSettings settings;
         }
 
+        /// <summary>
+        /// Final blit settings.
+        /// </summary>
         public struct FinalBlitSettings
         {
+            /// <summary>Is FXAA enabled</summary>
             public bool isFxaaEnabled;
+            /// <summary>Is FSR Enabled.</summary>
             public bool isFsrEnabled;
+            /// <summary>Is TAA sharpening enabled.</summary>
             public bool isTaaSharpeningEnabled;
+            /// <summary>True if final blit requires HDR output.</summary>
             public bool requireHDROutput;
+            /// <summary>True if final blit needs to resolve to debug screen.</summary>
             public bool resolveToDebugScreen;
 
+            /// <summary>
+            /// Create FinalBlitSettings
+            /// </summary>
+            /// <returns>New FinalBlitSettings</returns>
             public static FinalBlitSettings Create()
             {
                 FinalBlitSettings s = new FinalBlitSettings();
@@ -1955,8 +2058,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useLensFlare)
                 {
-                    LensFlareDataDrivenComputeOcclusion(renderGraph, resourceData, cameraData.camera);
-                    RenderLensFlareDataDriven(renderGraph, resourceData, cameraData.camera, in currentSource);
+                    LensFlareDataDrivenComputeOcclusion(renderGraph, resourceData, cameraData);
+                    RenderLensFlareDataDriven(renderGraph, resourceData, cameraData, in currentSource);
                 }
 
                 // TODO RENDERGRAPH: Once we started removing the non-RG code pass in URP, we should move functions below to renderfunc so that material setup happens at

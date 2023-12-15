@@ -1003,6 +1003,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlareSunOcclusionTex = Shader.PropertyToID("_FlareSunOcclusionTex");
         public static readonly int _FlareOcclusionRemapTex = Shader.PropertyToID("_FlareOcclusionRemapTex");
         public static readonly int _LensFlareOcclusion = Shader.PropertyToID("_LensFlareOcclusion");
+        public static readonly int _MultipassID = Shader.PropertyToID("_MultipassID");
         public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
         public static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
         public static readonly int _FlareData0 = Shader.PropertyToID("_FlareData0");
