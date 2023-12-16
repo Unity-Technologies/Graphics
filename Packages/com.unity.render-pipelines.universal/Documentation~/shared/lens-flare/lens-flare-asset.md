@@ -158,14 +158,10 @@ That will trigger a warning and execution 16 recursions:
 
 ![](../../images/shared/lens-flare/LensFlareCutoff.png)
 
-| **Property**            | **Description**                                              |
-| ----------------------- | ------------------------------------------------------------ |
-| Cutoff Speed            | Sets the speed at which the radius occludes the element.
-A value of zero (with a large radius) does not occlude anything. The higher this value, the faster the element is occluded on the side of the screen.
-The effect of this value is more noticeable with multiple elements.
-. |
-| Cutoff Radius           | Sets the normalized radius of the lens shape used to occlude the lens flare element.
-A radius of one is equivalent to the scale of the element.. |
+| **Property** | **Description** |
+| --- | --- |
+| Cutoff Speed | Sets the speed at which the radius occludes the element.<br/>A value of zero (with a large radius) does not occlude anything. The higher this value, the faster the element is occluded on the side of the screen.<br/>The effect of this value is more noticeable with multiple elements. |
+| Cutoff Radius | Sets the normalized radius of the lens shape used to occlude the lens flare element. A radius of one is equivalent to the scale of the element. |
 
 
 
