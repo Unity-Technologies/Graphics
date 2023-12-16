@@ -329,20 +329,28 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private class BloomSetupPassData
-        {
-            internal Vector4 bloomParams;
-            internal bool highQualityFilteringValue;
-            internal bool useRGBM;
-            internal Material material;
-            internal Material[] upsampleMaterials;
-        }
-
         private class BloomPassData
         {
-            internal TextureHandle sourceTexture;
-            internal TextureHandle sourceTextureLowMip;
+            internal int mipCount;
+
             internal Material material;
+            internal Material[] upsampleMaterials;
+
+            internal TextureHandle sourceTexture;
+
+            internal TextureHandle[] bloomMipUp;
+            internal TextureHandle[] bloomMipDown;
+        }
+
+        internal struct BloomMaterialParams
+        {
+            internal Vector4 parameters;
+            internal bool highQualityFiltering;
+            internal bool useRGBM;
+            internal bool Equals(ref BloomMaterialParams other)
+            {
+                return parameters == other.parameters && highQualityFiltering == other.highQualityFiltering && useRGBM == other.useRGBM;
+            }
         }
 
         public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination)
@@ -369,9 +377,8 @@ namespace UnityEngine.Rendering.Universal
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
             int mipCount = Mathf.Clamp(iterations, 1, m_Bloom.maxIterations.value);
 
-            var bloomMaterial = m_Materials.bloom;
-
-            using (var builder = renderGraph.AddRasterRenderPass<BloomSetupPassData>("Bloom - Setup", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomSetupPass)))
+            // Setup
+            using(new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_BloomSetup)))
             {
                 // Pre-filtering parameters
                 float clamp = m_Bloom.clamp.value;
@@ -381,146 +388,135 @@ namespace UnityEngine.Rendering.Universal
                 // Material setup
                 float scatter = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
 
-                passData.bloomParams = new Vector4(scatter, clamp, threshold, thresholdKnee);
-                passData.highQualityFilteringValue = m_Bloom.highQualityFiltering.value;
-                passData.useRGBM = m_UseRGBM;
-                passData.material = bloomMaterial;
+                BloomMaterialParams bloomParams = new BloomMaterialParams();
+                bloomParams.parameters = new Vector4(scatter, clamp, threshold, thresholdKnee);
+                bloomParams.highQualityFiltering = m_Bloom.highQualityFiltering.value;
+                bloomParams.useRGBM = m_UseRGBM;
+
+                // Setting keywords can be somewhat expensive on low-end platforms.
+                // Previous params are cached to avoid setting the same keywords every frame.
+                bool bloomParamsDirty = !m_BloomParamsPrev.Equals(ref bloomParams);
+                if (bloomParamsDirty)
+                {
+                    {
+                        var material = m_Materials.bloom;
+                        material.SetVector(ShaderConstants._Params, bloomParams.parameters);
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
+                    }
+
+                    // These materials are duplicate just to allow different bloom blits to use different textures.
+                    for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    {
+                        var material = m_Materials.bloomUpsample[i];
+                        material.SetVector(ShaderConstants._Params, bloomParams.parameters);
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
+                    }
+
+                    m_BloomParamsPrev = bloomParams;
+                }
+
+                // Create bloom mip pyramid textures
+                {
+                    var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
+                    _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[0].name, true, FilterMode.Bilinear);
+                    _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[0].name, true, FilterMode.Bilinear);
+
+                    for (int i = 1; i < mipCount; i++)
+                    {
+                        tw = Mathf.Max(1, tw >> 1);
+                        th = Mathf.Max(1, th >> 1);
+                        ref TextureHandle mipDown = ref _BloomMipDown[i];
+                        ref TextureHandle mipUp = ref _BloomMipUp[i];
+
+                        desc.width = tw;
+                        desc.height = th;
+
+                        // NOTE: Reuse RTHandle names for TextureHandles
+                        mipDown = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[i].name, true, FilterMode.Bilinear);
+                        mipUp = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[i].name, true, FilterMode.Bilinear);
+                    }
+                }
+            }
+
+            using (var builder = renderGraph.AddUnsafePass<BloomPassData>("Bloom", out var passData, ProfilingSampler.Get(URPProfileId.Bloom)))
+            {
+                passData.mipCount = mipCount;
+                passData.material = m_Materials.bloom;
                 passData.upsampleMaterials = m_Materials.bloomUpsample;
+                passData.sourceTexture = source;
+                passData.bloomMipDown = _BloomMipDown;
+                passData.bloomMipUp = _BloomMipUp;
 
                 // TODO RENDERGRAPH: properly setup dependencies between passes
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((BloomSetupPassData data, RasterGraphContext context) =>
+                builder.UseTexture(source, AccessFlags.Read);
+                for (int i = 0; i < mipCount; i++)
                 {
-                    var bloomMaterial = data.material;
+                    builder.UseTexture(_BloomMipDown[i], AccessFlags.ReadWrite);
+                    builder.UseTexture(_BloomMipUp[i], AccessFlags.ReadWrite);
+                }
 
-                    bloomMaterial.SetVector(ShaderConstants._Params, data.bloomParams);
-                    CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, data.highQualityFilteringValue);
-                    CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, data.useRGBM);
+                builder.SetRenderFunc(static (BloomPassData data, UnsafeGraphContext context) =>
+                {
+                    // TODO: can't call BlitTexture with unsafe command buffer
+                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
+                    var material = data.material;
+                    int mipCount = data.mipCount;
 
-                    for (uint i = 0; i < k_MaxPyramidSize; ++i)
+                    var loadAction = RenderBufferLoadAction.DontCare;   // Blit - always write all pixels
+                    var storeAction = RenderBufferStoreAction.Store;    // Blit - always read by then next Blit
+
+                    // Prefilter
+                    using(new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.RG_BloomPrefilter)))
                     {
-                        data.upsampleMaterials[i].SetVector(ShaderConstants._Params, data.bloomParams);
-                        CoreUtils.SetKeyword(data.upsampleMaterials[i], ShaderKeywordStrings.BloomHQ, data.highQualityFilteringValue);
-                        CoreUtils.SetKeyword(data.upsampleMaterials[i], ShaderKeywordStrings.UseRGBM, data.useRGBM);
+                        Blitter.BlitCameraTexture(cmd, data.sourceTexture, data.bloomMipDown[0], loadAction, storeAction, material, 0);
+                    }
+
+                    // Downsample - gaussian pyramid
+                    // Classic two pass gaussian blur - use mipUp as a temporary target
+                    //   First pass does 2x downsampling + 9-tap gaussian
+                    //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
+                    using(new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.RG_BloomDownsample)))
+                    {
+                        TextureHandle lastDown = data.bloomMipDown[0];
+                        for (int i = 1; i < mipCount; i++)
+                        {
+                            TextureHandle mipDown = data.bloomMipDown[i];
+                            TextureHandle mipUp = data.bloomMipUp[i];
+
+                            Blitter.BlitCameraTexture(cmd, lastDown, mipUp, loadAction, storeAction, material, 1);
+                            Blitter.BlitCameraTexture(cmd, mipUp, mipDown, loadAction, storeAction, material, 2);
+
+                            lastDown = mipDown;
+                        }
+                    }
+
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.RG_BloomUpsample)))
+                    {
+                        // Upsample (bilinear by default, HQ filtering does bicubic instead
+                        for (int i = mipCount - 2; i >= 0; i--)
+                        {
+                            TextureHandle lowMip = (i == mipCount - 2) ? data.bloomMipDown[i + 1] : data.bloomMipUp[i + 1];
+                            TextureHandle highMip = data.bloomMipDown[i];
+                            TextureHandle dst = data.bloomMipUp[i];
+
+                            // We need a separate material for each upsample pass because setting the low texture mip source
+                            // gets overriden by the time the render func is executed.
+                            // Material is a reference, so all the blits would share the same material state in the cmdbuf.
+                            // NOTE: another option would be to use cmd.SetGlobalTexture().
+                            var upMaterial = data.upsampleMaterials[i];
+                            upMaterial.SetTexture(ShaderConstants._SourceTexLowMip, lowMip);
+
+                            Blitter.BlitCameraTexture(cmd, highMip, dst, loadAction, storeAction, upMaterial, 3);
+                        }
                     }
                 });
+
+                destination = passData.bloomMipUp[0];
             }
-
-            // Prefilter
-            var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
-            _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_BloomMipDown", true, FilterMode.Bilinear);
-            _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_BloomMipUp", true, FilterMode.Bilinear);
-            using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - Prefilter", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomPrefilter)))
-            {
-                builder.SetRenderAttachment(_BloomMipDown[0], 0, AccessFlags.Write);
-                passData.sourceTexture = source;
-                builder.UseTexture(source, AccessFlags.Read);
-                passData.material = bloomMaterial;
-
-                builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
-                {
-                    var material = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
-
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, material, 0);
-                });
-            }
-
-            // Downsample - gaussian pyramid
-            TextureHandle lastDown = _BloomMipDown[0];
-            for (int i = 1; i < mipCount; i++)
-            {
-                tw = Mathf.Max(1, tw >> 1);
-                th = Mathf.Max(1, th >> 1);
-                ref TextureHandle mipDown = ref _BloomMipDown[i];
-                ref TextureHandle mipUp = ref _BloomMipUp[i];
-
-                desc.width = tw;
-                desc.height = th;
-
-                mipDown = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_BloomMipDown", true, FilterMode.Bilinear);
-                mipUp = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_BloomMipUp", true, FilterMode.Bilinear);
-
-                // Classic two pass gaussian blur - use mipUp as a temporary target
-                //   First pass does 2x downsampling + 9-tap gaussian
-                //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
-                using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - First pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomFirstPass)))
-                {
-                    builder.SetRenderAttachment(mipUp, 0, AccessFlags.Write);
-                    passData.sourceTexture = lastDown;
-                    builder.UseTexture(lastDown, AccessFlags.Read);
-                    passData.material = bloomMaterial;
-
-                    builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
-                    {
-                        var material = data.material;
-                        var cmd = context.cmd;
-                        RTHandle sourceTextureHdl = data.sourceTexture;
-
-                        Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                        Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, material, 1);
-                    });
-                }
-
-                using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - Second pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomSecondPass)))
-                {
-                    builder.SetRenderAttachment(mipDown, 0, AccessFlags.Write);
-                    passData.sourceTexture = mipUp;
-                    builder.UseTexture(mipUp, AccessFlags.Read);
-                    passData.material = bloomMaterial;
-
-                    builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
-                    {
-                        var material = data.material;
-                        var cmd = context.cmd;
-                        RTHandle sourceTextureHdl = data.sourceTexture;
-
-                        Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                        Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, material, 2);
-                    });
-                }
-
-                lastDown = mipDown;
-            }
-
-            // Upsample (bilinear by default, HQ filtering does bicubic instead
-            for (int i = mipCount - 2; i >= 0; i--)
-            {
-                TextureHandle lowMip = (i == mipCount - 2) ? _BloomMipDown[i + 1] : _BloomMipUp[i + 1];
-                TextureHandle highMip = _BloomMipDown[i];
-                TextureHandle dst = _BloomMipUp[i];
-
-                using (var builder = renderGraph.AddRasterRenderPass<BloomPassData>("Bloom - Upsample", out var passData, ProfilingSampler.Get(URPProfileId.RG_BloomUpsample)))
-                {
-                    builder.SetRenderAttachment(dst, 0, AccessFlags.Write);
-                    builder.AllowGlobalStateModification(true);
-                    passData.sourceTexture = highMip;
-                    builder.UseTexture(highMip, AccessFlags.Read);
-                    passData.sourceTextureLowMip = lowMip;
-                    builder.UseTexture(lowMip, AccessFlags.Read);
-
-                    // We need a separate material for each upsample pass because setting the low texture mip source
-                    // gets overriden by the time the render func is executed.
-                    passData.material = m_Materials.bloomUpsample[i];
-
-                    builder.SetRenderFunc((BloomPassData data, RasterGraphContext context) =>
-                    {
-                        var material = data.material;
-                        var cmd = context.cmd;
-                        RTHandle sourceTextureHdl = data.sourceTexture;
-
-                        data.material.SetTexture(ShaderConstants._SourceTexLowMip, data.sourceTextureLowMip);
-
-                        Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                        Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, material, 3);
-                    });
-                }
-            }
-
-            destination = _BloomMipUp[0];
         }
         #endregion
 

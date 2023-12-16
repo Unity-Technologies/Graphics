@@ -106,6 +106,9 @@ namespace UnityEngine.Rendering.Universal
 
         Material m_BlitMaterial;
 
+        // Cached bloom params from previous frame to avoid unnecessary material updates
+        BloomMaterialParams m_BloomParamsPrev;
+
         /// <summary>
         /// Creates a new <c>PostProcessPass</c> instance.
         /// </summary>
