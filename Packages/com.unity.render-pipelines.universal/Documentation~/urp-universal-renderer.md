@@ -94,6 +94,8 @@ With this check box selected, the Renderer processes the Stencil buffer values.
 
 For more information on how Unity works with the Stencil buffer, see [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
 
+In URP, you can use bits 0-15 of the stencil buffer for custom rendering effects.
+
 ### Compatibility
 
 This section contains settings related to backwards compatibility.

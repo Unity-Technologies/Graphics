@@ -124,7 +124,7 @@
 * [Customizing URP](customizing-urp.md)
   * [Scriptable Renderer Features and Render Passes](renderer-features/scriptable-renderer-features/scriptable-renderer-features.md)
     * [Introduction to Scriptable Renderer Features](renderer-features/scriptable-renderer-features/intro-to-scriptable-renderer-features.md)
-    * [Scriptable Render Pass Fundamentals](renderer-features/scriptable-renderer-features/scriptable-render-pass-fundamentals.md)
+    * [Scriptable Render Pass Fundamentals](renderer-features/scriptable-renderer-features/intro-to-scriptable-render-passes.md)
     * [Apply a Scriptable Renderer Feature to a specific camera type](renderer-features/scriptable-renderer-features/apply-scriptable-feature-to-specific-camera.md)
     * [Scriptable Renderer Feature Reference](renderer-features/scriptable-renderer-features/scriptable-renderer-feature-reference.md)
   * [Injection points](customize/custom-pass-injection-points.md)
