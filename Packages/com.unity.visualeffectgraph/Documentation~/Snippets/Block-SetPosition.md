@@ -35,7 +35,7 @@ This Block is compatible with the following Contexts:
 | **Blend Position**        | Float                 | The blend percentage between the current position attribute value and the newly calculated position value.<br/>This property only appears if you set **Composition Position** to **Blend**. |
 | **Blend Axes**            | Float                 | The blend percentage between the current axis attribute value and the newly calculated axis value.<br/>This property only appears if you set **Composition Axes** to **Blend**. |
 | **Blend Direction**       | Float                 | The blend percentage between the current direction attribute value and the newly calculated direction value.<br/>This property only appears if you set **Composition Direction** to **Blend**. |
-| **Transform**             | Transform             | The transform to apply after sampling. If you set **Source** to **Skinned Mesh Renderer** and **Skinned Transfrom** to a setting other than **None**, Visual Effect Graph applies the transform after the root bone transform. If you set **Skinned Transform** to **Apply World Root Transform**, Visual Effect Graph converts the transform to world space. |
+| **Transform**             | Transform             | The transform to apply after sampling. If you set **Source** to **Skinned Mesh Renderer** and **Skinned Transform** to a setting other than **None**, Visual Effect Graph applies the transform after the root bone transform. If you set **Skinned Transform** to **Apply World Root Transform**, Visual Effect Graph converts the transform to world space. |
 
 ## Limitations
 
