@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
@@ -324,6 +325,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             current = null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void CheckHandleValidity(in ResourceHandle res)
         {
             CheckHandleValidity(res.type, res.index);
@@ -460,7 +462,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin = false)
+        internal TextureHandle ImportTexture(in RTHandle rt, bool isBuiltin = false)
         {
             ImportResourceParams importParams = new ImportResourceParams();
             importParams.clearOnFirstUse = false;
@@ -470,7 +472,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, ImportResourceParams importParams, bool isBuiltin = false)
+        internal TextureHandle ImportTexture(in RTHandle rt, in ImportResourceParams importParams, bool isBuiltin = false)
         {
             // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
             // Not sure what this actually "means" it allocates a RG handle but nothing is behind it
@@ -518,7 +520,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, RenderTargetInfo info, ImportResourceParams importParams)
+        internal TextureHandle ImportTexture(in RTHandle rt, RenderTargetInfo info, in ImportResourceParams importParams)
         {
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.graphicsResource = rt;
@@ -605,7 +607,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return new TextureHandle(textureIndex, shared: true);
         }
 
-        internal void RefreshSharedTextureDesc(TextureHandle texture, in TextureDesc desc)
+        internal void RefreshSharedTextureDesc(in TextureHandle texture, in TextureDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle.index))
@@ -618,7 +620,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc = desc;
         }
 
-        internal void ReleaseSharedTexture(TextureHandle texture)
+        internal void ReleaseSharedTexture(in TextureHandle texture)
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
 
@@ -636,7 +638,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.Reset(null);
         }
 
-        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, RenderTargetInfo info, ImportResourceParams importParams)
+        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, in RenderTargetInfo info, in ImportResourceParams importParams)
         {
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
@@ -667,7 +669,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         static RenderTargetIdentifier emptyId = new RenderTargetIdentifier();
         static RenderTargetIdentifier builtinCameraRenderTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
 
-        internal void GetRenderTargetInfo(ResourceHandle res, out RenderTargetInfo outInfo)
+        internal void GetRenderTargetInfo(in ResourceHandle res, out RenderTargetInfo outInfo)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (res.iType != (int)RenderGraphResourceType.Texture)
@@ -971,7 +973,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
         }
-        internal void CreatePooledResource(InternalRenderGraphContext rgContext, ResourceHandle handle)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void CreatePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
         {
             CreatePooledResource(rgContext, handle.iType, handle.index);
         }
@@ -1019,7 +1023,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, ResourceHandle handle)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
         {
             ReleasePooledResource(rgContext, handle.iType, handle.index);
         }

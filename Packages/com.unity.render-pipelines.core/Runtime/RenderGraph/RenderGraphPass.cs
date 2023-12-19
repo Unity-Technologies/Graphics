@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool allowGlobalState { get; protected set; }
         public bool enableFoveatedRasterization { get; protected set; }
 
+        // Before using the AccessFlags use resourceHandle.isValid()
+        // to make sure that the data in the colorBuffer/fragmentInput/randomAccessResource buffers are up to date
         public TextureHandle depthBuffer { get; protected set; }
         public AccessFlags depthBufferAccessFlags { get; protected set; }
 
@@ -92,39 +94,28 @@ namespace UnityEngine.Rendering.RenderGraphModule
             enableFoveatedRasterization = false;
             generateDebugData = true;
 
-            // Invalidate everything
+            // Invalidate the buffers without clearing them, as it is too costly
+            // Use IsValid() to make sure that the data in the colorBuffer/fragmentInput/randomAccessResource buffers are up to date
             colorBufferMaxIndex = -1;
-            depthBuffer = TextureHandle.nullHandle;
-            for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
-            {
-                colorBuffers[i] = TextureHandle.nullHandle;
-                colorBufferAccessFlags[i] = AccessFlags.None;
-            }
             fragmentInputMaxIndex = -1;
-            for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
-            {
-                fragmentInputs[i] = TextureHandle.nullHandle;
-                fragmentInputAccessFlags[i] = AccessFlags.None;
-            }
             randomAccessResourceMaxIndex = -1;
-            for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
-            {
-                randomAccessResource[i].h = new ResourceHandle();
-            }
         }
 
         // Check if the pass has any render targets set-up
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasRenderAttachments()
         {
             return depthBuffer.IsValid() || colorBuffers[0].IsValid() || colorBufferMaxIndex > 0;
         }
 
         // Checks if the resource is involved in this pass
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTransient(in ResourceHandle res)
         {
             return transientResourceList[res.iType].Contains(res);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsWritten(in ResourceHandle res)
         {
             // You can only ever write to the latest version so we ignore it when looking in the list
@@ -138,6 +129,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsRead(in ResourceHandle res)
         {
             if (res.IsVersioned)
@@ -146,7 +138,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             else
             {
-                // Just look if we are readying any version of this texture.
+                // Just look if we are reading any version of this texture.
                 // Note that in theory this pass could read from several versions of the same texture
                 // e.g. ColorBuffer,v3 and ColorBuffer,v5 so this check is always conservative
                 for (int i = 0; i < resourceReadLists[res.iType].Count; i++)
@@ -160,71 +152,83 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsAttachment(in TextureHandle res)
         {
-            // We ignore the version when checking if any version is used it is considered a match
+            // We ignore the version when checking, if any version is used it is considered a match
 
-            if (depthBuffer.handle.index == res.handle.index) return true;
+            if (depthBuffer.IsValid() && depthBuffer.handle.index == res.handle.index) return true;
             for (int i = 0; i < colorBuffers.Length; i++)
             {
-                if (colorBuffers[i].handle.index == res.handle.index) return true;
+                if (colorBuffers[i].IsValid() && colorBuffers[i].handle.index == res.handle.index) return true;
             }
 
             return false;
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddResourceWrite(in ResourceHandle res)
         {
             resourceWriteLists[res.iType].Add(res);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddResourceRead(in ResourceHandle res)
         {
             resourceReadLists[res.iType].Add(res);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddTransientResource(in ResourceHandle res)
         {
             transientResourceList[res.iType].Add(res);
         }
 
-        public void UseRendererList(RendererListHandle rendererList)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void UseRendererList(in RendererListHandle rendererList)
         {
             usedRendererListList.Add(rendererList);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnableAsyncCompute(bool value)
         {
             enableAsyncCompute = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AllowPassCulling(bool value)
         {
             allowPassCulling = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnableFoveatedRasterization(bool value)
         {
             enableFoveatedRasterization = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AllowRendererListCulling(bool value)
         {
             allowRendererListCulling = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AllowGlobalState(bool value)
         {
             allowGlobalState = value;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void GenerateDebugData(bool value)
         {
             generateDebugData = value;
         }
 
-        public void SetColorBuffer(TextureHandle resource, int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetColorBuffer(in TextureHandle resource, int index)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
@@ -233,10 +237,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetColorBufferRaw(TextureHandle resource, int index, AccessFlags accessFlags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetColorBufferRaw(in TextureHandle resource, int index, AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            if (colorBuffers[index].handle.Equals(resource.handle) || colorBuffers[index].handle.IsNull())
+            if (colorBuffers[index].handle.Equals(resource.handle) || !colorBuffers[index].IsValid())
             {
                 colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
                 colorBuffers[index] = resource;
@@ -252,10 +257,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetFragmentInputRaw(TextureHandle resource, int index, AccessFlags accessFlags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetFragmentInputRaw(in TextureHandle resource, int index, AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            if (fragmentInputs[index].handle.Equals(resource.handle) || fragmentInputs[index].handle.IsNull())
+            if (fragmentInputs[index].handle.Equals(resource.handle) || !fragmentInputs[index].IsValid())
             {
                 fragmentInputMaxIndex = Math.Max(fragmentInputMaxIndex, index);
                 fragmentInputs[index] = resource;
@@ -271,10 +277,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
-        public void SetRandomWriteResourceRaw(ResourceHandle resource, int index, bool preserveCounterValue, AccessFlags accessFlags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetRandomWriteResourceRaw(in ResourceHandle resource, int index, bool preserveCounterValue, AccessFlags accessFlags)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            if (randomAccessResource[index].h.Equals(resource) || randomAccessResource[index].h.IsNull())
+            if (randomAccessResource[index].h.Equals(resource) || !randomAccessResource[index].h.IsValid())
             {
                 randomAccessResourceMaxIndex = Math.Max(randomAccessResourceMaxIndex, index);
                 ref var info = ref randomAccessResource[index];
@@ -289,7 +296,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
 
-        public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetDepthBuffer(in TextureHandle resource, DepthAccess flags)
         {
             depthBuffer = resource;
             if ((flags & DepthAccess.Read) != 0)
@@ -299,10 +307,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Sets up the depth buffer for this pass but not any resource Read/Writes for it
-        public void SetDepthBufferRaw(TextureHandle resource, AccessFlags accessFlags)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetDepthBufferRaw(in TextureHandle resource, AccessFlags accessFlags)
         {
-            // If no depth buffer yet or it's the same one as previous allow the call otherwise log an error.
-            if (depthBuffer.handle.Equals(resource.handle) || depthBuffer.handle.IsNull())
+            // If no depth buffer yet or if it is the same one as the previous one, allow the call otherwise log an error.
+            if (depthBuffer.handle.Equals(resource.handle) || !depthBuffer.handle.IsValid())
             {
                 depthBuffer = resource;
                 depthBufferAccessFlags = accessFlags;
@@ -318,7 +327,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Here we want to keep computation to a minimum and only hash what will influence NRP compiler: Pass merging, load/store actions etc.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void ComputeTextureHash(ref int hash, ResourceHandle handle, RenderGraphResourceRegistry resources)
+        void ComputeTextureHash(ref int hash, in ResourceHandle handle, RenderGraphResourceRegistry resources)
         {
             if (handle.index != 0)
             {
@@ -399,37 +408,46 @@ namespace UnityEngine.Rendering.RenderGraphModule
             hash = hash * 23 + (allowGlobalState ? 1 : 0);
             hash = hash * 23 + (enableFoveatedRasterization ? 1 : 0);
 
-            hash = hash * 23 + depthBuffer.handle.index;
-            hash = hash * 23 + (int)depthBufferAccessFlags;
-            ComputeTextureHash(ref hash, depthBuffer.handle, resources);
+            var depthHandle = depthBuffer.handle;
+            if(depthHandle.IsValid())
+            {
+                hash = hash * 23 + depthHandle.index;
+                hash = hash * 23 + (int)depthBufferAccessFlags;
+                ComputeTextureHash(ref hash, depthHandle, resources);
+            }
 
             for (int i = 0; i < colorBufferMaxIndex + 1; ++i)
             {
                 var handle = colorBuffers[i].handle;
-                ComputeTextureHash(ref hash, handle, resources);
-                hash = hash * 23 + handle.index;
+                if(handle.IsValid())
+                {
+                    ComputeTextureHash(ref hash, handle, resources);
+                    hash = hash * 23 + handle.index;
+                    hash = hash * 23 + (int)colorBufferAccessFlags[i];
+                }
             }
-
-            for (int i = 0; i < colorBufferMaxIndex + 1; ++i)
-                hash = hash * 23 + (int)colorBufferAccessFlags[i];
 
             hash = hash * 23 + colorBufferMaxIndex;
 
             for (int i = 0; i < fragmentInputMaxIndex + 1; ++i)
             {
                 var handle = fragmentInputs[i].handle;
-                ComputeTextureHash(ref hash, handle, resources);
-                hash = hash * 23 + colorBuffers[i].handle.index;
+                if(handle.IsValid())
+                {
+                    ComputeTextureHash(ref hash, handle, resources);
+                    hash = hash * 23 + handle.index;
+                    hash = hash * 23 + (int)fragmentInputAccessFlags[i];
+                }
             }
-
-            for (int i = 0; i < fragmentInputMaxIndex + 1; ++i)
-                hash = hash * 23 + (int)fragmentInputAccessFlags[i];
 
             for (int i = 0; i < randomAccessResourceMaxIndex + 1; ++i)
             {
                 var rar = randomAccessResource[i];
-                hash = hash * 23 + rar.h.index;
-                hash = hash * 23 + (rar.preserveCounterValue ? 1 : 0);
+                if(rar.h.IsValid())
+                {
+                    hash = hash * 23 + rar.h.index;
+                    hash = hash * 23 + (rar.preserveCounterValue ? 1 : 0);
+                }
             }
             hash = hash * 23 + randomAccessResourceMaxIndex;
 
@@ -481,6 +499,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         internal PassData data;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize(int passIndex, PassData passData, string passName, RenderGraphPassType passType, ProfilingSampler sampler)
         {
             Clear();
@@ -498,15 +517,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         internal BaseRenderFunc<PassData, RenderGraphContext> renderFunc;
         internal static RenderGraphContext c = new RenderGraphContext();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             c.FromInternalContext(renderGraphContext);
             renderFunc(data, c);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            Clear();
             pool.Release(data);
             data = null;
             renderFunc = null;
@@ -515,11 +536,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             pool.Release(this);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool HasRenderFunc()
         {
             return renderFunc != null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
             return renderFunc.GetHashCode();
@@ -532,15 +555,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         internal BaseRenderFunc<PassData, ComputeGraphContext> renderFunc;
         internal static ComputeGraphContext c = new ComputeGraphContext();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             c.FromInternalContext(renderGraphContext);
             renderFunc(data, c);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            Clear();
             pool.Release(data);
             data = null;
             renderFunc = null;
@@ -549,11 +574,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             pool.Release(this);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool HasRenderFunc()
         {
             return renderFunc != null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
             return renderFunc.GetHashCode();
@@ -566,15 +593,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         internal BaseRenderFunc<PassData, RasterGraphContext> renderFunc;
         internal static RasterGraphContext c = new RasterGraphContext();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             c.FromInternalContext(renderGraphContext);
            renderFunc(data, c);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            Clear();
             pool.Release(data);
             data = null;
             renderFunc = null;
@@ -583,11 +612,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             pool.Release(this);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool HasRenderFunc()
         {
             return renderFunc != null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
             return renderFunc.GetHashCode();
@@ -601,15 +632,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal BaseRenderFunc<PassData, UnsafeGraphContext> renderFunc;
         internal static UnsafeGraphContext c = new UnsafeGraphContext();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             c.FromInternalContext(renderGraphContext);
             renderFunc(data, c);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            Clear();
             pool.Release(data);
             data = null;
             renderFunc = null;
@@ -618,11 +650,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             pool.Release(this);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool HasRenderFunc()
         {
             return renderFunc != null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
             return renderFunc.GetHashCode();

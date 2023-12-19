@@ -239,16 +239,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // We currently ignore the version. In theory there might be some cases that are actually allowed with versioning
         // for ample UseTexture(myTexV1, read) UseFragment(myTexV2, ReadWrite) as they are different versions
         // but for now we don't allow any of that.
-        private void CheckNotUseFragment(TextureHandle tex, AccessFlags flags)
+        private void CheckNotUseFragment(TextureHandle tex)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             bool usedAsFragment = false;
-            usedAsFragment = (m_RenderPass.depthBuffer.handle.index == tex.handle.index);
+            usedAsFragment = (m_RenderPass.depthBuffer.IsValid() && m_RenderPass.depthBuffer.handle.index == tex.handle.index);
             if (!usedAsFragment)
             {
                 for (int i = 0; i <= m_RenderPass.colorBufferMaxIndex; i++)
                 {
-                    if (m_RenderPass.depthBuffer.handle.index == tex.handle.index)
+                    if (m_RenderPass.colorBuffers[i].IsValid() && m_RenderPass.colorBuffers[i].handle.index == tex.handle.index)
                     {
                         usedAsFragment = true;
                         break;
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void UseTexture(in TextureHandle input, AccessFlags flags)
         {
-            CheckNotUseFragment(input, flags);
+            CheckNotUseFragment(input);
             UseResource(input.handle, flags);
         }
 
@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Shared validation between SetRenderAttachment/SetRenderAttachmentDepth
-        private void CheckUseFragment(TextureHandle tex, AccessFlags flags, bool isDepth)
+        private void CheckUseFragment(TextureHandle tex, bool isDepth)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // We ignore the version as we don't allow mixing UseTexture/UseFragment between different versions
@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags)
         {
-            CheckUseFragment(tex, flags, false);
+            CheckUseFragment(tex, false);
             ResourceHandle result = UseResource(tex.handle, flags);
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
             // it doesn't really matter as it's really the Read/Write lists that determine that
@@ -375,7 +375,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags)
         {
-            CheckUseFragment(tex, flags, false);
+            CheckUseFragment(tex, false);
             ResourceHandle result = UseResource(tex.handle, flags);
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
             // it doesn't really matter as it's really the Read/Write lists that determine that
@@ -387,7 +387,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags)
         {
-            CheckUseFragment(tex, flags, true);
+            CheckUseFragment(tex, true);
             ResourceHandle result = UseResource(tex.handle, flags);
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
             // it doesn't really matter as it's really the Read/Write lists that determine that
@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public TextureHandle SetRandomAccessAttachment(TextureHandle input, int index, AccessFlags flags = AccessFlags.Read)
         {
-            CheckNotUseFragment(input, flags);
+            CheckNotUseFragment(input);
             TextureHandle h = new TextureHandle();
             h.handle = UseResource(input.handle, flags);
 

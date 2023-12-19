@@ -26,8 +26,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Release the GPU resource itself
         protected abstract void ReleaseInternalResource(Type res);
-        protected abstract string GetResourceName(Type res);
-        protected abstract long GetResourceSize(Type res);
+        protected abstract string GetResourceName(in Type res);
+        protected abstract long GetResourceSize(in Type res);
         protected abstract string GetResourceTypeName();
         protected abstract int GetSortIndex(Type res);
 

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -29,10 +30,24 @@ namespace UnityEngine.Rendering.RenderGraphModule
         static uint s_CurrentValidBit = 1 << 16;
         static uint s_SharedResourceValidBit = 0x7FFF << 16;
 
-        public int index { get { return (int)(m_Value & kIndexMask); } }
+        public int index
+        { 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return (int)(m_Value & kIndexMask); }
+        }
+        public int iType
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return (int)type; }
+        }
+        public int version
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return m_Version; }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set { m_Version = value; } 
+        }
         public RenderGraphResourceType type { get; private set; }
-        public int iType { get { return (int)type; } }
-        public int version { get { return m_Version; } set { m_Version = value; } }
 
         internal ResourceHandle(int value, RenderGraphResourceType type, bool shared)
         {
@@ -42,19 +57,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
             this.m_Version = -1;
         }
 
-        internal ResourceHandle(ResourceHandle h, int version)
+        internal ResourceHandle(in ResourceHandle h, int version)
         {
             this.m_Value = h.m_Value;
             this.type = h.type;
             this.m_Version = version;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsValid()
         {
             var validity = m_Value & kValidityMask;
             return validity != 0 && (validity == s_CurrentValidBit || validity == s_SharedResourceValidBit);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsNull()
         {
             if (index == 0)
@@ -89,12 +106,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public bool IsVersioned
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return m_Version >= 0;
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(ResourceHandle hdl)
         {
             return hdl.m_Value == this.m_Value && hdl.m_Version == this.m_Version && hdl.type == this.type;
@@ -116,6 +135,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         protected IRenderGraphResourcePool m_Pool;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void Reset(IRenderGraphResourcePool pool)
         {
             imported = false;
@@ -132,27 +152,32 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Pool = pool;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual string GetName()
         {
             return "";
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual bool IsCreated()
         {
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void IncrementWriteCount()
         {
             writeCount++;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual int NewVersion()
         {
             version++;
             return version;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual bool NeedsFallBack()
         {
             return requestFallBack && writeCount == 0;
@@ -180,17 +205,20 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Reset(IRenderGraphResourcePool pool)
         {
             base.Reset(pool);
             graphicsResource = null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool IsCreated()
         {
             return graphicsResource != null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void ReleaseGraphicsResource()
         {
             graphicsResource = null;

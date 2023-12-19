@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal BufferHandle(ResourceHandle h) { handle = h; }
+        internal BufferHandle(in ResourceHandle h) { handle = h; }
 
         internal BufferHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Buffer, shared); }
 
@@ -189,12 +189,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             res.Release();
         }
 
-        protected override string GetResourceName(GraphicsBuffer res)
+        protected override string GetResourceName(in GraphicsBuffer res)
         {
             return "GraphicsBufferNameNotAvailable"; // GraphicsBuffer.name is a setter only :(
         }
 
-        protected override long GetResourceSize(GraphicsBuffer res)
+        protected override long GetResourceSize(in GraphicsBuffer res)
         {
             return res.count * res.stride;
         }

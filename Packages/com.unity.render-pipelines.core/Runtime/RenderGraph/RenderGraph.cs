@@ -2200,8 +2200,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     }
                     else
                     {
-                        CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
-                        CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
+                        if (pass.colorBuffers[0].IsValid())
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Neither Depth nor color render targets are correctly setup at pass " + pass.name + ".");
+                        }
                     }
                 }
             }
