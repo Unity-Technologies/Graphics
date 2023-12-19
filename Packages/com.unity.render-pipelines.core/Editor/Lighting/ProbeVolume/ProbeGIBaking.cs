@@ -1185,12 +1185,6 @@ namespace UnityEngine.Rendering
             }
             fetchScope.Dispose();
 
-            // Don't use Disk streaming to avoid having to wait for it when doing dilation.
-            ProbeReferenceVolume.instance.ForceNoDiskStreaming(true);
-            // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
-            var prevSHBands = ProbeReferenceVolume.instance.shBands;
-            ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
-
             PrepareCellsForWriting(isBakingSceneSubset);
 
             using var writeScope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData);
@@ -1210,6 +1204,16 @@ namespace UnityEngine.Rendering
 
             // Reset internal structures depending on current bake.
             probeRefVolume.EnsureCurrentBakingSet(m_BakingSet);
+
+            // This subsequent block needs to happen AFTER we call WriteBakingCells.
+            // Otherwise in cases where we change the spacing between probes, we end up loading cells with a certain layout in ForceSHBand
+            // And then we unload cells using the wrong layout in PerformDilation (after WriteBakingCells updates the baking set object) which leads to a broken internal state.
+
+            // Don't use Disk streaming to avoid having to wait for it when doing dilation.
+            ProbeReferenceVolume.instance.ForceNoDiskStreaming(true);
+            // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
+            var prevSHBands = ProbeReferenceVolume.instance.shBands;
+            ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
 
             // TODO Discuss: Not nice to do this here, shouldn't reloading the asset also resolve cell data?
             // Would still need to reload common shared data like bricks as they are separately handled by the baking set itself.
