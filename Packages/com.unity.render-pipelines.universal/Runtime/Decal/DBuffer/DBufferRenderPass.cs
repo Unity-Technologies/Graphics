@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal
         internal static string[] s_DBufferNames = { "_DBufferTexture0", "_DBufferTexture1", "_DBufferTexture2", "_DBufferTexture3" };
         internal static string s_DBufferDepthName = "DBufferDepth";
 
+        static readonly int s_SSAOTextureID = Shader.PropertyToID("_ScreenSpaceOcclusionTexture");
+
         private DecalDrawDBufferSystem m_DrawSystem;
         private DBufferSettings m_Settings;
         private Material m_DBufferClear;
@@ -282,6 +284,9 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 if (cameraNormalsTexture.IsValid())
                     builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
+
+                if (resourceData.ssaoTexture.IsValid())
+                    builder.UseGlobalTexture(s_SSAOTextureID);
 
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
                 passData.rendererList = renderGraph.CreateRendererList(param);

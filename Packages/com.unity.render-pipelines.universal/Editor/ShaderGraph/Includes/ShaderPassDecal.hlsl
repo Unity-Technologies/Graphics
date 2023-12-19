@@ -327,13 +327,13 @@ void Frag(PackedVaryings packedInput,
 
     outColor = color;
 #elif defined(DECAL_GBUFFER)
-    
+
     // Need to reconstruct normal here for inputData.bakedGI, but also save off surfaceData.normalWS for correct GBuffer blending
     half3 normalToPack = surfaceData.normalWS.xyz;
 #ifdef DECAL_RECONSTRUCT_NORMAL
     surfaceData.normalWS.xyz = normalize(lerp(normalWS.xyz, surfaceData.normalWS.xyz, surfaceData.normalWS.w));
 #endif
-    
+
     InputData inputData;
     InitializeInputData(input, positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
