@@ -169,8 +169,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         List<CoreRendererList> m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
-        [Conditional("UNITY_EDITOR")]
-        [Conditional("DEVELOPMENT_BUILD")]
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckTextureResource(TextureResource texResource)
         {
             if (texResource.graphicsResource == null && !texResource.imported)
@@ -230,8 +229,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return CoreRendererList.nullRendererList;
         }
 
-        [Conditional("UNITY_EDITOR")]
-        [Conditional("DEVELOPMENT_BUILD")]
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckBufferResource(BufferResource bufferResoruce)
         {
             if (bufferResoruce.graphicsResource == null)
@@ -325,21 +323,24 @@ namespace UnityEngine.Rendering.RenderGraphModule
             current = null;
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void CheckHandleValidity(in ResourceHandle res)
         {
             CheckHandleValidity(res.type, res.index);
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckHandleValidity(RenderGraphResourceType type, int index)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            var resources = m_RenderGraphResources[(int)type].resourceArray;
-            if (index == 0)
-                throw new ArgumentException($"Trying to access resource of type {type} with an null resource index.");
-            if (index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
-#endif
+            if(RenderGraph.enableValidityChecks)
+            {
+                var resources = m_RenderGraphResources[(int)type].resourceArray;
+                if (index == 0)
+                    throw new ArgumentException($"Trying to access resource of type {type} with an null resource index.");
+                if (index >= resources.size)
+                    throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+            }
         }
 
         internal void IncrementWriteCount(in ResourceHandle res)
@@ -508,15 +509,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
 
-            var handle = new TextureHandle(newHandle, false, isBuiltin);
-            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time. It is invalid to import
-            // a texture if we can't get it's info somehow. (The alternative is for the code calling ImportTexture to use the overload that takes a RenderTargetInfo).
-            if (rt != null)
-            {
-                RenderTargetInfo outInfo;
-                GetRenderTargetInfo(handle.handle, out outInfo);
-            }
-            return handle;
+            var texHandle = new TextureHandle(newHandle, false, isBuiltin);
+
+            // Try getting the info straight away so if something is wrong we throw at import time.
+            // It is invalid to import a texture if we can't get its info somehow.
+            // (The alternative is for the code calling ImportTexture to use the overload that takes a RenderTargetInfo).
+            if(rt != null)
+                ValidateRenderTarget(texHandle.handle);
+            
+            return texHandle;
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
@@ -531,7 +532,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
             if (rt != null)
             {
-
                 if (rt.m_NameID != emptyId)
                 {
                     // Store the info in the descriptor structure to avoid having a separate info structure being saved per resource
@@ -563,11 +563,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
             }
 
-            var handle = new TextureHandle(newHandle);
-            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time.
-            RenderTargetInfo outInfo;
-            GetRenderTargetInfo(handle.handle, out outInfo);
-            return handle;
+            var texHandle = new TextureHandle(newHandle);
+
+            // Try getting the info straight away so if something is wrong we throw at import time.
+            ValidateRenderTarget(texHandle.handle);
+
+            return texHandle;
         }
 
         internal TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease)
@@ -659,15 +660,26 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
 
-            var handle = new TextureHandle(newHandle);
-            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time.
-            RenderTargetInfo outInfo;
-            GetRenderTargetInfo(handle.handle, out outInfo);
-            return handle;
+            var texHandle = new TextureHandle(newHandle);
+
+            // Try getting the info straight away so if something wrong we get the exceptions directly at import time.
+            ValidateRenderTarget(texHandle.handle);
+
+            return texHandle;
         }
 
         static RenderTargetIdentifier emptyId = new RenderTargetIdentifier();
         static RenderTargetIdentifier builtinCameraRenderTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        private void ValidateRenderTarget(in ResourceHandle res)
+        {
+            if(RenderGraph.enableValidityChecks)
+            {                
+                RenderTargetInfo outInfo;
+                GetRenderTargetInfo(res, out outInfo);
+            }
+        }
 
         internal void GetRenderTargetInfo(in ResourceHandle res, out RenderTargetInfo outInfo)
         {
@@ -1043,59 +1055,65 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateTextureDesc(in TextureDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (desc.colorFormat == GraphicsFormat.None && desc.depthBufferBits == DepthBits.None)
+            if(RenderGraph.enableValidityChecks)
             {
-                throw new ArgumentException("Texture was created with an invalid color format.");
-            }
+                if (desc.colorFormat == GraphicsFormat.None && desc.depthBufferBits == DepthBits.None)
+                {
+                    throw new ArgumentException("Texture was created with an invalid color format.");
+                }
 
-            if (desc.dimension == TextureDimension.None)
-            {
-                throw new ArgumentException("Texture was created with an invalid texture dimension.");
-            }
+                if (desc.dimension == TextureDimension.None)
+                {
+                    throw new ArgumentException("Texture was created with an invalid texture dimension.");
+                }
 
-            if (desc.slices == 0)
-            {
-                throw new ArgumentException("Texture was created with a slices parameter value of zero.");
-            }
+                if (desc.slices == 0)
+                {
+                    throw new ArgumentException("Texture was created with a slices parameter value of zero.");
+                }
 
-            if (desc.sizeMode == TextureSizeMode.Explicit)
-            {
-                if (desc.width == 0 || desc.height == 0)
-                    throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
+                if (desc.sizeMode == TextureSizeMode.Explicit)
+                {
+                    if (desc.width == 0 || desc.height == 0)
+                        throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
+                }
             }
-#endif
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateRendererListDesc(in CoreRendererListDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (!desc.IsValid())
+            if(RenderGraph.enableValidityChecks)
             {
-                throw new ArgumentException("Renderer List descriptor is not valid.");
-            }
+                if (!desc.IsValid())
+                {
+                    throw new ArgumentException("Renderer List descriptor is not valid.");
+                }
 
-            if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
-            {
-                throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
+                if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
+                {
+                    throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
+                }
             }
-#endif
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateBufferDesc(in BufferDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (desc.stride % 4 != 0)
+            if(RenderGraph.enableValidityChecks)
             {
-                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer stride must be at least 4.");
+                if (desc.stride % 4 != 0)
+                {
+                    throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer stride must be at least 4.");
+                }
+                if (desc.count == 0)
+                {
+                    throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer count  must be non zero.");
+                }
             }
-            if (desc.count == 0)
-            {
-                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer count  must be non zero.");
-            }
-#endif
         }
 
         internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context, bool manualDispatch = false)

@@ -29,7 +29,17 @@ namespace UnityEngine.Rendering
         public bool enableCompilationCaching
         {
             get => m_EnableCompilationCaching;
-            set => this.SetValueAndNotify(ref m_EnableCompilationCaching, value, nameof(m_EnableCompilationCaching));
+            set => this.SetValueAndNotify(ref m_EnableCompilationCaching, value);
+        }
+
+        [RecreatePipelineOnChange , SerializeField, Tooltip("Enable validity checks of render graph in Editor and Development mode. Always disabled in Release build.")]
+        private bool m_EnableValidityChecks = true;
+
+        /// <summary>Enable validity checks for render graph. Always disabled in Release mode.</summary>
+        public bool enableValidityChecks
+        {
+            get => m_EnableValidityChecks;
+            set => this.SetValueAndNotify(ref m_EnableValidityChecks, value);
         }
     }
 }

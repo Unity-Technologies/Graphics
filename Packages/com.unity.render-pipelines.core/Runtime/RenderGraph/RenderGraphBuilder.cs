@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -318,28 +319,30 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Disposed = true;
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckResource(in ResourceHandle res, bool dontCheckTransientReadWrite = false)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (res.IsValid())
+            if(RenderGraph.enableValidityChecks)
             {
-                int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);
-                // We have dontCheckTransientReadWrite here because users may want to use UseColorBuffer/UseDepthBuffer API to benefit from render target auto binding. In this case we don't want to raise the error.
-                if (transientIndex == m_RenderPass.index && !dontCheckTransientReadWrite)
+                if (res.IsValid())
                 {
-                    Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
-                }
+                    int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);
+                    // We have dontCheckTransientReadWrite here because users may want to use UseColorBuffer/UseDepthBuffer API to benefit from render target auto binding. In this case we don't want to raise the error.
+                    if (transientIndex == m_RenderPass.index && !dontCheckTransientReadWrite)
+                    {
+                        Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
+                    }
 
-                if (transientIndex != -1 && transientIndex != m_RenderPass.index)
+                    if (transientIndex != -1 && transientIndex != m_RenderPass.index)
+                    {
+                        throw new ArgumentException($"Trying to use a transient texture (pass index {transientIndex}) in a different pass (pass index {m_RenderPass.index}).");
+                    }
+                }
+                else
                 {
-                    throw new ArgumentException($"Trying to use a transient texture (pass index {transientIndex}) in a different pass (pass index {m_RenderPass.index}).");
+                    throw new ArgumentException($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
                 }
             }
-            else
-            {
-                throw new ArgumentException($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
-            }
-#endif
         }
 
         internal void GenerateDebugData(bool value)

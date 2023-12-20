@@ -556,6 +556,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>If true, the Render Graph Viewer is active.</summary>
         public static bool isRenderGraphViewerActive { get; internal set; }
 
+        /// <summary>If true, the Render Graph will run its various validity checks while processing (not considered in release mode).</summary>
+        internal static bool enableValidityChecks { get; private set; }
+
         /// <summary>
         /// Set of default resources usable in a pass rendering code.
         /// </summary>
@@ -579,6 +582,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_EnableCompilationCaching = renderGraphGlobalSettings.enableCompilationCaching;
                 if (m_EnableCompilationCaching)
                     m_CompilationCache = new RenderGraphCompilationCache();
+
+                enableValidityChecks = renderGraphGlobalSettings.enableValidityChecks;
+            }
+            else // No SRP pipeline is present/active, it can happen with unit tests
+            {
+                enableValidityChecks = true;
             }
 
             m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_FrameInformationLogger);
