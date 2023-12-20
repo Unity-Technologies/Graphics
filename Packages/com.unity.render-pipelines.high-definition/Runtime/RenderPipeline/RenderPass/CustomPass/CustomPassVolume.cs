@@ -347,8 +347,15 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var volume in m_OverlappingPassVolumes)
                 volume?.AggregateCullingParameters(ref cullingParameters, hdCamera);
 
+            // Try to share the culling results from the camera to the custom passes by default
+            bool shareCullingResults = true;
+
             // If we don't have anything to cull or the pass is asking for the same culling layers than the camera, we don't have to re-do the culling
-            if (cullingParameters.cullingMask != 0 && (cullingParameters.cullingMask & hdCamera.camera.cullingMask) != cullingParameters.cullingMask)
+            shareCullingResults &= (cullingParameters.cullingMask & hdCamera.camera.cullingMask) == cullingParameters.cullingMask;
+            shareCullingResults &= cullingParameters.cullingMatrix == hdCamera.camera.cullingMatrix;
+            shareCullingResults &= cullingParameters.isOrthographic == hdCamera.camera.orthographic;
+
+            if (!shareCullingResults)
                 result = renderContext.Cull(ref cullingParameters);
 
             return result;

@@ -756,6 +756,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightLists.perTileLogBaseTweak.IsValid())
                     data.perTileLogBaseTweak = builder.ReadComputeBuffer(lightLists.perTileLogBaseTweak);
             }
+            else
+            {
+                data.perVoxelOffset = ComputeBufferHandle.nullHandle;
+                data.perTileLogBaseTweak = ComputeBufferHandle.nullHandle;
+            }
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
 
             HDShadowManager.ReadShadowResult(shadowResult, builder);

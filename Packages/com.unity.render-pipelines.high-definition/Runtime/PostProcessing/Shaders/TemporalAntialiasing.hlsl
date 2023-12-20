@@ -17,12 +17,6 @@
     #define COMPARE_DEPTH(a, b) step(a, b)
 #endif
 
-
-
-#if CENTRAL_FILTERING == UPSCALE
-#define UPSAMPLE
-#endif
-
 // Set defines in case not set outside the include
 #ifndef YCOCG
     #define YCOCG 1
@@ -65,6 +59,14 @@
 #endif
 
 
+static float2 NeighbourOffsets[8];
+
+void SetNeighbourOffsets(float4 neighbourOffsets[4])
+{
+    UNITY_UNROLL for (int i = 0; i < 16; ++i)
+        NeighbourOffsets[i/2][i%2] = neighbourOffsets[i/4][i%4];
+}
+
 float2 ClampAndScaleForBilinearWithCustomScale(float2 uv, float2 scale)
 {
     float2 maxCoord = 1.0f - _ScreenSize.zw;
@@ -84,27 +86,6 @@ float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
     uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0);
 }
-
-float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
-{
-    float2 uv = (coords + offset * _ScreenSize.zw);
-    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
-}
-
-static const float2 NeighbourOffsets[8] =
-{
-    float2(0.0f,  1.0f),
-    float2(1.0f,  0.0f),
-    float2(-1.0f,  0.0f),
-    float2(0.0f, -1.0f),
-    float2(1.0f,  1.0f),
-    float2(1.0f, -1.0f),
-    float2(-1.0f,  1.0f),
-    float2(-1.0f, -1.0f),
-
-};
-
 
 // ---------------------------------------------------
 // Utilities functions
@@ -531,7 +512,7 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
     // Important to do another pass soon.
     stDevMultiplier = lerp(stDevMultiplier, 0.75, saturate(motionVecLenInPixels / 50.0f));
 
-#if CENTRAL_FILTERING == UPSCALE
+#if CENTRAL_FILTERING == UPSAMPLE
     // We shrink the bounding box when upscaling as ghosting is more likely.
     // Ideally the shrinking should happen also (or just) when sampling the neighbours
     // This shrinking should also be investigated a bit further with more content. (TODO).
@@ -556,13 +537,13 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // Filter main color
 // ---------------------------------------------------
 #define APPROX_WEIGHT 1
-float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, bool centralPixel = false)
+float GetSampleWeight(float2 offsets, float4 filterParameters)
 {
-#ifdef UPSAMPLE
+#if CENTRAL_FILTERING == UPSAMPLE
 
     const float2 inputToOutputVec = filterParameters.zw;
     const float resolutionScale2 = filterParameters.y * filterParameters.y;
-    float2 d = (centralPixel ? 0 : NeighbourOffsets[neighbourIdx]) - inputToOutputVec;
+    float2 d = offsets - inputToOutputVec;
 
 #if APPROX_WEIGHT
     // A bit fatter and shorter tail, but significantly cheaper and close enough for the use case.
@@ -583,33 +564,36 @@ float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 fil
 #endif
 }
 
-CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters, float weights[9])
+CTYPE FilterCentralColor(NeighbourhoodSamples samples, float4 filterParameters)
 {
 #if CENTRAL_FILTERING == NO_FILTERING
-
     return samples.central;
-
 #else
+    float totalWeight = GetSampleWeight(0, filterParameters); // center
+    CTYPE filtered = samples.central * totalWeight;
 
-    float totalWeight = GetSampleWeight(samples, 0, filterParameters, true);
-    CTYPE filtered = 0;
-    filtered += samples.central * totalWeight;
     for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
     {
-#ifdef UPSAMPLE
-        float w = GetSampleWeight(samples, i, filterParameters);
-#elif CENTRAL_FILTERING == BLACKMAN_HARRIS
-        float w = weights[i+1];
-#endif
+        float w = GetSampleWeight(NeighbourOffsets[i], filterParameters);
         filtered += samples.neighbours[i] * w;
         totalWeight += w;
     }
     filtered *= rcp(totalWeight);
     return filtered;
-
-
 #endif
+}
 
+CTYPE FilterCentralColor(NeighbourhoodSamples samples, float centralWeight, float4 weights[2])
+{
+    CTYPE filtered = samples.central * centralWeight;
+
+    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+    {
+        float w = weights[i/4][i%4];
+        filtered += samples.neighbours[i] * w;
+    }
+
+    return filtered; // We assume weights[] are already normalized.
 }
 
 // ---------------------------------------------------

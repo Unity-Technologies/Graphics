@@ -502,11 +502,22 @@ real3 ApplyLut2D(TEXTURE2D_PARAM(tex, samplerTex), float3 uvw, float3 scaleOffse
 // params = (lut_height, 0.5 / lut_width, 0.5 / lut_height, lut_height / lut_height - 1)
 real3 GetLutStripValue(float2 uv, float4 params)
 {
-    uv -= params.yz;
+    // scale up x from [0,1] to [0,lut_height], so that x is an integer at LUT boundaries (arranged in a strip)
+    uv.x *= params.x;
+
+    // make x vary between 0 and 1 within its LUT
+    float lutBase = floor(uv.x);
+    uv.x -= lutBase;
+
+    // get the LUT index as value between 0 and (lut_height - 1)/lut_height
+    float lutBaseU = lutBase * 2.0 * params.z;
+
+    // shift the UV to vary between 0 and (lut_height - 1)/lut_height, arrange as color
     real3 color;
-    color.r = frac(uv.x * params.x);
-    color.b = uv.x - color.r / params.x;
-    color.g = uv.y;
+    color.rg = uv - params.zz;
+    color.b = lutBaseU;
+
+    // scale to vary between 0 and 1
     return color * params.w;
 }
 

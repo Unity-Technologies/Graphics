@@ -183,9 +183,14 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
             AttributesMesh previousMesh = inputMesh;
             previousMesh.positionOS = effectivePositionOS;
 
+#ifdef USE_CUSTOMINTERP_SUBSTRUCT
+            // Create a dummy value here to avoid modifying the current custom interpolator values when calculting the previous mesh
+            // Since this value is never being used it should be removed by the shader compiler
+            VaryingsMeshType dummyVaryingsMesh = (VaryingsMeshType)0;
+#endif
             previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
 #ifdef USE_CUSTOMINTERP_SUBSTRUCT
-                , varyingsType.vmesh
+                , dummyVaryingsMesh
 #endif
 #ifdef HAVE_VFX_MODIFICATION
                 , inputElement
