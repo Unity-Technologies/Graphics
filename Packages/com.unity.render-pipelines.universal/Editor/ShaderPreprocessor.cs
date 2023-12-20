@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
 using UnityEditor.XR.Management;
+using UnityEngine.XR.Management;
 #endif
 
 namespace UnityEditor.Rendering.Universal
@@ -144,6 +145,16 @@ namespace UnityEditor.Rendering.Universal
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+        public static XRGeneralSettings xrSettingsStandalone => s_XRSettingStandalone;
+        public static XRGeneralSettings xrSettingWSA => s_XRSettingWSA;
+        public static XRGeneralSettings xrSettingsAndroid => s_XRSettingsAndroid;
+
+        private static XRGeneralSettings s_XRSettingStandalone;
+        private static XRGeneralSettings s_XRSettingWSA;
+        private static XRGeneralSettings s_XRSettingsAndroid;
+#endif
+
         LocalKeyword TryGetLocalKeyword(Shader shader, string name)
         {
             return shader.keywordSpace.FindKeyword(name);
@@ -203,6 +214,15 @@ namespace UnityEditor.Rendering.Universal
             m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
         }
 
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+        private static void FetchXRGeneralSettings()
+        {
+            s_XRSettingStandalone = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
+            s_XRSettingWSA = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
+            s_XRSettingsAndroid = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
+        }
+#endif
+
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
         {
             return (featureMask & feature) != 0;
@@ -213,7 +233,7 @@ namespace UnityEditor.Rendering.Universal
             return (featureMask & feature) != 0;
         }
 
-        bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
+        bool StripUnusedPass(ShaderFeatures features, in ShaderSnippetData snippetData)
         {
             // Meta pass is needed in the player for Enlighten Precomputed Realtime GI albedo and emission.
             if (snippetData.passType == PassType.Meta)
@@ -255,7 +275,7 @@ namespace UnityEditor.Rendering.Universal
             ShaderCompilerPlatform m_ShaderCompilerPlatform;
             bool m_stripUnusedVariants;
 
-            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants, ShaderCompilerPlatform shaderCompilerPlatform)
+            public StripTool(T features, Shader shader, in ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants, ShaderCompilerPlatform shaderCompilerPlatform)
             {
                 m_Features = features;
                 m_Shader = shader;
@@ -340,28 +360,30 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnusedFeatures(ShaderFeatures features, Shader shader, in ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
             bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || globalSettings.stripDebugVariants);
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
-            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            var buildTargetSettings = xrSettingsStandalone;
+            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null &&
+                buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
             {
                 stripDebugDisplayShaders = true;
             }
 
             // XRTODO: We need to figure out what's the proper way to detect HL target platform when building. For now, HL is the only XR platform available on WSA so we assume this case targets HL platform.
-            var wsaTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.WSA);
+            var wsaTargetSettings = xrSettingWSA;
             if (wsaTargetSettings != null && wsaTargetSettings.AssignedSettings != null && wsaTargetSettings.AssignedSettings.activeLoaders.Count > 0)
             {
                 // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
                 features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
             }
 
-            var questTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
-            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null && questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
+            var questTargetSettings = xrSettingsAndroid;
+            if (questTargetSettings != null && questTargetSettings.AssignedSettings != null &&
+                questTargetSettings.AssignedSettings.activeLoaders.Count > 0)
             {
                 // Due to the performance consideration, keep addtional light off variant to avoid extra ALU cost related to dummy additional light handling.
                 features |= ShaderFeatures.AdditionalLightsKeepOffVariants;
@@ -523,7 +545,7 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripVolumeFeatures(VolumeFeatures features, Shader shader, in ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
             var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants, compilerData.shaderCompilerPlatform);
@@ -635,7 +657,7 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnused(ShaderFeatures features, Shader shader, in ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             if (StripUnusedFeatures(features, shader, snippetData, compilerData))
                 return true;
@@ -695,14 +717,18 @@ namespace UnityEditor.Rendering.Universal
             m_stripTimer.Start();
 
             InitializeLocalShaderKeywords(shader);
+#if XR_MANAGEMENT_4_0_1_OR_NEWER
+            FetchXRGeneralSettings();
+#endif
 
             int prevVariantCount = compilerDataList.Count;
             var inputShaderVariantCount = compilerDataList.Count;
+
             for (int i = 0; i < inputShaderVariantCount;)
             {
                 bool removeInput = true;
 
-                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesSet)
                 {
                     if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
                     {
@@ -756,17 +782,17 @@ namespace UnityEditor.Rendering.Universal
         , IPostprocessBuildWithReport
 #endif
     {
-        public static List<ShaderFeatures> supportedFeaturesList
+        public static HashSet<ShaderFeatures> supportedFeaturesSet
         {
             get
             {
-                if (s_SupportedFeaturesList.Count == 0)
+                if (s_SupportedFeaturesSet.Count == 0)
                     FetchAllSupportedFeatures();
-                return s_SupportedFeaturesList;
+                return s_SupportedFeaturesSet;
             }
         }
 
-        private static List<ShaderFeatures> s_SupportedFeaturesList = new List<ShaderFeatures>();
+        private static HashSet<ShaderFeatures> s_SupportedFeaturesSet = new();
 
         public static VolumeFeatures volumeFeatures
         {
@@ -883,7 +909,7 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
-            s_SupportedFeaturesList.Clear();
+            s_SupportedFeaturesSet.Clear();
 
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
@@ -892,7 +918,7 @@ namespace UnityEditor.Rendering.Universal
                     int rendererCount = urp.m_RendererDataList.Length;
 
                     for (int i = 0; i < rendererCount; ++i)
-                        s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp, i));
+                        s_SupportedFeaturesSet.Add(GetSupportedShaderFeatures(urp, i));
                 }
             }
         }
