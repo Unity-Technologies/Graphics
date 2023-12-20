@@ -1726,7 +1726,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            if (Event.current.modifiers != EventModifiers.None)
+            if (Event.current != null && Event.current.modifiers != EventModifiers.None)
             {
                 return;
             }
