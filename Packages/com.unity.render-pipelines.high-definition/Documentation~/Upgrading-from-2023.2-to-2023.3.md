@@ -21,3 +21,7 @@ With the introduction of the sky occlusion feature some asset data layout has ch
 ## Path tracing noise pattern
 
 Path tracing now has a *Seed Mode* parameter. The default is the **non repeating** noise pattern, which is different from the previous behavior. To match behavior in the last version, select the **repeating** pattern.
+
+## Enabling light sources in Path Tracing
+
+In this version, the setting to include light sources in ray traced effects has been split in one checkbox for hybrid ray tracing effects (`include for Ray Tracing`) and one checkbox for inclusion in Path Tracing (`include for Path Tracing`). When upgrading, this last checkbox might need to be updated.
