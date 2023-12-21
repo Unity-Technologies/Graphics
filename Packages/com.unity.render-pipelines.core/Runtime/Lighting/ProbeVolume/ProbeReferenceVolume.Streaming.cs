@@ -888,6 +888,10 @@ namespace UnityEngine.Rendering
 
         void StartIndexDefragmentation()
         {
+            // We can end up here during baking (dilation) when trying to load all cells even without supporting GPU streaming.
+            if (!m_SupportGPUStreaming)
+                return;
+
             m_IndexDefragmentationInProgress = true;
 
             // Prepare the list of cells.
