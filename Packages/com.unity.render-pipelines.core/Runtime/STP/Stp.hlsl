@@ -1666,7 +1666,7 @@ StpInOutU4 con0,
 StpInF2 imgC) {
     // StpF2 kRcpR := 4/size of current input image in pixels.
     con0[0] = StpU1_F1(StpF1_(4.0) / imgC[0]);
-    con0[1] = StpU1_F1(StpF1_(4.0) / imgC[0]);
+    con0[1] = StpU1_F1(StpF1_(4.0) / imgC[1]);
     // StpU2 kR := size/4 of the current input image in pixels.
     // Used for pass merging (DIL and SAA), since convergence is 1/16 area of input, must check position.
     con0[2] = StpU1_(StpU1_(imgC[0]) >> StpU1_(2));
