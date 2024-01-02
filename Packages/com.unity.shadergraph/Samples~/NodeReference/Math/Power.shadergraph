@@ -1541,7 +1541,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "c8c1811c69274bd5909886c1bf2f7316",
     "m_Title": "",
-    "m_Content": "Sine Time provides us with a continuos wave between -1 and 1.\n\nWe remap that range so it's zero to five.  When the value goes below one, we see the image's contrast reduced, but when it's above one, the contrast increases.",
+    "m_Content": "Sine Time provides us with a continuous wave between -1 and 1.\n\nWe remap that range so it's zero to five.  When the value goes below one, we see the image's contrast reduced, but when it's above one, the contrast increases.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
