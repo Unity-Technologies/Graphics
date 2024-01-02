@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Texture tex = currentGenerator.texture;
                     if (!m_FoamTextureAtlas.IsCached(out var scaleBias, m_FoamTextureAtlas.GetTextureID(tex)) && outOfSpace)
-                        Debug.LogError($"No more space in the 2D Water Generator Altas to store the texture {tex}. To solve this issue, increase the resolution of the Generator Atlas Size in the current HDRP asset.");
+                        Debug.LogError($"No more space in the 2D Water Foam Altas to store the texture {tex}. To solve this issue, increase the resolution of the Foam Atlas Size in the current HDRP asset.");
 
                     if (m_FoamTextureAtlas.NeedsUpdate(tex, false))
                         m_FoamTextureAtlas.BlitTexture(cmd, scaleBias, tex, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_FoamTextureAtlas.GetTextureID(tex));

@@ -2,7 +2,7 @@
 
 This page describes the URP Universal Renderer settings.
 
-For more information on rendering in URP, see also [Rendering in the Universal Render Pipeline](rendering-in-universalrp.md).
+For more information on rendering in URP, also check [Rendering in the Universal Render Pipeline](rendering-in-universalrp.md).
 
 ## Rendering Paths
 
@@ -21,7 +21,7 @@ The following table shows the differences between the Forward and the Deferred R
 | Feature | Forward | Forward+ | Deferred |
 |---------|---------|----------|----------|
 | Maximum number of real-time lights per object. | 9 (1 Main Light, and 8 Additional Lights) | Unlimited. [The per-Camera limit applies](#real-time-lights-limitations). | Unlimited. [The per-Camera limit applies](#real-time-lights-limitations).<br/>Transparent objects are rendered using the Forward pass, where the maximum number of real-time lights is 9 (1 Main Light, and 8 Additional Lights). |
-| Per-pixel normal encoding | No encoding (accurate normal values). | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, see the section [Encoding of normals in G-buffer](rendering/deferred-rendering-path.md#accurate-g-buffer-normals). |
+| Per-pixel normal encoding | No encoding (accurate normal values). | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, refer to [Encoding of normals in G-buffer](rendering/deferred-rendering-path.md#accurate-g-buffer-normals). |
 | MSAA | Yes | Yes | No |
 | Vertex lighting | Yes | No | No |
 | Camera stacking | Yes | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
@@ -78,7 +78,7 @@ This section contains properties related to URP's Native RenderPass API.
 
 | Property | Description |
 |:-|:-|
-| **Native RenderPass** | Indicates whether to use URP's Native RenderPass API. When enabled, URP uses this API to structure render passes. As a result, you can use [programmable blending](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html#using-shader-framebuffer-fetch) in custom URP shaders. For more information about the RenderPass API, see [ScriptableRenderContext.BeginRenderPass](https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.BeginRenderPass.html).<br/><br/>**Note**: Enabling this property has no effect on OpenGL ES. |
+| **Native RenderPass** | Indicates whether to use URP's Native RenderPass API. When enabled, URP uses this API to structure render passes. As a result, you can use [programmable blending](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html#using-shader-framebuffer-fetch) in custom URP shaders. For more information about the RenderPass API, refer to [ScriptableRenderContext.BeginRenderPass](https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.BeginRenderPass.html).<br/><br/>**Note**: Enabling this property has no effect on OpenGL ES. |
 
 ### Shadows
 
@@ -98,7 +98,9 @@ With this check box selected, the Renderer processes the Stencil buffer values.
 
 ![URP Universal Renderer Stencil override](Images/urp-assets/urp-universal-renderer-stencil-on.png)
 
-For more information on how Unity works with the Stencil buffer, see [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
+For more information on how Unity works with the Stencil buffer, refer to [ShaderLab: Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html).
+
+In URP, you can use bits 0-15 of the stencil buffer for custom rendering effects.
 
 ### Compatibility
 
@@ -112,6 +114,6 @@ This section contains settings related to backwards compatibility.
 
 This section contains the list of Renderer Features assigned to the selected Renderer.
 
-For information on how to add a Renderer Feature, see [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
+For information on how to add a Renderer Feature, check [How to add a Renderer Feature to a Renderer](urp-renderer-feature-how-to-add.md).
 
 URP contains the pre-built Renderer Feature called [Render Objects](renderer-features/renderer-feature-render-objects.md).

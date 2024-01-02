@@ -47,7 +47,7 @@ As a result, Paper White values determine the brightness of UI elements in HDR m
 
 ## Configure HDR Tone Mapping settings
 
-You can select and adjust Tonemapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR Tonemapping configuration with a script (see the [HDROutputSettings API](#the-hdroutputsettings-api)).
+You can select and adjust tone mapping modes in the [Volume](./../Volumes.md) component settings. You can also adjust some aspects of your HDR tone mapping configuration with a script. For more information on this, refer to the [HDROutputSettings API](#the-hdroutputsettings-api).
 
 After you enable **Allow HDR Display Output**, HDR Tonemapping options become visible in the Volume component.
 
@@ -140,9 +140,11 @@ This debug view uses a color coded gradient to indicate parts of the scene that 
 URP only supports HDR Output on the following platforms:
 
 * Windows with DirectX 11, DirectX 12 or Vulkan
-* Devices that use Metal
+* MacOS devices that use Metal
+* iOS 16+ devices
 * Consoles
 * XR devices with HDR support
+* Android devices that use Vulkan and GLES
 
 > **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.
 

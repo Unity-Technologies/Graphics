@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -11,7 +12,16 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateMirrorGameObject(MenuCommand menuCommand)
         {
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            GameObjectUtility.SetParentAndAlign(plane, menuCommand.context as GameObject);
+            GameObject parent = menuCommand.context as GameObject;
+            if (parent == null)
+            {
+                plane.transform.position = Vector3.zero;
+                StageUtility.PlaceGameObjectInCurrentStage(plane);
+            }
+            else
+            {
+                GameObjectUtility.SetParentAndAlign(plane, parent);
+            }
             Undo.RegisterCreatedObjectUndo(plane, "Create " + plane.name);
             Selection.activeObject = plane;
 

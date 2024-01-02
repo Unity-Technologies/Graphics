@@ -475,35 +475,32 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _WaterSurfaceTransform_Inverse;
 
         // Offset of the patch w/r to the origin. w is used to scale the low res water mesh
-        public Vector4 _PatchOffset;
-
+        public float2 _PatchOffset;
         // Horizontal size of the grid in the horizontal plane
-        public Vector2 _GridSize;
-        // 2D offset for procedural surfaces
-        public Vector2 _GridOffset;
+        public float2 _GridSize;
 
         // Size of the quad in world space (to cull non-infinite instanced quads)
-        public Vector2 _RegionExtent;
+        public float2 _RegionExtent;
         // Current Map Influence
         public Vector2 _CurrentMapInfluence;
 
+        // Low res grid multiplier
+        public float _GridSizeMultiplier;
         // Maximum LOD
         public uint _MaxLOD;
         // Maximum horizontal deformation
         public float _MaxWaterDeformation;
         // Offset applied to the caustics LOD
         public float _CausticsMaxLOD;
+
         // Tiling of the caustics texture
         public float _CausticsTilingFactor;
-
         // Intensity of the water caustics
         public float _CausticsIntensity;
         // Intensity of the water caustics in sun shadow
         public float _CausticsShadowIntensity;
         // Blend distance
         public float _CausticsPlaneBlendDistance;
-        // Padding
-        public int _PaddingWR1;
 
         // Scale & offset of the large
         public Vector4 _Group0CurrentRegionScaleOffset;

@@ -33,6 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
             
+            if (m_StripDebugVariants && snippet.passName.StartsWith(HDRenderPipeline.k_WaterMaskPass))
+                return true;
+            
             // If Screen Space Lens Flare is disabled, strip all the shaders
             if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportScreenSpaceLensFlare)
             {

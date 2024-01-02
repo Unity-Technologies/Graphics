@@ -6,6 +6,21 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Enum that defines the possible modes for script interactions
+    /// </summary>
+    public enum WaterScriptInteractionsMode
+    {
+        /// <summary>
+        /// Accurate results but significant CPU cost.
+        /// </summary>
+        GPUReadback,
+        /// <summary>
+        /// Results come with a few frames latency but at no extra cost.
+        /// </summary>
+        CPUSimulation,
+    }
+
+    /// <summary>
     /// Enum that defines the sets of resolution at which the water simulation can be evaluated
     /// </summary>
     public enum WaterSimulationResolution
@@ -287,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (HasActiveTimeSteps())
             {
-                float totalTime = Time.realtimeSinceStartup;
+                float totalTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
                 float delta = totalTime - m_Time;
                 m_Time = totalTime;
 
@@ -354,11 +369,18 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_FFTRowPassRs = null;
         RTHandle m_FFTRowPassIs = null;
 
-        internal WaterSimulationResolution m_WaterBandResolution = WaterSimulationResolution.Medium128;
+        internal bool m_GPUReadbackMode;
+        internal WaterSimulationResolution m_WaterBandResolution;
+        internal WaterSimulationResolution m_WaterCPUSimulationResolution;
 
         void InitializeWaterSimulation()
         {
+            m_GPUReadbackMode = m_Asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.GPUReadback;
             m_WaterBandResolution = m_Asset.currentPlatformRenderPipelineSettings.waterSimulationResolution;
+
+            m_WaterCPUSimulationResolution = m_WaterBandResolution;
+            if ((int)m_WaterBandResolution != 64 && !m_Asset.currentPlatformRenderPipelineSettings.waterFullCPUSimulation)
+                m_WaterCPUSimulationResolution = (WaterSimulationResolution)((int)m_WaterBandResolution / 2);
 
             // Simulation shader and kernels
             m_WaterSimulationCS = m_Asset.renderPipelineResources.shaders.waterSimulationCS;
@@ -448,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.GenerateMips(currentWater.simulation.gpuBuffers.additionalDataBuffer.rt);
 
                 // For the CPU Simulation
-                if (!currentWater.cpuLowLatency)
+                if (m_GPUReadbackMode)
                     cmd.IncrementUpdateCount(currentWater.simulation.gpuBuffers.displacementBuffer.rt);
             }
         }

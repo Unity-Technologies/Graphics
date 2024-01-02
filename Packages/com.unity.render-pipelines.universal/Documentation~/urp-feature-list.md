@@ -81,9 +81,9 @@ With the Decal Renderer Feature, Unity can project specific Materials (decals) o
 
 ![Decal Projector in the scene.](Images/decal/decal-projector-selected-with-inspector.png)
 
-For examples of how to use Decals, see the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
+For examples of how to use Decals, refer to the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
 
-For more information, see [Decal Renderer Feature](renderer-feature-decal.md).
+For more information, refer to [Decal Renderer Feature](renderer-feature-decal.md).
 
 ## Shaders
 
@@ -155,7 +155,7 @@ For more information, refer to the [Shadows](universalrp-asset.md#shadows) secti
 
 #### Shadow cascades
 
-With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information on how shadow cascades work, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html).
+With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information on how shadow cascades work, refer to the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html).
 
 URP supports up to 4 shadow cascades.
 
@@ -165,7 +165,7 @@ For more information, refer to the [Shadows](universalrp-asset.md#shadows) secti
 
 #### Shadowmask
 
-URP supports the Shadowmask Lighting Mode. Shadowmask Lighting Mode combines real-time direct lighting with baked indirect lighting. For more information, see the page [Lighting Mode: Shadowmask](https://docs.unity3d.com/Manual/LightMode-Mixed-Shadowmask.html).
+URP supports the Shadowmask Lighting Mode. Shadowmask Lighting Mode combines real-time direct lighting with baked indirect lighting. For more information, refer to the page [Lighting Mode: Shadowmask](https://docs.unity3d.com/Manual/LightMode-Mixed-Shadowmask.html).
 
 #### Point Light shadows
 
@@ -193,7 +193,7 @@ The URP Universal Renderer implements the following Rendering Paths:
 
 For more information, refer to [Universal Renderer](urp-universal-renderer.md).
 
-See also: [Rendering Path comparison](urp-universal-renderer.md#rendering-path-comparison).
+You can also check: [Rendering Path comparison](urp-universal-renderer.md#rendering-path-comparison).
 
 ### Light Cookies
 

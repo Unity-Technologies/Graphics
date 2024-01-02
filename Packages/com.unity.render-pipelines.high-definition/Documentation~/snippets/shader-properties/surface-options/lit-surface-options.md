@@ -1,13 +1,19 @@
 
 ### Surface Options
 
-**Surface Options** control the overall look of your Material's surface and how Unity renders the Material on screen.
+<strong>Surface Options</strong> control the overall look of your Material's surface and how Unity renders the Material on screen.
 
 <table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-</tr>
+<thead>
+  <tr>
+    <th>Property</th>
+    <th></th>
+    <th></th>
+    <th>Description</th>
+  </tr>
+</thead>
+<tbody>
+
 [!include[](surface-type.md)]
 [!include[](rendering-pass.md)]
 [!include[](blending-mode.md)]
@@ -48,4 +54,6 @@
 [!include[](displacement-primitive-length.md)]
 [!include[](displacement-primitive-width.md)]
 [!include[](displacement-depth-offset.md)]
+
+</tbody>
 </table>

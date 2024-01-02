@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
 
             m_RayTracingContext = new RayTracingContext(backend, resources);
             m_RayTracingShader = m_RayTracingContext.CreateRayTracingShader("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset", fileLoader);
-            m_RayTracingAccelerationStructure = m_RayTracingContext.CreateAccelerationStructure(new AccelerationStructureOptions());
+            m_RayTracingAccelerationStructure = m_RayTracingContext.CreateAccelerationStructure(new AccelerationStructureOptions{buildFlags = BuildFlags.PreferFastBuild}); // Use PreferFastBuild to avoid bug triggered with big meshes (UUM-52552)
 
             _Probes = Shader.PropertyToID("_Probes");
             _Offsets = Shader.PropertyToID("_Offsets");

@@ -15,3 +15,7 @@ To create a Canvas material in Shader Graph, use one of the following methods:
 * Create a new Shader Graph. Go to **Assets** > **Create** > **Shader Graph** > **HDRP**, and select **Canvas Shader Graph**.
 
 Refer to [Canvas Master Stack reference](canvas-master-stack-reference.md) for more information.
+
+## Limitations
+
+HDRP treats Canvas materials the same as unlit transparent materials. You may experience sorting issues with refractive and prerefraction objects when stacking them on top of each others. You can workaround this limitation by using an Unlit transparent shadergraph for the canvas and controlling the renderqueue and sorting options.

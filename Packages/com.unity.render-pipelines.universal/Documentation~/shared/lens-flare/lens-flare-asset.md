@@ -2,7 +2,7 @@
 
 Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) includes the **Lens Flare Data** asset. You can use this asset to control the appearance of [Lens Flares](lens-flare-component.md) in your scene. This is the SRP equivalent of the Built-in Render Pipeline's [Flare](https://docs.unity3d.com/Manual/class-Flare.html) asset, which is incompatible with SRPs.
 
-For examples of how to use Lens Flares, see the [Lens Flare samples in URP Package Samples](../../package-sample-urp-package-samples.md#lens-flares).
+For examples of how to use Lens Flares, refer to the [Lens Flare samples in URP Package Samples](../../package-sample-urp-package-samples.md#lens-flares).
 
 To create a Lens Flare Data asset, select **Assets > Create > Lens Flare (SRP)**. To use this asset, assign it to the **Lens Flare Data** property of a [Lens Flare (SRP) component](lens-flare-component.md).
 

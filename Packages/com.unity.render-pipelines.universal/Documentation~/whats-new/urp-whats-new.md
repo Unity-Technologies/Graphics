@@ -1,8 +1,8 @@
-# What's new in URP 15 (Unity 2023.1)
+# What's new in URP 16 (Unity 2023.1)
 
-This section contains information about new features, improvements, and issues fixed in URP 15.
+This section contains information about new features, improvements, and issues fixed in URP 16.
 
-For a complete list of changes made in URP 15, refer to the [Changelog](xref:changelog).
+For a complete list of changes made in URP 16, refer to the [Changelog](xref:changelog).
 
 ## Features
 
@@ -12,7 +12,7 @@ This section contains the overview of the new features in this release.
 
 ![](../Images/shared/lens-flare/screenspacelensflaresurp.png)
 
-URP 15 includes a new [Screen Space Lens Flare](../shared/lens-flare/post-processing-screen-space-lens-flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](../shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](../post-processing-bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
+URP 16 includes a new [Screen Space Lens Flare](../shared/lens-flare/post-processing-screen-space-lens-flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](../shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](../post-processing-bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
 
 ### Temporal anti-aliasing (TAA)
 
@@ -71,8 +71,8 @@ The **Soft Shadows Quality** property on a Light:
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 15, see the [Changelog](xref:changelog).
+For a complete list of issues resolved in URP 16, refer to the [Changelog](xref:changelog).
 
 ## Known issues
 
-For information on the known issues in URP 15, see the section [Known issues](../known-issues.md).
+For information on the known issues in URP 16, refer to the section [Known issues](../known-issues.md).

@@ -28,10 +28,6 @@ MonoBehaviour:
     message: Enable Water Foam
   - uiSection: 16
     uiSubSection: 8
-    propertyPath: m_RenderPipelineSettings.waterCPUSimulation
-    message: Enable Scripts Interactions
-  - uiSection: 16
-    uiSubSection: 8
     propertyPath: m_RenderPipelineSettings.supportWaterExclusion
     message: Enable Water Exclusion
   - uiSection: 16

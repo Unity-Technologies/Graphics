@@ -640,6 +640,7 @@ namespace UnityEngine.Rendering
 
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
             {
+
                 Vector3[] positions = RunPlacement();
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
             }
@@ -1183,12 +1184,6 @@ namespace UnityEngine.Rendering
 
             m_BakingBatchIndex = 0;
             
-            // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
-            var prevSHBands = ProbeReferenceVolume.instance.shBands;
-            ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
-            // Don't use Disk streaming to avoid having to wait for it when doing dilation.
-            ProbeReferenceVolume.instance.ForceNoDiskStreaming(true);
-
             PrepareCellsForWriting(isBakingSceneSubset);
 
             using var writeScope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData);
@@ -1208,6 +1203,16 @@ namespace UnityEngine.Rendering
 
             // Reset internal structures depending on current bake.
             probeRefVolume.EnsureCurrentBakingSet(m_BakingSet);
+
+            // This subsequent block needs to happen AFTER we call WriteBakingCells.
+            // Otherwise in cases where we change the spacing between probes, we end up loading cells with a certain layout in ForceSHBand
+            // And then we unload cells using the wrong layout in PerformDilation (after WriteBakingCells updates the baking set object) which leads to a broken internal state.
+
+            // Don't use Disk streaming to avoid having to wait for it when doing dilation.
+            ProbeReferenceVolume.instance.ForceNoDiskStreaming(true);
+            // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
+            var prevSHBands = ProbeReferenceVolume.instance.shBands;
+            ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
 
             // TODO Discuss: Not nice to do this here, shouldn't reloading the asset also resolve cell data?
             // Would still need to reload common shared data like bricks as they are separately handled by the baking set itself.
@@ -1744,6 +1749,7 @@ namespace UnityEngine.Rendering
 
             m_BakingSet.validityMaskChunkSize = validityMaskChunkSize;
 
+
             // Brick data
             using var bricks = new NativeArray<Brick>(m_TotalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
@@ -2163,7 +2169,7 @@ namespace UnityEngine.Rendering
                     // Calculate valid renderers to avoid unnecessary work (a renderer needs to overlap a probe volume and match the layer)
                     var filteredContributors = ctx.contributors.Filter(ctx.bakingSet, cell.bounds, overlappingProbeVolumes);
 
-                    if (overlappingProbeVolumes.Count == 0 && filteredContributors.Count == 0)
+                    if (filteredContributors.Count == 0 && !overlappingProbeVolumes.Any(v => v.component.fillEmptySpaces))
                         continue;
 
                     var bricks = ProbePlacement.SubdivideCell(cell.bounds, ctx, gpuResources, filteredContributors, overlappingProbeVolumes);

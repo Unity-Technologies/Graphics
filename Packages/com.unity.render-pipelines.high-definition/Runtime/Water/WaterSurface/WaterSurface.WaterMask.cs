@@ -35,11 +35,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void FillWaterMaskData(ref WaterSimSearchData wsd)
         {
             // Water Mask
-            NativeArray<uint> currentBuffer = waterMaskSynchronizer.CurrentBuffer();
-            if (waterMask != null && currentBuffer.Length > 0 && waterMaskSynchronizer.CurrentResolution().x != 0)
+            if (waterMask != null && waterMaskSynchronizer.TryGetBuffer(out var maskBuffer) && maskBuffer.Length > 0 && waterMaskSynchronizer.CurrentResolution().x != 0)
             {
                 wsd.activeMask = true;
-                wsd.maskBuffer = currentBuffer;
+                wsd.maskBuffer = maskBuffer;
                 wsd.maskWrapModeU = waterMask.wrapModeU;
                 wsd.maskWrapModeV = waterMask.wrapModeV;
                 wsd.maskResolution = waterMaskSynchronizer.CurrentResolution();

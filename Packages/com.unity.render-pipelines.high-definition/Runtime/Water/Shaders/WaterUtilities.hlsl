@@ -245,7 +245,7 @@ float3 WaterSimulationPositionInstanced(float3 objectPosition, uint instanceID)
     simulationPos.x = objectPosition.x * patchData.x - objectPosition.z * patchData.y;
     simulationPos.z = objectPosition.x * patchData.y + objectPosition.z * patchData.x;
 
-    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = simulationPos.xz * _GridSize + _PatchOffset;
 
     // Return the simulation position
     return simulationPos;
@@ -261,11 +261,11 @@ float3 WaterSimulationPosition(float3 objectPosition)
 
     float2 gridSize = _GridSize;
     #ifndef WATER_DISPLACEMENT
-    gridSize *= _PatchOffset.w;
+    gridSize *= _GridSizeMultiplier;
     #endif
 
     // Scale and offset the position to where it should be
-    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset.xz - _GridOffset;
+    simulationPos.xz = objectPosition.xz * gridSize + _PatchOffset;
 
     #ifndef WATER_DISPLACEMENT
     // Clamp the mesh inside the region so that it's never empty

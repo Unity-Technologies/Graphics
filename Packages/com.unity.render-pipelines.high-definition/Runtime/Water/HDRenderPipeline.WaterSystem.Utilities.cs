@@ -353,16 +353,10 @@ namespace UnityEngine.Rendering.HighDefinition
             bool drawInfinitePatch = parameters.drawInfiniteMesh;
             if (!parameters.infinite)
             {
-                float2 offset = cb._GridOffset - new Vector2(cb._PatchOffset.x, cb._PatchOffset.z);
-
-                drawCentralPatch = (abs(offset.x) < cb._RegionExtent.x + cb._GridSize.x * 0.5f) &&
-                                   (abs(offset.y) < cb._RegionExtent.y + cb._GridSize.y * 0.5f);
+                drawCentralPatch = all(abs(cb._PatchOffset) < cb._RegionExtent + cb._GridSize * 0.5f);
 
                 if (parameters.drawInfiniteMesh)
-                {
-                    drawInfinitePatch = abs(offset.x) < abs(cb._RegionExtent.x - cb._GridSize.x * 0.5f) &&
-                                        abs(offset.y) < abs(cb._RegionExtent.y - cb._GridSize.y * 0.5f);
-                }
+                    drawInfinitePatch = all(abs(cb._PatchOffset) < abs(cb._RegionExtent - cb._GridSize * 0.5f));
             }
 
             // Draw everything beyond distance fade with a single flat mesh
@@ -412,16 +406,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DrawWaterSurface(CommandBuffer cmd, WaterRenderingParameters parameters, string passName,
+        static void DrawWaterSurface(CommandBuffer cmd, WaterRenderingParameters parameters, string[] passNames,
             GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
         {
             int lowResPassIndex = 0;
-            bool missingPass = !FindPassIndex(parameters.waterMaterial, passName, out var passIndex);
+            bool missingPass = !FindPassIndex(parameters.waterMaterial, passNames[0], out var passIndex);
             if (parameters.instancedQuads)
-                missingPass |= !FindPassIndex(parameters.waterMaterial, passName == k_WaterMaskPass ? k_WaterMaskPass : k_LowResGBufferPass, out lowResPassIndex);
+                missingPass |= !FindPassIndex(parameters.waterMaterial, passNames[1], out lowResPassIndex);
             if (missingPass)
                 return;
-
 
             // Bind the constant buffers
             ConstantBuffer.Set<ShaderVariablesWater>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWater);

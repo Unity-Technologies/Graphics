@@ -6,7 +6,7 @@ On this page, you will find information about upgrading from an older version of
 
 To build a Project for a console, you need to install an additional package for each platform you want to support.
 
-For more information, see the documentation on [Building for Consoles](Building-For-Consoles.md).
+For more information, refer to the documentation on [Building for Consoles](Building-For-Consoles.md).
 
 ## Require Depth Texture
 In previous versions of URP, if post-processing was enabled it would cause the pipeline to always require depth. We have improved the post-processing integration to only require depth from the pipeline when Depth of Field, Motion Blur or SMAA effects are enabled. This improves performance in many cases.

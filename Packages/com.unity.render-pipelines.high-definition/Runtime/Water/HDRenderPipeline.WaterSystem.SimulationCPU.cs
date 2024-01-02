@@ -391,30 +391,22 @@ namespace UnityEngine.Rendering.HighDefinition
         internal NativeArray<half> m_DefaultDeformationBuffer;
         internal NativeArray<uint> m_DefaultCurrentMap;
 
-        void InitializeCPUWaterSimulation()
+        internal void InitializeCPUWaterSimulation()
         {
-            // Only initialize if the asset supports it
-            if (!m_Asset.currentPlatformRenderPipelineSettings.waterCPUSimulation)
-                return;
-
-            WaterSurface.s_EmptyNativeArray = new NativeArray<float4>(0, Allocator.Persistent);
-
-            // Flag required for freeing the resources at the end
             m_ActiveWaterSimulationCPU = true;
 
-            // Convert the resolution to and int
-            int res = (int)m_WaterBandResolution;
+            if (m_Asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.CPUSimulation)
+            {
+                int res = (int)m_WaterBandResolution;
 
-            // Allocate all the intermediary buffer
-            htR0 = new NativeArray<float4>(res * res, Allocator.Persistent);
-            htI0 = new NativeArray<float4>(res * res, Allocator.Persistent);
-            htR1 = new NativeArray<float4>(res * res, Allocator.Persistent);
-            htI1 = new NativeArray<float4>(res * res, Allocator.Persistent);
-            pingPong = new NativeArray<float3>(res * res * 4, Allocator.Persistent);
-            indices = new NativeArray<uint4>(res * res, Allocator.Persistent);
-
-            // Sector Data
-            m_SectorData = new NativeArray<float4>(WaterConsts.k_SectorSwizzle, Allocator.Persistent);
+                // Allocate all the intermediary buffer
+                htR0 = new NativeArray<float4>(res * res, Allocator.Persistent);
+                htI0 = new NativeArray<float4>(res * res, Allocator.Persistent);
+                htR1 = new NativeArray<float4>(res * res, Allocator.Persistent);
+                htI1 = new NativeArray<float4>(res * res, Allocator.Persistent);
+                pingPong = new NativeArray<float3>(res * res * 4, Allocator.Persistent);
+                indices = new NativeArray<uint4>(res * res, Allocator.Persistent);
+            }
 
             // Default textures
             m_DefaultWaterMask = new NativeArray<uint>(1, Allocator.Persistent);
@@ -423,37 +415,40 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DefaultDeformationBuffer[0] = half(0.0f);
             m_DefaultCurrentMap = new NativeArray<uint>(1, Allocator.Persistent);
             m_DefaultCurrentMap[0] = 0;
+
+            // Sector Data
+            m_SectorData = new NativeArray<float4>(WaterConsts.k_SectorSwizzle, Allocator.Persistent);
         }
 
         void ReleaseCPUWaterSimulation()
         {
-            // If it was not previously initialized, we don't have anything to do
-            if (!m_ActiveWaterSimulationCPU)
-                return;
+            if (!m_ActiveWaterSimulationCPU) return;
+            m_ActiveWaterSimulationCPU = false;
 
-            WaterSurface.s_EmptyNativeArray.Dispose();
+            if (m_Asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.CPUSimulation)
+            {
+                htR0.Dispose();
+                htI0.Dispose();
+                htR1.Dispose();
+                htI1.Dispose();
+                pingPong.Dispose();
+                indices.Dispose();
+            }
 
-            // Free the native buffers
-            m_DefaultCurrentMap.Dispose();
-            m_DefaultDeformationBuffer.Dispose();
             m_DefaultWaterMask.Dispose();
+            m_DefaultDeformationBuffer.Dispose();
+            m_DefaultCurrentMap.Dispose();
             m_SectorData.Dispose();
-            htR0.Dispose();
-            htI0.Dispose();
-            htR1.Dispose();
-            htI1.Dispose();
-            pingPong.Dispose();
-            indices.Dispose();
         }
 
         void UpdateCPUWaterSimulation(WaterSurface waterSurface, bool evaluateSpetrum)
         {
             // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
-            if (!m_ActiveWaterSimulationCPU || !waterSurface.cpuSimulation || !waterSurface.cpuLowLatency)
+            if (!waterSurface.scriptInteractions || m_GPUReadbackMode)
                 return;
 
             // Based on if the simulation has been flagged as half or full resolution
-            WaterSimulationResolution cpuSimResolution = waterSurface.GetSimulationResolutionCPU();
+            WaterSimulationResolution cpuSimResolution = m_WaterCPUSimulationResolution;
             uint cpuSimResUint = (uint)cpuSimResolution;
 
             // Number of pixels per band
@@ -558,10 +553,10 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateCPUBuffers(CommandBuffer cmd, WaterSurface currentWater)
         {
             // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
-            if (!m_ActiveWaterSimulationCPU || !currentWater.cpuSimulation)
+            if (!currentWater.scriptInteractions)
                 return;
 
-            if (!currentWater.cpuLowLatency)
+            if (m_GPUReadbackMode)
                 currentWater.displacementBufferSynchronizer.EnqueueRequest(cmd, currentWater.simulation.gpuBuffers.displacementBuffer, true);
 
             if (currentWater.waterMask != null)

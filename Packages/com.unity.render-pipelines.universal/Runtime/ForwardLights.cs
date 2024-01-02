@@ -459,7 +459,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
 
                 bool lightLayers = renderingData.lightData.supportsLightLayers;
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, lightLayers && !CoreUtils.IsSceneLightingDisabled(renderingData.cameraData.camera));
 
                 if (m_LightCookieManager != null)
                 {

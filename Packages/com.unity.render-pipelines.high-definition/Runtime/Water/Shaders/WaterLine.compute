@@ -56,7 +56,7 @@ void LineEvaluation1D(uint3 currentCoord : SV_DispatchThreadID, uint2 groupThrea
     InterlockedMax(_WaterLineRW[idx], packedValue);
 }
 
-#define GROUP_SIZE 128
+#define GROUP_SIZE 64
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 groupshared uint2 gs_bounds[GROUP_SIZE];
 #endif

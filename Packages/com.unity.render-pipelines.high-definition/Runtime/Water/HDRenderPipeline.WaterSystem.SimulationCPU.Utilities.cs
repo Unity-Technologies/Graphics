@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void AddBandContribution(in WaterSimSearchData wsd, in PatchSimData data, int bandIdx, float3 waterMask, ref float3 totalDisplacement)
         {
-            float3 rawDisplacement = wsd.lowLatency ? SampleTexture2DArrayBilinear(wsd.displacementDataCPU, data.uv, bandIdx, wsd.simulationRes).xyz :
+            float3 rawDisplacement = wsd.cpuSimulation ? SampleTexture2DArrayBilinear(wsd.displacementDataCPU, data.uv, bandIdx, wsd.simulationRes).xyz :
                 SampleTexture2DArrayBilinear(wsd.displacementDataGPU, data.uv, bandIdx, wsd.simulationRes).xyz;
             rawDisplacement *= wsd.rendering.patchAmplitudeMultiplier[bandIdx] * waterMask[bandIdx] * data.blend;
             totalDisplacement += float3(rawDisplacement.x, dot(rawDisplacement.yz, data.swizzle.xy), dot(rawDisplacement.yz, data.swizzle.zw));

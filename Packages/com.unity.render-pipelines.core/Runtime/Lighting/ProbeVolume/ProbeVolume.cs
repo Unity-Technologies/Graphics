@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
         [HideInInspector]
-        [Tooltip("Whether HDRP should fill empty space between renderers with bricks at the lowest subdivision level.")]
+        [Tooltip("Whether Unity should fill empty space between renderers with bricks at the lowest subdivision level.")]
         public bool fillEmptySpaces = false;
 
 #if UNITY_EDITOR
@@ -214,11 +214,16 @@ namespace UnityEngine.Rendering
                     return true;
                 cellSizeInMeters = profile.cellSizeInMeters;
             }
+            Camera activeCamera = Camera.current;
+#if UNITY_EDITOR
+            if (activeCamera == null)
+                activeCamera = UnityEditor.SceneView.lastActiveSceneView.camera;
+#endif
 
-            if (Camera.current == null)
+            if (activeCamera == null)
                 return true;
 
-            var cameraTransform = Camera.current.transform;
+            var cameraTransform = activeCamera.transform;
 
             Vector3 cellCenterWS = cellPosition * cellSizeInMeters + originWS + Vector3.one * (cellSizeInMeters / 2.0f);
 
@@ -228,7 +233,7 @@ namespace UnityEngine.Rendering
             if (roundedDownDist > ProbeReferenceVolume.instance.probeVolumeDebug.subdivisionViewCullingDistance)
                 return true;
 
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.current);
+            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
             var volumeAABB = new Bounds(cellCenterWS, cellSizeInMeters * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
