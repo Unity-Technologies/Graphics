@@ -2,6 +2,11 @@
 
 The High Definition Render Pipeline (HDRP) allows you to render Lit Materials using either Forward or Deferred rendering. You can configure your Unity Project to only use one of these modes, or allow it to use both and switch at runtime on a per-[Camera](HDRP-Camera.md) basis.
 
+Each rendering path uses a different set of steps to calculate lighting and draw objects. Which rendering path you choose affects the performance of your game and lighting options.
+
+- Forward rendering: HDRP draws each object one by one. For each object, HDRP checks every light that affects it to calculate how the object looks. 
+- Deferred rendering: HDRP first renders information about every object into multiple buffers. Then in a later ('deferred') step, HDRP draws each screen pixel one by one by combining the information from the buffers.
+
 ## Using Forward or Deferred rendering
 
 Before you use forward or deferred rendering in your Unity Project, you must make sure your [HDRP Asset](HDRP-Asset.md) supports them.
@@ -62,3 +67,18 @@ Forward and Deferred rendering both implement the same features, but the quality
 ## Build time
 
 The build time for an HDRP Project may be faster when using either Forward or Deferred rendering. The downside of choosing a **Lit Shader Mode** of **Both** is that it increases the build time for the Player substantially because Unity builds two sets of Shaders for each Material, one for Forward and one for Deferred. If you use a specific rendering mode for everything in your Project, you should use that rendering mode instead of **Both**, to reduce build time. This also reduces the memory size that HDRP allocates for Shaders.
+
+## Tile and cluster rendering
+
+HDRP uses tile and cluster rendering to speed up lighting calculations compared to the slower multi-pass lighting used in the Built-In Render Pipeline.
+
+![](Images/BestPracticeLightingPipeline3.svg)
+
+In tile and cluster rendering, the render pipeline subdivides rendering into the following:
+
+- Tiles, which are small square 2D sections of the display.
+- Clusters, which are 3D volumes inside the [camera frustum](https://docs.unity3d.com/2022.3/Documentation/Manual/UnderstandingFrustum.html).
+
+For each tile or cluster, the render pipeline lists which lights affect it, then calculates the lighting in one pass using only the lights in the list.
+
+HDRP usually uses tile rendering for opaque objects and cluster rendering for transparent objects.

@@ -1,4 +1,6 @@
 <tr>
-<td>- **Maximum Steps**</td>
-<td>The maximum number of Texture samples which Unity performs to process pixel displacement.<br/>This property only appears if you set **Displacement Mode** to **Pixel Displacement**.</td>
+<td>- <strong>Maximum Steps</strong></td>
+<td></td>
+<td></td>
+<td>The maximum number of Texture samples which Unity performs to process pixel displacement.<br/>This property only appears if you set <strong>Displacement Mode</strong> to <strong>Pixel Displacement</strong>.</td>
 </tr>

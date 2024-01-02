@@ -565,6 +565,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "dfaff203a4f34f72b599720be812e9b0"
@@ -1115,7 +1116,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "1521e43a441e411f9cfae899b013c99e",
     "m_Title": "",
-    "m_Content": "Contect a Sampler State node to the Sampler input port if you want to customize the way that the texture is filtered or wrapped.\n\nIf you see an error that your shader is using too many texture samples, you can fix it by connecting a single Texture Sampler node to all of the Sample Texture 2D nodes.",
+    "m_Content": "Connect a Sampler State node to the Sampler input port if you want to customize the way that the texture is filtered or wrapped.\n\nIf you see an error that your shader is using too many texture samples, you can fix it by connecting a single Texture Sampler node to all of the Sample Texture 2D nodes.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

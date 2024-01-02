@@ -454,6 +454,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "23a27448d7a64529af78bdf4b9825683"
@@ -3482,7 +3483,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "fb8ada894b3e4f498dd4e63f459cc196",
     "m_Title": "",
-    "m_Content": "Mesauring the length of the View Vector or finding the distance between the camera position and the world space position should give us the same result.",
+    "m_Content": "Measuring the length of the View Vector or finding the distance between the camera position and the world space position should give us the same result.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

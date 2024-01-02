@@ -184,7 +184,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             // MS.
             radiance += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                              SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                             tc.a);
+                             tc.a) * MS_EXPOSURE_INV;
 
             if (rayEndsInsideAtmosphere)
             {
@@ -217,7 +217,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
                 // MS.
                 radiance1 += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                                   SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                                  tc.a);
+                                  tc.a) * MS_EXPOSURE_INV;
 
                 // L(tEntry, tFrag) = L(tEntry, tExit) - T(tEntry, tFrag) * L(tFrag, tExit)
                 radiance = max(0, radiance - (1 - skyOpacity) * radiance1);

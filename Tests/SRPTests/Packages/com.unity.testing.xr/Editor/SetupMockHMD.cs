@@ -19,6 +19,13 @@ namespace Unity.Testing.XR.Editor
                 Assert.NotNull(xrGeneralSettings, "Unable to load " + pathToSettings);
 
                 EditorBuildSettings.AddConfigObject(XRGeneralSettings.k_SettingsKey, xrGeneralSettings, true);
+                var settings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
+                settings.InitManagerOnStart = true;
+                UnityEditor.XR.Management.Metadata.XRPackageMetadataStore.AssignLoader(settings.AssignedSettings, "Unity.XR.MockHMD.MockHMDLoader", BuildTargetGroup.Standalone);
+ 
+                EditorUtility.SetDirty(xrGeneralSettings);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
             }
         }
     }

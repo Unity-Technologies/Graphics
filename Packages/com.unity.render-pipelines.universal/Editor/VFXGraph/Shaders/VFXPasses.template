@@ -31,6 +31,7 @@ ${VFXBegin:VFXPassForwardLitAdditionalPragma}
 #pragma multi_compile_fragment _ _LIGHT_COOKIES
 #pragma multi_compile _ _LIGHT_LAYERS
 #pragma multi_compile _ _FORWARD_PLUS
+#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 #pragma multi_compile_fog
 #pragma multi_compile _ DEBUG_DISPLAY
 ${VFXEnd}
@@ -56,6 +57,7 @@ ${VFXBegin:VFXShaderGraphFunctionsInclude}
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 ${VFXEnd}
 
 

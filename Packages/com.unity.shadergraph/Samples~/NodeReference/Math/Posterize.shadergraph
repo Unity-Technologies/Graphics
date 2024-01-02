@@ -280,6 +280,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "d960f5106ffb42ad992f89938e231cf1"
@@ -400,7 +401,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "14029e70657441d080a17245654a4127",
     "m_Title": "Posterize Node",
-    "m_Content": "The Posterize Node converts a continuos gradient into a set of uniform steps. The number of steps can be specified with the Steps input.",
+    "m_Content": "The Posterize Node converts a continuous gradient into a set of uniform steps. The number of steps can be specified with the Steps input.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

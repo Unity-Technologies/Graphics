@@ -18,7 +18,9 @@ This section lists the Blocks that are compatible with Vertex Contexts in the Hi
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/vertex-position.md)]
 [!include[](snippets/shader-graph-blocks/vertex-normal.md)]
 [!include[](snippets/shader-graph-blocks/vertex-tangent.md)]
+
 </table>

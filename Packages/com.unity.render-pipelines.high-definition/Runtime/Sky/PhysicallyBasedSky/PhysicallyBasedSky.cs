@@ -111,10 +111,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the direction of anisotropy. Set this to a positive value for forward scattering, a negative value for backward scattering, or 0 for isotropic scattering.")]
         public ClampedFloatParameter aerosolAnisotropy = new ClampedFloatParameter(0, -1, 1);
 
-        /// <summary> Number of scattering events. </summary>
-        [Tooltip("Sets the number of scattering events. This increases the quality of the sky visuals but also increases the pre-computation time.")]
-        public ClampedIntParameter numberOfBounces = new ClampedIntParameter(3, 1, 10);
-
         /// <summary> Ground tint. </summary>
         [Tooltip("Specifies a color that HDRP uses to tint the Ground Color Texture.")]
         public ColorParameter groundTint = new ColorParameter(new Color(0.4f, 0.25f, 0.15f), hdr: false, showAlpha: false, showEyeDropper: false);
@@ -363,8 +359,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + aerosolDensity.overrideState.GetHashCode();
                 hash = hash * 23 + aerosolTint.overrideState.GetHashCode();
                 hash = hash * 23 + aerosolAnisotropy.overrideState.GetHashCode();
-
-                hash = hash * 23 + numberOfBounces.overrideState.GetHashCode();
 #else
                 // These parameters affect precomputation.
                 hash = hash * 23 + type.GetHashCode();
@@ -381,8 +375,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + aerosolDensity.GetHashCode();
                 hash = hash * 23 + aerosolTint.GetHashCode();
                 hash = hash * 23 + aerosolAnisotropy.GetHashCode();
-
-                hash = hash * 23 + numberOfBounces.GetHashCode();
 #endif
             }
 

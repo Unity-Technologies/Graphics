@@ -136,10 +136,24 @@ namespace UnityEditor.Rendering.HighDefinition
             // Thus do not rely on serialized properties
             HDLightType lightType = targetAdditionalData.type;
 
-            if (lightType == HDLightType.Directional
-                || lightType == HDLightType.Point
-                || lightType == HDLightType.Area && targetAdditionalData.areaLightShape == AreaLightShape.Disc)
+            if (lightType == HDLightType.Directional || lightType == HDLightType.Point)
+			{
+				base.OnSceneGUI();
+			}
+			else if (lightType == HDLightType.Area && targetAdditionalData.areaLightShape == AreaLightShape.Disc)
+            {
+                EditorGUI.BeginChangeCheck();
+
                 base.OnSceneGUI();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Necessary since the built-in disk light logic doesn't update the HDRP property when
+                    // changing the radius through the disk's gizmo in the scene view.
+                    m_SerializedHDLight.shapeWidth.floatValue = targetAdditionalData.legacyLight.areaSize.x;
+                    m_SerializedHDLight.Apply();
+                }
+            }
             else
                 HDLightUI.DrawHandles(targetAdditionalData, this);
         }

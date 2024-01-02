@@ -175,6 +175,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "d4b4b22a5b8145988ddab7c0339d7c48"
@@ -1046,7 +1047,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "8e340dcd245e49a6961d43d1db06862c",
     "m_Title": "White Balance Node",
-    "m_Content": "The White Balance Node allows you to adjust color data using Temperature and Tint controls.\n\nTempurature adjusts the data on a gradient between cool (cyan) with a value of -1 and warm (orange) with a value of 1. A value of zero for Temperature makes no adjustments.\n\nTint adjusts the data on a gradient between green using a value of -1 and magenta with a value of 1. A value of zero for Tint makes no adjustments.",
+    "m_Content": "The White Balance Node allows you to adjust color data using Temperature and Tint controls.\n\nTemperature adjusts the data on a gradient between cool (cyan) with a value of -1 and warm (orange) with a value of 1. A value of zero for Temperature makes no adjustments.\n\nTint adjusts the data on a gradient between green using a value of -1 and magenta with a value of 1. A value of zero for Tint makes no adjustments.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

@@ -10,9 +10,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _GAMMA_20 _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
-        #pragma multi_compile_fragment _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
-        // Foveated rendering currently not supported in dxc on metal
-        #pragma never_use_dxc metal
+        #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ HDR_INPUT HDR_ENCODING
@@ -181,8 +179,11 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #if defined(BLOOM)
             {
                 float2 uvBloom = uvDistorted;
-                #if defined(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-                    uvBloom = RemapFoveatedRenderingDistort(uvBloom);
+                #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
+                {
+                    uvBloom = RemapFoveatedRenderingNonUniformToLinear(uvBloom);
+                }
                 #endif
 
                 #if _BLOOM_HQ && !defined(SHADER_API_GLES)

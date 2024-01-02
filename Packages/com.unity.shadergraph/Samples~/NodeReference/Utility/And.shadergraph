@@ -106,6 +106,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "430227a90c604e58982a9e95dfc84ba6"
@@ -183,17 +184,17 @@
     "m_Type": "UnityEditor.ShaderGraph.AndNode",
     "m_ObjectId": "1bd26f30e31f4a61a612eb3a1e9d520f",
     "m_Group": {
-        "m_Id": "c246f07021ad40f586c10050845624fe"
+        "m_Id": "1a4aa92818924c8c95f7876b6aea07fe"
     },
     "m_Name": "And",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -634.0001220703125,
-            "y": 393.3333435058594,
-            "width": 131.33340454101563,
-            "height": 102.66668701171875
+            "x": -358.0,
+            "y": 547.0,
+            "width": 130.00001525878907,
+            "height": 101.00006103515625
         }
     },
     "m_Slots": [
@@ -415,7 +416,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "559c10bd92e5481994aa769677032334",
     "m_Title": "And Node",
-    "m_Content": "The And Node returns true if input A and B have the same value.",
+    "m_Content": "The And Node returns true if both input A and B are true.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -769,8 +770,8 @@
     "m_ObjectId": "c246f07021ad40f586c10050845624fe",
     "m_Title": "True",
     "m_Position": {
-        "x": -659.1759033203125,
-        "y": 222.817626953125
+        "x": -659.0,
+        "y": 222.0
     }
 }
 

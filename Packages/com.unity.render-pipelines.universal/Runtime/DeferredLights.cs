@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, UseLightLayers);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, UseLightLayers && !CoreUtils.IsSceneLightingDisabled(camera));
 
                     RenderingLayerUtils.SetupProperties(cmd, RenderingLayerMaskSize);
                 }

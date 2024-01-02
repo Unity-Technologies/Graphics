@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that computes the delta time for the frame
         public void Update(float timeMultiplier)
         {
-            float totalTime = Time.realtimeSinceStartup;
+            float totalTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
             float delta = totalTime - m_Time;
             m_Time = totalTime;
 

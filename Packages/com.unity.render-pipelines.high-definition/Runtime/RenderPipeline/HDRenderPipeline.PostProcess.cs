@@ -1538,7 +1538,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 previousScreenSize;
             public Vector4 taaParameters;
             public Vector4 taaParameters1;
-            public float[] taaFilterWeights;
+            public Vector4[] taaFilterWeights = new Vector4[2];
+            public Vector4[] neighbourOffsets = new Vector4[4];
             public bool motionVectorRejection;
             public Vector4 taauParams;
             public Rect finalViewport;
@@ -1560,18 +1561,50 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle nextMVLen;
         }
 
-        static readonly Vector2Int[] TAASampleOffsets = new Vector2Int[]
+        static readonly Vector2[] TAASampleOffsets = new Vector2[]
         {
-            new Vector2Int(0, 0),
-            new Vector2Int(0, 1),
-            new Vector2Int(1, 0),
-            new Vector2Int(-1, 0),
-            new Vector2Int(0, -1),
-            new Vector2Int(-1, 1),
-            new Vector2Int(1, -1),
-            new Vector2Int(1, 1),
-            new Vector2Int(-1, -1)
+            // center
+            new Vector2( 0.0f,  0.0f),
+
+            // NeighbourOffsets
+            new Vector2( 0.0f,  1.0f),
+            new Vector2( 1.0f,  0.0f),
+            new Vector2(-1.0f,  0.0f),
+            new Vector2( 0.0f, -1.0f),
+            new Vector2( 1.0f,  1.0f),
+            new Vector2( 1.0f, -1.0f),
+            new Vector2(-1.0f,  1.0f),
+            new Vector2(-1.0f, -1.0f)
         };
+
+        void ComputeWeights(ref float centralWeight, ref Vector4[] filterWeights, Vector2 jitter)
+        {
+            float totalWeight = 0;
+            for (int i = 0; i < 9; ++i)
+            {
+                float x = TAASampleOffsets[i].x + jitter.x;
+                float y = TAASampleOffsets[i].y + jitter.y;
+                float d = (x * x + y * y);
+
+                taaSampleWeights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
+                totalWeight += taaSampleWeights[i];
+            }
+
+            centralWeight = taaSampleWeights[0] / totalWeight;
+
+            for (int i = 0; i < 8; ++i)
+            {
+                filterWeights[(i / 4)][(i % 4)] = taaSampleWeights[i+1] / totalWeight;
+            }
+        }
+
+        static void GetNeighbourOffsets(ref Vector4[] neighbourOffsets)
+        {
+            for (int i = 0; i < 16; ++i)
+            {
+                neighbourOffsets[(i / 4)][(i % 4)] = TAASampleOffsets[i / 2 + 1][i % 2];
+            }
+        }        
 
         void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
             TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilTexture, bool postDoF, string outputName)
@@ -1603,23 +1636,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passData.taaParameters = new Vector4(historySharpening, antiFlicker, motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
-            // Precompute weights used for the Blackman-Harris filter.
-            float totalWeight = 0;
-            for (int i = 0; i < 9; ++i)
-            {
-                Vector2 jitter = camera.taaJitter;
-                float x = TAASampleOffsets[i].x + jitter.x;
-                float y = TAASampleOffsets[i].y + jitter.y;
-                float d = (x * x + y * y);
-
-                taaSampleWeights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
-                totalWeight += taaSampleWeights[i];
-            }
-
-            for (int i = 0; i < 9; ++i)
-            {
-                taaSampleWeights[i] /= totalWeight;
-            }
+            // Precompute weights used for the Gaussian fitting of the Blackman-Harris filter.
+            ComputeWeights(ref passData.taaParameters1.y, ref passData.taaFilterWeights, camera.taaJitter);
+            GetNeighbourOffsets(ref passData.neighbourOffsets);
 
             // For post dof we can be a bit more agressive with the taa base blend factor, since most aliasing has already been taken care of in the first TAA pass.
             // The following MAD operation expands the range to a new minimum (and keeps max the same).
@@ -1628,9 +1647,9 @@ namespace UnityEngine.Rendering.HighDefinition
             const float offset = postDofMin - TAABaseBlendFactorMin * scale;
             float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
 
-            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTUAndAA, historyContrastLerp);
-
-            passData.taaFilterWeights = taaSampleWeights;
+            passData.taaParameters1.x = camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor;
+            passData.taaParameters1.z = (int)StencilUsage.ExcludeFromTUAndAA;
+            passData.taaParameters1.w = historyContrastLerp;
 
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
@@ -1664,13 +1683,13 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.runsTAAU = TAAU;
             passData.runsAfterUpscale = runsAfterUpscale;
 
-            if (TAAU && !postDoF)
-            {
-                passData.temporalAAMaterial.EnableKeyword("TAA_UPSCALE");
-            }
-            else if (postDoF)
+            if (postDoF)
             {
                 passData.temporalAAMaterial.EnableKeyword("POST_DOF");
+            }
+            else if (TAAU)
+            {
+                passData.temporalAAMaterial.EnableKeyword("TAA_UPSAMPLE");
             }
             else
             {
@@ -1820,7 +1839,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
                         mpb.SetVector(HDShaderIDs._TaaPostParameters1, data.taaParameters1);
                         mpb.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
-                        mpb.SetFloatArray(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+                        mpb.SetVectorArray(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+                        mpb.SetVectorArray(HDShaderIDs._NeighbourOffsets, data.neighbourOffsets);
 
                         mpb.SetVector(HDShaderIDs._TaauParameters, data.taauParams);
                         mpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);

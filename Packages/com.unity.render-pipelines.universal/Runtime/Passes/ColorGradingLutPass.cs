@@ -105,6 +105,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.lutBuilderHdr = m_LutBuilderHdr;
             m_PassData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (renderingData.cameraData.xr.supportsFoveatedRendering)
+                renderingData.commandBuffer.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+#endif
+
             CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             ExecutePass(context, m_PassData, ref renderingData, m_InternalLut);
         }

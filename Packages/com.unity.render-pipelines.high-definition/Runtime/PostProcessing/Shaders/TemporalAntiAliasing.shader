@@ -15,7 +15,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ ANTI_RINGING
         #pragma multi_compile_local_fragment _ HISTORY_CONTRAST_ANTI_FLICKER
         #pragma multi_compile_local_fragment _ DIRECT_STENCIL_SAMPLE
-        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
+        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSAMPLE POST_DOF
 
         #pragma editor_sync_compilation
        // #pragma enable_d3d11_debug_symbols
@@ -78,12 +78,12 @@ Shader "Hidden/HDRP/TemporalAA"
     #define BLEND_FACTOR_MV_TUNE 1
     #define MV_DILATION DEPTH_DILATION
 
-#elif defined(TAA_UPSCALE)
+#elif defined(TAA_UPSAMPLE)
     #define YCOCG 1
     #define HISTORY_SAMPLING_METHOD BICUBIC_5TAP
     #define WIDE_NEIGHBOURHOOD 1
     #define NEIGHBOUROOD_CORNER_METHOD VARIANCE
-    #define CENTRAL_FILTERING UPSCALE
+    #define CENTRAL_FILTERING UPSAMPLE
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
     #define ANTI_FLICKER_MV_DEPENDENT 1
@@ -130,7 +130,8 @@ Shader "Hidden/HDRP/TemporalAA"
         float4 _TaaPostParameters1;
         float4 _TaaHistorySize;
 
-        float _TaaFilterWeights[9];
+        float4 _TaaFilterWeights[2];
+        float4 _NeighbourOffsets[4];
 
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
@@ -197,23 +198,24 @@ Shader "Hidden/HDRP/TemporalAA"
         void FragTAA(Varyings input, out CTYPE outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            SetNeighbourOffsets(_NeighbourOffsets);
 
             float sharpenStrength = _TaaFrameInfo.x;
             float2 jitter = _TaaJitterStrength.zw;
 
             float2 uv = input.texcoord;
 
-            #ifdef TAA_UPSCALE
+#ifdef TAA_UPSAMPLE
             float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
 
             uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
-            #endif
+#endif
 
             // --------------- Get closest motion vector ---------------
 
             int2 samplePos = input.positionCS.xy;
 
-#ifdef TAA_UPSCALE
+#ifdef TAA_UPSAMPLE
             samplePos = outputPixInInput;
 #endif
 
@@ -257,12 +259,17 @@ Shader "Hidden/HDRP/TemporalAA"
 
                 // --------------- Filter central sample ---------------
                 float4 filterParams = 0;
-#ifdef TAA_UPSCALE
+#ifdef TAA_UPSAMPLE
                 filterParams.x = _TAAUFilterRcpSigma2;
                 filterParams.y = _TAAUScale;
                 filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
 #endif
-                CTYPE filteredColor = FilterCentralColor(samples, filterParams, _TaaFilterWeights);
+
+#if CENTRAL_FILTERING == BLACKMAN_HARRIS
+                CTYPE filteredColor = FilterCentralColor(samples, _CentralWeight, _TaaFilterWeights);
+#else
+                CTYPE filteredColor = FilterCentralColor(samples, filterParams);
+#endif
                 // ------------------------------------------------------
 
                 if (offScreen)
@@ -314,7 +321,7 @@ Shader "Hidden/HDRP/TemporalAA"
                 blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
-#ifdef TAA_UPSCALE
+#ifdef TAA_UPSAMPLE
                 blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
 #endif
                 blendFactor = clamp(blendFactor, 0.03f, 0.98f);
@@ -361,7 +368,7 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 jitter = _TaaJitterStrength.zw;
             float2 uv = input.texcoord;
 
-#ifdef TAA_UPSCALE
+#ifdef TAA_UPSAMPLE
             float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
 
             uv = _InputSize.zw * (0.5f + floor(outputPixInInput));

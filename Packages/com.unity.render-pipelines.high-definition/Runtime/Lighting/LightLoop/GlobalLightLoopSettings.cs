@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxDirectionalLightsOnScreen = 16,
             maxPunctualLightsOnScreen = 512,
             maxAreaLightsOnScreen = 64,
-            maxCubeReflectionOnScreen = HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 2,
+            maxCubeReflectionOnScreen = HDRenderPipeline.k_MaxCubeReflectionsOnScreen / 4,
             maxPlanarReflectionOnScreen = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen / 2,
             maxDecalsOnScreen = 512,
             maxLightsPerClusterCell = 8,

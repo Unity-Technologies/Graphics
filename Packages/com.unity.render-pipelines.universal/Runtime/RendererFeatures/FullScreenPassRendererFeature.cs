@@ -73,6 +73,13 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         m_FullScreenPass = new FullScreenRenderPass(name);
     }
 
+    internal override bool RequireRenderingLayers(bool isDeferred, bool needsGBufferAccurateNormals, out RenderingLayerUtils.Event atEvent, out RenderingLayerUtils.MaskSize maskSize)
+    {
+        atEvent = RenderingLayerUtils.Event.Opaque;
+        maskSize = RenderingLayerUtils.MaskSize.Bits8;
+        return false;
+    }
+
     /// <inheritdoc/>
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {

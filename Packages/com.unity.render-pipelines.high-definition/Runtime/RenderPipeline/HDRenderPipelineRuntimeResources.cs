@@ -170,6 +170,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader gradientSkyPS;
             [Reload("Runtime/Sky/AmbientProbeConvolution.compute")]
             public ComputeShader ambientProbeConvolutionCS;
+            [Reload("Runtime/Sky/PhysicallyBasedSky/SkyLUTGenerator.compute")]
+            public ComputeShader skyLUTGenerator;
             [Reload("Runtime/Sky/PhysicallyBasedSky/GroundIrradiancePrecomputation.compute")]
             public ComputeShader groundIrradiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]

@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxAreaLightsOnScreen = 1024;
         internal const int k_MaxDecalsOnScreen = 2048;
         internal const int k_MaxPlanarReflectionsOnScreen = 16;
-        internal const int k_MaxCubeReflectionsOnScreen = 64;
+        internal const int k_MaxCubeReflectionsOnScreen = 128;
         internal const int k_MaxLightsPerClusterCell = ShaderConfig.LightClusterMaxCellElementCount;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 

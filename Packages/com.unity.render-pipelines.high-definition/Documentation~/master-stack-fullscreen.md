@@ -42,8 +42,10 @@ When you create a new Fullscreen Master Stack, the Fragment context contains the
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/base-color.md)]
 [!include[](snippets/shader-graph-blocks/alpha.md)]
+
 </table>
 
 ### Relevant
@@ -57,9 +59,11 @@ The following blocks are also compatible with the Fullscreen master stack.
 <th>Setting Dependency</th>
 <th>Default Value</th>
 </tr>
+
 [!include[](snippets/shader-graph-blocks/eye-depth.md)]
 [!include[](snippets/shader-graph-blocks/linear01-depth.md)]
 [!include[](snippets/shader-graph-blocks/raw-depth.md)]
+
 </table>
 
 <a name="graph-settings"></a>

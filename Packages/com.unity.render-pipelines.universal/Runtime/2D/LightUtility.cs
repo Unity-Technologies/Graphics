@@ -274,8 +274,9 @@ namespace UnityEngine.Rendering.Universal
             List<IntPoint> path = new List<IntPoint>();
             for (var i = 0; i < inputPointCount; ++i)
             {
-                var newPoint = new Vector2(shapePath[i].x, shapePath[i].y) * kClipperScale;
-                var addPoint = new IntPoint((System.Int64)(newPoint.x) + Random.Range(-100, 100), (System.Int64)(newPoint.y) + Random.Range(-100, 100));
+                var nx = (System.Int64)((double)shapePath[i].x * (double)kClipperScale);
+                var ny = (System.Int64)((double)shapePath[i].y * (double)kClipperScale);
+                var addPoint = new IntPoint(nx + Random.Range(-10, 10), ny + Random.Range(-10, 10));
                 addPoint.N = i; addPoint.D = -1;
                 path.Add(addPoint);
             }

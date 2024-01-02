@@ -19,6 +19,10 @@ TEXTURE3D(_MultipleScatteringTexture);
     SAMPLER(s_linear_clamp_sampler);
 #endif
 
+// To reduce banding at low sun angles on 32bits, we have to 'pre expose' ms values as they are very small
+#define MS_EXPOSURE 100.0f
+#define MS_EXPOSURE_INV 0.01f
+
 // Computes (a^2 - b^2) in a numerically stable way.
 float DifferenceOfSquares(float a, float b)
 {
@@ -45,11 +49,15 @@ float AerosolPhase(float LdotV)
     return _AerosolPhasePartConstant * CornetteShanksPhasePartVarying(_AerosolAnisotropy, -LdotV);
 }
 
-// For multiple scattering.
-// Assume that, after multiple bounces, the effect of anisotropy is lost.
-float3 AtmospherePhaseScatter(float LdotV, float height)
+float3 AtmosphereExtinction(float height)
 {
-    return AirPhase(LdotV) * (AirScatter(height) + AerosolScatter(height));
+    const float densityMie      = exp(-height * _AerosolDensityFalloff);
+    const float densityRayleigh = exp(-height * _AirDensityFalloff);
+
+    float3 extinction = densityMie * _AerosolSeaLevelExtinction
+                      + densityRayleigh * _AirSeaLevelExtinction.xyz;
+
+    return max(extinction, FLT_MIN);
 }
 
 // Returns the closest hit in X and the farthest hit in Y.
@@ -293,6 +301,23 @@ float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
     float cosHor = ComputeCosineOfHorizonAngle(r);
 
     return ComputeAtmosphericOpticalDepth(r, cosTheta, cosTheta >= cosHor);
+}
+
+// Evaluates transmittance to sun from a point at altitude r
+// cosTheta is the zenith angle
+float3 EvaluateSunColorAttenuation(float cosTheta, float r)
+{
+    float cosHoriz = ComputeCosineOfHorizonAngle(r);
+
+    if (cosTheta >= cosHoriz) // Above horizon
+    {
+        float3 opticalDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        return TransmittanceFromOpticalDepth(opticalDepth);
+    }
+    else
+    {
+       return 0;
+    }
 }
 
 // Map: [cos(120 deg), 1] -> [0, 1].

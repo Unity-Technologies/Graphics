@@ -69,16 +69,10 @@ namespace UnityEditor.VFX.UI
             {ExclusionCause.kError, "an error occured."},
         };
 
-        IEnumerable<VFXDataParticle> systems
+        private List<VFXDataParticle> m_Systems;
+        List<VFXDataParticle> systems
         {
-            get
-            {
-                return m_View.GetAllContexts()
-                    .Select(c => c.controller.model.GetData())
-                    .OfType<VFXDataParticle>()
-                    .Distinct()
-                    .Where(x => x != null && x.CanBeCompiled());
-            }
+            get { return m_Systems; }
         }
 
         VFXDataParticle GetSystem(string systemName)
@@ -101,6 +95,12 @@ namespace UnityEditor.VFX.UI
             m_Bounds = new Dictionary<string, Bounds>();
 
             m_Graph.onInvalidateDelegate += OnParamSystemModified;
+
+            m_Systems = m_View.GetAllContexts()
+                .Select(c => c.controller.model.GetData())
+                .OfType<VFXDataParticle>()
+                .Distinct()
+                .Where(x => x != null && x.CanBeCompiled()).ToList();
         }
 
         public void CleanUp()

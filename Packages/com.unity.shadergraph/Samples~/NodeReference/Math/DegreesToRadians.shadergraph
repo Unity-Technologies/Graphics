@@ -195,6 +195,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "efd452cbcee74a6faefb4c38f921dc71"
@@ -464,7 +465,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "31e66208c1374120a93e9bd01110f290",
     "m_Title": "Degrees To Radians Node",
-    "m_Content": "The Degrees To Radians Node converts a value in degrees to the same value in radians.\n\nThis node is useful because rotation values in degrees are often more intutive to understand as inputs for artists, but the trig math functions generally expect inputs in radians. So with this node, you can ask for input values in degrees and then convert them to radians before using them.",
+    "m_Content": "The Degrees To Radians Node converts a value in degrees to the same value in radians.\n\nThis node is useful because rotation values in degrees are often more intuitive to understand as inputs for artists, but the trig math functions generally expect inputs in radians. So with this node, you can ask for input values in degrees and then convert them to radians before using them.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

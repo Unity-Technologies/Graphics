@@ -404,6 +404,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "c0ad5e3747e249c58ab284bf9604e712"
@@ -1886,7 +1887,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "96c7a1f7d6004df4bb9d0e67369b8c24",
     "m_Title": "Normal Vector Node",
-    "m_Content": "The Normal Vector node bring's the mesh's vertex normal into the shader.  The vertex normal is a vector that indicates the direction that the surface of the mesh is facing.",
+    "m_Content": "The Normal Vector node brings the mesh's vertex normal into the shader.  The vertex normal is a vector that indicates the direction that the surface of the mesh is facing.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

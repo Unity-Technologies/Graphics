@@ -95,7 +95,9 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 <th>Property</th>
 <th>Description</th>
 </tr>
+
 [!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)]
 [!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+
 </table>

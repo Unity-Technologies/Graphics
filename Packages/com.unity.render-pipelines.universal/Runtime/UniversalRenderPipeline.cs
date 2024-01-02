@@ -921,11 +921,6 @@ namespace UnityEngine.Rendering.Universal
             baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
             baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
 
-            bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
-                Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
-                Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
-            baseCameraData.isDefaultViewport = baseCameraData.isDefaultViewport && isDefaultXRViewport;
-
             // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
             var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
             baseCameraData.cameraTargetDescriptor = xr.renderTargetDesc;
@@ -934,8 +929,24 @@ namespace UnityEngine.Rendering.Universal
                 baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
             }
             baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
-            baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
-            baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+
+            if (baseCameraData.isDefaultViewport)
+            {
+                // When viewport is default, intermediate textures created with this descriptor will have dynamic resolution enabled.
+                baseCameraData.cameraTargetDescriptor.useDynamicScale = true;
+            }
+            else
+            {
+                // Some effects like Vignette computes aspect ratio from width and height. We have to take viewport into consideration if it is not default viewport.
+                baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
+                baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+				baseCameraData.cameraTargetDescriptor.useDynamicScale = false;
+            }
+
+            bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
+                Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
+                Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
+            baseCameraData.isDefaultViewport = baseCameraData.isDefaultViewport && isDefaultXRViewport;
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)

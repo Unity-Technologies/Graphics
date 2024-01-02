@@ -114,8 +114,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Attempt upgrade (do notiong if up to date)
             IMigratableAsset migratableAsset = instance;
             if (!migratableAsset.IsAtLastVersion())
+            {
                 migratableAsset.Migrate();
-
+                EditorUtility.SetDirty(instance);
+                AssetDatabase.SaveAssetIfDirty(instance);
+			}
             return instance;
         }
 
