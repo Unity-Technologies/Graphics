@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.13] - 2023-12-21
+
+This version is compatible with Unity 2021.3.35f1.
+
+### Changed
+- Added a warning to the HDRP Wizard if a users project contains materials that cant be upgraded.
+- Improved skyContext caching when the sky renderer changes.
+
+### Fixed
+- Fixed missing shadergraph include on HDRP.
+- Fixed layered lit displacement.
+- Fixed an issue where non directional light could react to "interact with sky" flag.
+- Fixed crash when cleaning up the reflection probe camera cache.
+- Fixed a SetData error when using more lights in a scene than the configured max light count settings.
+- Fixed blending between cascaded shadowmaps and shadowmask as well as cascades border ranges.
+- Fixed Turkish OS incorrectly deducing DLSS is not available.
+- Fixed an issue where Reflection Proxy Volume would cause artifacts to cover the editor on Apple Silicone devices.
+- Ensure documentation clearly lists lack of support for Box Lights in path tracing.
+- The lightShadowCasterMode property on Light now only affects shadow caster culling when baked lighting includes shadow mask, as intended.
+- Added in which space custom velocity should be computed.
+- Updated decal projector draw distances when global draw distance changes.
+- Added additional documentation for cached shadows of directional lights.
+- Flares now respect the cameras culling mask and the game objects layer (Occlusion and Rendering).
+
 ## [12.1.12] - 2023-09-27
 
 This version is compatible with Unity 2021.3.31f1.

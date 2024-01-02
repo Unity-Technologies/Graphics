@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.13] - 2023-12-21
+
+This version is compatible with Unity 2021.3.35f1.
+
+### Changed
+- Vulkan URP will use MSAA samples count fallback from player settings. Prior to this x2 fallback would have been to upgrade to x4.
+
+### Fixed
+- Fixed transparent materials getting marked as dirty during material UI updates and project saving.
+- Fixed _WorldSpaceCameraPos is not set correctly in XR Multipass.
+- Fixed objects not rendering in the wireframe mode.
+- Disabled Motion Blur effect in EditMode to keep the game view clear while editing. Motion Blur works as before in PlayMode and standalone builds.
+- Fix partially corrupted Android screen when Vulkan display rotation during rendering is enabled
+- Fixed URP shader stripping performance
+
 ## [12.1.12] - 2023-09-27
 
 This version is compatible with Unity 2021.3.31f1.
