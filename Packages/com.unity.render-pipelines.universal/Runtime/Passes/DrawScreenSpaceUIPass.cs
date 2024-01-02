@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -223,8 +224,14 @@ namespace UnityEngine.Rendering.Universal
             // Render uGUI and UIToolkit overlays
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space UIToolkit/uGUI Pass - Overlay", out var passData, base.profilingSampler))
             {
-                if (cameraData.requiresDepthTexture && renderer != null && renderer.renderingModeActual != RenderingMode.Deferred)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
+                if (cameraData.requiresDepthTexture && renderer != null)
+                {
+                    if (renderer.renderingModeActual != RenderingMode.Deferred)
+                        builder.UseGlobalTexture(s_CameraDepthTextureID);
+                    else if (renderer.deferredLights.GbufferDepthIndex != -1)
+                        builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
+                }
+
                 if (cameraData.requiresOpaqueTexture && renderer != null)
                     builder.UseGlobalTexture(s_CameraOpaqueTextureID);
 

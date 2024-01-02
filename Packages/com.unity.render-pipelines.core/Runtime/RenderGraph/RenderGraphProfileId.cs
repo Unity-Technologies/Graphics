@@ -8,5 +8,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         ExecuteRenderGraph,
         RenderGraphClear,
         RenderGraphClearDebug,
+        RenderGraphComputeHash,
     }
 }

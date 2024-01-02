@@ -109,8 +109,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _SubPixelIndex;
         // Factor to decode previous depth from history buffer
         public float _NearPlaneReprojection;
-        // padding
-        public int _PaddingVC2;
+        // Max step size for raymarching
+        public float _MaxStepSize;
 
         public Matrix4x4 _CloudsPixelCoordToViewDirWS;
         public Matrix4x4 _CameraPrevViewProjection;

@@ -175,10 +175,11 @@ namespace UnityEditor.VFX
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context, taskData).ToString());
 
             // Graph Blocks
-            VFXCodeGenerator.BuildContextBlocks(context, taskData, out var blockFunction, out var blockCallFunction);
+            var expressionToName = VFXCodeGenerator.BuildExpressionToName(context, taskData);
+            VFXCodeGenerator.BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction);
 
-            blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction);
-            blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
+            blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction.builder.ToString());
+            blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction.builder.ToString());
 
             // Vertex Input
             VFXCodeGenerator.BuildVertexProperties(taskData, out var vertexPropertiesGeneration);
@@ -258,8 +259,6 @@ namespace UnityEditor.VFX
 
             // Load Crop Factor Attribute
             var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
-            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(taskData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
             loadCropFactorAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadCropFactorParameter", VFXCodeGenerator.GenerateLoadParameter("cropFactor", mainParameters, expressionToName).ToString().ToString());
             loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString().ToString());
             loadCurrentFrameIndexParameterDescriptor = new AdditionalCommandDescriptor("VFXLoadCurrentFrameIndexParameter", VFXCodeGenerator.GenerateLoadParameter("currentFrameIndex", mainParameters, expressionToName).ToString().ToString());

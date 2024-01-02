@@ -841,6 +841,8 @@ namespace UnityEngine.Rendering
             m_ProbeSamplingDebugMaterial.renderQueue = (int)RenderQueue.Transparent;
             m_ProbeSamplingDebugMaterial02.renderQueue = (int)RenderQueue.Transparent;
 
+            m_DebugMaterial.SetVector("_DebugEmptyProbeData", new Vector4(0.388f, 0.812f, 0.804f, 1.0f));
+
             if (probeVolumeDebug.drawProbeSamplingDebug)
             {
                 m_ProbeSamplingDebugMaterial.SetInt("_ShadingMode", (int)probeVolumeDebug.probeShading);

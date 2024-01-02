@@ -14,7 +14,7 @@ ${VFXGlobalDeclaration}
 #endif
 
 #if HAS_STRIPS
-RWStructuredBuffer<uint> stripDataBuffer;
+StructuredBuffer<uint> stripDataBuffer;
 #endif
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
@@ -131,8 +131,15 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #endif
             {
                 ${VFXLoadSize}
+                float3 center = attributes.position;
 #if HAS_STRIPS
                 size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
+                if (relativeIndexInStrip < stripData.nextIndex - 1)
+                {
+                    uint nextIndex = GetParticleIndex(relativeIndexInStrip + 1,stripData);
+                    center = (center + GetParticlePosition(nextIndex, instanceIndex)) * 0.5f;
+                    size3 += abs(center - attributes.position) * sign(size3);
+                }
 #endif
                 float4x4 elementToVFX = GetElementToVFXMatrix(
                     attributes.axisX,
@@ -141,7 +148,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                     float3(attributes.angleX,attributes.angleY,attributes.angleZ),
                     float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
                     size3,
-                    attributes.position);
+                    center);
 
 #if VFX_FEATURE_FRUSTUM_CULL || VFX_FEATURE_LOD
 #if VFX_WORLD_SPACE

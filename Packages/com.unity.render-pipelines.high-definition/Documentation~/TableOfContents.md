@@ -1,12 +1,13 @@
 * [HDRP Packge](index.md)
   * [What's new](whats-new.md)
+    * [What's new in HDRP 17](whats-new-17.md)
     * [What's new in HDRP 16](whats-new-16.md)
     * [What's new in HDRP 15](whats-new-15.md)
     * [What's new in HDRP 14](whats-new-14.md)
     * [What's new in HDRP 13](whats-new-13.md)
     * [What's new in HDRP 12](whats-new-12.md)
     * [What's new in HDRP 11](whats-new-11.md)
-    * [What's new in HDRP 10](whats-new-10.md)   
+    * [What's new in HDRP 10](whats-new-10.md)
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
 * [Install and upgrade](install-and-upgrade.md)
@@ -281,6 +282,7 @@
         * [Troubleshoot a custom post-processing effect](rendering-troubleshoot-custom-post-processes.md)
         * [Understand and fix Not a Number (NAN) and Infinite (Inf) values](Post-Processing-Propagating-NaNs.md)
         * [Known issues](Known-Issues.md)
+  * [Stencil Buffer Usage](Stencil-Usage.md)
 
 
 * [Reference](Reference.md)  

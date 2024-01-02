@@ -3414,15 +3414,61 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._DepthWithWaterTexture, data.depthBuffer);
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
+                            Matrix4x4 nonJitteredViewProjMatrix0;
+                            int xrId0;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            // Not VR or Multi-Pass
+                            if (data.hdCamera.xr.enabled)
+                            {
+                                if (data.hdCamera.xr.singlePassEnabled)
+                                {
+                                    nonJitteredViewProjMatrix0 = data.hdCamera.m_XRViewConstants[0].nonJitteredViewProjMatrix;
+                                    xrId0 = 0;
+                                }
+                                else
+                                {
+                                    nonJitteredViewProjMatrix0 = data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix;
+                                    xrId0 = data.hdCamera.xr.multipassId;
+                                }
+                            }
+                            else
+                            {
+                                nonJitteredViewProjMatrix0 = data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix;
+                                xrId0 = 0;
+                            }
+#else
+                            nonJitteredViewProjMatrix0 = data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix;
+                            xrId0 = data.hdCamera.xr.multipassId;
+#endif
+                            Rect viewport = data.hdCamera.finalViewport;
 
                             LensFlareCommonSRP.ComputeOcclusion(
-                                data.parameters.lensFlareShader, data.hdCamera.camera,
+                                data.parameters.lensFlareShader, data.hdCamera.camera, data.hdCamera.xr, xrId0,
                                 width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                nonJitteredViewProjMatrix0,
                                 ctx.cmd,
                                 data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            if (data.hdCamera.xr.enabled && data.hdCamera.xr.singlePassEnabled)
+                            {
+                                for (int xrIdx = 1; xrIdx < data.hdCamera.viewCount; ++xrIdx)
+                                {
+                                    // Bypass single pass version
+                                    Matrix4x4 nonJitteredViewProjMatrix_k = data.hdCamera.m_XRViewConstants[xrIdx].nonJitteredViewProjMatrix;
+                                    LensFlareCommonSRP.ComputeOcclusion(
+                                        data.parameters.lensFlareShader, data.hdCamera.camera, data.hdCamera.xr, xrIdx,
+                                        width, height,
+                                        data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
+                                        data.hdCamera.mainViewConstants.worldSpaceCameraPos,
+                                        nonJitteredViewProjMatrix_k,
+                                        ctx.cmd,
+                                        data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness);
+                                }
+                            }
+#endif
                         });
                 }
             }
@@ -3448,10 +3494,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDShaderIDs._LensFlareOcclusion, LensFlareCommonSRP.occlusionRT);
+                            if (passData.hdCamera.xr.enabled && passData.hdCamera.xr.singlePassEnabled)
+                                ctx.cmd.SetComputeIntParam(data.parameters.lensFlareMergeOcclusion, HDShaderIDs._MultipassID, -1);
+                            else
+                                ctx.cmd.SetComputeIntParam(data.parameters.lensFlareMergeOcclusion, HDShaderIDs._MultipassID, data.hdCamera.xr.multipassId);
+
                             ctx.cmd.DispatchCompute(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel,
                                 HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusion, 8),
                                 HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample, 8),
-                                data.hdCamera.viewCount);
+                                HDUtils.DivRoundUp(data.hdCamera.viewCount, 2));
                         });
                 }
             }
@@ -3469,7 +3520,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.taaEnabled = taaEnabled;
                     passData.occlusion = builder.ReadTexture(occlusionHandle);
 
@@ -3478,24 +3528,49 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
+                            Rect viewport = data.hdCamera.finalViewport;
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
 
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
-
-                            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                                data.parameters.lensFlareShader, data.hdCamera.camera, width, height,
-                                data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
-                                ShaderConfig.s_CameraRelativeRendering != 0,
-                                data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
-                                ctx.cmd,
-                                data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
-                                data.source,
-                                // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
-                                // And here the lambda setup like that seem to not alloc anything.
-                                (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
-                                data.parameters.skipCopy);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            // Not VR or Multi-Pass
+                            if (!data.hdCamera.xr.enabled ||
+                                (data.hdCamera.xr.enabled && !data.hdCamera.xr.singlePassEnabled))
+                            {
+#endif
+                                LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
+                                    data.parameters.lensFlareShader, data.hdCamera.camera, viewport, data.hdCamera.xr, data.hdCamera.xr.multipassId,
+                                    width, height,
+                                    data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
+                                    ShaderConfig.s_CameraRelativeRendering != 0,
+                                    data.hdCamera.mainViewConstants.worldSpaceCameraPos,
+                                    data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                    ctx.cmd,
+                                    data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
+                                    data.source,
+                                    (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                                    data.parameters.skipCopy);
+                            }
+#if ENABLE_VR && ENABLE_XR_MODULE
+                            else
+                            {
+                                for (int xrIdx = 0; xrIdx < data.hdCamera.viewCount; ++xrIdx)
+                                {
+                                    LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
+                                        data.parameters.lensFlareShader, data.hdCamera.camera, viewport, data.hdCamera.xr, xrIdx,
+                                        width, height,
+                                        data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
+                                        ShaderConfig.s_CameraRelativeRendering != 0,
+                                        data.hdCamera.mainViewConstants.worldSpaceCameraPos,
+                                        data.hdCamera.m_XRViewConstants[xrIdx].nonJitteredViewProjMatrix,
+                                        ctx.cmd,
+                                        data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
+                                        data.source,
+                                        (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                                        data.parameters.skipCopy);
+                                }
+                            }
+#endif
                         });
 
                     PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareDataDriven);
@@ -3574,9 +3649,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return 1.0f;
         }
 
-        #endregion
+#endregion
 
-        #region Lens Flare Screen Space
+#region Lens Flare Screen Space
 
         class LensFlareScreenSpaceData
         {
@@ -3712,9 +3787,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region Motion Blur
+#region Motion Blur
 
         class MotionBlurData
         {
@@ -4043,9 +4118,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Upsample Scene
+#region Upsample Scene
 
         private void SetCurrentResolutionGroup(RenderGraph renderGraph, HDCamera camera, ResolutionGroup newResGroup)
         {
@@ -4061,9 +4136,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdatePostProcessScreenSize(renderGraph, camera, postProcessViewportSize.x, postProcessViewportSize.y);
         }
 
-        #endregion
+#endregion
 
-        #region Panini Projection
+#region Panini Projection
         Vector2 CalcViewExtents(HDCamera camera)
         {
             float fovY = camera.camera.fieldOfView * Mathf.Deg2Rad;
@@ -4181,9 +4256,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Bloom
+#region Bloom
 
         class BloomData
         {
@@ -4445,9 +4520,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return bloomTexture;
         }
 
-        #endregion
+#endregion
 
-        #region Color Grading
+#region Color Grading
         internal class ColorGradingPassData
         {
             public ComputeShader builderCS;
@@ -4843,9 +4918,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #endregion
+#endregion
 
-        #region Uber Post
+#region Uber Post
         // Grabs all active feature flags
         UberPostFeatureFlags GetUberFeatureFlags(HDCamera camera, bool isSceneView)
         {
@@ -5162,9 +5237,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region FXAA
+#region FXAA
         class FXAAData
         {
             public ComputeShader fxaaCS;
@@ -5223,9 +5298,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Sharpening
+#region Sharpening
         class SharpenData
         {
             public ComputeShader sharpenCS;
@@ -5268,9 +5343,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return source;
         }
-        #endregion
+#endregion
 
-        #region CAS
+#region CAS
         class CASData
         {
             public ComputeShader casCS;
@@ -5354,9 +5429,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region EASU
+#region EASU
         class EASUData
         {
             public ComputeShader easuCS;
@@ -5431,9 +5506,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        #endregion
+#endregion
 
-        #region Final Pass
+#region Final Pass
 
         class FinalPassData
         {
@@ -5688,6 +5763,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #endregion
+#endregion
     }
 }

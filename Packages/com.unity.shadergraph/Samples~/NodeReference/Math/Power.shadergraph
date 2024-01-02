@@ -252,6 +252,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "a76cf58c3c184fd68c0209945b364ccb"
@@ -1061,6 +1062,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -1237,6 +1239,7 @@
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInTarget",
     "m_ObjectId": "a76cf58c3c184fd68c0209945b364ccb",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "cc7286eba6944deda279e4189dbecb67"
     },
@@ -1558,14 +1561,14 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "c8c1811c69274bd5909886c1bf2f7316",
     "m_Title": "",
-    "m_Content": "Sine Time provides us with a continuos wave between -1 and 1.\n\nWe remap that range so it's zero to five.  When the value goes below one, we see the image's contrast reduced, but when it's above one, the contrast increases.",
+    "m_Content": "Sine Time provides us with a continuous wave between -1 and 1.\n\nWe remap that range so it's zero to five.  When the value goes below one, we see the image's contrast reduced, but when it's above one, the contrast increases.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
         "serializedVersion": "2",
-        "x": -1599.5001220703125,
-        "y": 464.5000305175781,
-        "width": 200.0,
+        "x": -1599.0,
+        "y": 465.0,
+        "width": 201.1553955078125,
         "height": 138.50003051757813
     },
     "m_Group": {

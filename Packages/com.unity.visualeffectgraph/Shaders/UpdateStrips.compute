@@ -8,6 +8,7 @@
 #define VFX_USE_INSTANCING 1
 #define VFX_INSTANCING_BATCH_INDIRECTION 1
 #define VFX_INSTANCING_FIXED_SIZE stripCount
+#define STRIP_COUNT stripCount
 
 CBUFFER_START(params)
     uint dispatchWidth;
@@ -26,19 +27,22 @@ RWStructuredBuffer<uint> stripDataBuffer;
 void UpdateParticleStrip(uint3 groupId          : SV_GroupID,
                          uint3 groupThreadId    : SV_GroupThreadID)
 {
-    uint stripIndex = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+    uint index = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 
-    if (stripIndex < stripCount * (uint)instancingActiveCount)
+    if (index < stripCount * (uint)instancingActiveCount)
     {
         uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;
-        stripIndex = VFXInitInstancing(stripIndex, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
-        stripIndex += instanceIndex * stripCount;
+        uint stripIndex = VFXInitInstancing(index, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
+        uint bufferIndex = STRIP_DATA_INDEX(instanceIndex, stripIndex);
 
-        bool isEmpty = (STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) & ~1) == ~1;
-        STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) = isEmpty ? 0 : (STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + STRIP_DATA(STRIP_MIN_ALIVE, stripIndex)) % particlePerStripCount;
-        STRIP_DATA(STRIP_NEXT_INDEX, stripIndex) = isEmpty ? 0 : STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) - STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) + 1;
-        STRIP_DATA(STRIP_PREV_NEXT_INDEX, stripIndex) = STRIP_DATA(STRIP_NEXT_INDEX, stripIndex); // Store particle count twice so that it can be read consistenly in next Init (as next index will be atomically incremented in init)
-        STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) = isEmpty ? ~1 : ~0;
-        STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) = 0;
+        bool isEmpty = (STRIP_DATA(STRIP_MIN_ALIVE, bufferIndex) & ~1) == ~1;
+        uint particleCount = isEmpty ? 0 : STRIP_DATA(STRIP_MAX_ALIVE, bufferIndex) - STRIP_DATA(STRIP_MIN_ALIVE, bufferIndex) + 1;
+        STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex) = isEmpty ? 0 : (STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex) + STRIP_DATA(STRIP_MIN_ALIVE, bufferIndex)) % particlePerStripCount;
+        STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex) = particleCount;
+        STRIP_DATA(STRIP_PREV_NEXT_INDEX, bufferIndex) = particleCount; // Store particle count twice so that it can be read consistenly in next Init (as next index will be atomically incremented in init)
+        STRIP_DATA(STRIP_MIN_ALIVE, bufferIndex) = isEmpty ? ~1 : ~0;
+        STRIP_DATA(STRIP_MAX_ALIVE, bufferIndex) = 0;
+
+        InterlockedAdd(STRIP_PARTICLE_COUNTER(instanceIndex), particleCount);
     }
 }

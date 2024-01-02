@@ -70,13 +70,22 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Read the center pixel0
     const BilateralData center = TapBilateralData(centerCoord);
 
+#if SPOT_LIGHT || PYRAMID_LIGHT || BOX_LIGHT || POINT_LIGHT
+    // Fetch the data of the area light
+    LightData lightData = _LightDatas[_RaytracingTargetLight];
+#endif
+
 #if defined(DISTANCE_BASED_DENOISER)
 #if DIRECTIONAL_LIGHT
     // For the directonal light, the solid angle can be used directly
     float lightSolidAngle = _RaytracingLightAngle;
 #else
-    // Compute the light vector
+    // Compute the light distance 
+#if BOX_LIGHT
+    float lightPointDistance = dot(_SphereLightPosition - center.position, normalize(-lightData.forward));
+#else
     float lightPointDistance = length(_SphereLightPosition - center.position);
+#endif
     // Evaluate the normalized solid angle of the light
     float lightSolidAngle = atan(_RaytracingLightRadius / lightPointDistance);
 #endif
@@ -123,10 +132,6 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         const int2 passIncr = int2(0, 1);
     #endif
 
-#if SPOT_LIGHT || PYRAMID_LIGHT || BOX_LIGHT || POINT_LIGHT
-    // Fetch the data of the area light
-    LightData lightData = _LightDatas[_RaytracingTargetLight];
-#endif
 
     // Evaluate the filter
     int2 tapCoord = centerCoord - radius * passIncr;
@@ -159,8 +164,8 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
     #if BOX_LIGHT
-        float dist2 = DistSqrToLight(lightData, tapData.position);
-        w = PositionInBoxRange(lightData, _RaytracingLightSizeX, _RaytracingLightSizeY, tapData.position, dist2) ? w : 0.0;
+        float dist = dot(lightData.positionRWS - tapData.position, normalize(-lightData.forward));
+        w = PositionInBoxRange(lightData, _RaytracingLightSizeX, _RaytracingLightSizeY, tapData.position, dist * dist) ? w : 0.0;
     #endif
 
         // Accumulate the color

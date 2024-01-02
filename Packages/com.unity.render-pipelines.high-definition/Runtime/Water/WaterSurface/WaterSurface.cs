@@ -141,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the speed of the water simulation. This allows to slow down the waves' speed or to accelerate it.
         /// </summary>
+        [Range(0, 10)]
         public float timeMultiplier = 1.0f;
         #endregion
 
@@ -226,13 +227,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the maximum distance in meters used to clamp the underwater refraction depth. Higher value increases the distortion amount.
         /// </summary>
-        [Tooltip("Controls the maximum distance in meters used to clamp the underwater refraction depth. Higher value increases the distortion amount.")]
+        [Range(0.0f, 3.5f), Tooltip("Controls the maximum distance in meters used to clamp the underwater refraction depth. Higher value increases the distortion amount.")]
         public float maxRefractionDistance = 1.0f;
 
         /// <summary>
         /// Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.
         /// </summary>
-        [Tooltip("Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.")]
+        [Range(0.0f, 100.0f), Tooltip("Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.")]
         public float absorptionDistance = 5.0f;
         #endregion
 
@@ -247,37 +248,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the intensity of the ambient scattering term. This can be adjusted for artistic purposes.
         /// </summary>
-        [Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
+        [Range(0.0f, 1.0f), Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
         public float ambientScattering = 0.1f;
 
         /// <summary>
         /// Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
         /// </summary>
-        [Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
+        [Range(0.0f, 1.0f), Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
         public float heightScattering = 0.1f;
 
         /// <summary>
         /// Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
         /// </summary>
-        [Tooltip("Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
+        [Range(0.0f, 1.0f), Tooltip("Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
         public float displacementScattering = 0.3f;
 
         /// <summary>
         /// Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.
         /// </summary>
-        [Tooltip("Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.")]
+        [Range(0.0f, 1.0f), Tooltip("Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.")]
         public float directLightTipScattering = 0.6f;
 
         /// <summary>
         /// Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.
         /// </summary>
-        [Tooltip("Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.")]
+        [Range(0.0f, 1.0f), Tooltip("Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.")]
         public float directLightBodyScattering = 0.4f;
 
         /// <summary>
         /// Specifies a maximum wave height that overrides the simulation to support scattering properly for deformers.
         /// </summary>
-        [Tooltip("Specifies a maximum wave height that overrides the simulation to support scattering properly for deformers.")]
+        [Min(0.0f), Tooltip("Specifies a maximum wave height that overrides the simulation to support scattering properly for deformers.")]
         public float maximumHeightOverride = 0.0f;
         #endregion
 
@@ -291,12 +292,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the intensity of the under-water caustics.
         /// </summary>
+        [Min(0.0f)]
         [Tooltip("Sets the intensity of the under-water caustics.")]
         public float causticsIntensity = 0.5f;
 
         /// <summary>
         /// Sets the vertical blending distance for the water caustics.
         /// </summary>
+        [Min(0.0f)]
         [Tooltip("Sets the vertical blending distance for the water caustics.")]
         public float causticsPlaneBlendDistance = 1.0f;
 
@@ -337,11 +340,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artifacts.
         /// </summary>
+        [Min(0.001f)]
         public float virtualPlaneDistance = 5.0f;
 
         /// <summary>
         /// Sets a tiling factor for the water caustics.
         /// </summary>
+        [Min(0.001f)]
         public float causticsTilingFactor = 1.0f;
 
         /// <summary>
@@ -352,6 +357,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the water caustics dimmer value for the directional shadow.
         /// </summary>
+        [Range(0.0f, 1.0f)]
         public float causticsDirectionalShadowDimmer = 0.25f;
         #endregion
 
@@ -404,36 +410,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets maximum depth at which the underwater effect is evaluated for infinite surfaces.
         /// </summary>
-        [Tooltip("Sets maximum depth at which the underwater effect is evaluated for infinite surfaces.")]
+        [Min(0.0f), Tooltip("Sets maximum depth at which the underwater effect is evaluated for infinite surfaces.")]
         public float volumeDepth = 50.0f;
 
         /// <summary>
         /// Sets the maximum height at which the underwater effect is evaluated for infinite surfaces. This allows to cover the underwater scenario when deformers are higher than waves or ripples.
         /// </summary>
-        [Tooltip("Sets the maximum height at which the underwater effect is evaluated for infinite surfaces. This allows to cover the underwater scenario when deformers are higher than waves or ripples.")]
+        [Min(0.0f), Tooltip("Sets the maximum height at which the underwater effect is evaluated for infinite surfaces. This allows to cover the underwater scenario when deformers are higher than waves or ripples.")]
         public float volumeHeight = 0.0f;
 
         /// <summary>
         /// Sets a priority value that is used to define which surface should be considered for underwater rendering in the case of multiple overlapping surfaces.
         /// </summary>
-        [Tooltip("Sets a priority value that is used to define which surface should be considered for underwater rendering in the case of multiple overlapping surfaces.")]
+        [Min(0), Tooltip("Sets a priority value that is used to define which surface should be considered for underwater rendering in the case of multiple overlapping surfaces.")]
         public int volumePrority = 0;
 
         /// <summary>
         /// Sets the multiplier for the Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.
         /// </summary>
-        [Tooltip("Sets the multiplier for the  Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.")]
+        [Min(0.0f), Tooltip("Sets the multiplier for the  Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.")]
         public float absorptionDistanceMultiplier = 1.0f;
 
         /// <summary>
         /// Sets the offset used to evaluated the underwater refraction. Higher values produce blurrier results but introduce aliasing artifacts.
         /// </summary>
-        [Tooltip("Sets the offset used to evaluated the underwater refraction. Higher values produce blurrier results but introduce aliasing artifacts.")]
+        [Range(0, 4)]
         public int colorPyramidOffset = 1;
 
         /// <summary>
         /// Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.
         /// </summary>
+        [Range(0.0f, 1.0f)]
         public float underWaterAmbientProbeContribution = 1.0f;
 
         /// <summary>

@@ -264,8 +264,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
-                if (cameraData.requiresDepthTexture && renderer != null && renderer.renderingModeActual != RenderingMode.Deferred)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
+                if (cameraData.requiresDepthTexture && renderer != null)
+                {
+                    if (renderer.renderingModeActual != RenderingMode.Deferred)
+                        builder.UseGlobalTexture(s_CameraDepthTextureID);
+                    else if (renderer.deferredLights.GbufferDepthIndex != -1)
+                        builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
+                }
 
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);

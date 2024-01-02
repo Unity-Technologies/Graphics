@@ -308,6 +308,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 #if UNITY_EDITOR
                 if (UnityEditor.EditorApplication.isPaused)
                     delta = 0.0f;
+                else if (!Application.isPlaying)
+                    delta = Mathf.Min(delta, 0.033f);
                 #endif
 
                 deltaTime = delta * timeMultiplier;

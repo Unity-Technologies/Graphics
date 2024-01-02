@@ -80,7 +80,7 @@ float EvaluateSineWaveActivation(uint bellIndex, uint waveRepetition)
 float EvaluateBoxBlendAttenuation(float2 regionSize, float2 deformerPosOS, float2 blendRegion, int cubicBlend)
 {
     // Apply the edge attenuation
-    float2 distanceToEdges = regionSize * 0.5 - abs(deformerPosOS);
+    float2 distanceToEdges = abs(regionSize) * 0.5 - abs(deformerPosOS);
     float2 lerpFactor = saturate(distanceToEdges / blendRegion);
     lerpFactor *= cubicBlend ? lerpFactor : 1;
     return min(lerpFactor.x, lerpFactor.y);

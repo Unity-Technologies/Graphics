@@ -74,17 +74,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             listView.allowRemove = currentPostProcessTypes.arraySize > 0;
             listView.overridingAddButtonBehavior = (list, button) => {
-                var menu = new GenericDropdownMenu();
-                
-                //Sadly, public API don't allow tooltips
-                var addItemMethod = typeof(GenericDropdownMenu).GetMethod("AddItem", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(bool), typeof(Action), typeof(Texture2D), typeof(string) }, null);
-
+                var menu = new GenericMenu(); //use ImGUI for now, need to be updated later
                 var listTypes = FetchAvailableCustomPostProcessVolumesTypes(injectionPoint, currentPostProcessTypes);
                 bool atLeastOne = false;
                 foreach (var type in listTypes)
                 {
                     atLeastOne = true;
-                    addItemMethod.Invoke(menu, new object[] { type.Name, false, (Action)(() =>
+                    menu.AddItem(EditorGUIUtility.TrTextContent(type.Name, type.AssemblyQualifiedName), on: false, () =>
                     {
                         int lastPos = currentPostProcessTypes.arraySize;
                         currentPostProcessTypes.InsertArrayElementAtIndex(lastPos);
@@ -92,26 +88,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         newProperty.stringValue = type.AssemblyQualifiedName;
                         property.serializedObject.ApplyModifiedProperties();
                         listView.allowRemove = true;
-                    }), null, type.AssemblyQualifiedName });
+                    });
                 }
                 if (!atLeastOne)
-                    menu.AddDisabledItem("No Custom Post Process Available", false);
-
-                //Sadly, public API menu.DropDown will produce cropped menu as everything that 
-                //would go over the edge of the inspector will vanish. We must rely on the internal
-                //DoDisplayGenericDropdownMenu that generate a temporary flying window to deal 
-                //with this.
-                var rect = button.worldBound;
-                var position = rect.position + Vector2.up * rect.size.y;
-                var descriptor = new DropdownMenuDescriptor()
-                {
-                    search = DropdownMenuSearch.Always,
-                    parseShortcuts = false,
-                    autoClose = true
-                };
-                typeof(EditorMenuExtensions)
-                    .GetMethod("DoDisplayGenericDropdownMenu", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] { typeof(GenericDropdownMenu), typeof(Vector2), typeof(DropdownMenuDescriptor) }, null)
-                    .Invoke(null, new object[] { menu, position, descriptor });
+                    menu.AddDisabledItem(EditorGUIUtility.TrTextContent("No Custom Post Process Available"), false);
+                menu.DropDown(new Rect(button.worldBound.position + Vector2.up * button.worldBound.size.y, Vector2.zero));
             };
             listView.itemsRemoved += (indices) => listView.allowRemove = currentPostProcessTypes.arraySize  != 1;
             listView.makeItem = () => new Label() { name = "ReorderableList-element" };

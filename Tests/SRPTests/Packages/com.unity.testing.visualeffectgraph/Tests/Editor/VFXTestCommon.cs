@@ -179,13 +179,17 @@ namespace UnityEditor.VFX.Test
             blockAttribute.SetSettingValue("attribute", "position");
             contextInitialize.AddChild(blockAttribute);
 
-            contextInitialize.LinkTo(output);
+            var contextUpdate = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            graph.AddChild(contextUpdate);
+            contextInitialize.LinkTo(contextUpdate);
+
+            contextUpdate.LinkTo(output);
             graph.AddChild(contextInitialize);
 
             var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph)); ;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             return graph;
         }

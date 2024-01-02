@@ -139,9 +139,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 
 
 #if defined(SHADER_STAGE_RAY_TRACING)
-    #define VFXAttributes InternalAttributesElement
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXRayTracingCommon.hlsl"
-
 
     void GetVFXInstancingIndices(out int index, out int instanceIndex, out int instanceActiveIndex)
     {

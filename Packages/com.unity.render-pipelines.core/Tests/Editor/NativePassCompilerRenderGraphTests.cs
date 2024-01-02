@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(2, passes.Count);
@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(2, passes.Count);
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(2, passes.Count);
@@ -404,7 +404,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(2, passes.Count);
@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, passes.Count);
@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var nativePasses = result.contextData.GetNativePasses();
 
             Assert.AreEqual(1, nativePasses.Count);
@@ -652,7 +652,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             // Validate nr pass 0
@@ -706,7 +706,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passData = result.contextData.passData;
 
             // #1 waits for nothing, inserts a fence
@@ -765,7 +765,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             // Validate Pass 0 : uav is first used and created
@@ -843,7 +843,7 @@ namespace UnityEngine.Rendering.Tests
                 builder.Dispose();
             }
 
-            var result = g.CompileNativeRenderGraph();
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
             // Validate nr pass 

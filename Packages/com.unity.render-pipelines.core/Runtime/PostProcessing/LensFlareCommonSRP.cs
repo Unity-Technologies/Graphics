@@ -86,6 +86,7 @@ namespace UnityEngine.Rendering
 
         internal static readonly int _FlareWaterGBuffer3Thickness = Shader.PropertyToID("_FlareWaterGBuffer3Thickness");
         internal static readonly int _FlareOcclusionPermutation = Shader.PropertyToID("_FlareOcclusionPermutation");
+        internal static readonly int _ViewId = Shader.PropertyToID("_ViewId");
 
         internal static readonly int _LensFlareScreenSpaceBloomMipTexture = Shader.PropertyToID("_LensFlareScreenSpaceBloomMipTexture");
         internal static readonly int _LensFlareScreenSpaceResultTexture = Shader.PropertyToID("_LensFlareScreenSpaceResultTexture");
@@ -103,7 +104,8 @@ namespace UnityEngine.Rendering
         {
         }
 
-        private static readonly bool s_SupportsLensFlareTexFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RFloat);
+        private static readonly bool s_SupportsLensFlare16bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render);
+        private static readonly bool s_SupportsLensFlare32bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
 
         /// <summary>
         /// Check if we can use an OcclusionRT
@@ -117,8 +119,18 @@ namespace UnityEngine.Rendering
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
                     SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
                     SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
-                    s_SupportsLensFlareTexFormat; //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
+                    (s_SupportsLensFlare16bitsFormat || s_SupportsLensFlare32bitsFormat); //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
 #endif
+        }
+
+        static GraphicsFormat GetOcclusionRTFormat()
+        {
+            // SystemInfo.graphicsDeviceType == {GraphicsDeviceType.Direct3D12, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.PlayStation5, ...}
+            if (s_SupportsLensFlare16bitsFormat)
+                return GraphicsFormat.R16_SFloat;
+            else
+                // Needed a R32_SFloat for Metal or/and DirectX < 11.3
+                return GraphicsFormat.R32_SFloat;
         }
 
         /// <summary>
@@ -138,8 +150,7 @@ namespace UnityEngine.Rendering
                         width: maxLensFlareWithOcclusion,
                         height: Mathf.Max(mergeNeeded * (maxLensFlareWithOcclusionTemporalSample + 1), 1),
                         slices: TextureXR.slices,
-                        // Needed a R32_SFloat for Metal or/and DirectX < 11.3
-                        colorFormat: Experimental.Rendering.GraphicsFormat.R32_SFloat,
+                        colorFormat: GetOcclusionRTFormat(),
                         enableRandomWrite: true,
                         dimension: TextureDimension.Tex2DArray);
                 }
@@ -608,6 +619,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="xr">XR Infos</param>
+        /// <param name="xrIndex">Index of the SinglePass XR</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -634,7 +647,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters.")]
-        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -644,7 +657,7 @@ namespace UnityEngine.Rendering
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             ComputeOcclusion(
-                lensFlareShader, cam,
+                lensFlareShader, cam, xr, xrIndex,
                 actualWidth, actualHeight,
                 usePanini, paniniDistance, paniniCropToFit, isCameraRelative,
                 cameraPositionWS,
@@ -659,6 +672,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -673,7 +688,7 @@ namespace UnityEngine.Rendering
         /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
-        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -682,7 +697,7 @@ namespace UnityEngine.Rendering
             bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
         {
             ComputeOcclusion(
-                lensFlareShader, cam,
+                lensFlareShader, cam, xr, xrIndex,
                 actualWidth, actualHeight,
                 usePanini, paniniDistance, paniniCropToFit, isCameraRelative,
                 cameraPositionWS,
@@ -696,6 +711,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -722,7 +739,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters.")]
-        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -731,7 +748,7 @@ namespace UnityEngine.Rendering
             bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
-            ComputeOcclusion(lensFlareShader, cam,
+            ComputeOcclusion(lensFlareShader, cam, xr, xrIndex,
                 actualWidth, actualHeight,
                 usePanini, paniniDistance, paniniCropToFit, isCameraRelative,
                 cameraPositionWS,
@@ -752,6 +769,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -766,7 +785,7 @@ namespace UnityEngine.Rendering
         /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
-        static public void ComputeOcclusion(Material lensFlareShader, Camera cam,
+        static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -776,6 +795,8 @@ namespace UnityEngine.Rendering
         {
             if (!IsOcclusionRTCompatible())
                 return;
+
+            xr.StopSinglePass(cmd);
 
 #if UNITY_EDITOR
             bool inPrefabStage = IsPrefabStageEnabled();
@@ -795,14 +816,8 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            Vector2 vScreenRatio;
-
             if (Instance.IsEmpty())
                 return;
-
-            Vector2 screenSize = new Vector2(actualWidth, actualHeight);
-            float screenRatio = screenSize.x / screenSize.y;
-            vScreenRatio = new Vector2(screenRatio, 1.0f);
 
 #if UNITY_EDITOR
             if (cam.cameraType == CameraType.SceneView)
@@ -819,7 +834,26 @@ namespace UnityEngine.Rendering
             }
 #endif
 
-            Rendering.CoreUtils.SetRenderTarget(cmd, occlusionRT);
+            Vector2 screenSize = new Vector2(actualWidth, actualHeight);
+            float screenRatio = screenSize.x / screenSize.y;
+            Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled && xr.singlePassEnabled)
+            {
+                CoreUtils.SetRenderTarget(cmd, occlusionRT, depthSlice: xrIndex);
+                cmd.SetGlobalInt(_ViewId, xrIndex);
+            }
+            else
+#endif
+            {
+                CoreUtils.SetRenderTarget(cmd, occlusionRT);
+                if (xr.enabled) // multipass
+                    cmd.SetGlobalInt(_ViewId, xr.multipassId);
+                else
+                    cmd.SetGlobalInt(_ViewId, -1);
+            }
+
             if (!taaEnabled)
             {
                 cmd.ClearRenderTarget(false, true, Color.black);
@@ -829,8 +863,6 @@ namespace UnityEngine.Rendering
             float dy = 1.0f / ((float)(maxLensFlareWithOcclusionTemporalSample + mergeNeeded));
             float halfx = 0.5f / ((float)maxLensFlareWithOcclusion);
             float halfy = 0.5f / ((float)(maxLensFlareWithOcclusionTemporalSample + mergeNeeded));
-
-            int taaValue = taaEnabled ? 1 : 0;
 
             foreach (LensFlareCompInfo info in m_Data)
             {
@@ -948,22 +980,28 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalVector(_FlareData0, flareData0);
                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, 0.0f, 0.0f));
 
-                Rect rect = new Rect() { x = info.index, y = (frameIdx + mergeNeeded) * taaValue, width = 1, height = 1 };
+                Rect rect;
+                if (taaEnabled)
+                    rect = new Rect() { x = info.index, y = frameIdx + mergeNeeded, width = 1, height = 1 };
+                else
+                    rect = new Rect() { x = info.index, y = 0, width = 1, height = 1 };
                 cmd.SetViewport(rect);
 
-                UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, lensFlareShader.FindPass("LensFlareOcclusion"));
+                Blitter.DrawQuad(cmd, lensFlareShader, lensFlareShader.FindPass("LensFlareOcclusion"));
             }
 
             // Clear the remaining buffer if not TAA the whole OcclusionRT is already cleared
             if (taaEnabled)
             {
-                cmd.SetRenderTarget(occlusionRT);
+                CoreUtils.SetRenderTarget(cmd, occlusionRT, depthSlice: xrIndex);
                 cmd.SetViewport(new Rect() { x = m_Data.Count, y = 0, width = (maxLensFlareWithOcclusion - m_Data.Count), height = (maxLensFlareWithOcclusionTemporalSample + mergeNeeded) });
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
             ++frameIdx;
             frameIdx %= maxLensFlareWithOcclusionTemporalSample;
+
+            xr.StartSinglePass(cmd);
         }
 
         /// <summary>
@@ -1316,6 +1354,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="viewport">Viewport used for rendering and XR applied.</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -1345,7 +1386,8 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
         [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
-        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
+            float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -1359,7 +1401,8 @@ namespace UnityEngine.Rendering
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
-            DoLensFlareDataDrivenCommon(lensFlareShader, cam, actualWidth, actualHeight,
+            DoLensFlareDataDrivenCommon(lensFlareShader, cam, viewport, xr, xrIndex,
+                actualWidth, actualHeight,
                 usePanini, paniniDistance, paniniCropToFit,
                 isCameraRelative,
                 cameraPositionWS,
@@ -1376,6 +1419,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="viewport">Viewport used for rendering and XR applied.</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -1392,7 +1438,8 @@ namespace UnityEngine.Rendering
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
-        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
+            float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -1403,7 +1450,8 @@ namespace UnityEngine.Rendering
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
             bool debugView)
         {
-            DoLensFlareDataDrivenCommon(lensFlareShader, cam, actualWidth, actualHeight,
+            DoLensFlareDataDrivenCommon(lensFlareShader, cam, viewport, xr, xrIndex,
+                actualWidth, actualHeight,
                 usePanini, paniniDistance, paniniCropToFit,
                 isCameraRelative,
                 cameraPositionWS,
@@ -1420,6 +1468,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="viewport">Viewport used for rendering and XR applied.</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -1449,7 +1500,8 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
         [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
-        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
+            float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -1463,7 +1515,8 @@ namespace UnityEngine.Rendering
             int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4,
             bool debugView)
         {
-            DoLensFlareDataDrivenCommon(lensFlareShader, cam, actualWidth, actualHeight,
+            DoLensFlareDataDrivenCommon(lensFlareShader, cam, viewport, xr, xrIndex,
+                actualWidth, actualHeight,
                 usePanini, paniniDistance, paniniCropToFit,
                 isCameraRelative,
                 cameraPositionWS,
@@ -1480,6 +1533,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
+        /// <param name="viewport">Viewport used for rendering and XR applied.</param>
+        /// <param name="xr">XRPass data.</param>
+        /// <param name="xrIndex">XR multipass ID.</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="usePanini">Set if use Panani Projection</param>
@@ -1496,7 +1552,8 @@ namespace UnityEngine.Rendering
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
         /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
-        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, float actualWidth, float actualHeight,
+        static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
+            float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
             Vector3 cameraPositionWS,
@@ -1525,22 +1582,12 @@ namespace UnityEngine.Rendering
             }
 #endif
 
+            xr.StopSinglePass(cmd);
+
             Vector2 vScreenRatio;
 
             if (Instance.IsEmpty())
                 return;
-
-            Vector2 screenSize = new Vector2(actualWidth, actualHeight);
-            float screenRatio = screenSize.x / screenSize.y;
-            vScreenRatio = new Vector2(screenRatio, 1.0f);
-
-            Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
-            cmd.SetViewport(new Rect() { width = screenSize.x, height = screenSize.y });
-            if (debugView)
-            {
-                // Background pitch black to see only the Flares
-                cmd.ClearRenderTarget(false, true, Color.black);
-            }
 
 #if UNITY_EDITOR
             if (cam.cameraType == CameraType.SceneView)
@@ -1556,6 +1603,33 @@ namespace UnityEngine.Rendering
                 }
             }
 #endif
+
+            Vector2 screenSize = new Vector2(actualWidth, actualHeight);
+            float screenRatio = screenSize.x / screenSize.y;
+            vScreenRatio = new Vector2(screenRatio, 1.0f);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xr.enabled && xr.singlePassEnabled)
+            {
+                CoreUtils.SetRenderTarget(cmd, colorBuffer, depthSlice: xrIndex);
+                cmd.SetGlobalInt(_ViewId, xrIndex);
+            }
+            else
+#endif
+            {
+                CoreUtils.SetRenderTarget(cmd, colorBuffer);
+                if (xr.enabled) // multipass
+                    cmd.SetGlobalInt(_ViewId, xr.multipassId);
+                else
+                    cmd.SetGlobalInt(_ViewId, 0);
+            }
+
+            cmd.SetViewport(viewport);
+            if (debugView)
+            {
+                // Background pitch black to see only the Flares
+                cmd.ClearRenderTarget(false, true, Color.black);
+            }
 
             foreach (LensFlareCompInfo info in m_Data)
             {
@@ -1688,6 +1762,8 @@ namespace UnityEngine.Rendering
                     compIntensity, scaleByDistance * comp.scale, lensFlareShader,
                     screenPos, comp.allowOffScreen, vScreenRatio, flareData1, false, 0);
             }
+
+            xr.StartSinglePass(cmd);
         }
 
         /// <summary>
@@ -1990,7 +2066,7 @@ namespace UnityEngine.Rendering
             UnityEngine.Rendering.Blitter.DrawQuad(cmd, lensFlareShader, writeToBloomPass);
         }
 
-        #region Panini Projection
+#region Panini Projection
         static Vector2 DoPaniniProjection(Vector2 screenPos, float actualWidth, float actualHeight, float fieldOfView, float paniniProjectionCropToFit, float paniniProjectionDistance)
         {
             Vector2 viewExtents = CalcViewExtents(actualWidth, actualHeight, fieldOfView);
@@ -2091,6 +2167,6 @@ namespace UnityEngine.Rendering
             return cylPos * (viewDist / cylDist);
         }
 
-        #endregion
+#endregion
     }
 }

@@ -147,8 +147,8 @@ namespace UnityEditor.VFX
         public virtual bool HasSorting() { return sort == SortActivationMode.On || (sort == SortActivationMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
 
         public bool HasCustomSortingCriterion() { return HasSorting() && sortMode == VFXSortingUtility.SortCriteria.Custom; }
-        public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
-        public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
+        public bool HasComputeCulling() { return computeCulling; }
+        public bool HasFrustumCulling() { return frustumCulling; }
         public virtual bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
 
         public uint GetRaytracingDecimationFactor() { return decimationFactor; }
@@ -634,8 +634,7 @@ namespace UnityEditor.VFX
                     yield return "indirectDraw";
 
                 // compute culling is implicit or forbidden
-                if (HasStrips(true)
-                    || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.MultiMesh)
+                if (VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.MultiMesh)
                     || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.LOD)
                     || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.FrustumCulling))
                     yield return "computeCulling";
@@ -643,7 +642,6 @@ namespace UnityEditor.VFX
                 // Features not supported yet by strips
                 if (HasStrips(true))
                 {
-                    yield return "frustumCulling";
                     yield return "isRaytraced";
                 }
                 if (!usesFlipbook)

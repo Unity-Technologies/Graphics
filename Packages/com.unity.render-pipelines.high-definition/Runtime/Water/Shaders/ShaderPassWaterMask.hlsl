@@ -82,6 +82,7 @@ void Frag(PackedVaryingsToPS packedInput,
         float2 tileSize = ARROW_TILE_SIZE / _CurrentDebugMultiplier;
         // Evaluate the arrow
         float arrowV = EvaluateArrow(input.texCoord0.xy, dir, tileSize);
+        dir = RotateUV(dir);
         outGBuffer0 = float4((dir * 0.5 + 0.5) * (1.0 - arrowV), 0.0, 1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_DEFORMATION)

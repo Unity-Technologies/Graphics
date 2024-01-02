@@ -1,4 +1,5 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
@@ -278,6 +279,78 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(hasRegisteredError);
         }
 
+        public enum Check_CustomHLSL_Block_Works_In_Context_Case
+        {
+            Initialize,
+            Update,
+            Output,
+            OutputSG
+        }
+
+        public static Array k_Check_CustomHLSL_Block_Works_In_Context_Case = Enum.GetValues(typeof(Check_CustomHLSL_Block_Works_In_Context_Case));
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_Works_In_Context([ValueSource(nameof(k_Check_CustomHLSL_Block_Works_In_Context_Case))] Check_CustomHLSL_Block_Works_In_Context_Case target)
+        {
+            var hlslCode =
+                @"float3 FindMe_In_Generated_Source(float3 position, in float scale)
+{
+    return position + float3(1,2,3)*scale;
+}";
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            if (target == Check_CustomHLSL_Block_Works_In_Context_Case.OutputSG)
+            {
+                var previousOutput = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Output);
+                var sgOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                sgOutput.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+                sgOutput.SetSettingValue("m_Shading", new ParticleShadingShaderGraph());
+
+                var parentContext = previousOutput.inputFlowSlot.First().link.First().context;
+                sgOutput.LinkFrom(parentContext);
+
+                previousOutput.UnlinkAll();
+                graph.RemoveChild(previousOutput);
+                graph.AddChild(sgOutput);
+            }
+
+            VFXContextType contextType;
+            switch (target)
+            {
+                case Check_CustomHLSL_Block_Works_In_Context_Case.Initialize: contextType = VFXContextType.Init; break;
+                case Check_CustomHLSL_Block_Works_In_Context_Case.Update: contextType = VFXContextType.Update; break;
+                case Check_CustomHLSL_Block_Works_In_Context_Case.Output:
+                case Check_CustomHLSL_Block_Works_In_Context_Case.OutputSG: contextType = VFXContextType.Output; break;
+                default: throw new NotImplementedException();
+            }
+
+            var vfxTargetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == contextType);
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance() as Block.SetAttribute;
+            blockAttribute.SetSettingValue("attribute", "position");
+            vfxTargetContext.AddChild(blockAttribute);
+            Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            bool foundCustomFunction = false;
+            var vfx = graph.visualEffectResource;
+            for (int sourceIndex = 0; sourceIndex < vfx.GetShaderSourceCount(); ++sourceIndex)
+            {
+                var source = vfx.GetShaderSource(sourceIndex);
+                if (source.Contains("FindMe_In_Generated_Source", StringComparison.InvariantCulture))
+                {
+                    foundCustomFunction = true;
+                    break;
+                }
+            }
+            Assert.IsTrue(foundCustomFunction);
+            yield return null;
+        }
+
         private VFXExpression[] CallBuildExpression(CustomHLSL hlslOperator, VFXExpression[] parentExpressions)
         {
             var methodInfo = hlslOperator.GetType().GetMethod("BuildExpression", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -286,7 +359,7 @@ namespace UnityEditor.VFX.Test
 
         private void MakeSimpleGraphWithCustomHLSL(CustomHLSL hlslOperator, out VFXViewWindow view, out VFXGraph graph)
         {
-            graph = VFXTestCommon.MakeTemporaryGraph();
+            graph = VFXTestCommon.CreateGraph_And_System();
             view = VFXViewWindow.GetWindow(graph, true, true);
             view.LoadResource(graph.visualEffectResource);
 

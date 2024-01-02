@@ -35,6 +35,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _DynamicResolutionFullscreenScale;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
+    float4 _InvProjParams;
     float4 unity_OrthoParams;
     float4 _ScreenParams;
     float4 _FrustumPlanes[6];

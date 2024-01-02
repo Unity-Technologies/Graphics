@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_LargeCurrentRegionExtent, k_CurrentRegionExtent);
                     SanitizeExtentsVector2(serialized.m_LargeCurrentRegionExtent);
                     EditorGUILayout.PropertyField(serialized.m_LargeCurrentRegionOffset, k_CurrentRegionOffset);
-                    serialized.m_LargeCurrentMapInfluence.floatValue = EditorGUILayout.Slider(k_LargeCurrentMapInfluence, serialized.m_LargeCurrentMapInfluence.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_LargeCurrentMapInfluence, k_LargeCurrentMapInfluence);
                 }
             }
         }
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_RipplesCurrentRegionExtent, k_CurrentRegionExtent);
                     SanitizeExtentsVector2(serialized.m_RipplesCurrentRegionExtent);
                     EditorGUILayout.PropertyField(serialized.m_RipplesCurrentRegionOffset, k_CurrentRegionOffset);
-                    serialized.m_RipplesCurrentMapInfluence.floatValue = EditorGUILayout.Slider(k_RipplesCurrentMapInfluence, serialized.m_RipplesCurrentMapInfluence.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesCurrentMapInfluence, k_RipplesCurrentMapInfluence);
                 }
             }
         }
@@ -176,9 +176,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(serialized.m_WaterMaskExtent, k_WaterMaskExtent);
                     EditorGUILayout.PropertyField(serialized.m_WaterMaskOffset, k_WaterMaskOffset);
+
                     Vector2 remap = serialized.m_WaterMaskRemap.vector2Value;
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.MinMaxSlider(k_WaterMaskRemap, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                    serialized.m_WaterMaskRemap.vector2Value = remap;
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.m_WaterMaskRemap.vector2Value = remap;
                 }
             }
         }
@@ -193,12 +196,14 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 // Swell parameters
-                serialized.m_RepetitionSize.floatValue = EditorGUILayout.Slider(k_SwellRepetitionSize, serialized.m_RepetitionSize.floatValue,
-                                                WaterConsts.k_SwellMinPatchSize,
-                                                WaterConsts.k_SwellMaxPatchSize);
-                serialized.m_LargeWindSpeed.floatValue = EditorGUILayout.Slider(k_SwellWindSpeed, serialized.m_LargeWindSpeed.floatValue, 0.0f, WaterConsts.k_SwellMaximumWindSpeed);
-                serialized.m_LargeChaos.floatValue = EditorGUILayout.Slider(k_SwellChaos, serialized.m_LargeChaos.floatValue, 0.0f, 1.0f);
-                serialized.m_LargeOrientationValue.floatValue = EditorGUILayout.FloatField(k_SwellOrientation, serialized.m_LargeOrientationValue.floatValue);
+                EditorGUI.BeginChangeCheck();
+                float repetitionSize = EditorGUILayout.Slider(k_SwellRepetitionSize, serialized.m_RepetitionSize.floatValue, WaterConsts.k_SwellMinPatchSize, WaterConsts.k_SwellMaxPatchSize);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.m_RepetitionSize.floatValue = repetitionSize;
+
+                EditorGUILayout.PropertyField(serialized.m_LargeWindSpeed, k_SwellWindSpeed);
+                EditorGUILayout.PropertyField(serialized.m_LargeChaos, k_SwellChaos);
+                EditorGUILayout.PropertyField(serialized.m_LargeOrientationValue, k_SwellOrientation);
 
                 // Current parameters
                 WaterSurfaceLargeCurrent(serialized, owner);
@@ -209,7 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     // Evaluate the maximal amplitude that this patch size/wind speed allows
-                    serialized.m_LargeBand0Multiplier.floatValue = EditorGUILayout.Slider(k_SwellBand0Mutliplier, serialized.m_LargeBand0Multiplier.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_LargeBand0Multiplier, k_SwellBand0Mutliplier);
                     using (new DisabledScope(true))
                     {
                         float maxAmplitudeBand0 = serialized.m_LargeBand0Multiplier.floatValue * HDRenderPipeline.EvaluateMaxAmplitude(serialized.m_RepetitionSize.floatValue, serialized.m_LargeWindSpeed.floatValue);
@@ -241,7 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     // Evaluate the maximal amplitude that this patch size/wind speed allows
-                    serialized.m_LargeBand1Multiplier.floatValue = EditorGUILayout.Slider(k_SwellBand1Mutliplier, serialized.m_LargeBand1Multiplier.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_LargeBand1Multiplier, k_SwellBand1Mutliplier);
                     using (new DisabledScope(true))
                     {
                         float swellSecondBandRatio = HDRenderPipeline.EvaluateSwellSecondPatchSize(serialized.m_RepetitionSize.floatValue);
@@ -281,8 +286,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new IndentLevelScope())
                 {
-                    serialized.m_RipplesWindSpeed.floatValue = EditorGUILayout.Slider(k_RipplesWindSpeed, serialized.m_RipplesWindSpeed.floatValue, 0.0f, WaterConsts.k_RipplesMaxWindSpeed);
-                    serialized.m_RipplesChaos.floatValue = EditorGUILayout.Slider(k_RipplesChaos, serialized.m_RipplesChaos.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesWindSpeed, k_RipplesWindSpeed);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesChaos, k_RipplesChaos);
 
                     // Current & Orientation
                     WaterSurfaceRipplesOrientationCurrentInherit(serialized, owner, WaterPropertyParameterDrawer.swellModeNames);
@@ -316,18 +321,20 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 // Swell parameters
-                serialized.m_RepetitionSize.floatValue = EditorGUILayout.Slider(k_AgitationRepetitionSize, serialized.m_RepetitionSize.floatValue,
-                                                WaterConsts.k_AgitationMinPatchSize,
-                                                WaterConsts.k_AgitationMaxPatchSize);
-                serialized.m_LargeWindSpeed.floatValue = EditorGUILayout.Slider(k_AgitationWindSpeed, serialized.m_LargeWindSpeed.floatValue, 0.0f, WaterConsts.k_SwellMaximumWindSpeed);
-                serialized.m_LargeChaos.floatValue = EditorGUILayout.Slider(k_AgitationChaos, serialized.m_LargeChaos.floatValue, 0.0f, 1.0f);
-                serialized.m_LargeOrientationValue.floatValue = EditorGUILayout.FloatField(k_AgitationOrientation, serialized.m_LargeOrientationValue.floatValue);
+                EditorGUI.BeginChangeCheck();
+                float repetitionSize = EditorGUILayout.Slider(k_AgitationRepetitionSize, serialized.m_RepetitionSize.floatValue, WaterConsts.k_AgitationMinPatchSize, WaterConsts.k_AgitationMaxPatchSize);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.m_RepetitionSize.floatValue = repetitionSize;
+
+                EditorGUILayout.PropertyField(serialized.m_LargeWindSpeed, k_AgitationWindSpeed);
+                EditorGUILayout.PropertyField(serialized.m_LargeChaos, k_AgitationChaos);
+                EditorGUILayout.PropertyField(serialized.m_LargeOrientationValue, k_AgitationOrientation);
 
                 // Current parameters
                 WaterSurfaceLargeCurrent(serialized, owner);
 
                 // Evaluate the maximal amplitude that this patch size/wind speed allows
-                serialized.m_LargeBand0Multiplier.floatValue = EditorGUILayout.Slider(k_AgitationBandMutliplier, serialized.m_LargeBand0Multiplier.floatValue, 0.0f, 1.0f);
+                EditorGUILayout.PropertyField(serialized.m_LargeBand0Multiplier, k_AgitationBandMutliplier);
                 using (new DisabledScope(true))
                 {
                     float maxAmplitude = serialized.m_LargeBand0Multiplier.floatValue * HDRenderPipeline.EvaluateMaxAmplitude(serialized.m_RepetitionSize.floatValue, serialized.m_LargeWindSpeed.floatValue);
@@ -359,8 +366,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new IndentLevelScope())
                 {
-                    serialized.m_RipplesWindSpeed.floatValue = EditorGUILayout.Slider(k_RipplesWindSpeed, serialized.m_RipplesWindSpeed.floatValue, 0.0f, WaterConsts.k_RipplesMaxWindSpeed);
-                    serialized.m_RipplesChaos.floatValue = EditorGUILayout.Slider(k_RipplesChaos, serialized.m_RipplesChaos.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesWindSpeed, k_RipplesWindSpeed);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesChaos, k_RipplesChaos);
 
                     // Orientation & Current
                     WaterSurfaceRipplesOrientationCurrentInherit(serialized, owner, WaterPropertyParameterDrawer.agitationModeNames);
@@ -393,8 +400,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new IndentLevelScope())
                 {
-                    serialized.m_RipplesWindSpeed.floatValue = EditorGUILayout.Slider(k_RipplesWindSpeed, serialized.m_RipplesWindSpeed.floatValue, 0.0f, WaterConsts.k_RipplesMaxWindSpeed);
-                    serialized.m_RipplesChaos.floatValue = EditorGUILayout.Slider(k_RipplesChaos, serialized.m_RipplesChaos.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesWindSpeed, k_RipplesWindSpeed);
+                    EditorGUILayout.PropertyField(serialized.m_RipplesChaos, k_RipplesChaos);
 
                     // Current
                     WaterSurfaceRipplesOrientationCurrent(serialized, owner);
@@ -420,6 +427,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static internal void WaterSurfaceSimulationSection(WaterSurfaceEditor serialized, Editor owner)
         {
+            if (serialized.m_SurfaceType.hasMultipleDifferentValues)
+                return;
+
             WaterSurfaceType surfaceType = (WaterSurfaceType)(serialized.m_SurfaceType.enumValueIndex);
             switch (surfaceType)
             {

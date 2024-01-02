@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering
         const string k_Class = "header-foldout";
 
         private string m_DocumentationURL;
-        private Func<GenericDropdownMenu> m_ContextMenuGenerator;
+        private Func<GenericMenu> m_ContextMenuGenerator;
         private VisualElement m_HelpButton;
         private VisualElement m_ContextMenuButton;
 
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering
         }
         
         /// <summary>Context menu to show on clic of the context button. If null, button don't show.</summary>
-        public Func<GenericDropdownMenu> contextMenuGenerator
+        public Func<GenericMenu> contextMenuGenerator //Use ImGUI for now
         {
             get => m_ContextMenuGenerator;
             set
@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering
         void ShowMenu()
         {
             var menu = m_ContextMenuGenerator.Invoke();
-            menu.DropDown(new Rect(m_ContextMenuButton.worldBound.position + m_ContextMenuButton.worldBound.size.y * Vector2.up, Vector2.zero), this);
+            menu.DropDown(new Rect(m_ContextMenuButton.worldBound.position + m_ContextMenuButton.worldBound.size.y * Vector2.up, Vector2.zero));
         }
     }
     

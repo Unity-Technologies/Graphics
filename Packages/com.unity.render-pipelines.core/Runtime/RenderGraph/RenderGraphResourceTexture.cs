@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -41,7 +42,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         private bool builtin;
 
-        internal TextureHandle(ResourceHandle h)
+        internal TextureHandle(in ResourceHandle h)
         {
             handle = h;
             builtin = false;
@@ -85,12 +86,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Return true if the handle is valid.
         /// </summary>
         /// <returns>True if the handle is valid.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsValid() => handle.IsValid();
 
         /// <summary>
         /// Return true if the handle is a builtin handle managed by RenderGraph internally.
         /// </summary>
         /// <returns>True if the handle is a builtin handle.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsBuiltin() => this.builtin;
     }
 
@@ -452,12 +455,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             res.Release();
         }
 
-        protected override string GetResourceName(RTHandle res)
+        protected override string GetResourceName(in RTHandle res)
         {
             return res.rt.name;
         }
 
-        protected override long GetResourceSize(RTHandle res)
+        protected override long GetResourceSize(in RTHandle res)
         {
             return Profiling.Profiler.GetRuntimeMemorySizeLong(res.rt);
         }

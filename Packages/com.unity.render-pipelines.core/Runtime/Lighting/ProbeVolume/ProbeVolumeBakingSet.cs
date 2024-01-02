@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Sky Occlusion backface culling
         /// </summary>
-        public bool skyOcclusionBackFaceCulling = true;
+        public bool skyOcclusionBackFaceCulling = false;
 
         /// <summary>
         ///  Bake sky shading direction.

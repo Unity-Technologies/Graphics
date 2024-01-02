@@ -227,7 +227,7 @@ namespace UnityEditor.VFX.Test
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             var hasRegisteredError = false;
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
             view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
                 model,
                 errorType,
@@ -246,6 +246,73 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(hasRegisteredError);
         }
 
+        public enum Check_CustomHLSL_Block_Works_In_Context_Case
+        {
+            Initialize,
+            Update,
+            Output,
+            OutputSG
+        }
+
+        public static Array k_Check_CustomHLSL_Block_Works_In_Context_Case = Enum.GetValues(typeof(Check_CustomHLSL_Block_Works_In_Context_Case));
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_Works_In_Context([ValueSource(nameof(k_Check_CustomHLSL_Block_Works_In_Context_Case))] Check_CustomHLSL_Block_Works_In_Context_Case target)
+        {
+            // Arrange
+            var hlslCode =
+@"void FindMe_In_Generated_Source(inout VFXAttributes attributes)
+{
+    attributes.color *= length(attributes.position);
+}";
+
+            VFXContextType contextType;
+            switch (target)
+            {
+                case Check_CustomHLSL_Block_Works_In_Context_Case.Initialize: contextType = VFXContextType.Init; break;
+                case Check_CustomHLSL_Block_Works_In_Context_Case.Update: contextType = VFXContextType.Update; break;
+                case Check_CustomHLSL_Block_Works_In_Context_Case.Output:
+                case Check_CustomHLSL_Block_Works_In_Context_Case.OutputSG: contextType = VFXContextType.Output; break;
+                default: throw new NotImplementedException();
+            }
+
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, true, contextType);
+
+            if (target == Check_CustomHLSL_Block_Works_In_Context_Case.OutputSG)
+            {
+                var previousOutput = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Output);
+                previousOutput.RemoveChild(hlslBlock);
+                var sgOutput = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                sgOutput.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+                sgOutput.SetSettingValue("m_Shading", new ParticleShadingShaderGraph());
+                sgOutput.AddChild(hlslBlock);
+
+                var parentContext = previousOutput.inputFlowSlot.First().link.First().context;
+                previousOutput.UnlinkAll();
+                sgOutput.LinkFrom(parentContext);
+                graph.AddChild(sgOutput);
+            }
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            bool foundCustomFunction = false;
+            var vfx = graph.visualEffectResource;
+            for (int sourceIndex = 0; sourceIndex < vfx.GetShaderSourceCount(); ++sourceIndex)
+            {
+                var source = vfx.GetShaderSource(sourceIndex);
+                if (source.Contains("FindMe_In_Generated_Source", StringComparison.InvariantCulture))
+                {
+                    foundCustomFunction = true;
+                    break;
+                }
+            }
+            Assert.IsTrue(foundCustomFunction);
+
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Check_CustomHLSL_Block_No_Function()
         {
@@ -254,7 +321,7 @@ namespace UnityEditor.VFX.Test
             hlslBlock.SetSettingValue("m_HLSLCode", "toto");
 
             var hasRegisteredError = false;
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
             view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
                 model,
                 errorType,
@@ -323,7 +390,7 @@ namespace UnityEditor.VFX.Test
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             var hasRegisteredError = false;
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
             view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
                 model,
                 errorType,
@@ -355,7 +422,7 @@ namespace UnityEditor.VFX.Test
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             var hasRegisteredError = false;
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
             view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
                 model,
                 errorType,
@@ -387,7 +454,7 @@ namespace UnityEditor.VFX.Test
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
             var hasRegisteredError = false;
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
             view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
                 model,
                 errorType,
@@ -452,7 +519,7 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
 
             // Act
             var includes = hlslBlock.includes.ToArray();
@@ -567,15 +634,21 @@ namespace UnityEditor.VFX.Test
             return (HLSLFunction)fieldInfo.GetValue(hlslOperator);
         }
 
-        private void MakeSimpleGraphWithCustomHLSL(CustomHLSL hlslBlock, out VFXViewWindow view, out VFXGraph graph)
+        private void MakeSimpleGraphWithCustomHLSL(CustomHLSL hlslBlock, out VFXViewWindow view, out VFXGraph graph, bool compilable = true, VFXContextType targetContextType = VFXContextType.Update)
         {
             graph = VFXTestCommon.CreateGraph_And_System();
             view = VFXViewWindow.GetWindow(graph, true, true);
             view.LoadResource(graph.visualEffectResource);
 
-            var updateContext = (VFXBasicUpdate)VFXLibrary.GetContexts().Single(x => x.modelType == typeof(VFXBasicUpdate)).CreateInstance();
-            updateContext.AddChild(hlslBlock);
-            graph.AddChild(updateContext);
+            if (!compilable)
+            {
+                var outputContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Output);
+                outputContext.UnlinkAll();
+            }
+
+            var targetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == targetContextType);
+            targetContext.AddChild(hlslBlock);
+
             view.graphView.OnSave();
         }
 

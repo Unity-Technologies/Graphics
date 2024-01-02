@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -13,6 +14,8 @@ namespace UnityEngine.Rendering.Universal
     {
         private PassData m_PassData;
         private RendererList m_SkyRendererList;
+
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
 
         /// <summary>
         /// Creates a new <c>DrawSkyboxPass</c> instance.
@@ -123,8 +126,13 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
 
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
-                if (hasDepthCopy && renderer.renderingModeActual != RenderingMode.Deferred && resourceData.cameraDepthTexture.IsValid())
-                    builder.UseGlobalTexture(Shader.PropertyToID("_CameraDepthTexture"));
+                if (hasDepthCopy && resourceData.cameraDepthTexture.IsValid())
+                {
+                    if (renderer.renderingModeActual != RenderingMode.Deferred)
+                        builder.UseGlobalTexture(s_CameraDepthTextureID);
+                    else if (renderer.deferredLights.GbufferDepthIndex != -1)
+                        builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
+                }
 
                 builder.AllowPassCulling(false);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);

@@ -1167,8 +1167,7 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
 // Ref: An Efficient Depth Linearization Method for Oblique View Frustums, Eq. 6.
 float LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam)
 {
-    float4 positionCS = float4(positionNDC * 2.0 - 1.0, deviceDepth, 1.0);
-    float  viewSpaceZ = rcp(dot(positionCS, invProjParam));
+    float viewSpaceZ = rcp(dot(float4(positionNDC, deviceDepth, 1.0), invProjParam));
 
     // If the matrix is right-handed, we have to flip the Z axis to get a positive value.
     return abs(viewSpaceZ);

@@ -22,7 +22,13 @@ namespace UnityEditor.Rendering
              EditorAnalytics.SendAnalytic(analytic);
         }
 
-        internal static IEnumerable<FieldInfo> GetSerializableFields(this Type type, bool removeObsolete = false)
+        /// <summary>
+        /// Gets a list of the serializable fields of the given type
+        /// </summary>
+        /// <param name="type">The type to get fields that are serialized.</param>
+        /// <param name="removeObsolete">If obsolete fields are taken into account</param>
+        /// <returns>The collection of <see cref="FieldInfo"/> that are serialized for this type</returns>
+        public static IEnumerable<FieldInfo> GetSerializableFields(this Type type, bool removeObsolete = false)
         {
             var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
 

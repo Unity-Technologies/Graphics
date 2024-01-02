@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
@@ -168,19 +169,30 @@ namespace UnityEngine.Rendering.RenderGraphModule
         List<CoreRendererList> m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckTextureResource(TextureResource texResource)
+        {
+            if (texResource.graphicsResource == null && !texResource.imported)
+                throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+        }
+
         internal RTHandle GetTexture(in TextureHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
             var texResource = GetTextureResource(handle.handle);
-            var resource = texResource.graphicsResource;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (resource == null && !texResource.imported)
-                throw new InvalidOperationException($"Trying to use a texture ({texResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
-#endif
+            CheckTextureResource(texResource);
+            return texResource.graphicsResource;
+        }
 
-            return resource;
+        // This index overload will not check frame validity.
+        // Its only purpose is because the NRP compiled graph stores resource handles that would not be frame valid when reused.
+        internal RTHandle GetTexture(int index)
+        {
+            var texResource = GetTextureResource(index);
+            CheckTextureResource(texResource);
+            return texResource.graphicsResource;
         }
 
         internal bool TextureNeedsFallback(in TextureHandle handle)
@@ -217,19 +229,32 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return CoreRendererList.nullRendererList;
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckBufferResource(BufferResource bufferResoruce)
+        {
+            if (bufferResoruce.graphicsResource == null)
+                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+        }
+
         internal GraphicsBuffer GetBuffer(in BufferHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
             var bufferResource = GetBufferResource(handle.handle);
-            var resource = bufferResource.graphicsResource;
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (resource == null)
-                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
-#endif
+            CheckBufferResource(bufferResource);
 
-            return resource;
+            return bufferResource.graphicsResource;
+        }
+
+        // This index overload will not check frame validity.
+        // Its only purpose is because the NRP compiled graph stores resource handles that would not be frame valid when reused.
+        internal GraphicsBuffer GetBuffer(int index)
+        {
+            var bufferResource = GetBufferResource(index);
+            CheckBufferResource(bufferResource);
+
+            return bufferResource.graphicsResource;
         }
 
         internal RayTracingAccelerationStructure GetRayTracingAccelerationStructure(in RayTracingAccelerationStructureHandle handle)
@@ -245,6 +270,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
 
             return resource;
+        }
+
+        internal int GetSharedResourceCount(RenderGraphResourceType type)
+        {
+            return m_RenderGraphResources[(int)type].sharedResourcesCount;
         }
 
         private RenderGraphResourceRegistry()
@@ -293,20 +323,24 @@ namespace UnityEngine.Rendering.RenderGraphModule
             current = null;
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void CheckHandleValidity(in ResourceHandle res)
         {
             CheckHandleValidity(res.type, res.index);
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckHandleValidity(RenderGraphResourceType type, int index)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            var resources = m_RenderGraphResources[(int)type].resourceArray;
-            if (index == 0)
-                throw new ArgumentException($"Trying to access resource of type {type} with an null resource index.");
-            if (index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
-#endif
+            if(RenderGraph.enableValidityChecks)
+            {
+                var resources = m_RenderGraphResources[(int)type].resourceArray;
+                if (index == 0)
+                    throw new ArgumentException($"Trying to access resource of type {type} with an null resource index.");
+                if (index >= resources.size)
+                    throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+            }
         }
 
         internal void IncrementWriteCount(in ResourceHandle res)
@@ -429,7 +463,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, bool isBuiltin = false)
+        internal TextureHandle ImportTexture(in RTHandle rt, bool isBuiltin = false)
         {
             ImportResourceParams importParams = new ImportResourceParams();
             importParams.clearOnFirstUse = false;
@@ -439,7 +473,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, ImportResourceParams importParams, bool isBuiltin = false)
+        internal TextureHandle ImportTexture(in RTHandle rt, in ImportResourceParams importParams, bool isBuiltin = false)
         {
             // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
             // Not sure what this actually "means" it allocates a RG handle but nothing is behind it
@@ -475,19 +509,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
 
-            var handle = new TextureHandle(newHandle, false, isBuiltin);
-            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time. It is invalid to import
-            // a texture if we can't get it's info somehow. (The alternative is for the code calling ImportTexture to use the overload that takes a RenderTargetInfo).
-            if (rt != null)
-            {
-                RenderTargetInfo outInfo;
-                GetRenderTargetInfo(handle.handle, out outInfo);
-            }
-            return handle;
+            var texHandle = new TextureHandle(newHandle, false, isBuiltin);
+
+            // Try getting the info straight away so if something is wrong we throw at import time.
+            // It is invalid to import a texture if we can't get its info somehow.
+            // (The alternative is for the code calling ImportTexture to use the overload that takes a RenderTargetInfo).
+            if(rt != null)
+                ValidateRenderTarget(texHandle.handle);
+            
+            return texHandle;
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
-        internal TextureHandle ImportTexture(RTHandle rt, RenderTargetInfo info, ImportResourceParams importParams)
+        internal TextureHandle ImportTexture(in RTHandle rt, RenderTargetInfo info, in ImportResourceParams importParams)
         {
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.graphicsResource = rt;
@@ -498,7 +532,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // Apparently existing code tries to import null textures !?? So we sort of allow them then :(
             if (rt != null)
             {
-
                 if (rt.m_NameID != emptyId)
                 {
                     // Store the info in the descriptor structure to avoid having a separate info structure being saved per resource
@@ -530,11 +563,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
             }
 
-            var handle = new TextureHandle(newHandle);
-            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time.
-            RenderTargetInfo outInfo;
-            GetRenderTargetInfo(handle.handle, out outInfo);
-            return handle;
+            var texHandle = new TextureHandle(newHandle);
+
+            // Try getting the info straight away so if something is wrong we throw at import time.
+            ValidateRenderTarget(texHandle.handle);
+
+            return texHandle;
         }
 
         internal TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease)
@@ -574,7 +608,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return new TextureHandle(textureIndex, shared: true);
         }
 
-        internal void RefreshSharedTextureDesc(TextureHandle texture, in TextureDesc desc)
+        internal void RefreshSharedTextureDesc(in TextureHandle texture, in TextureDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle.index))
@@ -587,7 +621,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc = desc;
         }
 
-        internal void ReleaseSharedTexture(TextureHandle texture)
+        internal void ReleaseSharedTexture(in TextureHandle texture)
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
 
@@ -605,7 +639,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.Reset(null);
         }
 
-        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, RenderTargetInfo info, ImportResourceParams importParams)
+        internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, in RenderTargetInfo info, in ImportResourceParams importParams)
         {
             if (m_CurrentBackbuffer != null)
                 m_CurrentBackbuffer.SetTexture(rt);
@@ -626,20 +660,31 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
 
-            var handle = new TextureHandle(newHandle);
-            // Try getting the info straight away so if something goes wrong getting it we get the exceptions directly at import time.
-            RenderTargetInfo outInfo;
-            GetRenderTargetInfo(handle.handle, out outInfo);
-            return handle;
+            var texHandle = new TextureHandle(newHandle);
+
+            // Try getting the info straight away so if something wrong we get the exceptions directly at import time.
+            ValidateRenderTarget(texHandle.handle);
+
+            return texHandle;
         }
 
         static RenderTargetIdentifier emptyId = new RenderTargetIdentifier();
         static RenderTargetIdentifier builtinCameraRenderTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
 
-        internal void GetRenderTargetInfo(ResourceHandle res, out RenderTargetInfo outInfo)
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        private void ValidateRenderTarget(in ResourceHandle res)
+        {
+            if(RenderGraph.enableValidityChecks)
+            {                
+                RenderTargetInfo outInfo;
+                GetRenderTargetInfo(res, out outInfo);
+            }
+        }
+
+        internal void GetRenderTargetInfo(in ResourceHandle res, out RenderTargetInfo outInfo)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (res.IsValid() == false || res.iType != (int)RenderGraphResourceType.Texture)
+            if (res.iType != (int)RenderGraphResourceType.Texture)
             {
                 outInfo = new RenderTargetInfo();
                 throw new ArgumentException("Invalid Resource Handle passed to GetRenderTargetInfo");
@@ -772,6 +817,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource;
         }
 
+        internal TextureResource GetTextureResource(int index)
+        {
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[index] as TextureResource;
+        }
+
         internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Texture);
@@ -862,6 +912,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource;
         }
 
+        BufferResource GetBufferResource(int index)
+        {
+            return m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[index] as BufferResource;
+        }
+
         RayTracingAccelerationStructureResource GetRayTracingAccelerationStructureResource(in ResourceHandle handle)
         {
             return m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].resourceArray[handle.index] as RayTracingAccelerationStructureResource;
@@ -930,7 +985,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
         }
-        internal void CreatePooledResource(InternalRenderGraphContext rgContext, ResourceHandle handle)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void CreatePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
         {
             CreatePooledResource(rgContext, handle.iType, handle.index);
         }
@@ -978,7 +1035,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, ResourceHandle handle)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void ReleasePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
         {
             ReleasePooledResource(rgContext, handle.iType, handle.index);
         }
@@ -997,59 +1055,65 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateTextureDesc(in TextureDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (desc.colorFormat == GraphicsFormat.None && desc.depthBufferBits == DepthBits.None)
+            if(RenderGraph.enableValidityChecks)
             {
-                throw new ArgumentException("Texture was created with an invalid color format.");
-            }
+                if (desc.colorFormat == GraphicsFormat.None && desc.depthBufferBits == DepthBits.None)
+                {
+                    throw new ArgumentException("Texture was created with an invalid color format.");
+                }
 
-            if (desc.dimension == TextureDimension.None)
-            {
-                throw new ArgumentException("Texture was created with an invalid texture dimension.");
-            }
+                if (desc.dimension == TextureDimension.None)
+                {
+                    throw new ArgumentException("Texture was created with an invalid texture dimension.");
+                }
 
-            if (desc.slices == 0)
-            {
-                throw new ArgumentException("Texture was created with a slices parameter value of zero.");
-            }
+                if (desc.slices == 0)
+                {
+                    throw new ArgumentException("Texture was created with a slices parameter value of zero.");
+                }
 
-            if (desc.sizeMode == TextureSizeMode.Explicit)
-            {
-                if (desc.width == 0 || desc.height == 0)
-                    throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
+                if (desc.sizeMode == TextureSizeMode.Explicit)
+                {
+                    if (desc.width == 0 || desc.height == 0)
+                        throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
+                }
             }
-#endif
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateRendererListDesc(in CoreRendererListDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (!desc.IsValid())
+            if(RenderGraph.enableValidityChecks)
             {
-                throw new ArgumentException("Renderer List descriptor is not valid.");
-            }
+                if (!desc.IsValid())
+                {
+                    throw new ArgumentException("Renderer List descriptor is not valid.");
+                }
 
-            if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
-            {
-                throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
+                if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
+                {
+                    throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
+                }
             }
-#endif
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateBufferDesc(in BufferDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (desc.stride % 4 != 0)
+            if(RenderGraph.enableValidityChecks)
             {
-                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer stride must be at least 4.");
+                if (desc.stride % 4 != 0)
+                {
+                    throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer stride must be at least 4.");
+                }
+                if (desc.count == 0)
+                {
+                    throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer count  must be non zero.");
+                }
             }
-            if (desc.count == 0)
-            {
-                throw new ArgumentException("Invalid Graphics Buffer creation descriptor: Graphics Buffer count  must be non zero.");
-            }
-#endif
         }
 
         internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context, bool manualDispatch = false)

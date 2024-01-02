@@ -26,25 +26,37 @@
 
 RW_TEXTURE2D_ARRAY(float, _LensFlareOcclusion);
 
-groupshared float localOcclusion[8][8];
+int _MultipassID;
 
-[numthreads(8, 8, 1)]
+groupshared float localOcclusion[8][8][SHADEROPTIONS_XR_MAX_VIEWS];
+
+[numthreads(8, 8, 2)]
 void MainCS(uint3 dispatchThreadId : SV_DispatchThreadID, uint3 groupThreadID : SV_GroupThreadID)
 {
+    uint threadIdZ;
+    // For SinglePass XR
+    if (_MultipassID < 0)
+        threadIdZ = dispatchThreadId.z;
+    else // For Multipass XR
+        threadIdZ = (uint)_MultipassID;
+
     // Row[0] is reserved to store the results
-    localOcclusion[groupThreadID.x][groupThreadID.y] = _LensFlareOcclusion[uint3(dispatchThreadId.x, dispatchThreadId.y + 1, dispatchThreadId.z)].x;
+    if (_MultipassID < 0 || (_MultipassID >= 0 && dispatchThreadId.z == threadIdZ))
+        localOcclusion[groupThreadID.x][groupThreadID.y][threadIdZ] = _LensFlareOcclusion[uint3(dispatchThreadId.x, dispatchThreadId.y + 1, threadIdZ)].x;
+
     GroupMemoryBarrierWithGroupSync();
 
-    if (groupThreadID.y < 4)
-        localOcclusion[groupThreadID.x][groupThreadID.y] = max(localOcclusion[groupThreadID.x][groupThreadID.y], localOcclusion[groupThreadID.x][groupThreadID.y + 4]);
+    if (groupThreadID.y < 4 && (_MultipassID < 0 || (_MultipassID >= 0 && dispatchThreadId.z == threadIdZ)))
+        localOcclusion[groupThreadID.x][groupThreadID.y][threadIdZ] = max(localOcclusion[groupThreadID.x][groupThreadID.y][threadIdZ], localOcclusion[groupThreadID.x][groupThreadID.y + 4][threadIdZ]);
     GroupMemoryBarrierWithGroupSync();
 
-    if (groupThreadID.y < 2)
-        localOcclusion[groupThreadID.x][groupThreadID.y] = max(localOcclusion[groupThreadID.x][groupThreadID.y], localOcclusion[groupThreadID.x][groupThreadID.y + 2]);
+    if (groupThreadID.y < 2 && (_MultipassID < 0 || (_MultipassID >= 0 && dispatchThreadId.z == threadIdZ)))
+        localOcclusion[groupThreadID.x][groupThreadID.y][threadIdZ] = max(localOcclusion[groupThreadID.x][groupThreadID.y][threadIdZ], localOcclusion[groupThreadID.x][groupThreadID.y + 2][threadIdZ]);
     GroupMemoryBarrierWithGroupSync();
 
     if (groupThreadID.y == 0)
     {
-        _LensFlareOcclusion[uint3(dispatchThreadId.x, 0, dispatchThreadId.z)] = max(localOcclusion[groupThreadID.x][0], localOcclusion[groupThreadID.x][1]);
+        if (_MultipassID < 0 || (_MultipassID >= 0 && dispatchThreadId.z == threadIdZ))
+            _LensFlareOcclusion[uint3(dispatchThreadId.x, 0, threadIdZ)] = max(localOcclusion[groupThreadID.x][0][threadIdZ], localOcclusion[groupThreadID.x][1][threadIdZ]);
     }
 }

@@ -454,6 +454,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "23a27448d7a64529af78bdf4b9825683"
@@ -538,6 +539,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -905,6 +907,7 @@
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInTarget",
     "m_ObjectId": "23a27448d7a64529af78bdf4b9825683",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "665a2bbeb7f64adb931b677437ec9db7"
     },
@@ -3484,7 +3487,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "fb8ada894b3e4f498dd4e63f459cc196",
     "m_Title": "",
-    "m_Content": "Mesauring the length of the View Vector or finding the distance between the camera position and the world space position should give us the same result.",
+    "m_Content": "Measuring the length of the View Vector or finding the distance between the camera position and the world space position should give us the same result.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

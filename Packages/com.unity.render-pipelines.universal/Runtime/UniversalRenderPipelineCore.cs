@@ -1858,6 +1858,9 @@ namespace UnityEngine.Rendering.Universal
         DrawTransparentObjects,
         DrawScreenSpaceUI,
 
+        //Full Record Render Graph
+        RecordRenderGraph,
+
         // RenderObjectsPass
         //RenderObjects,
 
@@ -1901,10 +1904,9 @@ namespace UnityEngine.Rendering.Universal
         [HideInDebugUI] RG_TAA,
         [HideInDebugUI] RG_TAACopyHistory,
         [HideInDebugUI] RG_MotionBlur,
-        [HideInDebugUI] RG_BloomSetupPass,
+        [HideInDebugUI] RG_BloomSetup,
         [HideInDebugUI] RG_BloomPrefilter,
-        [HideInDebugUI] RG_BloomFirstPass,
-        [HideInDebugUI] RG_BloomSecondPass,
+        [HideInDebugUI] RG_BloomDownsample,
         [HideInDebugUI] RG_BloomUpsample,
         [HideInDebugUI] RG_UberPostSetupBloomPass,
         [HideInDebugUI] RG_UberPost,

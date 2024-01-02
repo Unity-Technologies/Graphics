@@ -79,6 +79,7 @@ float4 _FlareData5; // x: ConstantColor, y: Intensity, z: shapeCutOffSpeed, w: c
 
 TEXTURE2D(_FlareRadialTint);
 SAMPLER(sampler_FlareRadialTint);
+int _ViewId; // Used for XR index, for SinglePass and Multipass
 
 #ifdef FLARE_PREVIEW
 float4 _FlarePreviewData;
@@ -142,13 +143,31 @@ void Rotate(out float2 rot, float2 v, float cos0, float sin0)
 float GetLinearDepthValue(float2 uv)
 {
     float depth;
+
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
-    if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
-        depth = LOAD_TEXTURE2D_X_LOD(_DepthWithWaterTexture, uint2(uv * _ScreenSize.xy), 0).x;
+    if (_ViewId >= 0)
+    {
+        if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
+            depth = LOAD_TEXTURE2D_ARRAY_LOD(_DepthWithWaterTexture, uint2(uv * _ScreenSize.xy), _ViewId, 0).x;
+        else
+            depth = LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), _ViewId, 0).x;
+    }
     else
-        depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
+    {
+        if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
+            depth = LOAD_TEXTURE2D_X_LOD(_DepthWithWaterTexture, uint2(uv * _ScreenSize.xy), 0).x;
+        else
+            depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
+    }
+
 #else
     depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
+
+    if (_ViewId >= 0)
+        depth = LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), _ViewId, 0).x;
+    else
+        depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
+
 #endif
 
     return LinearEyeDepth(depth, _ZBufferParams);
@@ -187,13 +206,21 @@ float GetOcclusion(float ratio)
 #ifdef HDRP_FLARE
                 if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_CLOUD_LAYER) != 0)
                 {
-                    float cloudOpacity = LOAD_TEXTURE2D_X(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy)).x;
+                    float cloudOpacity;
+                    if (_ViewId >= 0)
+                        cloudOpacity = LOAD_TEXTURE2D_ARRAY(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy), _ViewId).x;
+                    else
+                        cloudOpacity = LOAD_TEXTURE2D_X(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy)).x;
                     occlusionValue *= saturate(cloudOpacity);
                 }
 
                 if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_VOLUMETRIC_CLOUD) != 0)
                 {
-                    float volumetricCloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
+                    float volumetricCloudOcclusion;
+                    if (_ViewId >= 0)
+                        volumetricCloudOcclusion = SAMPLE_TEXTURE2D_ARRAY_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, _ViewId, 0).w;
+                    else
+                        volumetricCloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
                     occlusionValue *= saturate(volumetricCloudOcclusion);
                 }
 
@@ -202,7 +229,11 @@ float GetOcclusion(float ratio)
                     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uint2(pos * _ScreenParams.xy)));
                     if ((stencilValue & STENCILUSAGE_WATER_SURFACE) != 0)
                     {
-                        float2 waterGBufferData = LOAD_TEXTURE2D_X(_FlareWaterGBuffer3Thickness, uint2(pos.xy * _ScreenParams.xy)).xy;
+                        float2 waterGBufferData;
+                        if (_ViewId >= 0)
+                            waterGBufferData = LOAD_TEXTURE2D_ARRAY(_FlareWaterGBuffer3Thickness, uint2(pos.xy * _ScreenParams.xy), _ViewId).xy;
+                        else
+                            waterGBufferData = LOAD_TEXTURE2D_X(_FlareWaterGBuffer3Thickness, uint2(pos.xy * _ScreenParams.xy)).xy;
 
                         // Copy pasted from HDRP, cf. Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl
                         uint upper16Bits = ((uint)(waterGBufferData.x * 255.0f)) << 8 | ((uint)(waterGBufferData.y * 255.0f));
@@ -326,9 +357,15 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 #endif
 
         occlusion = GetOcclusion(screenRatio);
-#else
-        occlusion = LOAD_TEXTURE2D_ARRAY_LOD(_FlareOcclusionTex, uint2(_FlareOcclusionIndex.x, 0), unity_StereoEyeIndex, 0).x;
-#endif
+
+#else // defined(FLARE_OPENGL3_OR_OPENGLCORE)
+
+        if (_ViewId >= 0)
+            occlusion = LOAD_TEXTURE2D_ARRAY_LOD(_FlareOcclusionTex, uint2(_FlareOcclusionIndex.x, 0), _ViewId, 0).x;
+        else
+            occlusion = LOAD_TEXTURE2D_ARRAY_LOD(_FlareOcclusionTex, uint2(_FlareOcclusionIndex.x, 0), 0, 0).x;
+
+#endif // defined(FLARE_OPENGL3_OR_OPENGLCORE)
     }
 
     output.occlusion = occlusion;
