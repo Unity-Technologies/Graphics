@@ -1,17 +1,15 @@
-# Preparing Sprites For Lighting
+# Prepare and upgrade sprites and projects for lighting
 
-To light __Sprites__ with __2D Lights__,  the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html) component of the Sprite is assigned a material with a Shader that reacts to 2D Lights. With the 2D Lights preview package installed, dragging Sprites onto the Scene automatically assigns the ‘Sprite-Lit-Default’ material to them which enables them to interact and appear lit by 2D Lights.
+To light a sprite with [2D lights](2DLightProperties.md), first go to the [Sprite Renderer](xref:class-SpriteRenderer) component of the sprite and assign a material with a Shader that reacts to 2D lights. When you drag sprites onto the scene, Unity automatically assigns the `Sprite-Lit-Default` material to them which enables them to interact and appear lit by 2D lights.
 
-Alternatively, you can create a custom Shader that reacts to Lights with the [Shader Graph package](https://docs.unity3d.com/Packages/com.unity.shadergraph@5.6/manual/Getting-Started.html). The Shader Graph package is available for download via the Package Manager.
+You can also [create a custom Shader](ShaderGraph.md) that reacts to lights with the [Shader Graph package](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest).
 
-## Upgrading to a compatible Shader
+## Upgrading existing materials
 
-If you are installing the 2D Lights package into a Project with pre-existing Prefabs, materials or Scenes, you will need to upgrade any materials used to a lighting compatible Shader. The following functions automatically upgrade a Scene or Project automatically in a one way process. Upgraded Scenes or Projects cannot be reverted to their previous state.
+If you are installing the URP package into an existing project with preexisting prefabs, materials or scenes, you will need to upgrade any materials used to a lighting compatible Shader if you want to use the package's 2D lighting features. 
 
-### Upgrading a Scene
+**Warning:** The following task automatically upgrades a scene or project in a one way process. Unity can't revert upgraded scenes or projects to their previous state. Before you start this task, back up any files you don't want to lose or converted.
 
-To upgrade the currently opened Scene, go to __Edit> Render Pipeline > UniversalRP 2D Renderer > Upgrade Scene To 2D Renderer__
+To upgrade your project, go to **Window > Rendering > Render Pipeline Converter**. Enable **Material Upgrade** and then select **Convert Assets** to begin the upgrade.
 
-### Upgrading a Project
-
-To upgrade all Prefabs and materials in your Project, go to __Edit > Render Pipeline > UniversalRP 2D Renderer > Upgrade Project To 2D Renderer__
+For information on converting assets made for a Built-in Render Pipeline project to assets compatible with 2D URP, refer to [Render Pipeline Converter](features/rp-converter.md#converters).
