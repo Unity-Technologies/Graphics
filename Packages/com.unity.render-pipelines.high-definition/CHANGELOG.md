@@ -9,6 +9,68 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.4] - 2023-12-21
+
+This version is compatible with Unity 2023.2.5f1.
+
+### Changed
+- Reduced memory consumed by LTC area light table.
+- You can now set the width of High Quality Lines in centimeter units on a per-vertex basis via Shader Graph.
+- Added a new LOD mode for High Quality Lines that is based on screen coverage.
+
+### Fixed
+- Fixed an issue with dual-lobe Subsurface Scattering (SSS) to handle rectangular area lights correctly.
+- Cookie area lights on water surfaces is now supported.
+- Fixed and optimized the moon preset in the Physically Based Sky.
+- Added missing shadergraph HLSL files in HDRP.
+- Fixed the Water shader's area light lookup texture parametrization.
+- Fixed the area light basis used by the Water shader.
+- Added the RemoveFromTUAndAA checkbox in Surface Options to exclude materials from temporal anti aliasing. 
+- Fixed an issue where the maximum number of lights allowed in a local neighbourhood in the HDRP path tracer was too low and could cause render artefacts.
+- Fixed issue with displacement mapping that occurred when using the Layered Lit shader.
+- Fixed issue where an OS displaying in Turkish incorrectly set DLSS as unavailable.
+- Fixed an issue where moving a GameObject with a Reflection Proxy Volume caused visual glitches. Applies only to the Unity Editor on Apple Silicon devices.
+- Fixed errors and flickering shadows when adding to the shadowsWithValidData hash map.
+- Added note to the ray tracking documentation not supporting box-shaped spot light.
+- Fixed the lightShadowCasterMode property to only affect the shadow caster culling behaviour when baked lighting includes shadow mask.
+- Fixed an issue to clarified HDRP velocity documentation to reflect that frame position is in Object space.
+- Updated the Decal and Frame Settings documentation to clarify the use of Full Depth Prepass within Deferred.
+- Changed all cached draw distances to reset when the global draw distance changes to prevent old draw distances persisting. Also, added a warning to the decal projector if its draw distance is greater than the global draw distance.
+- Fixed a crash on constrained hardware caused by material pre-integrations.
+- Removed unnecessary `DefaultVolumeEditor` assertion errors that occurred when multiple Inspectors were open.
+- Fixed an issue where XR SPI was not disabled after processing a render request.
+- Fixed performance issues in the Reflection Probe inspector.
+- Fixed an issue with double Shadow Quality UI in HD Lights.
+- Fixed an issue where if you open a newly created Shader Graph asset, the asset appears to have been modified.
+- Fixed an issue Dropdown serialization and bindings. Ctrl + Z is now working.
+- Fixed an issue where cloud rendering was applied in prefab view.
+- HDRP: Added index seed mode for path tracing to avoid "sticky" noise patterns when using path tracing in conjunction with Recorder.
+- Fixed potential leaks when using dynamic resolution and objects with refraction.
+- Corrected dynamic resolution settings for offscreen UI.
+- Added missing texture array global mip bias override for texture array grad samplers.
+- Fixed an issue where High Quality Line Renderers fail to draw on Metal API.
+- Fixed a non-development player crash that occurred when using the High Quality Lines feature.
+- Fixed NaN propagation for path traced hair.
+- Fixed an issue with High Quality Line Rendering spamming the console with errors in certain frame setting configurations.
+- Fixed an issue that caused standalone runtime rebuilds of hair instances to fail when using High Quality Lines.
+- Fixed triplanar on alpha clipped geometry.
+- Fixed time step of watersystem for recorder.
+- Fixed caustics in XR.
+- Flares now respect the cameras culling mask and the game objects layer (Occlusion and Rendering).
+- Fixed UUM-58619 by removing now unnecessary required setting for the Water System sample.
+- Fix Blackman-Harris filter for temporal AA.
+- Fix ShaderGraph with motion vectors enabled overwriting interpolators with previous frames data
+- Fixed inverted shadows from transparent objects in HDRP path tracer.
+- Fixed sentence in "Ray Tracing: Getting started" documentation
+- Fix Console errors with ReflectionProxyVolume component Gizmo
+- Fixed a culling result sharing issue between custom passes and the camera rendering them.
+- Increase HDRP's maximum cube reflection probes on screen
+- Fix exception thrown when running projects for an extended amount of time
+- Fixed post-processing when the LUT size is not a power of 2
+- Fix creating mirror Gameobject not being placed in prefab hierarchy
+- Fix probe volume live subdivision not culling cells correctly.
+- Fix Disk Light's property not being updated when changing it's radius using the gizmo in the scene.
+
 ## [16.0.3] - 2023-09-26
 
 This version is compatible with Unity 2023.2.0b12.

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.4] - 2023-12-21
+
+This version is compatible with Unity 2023.2.5f1.
+
+### Fixed
+- Fixed the Native Render Pass RenderGraph API so you can now read a compute buffer.
+- Fixed an issue that caused `CurrentPipelineHelpURLAttribute.URL` to return `null` when no render pipeline was active.
+- Fixed an issue that prevented changes to the Global Settings asset from refreshing the UI, so the old asset would continue to display.
+- Fixed nondeterministic method gathering by static constructors.
+
 ## [16.0.3] - 2023-09-26
 
 This version is compatible with Unity 2023.2.0b12.

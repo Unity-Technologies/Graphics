@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.4] - 2023-12-21
+
+This version is compatible with Unity 2023.2.5f1.
+
+### Changed
+- Added support for Vulkan URP to use MSAA samples count fallback in the Player Settings window. Prior to this x2 fallback would have been to upgrade to x4.
+- Improved stripping logic for Accurate G-buffer normals when using Deferred rendering on Vulkan.
+- Improved runtime performance by adding checks for _ALPHATEST_ON when rendering depth, shadows and depth normals.
+
+### Fixed
+- Fixed an issue where transparent materials were marked as dirty during material UI updates and project saving.
+- Fixed an `IndexOutOfRangeException` error that occurred when using Native RenderPass on the Deferred Rendering Path. 
+- Fixed an issue that caused some segements and corners of sprite shape shadows to not render correctly.
+- Fixed an issue that caused projects using the **Deferred Rendering Path** with `batchmode` and `nographics` to produce incorrect variant stripping.
+- Fixed an issue that caused Unlit shaders to output incorrect normals when using the **Deferred Rendering Path** and **Accurate G-Buffer normals**.
+- Disabled Motion Blur effect in Edit mode, to keep the Game view clear while editing. Motion Blur works as before in PlayMode and standalone builds.
+- Fixed an issue that caused Unity to cull decals erroneously when using the **Screen Space** technique.
+- Fixed a situation where the Color Grading Mode of one camera in a multi-camera scene could clamp the output to Low Dynamic Range, even though the output should be High Dynamic Range. URP only.
+- Fixed an issue where enabling HDR Debug Views once would break the native render pass.
+- Removed unnecessary `DefaultVolumeEditor` assertion errors that occurred when multiple Inspectors were open.
+- Fixed an issue that caused URP resources to return `null` after upgrading.
+- Fixed an issue that partially corrupted display on Android if Vulkan **Display Rotation** was enabled during rendering.
+- Fixed the SH Vertex Evaluation Mode in URPLit shader graph.
+- Fixed an issue with post-processing that generated predictable values instead of random values.
+- URP: Fixed an issue where screen space decals miscalculated ambient lighting.
+- Fixed an issue where Light Layers did not check scene lighting setting when enabling the keyword.
+- Fixed t Fullscreen Render Feature doesn't cause rendering layers to run in the depth normals prepass anymore.
+
 ## [16.0.3] - 2023-09-26
 
 This version is compatible with Unity 2023.2.0b12.
