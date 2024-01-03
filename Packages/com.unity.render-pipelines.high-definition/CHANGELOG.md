@@ -9,6 +9,54 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.9] - 2023-12-21
+
+This version is compatible with Unity 2022.3.18f1.
+
+### Changed
+- Added a warning to the HDRP Wizard if a users project contains materials that cant be upgraded.
+- Improved skyContext caching when the sky renderer changes.
+
+### Fixed
+- Allowed users to change the maximum amount of lights used in a local neighborhood in the HDRP path tracer through the shader config mechanism.
+- Fixed layered lit displacement.
+- Improved VolumetricSky caching and Reduced significantly memory allocation for scenes with multiple realtime reflection probes.
+- Gray out the UI of light cluster override and show the same message as path tracing if raytracing is disabled.
+- Fixed an issue where non directional light could react to "interact with sky" flag.
+- Fixed crash when cleaning up the reflection probe camera cache.
+- Fixed a SetData error when using more lights in a scene than the configured max light count settings.
+- Fixed blending between cascaded shadowmaps and shadowmask as well as cascades border ranges.
+- Fixed Turkish OS incorrectly deducing DLSS is not available.
+- Fixed an issue where Reflection Proxy Volume would cause artifacts to cover the editor on Apple Silicone devices.
+- Ensure documentation clearly lists lack of support for Box Lights in path tracing.
+- The lightShadowCasterMode property on Light now only affects shadow caster culling when baked lighting includes shadow mask, as intended.
+- Added in which space custom velocity should be computed.
+- Updated decal projector draw distances when global draw distance changes.
+- Added additional documentation for cached shadows of directional lights.
+- Fixed performance issue with reflection probe inspector.
+- Fixed XR SPI is not disabled after processing the render request.
+- Fixed potential leaks when using dynamic resolution and objects with refraction.
+- Corrected dynamic resolution settings for offscreen UI.
+- Added missing texture array global mip bias override for texture array grad samplers.
+- Fixed ShaderGraph being dirty when opened just after the creation of the asset.
+- Added index seed mode for path tracing to avoid "sticky" noise patterns when using path tracing in conjunction with Recorder.
+- Fixed time step of watersystem for recorder.
+- Fixed issues with hardware DRS on console (manifestation is usually bright qnan pixels on the right of the screen) when using half resolution transparent.
+- Fixed triplanar on alpha clipped geometry.
+- Flares now respect the cameras culling mask and the game objects layer (Occlusion and Rendering).
+- Optimize PBR sky precomputation and memory usage.
+- Fix Blackman-Harris filter for temporal AA.
+- Fix ShaderGraph with motion vectors enabled overwriting interpolators with previous frames data
+- Fixed inverted shadows from transparent objects in HDRP path tracer.
+- Fixed sentence in "Ray Tracing: Getting started" documentation
+- Fix Console errors with ReflectionProxyVolume component Gizmo
+- Fixed a culling result sharing issue between custom passes and the camera rendering them.
+- Increase HDRP's maximum cube reflection probes on screen
+- Fix exception thrown when running projects for an extended amount of time
+- Fixed post-processing when the LUT size is not a power of 2
+- Fix creating mirror Gameobject not being placed in prefab hierarchy
+- Fix Disk Light's property not being updated when changing it's radius using the gizmo in the scene.
+
 ## [14.0.8] - 2023-09-27
 
 This version is compatible with Unity 2022.3.11f1.
