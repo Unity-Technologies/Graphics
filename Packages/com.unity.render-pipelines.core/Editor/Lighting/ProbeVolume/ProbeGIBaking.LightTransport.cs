@@ -702,8 +702,10 @@ namespace UnityEngine.Rendering
                         var resources = ScriptableObject.CreateInstance<RayTracingResources>();
                         ResourceReloader.ReloadAllNullIn(resources, k_PackageLightTransport);
 
-                        m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
-                        m_Backend = RayTracingBackend.Compute; // hardcoded to compute as hardware is broken for now (UUM-56242)
+                        // Hardware backend is still inconsistent on yamato, using only compute backend for now.
+                        //m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
+                        m_Backend = RayTracingBackend.Compute;
+                        
                         m_Context = new RayTracingContext(m_Backend, resources);
                     }
 

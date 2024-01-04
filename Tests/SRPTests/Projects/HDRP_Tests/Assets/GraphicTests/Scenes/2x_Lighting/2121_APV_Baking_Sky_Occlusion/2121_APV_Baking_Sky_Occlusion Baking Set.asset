@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 2121_APV_Baking_Sky_Occlusion Baking Set
   m_EditorClassIdentifier: 
   singleSceneMode: 0
+  dialogNoProbeVolumeInSetShown: 0
   settings:
     m_Version: 1
     dilationSettings:
@@ -72,6 +73,7 @@ MonoBehaviour:
     m_Extent: {x: 81, y: 81, z: 81}
   bakedSimplificationLevels: 3
   bakedMinDistanceBetweenProbes: 1
+  bakedMinDistanceBetweenProbes: 0.9
   bakedSkyOcclusionValue: 1
   bakedSkyShadingDirectionValue: 0
   maxSHChunkCount: 1
@@ -91,7 +93,7 @@ MonoBehaviour:
   version: 0
   freezePlacement: 0
   simplificationLevels: 3
-  minDistanceBetweenProbes: 1
+  minDistanceBetweenProbes: 0.9
   renderersLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
