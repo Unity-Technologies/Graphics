@@ -195,14 +195,16 @@ namespace UnityEditor.Rendering.Tests
 #pragma warning disable CS0618
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(CustomRenderPipeline))]
+        [VolumeComponentMenu("Tests/No Additional")]
+        [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]
         class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/All Additional", typeof(CustomRenderPipeline))]
+        [VolumeComponentMenu("Tests/All Additional")]
+        [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]
         class VolumeComponentAllAdditionalAttributes : VolumeComponent
         {
             [AdditionalProperty]
@@ -213,7 +215,8 @@ namespace UnityEditor.Rendering.Tests
         }
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/Mixed Additional", typeof(CustomRenderPipeline))]
+        [VolumeComponentMenu("Tests/Mixed Additional")]
+        [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]
         class VolumeComponentMixedAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter1 = new MinFloatParameter(0f, 0f);
@@ -378,12 +381,45 @@ namespace UnityEditor.Rendering.Tests
             foreach (var t in componentTypesWithHideInInspectorAttribute)
                 Assert.True(types.Contains(t));
 
-            var typesForDisplay = volumeManager.GetVolumeComponentsForDisplay(typeof(RenderPipelineAsset));
+            var typesForDisplay = volumeManager.GetVolumeComponentsForDisplay(typeof(CustomRenderPipelineAsset));
             Assert.NotNull(typesForDisplay);
             foreach (var t in componentTypesWithHideInInspectorAttribute)
                 Assert.False(typesForDisplay.Any(p => p.Item2 == t));
 
             volumeManager.Deinitialize();
+        }
+
+        [Test]
+        public void VolumeManagerLifetime()
+        {
+            var volumeManager = new VolumeManager();
+            Assert.IsFalse(volumeManager.isInitialized);
+
+            volumeManager.Initialize();
+
+            Assert.IsTrue(volumeManager.isInitialized);
+
+            volumeManager.Deinitialize();
+
+            Assert.IsFalse(volumeManager.isInitialized);
+        }
+
+        [Test]
+        public void TestInputForGetVolumeComponentsForDisplay()
+        {
+            var volumeManager = new VolumeManager();
+            volumeManager.Initialize();
+
+            Assert.That(() => volumeManager.GetVolumeComponentsForDisplay(typeof(CustomRenderPipeline)), Throws.ArgumentException);
+            Assert.IsNotNull(volumeManager.GetVolumeComponentsForDisplay(null));
+        }
+
+        [Test]
+        public void TestVolumeManagerFetchsTypesWhenNotInitialized()
+        {
+            var volumeManager = new VolumeManager();
+            var typesForDisplay = volumeManager.GetVolumeComponentsForDisplay(typeof(CustomRenderPipelineAsset));
+            Assert.IsTrue(typesForDisplay.Count > 0);
         }
     }
 }

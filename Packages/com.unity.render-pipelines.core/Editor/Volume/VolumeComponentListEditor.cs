@@ -380,7 +380,7 @@ namespace UnityEditor.Rendering
         private void CreateEditorsByCategory()
         {
             var volumeComponentTypeList =
-                VolumeManager.instance.GetVolumeComponentsForDisplay(RenderPipelineManager.currentPipeline.GetType());
+                VolumeManager.instance.GetVolumeComponentsForDisplay(GraphicsSettings.currentRenderPipelineAssetType);
 
             m_EditorsByCategory.Clear();
 
