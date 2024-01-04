@@ -35,9 +35,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
 
         m_RandomUAVPass.renderPassEvent = renderPassEvent;
         m_RandomUAVPass.Setup(renderer, m_RandomUAVFillMaterial, m_RandomUAVReadWriteMaterial, m_RandomUAVFinalOutputMaterial);
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_RandomUAVPass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     private bool GetMaterials()

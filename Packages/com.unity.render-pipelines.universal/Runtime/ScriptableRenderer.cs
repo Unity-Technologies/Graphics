@@ -1408,7 +1408,6 @@ namespace UnityEngine.Rendering.Universal
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);

@@ -28,12 +28,10 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             return;
         }
 
-        #pragma warning disable CS0618 // Type or member is obsolete
         if (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
             renderer.EnqueuePass(copyDepthPasses);
         else
             copyDepthPasses.EnqueuePasses(renderer);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
@@ -105,11 +103,9 @@ internal class ThreeCopyDepths : ScriptableRenderPass
 
     internal void EnqueuePasses(ScriptableRenderer renderer)
     {
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_CopyDepthPass1);
         renderer.EnqueuePass(m_CopyDepthPass2);
         renderer.EnqueuePass(m_CopyDepthPass3);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)

@@ -234,10 +234,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
             renderer.EnqueuePass(renderObjectsPass);
-            #pragma warning restore CS0618
         }
 
         internal override bool SupportsNativeRenderPass()

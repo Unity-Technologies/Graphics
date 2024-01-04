@@ -17,9 +17,7 @@ internal class CaptureMotionVectorsRendererFeature : ScriptableRendererFeature
         {
             m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Motion);
             m_RenderPass.SetIntensity(m_Intensity);
-            #pragma warning disable CS0618 // Type or member is obsolete
             renderer.EnqueuePass(m_RenderPass);
-            #pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 

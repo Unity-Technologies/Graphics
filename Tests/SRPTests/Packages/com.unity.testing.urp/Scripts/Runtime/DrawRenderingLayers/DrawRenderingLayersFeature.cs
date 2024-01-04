@@ -201,11 +201,9 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         desc.depthBufferBits = 0;
         RenderingUtils.ReAllocateIfNeeded(ref m_ColoredRenderingLayersTextureHandle, desc, name: "_ColoredRenderingLayersTexture");
 
-        #pragma warning disable CS0618 // Type or member is obsolete
         m_DrawRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle, m_Material);
         renderer.EnqueuePass(m_DrawRenderingLayerPass);
         m_RequestRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle);
         renderer.EnqueuePass(m_RequestRenderingLayerPass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 }

@@ -1490,10 +1490,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawColorCopyPass.Setup(m_ActiveCameraColorAttachment, colorHistory.GetCurrentTexture(multipassId), Downsampling.None);
                             // See pass creation for actual execution order.
-                            // Disable obsolete warning for internal usage
-                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawColorCopyPass);
-                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1519,10 +1516,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, depthHistory.GetCurrentTexture(multipassId));
                             // See pass creation for actual execution order.
-                            // Disable obsolete warning for internal usage
-                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawDepthCopyPass);
-                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1619,8 +1613,6 @@ namespace UnityEngine.Rendering.Universal
                 #pragma warning restore CS0618
             }
 
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
@@ -1633,7 +1625,6 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredPass);
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
-            #pragma warning restore CS0618
         }
 
         private struct RenderPassInputSummary

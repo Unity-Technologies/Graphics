@@ -59,9 +59,7 @@ public class SwapbufferBlitFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_ScriptablePass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 }
 

@@ -106,13 +106,10 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         m_FullScreenPass.renderPassEvent = (RenderPassEvent)injectionPoint;
         m_FullScreenPass.ConfigureInput(requirements);
         m_FullScreenPass.SetupMembers(passMaterial, passIndex, fetchColorBuffer, bindDepthStencilAttachment);
-        
+
         m_FullScreenPass.requiresIntermediateTexture = fetchColorBuffer;
-        
-        // Disable obsolete warning for internal usage
-        #pragma warning disable CS0618
+
         renderer.EnqueuePass(m_FullScreenPass);
-        #pragma warning restore CS0618
     }
 
     /// <inheritdoc/>
