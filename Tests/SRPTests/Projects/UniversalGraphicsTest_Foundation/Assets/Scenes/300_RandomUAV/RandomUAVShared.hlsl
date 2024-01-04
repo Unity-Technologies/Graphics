@@ -6,8 +6,14 @@
 
 // Inputs
 float4 _ImageSize; // Needed as the _CameraOpaqueTexture_TexelSize can change based on URP Asset settings
-RWStructuredBuffer<float4>	_UAVBuffer	        : register(u2);
-RWTexture2D<float4>	_UAVTextureBuffer	: register(u1);
+
+#if SHADER_API_PSSL
+RWStructuredBuffer<float4> _UAVBuffer   : register(u1);
+RWTexture2D<float4> _UAVTextureBuffer   : register(u0);
+#else
+RWStructuredBuffer<float4> _UAVBuffer   : register(u2);
+RWTexture2D<float4> _UAVTextureBuffer   : register(u1);
+#endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"

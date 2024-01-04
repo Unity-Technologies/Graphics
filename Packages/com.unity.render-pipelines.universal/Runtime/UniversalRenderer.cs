@@ -1876,7 +1876,6 @@ namespace UnityEngine.Rendering.Universal
             get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 // UUM-56295
             ;
         }
     }

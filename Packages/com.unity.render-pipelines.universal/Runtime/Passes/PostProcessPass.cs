@@ -766,7 +766,10 @@ namespace UnityEngine.Rendering.Universal
                 material, 0);
 
             // Pass 2: Blend weights
-            RenderingUtils.Blit(cmd, m_EdgeColorTexture, pixelRect, m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.clear, material, 1);
+            RenderingUtils.Blit(cmd, m_EdgeColorTexture, pixelRect, 
+                m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, 
+                stencil, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare,
+                ClearFlag.Color, Color.clear, material, 1);
 
             // Pass 3: Neighborhood blending
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, m_BlendTexture.nameID);
