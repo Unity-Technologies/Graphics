@@ -163,6 +163,9 @@ namespace UnityEditor.VFX.Test
                 if (source.Contains("#pragma kernel CSMain"))
                     continue;
 
+                //Instancing is expected to be enabled for most of SG Output
+                Assert.IsTrue(source.Contains("#pragma multi_compile_instancing"));
+
                 var pragmaList = VFXTestShaderSrcUtils.GetPragmaListFromSource(source);
 
                 var allVariants = pragmaList

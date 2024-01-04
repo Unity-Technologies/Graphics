@@ -249,7 +249,7 @@ namespace UnityEditor.VFX
                 additionalDefines.AppendLine(define.Contains(' ') ? $"#define {define}" : $"#define {define} 1");
             if(needsGraphValueStruct)
                 additionalDefines.AppendLine($"#define VFX_USE_GRAPH_VALUES 1");
-            foreach (string s in VFXCodeGenerator.GetInstancingAdditionalDefines(context, null, particleData))
+            foreach (string s in VFXCodeGenerator.GetInstancingAdditionalDefines(context, particleData))
                 additionalDefines.AppendLine(s);
 
             additionalDefinesDescriptor = new AdditionalCommandDescriptor("VFXDefines", additionalDefines.ToString());

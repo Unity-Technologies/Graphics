@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
             }
 
             //With Material Variant workflow, the actual settings could be in parent material but not saved in properties
-            if (fallback.HasFloat(name))
+            if (fallback != null && fallback.HasFloat(name))
             {
                 value = fallback.GetFloat(name);
                 return true;

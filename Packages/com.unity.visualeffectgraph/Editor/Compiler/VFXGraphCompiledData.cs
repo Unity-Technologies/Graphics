@@ -1416,15 +1416,6 @@ namespace UnityEditor.VFX
                 {
                     reason |= VFXInstancingDisabledReason.MeshOutput;
                 }
-
-                if (model is VFXComposedParticleOutput shaderGraphOutput)
-                {
-                    var shaderGraph = shaderGraphOutput.GetShaderGraph();
-                    if (VFXShaderGraphHelpers.HasAnyKeywordProperty(shaderGraph))
-                    {
-                        reason |= VFXInstancingDisabledReason.ShaderKeyword;
-                    }
-                }
             }
 
             return reason;
