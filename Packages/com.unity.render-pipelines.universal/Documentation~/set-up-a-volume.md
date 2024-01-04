@@ -12,7 +12,7 @@ You can configure the default global volumes that all URP scenes use.
 
 ### Configure the Default Volume
 
-To configure the Default Volume, go to **Project Settings** > **URP Global Settings** > **Default Volume Profile**. 
+To configure the Default Volume, go to **Project Settings** > **Graphics** > **URP** > **Default Volume Profile**. 
 
 By default, the Default Volume references a Volume Profile called `DefaultVolumeProfile`. `DefaultVolumeProfile` lists all possible Volume Overrides. You can change the properties, but you can't disable or remove Volume Overrides. Refer to [Volume Overrides](VolumeOverrides.md) for more information about changing the properties.
 
