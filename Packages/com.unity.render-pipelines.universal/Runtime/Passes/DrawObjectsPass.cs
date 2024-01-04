@@ -27,6 +27,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsOpaque;
 
         /// <summary>
+        /// Used to indicate if the active target of the pass is the back buffer
+        /// </summary>
+        public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+
+        /// <summary>
         /// Used to indicate whether transparent objects should receive shadows or not.
         /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
@@ -64,6 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
             m_ShouldTransparentsReceiveShadows = false;
+            m_IsActiveTargetBackBuffer = false;
 
             if (stencilState.enabled)
             {
@@ -108,7 +114,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            InitPassData(cameraData, ref m_PassData, uint.MaxValue);
+            InitPassData(cameraData, ref m_PassData, uint.MaxValue, m_IsActiveTargetBackBuffer);
             InitRendererLists(universalRenderingData, cameraData, lightData, ref m_PassData, context, default(RenderGraph), false);
 
             using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
@@ -124,6 +130,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // w is used for knowing whether the object is opaque(1) or alpha blended(0)
             Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (data.isOpaque) ? 1.0f : 0.0f);
             cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
+
+            if (data.cameraData.xr.enabled && data.isActiveTargetBackBuffer)
+            {
+                cmd.SetViewport(data.cameraData.xr.GetViewport());
+            }
 
             // scaleBias.x = flipSign
             // scaleBias.y = scale
@@ -165,7 +176,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool isOpaque;
             internal bool shouldTransparentsReceiveShadows;
             internal uint batchLayerMask;
-            internal RendererListHandle rendererListHdl;
+            internal bool isActiveTargetBackBuffer;
+			internal RendererListHandle rendererListHdl;
             internal RendererListHandle objectsWithErrorRendererListHdl;
             internal DebugRendererLists debugRendererLists;
 
@@ -178,12 +190,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData, uint batchLayerMask)
+        internal void InitPassData(UniversalCameraData cameraData, ref PassData passData, uint batchLayerMask, bool isActiveTargetBackBuffer = false)
         {
             passData.cameraData = cameraData;
             passData.isOpaque = m_IsOpaque;
             passData.shouldTransparentsReceiveShadows = m_ShouldTransparentsReceiveShadows;
             passData.batchLayerMask = batchLayerMask;
+            passData.isActiveTargetBackBuffer = isActiveTargetBackBuffer;
         }
 
         internal void InitRendererLists(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, ref PassData passData, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
@@ -253,7 +266,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 builder.UseAllGlobalTextures(true);
 
-                InitPassData(cameraData, ref passData, batchLayerMask);
+                InitPassData(cameraData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
 
                 if (colorTarget.IsValid())
                 {
