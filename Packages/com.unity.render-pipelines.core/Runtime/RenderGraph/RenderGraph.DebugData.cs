@@ -104,6 +104,43 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 public NRPInfo nrpInfo;
             }
 
+            public class BufferResourceData
+            {
+                // Number of elements in buffer.
+                public int count;
+
+                // Size of one element in the buffer.
+                public int stride;
+
+                // Buffer usage type.
+                public GraphicsBuffer.Target target;
+
+                // Buffer usage flags.
+                public GraphicsBuffer.UsageFlags usage;
+            }
+
+            public class TextureResourceData
+            {
+                // Texture width & height.
+                public int width;
+                public int height;
+
+                // Texture depth (volume texture).
+                public int depth;
+
+                // Whether the texture is bound with multi sampling.
+                public bool bindMS;
+
+                // Number of texture MSAA samples.
+                public int samples;
+
+                // Render texture graphics format.
+                public GraphicsFormat format;
+
+                // Whether texture is cleared on first use.
+                public bool clearBuffer;
+            }
+
             [DebuggerDisplay("ResourceDebug: {name} [{creationPassIndex}:{releasePassIndex}]")]
             public struct ResourceData
             {
@@ -125,28 +162,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // List of passes that write the resource.
                 public List<int> producerList;
 
-                // Texture width & height.
-                public int width;
-                public int height;
-
-                // Texture depth (volume texture).
-                public int depth;
-
-                // Whether the texture is bound with multi sampling.
-                public bool bindMS;
-
-                // Number of texture MSAA samples.
-                public int samples;
-
-                // Render texture graphics format.
-                public GraphicsFormat format;
-
-                // Whether texture is cleared on first use.
-                public bool clearBuffer;
-
                 // Whether the resource is memoryless (i.e resources that are created/destroyed within the same native render pass).
                 // Available if isNRPCompiler = true.
                 public bool memoryless;
+
+                // Texture-specific resource data.
+                public TextureResourceData textureData;
+
+                // Buffer-specific resource data.
+                public BufferResourceData bufferData;
             }
 
             public void Clear()

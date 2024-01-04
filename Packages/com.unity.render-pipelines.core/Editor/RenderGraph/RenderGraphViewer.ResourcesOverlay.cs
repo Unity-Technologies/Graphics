@@ -99,21 +99,32 @@ namespace UnityEditor.Rendering
                         iconContainer.Add(importedIcon);
                         resourceItem.Q<Toggle>().Add(iconContainer);
 
-                        if ((RenderGraphResourceType) type == RenderGraphResourceType.Texture)
-                        {
-                            if (res.imported)
-                                resourceItem.AddToClassList(Classes.kImportedResource);
+                        if (res.imported)
+                            resourceItem.AddToClassList(Classes.kImportedResource);
 
+                        RenderGraphResourceType t = (RenderGraphResourceType)type;
+                        if (t == RenderGraphResourceType.Texture && res.textureData != null)
+                        {
                             var lineBreak = new VisualElement();
                             lineBreak.AddToClassList(Classes.kResourceLineBreak);
                             resourceItem.Add(lineBreak);
-                            resourceItem.Add(new Label($"Size: {res.width}x{res.height}x{res.depth}"));
-                            resourceItem.Add(new Label($"Format: {res.format.ToString()}"));
-                            resourceItem.Add(new Label($"Clear: {res.clearBuffer}"));
-                            resourceItem.Add(new Label($"BindMS: {res.bindMS}"));
-                            resourceItem.Add(new Label($"Samples: {res.samples}"));
+                            resourceItem.Add(new Label($"Size: {res.textureData.width}x{res.textureData.height}x{res.textureData.depth}"));
+                            resourceItem.Add(new Label($"Format: {res.textureData.format.ToString()}"));
+                            resourceItem.Add(new Label($"Clear: {res.textureData.clearBuffer}"));
+                            resourceItem.Add(new Label($"BindMS: {res.textureData.bindMS}"));
+                            resourceItem.Add(new Label($"Samples: {res.textureData.samples}"));
                             if (viewer.m_CurrentDebugData.isNRPCompiler)
                                 resourceItem.Add(new Label($"Memoryless: {res.memoryless}"));
+                        }
+                        else if (t == RenderGraphResourceType.Buffer && res.bufferData != null)
+                        {
+                            var lineBreak = new VisualElement();
+                            lineBreak.AddToClassList(Classes.kResourceLineBreak);
+                            resourceItem.Add(lineBreak);
+                            resourceItem.Add(new Label($"Count: {res.bufferData.count}"));
+                            resourceItem.Add(new Label($"Stride: {res.bufferData.stride}"));
+                            resourceItem.Add(new Label($"Target: {res.bufferData.target.ToString()}"));
+                            resourceItem.Add(new Label($"Usage: {res.bufferData.usage.ToString()}"));
                         }
 
                         resourceTypeFoldout.Add(resourceItem);

@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering
             }
 
             static readonly string[] k_PassTypeNames =
-                { "Legacy Render Pass", "Low Level Render Pass", "Raster Render Pass", "Compute Pass" };
+                { "Legacy Render Pass", "Unsafe Render Pass", "Raster Render Pass", "Compute Pass" };
 
             public bool visible => true;
 
@@ -95,8 +95,9 @@ namespace UnityEditor.Rendering
                 else
                 {
                     var pass = viewer.m_CurrentDebugData.passList[passes[0]];
-                    CreateTextElement(scrollView,
-                        $"This is a {k_PassTypeNames[(int) pass.type]}. Only Raster Render Passes can be merged.");
+                    var msg = $"This is a {k_PassTypeNames[(int) pass.type]}. Only Raster Render Passes can be merged.";
+                    msg = msg.Replace("a Unsafe", "an Unsafe");
+                    CreateTextElement(scrollView, msg);
                     CreateTextElement(scrollView, "Attachments", Classes.kSubHeaderText);
                     CreateTextElement(scrollView, "No attachments.");
                 }
