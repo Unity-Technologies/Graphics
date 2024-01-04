@@ -1,4 +1,5 @@
 using System.Collections;
+using NUnit.Framework;
 using Unity.Graphics.Tests;
 using UnityEditor;
 using UnityEngine;
@@ -7,6 +8,7 @@ using UnityEngine.TestTools;
 public class PreviewTests : MonoBehaviour
 {
     [UnityTest]
+    [Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-59403")]
     public IEnumerator AssetPreviewIsCorrect()
     {
         EditorApplication.EnterPlaymode();
