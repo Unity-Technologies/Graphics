@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -9,18 +10,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.1] - 2023-12-21
+
+This version is compatible with Unity 2023.3.0b2.
+
+### Changed
+
+- Added setting to Canvas and Sprite SubTargets to disable the color tinting, allowing users to override the color completely or use vertex color node to perform custom tinting.
+- Added support for UV3 and UV4 for the Canvas SubTarget.
+- Improved performance of undo/redo in large graphs.
+- Improved clarity and behavior of blackboard properties when options are changed. Renamed "Exposed" to "Show in Inspector."
+- Removed Global/Local scope for Keyword properties, replacing them with an "Is Overridable" toggle. Improved corresponding option enablement to clarify behavior.
+- Exposed a scope option for Texture3D, CubeMap, and Texture2D Array blackboard properties.
+
+### Fixed
+
+- Fixed an issue where value nodes might appear on undo/redo where property nodes would be.
+- Addressed issue with main preview window failing to refresh.
+- Fix an issue where sprite previews were not rendering.
+- Fixed an issue where drag-out node creation would leave the editor unresponsive.
+- Fixed an issue where InstanceID node did not give the correct values when the ShaderGraph is used with all Draw APIs such as `Graphics.DrawMeshInstancedIndirect`, `Graphics.DrawMeshInstancedProcedural`, `Graphics.DrawProcedural`, `Graphics.DrawProceduralIndirect`, their CommandBuffer counterparts and the equivalent RenderMesh and RenderPrimitive counterparts.
+- Fixed an issue where an open asset inspector for subgraphs may mangle the json serialized representation for that subgraph asset.
+- Fixed the ShaderGraph codegen when an InstanceID node is used in a graph with keywords.
+- Fixed typos in the text of the the Node Reference samples.
+
 ## [17.0.0] - 2023-09-26
 
 This version is compatible with Unity 2023.3.0a8.
 
 ### Added
- - Added the new Node Reference sample pack which adds 146 reference assets to help users learn more about available nodes
+
+- Added the new Node Reference sample pack which adds 146 reference assets to help users learn more about available nodes
 
 ### Changed
+
 - Added a shader variant limit to the project settings, clarified the difference between the variant limit in user preferences.
 - Updated toolbar UI.
 
 ### Fixed
+
 - Fixed a regression where adding nodes in large graphs caused a major slowdown.
 
 ## [16.0.3] - 2023-07-04
@@ -35,6 +63,7 @@ The version number for this package has increased due to a version update of a r
 This version is compatible with Unity 2023.2.0a22.
 
 ### Fixed
+
 - Fixed Texture Size node causing compilation error in the Fullscreen ShaderGraph target.
 
 ## [16.0.1] - 2023-05-23
@@ -42,9 +71,11 @@ This version is compatible with Unity 2023.2.0a22.
 This version is compatible with Unity 2023.2.0a17.
 
 ### Changed
+
 - Reduced the import times of shadergraphs.
 
 ### Fixed
+
 - Fixed an issue where the Gradient Noise Node was causing implicit truncation warnings.
 - Fixed an issue where custom interpolator previews would provide erroneous results when connecting through a reroute node.
 - Fixed an issue where the reroute node would sometimes show the wrong color for its appropriate inputs.
@@ -64,6 +95,7 @@ This version is compatible with Unity 2023.2.0a17.
 This version is compatible with Unity 2023.2.0a9.
 
 ### Fixed
+
 - Improved performance of disconnecting nodes in large graphs.
 - Fixed a typo in the Hyperbolic Cosine Node in Shader Graph.
 - Fixed a bug where the nodes could not be created after entering then exiting play mode.
@@ -73,6 +105,7 @@ This version is compatible with Unity 2023.2.0a9.
 This version is compatible with Unity 2023.2.0a1.
 
 ### Fixed
+
 - Fixed multiple memory leaks in ShaderGraph so that windows and view elements now dispose of resources properly.
 - Fixed rare line-ending conflict in shader graph node templates when source control rewrites EOL markers.
 
@@ -81,9 +114,11 @@ This version is compatible with Unity 2023.2.0a1.
 This version is compatible with Unity 2023.1.0a23.
 
 ### Changed
+
 - Modified the AssetPostprocessor for Shader Graph so it now performs the majority of its work when a shader-related asset has been changed.
 
 ### Fixed
+
 - Improved the stability of shadergraph imports when doing operations with the package manager.
 - Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
 - Fixed Shader Graph BiRP Target so it now works correctly with point lights and transparent objects.
@@ -94,9 +129,11 @@ This version is compatible with Unity 2023.1.0a23.
 This version is compatible with Unity 2023.1.0a19.
 
 ### Changed
+
 - Reduced time taken by code generation when a shader graph asset is imported.
 
 ### Fixed
+
 - Fixed a compilation bug in BiRP Target in some variants with lightmaps.
 - Fixed the TimeManager for MaterialVariant tests.
 
@@ -105,146 +142,165 @@ This version is compatible with Unity 2023.1.0a19.
 This version is compatible with Unity 2023.1.0a6.
 
 ### Fixed
+
 - Fixed shader graph incorrectly stripping variants for BiRP shaders that weren't built with shader graph.
 - Fixed unity_StereoEyeIndex error when building XR project with URP Fullscreen master node containing Shader.
 
 ## [14.0.3] - 2021-05-09
 
 ### Fixed
+
 - Fixed the sample buffer nodes in ShaderGraph.
 - Set the default value of Normalize Output toggle in Transform Node to **true** to make different node versions consistent.
 
 ## [14.0.2] - 2021-02-04
 
 ### Fixed
- - Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]
+
+- Fixed ShaderGraph pixel and screen coordinates to work correctly with render scale [1387468]
 
 ## [14.0.1] - 2021-12-07
 
 ### Added
- - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
+- Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
 
 ### Fixed
- - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
- - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
- - Fixed custom editor GUI support for the BuiltIn Target [1380485](https://issuetracker.unity3d.com/product/unity/issues/guid/1380485/)
+
+- Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+- Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
+- Fixed custom editor GUI support for the BuiltIn Target [1380485](https://issuetracker.unity3d.com/product/unity/issues/guid/1380485/)
 
 ## [14.0.0] - 2021-11-17
 
 ### Fixed
- - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
- - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
- - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
- - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
- - Fixed the behavior of checkerboard node with raytracing
- - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
- - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
+
+- Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+- Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
+- Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
+- Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
+- Fixed the behavior of checkerboard node with raytracing
+- Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+- Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
 
 ### Added
- - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
+- Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
 
 ## [13.1.2] - 2021-11-05
 
 ### Added
- - Added ability to set "Global" or "Per Material" shader declaration in PVT node settings [1372152]
- - Show PVT stack names (needed for binding) under the Properties in the Shader Inspector
+
+- Added ability to set "Global" or "Per Material" shader declaration in PVT node settings [1372152]
+- Show PVT stack names (needed for binding) under the Properties in the Shader Inspector
 
 ### Fixed
- - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
+
+- Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
 
 ## [13.1.1] - 2021-10-04
 
 ### Added
- - Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
- - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
- - Added normal transforms to the Transform node
- - Added an automatically generated material subasset on ShaderGraphs.
+
+- Adding ability to automatically cast Bools to Vector types in ShaderGraph [1359160]
+- Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
+- Added normal transforms to the Transform node
+- Added an automatically generated material subasset on ShaderGraphs.
 
 ### Changed
- - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
- - Updated searcher package dependency version to 4.9.1
- - Renamed the Shader Graph Texel Size node to Texture Size and added two additional output ports that actually output the texel size in addition to the texture size.
+
+- Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
+- Updated searcher package dependency version to 4.9.1
+- Renamed the Shader Graph Texel Size node to Texture Size and added two additional output ports that actually output the texel size in addition to the texture size.
 
 ### Fixed
- - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
- - Fixed bug that causes search results to not be visible sometimes in the searcher window [1366061]
- - Fixed bug that causes exceptions to be thrown when using the up/down arrow keys with search list focused [1358016]
- - Fixed bug that causes some searcher items to be irreversibly collapsed due to expand icon disappearing on collapsing those items [1366074]
- - Fixed bug that caused incorrect search results with non whitespaced queries for nodes with spaces in their name and for subgraphs [1359158]
- - Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
- - Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
- - Fixed errors in the ShaderGraph Transform node [1368082]
- - Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
- - Fixed a bug where node preview doesn't update when a texture is changed in the explorer [1363784](https://issuetracker.unity3d.com/product/unity/issues/guid/1363784/)
- - Fixed missing shader keyword stage during keyword copying.
- - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
- - Fixed upgrade warnings on SpeedTree8 subgraphs.
+
+- Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
+- Fixed bug that causes search results to not be visible sometimes in the searcher window [1366061]
+- Fixed bug that causes exceptions to be thrown when using the up/down arrow keys with search list focused [1358016]
+- Fixed bug that causes some searcher items to be irreversibly collapsed due to expand icon disappearing on collapsing those items [1366074]
+- Fixed bug that caused incorrect search results with non whitespaced queries for nodes with spaces in their name and for subgraphs [1359158]
+- Fixed Triplanar ShaderGraph node to handle arbitrary input and output coordinate spaces [1346477] (https://issuetracker.unity3d.com/issues/shader-graph-rotating-gameobject-get-material-stretched-when-using-triplanar-node)
+- Fixed a bug that Parallax Mapping and Parallax Occlusion Mapping nodes don't use the same channel to sample heightmap by adding drop-downs for channel selecting to both of the nodes. [1347270] (https://fogbugz.unity3d.com/f/cases/1347270/)
+- Fixed errors in the ShaderGraph Transform node [1368082]
+- Fixed the Scene Depth node so it returns proper results in Eye space when using an orthographic camera [1311272]
+- Fixed a bug where node preview doesn't update when a texture is changed in the explorer [1363784](https://issuetracker.unity3d.com/product/unity/issues/guid/1363784/)
+- Fixed missing shader keyword stage during keyword copying.
+- Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+- Fixed upgrade warnings on SpeedTree8 subgraphs.
 
 ## [13.1.0] - 2021-09-24
 
 ### Fixed
- - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
- - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
- - Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
+
+- Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
+- Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+- Fixed unhandled exception when loading a subgraph with duplicate slots [1366200] (https://issuetracker.unity3d.com/product/unity/issues/guid/1366200/)
 
 ## [13.0.0] - 2021-09-01
+
 ### Changed
+
 - Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
 
 ### Added
- - Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
+
+- Adding control of anisotropic settings on inline Sampler state nodes in ShaderGraph.
 
 ### Fixed
- - Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
- - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
- - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
- - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
- - Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
- - Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1354463]
- - Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
- - Fixed the wrong scaling of the main preview window  [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
- - Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
- - Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
- - Fixed the node searcher results to prefer names over synonyms [1366058]
 
- - Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
- - Fixed how graph errors were displayed when variant limits were reached [1355815]
+- Fixed bug where it was not possible to switch to Graph Settings tab in Inspector if multiple nodes and an edge was selected [1357648] (https://fogbugz.unity3d.com/f/cases/1357648/)
+- Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
+- Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+- Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
+- Fixed the appearance (wrong text color, and not wrapped) of a warning in Node Settings [1356725] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356725/)
+- Fixed the ordering of inputs on a SubGraph node to match the properties on the blackboard of the subgraph itself [1354463]
+- Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
+- Fixed the wrong scaling of the main preview window [1356719] (https://issuetracker.unity3d.com/product/unity/issues/guid/1356719/)
+- Fixed an issue where ShaderGraph "view shader" commands were opening in individual windows, and blocking Unity from closing [1367188]
+- Improved screenspace position accuracy in the fragment shader by using VPOS [1352662] (https://issuetracker.unity3d.com/issues/shadergraph-dither-node-results-in-artifacts-when-far-from-origin-caused-by-screen-position-breaking-down)
+- Fixed the node searcher results to prefer names over synonyms [1366058]
+
+- Fixed the sticky-note editable title text size in shader graph not matching the set font size [1357657].
+- Fixed how graph errors were displayed when variant limits were reached [1355815]
 
 ## [12.0.0] - 2021-01-11
 
 ### Added
-  - Added categories to the blackboard, enabling more control over the organization of shader properties and keywords in the Shader Graph tool. These categories are also reflected in the Material Inspector for URP + HDRP, for materials created from shader graphs.
-  - Added ability to define custom vertex-to-fragment interpolators.
-  - Support for the XboxSeries platform has been added.
-  - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
-  - Added information about selecting and unselecting items to the Blackboard article.
-  - Added View Vector Node documentation
-  - Added custom interpolator thresholds on shadergraph project settings page.
-  - Added custom interpolator documentation
-  - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
-  - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
-  - Added a new target for the built-in render pipeline, including Lit and Unlit sub-targets.
-  - Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
-  - For Texture2D properties, added linearGrey and red as options for default texture mode.
-  - For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
-  - Added `Branch On Input Connection` node. This node can be used inside a subgraph to branch on the connection state of an exposed property.
-  - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
-  - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
-  - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
-  - Added selection highlight and picking shader passes for URP target.
-  - Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
-  - Added the ability to enable tiling and offset controls for a Texture2D input.
-  - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
-  - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
-  - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
-  - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
-  - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
-  - Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
-  - Added visible errors for invalid stage capability connections to shader graph.
-  - Added a ShaderGraph animated preview framerate throttle.
-  - Added many node synonyms for the Create Node search so that it's easier to find nodes.
+
+- Added categories to the blackboard, enabling more control over the organization of shader properties and keywords in the Shader Graph tool. These categories are also reflected in the Material Inspector for URP + HDRP, for materials created from shader graphs.
+- Added ability to define custom vertex-to-fragment interpolators.
+- Support for the XboxSeries platform has been added.
+- Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+- Added information about selecting and unselecting items to the Blackboard article.
+- Added View Vector Node documentation
+- Added custom interpolator thresholds on shadergraph project settings page.
+- Added custom interpolator documentation
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
+- Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
+- Added a new target for the built-in render pipeline, including Lit and Unlit sub-targets.
+- Added stage control to ShaderGraph Keywords, to allow fragment or vertex-only keywords.
+- For Texture2D properties, added linearGrey and red as options for default texture mode.
+- For Texture2D properties, changed the "bump" option to be called "Normal Map", and will now tag these properties with the [NormalMap] tag.
+- Added `Branch On Input Connection` node. This node can be used inside a subgraph to branch on the connection state of an exposed property.
+- Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
+- Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
+- Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
+- Added selection highlight and picking shader passes for URP target.
+- Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
+- Added the ability to enable tiling and offset controls for a Texture2D input.
+- Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
+- Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
+- Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
+- Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
+- Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
+- Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
+- Added visible errors for invalid stage capability connections to shader graph.
+- Added a ShaderGraph animated preview framerate throttle.
+- Added many node synonyms for the Create Node search so that it's easier to find nodes.
 
 ### Changed
+
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
 - Vector2/Vector3/Vector4 property types will now be properly represented by a matching Vector2/Vector3/Vector4 UI control in the URP + HDRP Material Inspector as opposed to the fallback Vector4 field that was used for any multi-dimensional vector type in the past.
 - Updated/corrected View Direction documentation
@@ -262,6 +318,7 @@ This version is compatible with Unity 2023.1.0a6.
 - GatherTexture2D and TexelSize nodes now support all shader stages.
 
 ### Fixed
+
 - Fixed an issue where fog node density was incorrectly calculated.
 - Fixed inspector property header styling
 - Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
@@ -272,7 +329,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Fixed a bug where old preview property values would be used for node previews after an undo operation.
 - Clean up console error reporting from node shader compilation so errors are reported in the graph rather than the Editor console [1296291] (https://issuetracker.unity3d.com/product/unity/issues/guid/1296291/)
 - Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
-- Fixed an issue where the Rectangle Node could lose detail at a distance.  New control offers additional method that preserves detail better [1156801]
+- Fixed an issue where the Rectangle Node could lose detail at a distance. New control offers additional method that preserves detail better [1156801]
 - Fixed virtual texture layer reference names allowing invalid characters [1304146]
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
@@ -347,6 +404,7 @@ This version is compatible with Unity 2023.1.0a6.
 ### Changed
 
 ### Fixed
+
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
 - Fixed an issue with the Gradient color picker displaying different values than the selected color.
@@ -366,7 +424,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Fixed the InputNodes tests that were never correct. These were incorrect tests, no nodes needed tochange.
 - Fixed the ViewDirection Node in Tangent space's calculation to match how the transform node works [1296788]
 - Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
-- Boolean keywords now have no longer require their reference name to end in _ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
+- Boolean keywords now have no longer require their reference name to end in \_ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
 - Newly created properties and keywords will no longer use obfuscated GUID-based reference names in the shader code [1300484]
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
@@ -378,15 +436,18 @@ This version is compatible with Unity 2023.1.0a6.
 ## [10.3.0] - 2020-11-03
 
 ### Added
+
 - Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
+
 - Adjusted and expanded Swizzle Node article as reviewed by docs editorial.(DOC-2695)
 - Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
-- Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
+- Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl). CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
 - The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
 ### Fixed
+
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
 - Fixed Custom Function Node to display the name of the custom function. [1293575]
 - Addressed C# warning 0649 generated by unassigned structure members
@@ -407,11 +468,13 @@ This version is compatible with Unity 2023.1.0a6.
 ### Added
 
 ### Changed
+
 - Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
 - Removed unnecessary HDRP constant declarations used by Material inspector from the UnityPerMaterial cbuffer [1285701]
 - Virtual Texture properties are now forced to be Exposed, as they do not work otherwise [1256374]
 
 ### Fixed
+
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
 - Using the TexelSize node on a ShaderGraph texture property is now SRP batchable [1284029]
 - Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
@@ -435,22 +498,25 @@ This version is compatible with Unity 2023.1.0a6.
 ## [10.1.0] - 2020-10-12
 
 ### Added
+
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
 - Added better error feedback when SampleVirtualTexture nodes run into issues with the VirtualTexture property inputs
 - Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
 
 ### Changed
+
 - Added method chaining support to shadergraph collection API.
 - Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
 - Changed UI names from `Vector1` to `Float`
 - Renamed `Float` precision to `Single`
 - Cleaned up the UI to add/remove Targets
-- The * in the ShaderGraph title bar now indicates that the graph has been modified when compared to the state it was loaded, instead of compared to what is on disk
+- The \* in the ShaderGraph title bar now indicates that the graph has been modified when compared to the state it was loaded, instead of compared to what is on disk
 - Cancelling a "Save changes on Close?" will now cancel the Close as well
 - When attempting to Save and encountering a Read Only file or other exception, ShaderGraph will allow the user to retry as many times as they like
 
 ### Fixed
+
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
 - Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
 - Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
@@ -475,7 +541,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Fixed an issue with detection of circular subgraph dependencies [1269841]
 - Fixed an issue where subgraph nodes were constantly changing their serialized data [1281975]
 - Modifying a subgraph will no longer cause ShaderGraphs that use them to "reload from disk?" [1198885]
-- Fixed issues with ShaderGraph title bar not correctly displaying the modified status * [1282031]
+- Fixed issues with ShaderGraph title bar not correctly displaying the modified status \* [1282031]
 - Fixed issues where ShaderGraph could discard modified data without user approval when closed [1170503]
 - Fixed an issue where ShaderGraph file dependency gathering would fail to include any files that didn't exist
 - Fixed issues with ShaderGraph detection and handling of deleted graph files
@@ -487,7 +553,9 @@ This version is compatible with Unity 2023.1.0a6.
 - Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
 
 ## [10.0.0] - 2019-06-10
+
 ### Added
+
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
@@ -497,7 +565,7 @@ This version is compatible with Unity 2023.1.0a6.
 - You can now select unused nodes in your graph.
 - When you start the Editor, Shader Graph now displays Properties in the Blackboard as collapsed.
 - Updated the zoom level to let you zoom in further.
-- Blackboard properties now have a __Duplicate__ menu option. When you duplicate properties, Shader Graph maintains the order, and inserts duplicates below the current selection.
+- Blackboard properties now have a **Duplicate** menu option. When you duplicate properties, Shader Graph maintains the order, and inserts duplicates below the current selection.
 - When you convert a node to a Sub Graph, the dialog now opens up in the directory of the original graph that contained the node. If the new Sub Graph is outside this directory, it also remembers that path for the next dialog to ease folder navigation.
 - If Unity Editor Analytics are enabled, Shader Graph collects anonymous data about which nodes you use in your graphs. This helps the Shader Graph team focus our efforts on the most common graph scenarios, and better understand the needs of our customers. We don't track edge data and cannot recreate your graphs in any form.
 - The Create Node Menu now has a tree view and support for fuzzy field searching.
@@ -514,6 +582,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Added 'Allow Material Override' option to the built-in target for shader graph.
 
 ### Changed
+
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
 - Copied nodes are now pasted at the cursor location instead of slightly offset from their original location.
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
@@ -529,6 +598,7 @@ This version is compatible with Unity 2023.1.0a6.
 - VFXTarget doesn't overwrite the shader export anymore, VFXTarget can be active with another target.
 
 ### Fixed
+
 - Edges no longer produce errors when you save a Shader Graph.
 - Shader Graph no longer references the `NUnit` package.
 - Fixed a shader compatibility issue in the SRP Batcher when you use a hybrid instancing custom variable.
@@ -547,8 +617,8 @@ This version is compatible with Unity 2023.1.0a6.
 - Fixed an issue where nodes couldn't be copied from a group.
 - Fixed a bug that occurred when you duplicated multiple Blackboard properties or keywords simultaneously, where Shader Graph stopped working, potentially causing data loss.
 - Fixed a bug where you couldn't reorder Blackboard properties.
-- Shader Graph now properly duplicates the __Exposed__ status for Shader properties and keywords.
-- Fixed a bug where the __Save Graph As__ dialog for a Shader or Sub Graph sometimes appeared in the wrong Project when you had multiple Unity Projects open simultaneously.
+- Shader Graph now properly duplicates the **Exposed** status for Shader properties and keywords.
+- Fixed a bug where the **Save Graph As** dialog for a Shader or Sub Graph sometimes appeared in the wrong Project when you had multiple Unity Projects open simultaneously.
 - Fixed an issue where adding the first output to a Sub Graph without any outputs prior caused Shader Graphs containing the Sub Graph to break.
 - Fixed an issue where Shader Graph shaders using the `CameraNode` failed to build on PS4 with "incompatible argument list for call to 'mul'".
 - Fixed a bug that caused problems with Blackboard property ordering.
@@ -636,12 +706,15 @@ This version is compatible with Unity 2023.1.0a6.
 - Use preview of the other target if VFXTarget is active.
 
 ## [7.1.1] - 2019-09-05
+
 ### Added
+
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
 - The tab now shows whether you are working in a Sub Graph or a Shader Graph file.
 - The Shader Graph importer now bakes the output node type name into a meta-data object.
 
 ### Fixed
+
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
 - Fixed an issue where deleting a group and a property at the same time would cause an error.
 - Fixed the epsilon that the Hue Node uses to avoid NaN on platforms that support half precision.
@@ -659,10 +732,13 @@ This version is compatible with Unity 2023.1.0a6.
 - You can no longer drag and drop recursive nodes onto Sub Graph Assets.
 
 ## [7.0.1] - 2019-07-25
+
 ### Changed
+
 - New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
 
 ### Fixed
+
 - Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
 - Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
 - `Normal Reconstruct Z` node is now compatible with both fragment and vertex stages.
@@ -673,7 +749,9 @@ This version is compatible with Unity 2023.1.0a6.
 - Fixed an issue where you couldn't group several nodes.
 
 ## [7.0.0] - 2019-07-10
+
 ### Added
+
 - You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
 - Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
 - You can now set the precision of a Shader Graph and individual nodes.
@@ -682,11 +760,13 @@ This version is compatible with Unity 2023.1.0a6.
 - You can now add sticky notes to graphs.
 
 ### Changed
+
 - The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
 - To enable master nodes to generate correct motion vectors for time-based vertex modification, time is now implemented as an input to the graph rather than as a global uniform.
 - **World** space on `Position Node` now uses the default world space coordinates of the active render pipeline.
 
 ### Fixed
+
 - Fixed an error in `Custom Function Node` port naming.
 - `Sampler State` properties and nodes now serialize correctly.
 - Labels in the Custom Port menu now use the correct coloring when using the Personal skin.
@@ -700,13 +780,17 @@ This version is compatible with Unity 2023.1.0a6.
 - The `Bitangent Vector Node` now generates all necessary shader requirements.
 
 ## [6.7.0-preview] - 2019-05-16
+
 ### Added
+
 - Added a hidden path namespace for Sub Graphs to prevent certain Sub Graphs from populating the Create Node menu.
 
 ### Changed
+
 - Anti-aliasing (4x) is now enabled on Shader Graph windows.
 
 ### Fixed
+
 - When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 - Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
 - Remaining outdated documentation has been removed.
@@ -728,7 +812,9 @@ This version is compatible with Unity 2023.1.0a6.
 - You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
 
 ## [6.6.0] - 2019-04-01
+
 ### Added
+
 - You can now add Matrix, Sampler State and Gradient properties to the Blackboard.
 - Added Custom Function node. Use this node to define a custom HLSL function either via string directly in the graph, or via a path to an HLSL file.
 - You can now group nodes by pressing Ctrl + G.
@@ -737,6 +823,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Preview shaders now compile in the background, and only redraw when necessary.
 
 ### Changed
+
 - Removed Blackboard fields, which had no effect on Sub Graph input ports, from the Sub Graph Blackboard.
 - Subgraph Output node is now called Outputs.
 - Subgraph Output node now supports renaming of ports.
@@ -746,6 +833,7 @@ This version is compatible with Unity 2023.1.0a6.
 - When you delete a group, Shader Graph now deletes the Group UI, but doesn't delete the nodes inside.
 
 ### Fixed
+
 - You can now undo edits to Vector port default input fields.
 - You can now undo edits to Gradient port default input fields.
 - Boolean port input fields now display correct values when you undo changes.
@@ -761,35 +849,47 @@ This version is compatible with Unity 2023.1.0a6.
 ## [6.5.0] - 2019-03-07
 
 ### Fixed
+
 - Fixed master preview for HDRP master nodes when alpha clip is enabled.
 
 ## [6.4.0] - 2019-02-21
+
 ### Fixed
+
 - Fixed the Transform node, so going from Tangent Space to any other space now works as expected.
 
 ## [6.3.0] - 2019-02-18
+
 ### Fixed
+
 - Fixed an issue where the Normal Reconstruct Z Node sometimes caused Not a Number (NaN) errors when using negative values.
 
 ## [6.2.0] - 2019-02-15
+
 ### Fixed
+
 - Fixed the property blackboard so it no longer goes missing or turns very small.
 
 ### Changed
+
 - Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
 
 ## [6.1.0] - 2019-02-13
 
 ## [6.0.0] - 2019-02-23
+
 ### Added
+
 - When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
 - Property nodes in your Shader Graph now have a similar look and styling as the properties in the blackboard.
 
 ### Changed
+
 - Errors in the compiled shader are now displayed as badges on the appropriate node.
 - In the `Scene Depth` node you can now choose the depth sampling mode: `Linear01`, `Raw` or `Eye`.
 
 ### Fixed
+
 - When you convert an inline node to a `Property` node, this no longer allows duplicate property names.
 - When you move a node, you'll now be asked to save the Graph file.
 - You can now Undo edits to Property parameters on the Blackboard.
@@ -818,17 +918,23 @@ This version is compatible with Unity 2023.1.0a6.
 - The term `Shader Graph` is now captilized correctly in the Save Graph prompt.
 
 ## [5.2.0] - 2018-11-27
+
 ### Added
-- Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
+
+- Shader Graph now has **Group Node**, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
 
 ### Fixed
+
 - The expanded state of blackboard properties are now remembered during a Unity session.
 
 ## [5.1.0] - 2018-11-19
+
 ### Added
+
 - You can now show and hide the Main Preview and the Blackboard from the toolbar.
 
 ### Changed
+
 - The Shader Graph package is no longer in preview.
 - Moved `NormalBlendRNM` node to a dropdown option on `Normal Blend` node.
 - `Sample Cubemap` node now has a `SamplerState` slot.
@@ -843,6 +949,7 @@ This version is compatible with Unity 2023.1.0a6.
 - The master node no longer has its own preview, because it was redundant. You can see the results for the master node in the Main Preview.
 
 ### Fixed
+
 - Shadow projection is now correct when using the `Unlit` master node with HD Render Pipeline.
 - Removed all direct references to matrices
 - `Matrix Construction` nodes with different `Mode` values now evaluate correctly.
@@ -860,7 +967,9 @@ This version is compatible with Unity 2023.1.0a6.
 ## [5.0.0-preview] - 2018-09-28
 
 ## [4.0.0-preview] - 2018-09-28
+
 ### Added
+
 - Shader Graph now supports the High Definition Render Pipeline with both PBR and Unlit Master nodes. Shaders built with Shader Graph work with both the Lightweight and HD render pipelines.
 - You can now modify vertex position via the Position slot on the PBR and Unlit Master nodes. By default, the input to this node is object space position. Custom inputs to this slot should specify the absolute local position of a given vertex. Certain nodes (such as Procedural Shapes) are not viable in the vertex shader. Such nodes are incompatible with this slot.
 - You can now edit the Reference name for a property. To do so, select the property and type a new name next to Reference. If you want to reset to the default name, right-click Reference, and select Reset reference.
@@ -868,7 +977,7 @@ This version is compatible with Unity 2023.1.0a6.
 - You can now change the path of Shader Graphs and Sub Graphs. When you change the path of a Shader Graph, this modifies the location it has in the shader selection list. When you change the path of Sub Graph, it will have a different location in the node creation menu.
 - Added `Is Front Face` node. With this node, you can change graph output depending on the face sign of a given fragment. If the current fragment is part of a front face, the node returns true. For a back face, the node returns false. Note: This functionality requires that you have enabled **two sided** on the Master node.
 - Gradient functionality is now available via two new nodes: Sample Gradient and Gradient Asset. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
-- Math nodes now have a Waves category. The category has four different nodes: Triangle wave, Sawtooth wave, Square wave, and Noise Sine wave. The Triangle, Sawtooth, and Square wave nodes output a waveform with a range of -1 to 1 over a period of 1. The Noise Sine wave outputs a standard Sine wave with a range of -1 to 1 over a period of 2 * pi. For variance, random noise is added to the amplitude of the Sine wave, within a determined range.
+- Math nodes now have a Waves category. The category has four different nodes: Triangle wave, Sawtooth wave, Square wave, and Noise Sine wave. The Triangle, Sawtooth, and Square wave nodes output a waveform with a range of -1 to 1 over a period of 1. The Noise Sine wave outputs a standard Sine wave with a range of -1 to 1 over a period of 2 \* pi. For variance, random noise is added to the amplitude of the Sine wave, within a determined range.
 - Added `Sphere Mask` node for which you can indicate the starting coordinate and center point. The sphere mask uses these with the **Radius** and **Hardness** parameters. Sphere mask functionality works in both 2D and 3D spaces, and is based on the vector coordinates in the **Coords and Center** input.
 - Added support for Texture 3D and Texture 2D Array via two new property types and four new nodes.
 - A new node `Texture 2D LOD` has been added for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot.
@@ -884,6 +993,7 @@ This version is compatible with Unity 2023.1.0a6.
 - In your preview for nodes that are not master nodes, pixels now display as pink if they are not finite.
 
 ### Changed
+
 - The settings for master nodes now live in a small window that you can toggle on and off. Here, you can change various rendering settings for your shader.
 - There are two Normal Derive Nodes: `Normal From Height` and `Normal Reconstruct Z`.
   `Normal From Height` uses Vector1 input to derive a normal map.
@@ -906,6 +1016,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Master node settings are now recreated when a topological modification occurs.
 
 ### Fixed
+
 - Vector 1 nodes now evaluate correctly. ([#334](https://github.com/Unity-Technologies/ShaderGraph/issues/334) and [#337](https://github.com/Unity-Technologies/ShaderGraph/issues/337))
 - Properties can now be copied and pasted.
 - Pasting a property node into another graph will now convert it to a concrete node. ([#300](https://github.com/Unity-Technologies/ShaderGraph/issues/300) and [#307](https://github.com/Unity-Technologies/ShaderGraph/pull/307))

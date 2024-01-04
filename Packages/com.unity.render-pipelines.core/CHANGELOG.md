@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -6,23 +7,56 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Added
-- Added TYPED_TEXTURE[2D|2D_ARRAY|3D] macros to allow cross platform declaration of explicitly typed Texture[2D|2DArray|3D] resources.
-
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [17.0.1] - 2023-12-21
+
+This version is compatible with Unity 2023.3.0b2.
+
+### Added
+
+- API to manage global textures
+- New useDynamicScaleExplicit flag to render graph's TextureDesc which can be used to control the underlying RenderTexture's dynamic scaling behavior
+- Added `TEMPLATE_X_HALF` shader macros that define functions using `min16float` only.
+- Added `TEMPLATE_X_FLT_HALF` shader macros that defines functions with both `min16float` and `float`.
+- Foveated rendering API to fix FSR rendering
+- new API that allows users to execute Scalable Temporal Post-Processing (STP) upscaling in a render graph.
+
+### Changed
+
+- Replaced DynamicArray with NativeList in NativeRenderPassCompiler to improve performance
+- Improved CPU performance of Native Render Pass Render Graph compiler by 15-40% (combined with NativeList PR and other optimization) depending on the complexity of the rendering and the runtime device
+- Merged rendergraph native render passes that have different depths.
+- Added GPU Resident Drawer debug panel to display culling stats when Instanced Drawing is enabled.
+- Added icons and fixed bugs in Render Graph Viewer.
+- Prevented the unnecessary store op of MSAA buffers in URP when using Native Render Pass Render Graph.
+- RenderGraphObjectPool is now 3x faster with RasterRenderRenderGraphPass objects by using UnityEngine.Pool
+- Reducing AddRaster/Compute/UnsafeRenderPass Render Graph API CPU cost by not clearing anymore internal arrays. Now relying on handle IsValid() API instead.
+- Validation checks of Render Graph can be enabled/disabled from the Editor. Enabled by default, disabling them slightly improves Render Graph performance.
+
+### Fixed
+
+- Bump MaxReaders
+- Fixed CurrentPipelineHelpURLAttribute.URL returning null when render no pipeline is active, causing errors.
+- Fix volume profile reset action in graphics settings
+- Fix Remove All context action for Volume Profile not working in VolumeEditor
+- Add XR for Lens Flare Data Driven
+- Fixed left eye's Lens Flare light in XR
 
 ## [17.0.0] - 2023-09-26
 
 This version is compatible with Unity 2023.3.0a8.
 
 ### Changed
+
 - Dumping in the temp folder the stripping of IRenderPipelineGraphicsSettings
 
 ### Fixed
+
 - Fixed an issue in the Rendering Debugger where APV was not shown on editor when `Strip runtime debug shaders` was enabled in the global settings.
 - Fixed Stripping.meta corrupted metal file.
-- When changing the *Global Settings* asset, the UI was not being refreshed to and the old asset was being displayed.
+- When changing the _Global Settings_ asset, the UI was not being refreshed to and the old asset was being displayed.
 - Allowing buffer read through NRP RenderGraph API.
 
 ## [16.0.3] - 2023-07-04
@@ -30,12 +64,15 @@ This version is compatible with Unity 2023.3.0a8.
 This version is compatible with Unity 2023.3.0a1.
 
 ### Added
+
 - RenderPipelineGraphicsSettings container. That allows stripping of IRenderPipelineGraphicsSettings.
 
 ### Changed
+
 - Improved VolumeEditor UI
 
 ### Fixed
+
 - Fix console errors when debug actions are removed from Input Manager during play mode
 
 ## [16.0.2] - 2023-06-28
@@ -43,6 +80,7 @@ This version is compatible with Unity 2023.3.0a1.
 This version is compatible with Unity 2023.2.0a22.
 
 ### Fixed
+
 - Fixed Rendering Debugger runtime UI getting occluded by user UI with sorting order larger than 0.
 - Fixed potentially broken rendering and errors after renaming a VolumeProfile asset.
 - Removed some unexpected SRP changed callback invocations.
@@ -53,15 +91,18 @@ This version is compatible with Unity 2023.2.0a22.
 This version is compatible with Unity 2023.2.0a17.
 
 ### Added
+
 - ObjectID Render Request that provides a render texture with the ObjectId of each pixel.
 - Exposed VolumeProfileEditor as public.
 - Added RenderPipelineGlobalSettingsUI::DrawVolumeProfileAssetField.
 - Added VolumeComponentListEditor::SetIsGlobalDefaultVolumeProfile.
 
 ### Changed
+
 - Added optimizations to Static APV for Mobile Devices.
 
 ### Fixed
+
 - Rendering Debugger - Foldouts - Right Click anywhere on the foldout opens the context menu.
 - Rendering Debugger - Foldouts - Left click on context menu collapsed/expand the foldout.
 - Rendering Debugger - HotKeys- Fixed regression to open the Rendering Debugger with Ctrl + Backspace on standalone/player modes.
@@ -73,12 +114,15 @@ This version is compatible with Unity 2023.2.0a17.
 This version is compatible with Unity 2023.2.0a9.
 
 ### Added
+
 - Common C# & Shader Code for Scalable Temporal Post-Processing Upscaler.
 
 ### Changed
+
 - Unified the Create, Clone and Ensure workflows for RenderPipelineGlobalSettings.
 
 ### Fixed
+
 - Updated the Render Graph documentation to reflect API changes.
 - Fixed an IES Importer issue producing incorrect results.
 - Fixed the Revert Property for animation curves on Volume Components so it now works correctly.
@@ -89,12 +133,15 @@ This version is compatible with Unity 2023.2.0a9.
 This version is compatible with Unity 2023.2.0a1.
 
 ### Added
+
 - Added HDR output utilities to handle keywords and shader stripping.
 
 ### Changed
+
 - Deprecated the VolumeComponentMenuForRenderPipeline.
 
 ### Fixed
+
 - Fixed volume profile field state when asset is removed.
 - Fixed ColorCurves volume leaking Texture2D objects under certain circumstances.
 - Fixed virtual offset pushing probes outside of geometry.
@@ -107,15 +154,18 @@ This version is compatible with Unity 2023.2.0a1.
 This version is compatible with Unity 2023.1.0a23.
 
 ### Added
+
 - Extended RendererList to handle UI, WireFrame, CameraSetup and Gizmo draw.
 - Added bigQuery Nested columns extensions.
 
 ### Changed
+
 - Restructured the APV indirection buffer to decrease the amount of memory required when an high number of subdivision levels is used.
 - Allow setting order for panels on the rendering debugger.
 - Enabled VolumeComponent BoolParameter UI to display enabled/disabled dropdown instead of checkboxes.
 
 ### Fixed
+
 - Fixed a FreeCamera printing an error when using old InputSystem.
 - Fixed an issue where shaders from any SRP not are completely stripped when building for Built-in renderer.
 - Fixed dropdowns for multiple editors.
@@ -135,13 +185,16 @@ This version is compatible with Unity 2023.1.0a23.
 This version is compatible with Unity 2023.1.0a19.
 
 ### Added
+
 - An extension method to fetch the Render Pipeline assets from a BuildTarget.
 - Added new XRSystem API to allow SRPs override the XR built-in stereo matrices.
 
 ### Changed
+
 - Tooltips improvement across SRPs.
 
 ### Fixed
+
 - Fixed a Volume Component Editor issue where Foldouts states were stored by position instead of state.
 - Fixed a SerializedObjectNotCreatableException on Volume Component Editors.
 - Fixed a null reference exception when settings null Render Pipeline Global settings on the Settings provider.
@@ -155,15 +208,18 @@ This version is compatible with Unity 2023.1.0a19.
 This version is compatible with Unity 2023.1.0a6.
 
 ### Added
+
 - Extension method to fetch the Render Pipeline assets from a BuildTarget.
 - New XRSystem API to allow SRPs override the XR built-in stereo matrices.
 
 ### Changed
+
 - Improved performance of APV baking.
 - Allow setting order for panels on the rendering debugger.
 - Allow VolumeComponent BoolParameter UI to display enabled/disabled dropdown instead of checkboxes.
 
 ### Fixed
+
 - Fixed the reset of APV volume placement when using multi selection.
 - Fixed an issue so that APV dilated data not being written back to disk.
 - Fixed realtime subdivision so it culls empty cells.
@@ -191,11 +247,13 @@ This version is compatible with Unity 2023.1.0a6.
 ## [14.0.3] - 2021-05-09
 
 ### Fixed
+
 - Added Shader Stripping Watcher so you get notifications when a Shader Variant is stripped.
 
 ## [14.0.2] - 2021-02-04
 
 ### Added
+
 - Added new extension `TryRemoveElementsInRange` to remove a range of elements from a `IList`.
 - Added error on ResourceReloader when attempting to use [ReloadGroup] on ScriptableObject.
 - Added Screen Coordinates Override shader utilities.
@@ -203,6 +261,7 @@ This version is compatible with Unity 2023.1.0a6.
 - Aded explicit control over scenario blending factor and a debug mode for visualization.
 
 ### Fixed
+
 - Fixed texture gather macros for GLCore and moved them from target 4.6 to target 4.5.
 - Fixed cubemap array macros for GLCore.
 - Fixed regression on ResourceReloader due to change for supporting built-in resources.
@@ -211,6 +270,7 @@ This version is compatible with Unity 2023.1.0a6.
 ## [14.0.1] - 2021-12-07
 
 ### Added
+
 - Linear version of function that sets FSR RCAS shader constants
 - `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
 - Add probe volume influence weight parameter
@@ -218,9 +278,11 @@ This version is compatible with Unity 2023.1.0a6.
 - Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
 
 ### Changed
+
 - Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
 
 ### Fixed
+
 - The Volume Panel on the Rendering Debugger was not corretly showing cameras when they were added or deleted.
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
 - Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
@@ -233,21 +295,26 @@ This version is compatible with Unity 2023.1.0a6.
 ## [14.0.0] - 2021-11-17
 
 ### Added
+
 - Context menu on Volume Parameters to restore them to their default values.
 
 ### Fixed
+
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 
 ### Changed
+
 - Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
 ## [13.1.2] - 2021-11-05
 
 ### Added
+
 - Added function to allocate RTHandles using `RenderTextureDescriptor`.
 - Added `vrUsage` support for RTHandles allocation.
 
 ### Fixed
+
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - Fixed an issue causing Render Graph execution errors after a random amount of time.
@@ -255,6 +322,7 @@ This version is compatible with Unity 2023.1.0a6.
 ## [13.1.1] - 2021-10-04
 
 ### Added
+
 - Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
 - Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
 - Added new DebugUI widget types: ProgressBarValue and ValueTuple
@@ -266,9 +334,11 @@ This version is compatible with Unity 2023.1.0a6.
 ## [13.1.0] - 2021-09-24
 
 ### Added
+
 - Debug Panels Framework See `IDebugDisplaySettingsQuery`.
 
 ### Fixed
+
 - Fixed keyword and float property upgrading in SpeedTree8MaterialUpgrader
 
 ## [13.0.0] - 2021-09-01
@@ -277,11 +347,13 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Added
+
 - New `IVolumeDebugSettings` interface and `VolumeDebugSettings<T>` class that stores the information for the Volumes Debug Panel.
 - Added AMD FidelityFX shaders which were originally in HDRP
 - Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
 
 ### Fixed
+
 - Fixed black pixel issue in AMD FidelityFX RCAS implementation
 - Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
 - Fixed serialization of DebugStateFlags, the internal Enum was not being serialized.
@@ -289,6 +361,7 @@ The version number for this package has increased due to a version update of a r
 ## [12.0.0] - 2021-01-11
 
 ### Added
+
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
 - Added VolumeComponentMenuForRenderPipelineAttribute to specify a volume component only for certain RenderPipelines.
@@ -331,6 +404,7 @@ The version number for this package has increased due to a version update of a r
 - Added new API to draw color temperature for Lights.
 
 ### Fixed
+
 - Help boxes with fix buttons do not crop the label.
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
@@ -366,6 +440,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
 
 ### Changed
+
 - Improved the warning messages for Volumes and their Colliders.
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
@@ -393,6 +468,7 @@ The version number for this package has increased due to a version update of a r
 ## [11.0.0] - 2020-10-21
 
 ### Fixed
+
 - Fixed the default background color for previews to use the original color.
 - Fixed spacing between property fields on the Volume Component Editors.
 - Fixed ALL/NONE to maintain the state on the Volume Component Editors.
@@ -401,6 +477,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
 ### Added
+
 - New View Lighting Tool, a component which allow to setup light in the camera space
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
 - Several utils functions to access SphericalHarmonicsL2 in a more verbose and intuitive fashion.
@@ -413,26 +490,31 @@ The version number for this package has increased due to a version update of a r
 ## [10.1.0] - 2020-10-12
 
 ### Added
+
 - Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
 - Added the support of input system V2
 
 ### Fixed
+
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
 - Fixed issue that caused `UNITY_REVERSED_Z` and `UNITY_UV_STARTS_AT_TOP` being defined in platforms that don't support it.
 
 ### Changed
+
 - LookDev menu item entry is now disabled if the current pipeline does not support it.
 
 ## [10.0.0] - 2019-06-10
 
 ### Added
+
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
 - Add tooltips in LookDev's toolbar.
 - Add XRGraphicsAutomatedTests helper class.
 
 ### Fixed
+
 - Fixed compile errors for platforms with no VR support
 - Replaced reference to Lightweight Render Pipeline by Universal Render Pipeline in the package description
 - Fixed LighProbes when using LookDev.
@@ -472,6 +554,7 @@ The version number for this package has increased due to a version update of a r
 - HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
+
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
 - Only call SetDirty on an object when actually modifying it in SRP updater utility
 - Set depthSlice to -1 by default on SetRenderTarget() to clear all slices of Texture2DArray by default.
@@ -486,37 +569,44 @@ The version number for this package has increased due to a version update of a r
 ## [7.1.1] - 2019-09-05
 
 ### Added
+
 - Add separated debug mode in LookDev.
 
 ### Changed
+
 - Replaced usage of ENABLE_VR in XRGraphics.cs by a version define (ENABLE_VR_MODULE) based on the presence of the built-in VR module
 - `ResourceReloader` now works on non-public fields.
 - Removed `normalize` from `UnpackNormalRGB` to match `UnpackNormalAG`.
 - Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 - Removed debug menu in non development build.
 
-
 ## [7.0.1] - 2019-07-25
 
 ### Fixed
+
 - Fixed a precision issue with the ACES tonemapper on mobile platforms.
 
 ## [7.0.0] - 2019-07-17
 
 ### Added
+
 - First experimental version of the LookDev. Works with all SRP. Only branched on HDRP at the moment.
 - LookDev out of experimental
 
 ## [6.7.0-preview] - 2019-05-16
 
 ## [6.6.0] - 2019-04-01
+
 ### Fixed
+
 - Fixed compile errors in XRGraphics.cs when ENABLE_VR is not defined
 
 ## [6.5.0] - 2019-03-07
 
 ## [6.4.0] - 2019-02-21
+
 ### Added
+
 - Enabled support for CBUFFER on OpenGL Core and OpenGL ES 3 backends.
 
 ## [6.3.0] - 2019-02-18
@@ -526,31 +616,43 @@ The version number for this package has increased due to a version update of a r
 ## [6.1.0] - 2019-02-13
 
 ## [6.0.0] - 2019-02-23
+
 ### Fixed
+
 - Fixed a typo in ERROR_ON_UNSUPPORTED_FUNCTION() that was causing the shader compiler to run out of memory in GLES2. [Case 1104271] (https://issuetracker.unity3d.com/issues/mobile-os-restarts-because-of-high-memory-usage-when-compiling-shaders-for-opengles2)
 
 ## [5.2.0] - 2018-11-27
 
 ## [5.1.0] - 2018-11-19
+
 ### Added
+
 - Added a define for determining if any instancing path is taken.
 
 ### Changed
+
 - The Core SRP package is no longer in preview.
 
 ## [5.0.0-preview] - 2018-10-18
+
 ### Changed
+
 - XRGraphicConfig has been changed from a read-write control of XRSettings to XRGraphics, a read-only accessor to XRSettings. This improves consistency of XR behavior between the legacy render pipeline and SRP.
 - XRGraphics members have been renamed to match XRSettings, and XRGraphics has been modified to only contain accessors potentially useful to SRP
 - You can now have up to 16 additional shadow-casting lights.
+
 ### Fixed
+
 - LWRP no longer executes shadow passes when there are no visible shadow casters in a Scene. Previously, this made the Scene render as too dark, overall.
 
-
 ## [4.0.0-preview] - 2018-09-28
+
 ### Added
+
 - Space transform functions are now defined in `ShaderLibrary/SpaceTransforms.hlsl`.
+
 ### Changed
+
 - Removed setting shader inclue path via old API, use package shader include paths
 
 ## [3.3.0] - 2018-01-01
@@ -560,13 +662,16 @@ The version number for this package has increased due to a version update of a r
 ## [3.1.0] - 2018-01-01
 
 ### Added
+
 - Add PCSS shadow filter
 - Added Core EditMode tests
 - Added Core unsafe utilities
 
 ### Improvements
+
 - Improved volume UI & styling
 - Fixed CoreUtils.QuickSort infinite loop when two elements in the list are equals.
 
 ### Changed
+
 - Moved root files into folders for easier maintenance
