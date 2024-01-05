@@ -280,7 +280,7 @@ namespace UnityEditor.Rendering
                 menu.AddSeparator(string.Empty);
                 menu.AddItem(Styles.enableAll, false, () => SetComponentsActive(true));
                 menu.AddItem(Styles.disableAll, false, () => SetComponentsActive(false));
-                menu.AddItem(Styles.removeAll, false, () => m_ComponentList.Clear());
+                menu.AddItem(Styles.removeAll, false, () => m_ComponentList.RemoveAllComponents());
                 menu.AddItem(VolumeProfileUtils.Styles.resetAll, false, () => m_ComponentList.ResetAllComponents());
                 menu.AddSeparator(string.Empty);
                 menu.AddItem(VolumeProfileUtils.Styles.copyAllSettings, false,
