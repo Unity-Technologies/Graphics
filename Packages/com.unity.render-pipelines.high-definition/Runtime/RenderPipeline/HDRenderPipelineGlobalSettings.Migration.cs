@@ -178,6 +178,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
                 for (int i = 1; i < data.renderingLayerNames.Length; i++)
                 {
+                    if (i >= UnityEngine.RenderingLayerMask.GetRenderingLayerCount())
+                        RenderPipelineEditorUtility.TryAddRenderingLayerName("");
+
                     var name = data.renderingLayerNames[i];
                     if(string.IsNullOrWhiteSpace(name))
                         continue;
@@ -187,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         currentLayerName += $" - {name}";
                     else
                         currentLayerName = name;
+
                     RenderPipelineEditorUtility.TrySetRenderingLayerName(i, currentLayerName);
                 }
 #pragma warning restore 618 // Type or member is obsolete
@@ -385,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderingPathFrameSettings.GetDefaultFrameSettings(path) = data.m_ObsoleteRenderingPath.GetDefaultFrameSettings(path);
 #pragma warning restore 618
         }
-        
+
         internal static void MigrateCustomPostProcessOrdersSettings(HDRenderPipelineGlobalSettings data)
         {
             CustomPostProcessOrdersSettings customPostProcessOrdersSettings = GetOrCreateGraphicsSettings<CustomPostProcessOrdersSettings>(data);
@@ -403,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 data.m_CustomPostProcessOrdersSettings.afterPostProcessCustomPostProcesses;
 #pragma warning restore 618
         }
-        
+
 
         #endregion
 

@@ -112,6 +112,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     for (int i = 1; i < asset.m_RenderingLayerNames.Length; i++)
                     {
+                        if (i >= RenderingLayerMask.GetRenderingLayerCount())
+                            RenderPipelineEditorUtility.TryAddRenderingLayerName("");
+
                         var name = asset.m_RenderingLayerNames[i];
                         if(string.IsNullOrWhiteSpace(name))
                             continue;

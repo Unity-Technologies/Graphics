@@ -227,10 +227,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static uint DrawRenderingLayerMask(Rect rect, uint renderingLayer, GUIContent label = null, bool allowHelpBox = true)
         {
             var value = EditorGUI.RenderingLayerMaskField(rect, label ?? GUIContent.none, renderingLayer);
-            var definedLayersCount = RenderingLayerMask.GetLastDefinedRenderingLayerIndex();
-            if (allowHelpBox && definedLayersCount > 16)
-                EditorGUILayout.HelpBox($"One or more of the Rendering Layers is defined outside of 16 limit. HDRP supports only 16 layers.", MessageType.Warning);
-
             return value;
         }
 
