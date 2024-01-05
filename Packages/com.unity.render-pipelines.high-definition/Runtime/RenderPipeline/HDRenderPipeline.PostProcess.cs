@@ -3533,26 +3533,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             float height = (float)data.viewport.y;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                            // Not VR or Multi-Pass
-                            if (!data.hdCamera.xr.enabled ||
-                                (data.hdCamera.xr.enabled && !data.hdCamera.xr.singlePassEnabled))
-                            {
-#endif
-                                LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                                    data.parameters.lensFlareShader, data.hdCamera.camera, viewport, data.hdCamera.xr, data.hdCamera.xr.multipassId,
-                                    width, height,
-                                    data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
-                                    ShaderConfig.s_CameraRelativeRendering != 0,
-                                    data.hdCamera.mainViewConstants.worldSpaceCameraPos,
-                                    data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
-                                    ctx.cmd,
-                                    data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
-                                    data.source,
-                                    (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
-                                    data.parameters.skipCopy);
-                            }
-#if ENABLE_VR && ENABLE_XR_MODULE
-                            else
+                            // Single pass VR
+                            if (data.hdCamera.xr.enabled && data.hdCamera.xr.singlePassEnabled)
                             {
                                 for (int xrIdx = 0; xrIdx < data.hdCamera.viewCount; ++xrIdx)
                                 {
@@ -3570,7 +3552,22 @@ namespace UnityEngine.Rendering.HighDefinition
                                         data.parameters.skipCopy);
                                 }
                             }
+                            else
 #endif
+                            {
+                                LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
+                                    data.parameters.lensFlareShader, data.hdCamera.camera, viewport, data.hdCamera.xr, data.hdCamera.xr.multipassId,
+                                    width, height,
+                                    data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
+                                    ShaderConfig.s_CameraRelativeRendering != 0,
+                                    data.hdCamera.mainViewConstants.worldSpaceCameraPos,
+                                    data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                    ctx.cmd,
+                                    data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
+                                    data.source,
+                                    (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                                    data.parameters.skipCopy);
+                            }
                         });
 
                     PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareDataDriven);
