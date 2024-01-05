@@ -1187,8 +1187,6 @@ namespace UnityEngine.Rendering
 
             PrepareCellsForWriting(isBakingSceneSubset);
 
-            using var writeScope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData);
-
             var fullSceneDataList = probeRefVolume.perSceneDataList;
 
             m_BakingSet.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
@@ -1200,7 +1198,8 @@ namespace UnityEngine.Rendering
             m_BakingSet.scenarios.TryAdd(m_BakingSet.lightingScenario, new ProbeVolumeBakingSet.PerScenarioDataInfo());
 
             // Convert baking cells to runtime cells
-            WriteBakingCells(m_BakedCells.Values.ToArray());
+            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData))
+                WriteBakingCells(m_BakedCells.Values.ToArray());
 
             // Reset internal structures depending on current bake.
             probeRefVolume.EnsureCurrentBakingSet(m_BakingSet);
@@ -1210,46 +1209,34 @@ namespace UnityEngine.Rendering
             // And then we unload cells using the wrong layout in PerformDilation (after WriteBakingCells updates the baking set object) which leads to a broken internal state.
 
             // Don't use Disk streaming to avoid having to wait for it when doing dilation.
-            ProbeReferenceVolume.instance.ForceNoDiskStreaming(true);
+            probeRefVolume.ForceNoDiskStreaming(true);
             // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
-            var prevSHBands = ProbeReferenceVolume.instance.shBands;
-            ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
-
-            // TODO Discuss: Not nice to do this here, shouldn't reloading the asset also resolve cell data?
-            // Would still need to reload common shared data like bricks as they are separately handled by the baking set itself.
-            // Load common shared data (bricks + debug)
-            // Load streamable shared data.
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                data.Initialize();
-
-            writeScope.Dispose();
-
-            var probeVolumes = GetProbeVolumeList();
-            foreach (var probeVolume in probeVolumes)
-            {
-                probeVolume.OnBakeCompleted();
-            }
+            var prevSHBands = probeRefVolume.shBands;
+            probeRefVolume.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;
 
-            m_BakingBatch = null;
-            InitDilationShaders(); // Do it now otherwise it messes the loading bar
+            if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
+            {
+                // Do it now otherwise it messes the loading bar
+                InitDilationShaders();
 
-            foreach (var data in fullSceneDataList)
-                data.QueueSceneLoading();
-
-            // ---- Perform dilation ---
-            using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))
-                PerformDilation();
+                using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))
+                    PerformDilation();
+            }
 
             s_ForceInvalidatedProbesAndTouchupVols.Clear();
             s_CustomDilationThresh.Clear();
 
+            m_BakingBatch = null;
+            foreach (var probeVolume in GetProbeVolumeList())
+                probeVolume.OnBakeCompleted();
+
             // Need to restore the original sh bands
-            ProbeReferenceVolume.instance.ForceNoDiskStreaming(false);
-            ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
+            probeRefVolume.ForceNoDiskStreaming(false);
+            probeRefVolume.ForceSHBand(prevSHBands);
 
             // Mark old bakes as out of date if needed
             ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
@@ -2140,13 +2127,12 @@ namespace UnityEngine.Rendering
                 return GetBricksFromLoaded();
 
             var ctx = PrepareProbeSubdivisionContext();
-            return BakeBricks(ctx);
+            return BakeBricks(ctx, m_BakingBatch.contributors);
         }
 
-        static internal ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx)
+        static internal ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx, in GIContributors contributors)
         {
             var result = new ProbeSubdivisionResult();
-            var contributors = m_BakingBatch.contributors;
 
             if (ctx.probeVolumes.Count == 0)
                 return result;

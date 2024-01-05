@@ -1163,7 +1163,7 @@ namespace UnityEngine.Rendering
         #region Probe Volume Scene Overlay
 
         [Overlay(typeof(SceneView), k_OverlayID)]
-        [Icon("LightProbeGroup Icon")]
+        [Icon("Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos/ProbeVolume.png")]
         class ProbeVolumeOverlay : Overlay, ITransientOverlay
         {
             const string k_OverlayID = "APV Overlay";

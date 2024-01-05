@@ -17,12 +17,14 @@ namespace UnityEditor.Rendering
             var range = attribute as LogarithmicAttribute;
 
             EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
+            EditorGUI.BeginProperty(position, label, property);
 
             EditorGUI.BeginChangeCheck();
             int newValue = EditorGUI.LogarithmicIntSlider(position, label, property.intValue, range.min, range.max, 2, 1, 1 << 30);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = Mathf.ClosestPowerOfTwo(newValue);
 
+            EditorGUI.EndProperty();
             EditorGUI.showMixedValue = false;
         }
     }

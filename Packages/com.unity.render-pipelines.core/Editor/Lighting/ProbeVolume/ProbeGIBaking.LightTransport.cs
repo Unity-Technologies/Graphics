@@ -146,6 +146,7 @@ namespace UnityEngine.Rendering
 
                 if (positions.Length == 0)
                 {
+                    Clear();
                     CleanBakeData();
                     return false;
                 }

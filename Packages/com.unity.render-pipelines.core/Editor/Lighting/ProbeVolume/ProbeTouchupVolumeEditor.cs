@@ -250,11 +250,12 @@ namespace UnityEditor.Rendering
                     }
                     EditorGUILayout.EndHorizontal();
 
-                    EditorGUI.EndDisabledGroup();
-
                     if (!useSkyOcclusion)
                     {
-                        EditorGUILayout.HelpBox("Override sky occlusion shading direction can be used only if Adaptive Probe Volumes were baked with sky occlusion on.", MessageType.Warning);
+                        CoreEditorUtils.DrawFixMeBox("Overriding Sky Direction can be used only if Sky Occlusion is enabled for the Baking Set.", MessageType.Warning, "Open", () =>
+                        {
+                            ProbeVolumeLightingTab.OpenBakingSet(bakingSet);
+                        });
                     }
                 }
 
