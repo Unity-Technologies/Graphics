@@ -12,17 +12,17 @@ UNITY_DECLARE_RT_ACCEL_STRUCT(_AccelStruct);
 
 int _SampleCount;
 int _SampleId;
-int _ProbeOffset;
 int _MaxBounces;
 float _OffsetRay;
+float _AverageAlbedo;
+int _BackFaceCulling;
+int _BakeSkyShadingDirection;
+
 StructuredBuffer<float3> _ProbePositions;
 StructuredBuffer<float3> _SkyShadingPrecomputedDirection;
 RWStructuredBuffer<float4> _SkyOcclusionOut;
 RWStructuredBuffer<float3> _SkyShadingOut;
 RWStructuredBuffer<uint> _SkyShadingDirectionIndexOut;
-float _AverageAlbedo;
-int _BackFaceCulling;
-int _BakeSkyShadingDirection;
 
 
 uint LinearSearchClosestDirection(float3 direction)
@@ -49,7 +49,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
     const float kSHBasis0 = 0.28209479177387814347f;
     const float kSHBasis1 = 0.48860251190291992159f;
 
-    int probeId = _ProbeOffset + dispatchInfo.globalThreadIndex;
+    int probeId = dispatchInfo.globalThreadIndex;
 
     RngState rngState;
     rngState.Init(uint2((uint)probeId, 0), 1, _SampleId);
