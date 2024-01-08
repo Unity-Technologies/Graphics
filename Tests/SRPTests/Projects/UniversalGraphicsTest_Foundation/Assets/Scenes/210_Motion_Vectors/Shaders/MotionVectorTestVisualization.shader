@@ -33,7 +33,7 @@ Shader "MotionVectorTestVisualization"
 
              float2 SampleMotionVectors(float2 coord)
             {
-                return SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_MotionVectorTexture, coord);
+                return SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_MotionVectorTexture, coord).xy;
             }
 
             float DistanceToLine(float2 p, float2 p1, float2 p2)
