@@ -30,8 +30,6 @@
 // Input textures
 TEXTURE2D_X(_CameraColorTexture);
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X(_VolumetricCloudsSourceDepth);
-TEXTURE2D_X(_MaxZMaskTexture);
 
 // History buffers
 TEXTURE2D_X(_HistoryVolumetricClouds0Texture);

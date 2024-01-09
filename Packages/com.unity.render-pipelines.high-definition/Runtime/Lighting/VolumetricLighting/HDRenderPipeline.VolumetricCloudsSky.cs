@@ -93,7 +93,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableExposureControl = data.commonData.enableExposureControl;
             cameraData.lowResolution = true;
             cameraData.enableIntegration = false;
-            cameraData.maxZMaskValidity = false;
             UpdateShaderVariablesClouds(ref data.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             data.intermediateLightingBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
@@ -118,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, traceTX, traceTY, 1, in passData.commonData,
-                TextureXR.GetBlackTexture(), TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTexture(), passData.ambientProbeBuffer,
+                TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTexture(), passData.ambientProbeBuffer,
                 passData.intermediateLightingBuffer, passData.intermediateDepthBuffer);
 
             mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer);
@@ -183,7 +182,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableExposureControl = data.commonData.enableExposureControl;
             cameraData.lowResolution = false;
             cameraData.enableIntegration = false;
-            cameraData.maxZMaskValidity = false;
             UpdateShaderVariablesClouds(ref data.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
@@ -215,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, finalTX, finalTY, 1, in passData.commonData,
-                TextureXR.GetBlackTexture(), TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTexture(), passData.ambientProbeBuffer,
+                TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTexture(), passData.ambientProbeBuffer,
                 passData.intermediateLightingBuffer0, passData.intermediateDepthBuffer);
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)

@@ -47,7 +47,7 @@ CBUFFER_START(ShaderVariablesClouds)
     int _LowResolutionEvaluation;
     int _EnableIntegration;
     int _ValidSceneDepth;
-    int _ValidMaxZMask;
+    int _PaddingVC1;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
     float _NearPlaneReprojection;

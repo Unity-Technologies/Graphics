@@ -538,8 +538,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             float meanDistanceDivider = 0.0f;
 
             // Current position for the evaluation, apply blue noise to start position
-            float currentDistance = cloudRay.integrationNoise;
-            float3 currentPositionWS = cloudRay.originWS + (rayMarchRange.start + currentDistance) * cloudRay.direction;
+            float currentDistance = 0;
+            float3 currentPositionWS = cloudRay.originWS + rayMarchRange.start * cloudRay.direction;
 
             // Initialize the values for the optimized ray marching
             bool activeSampling = true;
@@ -591,8 +591,9 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         activeSampling = false;
 
                     // Do the next step
-                    currentPositionWS += cloudRay.direction * stepS;
-                    currentDistance += stepS;
+                    float relativeStepSize = lerp(cloudRay.integrationNoise, 1.0, saturate(currentIndex));
+                    currentPositionWS += cloudRay.direction * stepS * relativeStepSize;
+                    currentDistance += stepS * relativeStepSize;
                 }
                 else
                 {

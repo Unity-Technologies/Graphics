@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumetricCloudCommonData commonData;
         }
 
-        VolumetricCloudsParameters_FullResolution PrepareVolumetricCloudsParameters_FullResolution(HDCamera hdCamera, int width, int height, int viewCount, bool exposureControl, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, bool maxZMaskValidity)
+        VolumetricCloudsParameters_FullResolution PrepareVolumetricCloudsParameters_FullResolution(HDCamera hdCamera, int width, int height, int viewCount, bool exposureControl, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType)
         {
             VolumetricCloudsParameters_FullResolution parameters = new VolumetricCloudsParameters_FullResolution();
 
@@ -50,7 +50,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableExposureControl = parameters.commonData.enableExposureControl;
             cameraData.lowResolution = false;
             cameraData.enableIntegration = true;
-            cameraData.maxZMaskValidity = maxZMaskValidity;
             UpdateShaderVariablesClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             // If this is a default camera, we want the improved blending, otherwise we don't (in the case of a planar)
@@ -62,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void TraceVolumetricClouds_FullResolution(CommandBuffer cmd, VolumetricCloudsParameters_FullResolution parameters, GraphicsBuffer ambientProbeBuffer,
-            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle volumetricLightingTexture, RTHandle maxZMask,
+            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle volumetricLightingTexture,
             RTHandle intermediateCloudsLighting, RTHandle intermediateCloudsDepth,
             RTHandle cloudsLighting, RTHandle cloudsDepth)
         {
@@ -80,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, finalTX, finalTY, parameters.viewCount, in parameters.commonData,
-                maxZMask, volumetricLightingTexture, depthPyramid, ambientProbeBuffer,
+                volumetricLightingTexture, depthPyramid, ambientProbeBuffer,
                 intermediateCloudsLighting, intermediateCloudsDepth);
 
             DoVolumetricCloudsUpscale(cmd, parameters.combineKernel, finalTX, finalTY, parameters.viewCount, in parameters.commonData,
@@ -96,7 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Input buffers
             public TextureHandle colorBuffer;
             public TextureHandle depthPyramid;
-            public TextureHandle maxZMask;
             public BufferHandle ambientProbeBuffer;
             public TextureHandle volumetricLighting;
 
@@ -109,21 +107,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle cloudsDepth;
         }
 
-        VolumetricCloudsOutput RenderVolumetricClouds_FullResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting, TextureHandle maxZMask)
+        VolumetricCloudsOutput RenderVolumetricClouds_FullResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting)
         {
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsFullResolutionData>("Volumetric Clouds Full Resolution", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-                bool maxZMaskValidity = maxZMask.IsValid();
 
                 // Parameters
-                passData.parameters = PrepareVolumetricCloudsParameters_FullResolution(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight, hdCamera.viewCount, hdCamera.exposureControlFS, settings, cameraType, maxZMaskValidity);
+                passData.parameters = PrepareVolumetricCloudsParameters_FullResolution(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight, hdCamera.viewCount, hdCamera.exposureControlFS, settings, cameraType);
 
                 // Input buffers
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.maxZMask = maxZMaskValidity ? builder.ReadTexture(maxZMask) : renderGraph.defaultResources.blackTextureXR;
                 passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
 
@@ -142,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (VolumetricCloudsFullResolutionData data, RenderGraphContext ctx) =>
                     {
                         TraceVolumetricClouds_FullResolution(ctx.cmd, data.parameters, data.ambientProbeBuffer,
-                            data.colorBuffer, data.depthPyramid, data.volumetricLighting, data.maxZMask,
+                            data.colorBuffer, data.depthPyramid, data.volumetricLighting,
                             data.intermediateLightingBuffer, data.intermediateBufferDepth,
                             data.cloudsLighting, data.cloudsDepth);
                     });

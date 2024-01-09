@@ -255,7 +255,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 outColor.a = 1.0f - outColor.a;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
-                float linearDepth = DecodeInfiniteDepth(deviceDepth, _CloudNearPlane);
+                float linearDepth = min(DecodeInfiniteDepth(deviceDepth, _CloudNearPlane), _ProjectionParams.z);
 
                 float3 V = GetSkyViewDirWS(input.positionCS.xy);
                 float3 positionWS = GetCameraPositionWS() - linearDepth * V;
