@@ -939,9 +939,9 @@
 #define STP_DITHER_MOTION 1
 //------------------------------------------------------------------------------------------------------------------------------
 // Ratios for luma in a gamma space, using BT.709 luma.
-#define STP_LUMA_R 0.0722
+#define STP_LUMA_R 0.2126
 #define STP_LUMA_G 0.7152
-#define STP_LUMA_B 0.2126
+#define STP_LUMA_B 0.0722
 #define STP_LUMA STP_LUMA_R, STP_LUMA_G, STP_LUMA_B
 //------------------------------------------------------------------------------------------------------------------------------
 // Maximum frames of feedback.
@@ -1666,7 +1666,7 @@ StpInOutU4 con0,
 StpInF2 imgC) {
     // StpF2 kRcpR := 4/size of current input image in pixels.
     con0[0] = StpU1_F1(StpF1_(4.0) / imgC[0]);
-    con0[1] = StpU1_F1(StpF1_(4.0) / imgC[0]);
+    con0[1] = StpU1_F1(StpF1_(4.0) / imgC[1]);
     // StpU2 kR := size/4 of the current input image in pixels.
     // Used for pass merging (DIL and SAA), since convergence is 1/16 area of input, must check position.
     con0[2] = StpU1_(StpU1_(imgC[0]) >> StpU1_(2));
@@ -3997,8 +3997,8 @@ StpInF2 imgF) {
         StpMF1 gNe = gAbsBMinusE;
         StpMF1 gGood = StpGtZeroMF1(gBMinusE);
 //------------------------------------------------------------------------------------------------------------------------------
-        StpF2 gWalk = StpP2_(gVert) ? StpF2(0.0, kRcpI.y) : StpF2(kRcpI.x, 0.0);
-        StpF2 gDecon = StpP2_(gVert) ? StpF2(kRcpI.x, 0.0) : StpF2(0.0, kRcpI.y);
+        StpF2 gWalk = gVert ? StpF2(0.0, kRcpI.y) : StpF2(kRcpI.x, 0.0);
+        StpF2 gDecon = gVert ? StpF2(kRcpI.x, 0.0) : StpF2(0.0, kRcpI.y);
         if(gUp) gDecon = -gDecon;
 //------------------------------------------------------------------------------------------------------------------------------
         StpF2 gP = p + gDecon * StpF2_(1.0/3.0);
@@ -4273,9 +4273,9 @@ StpInF2 imgF) {
         StpH1 gGood = StpGtZeroH1(gBMinusE);
 //------------------------------------------------------------------------------------------------------------------------------
         // One pixel walk distance for search.
-        StpF2 gWalk = StpP2_(gVert) ? StpF2(0.0, kRcpI.y) : StpF2(kRcpI.x, 0.0);
+        StpF2 gWalk = gVert ? StpF2(0.0, kRcpI.y) : StpF2(kRcpI.x, 0.0);
         // This is the direction of decontrast (towards the highest contrast neighbor).
-        StpF2 gDecon = StpP2_(gVert) ? StpF2(kRcpI.x, 0.0) : StpF2(0.0, kRcpI.y);
+        StpF2 gDecon = gVert ? StpF2(kRcpI.x, 0.0) : StpF2(0.0, kRcpI.y);
         // If up (or left) work negative.
         if(gUp) gDecon = -gDecon;
 //------------------------------------------------------------------------------------------------------------------------------
