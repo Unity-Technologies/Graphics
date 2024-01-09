@@ -180,7 +180,7 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
 
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
 {
-    shadowCoord.xy /= shadowCoord.w;
+    shadowCoord.xy /= max(0.00001, shadowCoord.w); // Prevent division by zero.
 
     // The stereo transform has to happen after the manual perspective divide
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
