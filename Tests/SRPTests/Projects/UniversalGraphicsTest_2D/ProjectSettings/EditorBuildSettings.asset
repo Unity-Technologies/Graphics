@@ -218,5 +218,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/076_TilemapRenderer_DefaultSecondaryTextures.unity
     guid: df19e9e1912830644b606bb88acf7b86
+  - enabled: 1
+    path: Assets/Scenes/077_SpriteMask_Tilemap_SpriteShape_Renderer.unity
+    guid: e689d77e7920d8c4dbfba50074e7bc24
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
