@@ -104,7 +104,8 @@ half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 uint _MainLightLayerMask;
 
-// xyz are currently unused
+// x: SSAO Enabled/Disabled (Needed for situations when OFF keyword is stripped out but feature disabled in runtime)
+// yz are currently unused
 // w: directLightStrength
 half4 _AmbientOcclusionParam;
 

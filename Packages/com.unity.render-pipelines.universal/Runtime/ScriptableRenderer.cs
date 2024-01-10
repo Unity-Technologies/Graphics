@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Called by Dispose().
         /// Override this function to clean up resources in your renderer.
-        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base. 
+        /// Be sure to call this base dispose in your overridden function to free resources allocated by the base.
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
@@ -1424,6 +1424,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.LightLayers);
+            cmd.SetGlobalVector(ScreenSpaceAmbientOcclusion.ScreenSpaceAmbientOcclusionPass.s_AmbientOcclusionParamID, Vector4.zero);
         }
 
         internal void Clear(CameraRenderType cameraType)
