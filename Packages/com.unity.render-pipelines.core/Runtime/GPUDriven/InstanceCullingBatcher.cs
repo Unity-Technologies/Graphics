@@ -424,6 +424,21 @@ namespace UnityEngine.Rendering
                 overridenComponents |= InstanceComponentGroup.Lightmap;
             }
 
+            // Scan all materials once to retrieve whether this renderer is indirect-compatible or not (and store it in the RangeKey).
+            var supportsIndirect = true;
+            for (int matIndex = 0; matIndex < materialsCount; ++matIndex)
+            {
+                if (matIndex >= submeshCount)
+                {
+                    Debug.LogWarning("Material count in the shared material list is higher than sub mesh count for the mesh. Object may be corrupted.");
+                    continue;
+                }
+
+                var materialIndex = rendererData.materialIndex[materialsOffset + matIndex];
+                var packedMaterialData = rendererData.packedMaterialData[materialIndex];
+                supportsIndirect &= packedMaterialData.isIndirectSupported;
+            }
+
             var rangeKey = new RangeKey
             {
                 layer = (byte)gameObjectLayer,
@@ -432,7 +447,7 @@ namespace UnityEngine.Rendering
                 shadowCastingMode = packedRendererData.shadowCastingMode,
                 staticShadowCaster = packedRendererData.staticShadowCaster,
                 rendererPriority = rendererPriority,
-                supportsIndirect = packedRendererData.supportsIndirect,
+                supportsIndirect = supportsIndirect
             };
 
             ref DrawRange drawRange = ref EditDrawRange(rangeKey);
@@ -447,8 +462,7 @@ namespace UnityEngine.Rendering
 
                 var materialIndex = rendererData.materialIndex[materialsOffset + matIndex];
                 var materialID = rendererData.materialID[materialIndex];
-                var isTransparent = rendererData.isTransparent[materialIndex];
-                var isMotionVectorsPassEnabled = rendererData.isMotionVectorsPassEnabled[materialIndex];
+                var packedMaterialData = rendererData.packedMaterialData[materialIndex];
 
                 if (rendererToMaterialMap.TryGetValue(new LightmapManager.RendererSubmeshPair(rendererGroupID, matIndex), out var cachedMaterialID))
                     materialID = cachedMaterialID;
@@ -467,10 +481,10 @@ namespace UnityEngine.Rendering
 
                 // assume that a custom motion vectors pass contains deformation motion, so should always output motion vectors
                 // (otherwise this flag is set dynamically during culling only when the transform is changing)
-                if (isMotionVectorsPassEnabled)
+                if (packedMaterialData.isMotionVectorsPassEnabled)
                     flags |= BatchDrawCommandFlags.HasMotion;
 
-                if (isTransparent)
+                if (packedMaterialData.isTransparent)
                     flags |= BatchDrawCommandFlags.HasSortingPosition;
 
                 // Let the engine know if we've opted out of lightmap texture arrays
@@ -487,7 +501,7 @@ namespace UnityEngine.Rendering
                         meshID = batchMeshID,
                         submeshIndex = submeshIndex,
                         flags = flags,
-                        transparentInstanceId = isTransparent ? rendererGroupID : 0,
+                        transparentInstanceId = packedMaterialData.isTransparent ? rendererGroupID : 0,
                         range = rangeKey,
                         overridenComponents = (uint)overridenComponents,
                         // When we've opted out of lightmap texture arrays, we
