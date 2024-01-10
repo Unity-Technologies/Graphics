@@ -373,7 +373,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
-                { CoreKeywordDescriptors.LODFadeCrossFade },
                 { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
             };
         }

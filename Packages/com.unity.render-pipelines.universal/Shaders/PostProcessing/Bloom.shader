@@ -8,7 +8,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
         float4 _BlitTexture_TexelSize;
 
@@ -187,6 +186,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma fragment FragPrefilter
                 #pragma multi_compile_local _ _BLOOM_HQ
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
             ENDHLSL
         }
 
@@ -198,6 +198,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma vertex Vert
                 #pragma fragment FragBlurH
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
             ENDHLSL
         }
 
@@ -209,6 +210,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma vertex Vert
                 #pragma fragment FragBlurV
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
             ENDHLSL
         }
 
@@ -221,6 +223,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma fragment FragUpsample
                 #pragma multi_compile_local _ _BLOOM_HQ
                 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
             ENDHLSL
         }
     }
