@@ -65,9 +65,9 @@ namespace UnityEngine.Rendering
         [InspectorName("FidelityFX Super Resolution 2.0 (FSR2)")]
         FSR2 = 1,
         /// <summary>
-        /// Scalable Temporal Post-Processing
+        /// Spatial-Temporal Post-Processing
         /// </summary>
-        [InspectorName("Scalable Temporal Post-Processing (STP)")]
+        [InspectorName("Spatial-Temporal Post-Processing (STP)")]
         STP = 2
     }
 

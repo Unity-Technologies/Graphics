@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
         /// FidelityFX Super Resolution
         FSR,
 
-        /// Scalable Temporal Post-Processing
+        /// Spatial-Temporal Post-Processing
         STP
     }
 
