@@ -211,6 +211,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.destinationTexture = blendTexture;
                 builder.SetRenderAttachment(blendTexture, 0, AccessFlags.Write);
+                passData.depthStencilTexture = edgeTextureStencil;
+                builder.SetRenderAttachmentDepth(edgeTextureStencil, AccessFlags.Read);
                 passData.sourceTexture = edgeTexture;
                 builder.UseTexture(edgeTexture, AccessFlags.Read);
                 passData.material = material;

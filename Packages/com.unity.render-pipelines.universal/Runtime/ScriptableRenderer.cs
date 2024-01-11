@@ -1408,7 +1408,6 @@ namespace UnityEngine.Rendering.Universal
         /// Enqueues a render pass for execution.
         /// </summary>
         /// <param name="pass">Render pass to be enqueued.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public void EnqueuePass(ScriptableRenderPass pass)
         {
             m_ActiveRenderPassQueue.Add(pass);
@@ -1469,7 +1468,19 @@ namespace UnityEngine.Rendering.Universal
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
-                return ClearFlag.DepthStencil;
+            {
+                // Clear color if msaa is used. If color is not cleared will alpha to coverage blend with previous frame if alpha clipping is enabled of any opaque objects.
+                if (cameraData.cameraTargetDescriptor.msaaSamples > 1)
+                {
+                    // Sets the clear color to black to make the alpha to coverage blending blend with black when using alpha clipping.
+                    cameraData.camera.backgroundColor = Color.black;
+                    return ClearFlag.DepthStencil | ClearFlag.Color;
+                }
+                else
+                {
+                    return ClearFlag.DepthStencil;
+                }
+            }
 
             return ClearFlag.All;
         }

@@ -3,7 +3,7 @@
 #define STP_COMMON_UNITY_INCLUDE_GUARD
 
 ///
-/// Scalable Temporal Post-Processing (STP) Common Shader Code
+/// Spatial-Temporal Post-Processing (STP) Common Shader Code
 ///
 /// This file provides configuration defines and other common utilities associated with STP
 /// See STP.cs for more details on how this shader code interacts with C#

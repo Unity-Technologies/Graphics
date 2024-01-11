@@ -166,9 +166,6 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
     {
         Assert.IsNotNull(m_Material);
         m_DrawNormalPass.Setup(m_Material);
-
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_DrawNormalPass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 }

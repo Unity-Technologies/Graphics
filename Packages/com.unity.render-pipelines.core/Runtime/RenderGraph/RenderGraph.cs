@@ -1216,7 +1216,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_Resources.BeginExecute(m_CurrentFrameIndex);
             }
         }
-        
+
         /// <summary>
         /// Ends the recording and executes the render graph.
         /// This must be called once all passes have been added to the render graph.
@@ -2466,11 +2466,26 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         {
                             m_Resources.GetRenderTargetInfo(handle, out var renderTargetInfo);
 
-                            newResource.width = renderTargetInfo.width;
-                            newResource.height = renderTargetInfo.height;
-                            newResource.depth = renderTargetInfo.volumeDepth;
-                            newResource.samples = renderTargetInfo.msaaSamples;
-                            newResource.format = renderTargetInfo.format;
+                            var textureData = new DebugData.TextureResourceData();
+                            textureData.width = renderTargetInfo.width;
+                            textureData.height = renderTargetInfo.height;
+                            textureData.depth = renderTargetInfo.volumeDepth;
+                            textureData.samples = renderTargetInfo.msaaSamples;
+                            textureData.format = renderTargetInfo.format;
+
+                            newResource.textureData = textureData;
+                        }
+                        else if (resourceType == RenderGraphResourceType.Buffer)
+                        {
+                            var bufferDesc = m_Resources.GetBufferResourceDesc(handle);
+
+                            var bufferData = new DebugData.BufferResourceData();
+                            bufferData.count = bufferDesc.count;
+                            bufferData.stride = bufferDesc.stride;
+                            bufferData.target = bufferDesc.target;
+                            bufferData.usage = bufferDesc.usageFlags;
+
+                            newResource.bufferData = bufferData;
                         }
                     }
 

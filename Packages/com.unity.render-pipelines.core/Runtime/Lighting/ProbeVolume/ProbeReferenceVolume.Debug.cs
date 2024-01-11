@@ -867,9 +867,9 @@ namespace UnityEngine.Rendering
                 minAvailableSubdiv = Mathf.Min(minAvailableSubdiv, cell.desc.minSubdiv);
             }
 
-            probeVolumeDebug.maxSubdivToVisualize = Mathf.Max(0, Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, GetMaxSubdivision() - 1));
-            m_MaxSubdivVisualizedIsMaxAvailable = probeVolumeDebug.maxSubdivToVisualize == GetMaxSubdivision() - 1;
-            probeVolumeDebug.minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, probeVolumeDebug.maxSubdivToVisualize);
+            int maxSubdivToVisualize = Mathf.Max(0, Mathf.Min(probeVolumeDebug.maxSubdivToVisualize, GetMaxSubdivision() - 1));
+            int minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, maxSubdivToVisualize);
+            m_MaxSubdivVisualizedIsMaxAvailable = maxSubdivToVisualize == GetMaxSubdivision() - 1;
 
             foreach (var cell in cells.Values)
             {
@@ -888,8 +888,8 @@ namespace UnityEngine.Rendering
                     props.SetFloat("_ExposureCompensation", probeVolumeDebug.exposureCompensation);
                     props.SetFloat("_ProbeSize", probeVolumeDebug.probeSize);
                     props.SetFloat("_CullDistance", probeVolumeDebug.probeCullingDistance);
-                    props.SetInt("_MaxAllowedSubdiv", probeVolumeDebug.maxSubdivToVisualize);
-                    props.SetInt("_MinAllowedSubdiv", probeVolumeDebug.minSubdivToVisualize);
+                    props.SetInt("_MaxAllowedSubdiv", maxSubdivToVisualize);
+                    props.SetInt("_MinAllowedSubdiv", minSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", m_CurrentBakingSet.settings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
                     props.SetTexture("_ExposureTexture", exposureTexture);

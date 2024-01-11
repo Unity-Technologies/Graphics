@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering
         {
 #if UNITY_EDITOR
             EditorGraphicsSettings.PopulateRenderPipelineGraphicsSettings(this);
+            Initialize();
 #endif
         }
     }

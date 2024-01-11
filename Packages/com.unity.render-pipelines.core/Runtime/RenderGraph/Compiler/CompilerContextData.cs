@@ -299,6 +299,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 fragmentData.Dispose();
                 createData.Dispose();
                 destroyData.Dispose();
+                randomAccessResourceData.Dispose();
                 nativePassData.Dispose();
                 nativeSubPassData.Dispose();
                 m_Disposed = true;

@@ -38,7 +38,7 @@ Refer to the following for more information:
 
 All URP scenes have two default global volumes:
 
-- The Default Volume for your whole project, which uses the Volume Profile set in **Project Settings** > **URP Global Settings** > **Default Volume Profile**.
+- The Default Volume for your whole project, which uses the Volume Profile set in **Project Settings** > **Graphics** > **URP** > **Default Volume Profile**.
 - The global volume for the active quality level, which uses the Volume Profile set in the active [URP Asset](universalrp-asset.md) > **Volumes** > **Volume Profile**.
 
 URP evaluates the default volumes only when you first load a scene or when you change the [quality level](https://docs.unity3d.com/Manual/class-QualitySettings.html), instead of every frame. If you use only the default volumes in a scene, URP has less work to do at runtime.

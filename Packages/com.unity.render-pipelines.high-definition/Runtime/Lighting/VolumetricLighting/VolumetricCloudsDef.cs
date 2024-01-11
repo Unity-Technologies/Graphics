@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _EnableIntegration;
         // Flag that allows us to know if the scene depth is available
         public int _ValidSceneDepth;
-        // Flag that allows us to know if the maxZMask texture is valid
-        public int _ValidMaxZMask;
+        // Padding
+        public int _PaddingVC1;
 
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;

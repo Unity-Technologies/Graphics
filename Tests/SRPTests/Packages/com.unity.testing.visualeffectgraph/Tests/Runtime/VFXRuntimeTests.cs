@@ -559,11 +559,11 @@ namespace UnityEngine.VFX.Test
 
             var expectedBatchInfos = new[]
             {
-                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Constant_MultiCompile", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 1, unbatchedInstanceCount = 1, totalInstanceCapacity = 1, maxInstancePerBatchCapacity = 1} },
-                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Constant_ShaderFeature", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 1, unbatchedInstanceCount = 1, totalInstanceCapacity = 1, maxInstancePerBatchCapacity = 1 } },
-                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Exposed", infos = new VFXBatchedEffectInfo() { activeBatchCount = 48, inactiveBatchCount = 0, activeInstanceCount = 48, unbatchedInstanceCount = 48, totalInstanceCapacity = 48, maxInstancePerBatchCapacity = 1 } },
-                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Random", infos = new VFXBatchedEffectInfo() { activeBatchCount = 12, inactiveBatchCount = 0, activeInstanceCount = 12, unbatchedInstanceCount = 12, totalInstanceCapacity = 12, maxInstancePerBatchCapacity = 1 } },
-                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Random_Animate", infos = new VFXBatchedEffectInfo() { activeBatchCount = 12, inactiveBatchCount = 0, activeInstanceCount = 12, unbatchedInstanceCount = 12, totalInstanceCapacity = 12, maxInstancePerBatchCapacity = 1 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Constant_MultiCompile", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 1, unbatchedInstanceCount = 0, totalInstanceCapacity = 64, maxInstancePerBatchCapacity = 64 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Constant_ShaderFeature", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 1, unbatchedInstanceCount = 0, totalInstanceCapacity = 64, maxInstancePerBatchCapacity = 64 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Exposed", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 48, unbatchedInstanceCount = 0, totalInstanceCapacity = 64, maxInstancePerBatchCapacity = 64 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Random", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 12, unbatchedInstanceCount = 0, totalInstanceCapacity = 64, maxInstancePerBatchCapacity = 64 } },
+                new VFXBatchedEffectInfoContent() { assetName = "025_ShaderKeywords_Dynamic_Random_Animate", infos = new VFXBatchedEffectInfo() { activeBatchCount = 1, inactiveBatchCount = 0, activeInstanceCount = 12, unbatchedInstanceCount = 0, totalInstanceCapacity = 64, maxInstancePerBatchCapacity = 64 } },
             };
 
             var expectedBatchInfosDump = DumpBatchInfo(expectedBatchInfos);

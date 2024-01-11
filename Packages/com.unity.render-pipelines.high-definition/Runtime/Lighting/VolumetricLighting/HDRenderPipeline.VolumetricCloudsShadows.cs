@@ -174,7 +174,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableExposureControl = false;
             cameraData.lowResolution = false;
             cameraData.enableIntegration = false;
-            cameraData.maxZMaskValidity = false;
             UpdateShaderVariablesClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, true);
 
             // Update the shadow constant buffer

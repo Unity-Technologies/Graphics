@@ -2140,17 +2140,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
-#if UNITY_EDITOR // TODO: Remove once IRenderPipelineResouces has been finished as we will no longer have assets referenced for resources.
-
-            // Potentially the asset might have been deleted by the user
-            // Obtain the asset again at least one per frame to make sure we are pointing to a valid resources.
-            runtimeMaterials = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
-            runtimeShaders   = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
-            runtimeAssets    = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeAssets>();
-            runtimeTextures  = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeTextures>();
-
-#endif
-
             ColorUtils.s_LensAttenuation = m_LensSettings.GetLensAttenuationValue();
 
             DecalSystem.instance.StartDecalUpdateJobs();

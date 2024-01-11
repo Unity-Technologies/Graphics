@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering
             CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize());
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
-            var bakingBatch = new BakingBatch(cellCount);
+            m_BakingBatch = new BakingBatch(cellCount);
             m_ProfileInfo = new ProbeVolumeProfileInfo();
             ModifyProfileFromLoadedData(m_BakingSet);
 
@@ -263,27 +263,27 @@ namespace UnityEngine.Rendering
                 {
                     var pos = bakingCell.probePositions[i];
                     int brickSubdiv = bakingCell.bricks[i / 64].subdivisionLevel;
-                    int probeHash = bakingBatch.GetProbePositionHash(pos);
+                    int probeHash = m_BakingBatch.GetProbePositionHash(pos);
 
                     if (positionToIndex.TryGetValue(probeHash, out var index))
                     {
                         indices[i] = index;
-                        int oldBrickLevel = bakingBatch.uniqueBrickSubdiv[probeHash];
+                        int oldBrickLevel = m_BakingBatch.uniqueBrickSubdiv[probeHash];
                         if (brickSubdiv < oldBrickLevel)
-                            bakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
+                            m_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                     }
                     else
                     {
                         positionToIndex[probeHash] = uniqueIndex;
                         indices[i] = uniqueIndex;
-                        bakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
+                        m_BakingBatch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                         positionList.Add(pos);
                         uniqueIndex++;
                     }
                 }
 
                 bakingCell.probeIndices = indices;
-                bakingBatch.cells.Add(bakingCell);
+                m_BakingBatch.cells.Add(bakingCell);
 
                 // We need to force rebuild debug stuff.
                 cell.debugProbes = null;
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering
             while (job.currentStep < job.stepCount)
                 job.RunVirtualOffsetStep();
 
-            foreach (var cell in bakingBatch.cells)
+            foreach (var cell in m_BakingBatch.cells)
             {
                 int numProbes = cell.probePositions.Length;
                 for (int i = 0; i < numProbes; ++i)
@@ -315,7 +315,8 @@ namespace UnityEngine.Rendering
             prv.PerformPendingOperations();
 
             // Write back the assets.
-            WriteBakingCells(bakingBatch.cells.ToArray());
+            WriteBakingCells(m_BakingBatch.cells.ToArray());
+            m_BakingBatch = null;
 
             foreach (var data in prv.perSceneDataList)
                 data.ResolveCellData();

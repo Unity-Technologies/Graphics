@@ -17,7 +17,7 @@ For more information on stripping shader variants, refer to the following pages:
 
 By default, URP compiles variants where a feature is enabled, and variants where a feature is disabled.
 
-To reduce the number of variants, you can enable **Strip Unused Variants** in the [URP Global Settings](urp-global-settings.md) and do the following:
+To reduce the number of variants, you can enable **Strip Unused Variants** in [URP Graphics settings](urp-global-settings.md) and do the following:
 
 * Disable a feature in all URP Assets in your build, so URP keeps only variants where the feature is disabled.
 * Enable a feature in all URP Assets in your build, so URP keeps only variants where the feature is enabled.
@@ -30,8 +30,8 @@ To let Unity strip variants related to a feature, make sure you disable it in al
 
 Unity includes the following URP Assets in your build:
 
-* The URP Asset you set as the default render pipeline asset in [Graphics Settings](https://docs.unity3d.com/Manual/class-GraphicsSettings.html).
-* Any URP Asset you set as a **Render Pipeline Asset** in a [Quality Settings level](https://docs.unity3d.com/Manual/class-QualitySettings.html) you enable for the current build target.
+* The URP Asset you set as the default render pipeline asset in [Graphics settings](https://docs.unity3d.com/Manual/class-GraphicsSettings.html).
+* Any URP Asset you set as a **Render Pipeline Asset** in a [Quality settings level](https://docs.unity3d.com/Manual/class-QualitySettings.html) you enable for the current build target.
 
 Avoid including URP Assets in your build that use different [rendering paths](urp-universal-renderer.html#rendering-path-comparison) because this causes Unity to create two sets of variants for each keyword.
 
@@ -54,7 +54,7 @@ Avoid including URP Assets in your build that use different [rendering paths](ur
 
 ## Strip post-processing shader variants
 
-Enable **Strip Unused Post Processing Variants** in [URP Global Settings](urp-global-settings.md) to strip shader variants for [Volume Overrides](VolumeOverrides.md) you don't use.
+Enable **Strip Unused Post Processing Variants** in [URP Graphics settings](urp-global-settings.md) to strip shader variants for [Volume Overrides](VolumeOverrides.md) you don't use.
 
 For example if your project uses only the Bloom effect, URP keeps Bloom variants but strips all other post-processing variants.
 
@@ -69,7 +69,7 @@ Unity checks for Volume Overrides in all scenes, so you can't strip variants by 
 | Lens Distortion | `_DISTORTION` |
 | Tonemapping | `_TONEMAP_ACES`, `_TONEMAP_NEUTRAL`, `_TONEMAP_GRADING` |
 
-You should also enable **Strip Screen Coord Override Variants** in URP Global Settings, unless you override screen coordinates to support post processing on large numbers of multiple displays ('cluster' displays).
+You should also enable **Strip Screen Coord Override Variants** in URP Graphics settings, unless you override screen coordinates to support post processing on large numbers of multiple displays ('cluster' displays).
 
 ## Strip XR and VR shader variants
 

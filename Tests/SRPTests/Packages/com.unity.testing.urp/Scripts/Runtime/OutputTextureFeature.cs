@@ -36,9 +36,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
         }
         m_OutputTexturePassPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
         m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement);
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_OutputTexturePassPass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     protected override void Dispose(bool disposing)

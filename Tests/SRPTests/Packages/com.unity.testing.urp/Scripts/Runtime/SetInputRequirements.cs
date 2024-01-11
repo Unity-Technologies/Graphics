@@ -29,9 +29,7 @@ public class SetInputRequirements : ScriptableRendererFeature
     {
         m_DummyPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
         m_DummyPass.Setup( inputRequirement);
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_DummyPass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     class DummyPass : ScriptableRenderPass

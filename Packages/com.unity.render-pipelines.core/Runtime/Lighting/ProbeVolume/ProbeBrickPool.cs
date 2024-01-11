@@ -504,20 +504,12 @@ namespace UnityEngine.Rendering
             if (allocateSkyOcclusionData)
                 loc.TexSkyOcclusion = CreateDataTexture(width, height, depth, GraphicsFormat.R16G16B16A16_SFloat, $"{name}_SkyOcclusion", allocateRendertexture, ref allocatedBytes);
             else
-            {
-                int tempAllocatedBytes = 0;
-                loc.TexSkyOcclusion = CreateDataTexture(1, 1, 1, GraphicsFormat.R16G16B16A16_SFloat, $"{name}_SkyOcclusion", allocateRendertexture, ref tempAllocatedBytes);
-            }
+                loc.TexSkyOcclusion = null;
 
             if (allocateSkyShadingDirectionData)
-            {
                 loc.TexSkyShadingDirectionIndices = CreateDataTexture(width, height, depth, GraphicsFormat.R8_UNorm, $"{name}_SkyShadingDirectionIndices", allocateRendertexture, ref allocatedBytes);
-            }
             else
-            {
-                int tempAllocatedBytes = 0;
-                loc.TexSkyShadingDirectionIndices = CreateDataTexture(1, 1, 1, GraphicsFormat.R8_UNorm, $"{name}_SkyShadingDirectionIndices", allocateRendertexture, ref tempAllocatedBytes);
-            }
+                loc.TexSkyShadingDirectionIndices = null;
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {

@@ -748,7 +748,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool skyOcclusion
         {
-            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyOcclusion : true;
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyOcclusion : false;
         }
 
         /// <summary>
@@ -756,7 +756,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool skyOcclusionShadingDirection
         {
-            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : true;
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : false;
         }
 
         bool m_NeedsIndexRebuild = false;
@@ -902,21 +902,19 @@ namespace UnityEngine.Rendering
 
         internal bool TryGetBakingSetForLoadedScene(Scene scene, out ProbeVolumeBakingSet bakingSet)
         {
+            bakingSet = null;
             if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
-            {
                 bakingSet = perSceneData.bakingSet;
-                return bakingSet!=null;
-            }
-            else
-            {
-                #if UNITY_EDITOR
-                // some scenes in a baking set may not contain a probe volume; so no perscenedata
+
+            #if UNITY_EDITOR
+            // some scenes in a baking set may not contain a probe volume
+            // Others might not be already baked
+            // We might still want to access the baking set for those in the editor
+            if (bakingSet == null)
                 bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
-                #else
-                bakingSet = null;
-                #endif
-                return false;
-            }
+            #endif
+
+            return bakingSet != null;
         }
 
         internal bool TryGetPerSceneData(string sceneGUID, out ProbeVolumePerSceneData perSceneData)

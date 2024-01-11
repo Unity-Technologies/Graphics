@@ -6374,7 +6374,6 @@ MonoBehaviour:
   WaitFrames: 0
   XRCompatible: 0
   CheckMemoryAllocation: 1
-  renderBackendCompatibility: 1
 --- !u!114 &1837275386
 MonoBehaviour:
   m_ObjectHideFlags: 0

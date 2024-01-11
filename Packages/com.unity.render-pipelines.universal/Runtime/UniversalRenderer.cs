@@ -885,6 +885,11 @@ namespace UnityEngine.Rendering.Universal
                 if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd, cameraData);
 
+                m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                m_XROcclusionMeshPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+#endif
+
                 m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_TargetColorHandle;
                 m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_TargetDepthHandle;
             }
@@ -1485,10 +1490,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawColorCopyPass.Setup(m_ActiveCameraColorAttachment, colorHistory.GetCurrentTexture(multipassId), Downsampling.None);
                             // See pass creation for actual execution order.
-                            // Disable obsolete warning for internal usage
-                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawColorCopyPass);
-                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1514,10 +1516,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             m_HistoryRawDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, depthHistory.GetCurrentTexture(multipassId));
                             // See pass creation for actual execution order.
-                            // Disable obsolete warning for internal usage
-                            #pragma warning disable CS0618
                             EnqueuePass(m_HistoryRawDepthCopyPass);
-                            #pragma warning restore CS0618
                         }
                     }
                 }
@@ -1614,8 +1613,6 @@ namespace UnityEngine.Rendering.Universal
                 #pragma warning restore CS0618
             }
 
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
             EnqueuePass(m_GBufferPass);
 
             //Must copy depth for deferred shading: TODO wait for API fix to bind depth texture as read-only resource.
@@ -1628,7 +1625,6 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_DeferredPass);
 
             EnqueuePass(m_RenderOpaqueForwardOnlyPass);
-            #pragma warning restore CS0618
         }
 
         private struct RenderPassInputSummary
@@ -1871,7 +1867,6 @@ namespace UnityEngine.Rendering.Universal
             get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 // UUM-56295
             ;
         }
     }

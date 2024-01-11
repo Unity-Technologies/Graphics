@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumetricCloudCommonData commonData;
         }
 
-        VolumetricCloudsParameters_Accumulation PrepareVolumetricCloudsParameters_Accumulation(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, bool historyValidity, bool maxzMaskValidity)
+        VolumetricCloudsParameters_Accumulation PrepareVolumetricCloudsParameters_Accumulation(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, bool historyValidity)
         {
             VolumetricCloudsParameters_Accumulation parameters = new VolumetricCloudsParameters_Accumulation();
 
@@ -140,7 +140,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableExposureControl = parameters.commonData.enableExposureControl;
             cameraData.lowResolution = true;
             cameraData.enableIntegration = true;
-            cameraData.maxZMaskValidity = maxzMaskValidity;
             UpdateShaderVariablesClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             // If this is a default camera, we want the improved blending, otherwise we don't (in the case of a planar)
@@ -151,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void TraceVolumetricClouds_Accumulation(CommandBuffer cmd, VolumetricCloudsParameters_Accumulation parameters, GraphicsBuffer ambientProbe,
-            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle motionVectors, RTHandle volumetricLightingTexture, RTHandle maxZMask,
+            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle motionVectors, RTHandle volumetricLightingTexture,
             RTHandle currentHistory0Buffer, RTHandle previousHistory0Buffer,
             RTHandle currentHistory1Buffer, RTHandle previousHistory1Buffer,
             RTHandle intermediateCloudsLighting,
@@ -191,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, traceTX, traceTY, parameters.viewCount, in parameters.commonData,
-                maxZMask, volumetricLightingTexture, halfResDepthBuffer, ambientProbe,
+                volumetricLightingTexture, halfResDepthBuffer, ambientProbe,
                 intermediateCloudsLighting, intermediateCloudsDepth);
 
             // We only reproject for realtime clouds
@@ -213,7 +212,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle motionVectors;
-            public TextureHandle maxZMask;
             public BufferHandle ambientProbeBuffer;
             public TextureHandle volumetricLighting;
 
@@ -234,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         VolumetricCloudsOutput RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType,
-            TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting, TextureHandle maxZMask)
+            TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting)
         {
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
@@ -243,16 +241,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If history buffers are null, it means they were not allocated yet so they will potentially contain garbage at first frame.
                 var historyValidity = EvaluateVolumetricCloudsHistoryValidity(hdCamera) && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0) != null;
-                var maxzMaskValidity = maxZMask.IsValid();
 
                 // Parameters
-                passData.parameters = PrepareVolumetricCloudsParameters_Accumulation(hdCamera, settings, cameraType, historyValidity, maxzMaskValidity);
+                passData.parameters = PrepareVolumetricCloudsParameters_Accumulation(hdCamera, settings, cameraType, historyValidity);
 
                 // Input buffers
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
-                passData.maxZMask = maxzMaskValidity ? builder.ReadTexture(maxZMask) : renderGraph.defaultResources.blackTextureXR;
                 passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
 
@@ -280,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (VolumetricCloudsAccumulationData data, RenderGraphContext ctx) =>
                     {
                         TraceVolumetricClouds_Accumulation(ctx.cmd, data.parameters, data.ambientProbeBuffer,
-                            data.colorBuffer, data.depthPyramid, data.motionVectors, data.volumetricLighting, data.maxZMask,
+                            data.colorBuffer, data.depthPyramid, data.motionVectors, data.volumetricLighting,
                             data.currentHistoryBuffer0, data.previousHistoryBuffer0,
                             data.currentHistoryBuffer1, data.previousHistoryBuffer1,
                             data.halfResCloudsLighting,

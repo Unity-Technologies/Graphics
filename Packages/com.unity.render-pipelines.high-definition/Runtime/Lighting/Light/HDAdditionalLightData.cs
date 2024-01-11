@@ -2748,6 +2748,20 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDAdditionalLightData lightData = allAdditionalLightDatas[i];
 
+                // HDRP manually subcribes to the player loop callback and calls the tick function. This can trigger an
+                // edge case during async scene loads where the component is initialized, but the parent GameObject is
+                // not. In this case, we simply skip the tick logic. This is in a try block because there's no other
+                // way. Simply accessing the .gameObject member calls a getter that will throw a null ref exception in
+                // this invalid state.
+                try
+                {
+                    var go = lightData.gameObject;
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
                 if (lightData.cachedLightType != lightData.legacyLight.type)
                 {
                     // ^ The light type has changed since the last tick.

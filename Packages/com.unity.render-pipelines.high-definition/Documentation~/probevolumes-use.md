@@ -86,9 +86,9 @@ When you load multiple Scenes together, the lighting might be too bright because
 You can load multiple Scenes together only if they belong to the same Baking Set.
 
 <a name="scenarios"></a>
-### Add a Lighting Scenario
+### Add and blend Lighting Scenarios
 
-You can use multiple Lighting Scenarios to store baking results for different Scene setups, and switch between them at runtime. For example, you can use one Lighting Scenario for when a lamp is off, and one for when it's on.
+A Lighting Scenario represents the probe volume data for a single bake. You can use multiple Lighting Scenarios to store baking results for different Scene setups, and switch or blend between them at runtime. For example, you can use one Lighting Scenario for when a lamp is off, and one for when it's on.
 
 To create a new Lighting Scenario and store baking results inside, do the following:
 
@@ -104,6 +104,40 @@ Probe Volumes split the baked data into multiple parts:
 - The per scenario data, which contains the probe lighting information.
 
 As a result, HDRP doesn't need to duplicate baked data on disk when you use multiple **Lighting Scenarios**, but this requires that all Lighting Scenarios use the same probe placement, and therefore that the geometry doesn't change between bakes of all Lighting Scenarios.
+
+To switch or blend lighting scenarios at runtime, use the following [C# API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.ProbeReferenceVolume.html) : 
+* [lightingScenario](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.ProbeReferenceVolume.lightingScenario.html#UnityEngine_Rendering_ProbeReferenceVolume_lightingScenario)
+* [BlendLightingScenario(string, float)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.ProbeReferenceVolume.BlendLightingScenario.html#UnityEngine_Rendering_ProbeReferenceVolume_BlendLightingScenario_System_String_System_Single_)
+
+For example, the following script begins by setting 'scenario01' as active. Next, it sets up the number of cells that should be blended per frame, which can be useful for optimization purposes. Finally, it updates the probe volume blending factor every frame to blend between scenario01 and scenario02:
+```C#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BlendLightingScenarios : MonoBehaviour
+{
+    UnityEngine.Rendering.ProbeReferenceVolume probeRefVolume;
+    public string scenario01 = "Scenario01Name";
+    public string scenario02 = "Scenario02Name";
+    [Range(0, 1)] public float blendingFactor = 0.5f;
+    [Min(1)] public int numberOfCellsBlendedPerFrame = 10;
+
+    void Start()
+    {
+        probeRefVolume = UnityEngine.Rendering.ProbeReferenceVolume.instance;
+        probeRefVolume.lightingScenario = scenario01;
+        probeRefVolume.numberOfCellsBlendedPerFrame = numberOfCellsBlendedPerFrame;
+    }
+
+    void Update()
+    {
+        probeRefVolume.BlendLightingScenario(scenario02, blendingFactor);
+    }
+}
+
+```
+Keep in mind that this API only manages the probe volume data. You need to handle other aspects yourself, such as modifying direct lighting in your scene to match the baked lighting scenario.
 
 ### Keep probe positions the same in different Lighting Scenarios
 

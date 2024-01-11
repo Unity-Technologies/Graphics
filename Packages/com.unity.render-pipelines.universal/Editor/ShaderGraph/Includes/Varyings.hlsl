@@ -63,12 +63,18 @@ Varyings BuildVaryings(Attributes input
 
     UNITY_SETUP_INSTANCE_ID(input);
 
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+
 #if defined(HAVE_VFX_MODIFICATION)
     AttributesElement element;
     ZERO_INITIALIZE(AttributesElement, element);
 
     if (!GetMeshAndElementIndex(input, element))
         return output; // Culled index.
+
+#if UNITY_ANY_INSTANCING_ENABLED
+    output.instanceID = input.instanceID; //Transfer instanceID again because we modify it in GetMeshAndElementIndex
+#endif
 
     if (!GetInterpolatorAndElementData(output, element))
         return output; // Dead particle.
@@ -78,10 +84,8 @@ Varyings BuildVaryings(Attributes input
     #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
         motionVectorOutput.vfxParticlePositionOS = input.positionOS;
     #endif
-
 #endif
 
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if defined(FEATURES_GRAPH_VERTEX)

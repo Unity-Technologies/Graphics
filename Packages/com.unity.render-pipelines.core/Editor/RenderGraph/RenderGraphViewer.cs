@@ -116,6 +116,10 @@ namespace UnityEditor.Rendering
         int m_CurrentHoveredVisibleResourceIndex = -1;
         int m_CurrentSelectedVisiblePassIndex = -1;
 
+        const string kPassFilterLegacyEditorPrefsKey = "RenderGraphViewer.PassFilterLegacy";
+        const string kPassFilterEditorPrefsKey = "RenderGraphViewer.PassFilter";
+        const string kResourceFilterEditorPrefsKey = "RenderGraphViewer.ResourceFilter";
+
         PassFilter m_PassFilter = PassFilter.CulledPasses | PassFilter.RasterPasses | PassFilter.UnsafePasses | PassFilter.ComputePasses;
         PassFilterLegacy m_PassFilterLegacy = PassFilterLegacy.CulledPasses;
 
@@ -355,8 +359,8 @@ namespace UnityEditor.Rendering
             if (highlightOptions.HasFlag(ResourceHighlightOptions.ResourceUsageRangeBorder))
             {
                 var usageRangeHighlightBlock = new VisualElement();
-                usageRangeHighlightBlock.style.left = info.usageRangeBlock.style.left.value.value - 1.0f;
-                usageRangeHighlightBlock.style.width = info.usageRangeBlock.style.width.value.value + 2.0f;
+                usageRangeHighlightBlock.style.left = info.usageRangeBlock.style.left.value.value;
+                usageRangeHighlightBlock.style.width = info.usageRangeBlock.style.width.value.value + 1.0f;
                 usageRangeHighlightBlock.style.top =  visibleResourceIndex * kResourceRowHeightPx;
                 usageRangeHighlightBlock.pickingMode = PickingMode.Ignore;
                 usageRangeHighlightBlock.AddToClassList(Classes.kResourceUsageRangeBlockHighlight);
@@ -845,18 +849,21 @@ namespace UnityEditor.Rendering
         void OnPassFilterChanged(ChangeEvent<Enum> evt)
         {
             m_PassFilter = (PassFilter) evt.newValue;
+            EditorPrefs.SetInt(kPassFilterEditorPrefsKey, (int)m_PassFilter);
             RebuildGraphViewerUI();
         }
 
         void OnPassFilterLegacyChanged(ChangeEvent<Enum> evt)
         {
             m_PassFilterLegacy = (PassFilterLegacy) evt.newValue;
+            EditorPrefs.SetInt(kPassFilterLegacyEditorPrefsKey, (int)m_PassFilterLegacy);
             RebuildGraphViewerUI();
         }
 
         void OnResourceFilterChanged(ChangeEvent<Enum> evt)
         {
             m_ResourceFilter = (ResourceFilter) evt.newValue;
+            EditorPrefs.SetInt(kResourceFilterEditorPrefsKey, (int)m_ResourceFilter);
             RebuildGraphViewerUI();
         }
 
@@ -1308,6 +1315,9 @@ namespace UnityEditor.Rendering
 
         void RebuildGraphViewerUI()
         {
+            if (rootVisualElement?.childCount == 0)
+                return;
+
             ClearGraphViewerUI();
             ClearEmptyStateMessage();
 
@@ -1574,6 +1584,13 @@ namespace UnityEditor.Rendering
 
             m_ResourcesOverlay = new ResourcesOverlay();
             m_PassInspectorOverlay = new PassInspectorOverlay();
+
+            if (EditorPrefs.HasKey(kPassFilterLegacyEditorPrefsKey))
+                m_PassFilterLegacy = (PassFilterLegacy)EditorPrefs.GetInt(kPassFilterLegacyEditorPrefsKey);
+            if (EditorPrefs.HasKey(kPassFilterEditorPrefsKey))
+                m_PassFilter = (PassFilter)EditorPrefs.GetInt(kPassFilterEditorPrefsKey);
+            if (EditorPrefs.HasKey(kResourceFilterEditorPrefsKey))
+                m_ResourceFilter = (ResourceFilter)EditorPrefs.GetInt(kResourceFilterEditorPrefsKey);
         }
 
         void CreateGUI()

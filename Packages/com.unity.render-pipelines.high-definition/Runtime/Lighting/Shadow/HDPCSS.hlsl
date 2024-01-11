@@ -103,7 +103,7 @@ real PenumbraSizeDirectional(real Reciever, real Blocker, real rangeScale)
     return abs(Reciever - Blocker) * rangeScale;
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real UMin, real UMax, real VMin, real VMax, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
@@ -116,31 +116,41 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
-        real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, coord.xy + offset, 0.0).x;
+        real U = coord.x + offset.x;
+        real V = coord.y + offset.y;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
+        //NOTE: We must clamp the sampling within the bounds of the shadow atlas.
+        //        Overfiltering will leak results from other shadow lights.
+        if (U < UMin || U > UMax || V < VMin || V > VMax)
         {
-            blockerSum  += shadowMapDepth;
-            numBlockers += 1.0;
+            // Discard the sample (it is located outside the shadow map, and it may correspond to another cube map face).
+        }
+        else
+        {
+            real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, float2(U, V), 0.0).x;
+
+            if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
+            {
+                blockerSum  += shadowMapDepth;
+                numBlockers += 1.0;
+            }
         }
     }
-    averageBlockerDepth = blockerSum / numBlockers;
 
-    return numBlockers >= 1;
+    // Return the depth value of the far plane if none of the samples are valid
+    averageBlockerDepth = (numBlockers > 0) ? (blockerSum / numBlockers) : UNITY_RAW_FAR_CLIP_VALUE;
+
+    return numBlockers > 0;
 }
 
-real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
+real PCSS(real3 coord, real UMin, real UMax, real VMin, real VMax, real filterRadius, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
-    real UMin = offset.x;
-    real UMax = offset.x + scale.x;
-
-    real VMin = offset.y;
-    real VMax = offset.y + scale.y;
-
     real sum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
     real sampleCountBias = 0.5 * sampleCountInverse;
     real ditherRotation = sampleJitter.x;
+
+    real numValidSamples = 0;
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
@@ -153,16 +163,19 @@ real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampl
 
         //NOTE: We must clamp the sampling within the bounds of the shadow atlas.
         //        Overfiltering will leak results from other shadow lights.
-        //TODO: Investigate moving this to blocker search.
-        // coord.xy = clamp(coord.xy, float2(UMin, VMin), float2(UMax, VMax));
-
-        if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z)).r;
+        if (U < UMin || U > UMax || V < VMin || V > VMax)
+        {
+            // Discard the sample (it is located outside the shadow map, and it may correspond to another cube map face).
+        }
         else
+        {
             sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z)).r;
+            numValidSamples += 1.0;
+        }
     }
 
-    return sum / sampleCount;
+    // Return the unoccluded (unshadowed) value if none of the samples are valid
+    return (numValidSamples > 0) ? (sum / numValidSamples) : 1.0;
 }
 
 

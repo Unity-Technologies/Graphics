@@ -242,7 +242,10 @@ namespace UnityEditor.VFX.UI
             newBlackboardItems.Clear();
             newCategories.Clear();
 
-            newCategories.AddRange(serializableGraph.categories);
+            if (serializableGraph.categories?.Length > 0)
+            {
+                newCategories.AddRange(serializableGraph.categories);
+            }
 
             m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
@@ -413,8 +416,11 @@ namespace UnityEditor.VFX.UI
             {
                 string name = settings[i].name;
                 var field = fields.Find(t => t.Name == name);
-                if (field != null)
+                try
+                {
                     field.SetValue(model, settings[i].value.Get());
+                }
+                catch { } // Don't break paste operation if a field value cannot be assigned (see UUM-46548)
             }
         }
 

@@ -442,6 +442,10 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(varyingsFields.Any(f => f.name == "_FragPerElement_f2"));
             }
 
+            //Instancing is expected to be enabled for most of SG Output
+            Assert.IsTrue(quadOutputSrc.Contains("#pragma multi_compile_instancing"));
+            Assert.IsTrue(meshOutputSrc.Contains("#pragma multi_compile_instancing"));
+
             CheckShaderStructs(quadOutputSrc, new uint[] { 9, 5, 6, 6 });
             CheckShaderStructs(meshOutputSrc, new uint[] { 9, 5, 7, 6 });
         }

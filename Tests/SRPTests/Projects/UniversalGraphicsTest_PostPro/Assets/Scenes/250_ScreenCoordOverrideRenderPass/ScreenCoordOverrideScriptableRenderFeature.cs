@@ -32,9 +32,7 @@ public class ScreenCoordOverrideScriptableRenderFeature : ScriptableRendererFeat
         }
 
         m_ScriptablePass.Setup(RenderPassEvent.AfterRenderingPostProcessing, m_Material);
-        #pragma warning disable CS0618 // Type or member is obsolete
         renderer.EnqueuePass(m_ScriptablePass);
-        #pragma warning restore CS0618 // Type or member is obsolete
     }
 
     protected override void Dispose(bool disposing)

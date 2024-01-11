@@ -16,50 +16,72 @@ MonoBehaviour:
   - m_name: Water
     m_description: Enable water rendering.
     propertyPath: m_RenderPipelineSettings.supportWater
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 8
   - m_name: Water Deformations
     m_description: Enable water surface deformers.
     propertyPath: m_RenderPipelineSettings.supportWaterDeformation
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 8
   - m_name: Water Foam
     m_description: Enable water foam rendering and simulation.
     propertyPath: m_RenderPipelineSettings.supportWaterFoam
-    uiSectionInt: 16
-    uiSubSectionInt: 8
-  - m_name: Water Script Interactions
-    m_description: Enable water script interaction for buoyancy simulation.
-    propertyPath: m_RenderPipelineSettings.waterCPUSimulation
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 8
   - m_name: Water Exclusion
     m_description: Enable support of water excluder objects.
     propertyPath: m_RenderPipelineSettings.supportWaterExclusion
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 8
   - m_name: Decal Layers
     m_description: Enable decal layers.
     propertyPath: m_RenderPipelineSettings.supportDecalLayers
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 1
   - m_name: Screen Space Reflections
     m_description: Enable SSR.
     propertyPath: m_RenderPipelineSettings.supportSSR
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 8
   - m_name: SSR on Transparent
     m_description: Enable SSR on Transparent.
     propertyPath: m_RenderPipelineSettings.supportSSRTransparent
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 8
   - m_name: Distortion
     m_description: Enable distortion pass.
     propertyPath: m_RenderPipelineSettings.supportDistortion
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 0
   - m_name: Volumetric Clouds
     m_description: Enable volumetric clouds.
     propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
+    valueType: 0
+    targetValue: 1
+    validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 1

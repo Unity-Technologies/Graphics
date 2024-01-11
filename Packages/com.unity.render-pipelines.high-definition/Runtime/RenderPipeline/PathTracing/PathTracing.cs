@@ -231,10 +231,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-        HDDenoiserType m_CachedDenoiserType = HDDenoiserType.None;
-#endif
-
 #endif // UNITY_EDITOR
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
@@ -368,9 +364,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private void InitPathTracingSettingsCache()
         {
             m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-            m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
-#endif
         }
 
         private void OnSceneEdit()
@@ -390,25 +383,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 doPathTracingReset = false;
             }
-
-#if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
-            // If we just change the denoiser type, we don't necessarily want to reset iteration
-            if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
-            {
-                if (m_PathTracingSettings.denoising.value == HDDenoiserType.None && m_PathTracingSettings.useAOVs == true)
-                {
-                    // When denoising is off we don't accumulate AOVs. For this reason, if we re-enable denoising and AOVs are enabled, we need to always re-accumulate
-                    // Note: this is called from the undo callback, so m_PathTracingSettings is the one that is going to be replaced/updated.
-                    doPathTracingReset = true;
-                }
-                else
-                {
-                    doPathTracingReset = false;
-                    m_SubFrameManager.ResetDenoisingStatus();
-                }
-                m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
-            }
-#endif
 
             if (doPathTracingReset)
                 ResetPathTracing();

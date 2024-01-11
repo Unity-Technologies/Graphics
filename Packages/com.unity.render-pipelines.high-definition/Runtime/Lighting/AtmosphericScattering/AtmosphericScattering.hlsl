@@ -311,10 +311,16 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         opacity = volFog.a;
     }
 
+    #ifdef OPAQUE_FOG_PASS
+    bool isSky = posInput.deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
+    #else
+    bool isSky = false;
+    #endif
+
 #ifndef ATMOSPHERE_NO_AERIAL_PERSPECTIVE
     // Sky pass already applies atmospheric scattering to the far plane.
     // This pass only handles geometry.
-    if (_PBRFogEnabled && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
+    if (_PBRFogEnabled && !isSky)
     {
         float3 skyColor = 0, skyOpacity = 0;
 

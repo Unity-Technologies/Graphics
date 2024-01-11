@@ -171,11 +171,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     debugResource.creationPassIndex = resourceUnversioned.firstUsePassID;
                     debugResource.releasePassIndex = resourceUnversioned.lastUsePassID;
 
-                    debugResource.width = resourceUnversioned.width;
-                    debugResource.height = resourceUnversioned.height;
-                    debugResource.depth = resourceUnversioned.volumeDepth;
-                    debugResource.samples = resourceUnversioned.msaaSamples;
-                    debugResource.format = info.format;
+                    debugResource.textureData = new RenderGraph.DebugData.TextureResourceData();
+                    debugResource.textureData.width = resourceUnversioned.width;
+                    debugResource.textureData.height = resourceUnversioned.height;
+                    debugResource.textureData.depth = resourceUnversioned.volumeDepth;
+                    debugResource.textureData.samples = resourceUnversioned.msaaSamples;
+                    debugResource.textureData.format = info.format;
                     debugResource.memoryless = resourceUnversioned.memoryLess;
 
                     debugResource.consumerList = new List<int>();

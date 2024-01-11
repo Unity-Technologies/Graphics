@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Will we need to enable the CPU simulation?
-            bool cpuSimulationActive = scriptInteractions && gpuReadback;
+            bool cpuSimulationActive = scriptInteractions && !gpuReadback;
 
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)

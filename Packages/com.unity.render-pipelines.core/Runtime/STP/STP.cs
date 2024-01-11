@@ -7,7 +7,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Interface to the Scalable Temporal Post-Processing Upscaler (STP).
+    /// Interface to the Spatial-Temporal Post-Processing Upscaler (STP).
     /// This class allows users to configure and execute STP via render graph.
     /// </summary>
     public static class STP

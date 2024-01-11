@@ -259,6 +259,7 @@ namespace UnityEngine.Rendering.Universal
         public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance, float batchColor)
         {
             const float kClipperScale = 10000.0f;
+            Random.InitState(123456); // for deterministic output
 
             // todo Revisit this while we do Batching.
             var meshInteriorColor = new Color(0, 0, batchColor, 1.0f);

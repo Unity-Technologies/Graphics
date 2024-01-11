@@ -71,11 +71,8 @@ namespace UnityEngine.Rendering.Universal
                     ? RenderPassEvent.AfterRenderingGbuffer
                     : RenderPassEvent.AfterRenderingPrePasses + 1; // We add 1 to ensure this happens after depth priming depth copy pass that might be scheduled
 
-                // Disable obsolete warning for internal usage
-                #pragma warning disable CS0618
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
-                #pragma warning restore CS0618
             }
         }
 

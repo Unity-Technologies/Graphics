@@ -483,10 +483,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderingData.cameraData.cameraType == CameraType.Preview)
             {
-                // Disable obsolete warning for internal usage
-                #pragma warning disable CS0618
                 renderer.EnqueuePass(m_DecalPreviewPass);
-                #pragma warning restore CS0618
                 return;
             }
 
@@ -516,8 +513,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
             switch (m_Technique)
             {
                 case DecalTechnique.ScreenSpace:
@@ -533,7 +528,6 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
             }
-            #pragma warning restore CS0618
         }
 
         internal override bool SupportsNativeRenderPass()

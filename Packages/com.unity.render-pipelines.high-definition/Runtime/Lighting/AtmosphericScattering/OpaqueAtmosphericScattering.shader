@@ -15,6 +15,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #define SUPPORT_WATER_CAUSTICS
         #endif
 
+        #define OPAQUE_FOG_PASS
+
         // Defined for caustics
         #define SHADOW_LOW
         #define AREA_SHADOW_LOW
