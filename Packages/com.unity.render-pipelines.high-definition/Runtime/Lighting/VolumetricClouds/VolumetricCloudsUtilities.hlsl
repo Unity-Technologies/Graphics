@@ -149,7 +149,7 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     lighting.sunColor0 = _SunLightColor.xyz;
     lighting.sunColor1 = _SunLightColor.xyz;
     lighting.ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0));
-    lighting.ambientTermBottom = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0));
+    lighting.ambientTermBottom = max(SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0)), 0);
 
     #ifdef PHYSICALLY_BASED_SUN
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
