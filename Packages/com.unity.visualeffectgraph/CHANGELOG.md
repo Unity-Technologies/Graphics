@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.13] - 2023-12-21
+
+This version is compatible with Unity 2021.3.35f1.
+
+### Fixed
+- Improved shader input properties synchronization with VFX Graph output context when the shader is deleted or set to None.
+- Some VFX Graph were not compiled until the asset was opened.
+- Fixed undo not working with shader property in the Mesh Output context.
+- Changes are reverted in the Mesh Output shader property when saving.
+- Removed an error message when a point cache asset is missing, added an error feedback instead.
+- Fixed memory leak of SharedMaterialData for sleeping VFX systems.
+- Old style dropdown in Add, Divide (and many others) style has been updated to new design
+
 ## [12.1.12] - 2023-09-27
 
 This version is compatible with Unity 2021.3.31f1.

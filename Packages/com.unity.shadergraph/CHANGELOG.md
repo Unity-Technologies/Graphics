@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.13] - 2023-12-21
+
+This version is compatible with Unity 2021.3.35f1.
+
+### Fixed
+- Corrected a typo in the generated code for the NAND node.
+- Fixed node creation menu location on macOS.
+- Added issue with main preview window failing to refresh.
+- Fixed an issue where sprite previews were not always rendering.
+- Fixed typos in the text of the the Node Reference samples.
+
 ## [12.1.12] - 2023-09-27
 
 This version is compatible with Unity 2021.3.31f1.

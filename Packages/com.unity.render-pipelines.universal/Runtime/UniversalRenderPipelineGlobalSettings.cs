@@ -52,8 +52,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssetIfDirty(instance);
         }
-
 #endif
         #endregion
 

@@ -27,8 +27,11 @@ namespace UnityEngine.Rendering.Universal
 
         private static RenderTargetHandle[] m_RenderTargets = null;
         private static RenderTargetIdentifier[] m_LightInputTextures = null;
+
+        private static readonly Color k_ColorNone = new Color(0, 0, 0, 0);
         private static readonly Color[] k_ColorLookup = new Color[4] { new Color(0, 0, 0, 1), new Color(0, 0, 1, 0), new Color(0, 1, 0, 0), new Color(1, 0, 0, 0) };
         private static readonly ProfilingSampler[] m_ProfilingSamplerShadowColorsLookup = new ProfilingSampler[4] { m_ProfilingSamplerShadowsA, m_ProfilingSamplerShadowsB, m_ProfilingSamplerShadowsG, m_ProfilingSamplerShadowsR };
+
 
         public static uint maxTextureCount { get; private set; }
 
@@ -49,9 +52,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (m_LightInputTextures == null || m_LightInputTextures.Length != maxTextureCount)
-            {
                 m_LightInputTextures = new RenderTargetIdentifier[maxTextureCount];
-            }
         }
 
         private static Material[] CreateMaterials(Shader shader, int pass = 0)
@@ -135,15 +136,13 @@ namespace UnityEngine.Rendering.Universal
             var textureIndex = shadowIndex / 4;
 
             if (colorChannel == 0)
-                ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
+                CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
 
             bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel);
 
             // Render the shadows for this light
-            if (RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel))
+            if (hadShadowsToRender)
                 m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].Identifier();
-            else
-                m_LightInputTextures[textureIndex] = Texture2D.blackTexture;
 
             return hadShadowsToRender;
         }
@@ -161,6 +160,7 @@ namespace UnityEngine.Rendering.Universal
 
         public static void DisableGlobalShadowTexture(CommandBuffer cmdBuffer)
         {
+            cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorNone);
             cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1);
             cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1);
         }
