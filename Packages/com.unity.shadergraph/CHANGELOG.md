@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.9] - 2023-12-21
+
+This version is compatible with Unity 2022.3.18f1.
+
+### Changed
+- Added a shader variant limit to the project settings, clarified the difference between the variant limit in user preferences.
+
+### Fixed
+- Fixed an issue where value nodes might appear on undo/redo where property nodes would be.
+- Fixed an issue where drag-out node creation would leave the editor unresponsive.
+- Fixed an issue where material override GUIs for Built-In would sometimes get ignored.
+- Corrected a typo in the generated code for the NAND node.
+- Fixed node creation menu location on macOS.
+- Added issue with main preview window failing to refresh.
+- Fixed an issue where sprite previews were not always rendering.
+- Fixed an issue where an open asset inspector for subgraphs may mangle the json serialized representation for that subgraph asset.
+- Fixed typos in the text of the the Node Reference samples.
+
 ## [14.0.8] - 2023-09-27
 
 This version is compatible with Unity 2022.3.11f1.

@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.9] - 2023-12-21
+
+This version is compatible with Unity 2022.3.18f1.
+
+### Changed
+- Improved and optimize undo redo.
+
+### Fixed
+- Fixed wrong size used for update in strips with immortal particles.
+- Exception while switching fabric material to transparent.
+- "materials" and "sharedMaterials" properties return all the materials, not only the active ones.
+- Fix unexpected assert when capacity is really high
+- Fixed shader graph with VFX compatibility were not reimported if imported before VFX package is installed.
+- Fixed decal normal map handling of non-uniform scale.
+- Fixed a performance issue with parameters gizmos.
+- Fixed missing gizmo for Position exposed property.
+- Fixed undoing port value change that did not restore correct value.
+- Fixed panning and zooming a VFX Graph was synchronized between all opened tabs. Also when multiple VFX Graph tabs are opened they are now properly restored after Unity is restarted.
+- Removed an error message when a point cache asset is missing, added an error feedback instead.
+- Updated of curve & gradient were missing when edited directly in VFX View Window.
+- Fixed issue with null value in slots preventing it to be changed.
+- Unexpected JSON error while using ShaderGraph.
+- Fixed RenderTexture could not be used anymore in VFXGraph.
+- Crash when converting to subgraph block.
+- Exception while convert to subgraph with Range of Parameter.
+- Subgraph creation doesn't keep activation slots link.
+- Old style dropdown in Add, Divide (and many others) style has been updated to new design.
+- Unexpected inspector in case of Sprite Custom/Lit/Unlit.
+- Fixed an issue where spawner callbacks were only working on the first instance of an instanced effect.
+- Fixed space conversion error when copy-pasting a system.
+- Improved error feedback message when a shader graph is missing and no path is found
+
 ## [14.0.8] - 2023-09-27
 
 This version is compatible with Unity 2022.3.11f1.
