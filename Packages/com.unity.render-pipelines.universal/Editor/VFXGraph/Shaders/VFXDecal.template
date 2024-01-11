@@ -52,7 +52,7 @@ void VFXGetSurfaceDecalData(out DecalSurfaceData surfaceData, out PositionInputs
 
 
 #if _RENDER_PASS_ENABLED
-    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy);
+    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy).x;
 #else
     float depth = LoadSceneDepth(positionCS.xy);
 #endif

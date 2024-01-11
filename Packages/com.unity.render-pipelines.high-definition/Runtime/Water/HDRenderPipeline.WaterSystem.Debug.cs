@@ -40,11 +40,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Simulation buffers
             public TextureHandle displacementBuffer;
             public TextureHandle additionalDataBuffer;
+            public TextureHandle foamData;
             public TextureHandle deformationBuffer;
-
-            // Output buffers
-            public TextureHandle colorBuffer;
-            public TextureHandle depthBuffer;
+            public TextureHandle deformationSGBuffer;
 
             // Other resources
             public BufferHandle indirectBuffer;
@@ -68,13 +66,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.waterDebugCB._WaterFoamDebugMode = (int)currentWater.waterFoamDebugMode;
 
                 // Allocate all the intermediate textures
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.UseColorBuffer(colorBuffer, 0);
+                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 // Import all the textures into the system
                 passData.displacementBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
                 passData.additionalDataBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
+                passData.foamData = passData.parameters.foam ? renderGraph.ImportTexture(currentWater.FoamBuffer()) : renderGraph.defaultResources.blackTexture;
                 passData.deformationBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationBuffer) : renderGraph.defaultResources.blackTexture;
+                passData.deformationSGBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationSGBuffer) : renderGraph.defaultResources.blackTexture;
 
                 // For GPU culling
                 passData.indirectBuffer = renderGraph.ImportBuffer(m_WaterIndirectDispatchBuffer);
@@ -85,32 +85,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (WaterRenderingMaskData data, RenderGraphContext ctx) =>
                     {
-                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterCB);
-                        ConstantBuffer.UpdateData(ctx.cmd, data.parameters.waterRenderingCB);
-
-                        // We will be writing directly to the color and depth buffers
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer);
-
-                        // Raise the keywords for band count
-                        SetupWaterShaderKeyword(ctx.cmd, data.parameters.numActiveBands, data.parameters.activeCurrent);
-
-                        // Prepare the material property block for the rendering
-                        data.parameters.mbp.SetTexture(HDShaderIDs._WaterDisplacementBuffer, data.displacementBuffer);
-                        data.parameters.mbp.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, data.additionalDataBuffer);
-                        data.parameters.mbp.SetTexture(HDShaderIDs._WaterDeformationBuffer, data.deformationBuffer);
-
-                        // Bind the global water textures
-                        data.parameters.mbp.SetTexture(HDShaderIDs._WaterMask, data.parameters.waterMask);
-                        data.parameters.mbp.SetTexture(HDShaderIDs._SimulationFoamMask, data.parameters.simulationFoamMask);
-                        if (data.parameters.activeCurrent)
-                        {
-                            data.parameters.mbp.SetTexture(HDShaderIDs._Group0CurrentMap, data.parameters.largeCurrentMap);
-                            data.parameters.mbp.SetTexture(HDShaderIDs._Group1CurrentMap, data.parameters.ripplesCurrentMap);
-                            data.parameters.mbp.SetTexture(HDShaderIDs._WaterSectorData, data.parameters.sectorDataBuffer);
-                        }
+                        SetupCommonRenderingData(ctx.cmd, data.displacementBuffer, data.additionalDataBuffer, TextureXR.GetBlackTexture(),
+                            data.foamData, data.deformationBuffer, data.deformationSGBuffer, data.parameters);
 
                         // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
-                        ctx.cmd.SetGlobalFloat("_CullWaterMask", (int)CullMode.Off);
+                        ctx.cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, (int)CullMode.Off);
 
                         // Bind the debug constant buffer
                         ConstantBuffer.Push(ctx.cmd, data.waterDebugCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);

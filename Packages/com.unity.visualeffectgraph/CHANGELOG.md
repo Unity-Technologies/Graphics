@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [16.0.4] - 2023-12-21
+
+This version is compatible with Unity 2023.2.5f1.
+
+### Changed
+- Improved and optimized undo and redo.
+
+### Fixed
+- Fixed an unexpected NaN in the direction field of a primitive that has its position scale set to 0.
+- Fixed an error in the the six-way Smoke Lit Shader Graph that happened when using more than one SRP in a project.
+- Fixed a compilation error in VFX Graph that happened when a cube output used the same texture as another context.
+- Updated the behaviour of blocks and operators that sample depth or color so that they are compatible with Dynamic Resolution Scaling.
+- Fixed console errors that happened when deleting a VFX asset.
+- Fixed an error with particle strips that had immortal particles so that the correct number of particles are updated.
+- Fixed incorrect or flickering textures when two instances of the same VFX use different textures and the same texture is connected to another block in output context.
+- Fixed an error raised by VFX analytics while building a project.
+- Fixed the behaviour of the "materials" and "sharedMaterials" properties so that they return all materials.
+- Changed the behavior of the "+" button in the VFX Graph toolbar to always open the Create new VFX asset window.
+- Fixed an exception that happened when changing a material's Surface Type from Fabric to Transparent.
+- Fixed an inconsistency between VFX decal and non-VFX decal normal maps when particles had a non-uniform scale.
+- Fixed an issue in VFX Graph that caused the "undo" action to return incorrect values instead of values from the previous state.
+- Fixed an issue where curve and gradient updates were missing when they were edited directly in the VFX View window.
+- Fixed an issue with null values in slots preventing them from changing.
+- Fixed an issue where `RenderTexture` could not be used in VFXGraph.
+- Old style dropdown in Add, Divide (and many others) style has been updated to new design.
+- Visual Effects back in Scene FX window.
+- Fixed error feedback context menu could not be displayed anymore.
+- Fixed an issue where spawner callbacks were only working on the first instance of an instanced effect.
+- Fixed an Unexpected inspector in case of Sprite Custom/Lit/Unlit.
+- Improved error feedback message when a shader graph is missing and no path is found
+
 ## [16.0.3] - 2023-09-26
 
 This version is compatible with Unity 2023.2.0b12.

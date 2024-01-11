@@ -25,13 +25,12 @@ AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpa
     AmbientOcclusionFactor aoFactor;
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    float ssao = SampleAmbientOcclusion(normalizedScreenSpaceUV);
-
-    aoFactor.indirectAmbientOcclusion = ssao;
-    aoFactor.directAmbientOcclusion = lerp(half(1.0), ssao, _AmbientOcclusionParam.w);
+        float ssao = saturate(SampleAmbientOcclusion(normalizedScreenSpaceUV) + (1.0 - _AmbientOcclusionParam.x));
+        aoFactor.indirectAmbientOcclusion = ssao;
+        aoFactor.directAmbientOcclusion = lerp(half(1.0), ssao, _AmbientOcclusionParam.w);
     #else
-    aoFactor.directAmbientOcclusion = 1;
-    aoFactor.indirectAmbientOcclusion = 1;
+        aoFactor.directAmbientOcclusion = half(1.0);
+        aoFactor.indirectAmbientOcclusion = half(1.0);
     #endif
 
     #if defined(DEBUG_DISPLAY)

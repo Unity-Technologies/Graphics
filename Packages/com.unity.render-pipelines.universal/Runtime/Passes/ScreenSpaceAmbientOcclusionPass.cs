@@ -36,9 +36,10 @@ namespace UnityEngine.Rendering.Universal
 
         // Constants
         private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
-        private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
+        private const string k_AmbientOcclusionParamName = "_AmbientOcclusionParam";
 
         // Statics
+        internal static readonly int s_AmbientOcclusionParamID = Shader.PropertyToID(k_AmbientOcclusionParamName);
         private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
         private static readonly int s_SSAOBlueNoiseParamsID = Shader.PropertyToID("_SSAOBlueNoiseParams");
         private static readonly int s_BlueNoiseTextureID = Shader.PropertyToID("_BlueNoiseTexture");
@@ -647,7 +648,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Set the global SSAO Params
-                cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                cmd.SetGlobalVector(s_AmbientOcclusionParamID, new Vector4(1f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
                 #if ENABLE_VR && ENABLE_XR_MODULE
                     // Cleanup, making sure it doesn't stay enabled for a pass after that should not have it on
                     if (isFoveatedEnabled)
