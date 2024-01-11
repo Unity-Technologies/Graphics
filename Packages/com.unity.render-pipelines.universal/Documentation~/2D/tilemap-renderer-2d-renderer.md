@@ -2,9 +2,9 @@
 
 Setup and required settings when using the Tilemap Renderer component with URP 2D.
 
-You can use the Tilemap Renderer with URP 2D to enable [2D lighting](Lights-2D-intro.md) on  [tiles](xref:Tilemap-TileAsset) and [tilemaps](xref:class-Tilemap), especially [isometric tilemaps](xref:Tilemap-Isometric) which simulate pseudo-depth. Doing so requires you to setup your project and adjust the Tilemap Renderer's settings in the following ways.
+You can use the Tilemap Renderer with URP 2D to enable [2D lighting](../Lights-2D-intro.md) on  [tiles](xref:Tilemap-TileAsset) and [tilemaps](xref:class-Tilemap), especially [isometric tilemaps](xref:Tilemap-Isometric) which simulate pseudo-depth. Doing so requires you to setup your project and adjust the Tilemap Renderer's settings in the following ways.
 
-When you select the [2D Renderer Data asset](2DRendererData-overview.md) for your project's [Scriptable Render Pipeline](xref:ScriptableRenderPipeline), the Renderer Data asset assumes control of the Tilemap Renderer's **Transparency Sort Mode** property settings and requires you to adjust the settings under the 2D Renderer Data asset's property settings instead of in the Project Settings.
+When you select the [2D Renderer Data asset](../2DRendererData-overview.md) for your project's [Scriptable Render Pipeline](xref:ScriptableRenderPipeline), the Renderer Data asset assumes control of the Tilemap Renderer's **Transparency Sort Mode** property settings and requires you to adjust the settings under the 2D Renderer Data asset's property settings instead of in the Project Settings.
 
 To optimize the rendering of the Tilemap Renderer component with the 2D lighting system, Unity can batch the rendering of the [Tilemap Renderer component](xref:class-TilemapRenderer) with the [Scriptable Render Pipeline Batcher (SRP Batcher)](xref:SRPBatcher) to improve the rendering performance of the Tilemap Renderer with other sprite renderers with the same rendering characteristics.
 
