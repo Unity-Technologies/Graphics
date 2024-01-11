@@ -113,9 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static bool TryAddDiffusionProfiles(VolumeProfile volumeProfile, DiffusionProfileSettings[] profiles)
         {
-            if (profiles == null || profiles.Length == 0)
-                return false;
-
             if (volumeProfile == null)
             {
                 Debug.LogError($"Invalid {nameof(VolumeProfile)} to register {nameof(DiffusionProfileSettings)}");
@@ -128,6 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var currentOverrides = diffusionProfileList.ToArray();
 
+                bool changed = false;
+
                 // Clear null DiffusionProfileSettings by NOT adding them to tmp
                 for (var index = 0; index < currentOverrides.Length; index++)
                 {
@@ -136,33 +135,46 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         tmp.Add(it);
                     }
+                    else
+                    {
+                        changed = true; // null entry found, update required
+                    }
                 }
 
                 bool ok = true;
 
-                // Add new ones
-                for (var index = 0; index < profiles.Length; index++)
+                if (profiles != null && profiles.Length > 0)
                 {
-                    var it = profiles[index];
-                    if (tmp.Count >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
+                    // Add new ones
+                    for (var index = 0; index < profiles.Length; index++)
                     {
-                        Debug.LogError($"Failed to register some diffusion profiles. You have reached the limit of {DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1} custom diffusion profiles in HDRP's Global Settings Default Volume. Please remove one before adding a new one.");
-                        ok = false;
-                        break; // We already reach the limit, no need to continue looping over the profiles.
-                    }
+                        var it = profiles[index];
+                        if (tmp.Count >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
+                        {
+                            Debug.LogError($"Failed to register some diffusion profiles. You have reached the limit of {DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1} custom diffusion profiles in HDRP's Global Settings Default Volume. Please remove one before adding a new one.");
+                            ok = false;
+                            break; // We already reach the limit, no need to continue looping over the profiles.
+                        }
 
-                    if (!tmp.Contains(it))
-                        tmp.Add(it);
-                    else
-                        ok = false;
+                        if (!tmp.Contains(it))
+                        {
+                            tmp.Add(it);
+                            changed = true; // new entry added, update required
+                        }
+                        else
+                            ok = false;
+                    }
                 }
 
-                DiffusionProfileSettings[] array = new DiffusionProfileSettings[tmp.Count];
-                tmp.CopyTo(array);
+                if (changed)
+                {
+                    DiffusionProfileSettings[] array = new DiffusionProfileSettings[tmp.Count];
+                    tmp.CopyTo(array);
 
-                diffusionProfileList.ReplaceWithArray(array);
-                EditorUtility.SetDirty(volumeProfile);
-                VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
+                    diffusionProfileList.ReplaceWithArray(array);
+                    EditorUtility.SetDirty(volumeProfile);
+                    VolumeManager.instance.OnVolumeProfileChanged(volumeProfile);
+                }
 
                 return ok;
             }
@@ -206,32 +218,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 var defaultVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
                 var diffusionProfileSettings = GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>();
                 m_RegisterProfiles = defaultVolumeSettings != null && diffusionProfileSettings is { autoRegister: true };
-
             }
 
             public void Dispose()
             {
-                if (m_Profiles.Count == 0)
+                var defaultVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+                if (defaultVolumeSettings == null)
                     return;
 
-                var defaultVolumeSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
                 if (defaultVolumeSettings.volumeProfile == null)
                 {
-                    Debug.LogError($"Invalid {nameof(VolumeProfile)} to auto register {nameof(DiffusionProfileSettings)}. Please use set one in Graphics Settings > HDRP.");
+                    if (m_Profiles.Count > 0)
+                        Debug.LogError($"Invalid {nameof(VolumeProfile)} to auto register {nameof(DiffusionProfileSettings)}. Please use set one in Graphics Settings > HDRP.");
                     return;
                 }
 
                 DiffusionProfileSettings[] array = new DiffusionProfileSettings[m_Profiles.Count];
                 m_Profiles.CopyTo(array);
 
-                VolumeUtils.TryAddDiffusionProfiles(defaultVolumeSettings?.volumeProfile, array);
+                TryAddDiffusionProfiles(defaultVolumeSettings.volumeProfile, array);
                 m_Profiles.Clear();
             }
         }
 #endif
-
-
     }
-
 }
-
