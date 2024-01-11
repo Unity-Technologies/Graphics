@@ -248,7 +248,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual void DrawGizmos(VisualEffect component)
+        public virtual void CollectGizmos()
         {
             m_GizmoableAnchors.Clear();
             foreach (VFXDataAnchorController controller in inputPorts)
@@ -258,62 +258,27 @@ namespace UnityEditor.VFX.UI
                     m_GizmoableAnchors.Add(controller);
                 }
             }
+        }
 
-            if (!m_GizmoableAnchors.Contains(m_GizmoedAnchor))
-                m_GizmoedAnchor = null;
-
-            if (m_GizmoedAnchor == null)
+        public virtual void DrawGizmos(VisualEffect component)
+        {
+            if (currentGizmoable is VFXDataAnchorController gizmoable)
             {
-                m_GizmoedAnchor = m_GizmoableAnchors.FirstOrDefault();
-            }
-
-            if (m_GizmoedAnchor != null)
-            {
-                ((VFXDataAnchorController)m_GizmoedAnchor).DrawGizmo(component);
+                gizmoable.DrawGizmo(component);
             }
         }
 
         public virtual Bounds GetGizmoBounds(VisualEffect component)
         {
-            if (m_GizmoedAnchor != null)
-                return ((VFXDataAnchorController)m_GizmoedAnchor).GetGizmoBounds(component);
+            if (currentGizmoable != null)
+                return ((VFXDataAnchorController)currentGizmoable).GetGizmoBounds(component);
 
             return new Bounds();
         }
 
-        public virtual bool gizmoNeedsComponent
-        {
-            get
-            {
-                if (m_GizmoedAnchor == null)
-                    return false;
-                return ((VFXDataAnchorController)m_GizmoedAnchor).gizmoNeedsComponent;
-            }
-        }
-
-        public virtual bool gizmoIndeterminate
-        {
-            get
-            {
-                if (m_GizmoedAnchor == null)
-                    return true;
-                return ((VFXDataAnchorController)m_GizmoedAnchor).gizmoIndeterminate;
-            }
-        }
-
-        IGizmoable m_GizmoedAnchor;
-        protected List<IGizmoable> m_GizmoableAnchors = new List<IGizmoable>();
-
-        public ReadOnlyCollection<IGizmoable> gizmoables
-        {
-            get { return m_GizmoableAnchors.AsReadOnly(); }
-        }
-
-        public IGizmoable currentGizmoable
-        {
-            get { return m_GizmoedAnchor; }
-            set { m_GizmoedAnchor = value; }
-        }
+        protected List<IGizmoable> m_GizmoableAnchors = new();
+        public ReadOnlyCollection<IGizmoable> gizmoables => m_GizmoableAnchors.AsReadOnly();
+        public IGizmoable currentGizmoable { get; set; }
 
         private VFXSettingController[] m_Settings;
     }
