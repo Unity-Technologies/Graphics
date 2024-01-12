@@ -17,13 +17,16 @@ public class CharacterControllerSpawnDeformation : MonoBehaviour
         {
             if(Time.realtimeSinceStartup - lastDeformationSpawnedTime >= TimeBtwnEachDeformation)
             {       
-                GameObject deformer = PoolManager.Instances[PoolManager.InstanceType.Deformer].getNextAvailable();
-                if(deformer != null)
+                if(PoolManager.Instances[PoolManager.InstanceType.Deformer] != null)
                 {
-                    lastDeformationSpawnedTime = Time.realtimeSinceStartup;
-					// We push forward the deformer to appear in front of the gameobject
-                    deformer.transform.position = this.transform.position + playerMovement.modelTransform.forward * Vector3.Normalize(controller.velocity).magnitude;
-                    deformer.SetActive(true);
+                    GameObject deformer = PoolManager.Instances[PoolManager.InstanceType.Deformer].getNextAvailable();
+                    if(deformer != null)
+                    {
+                        lastDeformationSpawnedTime = Time.realtimeSinceStartup;
+                        // We push forward the deformer to appear in front of the gameobject
+                        deformer.transform.position = this.transform.position + playerMovement.modelTransform.forward * Vector3.Normalize(controller.velocity).magnitude;
+                        deformer.SetActive(true);
+                    }
                 }
             }
             

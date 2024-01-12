@@ -56,7 +56,7 @@ public class Buoyancy : MonoBehaviour
         // The script doesn't use ridigbody's gravity nor drag. 
         // Only angularDrag is used.  
         rigidbodyComponent.useGravity = false;
-        rigidbodyComponent.drag = defaultRigidbodyDrag;
+        rigidbodyComponent.linearDamping = defaultRigidbodyDrag;
         
         if(targetSurface == null)
             Debug.LogWarning("The variable 'targetSurface' needs a valid Water Surface to be assigned for the script to work properly.");
@@ -81,7 +81,7 @@ public class Buoyancy : MonoBehaviour
             // Volume of sphere that is below the surface in m3. This only applies if we approximate the volume of the object as a sphere. 
             float volumeOfFluidDisplaced = (Mathf.PI * h * h / 3f) * (3 * sphereRadiusApproximation - h);            
 
-            rigidbodyComponent.angularDrag = Mathf.Lerp(overwaterRigidbodyAngularDrag, underwaterRigidbodyAngularDrag, hNormalized);
+            rigidbodyComponent.angularDamping = Mathf.Lerp(overwaterRigidbodyAngularDrag, underwaterRigidbodyAngularDrag, hNormalized);
 
             Vector3 weight = rigidbodyComponent.mass * Physics.gravity; // Weight of the object            
             Vector3 gravityForce = Vector3.Lerp(Physics.gravity, weight, hNormalized);
@@ -97,8 +97,8 @@ public class Buoyancy : MonoBehaviour
             Vector3 archimedesForce = -waterDensity * volumeOfFluidDisplaced * Physics.gravity;
 
             // Drag forces (Stokes' Law)
-            Vector3 dragForceAir = 6 * Mathf.PI * sphereRadiusApproximation * airViscosity * -rigidbodyComponent.velocity;
-            Vector3 dragForceWater = 6 * Mathf.PI * sphereRadiusApproximation * waterViscosity * -rigidbodyComponent.velocity;
+            Vector3 dragForceAir = 6 * Mathf.PI * sphereRadiusApproximation * airViscosity * -rigidbodyComponent.linearVelocity;
+            Vector3 dragForceWater = 6 * Mathf.PI * sphereRadiusApproximation * waterViscosity * -rigidbodyComponent.linearVelocity;
             Vector3 dragForce = Vector3.Lerp(dragForceAir, dragForceWater, hNormalized) * dragMultiplier;
             
             // Terminal velocities
@@ -116,7 +116,7 @@ public class Buoyancy : MonoBehaviour
             // If our object is at the interface of the water surface, this is to avoid the object bouncing too much and simulation surface tension damping
             if (hNormalized > 0 &&  hNormalized < 1)
             {
-                Vector3 upwardVelocity = Vector3.Dot(rigidbodyComponent.velocity, Physics.gravity.normalized) * Physics.gravity.normalized;
+                Vector3 upwardVelocity = Vector3.Dot(rigidbodyComponent.linearVelocity, Physics.gravity.normalized) * Physics.gravity.normalized;
                 Vector3 dampingForce = -upwardVelocity * surfaceTensionDamping;
                 rigidbodyComponent.AddForce(dampingForce, ForceMode.Acceleration);
                 
@@ -128,9 +128,9 @@ public class Buoyancy : MonoBehaviour
             } 
 
             // Preventing our object to reach a velocity higher than its terminal velocity in the current medium (air or water).
-            if (rigidbodyComponent.velocity.magnitude > terminalVelocity)
+            if (rigidbodyComponent.linearVelocity.magnitude > terminalVelocity)
             {
-                rigidbodyComponent.velocity = rigidbodyComponent.velocity.normalized * terminalVelocity;
+                rigidbodyComponent.linearVelocity = rigidbodyComponent.linearVelocity.normalized * terminalVelocity;
             }
 
         }

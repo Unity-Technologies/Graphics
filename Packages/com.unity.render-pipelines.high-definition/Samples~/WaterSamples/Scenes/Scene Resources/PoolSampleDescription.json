@@ -25,7 +25,8 @@
 		• Each <link="BeachBall">Beach Ball</link> has a <b>Spawn Deformation</b> and a <b>Trigger Splash</b> component.
 		• The gameObject <link="DeformerPool">Deformer Pool</link> holds a list of deformers to use as children for deformations.
 		• When the <link="BeachBall">Beach Ball</link> crosses the water surface, one of the deformers is enabled in the <link="DeformerPool">Deformer Pool</link> child list. This deformer is then animated according to the speed and mass of the Rigidbody component. 
-		• Additionally, the <b>Trigger Splash</b> plays a <link="SplashParticles">VFX splash effect</link> and animates it according to the speed and mass of the Rigidbody component as well. 
+		• Additionally, the <b>Trigger Splash</b> plays a <link="WaterSplash.prefab">VFX splash effect</link> and animates it according to the speed and mass of the Rigidbody component as well.
+		• You can press the "Space" key to throw a random beach ball at the pool to trigger the effect.     
 	
 	<h1>Water Surface</h1>
 	

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5243.344, g: 9262.884, b: 14089.986, a: 1}
+  m_IndirectSpecularColor: {r: 5517.7856, g: 10069.681, b: 16038.502, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -424,7 +424,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f6fd535518f5540b4bcc3099582f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 2
+  m_Version: 3
   decalLayerMask: 1
   lightLayerMask: 1
   largeBand0FadeToggle: 1
@@ -435,9 +435,7 @@ MonoBehaviour:
   meshRenderers:
   - {fileID: 0}
   timeMultiplier: 1
-  cpuSimulation: 1
-  cpuLowLatency: 0
-  cpuFullResolution: 0
+  scriptInteractions: 1
   cpuEvaluateRipples: 0
   customMaterial: {fileID: 2100000, guid: 8ffe55eafff896b439db9f8dbf8ddde6, type: 2}
   startSmoothness: 0.95
@@ -502,7 +500,7 @@ MonoBehaviour:
   foamResolution: 512
   foamAreaSize: {x: 300, y: 256}
   foamAreaOffset: {x: -64, y: 0}
-  foamPersistenceMultiplier: 0.5
+  foamPersistenceMultiplier: 1
   foamCurrentInfluence: 0.6
   foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.1
@@ -1191,10 +1189,12 @@ MonoBehaviour:
   regionSize: {x: 20, y: 15}
   texture: {fileID: 0}
   resolution: {x: 256, y: 256}
+  updateMode: 0
   material: {fileID: 2100000, guid: 670243648442e0a428ea430740211ab2, type: 2}
-  surfaceFoamDimmer: 0.6
+  surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 0
+  m_Version: 1
 --- !u!4 &807039431
 Transform:
   m_ObjectHideFlags: 0
@@ -1287,6 +1287,7 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &838711650
@@ -1346,6 +1347,7 @@ MonoBehaviour:
   m_IESPoint: {fileID: 0}
   m_IESSpot: {fileID: 0}
   m_IncludeForRayTracing: 1
+  m_IncludeForPathTracing: 1
   m_AreaLightShadowCone: 120
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
@@ -1493,10 +1495,12 @@ MonoBehaviour:
   regionSize: {x: 3, y: 3}
   texture: {fileID: 0}
   resolution: {x: 256, y: 256}
+  updateMode: 0
   material: {fileID: 0}
   surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 1
+  m_Version: 1
 --- !u!1 &879231442
 GameObject:
   m_ObjectHideFlags: 0
@@ -1686,10 +1690,12 @@ MonoBehaviour:
   regionSize: {x: 3, y: 3}
   texture: {fileID: 0}
   resolution: {x: 256, y: 256}
+  updateMode: 0
   material: {fileID: 0}
   surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 1
+  m_Version: 1
 --- !u!1001 &974883611
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2079,7 +2085,7 @@ Material:
     - _Float: 0.49
     - _MaterialID: 1
     - _MaterialTypeMask: 2
-    - _Opacity: 1
+    - _Opacity: 0
     - _OpaqueCullMode: 2
     - _PerPixelSorting: 0
     - _RayTracing: 0
@@ -2704,10 +2710,129 @@ MonoBehaviour:
   regionSize: {x: 3, y: 3}
   texture: {fileID: 0}
   resolution: {x: 256, y: 256}
+  updateMode: 0
   material: {fileID: 0}
   surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   scaleMode: 1
+  m_Version: 1
+--- !u!1 &1379027767
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1379027770}
+  - component: {fileID: 1379027769}
+  - component: {fileID: 1379027768}
+  m_Layer: 0
+  m_Name: VFX_WaterfallGroundSplash
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!73398921 &1379027768
+VFXRenderer:
+  serializedVersion: 1
+  m_ObjectHideFlags: 2
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1379027767}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 257
+  m_RendererPriority: 0
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!2083052967 &1379027769
+VisualEffect:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1379027767}
+  m_Enabled: 1
+  m_Asset: {fileID: 8926484042661614526, guid: 93449e04b5d72ce49bfa863ed698a8c0, type: 3}
+  m_InitialEventName: OnPlay
+  m_InitialEventNameOverriden: 0
+  m_StartSeed: 0
+  m_ResetSeedOnPlay: 1
+  m_AllowInstancing: 1
+  m_ResourceVersion: 1
+  m_PropertySheet:
+    m_Float:
+      m_Array: []
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array:
+      - m_Value: {x: 0.6657766, y: 0.77061564, z: 0.9245283, w: 1}
+        m_Name: Color
+        m_Overridden: 1
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array: []
+    m_Gradient:
+      m_Array: []
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array: []
+--- !u!4 &1379027770
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1379027767}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.37, y: -2.26, z: 0.051874876}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2057688235}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &1399800658
 GameObject:
   m_ObjectHideFlags: 0
@@ -3209,31 +3334,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.039689
+      value: -41.640762
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.9465079
+      value: -2.0978658
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -4.3795395
+      value: -1.8603286
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.481052
+      value: 0.33863372
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.481052
+      value: -0.33851683
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.5182557
+      value: -0.6208863
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.5182557
+      value: -0.620672
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3390,31 +3515,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 31.701576
+      value: -31.210777
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.9834881
+      value: -1.9634404
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 16.068668
+      value: 3.93912
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.24874365
+      value: -0.70664465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.24874365
+      value: 0.70664465
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.6619113
+      value: -0.02556043
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.6619113
+      value: -0.02556043
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3699,6 +3824,13 @@ MonoBehaviour:
   deepLearningSuperSamplingUseCustomAttributes: 0
   deepLearningSuperSamplingUseOptimalSettings: 1
   deepLearningSuperSamplingSharpening: 0
+  allowFidelityFX2SuperResolution: 1
+  fidelityFX2SuperResolutionUseCustomQualitySettings: 0
+  fidelityFX2SuperResolutionQuality: 0
+  fidelityFX2SuperResolutionUseCustomAttributes: 0
+  fidelityFX2SuperResolutionUseOptimalSettings: 1
+  fidelityFX2SuperResolutionEnableSharpening: 0
+  fidelityFX2SuperResolutionSharpening: 0
   fsrOverrideSharpness: 0
   fsrSharpness: 0.92
   exposureTarget: {fileID: 0}
@@ -3994,6 +4126,7 @@ Transform:
   - {fileID: 1203974986}
   - {fileID: 807039431}
   - {fileID: 152757593}
+  - {fileID: 1379027770}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2058675501
@@ -4022,31 +4155,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 22.150824
+      value: 75.61062
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.9970641
+      value: 1.9966884
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 16.156023
+      value: -15.029687
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.116650864
+      value: 0.69834536
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.116650864
+      value: -0.69834536
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.6974185
+      value: -0.11096752
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.6974185
+      value: -0.11096752
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0eb0f05b8b3956a4eb944822a894e535, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

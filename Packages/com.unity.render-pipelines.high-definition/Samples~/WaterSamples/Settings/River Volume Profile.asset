@@ -189,12 +189,6 @@ MonoBehaviour:
   enable:
     m_OverrideState: 1
     m_Value: 0
-  localClouds:
-    m_OverrideState: 1
-    m_Value: 1
-  earthCurvature:
-    m_OverrideState: 0
-    m_Value: 0
   cloudTiling:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1}
@@ -469,7 +463,7 @@ MonoBehaviour:
     m_Value: 0
   perceptualBlending:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 0
   shadows:
     m_OverrideState: 0
     m_Value: 0
@@ -485,7 +479,10 @@ MonoBehaviour:
   shadowOpacityFallback:
     m_OverrideState: 0
     m_Value: 0
-  m_Version: 2
+  m_Version: 3
+  localClouds:
+    m_OverrideState: 1
+    m_Value: 1
   m_ObsoleteWindSpeed:
     m_OverrideState: 0
     m_Value: 1
@@ -663,6 +660,9 @@ MonoBehaviour:
   type:
     m_OverrideState: 0
     m_Value: 1
+  atmosphericScattering:
+    m_OverrideState: 0
+    m_Value: 1
   renderingMode:
     m_OverrideState: 0
     m_Value: 0
@@ -696,9 +696,15 @@ MonoBehaviour:
   aerosolAnisotropy:
     m_OverrideState: 0
     m_Value: 0
-  numberOfBounces:
+  ozoneDensityDimmer:
     m_OverrideState: 0
-    m_Value: 3
+    m_Value: 1
+  ozoneMinimumAltitude:
+    m_OverrideState: 0
+    m_Value: 20000
+  ozoneLayerWidth:
+    m_OverrideState: 0
+    m_Value: 20000
   groundTint:
     m_OverrideState: 1
     m_Value: {r: 0.41948494, g: 0.7502145, b: 0.9528302, a: 1}
@@ -745,12 +751,6 @@ MonoBehaviour:
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
     m_Value: 1
-  sphericalMode:
-    m_OverrideState: 0
-    m_Value: 1
-  seaLevel:
-    m_OverrideState: 0
-    m_Value: 0
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378100
@@ -964,18 +964,18 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 1
-  planetType:
-    m_OverrideState: 0
-    m_Value: 0
-  seaLevel:
-    m_OverrideState: 0
-    m_Value: 0
   planetRadius:
     m_OverrideState: 0
-    m_Value: 6378100
+    m_Value: 6378.1
+  renderingSpace:
+    m_OverrideState: 0
+    m_Value: 1
+  centerMode:
+    m_OverrideState: 0
+    m_Value: 0
   planetCenter:
     m_OverrideState: 0
-    m_Value: {x: 0, y: -6378100, z: 0}
+    m_Value: {x: 0, y: -6378.1, z: 0}
   windOrientation:
     m_OverrideState: 0
     m_Value: 0
@@ -985,6 +985,7 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 0
     m_Value: 0
+  m_Version: 1
 --- !u!114 &7601432519373796537
 MonoBehaviour:
   m_ObjectHideFlags: 3
