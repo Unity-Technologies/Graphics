@@ -60,3 +60,8 @@
 .resource-helper-line--highlight {
     background-size: 8px 20px; /* light theme needs a wider dashed line to be properly visible */
 }
+
+.pass-block.pass-block-script-link {
+    background-image: url("../Icons/RenderGraphViewer/ScriptLink@2x.png");
+    background-color: #555555;
+}

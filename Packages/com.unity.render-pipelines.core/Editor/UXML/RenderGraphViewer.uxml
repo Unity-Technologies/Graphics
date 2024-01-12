@@ -11,7 +11,7 @@
     <ui:VisualElement name="content-container">
         <ui:ScrollView name="pass-list-scroll-view">
             <ui:VisualElement name="pass-list"/>
-            <ui:VisualElement name="pass-list-width-helper"/>
+            <ui:VisualElement name="pass-list-width-helper" pickingMode="Ignore" />
         </ui:ScrollView>
         <ui:VisualElement name="pass-list-corner-occluder"/>
         <ui:VisualElement name="resource-container">

@@ -206,6 +206,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
                 debugPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
 
+                RenderGraph.DebugData.s_PassScriptMetadata.TryGetValue(debugPass.name, out debugPass.scriptInfo);
+
                 debugPass.syncFromPassIndex = -1; // TODO async compute support
                 debugPass.syncToPassIndex = -1; // TODO async compute support
 

@@ -102,6 +102,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                 // Only available when isNRPCompiler = true, null otherwise.
                 public NRPInfo nrpInfo;
+
+                // File path and line number where the render pass is defined.
+                public PassScriptInfo scriptInfo;
             }
 
             public class BufferResourceData
@@ -179,6 +182,39 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 for (int i = 0; i < (int) RenderGraphResourceType.Count; ++i)
                     resourceLists[i].Clear();
             }
+
+            // Script metadata for passes.
+            internal static readonly Dictionary<string, PassScriptInfo> s_PassScriptMetadata = new ();
+
+            // Pass script metadata.
+            public class PassScriptInfo
+            {
+                public string filePath;
+                public int line;
+            }
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        void AddPassDebugMetadata(string passName, string file, int line)
+        {
+            // Does nothing unless debug data capture is requested
+            if (m_CaptureDebugDataForExecution == null)
+                return;
+
+            if (!DebugData.s_PassScriptMetadata.TryAdd(passName, new DebugData.PassScriptInfo { filePath = file, line = line }))
+            {
+                var existingFile = DebugData.s_PassScriptMetadata[passName].filePath;
+                var existingLine = DebugData.s_PassScriptMetadata[passName].line;
+                if (existingFile != file || existingLine != line)
+                    Debug.LogWarning($"Two passes called {passName} in different locations: {existingFile}:{existingLine}" +
+                                     $" and {file}:{line}. Jumping to source from Render Graph Viewer will only work correctly for {existingFile}:{existingLine}.");
+            }
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        void ClearPassDebugMetadata()
+        {
+            DebugData.s_PassScriptMetadata.Clear();
         }
     }
 }

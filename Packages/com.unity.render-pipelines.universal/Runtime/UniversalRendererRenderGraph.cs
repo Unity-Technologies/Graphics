@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
@@ -1623,9 +1624,10 @@ namespace UnityEngine.Rendering.Universal
             internal int nameID;
         }
 
-        public static void SetGlobalTexture(RenderGraph graph, int nameId, TextureHandle handle, string passName = "Set Global Texture")
+        public static void SetGlobalTexture(RenderGraph graph, int nameId, TextureHandle handle, string passName = "Set Global Texture",
+            [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler, file, line))
             {
                 passData.nameID = nameId;
                 passData.texture = handle;

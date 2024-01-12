@@ -56,3 +56,8 @@
 .resource-icon--fbfetch {
     background-image: url("../Icons/RenderGraphViewer/FramebufferFetch@2x.png");
 }
+
+.pass-block.pass-block-script-link {
+    background-image: url("../Icons/RenderGraphViewer/d_ScriptLink@2x.png");
+    background-color: #C4C4C4;
+}

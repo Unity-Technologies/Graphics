@@ -996,6 +996,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
+            AddPassDebugMetadata(passName, file, line);
+
             var renderPass = m_RenderGraphPool.Get<RasterRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Raster, sampler);
 
@@ -1041,6 +1043,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
+            AddPassDebugMetadata(passName, file, line);
+
             var renderPass = m_RenderGraphPool.Get<ComputeRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Compute, sampler);
 
@@ -1100,6 +1104,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
+            AddPassDebugMetadata(passName, file, line);
+
             var renderPass = m_RenderGraphPool.Get<UnsafeRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Unsafe, sampler);
             renderPass.AllowGlobalState(true);
@@ -1128,6 +1134,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
+            AddPassDebugMetadata(passName, file, line);
+
             var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Legacy, sampler);
             renderPass.AllowGlobalState(true);// Old pass types allow global state by default as HDRP relies on it
@@ -1154,7 +1162,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            return AddRenderPass(passName, out passData, GetDefaultProfilingSampler(passName));
+            return AddRenderPass(passName, out passData, GetDefaultProfilingSampler(passName), file, line);
         }
 
         /// <summary>
@@ -1309,7 +1317,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0)
         {
-            using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, null, file, line))
+            using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, (ProfilingSampler)null))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
@@ -1331,7 +1339,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0)
         {
-            using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, null, file, line))
+            using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, (ProfilingSampler)null))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
@@ -2413,6 +2421,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 onExecutionRegistered?.Invoke(this, m_CurrentExecutionName);
                 debugData = new DebugData();
                 m_DebugData.Add(m_CurrentExecutionName, debugData);
+                return; // Generate the debug data on the next frame, because script metadata is collected during recording step
             }
 
             // Only generate debug data on request
@@ -2429,6 +2438,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             onDebugDataCaptured?.Invoke();
 
             m_CaptureDebugDataForExecution = null;
+
+            ClearPassDebugMetadata();
         }
 
         void GenerateCompilerDebugData(ref DebugData debugData)
@@ -2517,6 +2528,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 newPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
                 newPass.syncFromPassIndex = passInfo.syncFromPassIndex;
                 newPass.syncToPassIndex = passInfo.syncToPassIndex;
+
+                DebugData.s_PassScriptMetadata.TryGetValue(pass.name, out newPass.scriptInfo);
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {

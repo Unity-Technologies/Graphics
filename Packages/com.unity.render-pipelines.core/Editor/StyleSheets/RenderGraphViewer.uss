@@ -5,6 +5,7 @@
     --resource-grid-icon-size: 12px;
     --pass-width: 26px;
     --pass-list-height: 180px;
+    --pass-list-tilted-label-length: 200px;
     --pass-title-allowance-margin: 120px; /* used to reserve enough space so that rotated pass names stay visible */
     --pass-title-allowance-margin-with-scrollbar: 133px;
     --dependency-row-height: 30px;
@@ -76,6 +77,7 @@
 }
 
 .pass-list__item {
+    position: absolute;
     min-width: var(--pass-width);
     width: var(--pass-width);
     justify-content: center;
@@ -83,9 +85,12 @@
 }
 
 .pass-list__item .pass-title {
+    width: var(--pass-list-tilted-label-length);
+    top: -50px;
+    left: -17px;
     rotate: -45deg;
     margin-bottom: 10px;
-    margin-left: 8px;
+    height: var(--pass-width);
 }
 
 .pass-list__item .pass-block {
@@ -103,6 +108,7 @@
 .pass-block--async {
     background-color: var(--pass-block-color--async);
 }
+
 
 .pass-list__item .pass-merge-indicator {
     background-color: var(--merged-pass-accent-color);
@@ -125,6 +131,11 @@
     -unity-font-style: bold;
 }
 
+.pass-title.pass--hover-highlight {
+    color: var(--pass-block-text-color--highlight);
+    -unity-font-style: bold;
+}
+
 .pass-block.pass-compatibility-message-indicator {
     background-color: var(--native-pass-accent-color);
     border-color: var(--pass-block-border-color);
@@ -135,6 +146,14 @@
     transition-property: background-color;
     transition-duration: 0.7s;
     transition-timing-function: ease-in-out;
+}
+
+/* this needs to be declared after other pass block USS classes because they have equal selector precedence and
+   we want this to have the highest priority */
+.pass-block.pass-block-script-link {
+    -unity-background-scale-mode:scale-to-fit;
+    border-width: 0;
+    transition-duration: 0s; /* block the compatibility highlight animation */
 }
 
 .pass-block.pass-compatibility-message-indicator--compatible {
