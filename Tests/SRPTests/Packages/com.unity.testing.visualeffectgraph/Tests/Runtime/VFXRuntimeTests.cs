@@ -6,6 +6,7 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
+using UnityEngine.Rendering;
 
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
@@ -569,6 +570,56 @@ namespace UnityEngine.VFX.Test
             var expectedBatchInfosDump = DumpBatchInfo(expectedBatchInfos);
             var actualBatchInfosDump = DumpBatchInfo(batchInfos);
             Assert.AreEqual(expectedBatchInfosDump, actualBatchInfosDump, $"{actualBatchInfosDump}\nvs.\n\n{expectedBatchInfosDump}");
+        }
+
+        private static Vector4[] s_SampleGradient_Branch_Instancing_Readback = null;
+
+        static void SampleGradient_Branch_Instancing_Readback(AsyncGPUReadbackRequest request)
+        {
+            if (request.hasError)
+                Debug.LogError("SampleGradient_Branch_Instancing_Readback failure.");
+
+            var data = request.GetData<Vector4>();
+            s_SampleGradient_Branch_Instancing_Readback = new Vector4[2];
+            s_SampleGradient_Branch_Instancing_Readback[0] = data[0];
+            s_SampleGradient_Branch_Instancing_Readback[1] = data[1];
+        }
+
+        [UnityTest, Description("Regression test UUM-58615")]
+        public IEnumerator SampleGradient_Branch_Instancing()
+        {
+            var structuredBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, GraphicsBuffer.UsageFlags.None, 2, 16);
+            Shader.SetGlobalBuffer("Repro_SampleGradient_Branch_Instancing_Buffer", structuredBuffer);
+
+            SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/Repro_SampleGradient_Branch_Instancing.unity");
+            yield return null;
+            
+            s_SampleGradient_Branch_Instancing_Readback = new Vector4[2];
+            var request = AsyncGPUReadback.Request(structuredBuffer, SampleGradient_Branch_Instancing_Readback);
+            int maxFrame = 64;
+            while (--maxFrame > 0)
+            {
+                if (Vector4.Magnitude(s_SampleGradient_Branch_Instancing_Readback[0] - new Vector4(1, 0, 0, 1)) < 1e-3f
+                    && Vector4.Magnitude(s_SampleGradient_Branch_Instancing_Readback[1] - new Vector4(0, 1, 0, 1)) < 1e-3f)
+                    break;
+
+                if (request.done)
+                    request = AsyncGPUReadback.Request(structuredBuffer, SampleGradient_Branch_Instancing_Readback);
+
+                yield return null;
+            }
+
+            Assert.IsTrue(maxFrame > 0, $"Didn't received expected readback content: {s_SampleGradient_Branch_Instancing_Readback[0].ToString()}, {s_SampleGradient_Branch_Instancing_Readback[1].ToString()}");
+
+            //Disable VFX before exiting this scene
+            var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
+            foreach (var vfx in vfxComponents)
+            {
+                vfx.enabled = false;
+            }
+
+            Shader.SetGlobalBuffer("Repro_SampleGradient_Branch_Instancing_Buffer", (GraphicsBuffer)null);
+            structuredBuffer.Release();
         }
 
         [OneTimeTearDown]
