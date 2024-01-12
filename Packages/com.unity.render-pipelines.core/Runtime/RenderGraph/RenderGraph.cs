@@ -1925,7 +1925,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 var resourceInfos = m_CurrentCompiledGraph.compiledResourcesInfos[type];
                 var sharedResourceCount = m_Resources.GetSharedResourceCount((RenderGraphResourceType)type);
 
-                for (int i = 1; i < sharedResourceCount; ++i) // 0 == null resource skip it
+                for (int i = 1; i <= sharedResourceCount; ++i) // 0 == null resource skip it
                 {
                     CompiledResourceInfo resourceInfo = resourceInfos[i];
                     var latestValidReadIndex = GetLatestValidReadIndex(resourceInfo);
