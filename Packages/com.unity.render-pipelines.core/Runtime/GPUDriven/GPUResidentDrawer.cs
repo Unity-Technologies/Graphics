@@ -93,6 +93,20 @@ namespace UnityEngine.Rendering
             s_Instance?.batcher.UpdateInstanceOccluders(renderGraph, occluderParameters);
         }
 
+        /// <summary>
+        /// Enable or disable GPUResidentDrawer based on the project settings.
+        /// We call this every frame bacause GPUResidentDrawer can be enabled/disabled by the settings outside the render pipeline asset.
+        /// </summary>
+        public static void ReinitializeIfNeeded()
+        {
+#if UNITY_EDITOR
+            if (!IsForcedOnViaCommandLine() && (IsProjectSupported(false) != IsEnabled()))
+            {
+                Reinitialize();
+            }
+#endif
+        }
+
         #endregion
 
         #region Public Debug API
@@ -331,7 +345,6 @@ namespace UnityEngine.Rendering
             // not supported
             if (!supported)
             {
-                Debug.LogWarning("GPUResidentDrawer: Disabled due to platform of support limitation. Please check the log.");
                 return;
             }
 

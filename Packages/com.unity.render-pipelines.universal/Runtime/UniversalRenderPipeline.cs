@@ -360,6 +360,8 @@ namespace UnityEngine.Rendering.Universal
             // For XR and HDR, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership();
 
+            GPUResidentDrawer.ReinitializeIfNeeded();
+
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));

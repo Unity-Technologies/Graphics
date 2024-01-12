@@ -2140,6 +2140,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
+            GPUResidentDrawer.ReinitializeIfNeeded();
+
             ColorUtils.s_LensAttenuation = m_LensSettings.GetLensAttenuationValue();
 
             DecalSystem.instance.StartDecalUpdateJobs();
