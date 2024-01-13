@@ -1,0 +1,343 @@
+{
+	"introduction":
+	"""The Shader Graph Feature Examples sample content is a collection of Shader Graph assets that demonstrate how to achieve common techniques and effects in Shader Graph. The goal of this sample pack is to help users see what is required to achieve specific effects and provide examples to make it easier to learn. Select the sample you want to see from the dropdown below.
+	""",
+
+
+	"samples": [
+		{
+			"title": "Height Mask",
+			"prefabName": "Height Mask",
+			"description":
+			"""<ignore><link="HeightMask.shadergraph">Open the example shader</link>
+
+			</ignore>A <b>Height Mask</b> is useful for blending between two materials based on the height or depth data of the materials. Height Masks create a much more realistic-looking transition than other types of blending.
+			
+			Here we're blending between the cobblestones and gold material based on the height of the cobblestones.  The gold material fills in the cracks around the stones first before slowly covering the tops as we make the transition.
+			"""
+		},
+		{
+			"title": "Angle Mask",
+			"prefabName": "Angle Mask",
+			"description":
+			"""<ignore><link="AngleMask.shadergraph">Open the example shader</link>
+
+			</ignore>The <b>Angle Mask</b> blends between black and white based on the direction the surface is pointing.  
+			
+			In this example, we use the angle mask to apply a snow material to the top of our object. Because the mask is applied in world space, the snow will stay on top, even if the object is rotated.  Other environmental materials - such as moss, sand, or wetness could also be used.
+			"""
+		},	
+		{
+			"title": "Camera Distance Mask",
+			"prefabName": "Camera Distance Mask",
+			"description":
+			"""<ignore><link="CameraDistanceMask.shadergraph">Open the example shader</link>
+
+			</ignore>The <b>Camera Distance Mask</b> blends between black and white based on the object's distance from the camera.  Try zooming the camera in and out and notice that the material changes from cobblestones when close up to gold when further away.  
+			
+			Camera Distance Masks are useful for applying effects that only appear close to the camera and then fade out further away - or vice versa.
+			"""
+		},			
+		{
+			"title": "Altitude Mask",
+			"prefabName": "Altitude Mask",
+			"description":
+			"""<ignore><link="AltitudeMask.shadergraph">Open the example shader</link>
+			</ignore>
+			The <b>Altitude Mask</b> blends between black and white based on the height - either in object space or world space. In this example, we transition from a cobblestone material to a gold material based on height, but you can use the black-to-white mask for all kinds of things. 
+			
+			It can be used to place snow at a higher altitude on a mountain, or make a character get subtly brighter toward the top."""
+		},
+		{
+			"title": "Interpolation Artifacts",
+			"prefabName": "Interpolation Artifacts",
+			"description":
+			"""<ignore><link="CustomInterpolatorNdotL.shadergraph">Open the example shader</link>
+
+			</ignore>You can use the Custom Interpolator Master Stack block and node to do any calculations in the vertex stage and then pass the results to the fragment stage. It's usually cheaper to do math in the vertex stage rather than the fragment stage. 
+			
+			However, some effects don't work well when computed per-vertex as we can see in this example. Notice that the edges of the specular highlight are triangular shaped and the transition from light to dark is quite rough. If you change the InFragStage parameter in <link="CustomInterpolatorNdotL.mat">the material</link>, you'll see these artifacts go away - indicating the per-pixel math is required for better results.
+			"""
+		},
+		{
+			"title": "Interpolation Savings",
+			"prefabName": "Interpolation Savings",
+			"description":
+			"""<ignore><link="CustomInterpolatorUVScrolling.shadergraph">Open the example shader</link>
+
+			</ignore>This is a great illustration of how some math can be done in the vertex stage without quality loss.  Here, we're scrolling two sets of UVs and combining the result to create the pattern.  It's significantly cheaper to do this math in the vertex stage.  
+			
+			If you change the InFragStage parameter in <link="CustomInterpolatorUVScrolling.mat">the material</link>, you'll see no difference at all, which means these calculations are a good candidate to be done in the vertex stage to save on performance.
+
+			"""
+		},
+		{
+			"title": "Color Detail Map",
+			"prefabName": "Color Detail Map",
+			"description":
+			"""<ignore><link="DetailMappingColor.shadergraph">Open the example shader</link>
+
+			</ignore>The most basic form of detail mapping (shown here) is to just darken the color map with a detail pattern. While this does add extra detail, the effect is subtle and doesn't break up the magnification artifacts on the base texture that happen because we're so close to the surface. 
+			
+			You can change the Detail parameter in <link="DetailMappingColor.mat">the material</link> to turn the effect on and off and see the difference.
+			"""
+		},
+		{
+			"title": "Normal Detail Map",
+			"prefabName": "Normal Detail Map",
+			"description":
+			"""<ignore><link="DetailMappingNormal.shadergraph">Open the example shader</link>
+
+			</ignore>In this example, we're adding additional detail to the surface normal.  This is much more effective and works well to hide the texture magnification artifacts in the base texture. 
+			
+			You can change the Detail parameter in <link="DetailMappingNormal.mat">the material</link> to turn the effect on and off and see the difference."""
+		},
+		{
+			"title": "Full Detail Map",
+			"prefabName": "Full Detail Map",
+			"description":
+			"""<ignore><link="DetailMappingFull.shadergraph">Open the example Shader</link>
+
+			</ignore>In this example, we add detail to the color, normal, ambient occlusion, and smoothness - so all of the surface properties receive additional detail.  This is the best way to set up a detail map, but also a little more expensive than the other examples. 
+			
+			You can change the Detail parameter in <link="DetailMappingFull.mat">the material</link> to turn the effect on and off and see the difference.
+			"""
+		},
+		{
+			"title": "Hexagon Grid",
+			"prefabName": "Hexagon Grid",
+			"description":
+			"""<ignore><link="HexGrid.shadergraph">Open the example shader</link>
+
+			</ignore>This example shows how to generate a hexagon grid using math. In addition to just the grid shown here, the subgraph we're using also outputs Tile ID data as well as a signed distance field for the tiles.  Together, these outputs can be used to create all kinds of hexagon grid effects.
+			"""
+		},
+		{
+			"title": "Procedural Brick",
+			"prefabName": "Procedural Brick",
+			"description":
+			"""<ignore><link="ProceduralBrick.shadergraph">Open the example shader</link>
+
+			</ignore>This is a great example of how math can be used to generate a pattern instead of sampling a texture. This shader isn't using any textures at all. Instead, it creates the bricks procedurally using math. In some cases, this can be cheaper than using texture samples.
+			"""
+		},
+		{
+			"title": "SDF Shapes",
+			"prefabName": "SDF Shapes",
+			"description":
+			"""<ignore><link="SDFShapes.shadergraph">Open the example shader</link>
+
+			</ignore>SDFs or Signed Distance Fields are really useful because you can modify them and combine them in all sorts of interesting ways.  They provide more flexibility than just solid shapes. So in this example, we're providing SDFs for all of the shape nodes that ship with the base version of Shader Graph.  
+			
+			You can use the Shape dropdown in <link="SDFShapes.mat">the material</link> to select the shape you want. All of the shapes are available as subgraphs.
+			"""
+		},
+		{
+			"title": "Flipbook",
+			"prefabName": "Flipbook",
+			"description":
+			"""<ignore><link="Flipbook.shadergraph">Open the example shader</link>
+
+			</ignore>Here, we're using Shader Graph's built-in Flipbook node to create an animated effect.  However, notice that the playback is not smooth.  This is because only a limited number of frames can fit on the texture and we're switching instantly from one frame to the next.  Normally, improving this would require us to either drop the resolution to fit more frames on the texture, or make the texture larger.  Neither of these is a great option.  However, there is a third option!  
+			
+			In <link="Flipbook.mat">the material</link>, switch FlipMode from Flip to Blend and notice that the playback becomes much more smooth! Take a look at the shader to see how this is done.
+			"""
+		},
+		{
+			"title": "Flow Mapping",
+			"prefabName": "Flow Mapping",
+			"description":
+			"""<ignore><link="FlowMapping.shadergraph">Open the example shader</link>
+
+			</ignore>The continuous  motion you see here is an illusion called flow mapping.  We're warping the UV coordinates for the pattern along directions defined in a texture - similar to a normal map.  Notice that this sample exhibits a strobing artifact where it appears that the sample is fading in and out.  
+			
+			This can be fixed by selecting <link="FlowMapping.mat">the material</link> and setting the Temporal Mode dropdown to Flow Map Time instead of Time Only.  This change introduces phase variation that breaks up the strobing effect.
+			"""
+		},
+		{
+			"title": "Interior Cubemapping",
+			"prefabName": "Interior Cubemapping",
+			"description":
+			"""<ignore><link="InteriorCubemapping.shadergraph">Open the example shader</link>
+
+			</ignore>Creating the interiors of buildings with lighting, furniture, and other details could be very expensive and heavy.  Instead, we use this technique - Interior Cube Mapping - to create the illusion of an interior where none exists. 
+			
+			This method traces a ray into the non-existent interior space and uses it to look up a value in a cubemap texture that represents the interior.
+			"""
+		},
+		{
+			"title": "Parallax Mapping",
+			"prefabName": "Parallax Mapping",
+			"description":
+			"""<ignore><link="ParallaxMapping.shadergraph">Open the example shader</link>
+
+			</ignore>Parallax Mapping is a term that represents a family of effects that are all used to create the illusion that a surface has more detail than is actually there. 
+			
+			Select <link="Shader Graphs_ParallaxMapping.mat">the material</link> and change the options in the Bump Type dropdown to see how the three techniques compare with each other.  They're listed in order of performance cost with Normal Only being the cheapest and Parallax Occlusion being the most expensive.
+			"""
+		},
+		{
+			"title": "Lat Long Projection",
+			"prefabName": "Lat Long Projection",
+			"description":
+			"""<ignore><link="LatLongProjection.shadergraph">Open the example shader</link>
+
+			</ignore>What appears to be a reflection demo is actually showing how to properly create UV coordinates to sample a Latitude Longitude map.  Usually, reflections are created with a Cube Map, but in this case, our texture is in Latitude Longitude format, so we need to create UV coordinates that work with that layout. The subgraph included in this example does that for you.
+			"""
+		},
+		{
+			"title": "Sphere Mapping",
+			"prefabName": "Sphere Mapping",
+			"description":
+			"""<ignore><link="MatCap.shadergraph">Open the example shader</link>
+
+			</ignore>Here we see the cheapest form of reflections - a sphere map. The illusion of reflections is easy to break because the map looks the same from all sides, but if used carefully so the flaws aren't obvious, this technique uses less math AND less texture memory than cube map reflections. It's a great candidate for use on mobile platforms.
+			"""
+		},
+		{
+			"title": "Triplanar Projection",
+			"prefabName": "Triplanar Projection",
+			"description":
+			"""<ignore><link="TriplanarProjection.shadergraph">Open the example shader</link>
+
+			</ignore>This example demonstrates <b>Triplanar Projection</b> - a technique for projecting textures onto a surface from the front, top, and sides. 
+			
+			Select <link="TriplanarProjection.mat">the material</link> and use the ProjectionType dropdown to try out the different methods.  
+			
+			Texture Projection samples the texture 3 times and blends the results.  It's the most expensive. Biplanar projection uses a clever trick to create a similar result with just two texture samples.  UV projection creates a set of UV coordinates that switch from top to front to side and then uses them to sample the texture once.  It's less expensive, but also has seams along the edges where the coordinates switch. The last option - UV - is just using standard texture coordinates.  Notice that it has stretching and pinching artifacts on the top and bottom.
+			"""
+		},
+		{
+			"title": "Animated Flag",
+			"prefabName": "Animated Flag",
+			"description":
+			"""<ignore><link="AnimatedFlag.shadergraph">Open the example shader</link>
+
+			</ignore>Here we see a simple animated flag. It's using a sine wave to animate the vertices and the animation is scaled based on the distance the verts are from the left edge where the flag would be attached to the pole.
+			"""
+		},
+		{
+			"title": "Bend Deformer",
+			"prefabName": "Deformer",
+			"description":
+			"""<ignore><link="BendDeformer.shadergraph">Open the example shader</link>
+
+			</ignore>This example demonstrates the math required to bend a flat triangle strip so that it correctly maintains its length. 
+			
+			Open <link="BendDeformer.mat">the material</link> and drag the BendAmount slider to see the bend in action.  This technique could be used to animate grass blades or an antenna.
+			"""
+		},	
+		{
+			"title": "Gerstner Wave",
+			"prefabName": "Gerstner Wave",
+			"description":
+			"""<ignore><link="GerstnerWave.shadergraph">Open the example shader</link>
+
+			</ignore>Here we're animating a surface using several Gerstner waves. The Gerstner formula is designed to simulate the behavior of a single wave.  By combining several different size waves together, we create a realistic-behaving water surface."""
+		},
+		{
+			"title": "Billboard",
+			"prefabName": "Billboard",
+			"description":
+			"""<ignore><link="Billboard.shadergraph">Open the example shader</link>
+
+			</ignore>This material is using a subgraph that's designed to be applied to a plane.  The subgraph rotates the plane so that it's always facing the camera. 
+			
+			Try moving the camera around to see this in action.  This effect is useful for particles, imposters, and other cases where we want to create the illusion of a volume simply by mapping a texture to a plane that always faces the camera.
+			"""
+		},
+		{
+			"title": "Mist Particles",
+			"prefabName": "Mist Particles",
+			"description":
+			"""<ignore><link="ParticleEffect.shadergraph">Open the example shader</link>
+
+			</ignore>This example shows how the particle shader can be used to create subtle mist.  The particle movement is slow and drifting.  The particle lifetime is long, and the particles slowly fade out over time as new ones slowly fade in. 
+			
+			Take a look at <link="Mist.mat">the material</link> settings to see how this was made.
+			"""
+		},		
+		{
+			"title": "Smoke Particles",
+			"prefabName": "Smoke Particles",
+			"description":
+			"""<ignore><link="ParticleEffect.shadergraph">Open the example shader</link>
+
+			</ignore>This particle example creates a smoke plume. The smoke particles move in the up direction and then the wind settings push the particles to the right over time. The flipbook effect makes the smoke appear to slowly rise and swirl. 
+			
+			Take a look at <link="Smoke.mat">the material</link> settings to see how this was made.
+			"""
+		},		
+		{
+			"title": "Particle Fountain",
+			"prefabName": "Particle Fountain",
+			"description":
+			"""<ignore><link="ParticleEffect.shadergraph">Open the example shader</link>
+
+			</ignore>This fountain is created by spawning the particles in the up direction and then letting gravity pull them down again.  The particles grow in size and fade out over their lifetime to give the illusion that the water is turning to mist.  
+			
+			Take a look at <link="Fountain.mat">the material</link> settings to see how this was made.
+			"""
+		},		
+		{
+			"title": "Waterfall",
+			"prefabName": "Waterfall",
+			"description":
+			"""<ignore><link="ParticleEffect.shadergraph">Open the example shader</link>
+			
+			This waterfall effect is created by pushing out the particles to the right and then letting gravity pull them down. The flipbook effect and random particle rotation give the appearance of whitewater. 
+			
+			Take a look at <link="Waterfall.mat">the material</link> settings to see how this was made.
+			</ignore>
+			"""
+		},		
+		{
+			"title": "BranchOnRP",
+			"prefabName": "Branch on RP",
+			"description":
+			"""<ignore><link="BranchOnRP.shadergraph">Open the example shader</link>
+
+			</ignore>This graph shows a way to determine the currently active render pipeline, using branch nodes that result in a GREEN output when the project is in URP, BLUE in HDRP, and YELLOW in BiRP.
+			"""
+		},		
+		{
+			"title": "BranchOnMaterialQuality",
+			"prefabName": "Branch on Material Quality",
+			"description":
+			"""<ignore><link="BranchOnMaterialQuality.shadergraph">Open the example shader</link>
+
+			</ignore>This graph shows how to use the Material Quality Keyword node to switch between three normal map blending methods that cost differently performance-wise, based on the current Material Quality setting.
+			"""
+		},		
+		{
+			"title": "Custom Lighting PBR",
+			"prefabName": "CustomLightingSpherePBR",
+			"description":
+			"""<ignore><link="CustomLightingPBR.shadergraph">Open the example shader</link>
+			
+			This example shows a physically-based shader created in Shader Graph. It includes GGX specular, and ambient values that use the scene's reflection probes for both diffuse and specular ambient. Distance Fog is also included. Note that the lighting model used in the HLSL code for the additional lights is cheaper - so the main light and ambient lighting are PBR, but other light sources use a simpler Blin shading model.
+			</ignore>
+			"""
+		},		
+		{
+			"title": "Custom Lighting Simple",
+			"prefabName": "CustomLightingSphereSimple",
+			"description":
+			"""<ignore><link="CustomLightingSimple.shadergraph">Open the example shader</link>
+			
+			This example shows a more basic lighting model that uses the Blinn model for specular, and a static color for ambient. It does not compute fog.  This lighting model should be significantly cheaper than the PBR version.
+			</ignore>
+			"""
+		},		
+		{
+			"title": "Custom Lighting Cel Shader",
+			"prefabName": "CustomLightingSphereCelShaded",
+			"description":
+			"""<ignore><link="CustomLightingCelShader.shadergraph">Open the example shader</link>
+			
+			This example shows how a cel shader can be created in URP - including support for multiple light sources and shadows. Ink outlines could also be added using the post-process effect (not included here).
+			</ignore>
+			"""
+		}
+	]
+}
