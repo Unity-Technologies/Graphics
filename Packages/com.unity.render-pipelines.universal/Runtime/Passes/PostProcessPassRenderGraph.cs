@@ -422,8 +422,8 @@ namespace UnityEngine.Rendering.Universal
                 // Create bloom mip pyramid textures
                 {
                     var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
-                    _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[0].name, true, FilterMode.Bilinear);
-                    _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[0].name, true, FilterMode.Bilinear);
+                    _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[0].name, false, FilterMode.Bilinear);
+                    _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[0].name, false, FilterMode.Bilinear);
 
                     for (int i = 1; i < mipCount; i++)
                     {
@@ -436,8 +436,8 @@ namespace UnityEngine.Rendering.Universal
                         desc.height = th;
 
                         // NOTE: Reuse RTHandle names for TextureHandles
-                        mipDown = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[i].name, true, FilterMode.Bilinear);
-                        mipUp = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[i].name, true, FilterMode.Bilinear);
+                        mipDown = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[i].name, false, FilterMode.Bilinear);
+                        mipUp = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[i].name, false, FilterMode.Bilinear);
                     }
                 }
             }
