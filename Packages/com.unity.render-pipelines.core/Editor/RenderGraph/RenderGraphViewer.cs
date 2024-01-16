@@ -1,12 +1,10 @@
 using System;
-using UnityEngine;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
-using System.IO;
-using UnityEditor.Overlays;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -14,9 +12,9 @@ namespace UnityEditor.Rendering
     /// Editor window class for the Render Graph Viewer
     /// </summary>
     [MovedFrom("")]
-    public partial class RenderGraphViewer : EditorWindow, ISupportsOverlays
+    public partial class RenderGraphViewer : EditorWindow
     {
-        static class Names
+        static partial class Names
         {
             public const string kCaptureButton = "capture-button";
             public const string kCurrentGraphDropdown = "current-graph-dropdown";
@@ -24,6 +22,7 @@ namespace UnityEditor.Rendering
             public const string kPassFilterField = "pass-filter-field";
             public const string kResourceFilterField = "resource-filter-field";
             public const string kContentContainer = "content-container";
+            public const string kMainContainer = "main-container";
             public const string kPassList = "pass-list";
             public const string kPassListScrollView = "pass-list-scroll-view";
             public const string kResourceListScrollView = "resource-list-scroll-view";
@@ -34,7 +33,7 @@ namespace UnityEditor.Rendering
             public const string kEmptyStateMessage = "empty-state-message";
         }
 
-        static class Classes
+        static partial class Classes
         {
             public const string kPassListItem = "pass-list__item";
             public const string kPassTitle = "pass-title";
@@ -79,6 +78,8 @@ namespace UnityEditor.Rendering
         const string k_TemplatePath = "Packages/com.unity.render-pipelines.core/Editor/UXML/RenderGraphViewer.uxml";
         const string k_DarkStylePath = "Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewerDark.uss";
         const string k_LightStylePath = "Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewerLight.uss";
+        const string k_ResourceListIconPath = "Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/{0}Resources@2x.png";
+        const string k_PassListIconPath = "Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/{0}PassInspector@2x.png";
 
         // keep in sync with .uss
         const int kPassWidthPx = 26;
@@ -96,9 +97,11 @@ namespace UnityEditor.Rendering
         readonly Dictionary<RenderGraph, HashSet<string>> m_RegisteredGraphs = new();
         RenderGraph.DebugData m_CurrentDebugData;
 
-        ResourcesOverlay m_ResourcesOverlay;
-        PassInspectorOverlay m_PassInspectorOverlay;
+        Foldout m_ResourcesList;
+        Foldout m_PassList;
         PanManipulator m_PanManipulator;
+        Texture2D m_ResourceListIcon;
+        Texture2D m_PassListIcon;
 
         readonly List<PassElementInfo> m_PassElementsInfo = new(); // Indexed using visiblePassIndex
         readonly List<ResourceElementInfo> m_ResourceElementsInfo = new(); // Indexed using visibleResourceIndex
@@ -175,6 +178,8 @@ namespace UnityEditor.Rendering
 
         class ResourceElementInfo
         {
+            public RenderGraphResourceType type;
+            public int index;
             public VisualElement usageRangeBlock;
             public VisualElement resourceListItem;
             public VisualElement resourceHelperLine;
@@ -220,7 +225,6 @@ namespace UnityEditor.Rendering
 
         void ResetPassBlockState()
         {
-
             foreach (var info in m_PassElementsInfo)
             {
                 info.hasPassCompatibilityTooltip = false;
@@ -479,7 +483,6 @@ namespace UnityEditor.Rendering
                 }
             }
 
-
             foreach (var info in m_PassElementsInfo)
             {
                 if (groupedPassIds.Contains(info.passId))
@@ -572,7 +575,7 @@ namespace UnityEditor.Rendering
             {
                 if (passId >= resInfo.firstPassId && passId <= resInfo.lastPassId)
                 {
-                    m_ResourcesOverlay.ScrollTo(visibleResourceIndex);
+                    ScrollToResource(visibleResourceIndex);
                     return true;
                 }
             }
@@ -595,15 +598,13 @@ namespace UnityEditor.Rendering
 
             ClearPassHighlight(opts);
             ResetPassBlockState();
-            m_PassInspectorOverlay.ClearContents();
 
             if (m_VisiblePassIndexToPassId.TryGetValue(visiblePassIndex, out int passId))
             {
                 var selectedPassIds = GetGroupedPassIds(passId);
                 UpdatePassBlocksToSelectedState(selectedPassIds);
-                if (m_CurrentDebugData.isNRPCompiler)
-                    m_PassInspectorOverlay.PopulateContents(this, selectedPassIds);
                 SetPassHighlight(visiblePassIndex, opts);
+                ScrollToPass(m_PassIdToVisiblePassIndex[selectedPassIds[0]]);
             }
         }
 
@@ -782,9 +783,6 @@ namespace UnityEditor.Rendering
                 return;
 
             selectedRenderGraph.RequestCaptureDebugData(selectedExecutionName);
-
-            overlayCanvas.Remove(m_ResourcesOverlay);
-            overlayCanvas.Remove(m_PassInspectorOverlay);
 
             ClearGraphViewerUI();
             SetEmptyStateMessage(EmptyStateReason.WaitingForCameraRender);
@@ -1060,13 +1058,12 @@ namespace UnityEditor.Rendering
             return relativePath;
         }
 
-        UnityEngine.Object LoadScriptAssetByAbsolutePath(string absolutePath)
+        UnityEngine.Object FindScriptAssetByAbsolutePath(string absolutePath)
         {
             var relativePath = ScriptAbsolutePathToRelative(absolutePath);
             var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(relativePath);
             if (asset == null)
                 Debug.LogWarning($"Could not find a script asset to open for file path {absolutePath}");
-
             return asset;
         }
 
@@ -1129,7 +1126,7 @@ namespace UnityEditor.Rendering
             passBlock.RegisterCallback<MouseOutEvent>(_ => passBlock.RemoveFromClassList(Classes.kPassBlockScriptLink));
             passBlock.RegisterCallback<MouseUpEvent>(evt =>
             {
-                var scriptAsset = LoadScriptAssetByAbsolutePath(pass.scriptInfo.filePath);
+                var scriptAsset = FindScriptAssetByAbsolutePath(pass.scriptInfo.filePath);
                 AssetDatabase.OpenAsset(scriptAsset, pass.scriptInfo.line);
                 evt.StopImmediatePropagation();
             });
@@ -1158,13 +1155,8 @@ namespace UnityEditor.Rendering
             return gridline;
         }
 
-        VisualElement CreateResourceListItem(RenderGraph.DebugData.ResourceData res, RenderGraphResourceType type)
+        VisualElement CreateResourceTypeIcon(RenderGraphResourceType type)
         {
-            var resourceListItem = new VisualElement();
-            resourceListItem.AddToClassList(Classes.kResourceListItem);
-
-            var resourceTitleContainer = new VisualElement();
-
             var resourceTypeIcon = new VisualElement();
             resourceTypeIcon.AddToClassList(Classes.kResourceIcon);
             string className = type switch
@@ -1176,7 +1168,16 @@ namespace UnityEditor.Rendering
             };
             resourceTypeIcon.AddToClassList(className);
             resourceTypeIcon.tooltip = k_ResourceNames[(int)type];
-            resourceTitleContainer.Add(resourceTypeIcon);
+            return resourceTypeIcon;
+        }
+
+        VisualElement CreateResourceListItem(RenderGraph.DebugData.ResourceData res, RenderGraphResourceType type)
+        {
+            var resourceListItem = new VisualElement();
+            resourceListItem.AddToClassList(Classes.kResourceListItem);
+
+            var resourceTitleContainer = new VisualElement();
+            resourceTitleContainer.Add(CreateResourceTypeIcon(type));
 
             var resourceLabel = new Label();
             resourceLabel.text = res.name;
@@ -1436,6 +1437,8 @@ namespace UnityEditor.Rendering
 
                     var elementInfo = new ResourceElementInfo
                     {
+                        type = resourceType,
+                        index = resourceIndex,
                         firstPassId = res.creationPassIndex,
                         lastPassId = res.releasePassIndex
                     };
@@ -1483,9 +1486,9 @@ namespace UnityEditor.Rendering
             hoverOverlay.style.height = gridLineHeightPx;
             hoverOverlay.focusable = true;
 
-            // Overlays
-            m_ResourcesOverlay.PopulateContents(this);
-            m_PassInspectorOverlay.ClearContents();
+            // Side panel
+            PopulateResourceList();
+            PopulatePassList();
         }
 
         void RebuildUI()
@@ -1534,7 +1537,7 @@ namespace UnityEditor.Rendering
             hoverOverlay.RegisterCallback<TooltipEvent>(ResourceGridTooltipDisplayed, TrickleDown.TrickleDown);
             hoverOverlay.RegisterCallback<KeyUpEvent>(KeyPressed);
 
-            rootVisualElement.Q(Names.kContentContainer).RegisterCallback<MouseUpEvent>(_ => DeselectPass());
+            rootVisualElement.Q(Names.kMainContainer).RegisterCallback<MouseUpEvent>(_ => DeselectPass());
 
             // Resource grid manipulation
             var resourceListScrollView = rootVisualElement.Q<ScrollView>(Names.kResourceListScrollView);
@@ -1558,6 +1561,8 @@ namespace UnityEditor.Rendering
             // Disable mouse wheel on the scroll views that are synced to the resource grid
             resourceListScrollView.RegisterCallback<WheelEvent>(evt => evt.StopImmediatePropagation(), TrickleDown.TrickleDown);
             passListScrollView.RegisterCallback<WheelEvent>(evt => evt.StopImmediatePropagation(), TrickleDown.TrickleDown);
+
+            InitializeSidePanel();
         }
 
         void OnGraphRegistered(RenderGraph graph)
@@ -1610,17 +1615,6 @@ namespace UnityEditor.Rendering
                     {
                         m_CurrentDebugData = debugData;
 
-                        overlayCanvas.Add(m_ResourcesOverlay);
-                        m_ResourcesOverlay.displayed = true;
-
-                        // Pass inspector only available for NRP Compiler
-                        if (m_CurrentDebugData.isNRPCompiler)
-                        {
-                            overlayCanvas.Add(m_PassInspectorOverlay);
-                        }
-
-                        m_PassInspectorOverlay.displayed = m_CurrentDebugData.isNRPCompiler;
-
                         RebuildPassFilterUI();
                         RebuildResourceFilterUI();
                         RebuildGraphViewerUI();
@@ -1642,9 +1636,6 @@ namespace UnityEditor.Rendering
             RenderGraph.onExecutionUnregistered += OnExecutionUnregistered;
             RenderGraph.onDebugDataCaptured += OnDebugDataCaptured;
 
-            m_ResourcesOverlay = new ResourcesOverlay();
-            m_PassInspectorOverlay = new PassInspectorOverlay();
-
             if (EditorPrefs.HasKey(kPassFilterLegacyEditorPrefsKey))
                 m_PassFilterLegacy = (PassFilterLegacy)EditorPrefs.GetInt(kPassFilterLegacyEditorPrefsKey);
             if (EditorPrefs.HasKey(kPassFilterEditorPrefsKey))
@@ -1655,6 +1646,10 @@ namespace UnityEditor.Rendering
 
         void CreateGUI()
         {
+
+            m_ResourceListIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(string.Format(k_ResourceListIconPath, EditorGUIUtility.isProSkin ? "d_" : ""));
+            m_PassListIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(string.Format(k_PassListIconPath, EditorGUIUtility.isProSkin ? "d_" : ""));
+
             RebuildUI();
             InitializePersistentElements();
 
@@ -1671,9 +1666,6 @@ namespace UnityEditor.Rendering
             RenderGraph.onExecutionRegistered -= OnExecutionRegistered;
             RenderGraph.onExecutionUnregistered -= OnExecutionUnregistered;
             RenderGraph.onDebugDataCaptured -= OnDebugDataCaptured;
-
-            m_ResourcesOverlay?.Close();
-            m_PassInspectorOverlay?.Close();
         }
     }
 

@@ -13,14 +13,33 @@
     --dependency-block-width: var(--pass-width);
     --hover-overlay-offset-top: 204px;
 
+    --side-panel-width: 380px;
+    --side-panel-pass-title-width: 330px; /* adjust if changing --side-panel-width */
+    --side-panel-attachment-label-width: 298px; /* adjust if changing --side-panel-width */
+
     flex-grow: 1;
     flex-direction: column;
+    min-width: 600px;
+    background-color: var(--main-background-color);
 }
 
 #content-container {
+    height: 100%;
     margin-left: 10px;
+    flex-direction: row;
 }
 
+#main-container {
+    flex-direction: column;
+}
+
+#panel-container {
+    flex-direction: column;
+    width: var(--side-panel-width);
+    min-width: 280px;
+    flex-shrink: 0;
+    background-color: var(--side-panel-background-color);
+}
 
 /* Header */
 
@@ -50,13 +69,14 @@
     border-radius: 0;
     border-color: var(--unity-colors-app_toolbar-background);
     margin: 0;
-    background-color: var(--unity-colors-app_toolbar_button-background);
+    background-color: var(--main-background-color);
 }
 
 /* Passes */
 
 #pass-list-scroll-view {
     min-height: var(--pass-list-height);
+    flex-direction: column;
 }
 
 #pass-list {
@@ -168,7 +188,7 @@
     position: absolute;
     min-width: var(--resource-column-width);
     min-height: var(--pass-list-height);
-    background-color: var(--unity-colors-window-background);
+    background-color: var(--main-background-color);
 }
 
 /* Resource container */
@@ -176,6 +196,7 @@
 #resource-container {
     flex-direction: row;
     margin-top: 5px;
+    height: 100%;
 }
 
 #resource-container ScrollView {
@@ -314,7 +335,7 @@
     width: var(--dependency-block-width);
     min-width: var(--dependency-block-width);
     height: var(--dependency-block-height);
-    background-color: var(--unity-colors-window-background);
+    background-color: var(--main-background-color);
 }
 
 .dependency-block-read {
@@ -356,3 +377,196 @@
 #empty-state-message > TextElement {
     max-width: 260px;
 }
+
+/* Resource & pass list panel */
+
+#panel-resource-list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 18px;
+}
+
+#panel-pass-list {
+    flex-grow: 0;
+    flex-shrink: 1;
+    min-height: 18px;
+}
+
+#panel-container .header-foldout {
+    margin: 0; /* Counteract built-in margins inside HeaderFoldout */
+}
+
+#panel-pass-list {
+    border-bottom-width: 0;
+}
+
+#panel-container .header-foldout > Toggle {
+    padding: 0 0 0 8px; /* Counteract built-in margins inside HeaderFoldout */
+}
+
+#panel-container .header-foldout > #unity-content {
+    margin: 0 5px 0 3px; /* Counteract built-in margins inside HeaderFoldout */
+}
+
+#empty-contents-message {
+    flex-direction: row;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    -unity-text-align: middle-center;
+}
+
+#panel-container .panel-list__item {
+    margin-left: 6px;
+    background-color: var(--side-panel-background-color);
+    /* selection animation */
+    transition-property: background-color;
+    transition-duration: 0.7s;
+    transition-timing-function: ease-in-out;
+}
+
+#panel-container .panel-list__item--selection-animation {
+    background-color: var(--unity-colors-highlight-background-hover-lighter);
+}
+
+.panel-list__item .resource-icon-container {
+    align-items: center;
+    flex-direction: row;
+    margin-right: 4px;
+    flex: none;
+}
+
+.panel-list__item .resource-icon--imported {
+    width: var(--resource-list-icon-size);
+    height: var(--resource-list-icon-size);
+}
+
+.panel-list__item .resource-icon--global {
+    width: var(--resource-list-icon-size);
+    height: var(--resource-list-icon-size);
+}
+
+.panel-list__item > Label {
+    -unity-font-style: normal;
+    margin-top: 2px;
+    color: var(--unity-colors-default-text);
+}
+
+.panel-list__item .unity-foldout__text {
+    color: var(--unity-colors-default-text);
+}
+
+.panel-list__line-break {
+    border-top-width: 2px;
+    border-color: var(--side-panel-item-border-color);
+    margin-left: -15px; /* counteract foldout indent */
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+ScrollView TextElement {
+    margin-left: 4px;
+}
+
+.unity-foldout__text {
+    color: var(--unity-colors-default-text);
+}
+
+.custom-foldout-arrow #unity-checkmark {
+    background-image: resource("ArrowNavigationRight");
+    width: 16px;
+    height: 16px;
+    rotate: 90deg;
+}
+
+.custom-foldout-arrow > Toggle > VisualElement:checked #unity-checkmark {
+    rotate: 270deg;
+    margin-top: 2px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.panel-search-field {
+    margin-left: 6px;
+    margin-top: 6px;
+    width: 98%;
+    height: 20px;
+}
+
+/* Resource List panel only */
+
+.panel-resource-list__item {
+    margin-bottom: 6px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--side-panel-item-border-color);
+    margin-top: 4px;
+    margin-right: 4px;
+    padding-top: 4px;
+    padding-bottom: 6px;
+    -unity-font-style: bold;
+}
+
+.panel-resource-list__item .resource-icon {
+    margin-top: 1px;
+    margin-left: 2px;
+    margin-right: 6px;
+}
+
+/* Pass List panel only */
+
+.panel-pass-list__item {
+    margin-top: 2px;
+}
+
+.panel-pass-list__item > Toggle > VisualElement {
+    max-width: 100%
+}
+.panel-pass-list__item > Toggle > VisualElement > Label {
+    overflow: hidden;
+    flex-shrink: 1;
+    text-overflow: ellipsis;
+}
+
+.panel-pass-list__item .sub-header-text {
+    margin-top: 6px;
+    margin-bottom: 2px;
+    -unity-font-style: bold;
+}
+
+.attachment-info__item {
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--side-panel-item-border-color);
+    margin-top: 6px;
+    margin-left: 4px;
+    margin-right: 4px;
+    padding-top: 4px;
+    padding-bottom: 6px;
+    -unity-font-style: bold;
+}
+
+.attachment-info__item > Toggle > VisualElement {
+    max-width: 100%;
+}
+.attachment-info__item > Toggle > VisualElement > Label {
+    margin-left: 6px;
+    flex-shrink: 1;
+    flex-grow: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attachment-info__item > TextElement {
+    -unity-font-style: normal;
+    margin-right: 4px;
+    margin-left: -6px;
+    color: var(--unity-colors-default-text);
+}
+
+.panel-pass-list__item > #unity-content {
+    margin-bottom: 12px;
+}
+
+

@@ -60,3 +60,11 @@
 {
 	background-size: 80% 80%;
 }
+
+.header-foldout #header-foldout__icon
+{
+	margin-top: 2px;
+	margin-right: 6px;
+	height: 16px;
+	width: 16px;
+}

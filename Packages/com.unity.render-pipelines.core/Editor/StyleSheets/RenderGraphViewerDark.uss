@@ -15,6 +15,9 @@
     --resource-helper-line-color: darkgray;
     --resource-helper-line-color--hover: white;
     --usage-range-color: #7D7D7D;
+    --main-background-color: #313131;
+    --side-panel-background-color: #383838;
+    --side-panel-item-border-color: #666666;
 }
 
 #capture-button {
@@ -60,4 +63,12 @@
 .pass-block.pass-block-script-link {
     background-image: url("../Icons/RenderGraphViewer/d_ScriptLink@2x.png");
     background-color: #C4C4C4;
+}
+
+.custom-foldout-arrow #unity-checkmark {
+    -unity-background-image-tint-color: #c0c0c0;
+}
+
+.custom-foldout-arrow > Toggle > VisualElement:hover #unity-checkmark {
+    -unity-background-image-tint-color: white;
 }

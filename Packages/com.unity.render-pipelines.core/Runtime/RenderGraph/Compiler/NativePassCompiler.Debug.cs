@@ -41,8 +41,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 msg += $"Failed to merge {ctx.passNames[nativePass.breakAudit.breakPass].name} into this native pass.\n";
             }
 
-            var reason = PassBreakAudit.BreakReasonMessages[(int) nativePass.breakAudit.reason];
-            msg += reason + "\n";
+            msg += PassBreakAudit.BreakReasonMessages[(int) nativePass.breakAudit.reason];
             return msg;
         }
 

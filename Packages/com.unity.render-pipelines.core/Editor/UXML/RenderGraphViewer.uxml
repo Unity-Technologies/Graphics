@@ -1,4 +1,4 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:r="UnityEditor.Rendering" editor-extension-mode="True">
     <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewer.uss" />
     <ui:VisualElement name="header-container">
         <ui:Button name="capture-button" tooltip="Capture"/>
@@ -8,21 +8,33 @@
         <uie:EnumFlagsField label="Resource Filter" name="resource-filter-field"/>
     </ui:VisualElement>
 
-    <ui:VisualElement name="content-container">
-        <ui:ScrollView name="pass-list-scroll-view">
-            <ui:VisualElement name="pass-list"/>
-            <ui:VisualElement name="pass-list-width-helper" pickingMode="Ignore" />
-        </ui:ScrollView>
-        <ui:VisualElement name="pass-list-corner-occluder"/>
-        <ui:VisualElement name="resource-container">
-            <ui:ScrollView name="resource-list-scroll-view"/>
-            <ui:ScrollView name="resource-grid-scroll-view">
-                <ui:VisualElement name="resource-grid"/>
-                <ui:VisualElement name="grid-line-container"/>
-                <ui:VisualElement name="hover-overlay"/>
+    <ui:TwoPaneSplitView name="content-container" fixed-pane-index="1" fixed-pane-initial-dimension="400" orientation="Horizontal">
+        <ui:VisualElement name="main-container">
+            <ui:ScrollView name="pass-list-scroll-view">
+                <ui:VisualElement name="pass-list"/>
+                <ui:VisualElement name="pass-list-width-helper" pickingMode="Ignore" />
             </ui:ScrollView>
+            <ui:VisualElement name="pass-list-corner-occluder"/>
+            <ui:VisualElement name="resource-container">
+                <ui:ScrollView name="resource-list-scroll-view"/>
+                <ui:ScrollView name="resource-grid-scroll-view">
+                    <ui:VisualElement name="resource-grid"/>
+                    <ui:VisualElement name="grid-line-container"/>
+                    <ui:VisualElement name="hover-overlay"/>
+                </ui:ScrollView>
+            </ui:VisualElement>
         </ui:VisualElement>
-    </ui:VisualElement>
+        <ui:VisualElement name="panel-container">
+            <r:HeaderFoldout text="Resource List" name="panel-resource-list">
+                <uie:ToolbarSearchField name="resource-search-field" class="panel-search-field"/>
+                <ui:ScrollView name="panel-resource-list-scroll-view"/>
+            </r:HeaderFoldout>
+            <r:HeaderFoldout text="Pass List" name="panel-pass-list">
+                <uie:ToolbarSearchField name="pass-search-field" class="panel-search-field"/>
+                <ui:ScrollView name="panel-pass-list-scroll-view"/>
+            </r:HeaderFoldout>
+        </ui:VisualElement>
+    </ui:TwoPaneSplitView>
     <ui:VisualElement name="empty-state-message">
         <ui:TextElement/>
     </ui:VisualElement>
