@@ -163,6 +163,9 @@ void EvaluateAtmosphericScattering(float3 V, float2 positionNDC, float tFrag, ou
     float3 uvw = MapAtmosphericScattering(positionNDC, tFrag, cosChi);
     skyColor = SAMPLE_TEXTURE3D_LOD(_AtmosphericScatteringLUT, s_linear_clamp_sampler, uvw, 0).rgb;
 
+    float entryPoint = max(IntersectSphere(_AtmosphericRadius, cosChi, tFrag).x, 0);
+    tFrag = min(tFrag, entryPoint + ATMOSPHERIC_SCATTERING_MAX_DISTANCE);
+
     float3 optDepth = ComputeAtmosphericOpticalDepth(O, -V, tFrag);
     skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth);
 
