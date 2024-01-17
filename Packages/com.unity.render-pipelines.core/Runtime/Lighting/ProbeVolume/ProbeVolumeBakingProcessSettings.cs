@@ -103,7 +103,9 @@ namespace UnityEngine.Rendering
         public enum KernelFilterType
         {
             kBox,
-            kNLM
+            kEpanechnikov,
+            kNLM,
+            kAI
         }
 
         public bool enableDenoising;
@@ -112,6 +114,7 @@ namespace UnityEngine.Rendering
         public int nlmM;
         public float nlmAlpha;
         public float nlmK;
+        public int aiModelType;
 
         public float samplerBias;
 
