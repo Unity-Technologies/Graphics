@@ -381,8 +381,8 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionDirectional = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionArea = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionPunctual = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            punctualShadowFilteringQuality = HDShadowFilteringQuality.Medium,   
-            directionalShadowFilteringQuality = HDShadowFilteringQuality.Medium,   
+            punctualShadowFilteringQuality = HDShadowFilteringQuality.Medium,
+            directionalShadowFilteringQuality = HDShadowFilteringQuality.Medium,
             areaShadowFilteringQuality = HDAreaShadowFilteringQuality.Medium,
             supportScreenSpaceShadows = false,
             maxScreenSpaceShadowSlots = 4,
@@ -892,7 +892,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the Maximum Shadows on Screen property in the HDRP asset.");
+#endif
                 return -1;
             }
 

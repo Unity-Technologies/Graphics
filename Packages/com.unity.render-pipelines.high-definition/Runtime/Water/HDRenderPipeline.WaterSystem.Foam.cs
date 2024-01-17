@@ -26,12 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Materials and Compute shaders
         Material m_FoamMaterial;
-        
+
         // The pass used in the WaterFoam.shader
         int m_ShoreWaveFoamGenerationPass;
         int m_OtherFoamGenerationPass;
         int m_ReprojectionPass;
-        
+
         ComputeShader m_WaterFoamCS;
         int m_ReprojectFoamKernel;
         int m_PostProcessFoamKernel;
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterFoamCS = runtimeShaders.waterFoamCS;
             m_ReprojectFoamKernel = m_WaterFoamCS.FindKernel("ReprojectFoam");
             m_PostProcessFoamKernel = m_WaterFoamCS.FindKernel("PostProcessFoam");
-            
+
             m_ShoreWaveFoamGenerationPass = m_FoamMaterial.FindPass("ShoreWaveFoamGeneration");
             m_OtherFoamGenerationPass = m_FoamMaterial.FindPass("OtherFoamGeneration");
             m_ReprojectionPass = m_FoamMaterial.FindPass("Reprojection");
@@ -74,8 +74,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessWaterFoamGenerators(CommandBuffer cmd)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (WaterFoamGenerator.instanceCount >= k_MaxNumWaterFoamGenerators)
                 Debug.LogWarning("Maximum amount of Foam Generator reached. Some of them will be ignored.");
+#endif
 
             // Grab all the procedural generators in the scene
             var foamGenerators = WaterFoamGenerator.instancesAsArray;

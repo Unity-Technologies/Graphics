@@ -138,14 +138,6 @@ half3 SampleProbeSHVertex(in float3 absolutePositionWS, in float3 normalWS, in f
 // Sample baked and/or realtime lightmap. Non-Direction and Directional if available.
 half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 normalWS)
 {
-#ifdef UNITY_LIGHTMAP_FULL_HDR
-    bool encodedLightmap = false;
-#else
-    bool encodedLightmap = true;
-#endif
-
-    half4 decodeInstructions = half4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0h, 0.0h);
-
     // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
     // However, universal pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
     // the compiler will optimize the transform away.
@@ -156,18 +148,18 @@ half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 no
 #if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
     diffuseLighting = SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
         TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
-        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, true);
 #elif defined(LIGHTMAP_ON)
-    diffuseLighting = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
+    diffuseLighting = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, true);
 #endif
 
 #if defined(DYNAMICLIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
     diffuseLighting += SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
         TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
-        dynamicLightmapUV, transformCoords, normalWS, false, decodeInstructions);
+        dynamicLightmapUV, transformCoords, normalWS, false);
 #elif defined(DYNAMICLIGHTMAP_ON)
     diffuseLighting += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
-        dynamicLightmapUV, transformCoords, false, decodeInstructions);
+        dynamicLightmapUV, transformCoords, false);
 #endif
 
     return diffuseLighting;

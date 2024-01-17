@@ -66,8 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessWaterDeformers(CommandBuffer cmd)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (WaterDeformer.instanceCount >= m_MaxDeformerCount)
                 Debug.LogWarning("Maximum amount of Water Deformer reached. Adjust the maximum amount supported in the HDRP asset.");
+#endif
 
             // Reset the requested textures
             m_DeformerAtlas.ResetRequestedTexture();

@@ -37,10 +37,6 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
-#define PLATFORM_LANE_COUNT 32
-#endif
-
 #ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
 #define NR_THREADS              PLATFORM_LANE_COUNT
 #else
@@ -152,9 +148,12 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 tileIDX = u3GroupID.xy;
     uint t=threadID;
+    int i;
 
-    if(t<LIGHT_LIST_MAX_COARSE_ENTRIES)
-        prunedList[t]=0;
+    UNITY_UNROLL
+    for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS) 
+        if(i<LIGHT_LIST_MAX_COARSE_ENTRIES) 
+            prunedList[i]=0;
 
     uint iWidth = g_viDimensions.x;
     uint iHeight = g_viDimensions.y;
@@ -189,7 +188,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     {
         // Fetch depths and calculate min/max
         UNITY_UNROLL
-        for(int i = 0; i < PIXEL_PER_THREAD; i++)
+        for(i = 0; i < PIXEL_PER_THREAD; i++)
         {
             int idx = i * NR_THREADS + t;
             uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
@@ -261,7 +260,8 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
 #ifndef FINE_PRUNING_ENABLED
     {
-        if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
+        UNITY_UNROLL
+        for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS) if(i<iNrCoarseLights) prunedList[i] = coarseList[i];
         if(t==0) ldsNrLightsFinal=iNrCoarseLights;
     }
 #else
@@ -283,7 +283,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
 
     int nrLightsCombinedList = min(ldsNrLightsFinal,LIGHT_LIST_MAX_COARSE_ENTRIES);
-    for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS)
+    for(i=t; i<nrLightsCombinedList; i+=NR_THREADS)
     {
         const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[i], g_iNrVisibLights, unity_StereoEyeIndex);
 
@@ -566,7 +566,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
             InterlockedOr(ldsDoesLightIntersect[ii], uLightsFlags[ii]);
     }
 
-#if NR_THREADS > PLATFORM_LANE_COUNT
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
     GroupMemoryBarrierWithGroupSync();
 #endif
 

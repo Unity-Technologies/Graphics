@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static Func<BuildTarget, LightmapEncodingQualityCopy> GetLightmapEncodingQualityForPlatform;
         static Action<BuildTarget, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatform;
+        static Action<BuildTargetGroup> OnUpdateLightmapEncoding;
         static Func<BuildTarget> CalculateSelectedBuildTarget;
         static Func<BuildTarget, GraphicsDeviceType[]> GetSupportedGraphicsAPIs;
         static Func<BuildTarget, bool> WillEditorUseFirstGraphicsAPI;
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void LoadReflectionMethods()
         {
             Type playerSettingsType = typeof(PlayerSettings);
+            Type lightmappingType = typeof(Lightmapping);
             Type playerSettingsEditorType = playerSettingsType.Assembly.GetType("UnityEditor.PlayerSettingsEditor");
             Type lightEncodingQualityType = playerSettingsType.Assembly.GetType("UnityEditor.LightmapEncodingQuality");
             Type editorUserBuildSettingsUtilsType = playerSettingsType.Assembly.GetType("UnityEditor.EditorUserBuildSettingsUtils");
@@ -65,6 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var qualityParameter = Expression.Parameter(typeof(LightmapEncodingQualityCopy), "quality");
             var GetLightmapEncodingQualityForPlatformInfo = playerSettingsType.GetMethod("GetLightmapEncodingQualityForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
             var SetLightmapEncodingQualityForPlatformInfo = playerSettingsType.GetMethod("SetLightmapEncodingQualityForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
+            var onUpdateLightmapEncoding = lightmappingType.GetMethod("OnUpdateLightmapEncoding", BindingFlags.Static | BindingFlags.NonPublic);
             var calculateSelectedBuildTargetInfo = editorUserBuildSettingsUtilsType.GetMethod("CalculateSelectedBuildTarget", BindingFlags.Static | BindingFlags.Public);
             var getSupportedGraphicsAPIsInfo = playerSettingsType.GetMethod("GetSupportedGraphicsAPIs", BindingFlags.Static | BindingFlags.NonPublic);
             var getStaticBatchingInfo = playerSettingsType.GetMethod("GetBatchingForPlatform", BindingFlags.Static | BindingFlags.NonPublic);
@@ -83,12 +86,14 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             var GetLightmapEncodingQualityForPlatformLambda = Expression.Lambda<Func<BuildTarget, LightmapEncodingQualityCopy>>(GetLightmapEncodingQualityForPlatformBlock, buildTargetParameter);
             var SetLightmapEncodingQualityForPlatformLambda = Expression.Lambda<Action<BuildTarget, LightmapEncodingQualityCopy>>(SetLightmapEncodingQualityForPlatformBlock, buildTargetParameter, qualityParameter);
+            var onUpdateLightmapEncodingLambda = Expression.Lambda<Action<BuildTargetGroup>>(Expression.Call(null, onUpdateLightmapEncoding, buildTargetGroupParameter), buildTargetGroupParameter);
             var calculateSelectedBuildTargetLambda = Expression.Lambda<Func<BuildTarget>>(Expression.Call(null, calculateSelectedBuildTargetInfo));
             var getSupportedGraphicsAPIsLambda = Expression.Lambda<Func<BuildTarget, GraphicsDeviceType[]>>(Expression.Call(null, getSupportedGraphicsAPIsInfo, buildTargetParameter), buildTargetParameter);
             var willEditorUseFirstGraphicsAPILambda = Expression.Lambda<Func<BuildTarget, bool>>(Expression.Call(null, willEditorUseFirstGraphicsAPIInfo, buildTargetParameter), buildTargetParameter);
             var requestCloseAndRelaunchWithCurrentArgumentsLambda = Expression.Lambda<Action>(Expression.Call(null, requestCloseAndRelaunchWithCurrentArgumentsInfo));
             GetLightmapEncodingQualityForPlatform = GetLightmapEncodingQualityForPlatformLambda.Compile();
             SetLightmapEncodingQualityForPlatform = SetLightmapEncodingQualityForPlatformLambda.Compile();
+            OnUpdateLightmapEncoding = onUpdateLightmapEncodingLambda.Compile();
             CalculateSelectedBuildTarget = calculateSelectedBuildTargetLambda.Compile();
             GetSupportedGraphicsAPIs = getSupportedGraphicsAPIsLambda.Compile();
             WillEditorUseFirstGraphicsAPI = willEditorUseFirstGraphicsAPILambda.Compile();
@@ -407,6 +412,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneLinux64) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneOSX) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.Android) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.iOS) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.Switch) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.WSAPlayer) == LightmapEncodingQualityCopy.High;
         }
 
@@ -417,7 +424,12 @@ namespace UnityEditor.Rendering.HighDefinition
             SetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneLinux64, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatform(BuildTarget.StandaloneOSX, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatform(BuildTarget.Android, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.iOS, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.Switch, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatform(BuildTarget.WSAPlayer, LightmapEncodingQualityCopy.High);
+
+            // After we update the lightmap encoding, we need to notify the C++ lightmapping logic so it can re-encode the lightmaps.
+            OnUpdateLightmapEncoding(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
         }
 
         bool IsShadowCorrect()

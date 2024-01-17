@@ -24,6 +24,8 @@
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
 
+#define PIXEL_PER_THREAD      ((TILE_SIZE_FPTL*TILE_SIZE_FPTL) / NR_THREADS) // 8 or 4
+
 groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
 
@@ -54,7 +56,7 @@ void MaterialFlagsGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
     uint materialFeatureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
     UNITY_UNROLL
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < PIXEL_PER_THREAD; i++)
     {
         int idx = i * NR_THREADS + threadID;
         uint2 uCrd = min(uint2(viTilLL.x + (idx & 0xf), viTilLL.y + (idx >> 4)), uint2(iWidth - 1, iHeight - 1));
