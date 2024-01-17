@@ -1686,11 +1686,11 @@ namespace UnityEngine.Rendering.Universal
         {
             // if any of the renderers are not set to Forward+ return false
             bool supported = true;
-            foreach (var renderer in m_Renderers)
+            foreach (var rendererData in m_RendererDataList)
             {
-                if (renderer is UniversalRenderer universalRenderer)
+                if (rendererData is UniversalRendererData universalRendererData)
                 {
-                    if (universalRenderer.renderingModeRequested != RenderingMode.ForwardPlus)
+                    if (universalRendererData.renderingMode != RenderingMode.ForwardPlus)
                     {
                         supported = false;
                         break;
