@@ -761,7 +761,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
         {
             if (graphicDevice == GraphicsDeviceType.Switch) // Switch support only enabled when forced by env variable for CI
-                return Environment.GetEnvironmentVariable("ENABLE_HDRP_SWITCH_SUPPORT") != null;
+                return Environment.GetEnvironmentVariable("ENABLE_HDRP_SWITCH_SUPPORT") != null || Application.platform == RuntimePlatform.Switch;
 
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
                 graphicDevice == GraphicsDeviceType.Direct3D12 ||
