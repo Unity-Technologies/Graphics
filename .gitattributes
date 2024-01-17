@@ -55,6 +55,7 @@ Repositories.ini eol=lf
 *.7[zZ] filter=lfs diff=lfs merge=lfs -text
 *.[zZ]7 filter=lfs diff=lfs merge=lfs -text
 *.[tT][gG][zZ] filter=lfs diff=lfs merge=lfs -text
+*.[tT][aA][rR].[zZ][sS][tT] filter=lfs diff=lfs merge=lfs -text
 *.[gG][zZ] filter=lfs diff=lfs merge=lfs -text
 *.[jJ][aA][rR] filter=lfs diff=lfs merge=lfs -text
 *.[nN][uU][pP][kK][gG] filter=lfs diff=lfs merge=lfs -text
