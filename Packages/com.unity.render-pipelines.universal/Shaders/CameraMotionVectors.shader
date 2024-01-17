@@ -99,8 +99,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                 {
                     // Convert velocity from NDC space (-1..1) to screen UV 0..1 space since FoveatedRendering remap needs that range.
                     // Also return both position in non-uniform UV space to get the right velocity vector
-                    half2 posUV = RemapFoveatedRenderingResolve(posNDC * 0.5f + 0.5f);
-                    half2 prevPosUV = RemapFoveatedRenderingPrevFrameResolve(prevPosNDC * 0.5f + 0.5f);
+                    half2 posUV = RemapFoveatedRenderingLinearToNonUniform(posNDC * 0.5f + 0.5f);
+                    half2 prevPosUV = RemapFoveatedRenderingPrevFrameLinearToNonUniform(prevPosNDC * 0.5f + 0.5f);
 
                     // Calculate forward velocity
                     velocity = (posUV - prevPosUV);
