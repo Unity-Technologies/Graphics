@@ -679,6 +679,7 @@ namespace UnityEngine.Rendering
             RayTracingContext m_Context;
             RayTracingBackend m_Backend;
             SamplingResources m_SamplingResources;
+            RayTracingResources m_RayTracingResources;
 
             static IRayTracingShader m_ShaderVO = null;
             static IRayTracingShader m_ShaderSO = null;
@@ -700,14 +701,14 @@ namespace UnityEngine.Rendering
                 {
                     if (m_Context == null)
                     {
-                        var resources = ScriptableObject.CreateInstance<RayTracingResources>();
-                        ResourceReloader.ReloadAllNullIn(resources, k_PackageLightTransport);
+                        m_RayTracingResources = new RayTracingResources();
+                        m_RayTracingResources.Load();
 
                         // Hardware backend is still inconsistent on yamato, using only compute backend for now.
                         //m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
                         m_Backend = RayTracingBackend.Compute;
                         
-                        m_Context = new RayTracingContext(m_Backend, resources);
+                        m_Context = new RayTracingContext(m_Backend, m_RayTracingResources);
                     }
 
                     return m_Context;
@@ -756,8 +757,8 @@ namespace UnityEngine.Rendering
             {
                 if (m_SamplingResources == null)
                 {
-                    m_SamplingResources = ScriptableObject.CreateInstance<SamplingResources>();
-                    ResourceReloader.ReloadAllNullIn(m_SamplingResources, k_PackageLightTransport);
+                    m_SamplingResources = new SamplingResources();
+                    m_SamplingResources.Load();
                 }
 
                 SamplingResources.BindSamplingTextures(cmd, m_SamplingResources);
@@ -769,12 +770,6 @@ namespace UnityEngine.Rendering
                 {
                     m_Context.Dispose();
                     m_Context = null;
-                }
-
-                if (m_Context != null)
-                {
-                    CoreUtils.Destroy(m_SamplingResources);
-                    m_SamplingResources = null;
                 }
             }
         }
