@@ -414,17 +414,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 uint lightCount = 0;
                 foreach (var light in directionalLights)
                 {
-                    if (light.legacyLight.enabled && light.interactsWithSky && light.intensity != 0.0f)
+                    if (light.legacyLight.enabled && light.interactsWithSky && light.legacyLight.intensity != 0.0f)
                     {
                         FillCelestialBodyData(cmd, light, ref s_CelestialBodyData[lightCount++]);
-                        exposure = Mathf.Max(light.intensity * -light.transform.forward.y, exposure);
+                        exposure = Mathf.Max(light.legacyLight.intensity * -light.transform.forward.y, exposure);
                     }
                 }
 
                 uint bodyCount = lightCount;
                 foreach (var light in directionalLights)
                 {
-                    if (light.legacyLight.enabled && light.interactsWithSky && light.intensity == 0.0f)
+                    if (light.legacyLight.enabled && light.interactsWithSky && light.legacyLight.intensity == 0.0f)
                         FillCelestialBodyData(cmd, light, ref s_CelestialBodyData[bodyCount++]);
                 }
 
@@ -604,7 +604,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var light = additional.legacyLight;
             var transform = light.transform;
-            celestialBodyData.color = (Vector4)LightUtils.EvaluateLightColor(light, additional);
+            celestialBodyData.color = (Vector4)additional.EvaluateLightColor();
 
             // General
             celestialBodyData.forward = transform.forward;
@@ -662,7 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var lightSource = additional.sunLightOverride;
                     if (lightSource == null || lightSource == additional.legacyLight || lightSource.type != LightType.Directional)
                         lightSource = FindSunLight(additional.legacyLight);
-                    sunColor = lightSource != null ? (Vector4)LightUtils.EvaluateLightColor(lightSource, lightSource.GetComponent<HDAdditionalLightData>()) : Vector4.zero;
+                    sunColor = lightSource != null ? (Vector4)lightSource.GetComponent<HDAdditionalLightData>().EvaluateLightColor() : Vector4.zero;
                     celestialBodyData.sunDirection = lightSource != null ? lightSource.transform.forward : Vector3.forward;
                 }
 
@@ -678,9 +678,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float currentMax = 0.0f;
             foreach (var light in HDLightRenderDatabase.instance.directionalLights)
             {
-                if (light != toExclude && light.intensity > currentMax)
+                if (light != toExclude && light.legacyLight.intensity > currentMax)
                 {
-                    currentMax = light.intensity;
+                    currentMax = light.legacyLight.intensity;
                     result = light.legacyLight;
                 }
             }

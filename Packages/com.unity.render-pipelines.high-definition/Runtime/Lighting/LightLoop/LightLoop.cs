@@ -1498,7 +1498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // in the PBR sky, so we need to allocate space for the cookie
                         foreach (var directional in lightEntities.directionalLights)
                         {
-                            if (directional.intensity == 0.0f && directional.interactsWithSky)
+                            if (directional.legacyLight.intensity == 0.0f && directional.interactsWithSky)
                                 m_TextureCaches.lightCookieManager.ReserveSpace(directional.surfaceTexture);
                         }
                     }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Light))]
 public class SpotAngleDistance : MonoBehaviour
@@ -43,6 +44,6 @@ public class SpotAngleDistance : MonoBehaviour
         targetLight.range = sphereRadius + additionalRange;
         transform.localPosition = -sphereRadius * Vector3.forward;
 
-        hdLightData.intensity = referenceIntensity * Mathf.Pow(sphereRadius / referenceDistance, 2f);
+        targetLight.intensity = LightUnitUtils.LumenToCandela(referenceIntensity * Mathf.Pow(sphereRadius / referenceDistance, 2f), LightUnitUtils.SphereSolidAngle);
     }
 }

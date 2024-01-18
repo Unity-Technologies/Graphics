@@ -4,6 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
+using UnityEngine.Rendering;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -146,10 +147,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (!intensityIsMixed && unit == EmissiveIntensityUnit.EV100)
                     {
-                        float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                        float evValue = LightUnitUtils.NitsToEv100(emissiveIntensity.floatValue);
                         evValue = EditorGUI.FloatField(valueRect, Styles.emissiveIntensityText, evValue);
                         evValue = Mathf.Clamp(evValue, 0, s_MaxEvValue);
-                        emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                        emissiveIntensity.floatValue = LightUnitUtils.Ev100ToNits(evValue);
                     }
                     else
                     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -420,7 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="spotLightShape"></param>
         /// <param name="unit"></param>
         /// <returns></returns>
-        [Obsolete("This method has been deprecated. Use the IsValidLightUnitForType(LightType, LightUnit) overload instead.", false)]
+        [Obsolete("This method has been deprecated. Use LightUnitUtils.IsLightUnitSupported(LightType, LightUnit) instead.", false)]
         public static bool IsValidLightUnitForType(HDLightType type, SpotLightShape spotLightShape, LightUnit unit)
         {
             LightType ltype = type switch
@@ -437,7 +438,131 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDLightType.Area => LightType.Rectangle,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            return IsValidLightUnitForType(ltype, unit);
+            return LightUnitUtils.IsLightUnitSupported(ltype, unit);
+        }
+
+        [Obsolete("This property has been deprecated. Use Light.enableSpotReflector instead.", false)]
+        [SerializeField, FormerlySerializedAs("enableSpotReflector")]
+        bool m_EnableSpotReflector = true;
+
+        /// <summary>This property has been deprecated and moved to Light.</summary>
+        [Obsolete("This property has been deprecated. Use Light.enableSpotReflector instead.", false)]
+        public bool enableSpotReflector
+        {
+            get => legacyLight.enableSpotReflector;
+            set => legacyLight.enableSpotReflector = value;
+        }
+
+        [Obsolete("This property has been deprecated. Use Light.lightUnit instead.", false)]
+        [SerializeField, FormerlySerializedAs("lightUnit")]
+        LightUnit m_LightUnit = LightUnit.Lumen;
+
+        /// <summary>This property has been deprecated and moved to Light.</summary>
+        [Obsolete("This property has been deprecated. Use Light.lightUnit instead.", false)]
+        public LightUnit lightUnit
+        {
+            get => legacyLight.lightUnit;
+            set => legacyLight.lightUnit = value;
+        }
+
+        /// <summary>This method has been deprecated.</summary>
+        /// <param name="unit">Unit of the light</param>
+        [Obsolete("This property has been deprecated. Directly set Light.lightUnit instead.", false)]
+        public void SetLightUnit(LightUnit unit)
+        {
+            legacyLight.lightUnit = unit;
+        }
+
+        /// <summary>This method has been deprecated. If you need to set a light's intensity measured by some light unit,
+        /// you should use the ConvertIntensity(...) method in LightUnitUtils and set Light.intensity directly.</summary>
+        /// <param name="intensity">Light intensity</param>
+        [Obsolete("This method has been deprecated. Use LightUnitUtils.ConvertIntensity(...) & directly set Light.intensity instead.", false)]
+        public void SetIntensity(float intensity)
+        {
+            legacyLight.intensity = LightUnitUtils.ConvertIntensity(legacyLight, intensity, legacyLight.lightUnit, LightUnitUtils.GetNativeLightUnit(legacyLight.type));
+        }
+
+        /// <summary>This method has been deprecated. If you need to set a light's intensity measured by some light unit,
+        /// you should use the ConvertIntensity(...) method in LightUnitUtils and set Light.intensity directly.
+        /// If you need to change the unit, set Light.lightUnit directly.</summary>
+        /// <param name="intensity">Light intensity</param>
+        /// <param name="unit">Unit must be a valid Light Unit for the current light type</param>
+        [Obsolete("This property has been deprecated. Use LightUnitUtils.ConvertIntensity(...) & directly set Light.lightUnit + Light.intensity instead.", false)]
+        public void SetIntensity(float intensity, LightUnit unit)
+        {
+            legacyLight.intensity = LightUnitUtils.ConvertIntensity(legacyLight, intensity, unit, LightUnitUtils.GetNativeLightUnit(legacyLight.type));
+            legacyLight.lightUnit = unit;
+        }
+
+        [Obsolete("This property has been deprecated. Use Light.luxAtDistance instead.", false)]
+        [SerializeField, FormerlySerializedAs("luxAtDistance")]
+        float m_LuxAtDistance = 1.0f;
+
+        /// <summary>This property has been deprecated and moved to Light.</summary>
+        [Obsolete("This property has been deprecated. Use Light.luxAtDistance instead.", false)]
+        public float luxAtDistance
+        {
+            get => legacyLight.luxAtDistance;
+            set => legacyLight.luxAtDistance = value;
+        }
+
+        /// <summary>This method has been deprecated. If you need to set a light's intensity measured by some light unit,
+        /// you should use the ConvertIntensity(...) method in LightUnitUtils and set Light.intensity directly.
+        /// If you need to change the unit, set Light.lightUnit directly.
+        /// If you need to change lux at distance, set light.luxAtDistance directly.</summary>
+        /// <param name="luxIntensity">Lux intensity</param>
+        /// <param name="distance">Lux at distance</param>
+        [Obsolete("This method has been deprecated. Use LightUnitUtils.ConvertIntensity(...) & directly set Light.luxAtDistance + Light.lightUnit + Light.intensity instead.", false)]
+        public void SetSpotLightLuxAt(float luxIntensity, float distance)
+        {
+            legacyLight.luxAtDistance = distance;
+            legacyLight.intensity = LightUnitUtils.ConvertIntensity(legacyLight, luxIntensity, LightUnit.Lux, LightUnitUtils.GetNativeLightUnit(legacyLight.type));
+            legacyLight.lightUnit = LightUnit.Lux;
+        }
+
+
+        [Obsolete("This property has been deprecated. Use Light.intensity instead.", false)]
+        [SerializeField, FormerlySerializedAs("displayLightIntensity")]
+        float m_Intensity;
+
+        /// <summary>This property has been deprecated and moved to Light.</summary>
+        [Obsolete("This property has been deprecated. Use Light.intensity instead.", false)]
+        public float intensity
+        {
+            get => legacyLight.intensity;
+            set => legacyLight.intensity = value;
+        }
+
+        /// <summary>This method has been deprecated. Use the equivalent function LightUnitUtils.IsLightUnitSupported(...) instead.</summary>
+        /// <param name="type">The type of the light</param>
+        /// <param name="unit">The unit to check</param>
+        /// <returns>True: this unit is supported</returns>
+        [Obsolete("This function has been deprecated. Use LightUnitUtils.IsLightUnitSupported(LightType, LightUnit) instead.", false)]
+        public static bool IsValidLightUnitForType(LightType type, LightUnit unit)
+        {
+            return LightUnitUtils.IsLightUnitSupported(type, unit);
+        }
+
+        /// <summary>This method has been deprecated.</summary>
+        /// <returns>Array of supported units</returns>
+        [Obsolete("This function has been deprecated. Use LightUnitUtils.IsLightUnitSupported(LightType, LightUnit) instead.", false)]
+        public LightUnit[] GetSupportedLightUnits()
+        {
+            return GetSupportedLightUnits(legacyLight.type);
+        }
+
+        /// <summary>This method has been deprecated.</summary>
+        /// <param name="type">The type of the light</param>
+        /// <returns>Array of supported units</returns>
+        [Obsolete("This function has been deprecated. Use LightUnitUtils.IsLightUnitSupported(LightType, LightUnit) instead.", false)]
+        public static LightUnit[] GetSupportedLightUnits(LightType type)
+        {
+            return type switch {
+                LightType.Directional or LightType.Box => new[] { LightUnit.Lux },
+                LightType.Spot or LightType.Pyramid or LightType.Point => new[] { LightUnit.Candela, LightUnit.Lumen, LightUnit.Lux, LightUnit.Ev100 },
+                LightType.Rectangle or LightType.Disc or LightType.Tube => new [] { LightUnit.Nits, LightUnit.Lumen, LightUnit.Ev100 },
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
         }
     }
 

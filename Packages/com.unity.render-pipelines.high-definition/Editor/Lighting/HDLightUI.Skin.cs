@@ -38,11 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent includeLightForPathTracing = EditorGUIUtility.TrTextContent("Include For Path Tracing", "When enabled, the light affects the scene for cameras with Path Tracing enabled.");
 
             // Additional light data
-            public readonly GUIContent directionalIntensity = EditorGUIUtility.TrTextContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
-            public readonly GUIContent punctualIntensity = EditorGUIUtility.TrTextContent("Intensity (Lumen)", "Luminous power of the Light in lumen.");
-            public readonly GUIContent areaIntensity = EditorGUIUtility.TrTextContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
-            public readonly GUIContent lightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.\nSetting this value to zero will disable the light.");
-
             public readonly GUIContent lightRadius = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highlight, and the softness of Ray Traced shadows.");
             public readonly GUIContent affectDiffuse = EditorGUIUtility.TrTextContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
             public readonly GUIContent affectSpecular = EditorGUIUtility.TrTextContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
@@ -98,8 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
 
             public readonly GUIContent shape = EditorGUIUtility.TrTextContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
-            public readonly GUIContent enableSpotReflector = EditorGUIUtility.TrTextContent("Reflector", "When enabled, HDRP simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
-            public readonly GUIContent luxAtDistance = EditorGUIUtility.TrTextContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
             // Volumetric Additional light data
             public readonly GUIContent volumetricEnable = EditorGUIUtility.TrTextContent("Enable", "When enabled, this Light uses Volumetrics.");

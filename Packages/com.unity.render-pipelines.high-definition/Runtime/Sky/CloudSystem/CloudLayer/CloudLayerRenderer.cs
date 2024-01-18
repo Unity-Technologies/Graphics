@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var lightComponent = builtinParams.sunLight.GetComponent<Light>();
                 var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
-                lightColor = LightUtils.EvaluateLightColor(lightComponent, additionalLightData);
+                lightColor = additionalLightData.EvaluateLightColor();
             }
 
             s_VectorArray[0] = cloudLayer.layerA.Color * lightColor; s_VectorArray[1] = cloudLayer.layerB.Color * lightColor;

@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MoveEmissionMesh,
             EnableApplyRangeAttenuationOnBoxLight,
             UpdateLightShapeToCore,
+            UpdateLightUnitsToCore,
         }
 
         /// <summary>
@@ -217,6 +218,24 @@ namespace UnityEngine.Rendering.HighDefinition
                             Assert.IsTrue(data.m_SpotLightShape == SpotLightShape.Cone);
                         }
                     }
+                }
+            }),
+            MigrationStep.New(Version.UpdateLightUnitsToCore, (HDAdditionalLightData data) =>
+            {
+                // Copy data from the HDRP's HDAdditionalLight component to the Unity's Light component
+                var light = data.GetComponent<Light>();
+                light.enableSpotReflector = data.m_EnableSpotReflector;
+                light.luxAtDistance = data.m_LuxAtDistance;
+                // The light unit should already be compatible with the light type, since HDRP already checks
+                light.lightUnit = data.m_LightUnit;
+                // HDRP has stored Light.intensity in candela for point and spot lights, lux for directional lights, and
+                // nits for area lights. This is great, and means that we don't need to perform any migration for this
+                // field.
+                if (light.type == LightType.Pyramid)
+                {
+                    // The UI expects areaSize.x to be pyramid aspect ratio from now on.
+                    // This is a temporary solution until we break out areaSize into multiple fields
+                    light.areaSize = new Vector2(data.aspectRatio, light.areaSize.y);
                 }
             })
             );

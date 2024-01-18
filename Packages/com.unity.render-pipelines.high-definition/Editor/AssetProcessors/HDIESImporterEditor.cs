@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             LightType lightType = (light.type == LightType.Point) ? LightType.Point : LightType.Spot;
             HDAdditionalLightData hdLight = GameObjectExtension.AddHDLight(light.gameObject, lightType);
 
-            hdLight.SetIntensity(20000f, LightUnit.Lumen);
+            light.intensity = LightUnitUtils.ConvertIntensity(light, 20000f, LightUnit.Lumen, LightUnit.Candela);
 
             hdLight.affectDiffuse = true;
             hdLight.affectSpecular = false;
@@ -56,16 +56,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
         {
-            HDAdditionalLightData hdLight = light.GetComponent<HDAdditionalLightData>();
-
             if (useIESMaximumIntensityProp.boolValue)
             {
                 LightUnit lightUnit = (iesMaximumIntensityUnitProp.stringValue == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
-                hdLight.SetIntensity(iesMaximumIntensityProp.floatValue, lightUnit);
+                light.intensity = LightUnitUtils.ConvertIntensity(light, iesMaximumIntensityProp.floatValue, lightUnit, LightUnit.Candela);
             }
             else
             {
-                hdLight.SetIntensity(20000f, LightUnit.Lumen);
+                light.intensity = LightUnitUtils.ConvertIntensity(light, 20000f, LightUnit.Lumen, LightUnit.Candela);
             }
         }
 

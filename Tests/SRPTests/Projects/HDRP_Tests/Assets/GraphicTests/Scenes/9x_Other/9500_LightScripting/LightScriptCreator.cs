@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 public class LightScriptCreator : MonoBehaviour
@@ -38,7 +38,8 @@ public class LightScriptCreator : MonoBehaviour
             var light = go.GetComponent<Light>();
 
             // Set global parameters
-            hdLight.SetIntensity(50);
+            float intensityInLumens = 50.0f;
+            light.intensity = LightUnitUtils.LumenToCandela(intensityInLumens, LightUnitUtils.SphereSolidAngle);
             hdLight.SetRange(1.01f);
             hdLight.SetSpotAngle(60);
 
@@ -46,7 +47,6 @@ public class LightScriptCreator : MonoBehaviour
             {
                 case 0: // Spot Box
                     light.type = LightType.Box;
-                    hdLight.SetLightUnit(LightUnit.Lux);
                     hdLight.applyRangeAttenuation = false;
                     break;
                 case 1: // Spot Pyramid
@@ -60,23 +60,20 @@ public class LightScriptCreator : MonoBehaviour
                     break;
                 case 4: // Directional
                     light.type = LightType.Directional;
-                    hdLight.SetLightUnit(LightUnit.Lux);
-                    hdLight.SetIntensity(0.01f);
+                    light.intensity = 0.01f;
                     break;
                 case 5: // Rectangle
                     light.type = LightType.Rectangle;
-                    hdLight.intensity /= 4;
+                    light.intensity = LightUnitUtils.ConvertIntensity(light, intensityInLumens, LightUnit.Lumen, LightUnit.Nits);
+                    intensityInLumens /= 4;
                     break;
                 case 6: // Tube
                     light.type = LightType.Tube;
-                    hdLight.intensity /= 2;
+                    intensityInLumens /= 2;
                     break;
                 default:
                     break;
             }
-
-            var supportedLightUnits = hdLight.GetSupportedLightUnits();
-            var type = light.type;
 
             switch (position.x)
             {
@@ -84,31 +81,30 @@ public class LightScriptCreator : MonoBehaviour
                     hdLight.SetColor(Random.ColorHSV(0, 1, .5f, 1, 1, 1));
                     break;
                 case 1: // Intensity in by unit
-                    hdLight.SetIntensity(hdLight.intensity * Random.Range(.5f, 1f), supportedLightUnits[0]);
+                    light.intensity = light.intensity * Random.Range(.5f, 1f);
                     break;
                 case 2: // Cookie
-                    hdLight.SetCookie(type == LightType.Point ? (Texture)cookieCube : cookie2D);
+                    hdLight.SetCookie(light.type == LightType.Point ? (Texture)cookieCube : cookie2D);
                     break;
                 case 3: // Range
                     hdLight.range *= Random.Range(0.5f, 0.8f); // Note spot box is not visible with this range
-                    break;
-                case 4: // Light Unit
-                    if (type != LightType.Directional)
-                        hdLight.SetLightUnit(supportedLightUnits.Length > 1 ? supportedLightUnits[1] : supportedLightUnits[0]);
                     break;
                 case 5: // Color temperature
                     hdLight.EnableColorTemperature(true);
                     hdLight.SetColor(hdLight.color, Random.Range(1000, 20000));
                     break;
                 case 6: // Spot: Outer Angle / Inner Angle | Area Light: Set size | Box Spot: size
-                    if (type == LightType.Box)
+                    if (light.type == LightType.Box)
                         hdLight.SetBoxSpotSize(new Vector2(0.1f, 0.6f));
-                    else if (type == LightType.Pyramid)
+                    else if (light.type == LightType.Pyramid)
                         hdLight.aspectRatio = 2;
-                    else if (type == LightType.Spot)
+                    else if (light.type == LightType.Spot)
                         hdLight.SetSpotAngle(30, Random.Range(20, 90));
-                    else if (type.IsArea())
+                    else if (light.type.IsArea())
+                    {
                         hdLight.SetAreaLightSize(new Vector2(0.1f, 1.5f));
+                        light.intensity = LightUnitUtils.ConvertIntensity(light, intensityInLumens, LightUnit.Lumen, LightUnit.Nits);
+                    }
                     break;
                 case 7: // Volumetrics
                     hdLight.volumetricDimmer = 0;

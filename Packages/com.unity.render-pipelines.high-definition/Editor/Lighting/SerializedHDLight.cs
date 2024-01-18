@@ -8,12 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     internal class SerializedHDLight : ISerializedLight
     {
-        // Common properties
-        public SerializedProperty intensity { get; }
-
         // HDRP specific properties
-        public SerializedProperty enableSpotReflector;
-        public SerializedProperty luxAtDistance;
         public SerializedProperty spotInnerPercent;
         public SerializedProperty spotIESCutoffPercent;
         public SerializedProperty lightDimmer;
@@ -31,7 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty applyRangeAttenuation;
         public SerializedProperty volumetricDimmer;
         public SerializedProperty volumetricFadeDistance;
-        public SerializedProperty lightUnit;
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty areaLightEmissiveMeshCastShadow;
         public SerializedProperty deportedAreaLightEmissiveMeshCastShadow;
@@ -127,6 +121,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // Bias control
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
+
+        [Obsolete("This property has been deprecated. Use SerializedHDLight.settings.intensity instead.")]
+        public SerializedProperty intensity => settings.intensity;
 
         private GameObject[] emissiveMeshes;
 
@@ -256,15 +253,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (var o = new PropertyFetcher<HDAdditionalLightData>(serializedObject))
             {
-                intensity = o.Find("m_Intensity");
-                enableSpotReflector = o.Find("m_EnableSpotReflector");
-                luxAtDistance = o.Find("m_LuxAtDistance");
                 spotInnerPercent = o.Find("m_InnerSpotPercent");
                 spotIESCutoffPercent = o.Find("m_SpotIESCutoffPercent");
                 lightDimmer = o.Find("m_LightDimmer");
                 volumetricDimmer = o.Find("m_VolumetricDimmer");
                 volumetricFadeDistance = o.Find("m_VolumetricFadeDistance");
-                lightUnit = o.Find("m_LightUnit");
                 displayAreaLightEmissiveMesh = o.Find("m_DisplayAreaLightEmissiveMesh");
                 fadeDistance = o.Find("m_FadeDistance");
                 affectDiffuse = o.Find("m_AffectDiffuse");
