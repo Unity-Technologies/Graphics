@@ -1138,6 +1138,12 @@ namespace UnityEngine.Rendering.Universal
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
             {
+                // If an invalid volume stack is present, destroy it
+                if (additionalCameraData.volumeStack != null && !additionalCameraData.volumeStack.isValid)
+                {
+                    camera.DestroyVolumeStack(additionalCameraData);
+                }
+
                 // Create a local volume stack and cache the state if it's null
                 if (additionalCameraData.volumeStack == null)
                 {
