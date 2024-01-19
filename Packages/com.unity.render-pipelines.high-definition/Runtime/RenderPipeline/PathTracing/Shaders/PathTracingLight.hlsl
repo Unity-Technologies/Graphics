@@ -495,6 +495,12 @@ bool SampleTubeAreaLight(LightList lightList, LightData lightData,
                      out float pdf,
                      out float dist)
 {
+    // initialize out values to avoid warnings
+    outgoingDir = 0;
+    value = 0;
+    pdf = 0;
+    dist = 0;
+
     float3 lightCenter = lightData.positionRWS;
     float lightLength = lightData.size.x;
 
@@ -660,6 +666,13 @@ bool SampleLights(LightList lightList,
               out float dist,
               out float shadowOpacity)
 {
+    // initialize out values to avoid warnings on early return calls
+    outgoingDir = 0;
+    value = 0;
+    pdf = 0;
+    dist = 0;
+    shadowOpacity = 0;
+
     if (!GetLightCount(lightList))
         return false;
 
@@ -908,6 +921,10 @@ void EvaluateLights(LightList lightList,
 
 bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirection, out float tMin, out float tMax)
 {
+    // initialize out values to avoid warnings on early return
+    tMin = 0;
+    tMax = 0;
+
     // We consider Direction to be normalized => a = 1
     float b = 2.0 * dot(rayDirection, lightToRayOrigin);
     float c = Length2(lightToRayOrigin) - Sq(radius);
@@ -924,6 +941,10 @@ bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirectio
 
 bool GetAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
 {
+    // initialize out values to avoid warnings on early return
+    tMin = 0;
+    tMax = 0;
+
     if (lightData.volumetricLightDimmer < 0.001)
         return false;
 
@@ -976,6 +997,10 @@ void GetFrontInterval(float oz, float dz, float t1, float t2, inout float tMin, 
 
 bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
 {
+    // initialize out values to avoid warnings on early return
+    tMin = 0;
+    tMax = 0;
+
     if (lightData.volumetricLightDimmer < 0.001)
         return false;
 
