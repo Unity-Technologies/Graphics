@@ -210,7 +210,7 @@ void Frag(PackedVaryings packedInput,
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z
 #if _RENDER_PASS_ENABLED
-    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy);
+    float depth = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, positionCS.xy).x;
 #else
     float depth = LoadSceneDepth(positionCS.xy);
 #endif
@@ -345,6 +345,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
+    #pragma warning (disable : 3578) // The output value isn't completely initialized.
     half3 packedNormalWS = PackNormal(normalToPack);
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.GBuffer1 = 0;
@@ -353,6 +354,7 @@ void Frag(PackedVaryings packedInput,
 #if OUTPUT_SHADOWMASK
     fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
 #endif
+    #pragma warning (default : 3578) // Restore output value isn't completely initialized.
 
 #elif defined(DECAL_FORWARD_EMISSIVE)
     // Emissive need to be pre-exposed

@@ -1,6 +1,9 @@
 using System;
 using UnityEngine.Rendering;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Experimental.Rendering
 {
