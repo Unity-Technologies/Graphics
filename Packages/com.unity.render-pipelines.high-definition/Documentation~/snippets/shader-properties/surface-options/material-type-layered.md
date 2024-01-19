@@ -1,6 +1,0 @@
-<tr>
-<td><strong>Material Type</strong></td>
-<td></td>
-<td></td>
-<td>Specifies a type for the material. This allows you to customize the material with different settings depending on the type you select. The options are:<br/>&#8226; <strong>Subsurface Scattering</strong>: Applies the <a href="Subsurface-Scattering.md">subsurface scattering</a> workflow to the material. Subsurface scattering simulates the way light interacts with and penetrates translucent objects, such as skin or plant leaves. When light penetrates the surface of a subsurface scattering material, it scatters and blurs before exiting the surface at a different point.<br/>&#8226; <strong>Standard</strong>: Applies the basic metallic Shader workflow to the material. This is the default <strong>Material Type</strong>.<br/>&#8226; <strong>Translucent</strong>: Applies the Translucent workflow to the material. Use this <strong>Material Type</strong>, and a thickness map, to simulate a translucent material. In contrast to <strong>Subsurface Scattering</strong> materials, <strong>Translucent</strong> materials do not blur light that transmits through the material.<br/><br/>For more information about the feature and for the list of properties each <strong>Material Type</strong> exposes, see the <a href="Material-Type.md">Material Type documentation</a>.  </td>
-</tr>

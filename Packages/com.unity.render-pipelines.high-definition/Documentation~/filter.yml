@@ -1,5 +1,0 @@
-apiRules:
-  - exclude:
-      uidRegex: Tests$
-      type: Namespace
-      

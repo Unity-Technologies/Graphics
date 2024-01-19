@@ -1,6 +1,0 @@
-<tr>
-<td><strong>Eye IOR</strong></td>
-<td>The index of refraction for this Material. The index of refraction defines the ratio between the speed of light in a vacuum and the speed of light in the medium of the Material. Higher values produce more intense refraction.</td>
-<td><strong>Material Type</strong> set to <strong>Eye</strong></td>
-<td>1.4</td>
-</tr>
