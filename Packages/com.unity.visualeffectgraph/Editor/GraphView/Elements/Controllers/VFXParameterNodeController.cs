@@ -269,15 +269,24 @@ namespace UnityEditor.VFX.UI
         void IPropertyRMProvider.StartLiveModification() { }
         void IPropertyRMProvider.EndLiveModification() { }
 
-        public override void DrawGizmos(VisualEffect component)
+        public override void CollectGizmos()
         {
             if (parentController.isOutput)
                 return;
+            m_GizmoableAnchors.Clear();
             if (VFXGizmoUtility.HasGizmo(m_ParentController.portType))
             {
-                m_ParentController.DrawGizmos(component);
-
                 m_GizmoableAnchors.Add(m_ParentController);
+            }
+
+            currentGizmoable = m_GizmoableAnchors.LastOrDefault();
+        }
+
+        public override void DrawGizmos(VisualEffect component)
+        {
+            if (currentGizmoable is VFXParameterController gizmoable)
+            {
+                gizmoable.DrawGizmos(component);
             }
         }
 
@@ -298,14 +307,6 @@ namespace UnityEditor.VFX.UI
         public override Bounds GetGizmoBounds(VisualEffect component)
         {
             return m_ParentController.GetGizmoBounds(component);
-        }
-
-        public override bool gizmoNeedsComponent
-        {
-            get
-            {
-                return m_ParentController.gizmoNeedsComponent;
-            }
         }
 
         public override int id

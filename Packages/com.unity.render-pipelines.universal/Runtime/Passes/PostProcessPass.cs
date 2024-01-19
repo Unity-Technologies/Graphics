@@ -996,8 +996,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
 #endif
             {
-                int prevViewProjMIdx = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
+                int prevViewProjMIdx = 0;
                 if (xr.enabled)
                     prevViewProjMIdx = xr.multipassId;
 #endif

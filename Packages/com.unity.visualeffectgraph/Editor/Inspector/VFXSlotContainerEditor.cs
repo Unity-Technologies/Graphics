@@ -11,10 +11,11 @@ using UnityEngine.SceneManagement;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-
 using UnityObject = UnityEngine.Object;
 using UnityEditorInternal;
 using System.Reflection;
+using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 [CustomEditor(typeof(VFXModel), true)]
 [CanEditMultipleObjects]
@@ -22,14 +23,10 @@ class VFXSlotContainerEditor : Editor
 {
     protected void OnEnable()
     {
-        SceneView.duringSceneGui += OnSceneGUI;
     }
 
     protected void OnDisable()
     {
-        SceneView.duringSceneGui -= OnSceneGUI;
-        if (s_EffectUi == this)
-            s_EffectUi = null;
     }
 
     protected virtual SerializedProperty FindProperty(VFXSetting setting)
@@ -157,120 +154,142 @@ class VFXSlotContainerEditor : Editor
     static VFXSlotContainerEditor s_EffectUi;
 
     [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
-    class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
+    internal class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
     {
+        private struct GizmoInfo: IComparable<GizmoInfo>
+        {
+            public GizmoInfo(VFXView view, IGizmoController controller, IGizmoable gizmo)
+            {
+                this.view = view;
+                this.controller = controller;
+                this.gizmo = gizmo;
+            }
+
+            public VFXView view { get; }
+            public IGizmoController controller { get; }
+            public IGizmoable gizmo { get; }
+            public int CompareTo(GizmoInfo other)
+            {
+                if (view.attachedComponent == null)
+                    return int.MinValue;
+                return string.Compare(view.attachedComponent.name, other.view.attachedComponent.name, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
         const string k_OverlayId = "Scene View/Visual Effect Model";
         const string k_DisplayName = "Visual Effect Model";
 
-        public bool visible => s_EffectUi != null;
+        static readonly List<GizmoInfo> s_AllGizmosInfo = new();
+        static string[] s_Entries;
+        static bool s_HasGizmos;
+        static int currentIndex;
+
+
+        public bool visible => s_HasGizmos;
+
+        public static void UpdateFromVFXView(VFXView vfxView, List<IGizmoController> controllers)
+        {
+            Profiler.BeginSample("SceneViewVFXSlotContainerOverlay.UpdateFromVFXView");
+            try
+            {
+                for (int i = s_AllGizmosInfo.Count - 1; i >= 0; i--)
+                {
+                    var gizmo = s_AllGizmosInfo[i];
+                    if (gizmo.view == vfxView && (controllers == null || controllers.All(x => x != gizmo.controller)))
+                    {
+                        s_AllGizmosInfo.RemoveAt(i);
+                    }
+                }
+
+                if (controllers != null)
+                {
+                    var index = s_AllGizmosInfo.TakeWhile(x => x.view != vfxView).Count();
+                    foreach (var controller in controllers)
+                    {
+                        controller.CollectGizmos();
+                        if (s_AllGizmosInfo.All(x => x.view != vfxView || x.controller != controller))
+                        {
+                            s_AllGizmosInfo.AddRange(controller.gizmoables.Select(x => new GizmoInfo(vfxView, controller, x)));
+                        }
+
+                        var currentGizmo = controller.gizmoables.ElementAtOrDefault(currentIndex - index);
+                        if (currentGizmo != null)
+                        {
+                            controller.DrawGizmos(vfxView.attachedComponent);
+                        }
+                        index += controller.gizmoables.Count;
+                    }
+                }
+                s_HasGizmos = s_AllGizmosInfo.Count > 0;
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
+        }
 
         public override void OnGUI()
         {
-            if (s_EffectUi == null)
-                return;
-            s_EffectUi.SceneViewGUICallback();
-        }
-    }
-
-    void OnSceneGUI(SceneView sv)
-    {
-        try // make sure we don't break the whole scene
-        {
-            var slotContainer = targets[0] as VFXModel;
-            if (VFXViewWindow.currentWindow != null)
+            Profiler.BeginSample("SceneViewVFXSlotContainerOverlay.OnGUI");
+            try
             {
-                VFXView view = VFXViewWindow.currentWindow.graphView;
-                if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
+                if (s_AllGizmosInfo.Count > 0)
                 {
-                    if (slotContainer is VFXParameter)
+                    s_AllGizmosInfo.Sort();
+                    GUILayout.BeginHorizontal();
+                    try
                     {
-                        var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
-
-                        m_CurrentController = controller;
-                        if (controller != null)
-                            controller.DrawGizmos(view.attachedComponent);
-                    }
-                    else
-                    {
-                        m_CurrentController = view.controller.GetNodeController(slotContainer, 0);
-                    }
-                    if (m_CurrentController != null)
-                    {
-                        m_CurrentController.DrawGizmos(view.attachedComponent);
-
-                        if (m_CurrentController.gizmoables.Count > 0)
+                        // Cleanup closed views
+                        for (int i = s_AllGizmosInfo.Count - 1; i >= 0; i--)
                         {
-                            s_EffectUi = this;
+                            var gizmo = s_AllGizmosInfo[i];
+                            if (gizmo.view == null)
+                            {
+                                s_AllGizmosInfo.RemoveAt(i);
+                            }
                         }
-                        else
+
+                        if (s_AllGizmosInfo.Count == 0)
                         {
-                            s_EffectUi = null;
+                            return;
                         }
-                    }
-                }
-                else
-                {
-                    m_CurrentController = null;
-                }
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogException(e);
-        }
-        finally
-        {
-        }
-    }
 
-    internal virtual void SceneViewGUICallback()
-    {
-        if (m_CurrentController == null)
-            return;
-
-        var gizmoableAnchors = m_CurrentController.gizmoables;
-        if (gizmoableAnchors.Count > 0)
-        {
-            int current = gizmoableAnchors.IndexOf(m_CurrentController.currentGizmoable);
-            EditorGUI.BeginChangeCheck();
-            GUILayout.BeginHorizontal();
-            GUI.enabled = gizmoableAnchors.Count > 1;
-            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray());
-            GUI.enabled = true;
-            if (EditorGUI.EndChangeCheck() && result != current)
-            {
-                m_CurrentController.currentGizmoable = gizmoableAnchors[result];
-            }
-            var slotContainer = targets[0] as VFXModel;
-            bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph == slotContainer.GetGraph();
-
-
-            if (m_CurrentController.gizmoIndeterminate)
-            {
-                GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
-            }
-            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null))
-            {
-                GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
-            }
-            else
-            {
-                if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(16), GUILayout.Height(16)))
-                {
-                    if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
-                    {
-                        VFXView view = VFXViewWindow.currentWindow.graphView;
-                        if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
+                        if (s_Entries?.Length != s_AllGizmosInfo.Count)
                         {
-                            Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
+                            s_Entries = new string[s_AllGizmosInfo.Count];
+                        }
+
+                        for (var i = 0; i < s_AllGizmosInfo.Count; i++)
+                        {
+                            var entry = s_AllGizmosInfo[i];
+                            s_Entries[i] = $"{entry.view.controller.name}, {(string.IsNullOrEmpty(entry.gizmo.name) ? ((VFXController<VFXModel>)entry.controller).name : entry.gizmo.name)}";
+                        }
+
+                        currentIndex = Math.Clamp(currentIndex, 0, s_Entries.Length - 1);
+
+                        GUI.enabled = true;
+                        currentIndex = EditorGUILayout.Popup(currentIndex, s_Entries);
+                        var currentGizmo = s_AllGizmosInfo[currentIndex];
+                        currentGizmo.controller.currentGizmoable = currentGizmo.gizmo;
+                        var component = currentGizmo.view.attachedComponent;
+                        if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(16), GUILayout.Height(16)))
+                        {
+                            var b = currentGizmo.controller.GetGizmoBounds(component);
                             var sceneView = SceneView.lastActiveSceneView;
                             if (b.size.sqrMagnitude > Mathf.Epsilon && sceneView)
                                 sceneView.Frame(b, false);
                         }
                     }
+                    finally
+                    {
+                        GUILayout.EndHorizontal();
+                    }
                 }
             }
-            GUILayout.EndHorizontal();
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
     }
 
