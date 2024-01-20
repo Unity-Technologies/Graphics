@@ -567,6 +567,16 @@ MonoBehaviour:
     Reason: UUM-60205
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: f1e2273404277234a8497f4bc0f9f229, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: UUM-60997
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
     - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
     - {fileID: 102900000, guid: f7cdec6567a2ca34580a5d222405f0bd, type: 3}
