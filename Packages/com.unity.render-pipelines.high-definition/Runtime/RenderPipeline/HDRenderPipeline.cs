@@ -2011,9 +2011,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            // for performance reasons otherwise we render UI overlay after all camera
-            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputForAnyDisplayIsActive();
+            // When HDR is active we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
 
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
