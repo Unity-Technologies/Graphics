@@ -64,8 +64,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessWaterFoamGenerators(CommandBuffer cmd)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (WaterFoamGenerator.instanceCount >= k_MaxNumWaterFoamGenerators)
                 Debug.LogWarning("Maximum amount of Foam Generator reached. Some of them will be ignored.");
+#endif
 
             // Grab all the procedural generators in the scene
             var foamGenerators = WaterFoamGenerator.instancesAsArray;
