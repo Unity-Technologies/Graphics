@@ -2307,16 +2307,48 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Request additional bake request manager to recompute baked data for an array of requests
+        /// </summary>
+        /// <param name="probeInstanceIDs">Array of instance IDs of the probes doing the request.</param>
+        public static void BakeAdditionalRequests(int[] probeInstanceIDs)
+        {
+            List<int> validProbeInstanceIDs = new List<int>();
+            List<Vector3> positions = new List<Vector3>();
+            foreach (var probeInstanceID in probeInstanceIDs)
+            {
+                if (AdditionalGIBakeRequestsManager.GetPositionForRequest(probeInstanceID, out var position))
+                {
+                    validProbeInstanceIDs.Add(probeInstanceID);
+                    positions.Add(position);
+                }
+            }
+
+            int numValidProbes = validProbeInstanceIDs.Count;
+            if (numValidProbes > 0)
+            {
+                SphericalHarmonicsL2[] sh = new SphericalHarmonicsL2[numValidProbes];
+                float[] validity = new float[numValidProbes];
+
+                // Bake all probes in a single batch
+                BakeProbes(positions.ToArray(), sh, validity);
+
+                for (int probeIndex = 0; probeIndex < numValidProbes; ++probeIndex)
+                {
+                    AdditionalGIBakeRequestsManager.SetSHCoefficients(validProbeInstanceIDs[probeIndex], sh[probeIndex], validity[probeIndex]);
+                }
+            }
+        }
+
+        /// <summary>
         /// Request additional bake request manager to recompute baked data for a given request
         /// </summary>
         /// <param name="probeInstanceID">The instance ID of the probe doing the request.</param>
         public static void BakeAdditionalRequest(int probeInstanceID)
         {
-            if (AdditionalGIBakeRequestsManager.GetPositionForRequest(probeInstanceID, out var position))
-            {
-                ProbeGIBaking.BakeSingleProbe(position, out var sh, out var validity);
-                AdditionalGIBakeRequestsManager.SetSHCoefficients(probeInstanceID, sh, validity);
-            }
+            int[] probeInstanceIDs = new int[1];
+            probeInstanceIDs[0] = probeInstanceID;
+
+            BakeAdditionalRequests(probeInstanceIDs);
         }
     }
 }

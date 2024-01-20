@@ -670,6 +670,9 @@ namespace UnityEngine.Rendering
                 ctx.DestroyBuffer(combinedSHBufferId);
                 ctx.DestroyBuffer(irradianceBufferId);
 
+                postProcessor.Dispose();
+                world.Dispose();
+                integrator.Dispose();
                 ctx.Dispose();
             }
         }
@@ -790,32 +793,53 @@ namespace UnityEngine.Rendering
             UpdateLightStatus();
         }
 
-        internal static void BakeSingleProbe(Vector3 position, out SphericalHarmonicsL2 sh, out float validity)
+        internal static void BakeProbes(Vector3[] positionValues, SphericalHarmonicsL2[] shValues, float[] validityValues)
         {
+            int numProbes = positionValues.Length;
+
             var job = new BakeJob();
             job.Create(null, ProbeVolumeLightingTab.GetLightingSettings(), false);
-            job.indices.Add(0);
 
-            var positions = new NativeArray<Vector3>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            positions[0] = position;
+            for (int probeIndex = 0; probeIndex < numProbes; probeIndex++)
+            {
+                job.indices.Add(probeIndex);
+            }
 
-            var irradianceResults = new NativeArray<SphericalHarmonicsL2>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            var validityResults = new NativeArray<float>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var positionsInput = new NativeArray<Vector3>(numProbes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            positionsInput.CopyFrom(positionValues);
+
+            var irradianceResults = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            var validityResults = new NativeArray<float>(numProbes, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             InputExtraction.BakeInput input;
             InputExtraction.ExtractFromScene(out input);
 
-            var context = BakeContext.New(input, positions);
+            var context = BakeContext.New(input, positionsInput);
             bool cancel = false;
             context.Bake(job, ref irradianceResults, ref validityResults, ref cancel);
             job.Dispose();
+            context.Dispose();
 
-            sh = irradianceResults[0];
-            validity = validityResults[0];
+            irradianceResults.CopyTo(shValues);
+            validityResults.CopyTo(validityValues);
 
-            positions.Dispose();
+            positionsInput.Dispose();
             irradianceResults.Dispose();
             validityResults.Dispose();
+        }
+
+        internal static void BakeSingleProbe(Vector3 position, out SphericalHarmonicsL2 sh, out float validity)
+        {
+            Vector3[] positionValues = new Vector3[1];
+            positionValues[0] = position;
+
+            SphericalHarmonicsL2[] shValues = new SphericalHarmonicsL2[1];
+            float[] validityValues = new float[1];
+
+            BakeProbes(positionValues, shValues, validityValues);
+
+            sh = shValues[0];
+            validity = validityValues[0];
         }
 
         // This doesn't work yet

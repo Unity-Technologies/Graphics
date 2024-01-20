@@ -411,7 +411,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
             var probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
-            // Render and write the result to disk
+            List<HDProbe> activeProbes = new List<HDProbe>();
+            List<int> probeInstanceIDs = new List<int>();
+
+            // We must create a list of active probe instance IDs so we can perform all baking in a single batch
             foreach (var probe in bakedProbes)
             {
                 if (string.IsNullOrEmpty(probe.gameObject.scene.path))
@@ -423,10 +426,20 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
                 }
 
+                activeProbes.Add(probe);
+                probeInstanceIDs.Add(probe.GetInstanceID());
+            }
+
+            // APV Normalization (Execute baking)
+            {
+                ProbeGIBaking.BakeAdditionalRequests(probeInstanceIDs.ToArray());
+            }
+
+            // Render and write the result to disk
+            foreach (var probe in activeProbes)
+            {
                 // APV Normalization
                 {
-                    ProbeGIBaking.BakeAdditionalRequest(probe.GetInstanceID());
-
                     probe.TryUpdateLuminanceSHL2ForNormalization();
                     #if UNITY_EDITOR
                     // If we are treating probes inside a prefab, we need to explicitly record the mods
@@ -455,14 +468,8 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int j = 0; j < 2; ++j)
             {
                 AssetDatabase.StartAssetEditing();
-                foreach (var probe in bakedProbes)
+                foreach (var probe in activeProbes)
                 {
-                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
-                        continue;
-
-                    if (probe.IsTurnedOff())
-                        continue;
-
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     AssetDatabase.ImportAsset(bakedTexturePath);
                     ImportAssetAt(probe, bakedTexturePath);
@@ -471,14 +478,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             AssetDatabase.StartAssetEditing();
-            foreach (var probe in bakedProbes)
+            foreach (var probe in activeProbes)
             {
-                if (string.IsNullOrEmpty(probe.gameObject.scene.path))
-                    continue;
-
-                if (probe.IsTurnedOff())
-                    continue;
-
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
 
                 // Get or create the baked texture asset for the probe
@@ -502,11 +503,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // updateCount is a transient data, so don't execute this code before the asset reload.
             {
                 UnityEngine.Random.InitState((int)(1000 * EditorApplication.timeSinceStartup));
-                foreach (var probe in bakedProbes)
+                foreach (var probe in activeProbes)
                 {
-                    if (probe.IsTurnedOff())
-                        continue;
-
                     var c = UnityEngine.Random.Range(2, 10);
                     while (probe.texture.updateCount < c) probe.texture.IncrementUpdateCount();
                 }
