@@ -132,7 +132,7 @@ You can use SDR Rendering on a per-camera basis when you have HDR Output enabled
 To ensure correct rendering when you use SDR Rendering with HDR Output, you must avoid any render passes that occur after post-processing. This includes URP's built-in effects which insert render passes after post-processing. As a result, SDR Rendering with HDR Output is incompatible with the following features:
 
 * [Upscaling](../universalrp-asset.md#quality)
-* [FXAA](../anti-aliasing.md#fast-approximate-anti-aliasing-fxaa)
+* [FXAA](../anti-aliasing.md#fxaa)
 * [HDR Debug Views](#hdr-debug-views)
 * Custom passes which occur after post-processing
 

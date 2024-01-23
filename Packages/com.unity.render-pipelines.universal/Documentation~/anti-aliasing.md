@@ -9,7 +9,7 @@ To prevent aliasing, the Universal Render Pipeline (URP) has multiple methods of
 The anti-aliasing methods available are:
 
 * [Fast Approximate Anti-aliasing (FXAA)](#fxaa)
-* [Subpixel Morphological Anti-aliasing (SMAA)](smaa)
+* [Subpixel Morphological Anti-aliasing (SMAA)](#smaa)
 * [Temporal Anti-aliasing (TAA)](#taa)
 * [Multisample Anti-aliasing (MSAA)](#msaa)
 

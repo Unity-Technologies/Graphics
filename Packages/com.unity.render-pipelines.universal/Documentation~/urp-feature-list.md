@@ -30,7 +30,7 @@ This page contains an overview of the key features you can use in the Universal 
     * [Lighting modes](#lighting-modes)
     * [Lens Flare](#lens-flare) 
 * [Camera](#camera)
-    * [Temporal anti-aliasing (TAA)](#temporal-anti-aliasing-taa)
+    * [Temporal anti-aliasing (TAA)](anti-aliasing.md#taa)
     * [High Dynamic Range (HDR) Output](#high-dynamic-range-hdr-output)
     * [Motion vectors](#motion-vectors)
 * [Custom post-processing effects](#custom-post-processing-effects)    
@@ -42,7 +42,7 @@ This page contains an overview of the key features you can use in the Universal 
 * [Tools](#tools)
     * [Rendering Debugger](#rendering-debugger)
     * [Render Pipeline Converter](#render-pipeline-converter)
-    * [RTHandle system](#rthandle-system)
+    * [RTHandle system](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?preview=1&subfolder=/manual/rthandle-system.html)
 * [Optimization](#optimization)
     * [Depth priming](#depth-priming)
     * [Shader Stripping](#shader-stripping)
@@ -199,7 +199,7 @@ You can also check: [Rendering Path comparison](urp-universal-renderer.md#render
 
 The **Light Cookies** feature enables a technique for masking or filtering outgoing light’s intensity to produce patterned illumination. This feature can be used to change the appearance, shape, and intensity of cast light for artistic effects or to simulate complex lighting scenarios with minimal runtime performance impact.
 
-For more information, refer to [**Light component** > **Emission** > **Cookie**](light-component.md#emission).
+For more information, refer to [**Light component** > **Emission** > **Cookie**](light-component.md#Emission).
 
 ### Rendering Layers
 
@@ -345,7 +345,7 @@ As the Camera moves, Unity shows different LODs to provide a good balance betwee
 
 ![LOD cross-fade](Images/whats-new/urp-14/lod-cross-fade.png)<br/>*1: LOD cross-fade off. 2: LOD cross-fade on.*
 
-For more information, refer to the [LOD Cross Fade](universalrp-asset.md#lod-cross-fade) property.
+For more information, refer to the [LOD Cross Fade](universalrp-asset.md#quality) property.
 
 ## URP package samples
 
