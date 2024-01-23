@@ -703,7 +703,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (needsGraphValueStruct)
                 globalIncludeContent.WriteLine("#define VFX_USE_GRAPH_VALUES 1");
 
-            foreach (string s in GetInstancingAdditionalDefines(context, task, particleData))
+            foreach (string s in GetInstancingAdditionalDefines(context, task.type, particleData))
                 globalIncludeContent.WriteLine(s);
 
             var perPassIncludeContent = new VFXShaderWriter();
@@ -982,11 +982,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             blockIndex++;
         }
 
-        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXTask task, VFXDataParticle particleData)
+        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXTaskType taskType, VFXDataParticle particleData)
         {
             yield return "#define VFX_USE_INSTANCING 1";
 
-            bool isOutputTask = task != null && (task.type & VFXTaskType.Output) != 0;
+            bool isOutputTask = (taskType & VFXTaskType.Output) != 0;
             if (context is VFXAbstractParticleOutput output && isOutputTask)
             {
                 uint fixedSize;
