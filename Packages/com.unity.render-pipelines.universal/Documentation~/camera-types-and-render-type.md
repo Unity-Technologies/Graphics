@@ -58,7 +58,7 @@ The Base Camera in a Camera Stack determines most of the properties of the Camer
 * FOV Axis
 * Field of View
 * Physical Camera properties
-* Clipping plans
+* Clipping planes
 * Renderer
 * Clear Depth
 * Render Shadows
