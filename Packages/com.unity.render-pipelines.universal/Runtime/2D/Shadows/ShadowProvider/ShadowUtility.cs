@@ -360,6 +360,12 @@ namespace UnityEngine.Rendering.Universal
 
             outStartIndex = indexOffset;
             outIndexCount = tessOutIndexCount;
+
+            tessInEdges.Dispose();
+            tessInVertices.Dispose();
+            tessOutIndices.Dispose();
+            tessOutVertices.Dispose();
+            tessOutEdges.Dispose();
         }
 
         //inEdges is expected to be contiguous
