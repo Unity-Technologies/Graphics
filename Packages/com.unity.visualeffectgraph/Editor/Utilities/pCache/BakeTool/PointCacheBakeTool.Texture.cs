@@ -113,6 +113,8 @@ namespace UnityEditor.Experimental.VFX.Utility
             for (int i = 0; i < pixels.Length; ++i)
             {
                 var color = pixels[i];
+                if (m_Texture.isDataSRGB)
+                    color = color.linear;
                 if (m_DecimationThresholdMode != DecimationThresholdMode.None)
                 {
                     float value;
