@@ -219,6 +219,15 @@ namespace UnityEngine.Rendering
             }
 
 #if UNITY_EDITOR
+            // Check the build target is supported by checking the depth downscale kernel (which has an only_renderers pragma) is present
+            var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
+            if (!resources.occluderDepthPyramidKernels.HasKernel("OccluderDepthDownscale"))
+            {
+                if (logReason)
+                    Debug.LogWarning("GPUResidentDrawer: kernel not present, please ensure the player settings includes a supported graphics API.");
+                supported = false;
+            }
+
             if (EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll)
             {
                 if(logReason)
