@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -67,7 +69,7 @@ namespace UnityEngine.Rendering
         {
         }
 
-        private static readonly bool s_SupportsLensFlareTexFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RFloat);
+        private static readonly bool s_SupportsLensFlareTexFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Render);
 
         /// <summary>
         /// Check if we can use an OcclusionRT
