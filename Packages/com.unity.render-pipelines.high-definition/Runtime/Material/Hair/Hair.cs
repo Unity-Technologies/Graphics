@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rt;
             }
 
-            var lutAttenuation            = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairAttenuationUAV",            GraphicsFormat.R16G16_SFloat);       // ~1mb
+            var lutAttenuation            = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairAttenuationUAV",            GraphicsFormat.R16G16B16A16_SFloat); // ~1mb
             var lutAzimuthalScattering    = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairAzimuthalScatteringUAV",    GraphicsFormat.R16G16B16A16_SFloat); // ~2mb
             var lutLongitudinalScattering = GetTemporaryHairMaterialRT(lookupDescriptor, "_HairLongitudinalScatteringUAV", GraphicsFormat.R16G16B16A16_SFloat); // ~2mb
 

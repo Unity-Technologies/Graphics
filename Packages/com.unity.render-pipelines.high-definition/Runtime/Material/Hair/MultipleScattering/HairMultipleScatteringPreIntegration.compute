@@ -66,7 +66,7 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
 // X - Perceptual Smoothness
 // Y - Theta
 // Z - Diffuse Color (single channel)
-RWTexture3D<float2> _HairAttenuationUAV;
+RWTexture3D<float4> _HairAttenuationUAV;
 
 // Pre-integrate the average attenuation on the front and back hemisphere on a hair fiber.
 // Ref: Equation 6 & 12 in "Dual Scattering Approximation for Fast Multiple Scattering in Hair"
@@ -147,7 +147,7 @@ void COMPUTE_HAIR_ATTENUATION (uint3 dispatchThreadID : SV_DispatchThreadID)
     attenuation *= INV_PI;
 
     // Update the LUT
-    float2 A = _HairAttenuationUAV[dispatchThreadID];
+    float4 A = _HairAttenuationUAV[dispatchThreadID];
     {
         // Manual read/write since it's not allowed to swizzle a UAV directly
         #ifdef FORWARD
@@ -156,7 +156,7 @@ void COMPUTE_HAIR_ATTENUATION (uint3 dispatchThreadID : SV_DispatchThreadID)
         A.y = attenuation;
         #endif
     }
-    _HairAttenuationUAV[dispatchThreadID] = A;
+    _HairAttenuationUAV[dispatchThreadID] = float4(A.xy, 0, 0);
 }
 
 // TODO: Store the global term in the lower bits?
