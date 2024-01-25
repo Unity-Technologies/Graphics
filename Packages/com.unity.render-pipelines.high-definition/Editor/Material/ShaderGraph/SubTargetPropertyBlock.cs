@@ -84,9 +84,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                     registerUndo(displayName.text);
                     setter((Data)(object)evt.newValue);
-                    // Because the UI is rebuilt every time a change occure in the property values, we need
-                    // to close the popup every time to avoid using the wrong property callbacks
-                    PopupWindow.focusedWindow.Close();
                     onChange();
                 });
             }
