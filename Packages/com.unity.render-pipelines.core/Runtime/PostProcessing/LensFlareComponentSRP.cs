@@ -120,6 +120,16 @@ namespace UnityEngine.Rendering
             float projectedRadius = (float)Math.Tan(sCelestialAngularRadius) * mainCam.farClipPlane;
             return occlusionRadius * projectedRadius;
         }
+        
+        void Awake()
+        {
+            if (!lensFlareData)
+            {
+#if UNITY_EDITOR
+                lensFlareData = AssetDatabase.LoadAssetAtPath<LensFlareDataSRP>("Packages/com.unity.render-pipelines.core/Runtime/RenderPipelineResources/Default Lens Flare (SRP).asset");
+#endif
+            }
+        }
 
         /// <summary>
         /// Add or remove the lens flare to the queue of PostProcess
