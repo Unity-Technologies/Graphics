@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.Universal
         private Hash128[] m_PassIndexToPassHash = new Hash128[kRenderPassMaxCount];
         private Dictionary<Hash128, int> m_RenderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
+        // used to keep track of the index of the first pass in the last group of merged native passes
+        private int m_firstPassIndexOfLastMergeableGroup;
+
         AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
         {
             RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
@@ -77,6 +80,8 @@ namespace UnityEngine.Rendering.Universal
                     m_MergeableRenderPassesMapArrays[i][j] = -1;
                 }
             }
+
+            m_firstPassIndexOfLastMergeableGroup = 0;
         }
 
         internal void SetupNativeRenderPassFrameData(UniversalCameraData cameraData, bool isRenderPassEnabled)
@@ -119,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         m_MergeableRenderPassesMap.Add(hash, m_MergeableRenderPassesMapArrays[m_MergeableRenderPassesMap.Count]);
                         m_RenderPassesAttachmentCount.Add(hash, 0);
+                        m_firstPassIndexOfLastMergeableGroup = i;
                     }
                     else if (m_MergeableRenderPassesMap[hash][GetValidPassIndexCount(m_MergeableRenderPassesMap[hash]) - 1] != (i - 1))
                     {
@@ -131,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
 
                         m_MergeableRenderPassesMap.Add(hash, m_MergeableRenderPassesMapArrays[m_MergeableRenderPassesMap.Count]);
                         m_RenderPassesAttachmentCount.Add(hash, 0);
+                        m_firstPassIndexOfLastMergeableGroup = i;
                     }
 
                     m_MergeableRenderPassesMap[hash][GetValidPassIndexCount(m_MergeableRenderPassesMap[hash])] = i;
@@ -144,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void UpdateFinalStoreActions(int[] currentMergeablePasses, UniversalCameraData cameraData)
+        internal void UpdateFinalStoreActions(int[] currentMergeablePasses, UniversalCameraData cameraData, bool isLastMergeableGroup)
         {
             for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
                 m_FinalColorStoreAction[i] = RenderBufferStoreAction.Store;
@@ -179,6 +186,8 @@ namespace UnityEngine.Rendering.Universal
                             m_FinalColorStoreAction[i] = RenderBufferStoreAction.StoreAndResolve;
                         else if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.DontCare)
                             m_FinalColorStoreAction[i] = RenderBufferStoreAction.Resolve;
+                        else if (isLastMergeableGroup && m_FinalColorStoreAction[i] == RenderBufferStoreAction.Resolve)
+                            m_FinalColorStoreAction[i] = RenderBufferStoreAction.StoreAndResolve;
                     }
                 }
 
@@ -202,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
-                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
+                UpdateFinalStoreActions(currentMergeablePasses, cameraData, currentPassIndex == m_firstPassIndexOfLastMergeableGroup);
 
                 int currentAttachmentIdx = 0;
                 bool hasInput = false;
@@ -299,7 +308,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
-                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
+                UpdateFinalStoreActions(currentMergeablePasses, cameraData, currentPassIndex == m_firstPassIndexOfLastMergeableGroup);
 
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
