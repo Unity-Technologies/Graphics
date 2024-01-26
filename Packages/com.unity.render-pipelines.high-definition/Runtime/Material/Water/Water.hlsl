@@ -204,7 +204,7 @@ float4 CompressGBuffer3(float tipThickness, float caustics, uint surfaceIndex, b
 
     // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
     // If change the packing or unpacking change it on LensFlareCommon.hlsl
-    // 
+    //
     // We compress the tip thickness into the upper 16 bits
     uint upper16Bits = f32tof16(tipThickness);
 
@@ -359,8 +359,6 @@ struct PreLightData
     // Refraction
     float3 transparencyColor;
     float outScatteringCoefficient;
-    float colorPyramidScale;
-    int colorPyramidMipOffset;
     int disableIOR;
 
     float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
@@ -435,13 +433,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparencyColor = profile.transparencyColor;
     preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
     preLightData.upDirection = profile.upDirection;
-    preLightData.colorPyramidScale = profile.colorPyramidScale;
-    preLightData.colorPyramidMipOffset = profile.colorPyramidMipOffset;
     preLightData.disableIOR = profile.disableIOR;
     // Evaluate the scattering color and take into account the under water ambient probe contribution as this value is only used for under-water scenarios
     preLightData.scatteringColor = profile.scatteringColor * lerp(1.0, _WaterAmbientProbe.w * GetCurrentExposureMultiplier(), profile.underWaterAmbientProbeContribution);
 
-    bsdfData.foamColor = bsdfData.foam * profile.foamColor.xyz;
+    bsdfData.foamColor = bsdfData.foam * profile.foamColor;
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -763,28 +759,25 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
+    float3 positionWS = posInput.positionWS;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
+    // Inverse of ApplyCameraRelativeXR
+    positionWS -= _WorldSpaceCameraPosViewOffset;
+#endif
+
     // Re-evaluate the refraction
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
     float3 absorptionTint; // not used - applied during opaque atmospheric scattering
-    ComputeWaterRefractionParams(posInput.positionWS, posInput.positionNDC, V,
+    ComputeWaterRefractionParams(positionWS, posInput.positionNDC, V,
         bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, bsdfData.frontFace,
         preLightData.disableIOR, preLightData.upDirection, preLightData.maxRefractionDistance,
         preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
-    // Apply a mip offset for the underwater data (if needed)
-    float2 pixelCoordinates = distortedWaterNDC * _ScreenSize.xy;
-    int lod = 0;
-    if (!bsdfData.frontFace)
-    {
-        pixelCoordinates *= preLightData.colorPyramidScale;
-        pixelCoordinates = min(pixelCoordinates, _ScreenSize.xy * preLightData.colorPyramidScale - 1);
-        lod += preLightData.colorPyramidMipOffset;
-    }
-
     // Read the camera color for the refracted ray
-    float3 cameraColor = LoadCameraColor(pixelCoordinates, lod);
+    float2 pixelCoordinates = min(distortedWaterNDC * _ScreenSize.xy, _ScreenSize.xy - 1);
+    float3 cameraColor = LoadCameraColor(pixelCoordinates);
 
     if (bsdfData.frontFace)
     {

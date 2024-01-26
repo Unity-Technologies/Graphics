@@ -842,11 +842,7 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.roughnessEndValue = 1.0f - waterSurface.endSmoothness;
             profile.upDirection = waterSurface.UpVector();
 
-            profile.foamColor = waterSurface.foamColor;
-
-            // Color offset
-            profile.colorPyramidMipOffset = waterSurface.colorPyramidOffset;
-            profile.colorPyramidScale = 1.0f / (1 << waterSurface.colorPyramidOffset);
+            profile.foamColor = new Vector3(waterSurface.foamColor.r, waterSurface.foamColor.g, waterSurface.foamColor.b);
 
             // Under water stuff
             profile.underWaterAmbientProbeContribution = waterSurface.underWaterAmbientProbeContribution;
@@ -1388,6 +1384,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._ColorPyramidTexture, data.colorBuffer); // caution, this is not a pyramid, we can't access LODs
 
                             // Bind the output texture
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraColorTextureRW, data.waterLightingBuffer);

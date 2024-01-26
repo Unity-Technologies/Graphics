@@ -47,7 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_VolumeHeight;
         SerializedProperty m_VolumePriority;
         SerializedProperty m_AbsorptionDistanceMultiplier;
-        SerializedProperty m_ColorPyramidOffset;
         SerializedProperty m_UnderWaterScatteringColorMode;
         SerializedProperty m_UnderWaterScatteringColor;
         SerializedProperty m_UnderWaterRefraction;
@@ -94,7 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_VolumeHeight = o.Find(x => x.volumeHeight);
             m_VolumePriority = o.Find(x => x.volumePrority);
             m_AbsorptionDistanceMultiplier = o.Find(x => x.absorptionDistanceMultiplier);
-            m_ColorPyramidOffset = o.Find(x => x.colorPyramidOffset);
             m_UnderWaterScatteringColorMode = o.Find(x => x.underWaterScatteringColorMode);
             m_UnderWaterScatteringColor = o.Find(x => x.underWaterScatteringColor);
             m_UnderWaterRefraction = o.Find(x => x.underWaterRefraction);
@@ -343,9 +341,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // View distance
                     EditorGUILayout.PropertyField(serialized.m_AbsorptionDistanceMultiplier);
-
-                    // Color pyramid offset
-                    EditorGUILayout.PropertyField(serialized.m_ColorPyramidOffset, k_ColorPyramidOffset);
 
                     // Scattering color for underwater
                     EditorGUILayout.PropertyField(serialized.m_UnderWaterScatteringColorMode, k_UnderWaterScatteringColorMode);

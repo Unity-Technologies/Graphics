@@ -12,7 +12,6 @@
 		• This scene uses a <link="Waterline Custom Pass Post Process">Custom Pass</link> with a Full Screen Shader Graph injected Before Post Processing.
 		• The Full Screen Shader Graph samples the underwater buffer by using the HD Sample Buffer node with 'isUnderwater' selected.
 		• The shader creates a blur effect around the line by sampling the HD Scene Color node.
-		• A small distortion is added by stretching the UVs above the water line to create a meniscus like effect. 
-		• Distortion needs to be enabled in the HDRP Asset so that Water could be copied into the Color pyramid, which we use when sampling the HD Scene Color node. Also, make sure Dynamic Render Pass Culling is disabled in HDRP Global Settings to avoid having the Distortion pass culled. """,
+		• A small distortion is added by stretching the UVs above the water line to create a meniscus like effect. """,
     "samples": []	
 }

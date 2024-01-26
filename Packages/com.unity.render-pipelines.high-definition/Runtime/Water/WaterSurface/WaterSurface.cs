@@ -432,12 +432,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float absorptionDistanceMultiplier = 1.0f;
 
         /// <summary>
-        /// Sets the offset used to evaluated the underwater refraction. Higher values produce blurrier results but introduce aliasing artifacts.
-        /// </summary>
-        [Range(0, 4)]
-        public int colorPyramidOffset = 1;
-
-        /// <summary>
         /// Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.
         /// </summary>
         [Range(0.0f, 1.0f)]
