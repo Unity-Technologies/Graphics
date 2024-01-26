@@ -3392,7 +3392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                    if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
+                    if (sunOcclusionTexture.IsValid() && RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
                         passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
                     else
                         passData.sunOcclusion = TextureHandle.nullHandle;
