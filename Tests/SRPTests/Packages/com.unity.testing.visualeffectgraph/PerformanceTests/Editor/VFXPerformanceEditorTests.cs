@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections;
-using System.Reflection;
 
 using NUnit.Framework;
 
@@ -19,7 +17,7 @@ namespace UnityEditor.VFX.PerformanceTest
     public class VFXCompilePerformanceTests : EditorPerformanceTests
     {
         const int k_BuildTimeout = 600 * 1000;
-        const string k_Version = "2";
+        const string k_Version = "3";
 
         private bool m_PreviousAsyncShaderCompilation;
         [OneTimeSetUp]
@@ -65,36 +63,26 @@ namespace UnityEditor.VFX.PerformanceTest
                     yield return mode.ToString();
             }
         }
-
-        private static Type GetVisualEffectResourceType()
-        {
-            var visualEffectResouceType = AppDomain.CurrentDomain.GetAssemblies().Select(o => o.GetType("UnityEditor.VFX.VisualEffectResource"))
-                                                                    .Where(o => o != null)
-                                                                    .FirstOrDefault();
-            return visualEffectResouceType;
-        }
-
-        private static MethodInfo k_fnGetResource = typeof(VisualEffectObjectExtensions).GetMethod("GetResource");
-        private static MethodInfo k_fnGetOrCreateGraph = typeof(VisualEffectResourceExtensions).GetMethod("GetOrCreateGraph");
-        private static MethodInfo k_fnGetAsset = GetVisualEffectResourceType().GetProperty("asset").GetMethod;
-
+        
         private static void LoadVFXGraph(string vfxAssetName, out string fullPath, out VFXGraph graph)
         {
-            var vfxAssets = new List<VisualEffectAsset>();
-            var vfxAssetsGuids = AssetDatabase  .FindAssets("t:VisualEffectAsset " + vfxAssetName)
-                                                .Where(o => System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(o)) == vfxAssetName);
-            if (vfxAssetsGuids.Count() != 1)
-                throw new InvalidOperationException("Cannot retrieve (or several asset with same name) " + vfxAssetName);
-
-            var vfxAssetsGuid = vfxAssetsGuids.First();
-            fullPath = AssetDatabase.GUIDToAssetPath(vfxAssetsGuid);
+            using (Measure.Scope("VFXGraphLoad.FindAsset"))
+            {
+                var vfxAssetsGuids = new List<string>(AssetDatabase.FindAssets("t:VisualEffectAsset " + vfxAssetName));
+                vfxAssetsGuids.RemoveAll(guid => Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid)) != vfxAssetName);
+                if (vfxAssetsGuids.Count != 1)
+                    throw new InvalidOperationException("Cannot retrieve (or several asset with same name) " +
+                                                        vfxAssetName);
+                var vfxAssetsGuid = vfxAssetsGuids[0];
+                fullPath = AssetDatabase.GUIDToAssetPath(vfxAssetsGuid);
+            }
 
             using (Measure.Scope("VFXGraphLoad.ImportAsset"))
             {
                 AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             }
 
-            VisualEffectAsset vfxAsset = null;
+            VisualEffectAsset vfxAsset;
             using (Measure.Scope("VFXGraphLoad.LoadAsset"))
             {
                 vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(fullPath);
@@ -102,12 +90,8 @@ namespace UnityEditor.VFX.PerformanceTest
 
             using (Measure.Scope("VFXGraphLoad.GetResource"))
             {
-                var resource = k_fnGetResource.Invoke(null, new object[] { vfxAsset });
-                if (resource == null)
-                {
-                    graph = null;
-                }
-                graph = k_fnGetOrCreateGraph.Invoke(null, new object[] { resource }) as VFXGraph;
+                var resource = vfxAsset.GetResource();
+                graph = resource.GetOrCreateGraph();
             }
         }
 
@@ -157,60 +141,77 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return null;
         }
 
-        [Timeout(k_BuildTimeout), Version(k_Version), Test, Performance]
-        public void Load_VFXLibrary([ValueSource(nameof(allActiveSRP))] string srp)
-        {
-            for (int i = 0; i < 16; i++) //Doing this multiple time to have an average result
-            {
-                VFXLibrary.ClearLibrary();
-                using (Measure.Scope("VFXLibrary.Load.Main"))
-                {
-                    VFXLibrary.Load();
-                }
-            }
-        }
-
         [Timeout(k_BuildTimeout), Version(k_Version), UnityTest, Performance]
         public IEnumerator VFXViewWindow_Open_And_Render([ValueSource(nameof(allActiveSRP))] string srp, [ValueSource(nameof(allVisualEffectAsset))] string vfxAssetPath)
         {
             VFXGraph graph;
-            string fullPath;
-            LoadVFXGraph(vfxAssetPath, out fullPath, out graph);
+            LoadVFXGraph(vfxAssetPath, out var fullPath, out graph);
+
+            var sceneView = SceneView.GetWindow(typeof(SceneView));
+            sceneView.position = new Rect(0, 0, 1600, 900);
+            Assert.IsFalse(sceneView.docked);
 
             using (Measure.Scope("VFXViewWindow.Main"))
             {
                 VFXViewWindow window = null;
                 using (Measure.Scope("VFXViewWindow.Show"))
                 {
-                    window = EditorWindow.GetWindow<VFXViewWindow>();
-                    window.Show();
-                    window.position = new UnityEngine.Rect(0, 0, 1600, 900);
-                    window.autoCompile = false;
-                    window.Repaint();
+                    window = VFXViewWindow.GetWindow(graph, true, true);
+                    yield return null;
                 }
-
-                yield return null;
 
                 using (Measure.Scope("VFXViewWindow.LoadAsset"))
                 {
-                    var asset = k_fnGetAsset.Invoke(graph.visualEffectResource, new object[] { }) as VisualEffectAsset;
+                    var asset = graph.visualEffectResource.asset;
                     window.LoadAsset(asset, null);
+                }
+                using (Measure.Scope("VFXViewWindow.FirstFrames"))
+                {
                     window.graphView.FrameAll();
+                    for (int i = 0; i < 4; ++i)
+                        yield return null;
                 }
 
-                for (int i = 0; i < 8; ++i)
+                using (Measure.Scope("VFXViewWindow.Render"))
                 {
-                    var position = window.graphView.viewTransform.position;
-                    position.x += i % 2 == 1 ? 3.0f : -3.0f;
-                    window.graphView.viewTransform.position = position;
-                    window.Repaint();
-                    yield return Measure.Frames().SampleGroup("VFXViewWindow.Render").MeasurementCount(4).Run();
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        var position = window.graphView.viewTransform.position;
+                        position.x += i % 2 == 1 ? 3.0f : -3.0f;
+                        window.graphView.viewTransform.position = position;
+                        window.Repaint();
+                        yield return null;
+                    }
+                }
+
+                using (Measure.Scope("VFXViewWindow.ExplicitCompile"))
+                {
+                    window.graphView.Compile();
+                    for (int i = 0; i < 4; ++i)
+                        yield return null;
+                }
+
+                VFXViewWindow emptyVFXWindow;
+                using (Measure.Scope("VFXViewWindow.SwitchTab"))
+                {
+                    emptyVFXWindow = VFXViewWindow.GetWindow((VFXGraph)null, true, true);
+                    window.ShowTab();
+                    for (int i = 0; i < 4; ++i)
+                        yield return null;
+                }
+
+                using (Measure.Scope("VFXViewWindow.CloseDummyTab"))
+                {
+                    emptyVFXWindow.Close();
+                    for (int i = 0; i < 4; ++i)
+                        yield return null;
                 }
 
                 using (Measure.Scope("VFXViewWindow.Close"))
                 {
                     window.Close();
-                    yield return null; //Ensure window is closed for next test
+                    for (int i = 0; i < 4; ++i)
+                        yield return null; //Ensure window is closed for next test
                 }
             }
         }
@@ -276,6 +277,28 @@ namespace UnityEditor.VFX.PerformanceTest
                         graph.SetCompilationMode(compilationMode, false);
                         AssetDatabase.ImportAsset(fullPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
                     }
+                }
+
+                var resource = graph.GetResource();
+                if (resource)
+                {
+                    var totalShaderLength = 0u;
+                    var shaderSourceCount = resource.GetShaderSourceCount();
+                    for (int shaderIndex = 0; shaderIndex < shaderSourceCount; ++shaderIndex)
+                    {
+                        var source = resource.GetShaderSource(shaderIndex);
+                        totalShaderLength += (uint)source.Length;
+                    }
+
+                    var resourceObject = new SerializedObject(resource.visualEffectObject);
+                    resourceObject.Update();
+                    var infos = resourceObject.FindProperty("m_Infos");
+                    var expressionsContainer = infos.FindPropertyRelative("m_Expressions");
+                    var expressionArray = expressionsContainer.FindPropertyRelative("m_Expressions");
+                    var expressionSize = expressionArray.arraySize * 6 * 4;
+
+                    Measure.Custom(new SampleGroup("ShaderSize", SampleUnit.Byte, false), totalShaderLength);
+                    Measure.Custom(new SampleGroup("ExpressionSize", SampleUnit.Byte, false), expressionSize);
                 }
             }
         }
