@@ -189,8 +189,19 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
     for(i = t; i * 2 < iNrCoarseLights + 1; i += NR_THREADS / 2)
     {
         uint id = i * 2;
-        uint lightIndexOrCount0 = id == 0 ? iNrCoarseLights : lightsListLDS[max(id - 1, 0)];
-        uint lightIndex1 = id == iNrCoarseLights ? 0 : lightsListLDS[max(id, 0)];
+		
+        uint lightIndexOrCount0 = iNrCoarseLights; // Count
+        if (id > 0) // cannot use ternary operator here (it would evaluate both sides and fetch invalid indices, causing crash on some GPUs)
+        {
+            lightIndexOrCount0 = lightsListLDS[id - 1]; // Index0
+        }
+		
+        uint lightIndex1 = 0;  // Index1
+        if (id < iNrCoarseLights) // cannot use ternary operator here (it would evaluate both sides and fetch invalid indices, causing crash on some GPUs)
+        {
+            lightIndex1 = lightsListLDS[id];
+        }
+		
         // Pack 2 light indices into a single bigtile value
         g_vLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * offs / 2 + i] = (lightIndexOrCount0 & 0xFFFF) | (lightIndex1 << 16);
     }
