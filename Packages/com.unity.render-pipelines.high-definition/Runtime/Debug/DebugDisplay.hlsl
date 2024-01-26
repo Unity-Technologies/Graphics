@@ -132,8 +132,8 @@ void GetHatchedColor(uint2 screenSpaceCoords, inout float3 debugColor)
 }
 
 // Keep in sync with CalculateColorForDebugMipmapStreaming in URP's ShaderLibrary/Debug/DebuggingCommon.hlsl
-#define SET_TEXTURE_STREAMING_DEBUG_TERRAIN(layer) layer##_StreamInfo.z = 6 | (4 << 4); // 0-15 are reserved for per-texture codes; per-material code "4" signifies "warnings/issues"
-#define GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(positionSS, streamingUv, tex) GetTextureDataDebug(_DebugMipMapMode, positionSS, streamingUv, tex, tex##_TexelSize, tex##_MipInfo, tex##_StreamInfo)
+#define TERRAIN_STREAM_INFO float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f) // 0-15 are reserved for per-texture codes (use "6" to indicate terrain); per-material code "4" signifies "warnings/issues"
+#define GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(positionSS, streamingUv, tex) GetTextureDataDebug(_DebugMipMapMode, positionSS, streamingUv, tex, tex##_TexelSize, tex##_MipInfo, TERRAIN_STREAM_INFO)
 #define GET_TEXTURE_STREAMING_DEBUG(positionSS, uv) GetTextureDataDebug(_DebugMipMapMode, positionSS, TRANSFORM_TEX(uv.xy, unity_MipmapStreaming_DebugTex), unity_MipmapStreaming_DebugTex, unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo)
 #define GET_TEXTURE_STREAMING_DEBUG_NO_UV(positionSS) GetTextureDataDebug(_DebugMipMapMode, positionSS, float2(0.0f, 0.0f), unity_MipmapStreaming_DebugTex, unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo)
 float3 GetTextureDataDebug(uint paramId, uint2 screenSpaceCoords, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float4 streamInfo)
