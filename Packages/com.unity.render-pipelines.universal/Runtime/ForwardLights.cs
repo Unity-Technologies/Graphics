@@ -157,6 +157,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         static int AlignByteCount(int count, int align) => align * ((count + align - 1) / align);
 
+        // Calculate view planes and viewToViewportScaleBias. This handles projection center in case the projection is off-centered
+        void GetViewParams(Camera camera, float4x4 viewToClip, out float viewPlaneBot, out float viewPlaneTop, out float4 viewToViewportScaleBias)
+        {
+            // We want to calculate `fovHalfHeight = tan(fov / 2)`
+            // `projection[1][1]` contains `1 / tan(fov / 2)`
+            var viewPlaneHalfSizeInv = math.float2(viewToClip[0][0], viewToClip[1][1]);
+            var viewPlaneHalfSize = math.rcp(viewPlaneHalfSizeInv);
+            var centerClipSpace = camera.orthographic ? -math.float2(viewToClip[3][0], viewToClip[3][1]): math.float2(viewToClip[2][0], viewToClip[2][1]);
+
+            viewPlaneBot = centerClipSpace.y * viewPlaneHalfSize.y - viewPlaneHalfSize.y;
+            viewPlaneTop = centerClipSpace.y * viewPlaneHalfSize.y + viewPlaneHalfSize.y;
+            viewToViewportScaleBias = math.float4(
+                viewPlaneHalfSizeInv * 0.5f,
+                -centerClipSpace * 0.5f + 0.5f
+            );
+        }
+
         internal void PreSetup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
             if (m_UseForwardPlus)
@@ -236,7 +253,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var worldToViews = new Fixed2<float4x4>(cameraData.GetViewMatrix(0), cameraData.GetViewMatrix(math.min(1, viewCount - 1)));
                 var viewToClips = new Fixed2<float4x4>(cameraData.GetProjectionMatrix(0), cameraData.GetProjectionMatrix(math.min(1, viewCount - 1)));
-                
+
                 var minMaxZs = new NativeArray<float2>(itemsPerTile * viewCount, Allocator.TempJob);
 
                 var lightMinMaxZJob = new LightMinMaxZJob
@@ -275,9 +292,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 reflectionProbeMinMaxZHandle.Complete();
 
-                // We want to calculate `fovHalfHeight = tan(fov / 2)`
-                // `projection[1][1]` contains `1 / tan(fov / 2)`
-                var fovHalfHeights = new Fixed2<float>(1.0f/viewToClips[0][1][1], 1.0f/viewToClips[1][1][1]);
+                GetViewParams(camera, viewToClips[0], out float viewPlaneBottom0, out float viewPlaneTop0, out float4 viewToViewportScaleBias0);
+                GetViewParams(camera, viewToClips[1], out float viewPlaneBottom1, out float viewPlaneTop1, out float4 viewToViewportScaleBias1);
+
                 // Each light needs 1 range for Y, and a range per row. Align to 128-bytes to avoid false sharing.
                 var rangesPerItem = AlignByteCount((1 + m_TileResolution.y) * UnsafeUtility.SizeOf<InclusiveRange>(), 128) / UnsafeUtility.SizeOf<InclusiveRange>();
                 var tileRanges = new NativeArray<InclusiveRange>(rangesPerItem * itemsPerTile * viewCount, Allocator.TempJob);
@@ -289,11 +306,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     itemsPerTile = itemsPerTile,
                     rangesPerItem = rangesPerItem,
                     worldToViews = worldToViews,
-                    centerOffset = cameraData.xrRendering && cameraData.xr.viewCount > 0 ? 2f * cameraData.xr.ApplyXRViewCenterOffset(math.float2(0.0f, 0.0f)) : float4.zero,
                     tileScale = (float2)screenResolution / m_ActualTileWidth,
                     tileScaleInv = m_ActualTileWidth / (float2)screenResolution,
-                    viewPlaneHalfSizes = new Fixed2<float2>(fovHalfHeights[0] * math.float2(cameraData.aspectRatio, 1), fovHalfHeights[1] * math.float2(cameraData.aspectRatio, 1)),
-                    viewPlaneHalfSizeInvs = new Fixed2<float2>(math.rcp(fovHalfHeights[0] * math.float2(cameraData.aspectRatio, 1)), math.rcp(fovHalfHeights[1] * math.float2(cameraData.aspectRatio, 1))),
+                    viewPlaneBottoms = new Fixed2<float>(viewPlaneBottom0, viewPlaneBottom1),
+                    viewPlaneTops = new Fixed2<float>(viewPlaneTop0, viewPlaneTop1),
+                    viewToViewportScaleBiases = new Fixed2<float4>(viewToViewportScaleBias0, viewToViewportScaleBias1),
                     tileCount = m_TileResolution,
                     near = camera.nearClipPlane,
                     isOrthographic = camera.orthographic
@@ -421,7 +438,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var shMode = PlatformAutoDetect.ShAutoDetect(asset.shEvalMode);
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_MIXED, shMode == ShEvalMode.Mixed);
                 cmd.SetKeyword(ShaderGlobalKeywords.EVALUATE_SH_VERTEX, shMode == ShEvalMode.PerVertex);
-                
+
                 var stack = VolumeManager.instance.stack;
                 bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(
                     CommandBufferHelpers.GetNativeCommandBuffer(cmd),
