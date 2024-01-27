@@ -357,8 +357,13 @@ namespace UnityEngine.Rendering.Universal
         {
             SetHDRState(cameras);
 
-            // For XR and HDR, UI Overlay ownership must be enforced
-            AdjustUIOverlayOwnership();
+#if UNITY_2021_1_OR_NEWER
+            int cameraCount = cameras.Count;
+#else
+            int cameraCount = cameras.Length;
+#endif
+            // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
+            AdjustUIOverlayOwnership(cameraCount);
 
             GPUResidentDrawer.ReinitializeIfNeeded();
 
@@ -2297,10 +2302,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Enforce under specific circumstances whether URP or native engine triggers the UI Overlay rendering
         /// </summary>
-        static void AdjustUIOverlayOwnership()
+        static void AdjustUIOverlayOwnership(int cameraCount)
         {
             // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
-            if (XRSystem.displayActive)
+            // If there is no camera to render in URP, SS UI overlay has to be rendered in the engine
+            if (XRSystem.displayActive || cameraCount == 0)
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = false;
             }
