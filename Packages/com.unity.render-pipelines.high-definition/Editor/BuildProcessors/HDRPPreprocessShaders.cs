@@ -137,13 +137,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
-            if (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
-            {
-                if (shader == m_ShaderResources.deferredPS ||
-                    shader == m_ShaderResources.deferredTilePS)
-                    return true;
-            }
-
             if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && (settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
                 return true;
 

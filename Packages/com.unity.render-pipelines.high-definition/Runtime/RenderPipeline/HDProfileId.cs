@@ -227,9 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
         DisplayShadows,
 
         RenderDeferredLightingCompute,
-        RenderDeferredLightingComputeAsPixel,
-        RenderDeferredLightingSinglePass,
-        RenderDeferredLightingSinglePassMRT,
 
         // Misc
         VolumeUpdate,

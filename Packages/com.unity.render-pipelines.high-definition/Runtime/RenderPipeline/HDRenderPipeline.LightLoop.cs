@@ -107,7 +107,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildMaterialFlagsShader;
             public ComputeShader clearDispatchIndirectShader;
             public ComputeShader buildDispatchIndirectShader;
-            public bool useComputeAsPixel;
 
             public ShaderVariablesLightList lightListCB;
 
@@ -369,18 +368,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // clear dispatch indirect buffer
-                if (data.useComputeAsPixel)
-                {
-                    cmd.SetComputeBufferParam(data.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, data.output.dispatchIndirectBuffer);
-                    cmd.SetComputeIntParam(data.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, data.numTilesFPTL);
-                    cmd.SetComputeIntParam(data.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
-                    cmd.DispatchCompute(data.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
-                }
-                else
-                {
-                    cmd.SetComputeBufferParam(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, data.output.dispatchIndirectBuffer);
-                    cmd.DispatchCompute(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
-                }
+                cmd.SetComputeBufferParam(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, data.output.dispatchIndirectBuffer);
+                cmd.DispatchCompute(data.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
 
                 // add tiles to indirect buffer
                 cmd.SetComputeBufferParam(data.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, data.output.dispatchIndirectBuffer);
@@ -391,11 +380,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
                 cmd.DispatchCompute(data.buildDispatchIndirectShader, s_BuildIndirectKernel, (data.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, data.viewCount);
             }
-        }
-
-        static bool DeferredUseComputeAsPixel(FrameSettings frameSettings)
-        {
-            return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
         unsafe void PrepareBuildGPULightListPassData(
@@ -507,7 +491,6 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.directionalLightCount = m_GpuLightsBuilder.directionalLightCount;
             passData.canClearLightList = m_GpuLightsBuilder != null && m_lightList != null;
             passData.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
-            passData.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
@@ -568,10 +551,6 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.clearDispatchIndirectShader = clearDispatchIndirectShader;
             passData.buildDispatchIndirectShader = buildDispatchIndirectShader;
             passData.buildDispatchIndirectShader.shaderKeywords = null;
-            if (passData.useComputeAsPixel)
-            {
-                passData.buildDispatchIndirectShader.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
-            }
 
             // Depending on frame setting configurations we might not have written to a depth buffer yet so when executing the pass it might not be valid.
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -746,9 +725,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int numTilesX;
             public int numTilesY;
             public int numTiles;
-            public bool enableTile;
             public bool outputSplitLighting;
-            public bool useComputeLightingEvaluation;
             public bool enableFeatureVariants;
             public bool enableShadowMasks;
             public int numVariants;
@@ -757,10 +734,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute Lighting
             public ComputeShader deferredComputeShader;
             public int viewCount;
-
-            // Full Screen Pixel (debug)
-            public Material splitLightingMat;
-            public Material regularLightingMat;
 
             public TextureHandle colorBuffer;
             public TextureHandle sssDiffuseLightingBuffer;
@@ -882,103 +855,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void RenderComputeAsPixelDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, Material deferredMat, bool outputSplitLighting, CommandBuffer cmd)
-        {
-            CoreUtils.SetKeyword(cmd, "OUTPUT_SPLIT_LIGHTING", outputSplitLighting);
-            CoreUtils.SetKeyword(cmd, "SHADOWS_SHADOWMASK", data.enableShadowMasks);
-
-            if (data.enableFeatureVariants)
-            {
-                if (outputSplitLighting)
-                    CoreUtils.SetRenderTarget(cmd, colorBuffers, data.depthBuffer);
-                else
-                    CoreUtils.SetRenderTarget(cmd, colorBuffers[0], data.depthBuffer);
-
-                for (int variant = 0; variant < data.numVariants; variant++)
-                {
-                    cmd.SetGlobalInt(HDShaderIDs.g_TileListOffset, variant * data.numTiles);
-
-                    cmd.EnableShaderKeyword(s_variantNames[variant]);
-
-                    MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
-                    cmd.DrawProceduralIndirect(Matrix4x4.identity, deferredMat, 0, topology, data.dispatchIndirectBuffer, variant * 4 * sizeof(uint), null);
-
-                    // Must disable variant keyword because it will not get overridden.
-                    cmd.DisableShaderKeyword(s_variantNames[variant]);
-                }
-            }
-            else
-            {
-                CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", data.debugDisplaySettings.IsDebugDisplayEnabled());
-
-                if (outputSplitLighting)
-                    CoreUtils.DrawFullScreen(cmd, deferredMat, colorBuffers, data.depthBuffer, null, 1);
-                else
-                    CoreUtils.DrawFullScreen(cmd, deferredMat, colorBuffers[0], data.depthBuffer, null, 1);
-            }
-        }
-
-        static void RenderComputeAsPixelDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingComputeAsPixel)))
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
-                cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, data.tileFeatureFlagsBuffer);
-                cmd.SetGlobalBuffer(HDShaderIDs.g_TileList, data.tileListBuffer);
-
-                // If SSS is disabled, do lighting for both split lighting and no split lighting
-                // Must set stencil parameters through Material.
-                if (data.outputSplitLighting)
-                {
-                    s_DeferredTileSplitLightingMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
-                    s_DeferredTileRegularLightingMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
-
-                    RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileSplitLightingMat, true, cmd);
-                    RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileRegularLightingMat, false, cmd);
-                }
-                else
-                {
-                    s_DeferredTileMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
-                    RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileMat, false, cmd);
-                }
-            }
-        }
-
-        static void RenderPixelDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, CommandBuffer cmd)
-        {
-            // First, render split lighting.
-            if (data.outputSplitLighting)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingSinglePassMRT)))
-                {
-                    CoreUtils.DrawFullScreen(cmd, data.splitLightingMat, colorBuffers, data.depthBuffer);
-                }
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingSinglePass)))
-            {
-                var currentLightingMaterial = data.regularLightingMat;
-                // If SSS is disable, do lighting for both split lighting and no split lighting
-                // This is for debug purpose, so fine to use immediate material mode here to modify render state
-                if (!data.outputSplitLighting)
-                {
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.Clear);
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering);
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
-                }
-                else
-                {
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.RequiresDeferredLighting);
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
-                    currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                }
-
-                currentLightingMaterial.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
-
-                CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], data.depthBuffer);
-            }
-        }
-
         LightingOutput RenderDeferredLighting(
             RenderGraph renderGraph,
             HDCamera hdCamera,
@@ -1003,9 +879,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.numTilesX = (w + 15) / 16;
                 passData.numTilesY = (h + 15) / 16;
                 passData.numTiles = passData.numTilesX * passData.numTilesY;
-                passData.enableTile = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile);
                 passData.outputSplitLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
-                passData.useComputeLightingEvaluation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation);
                 passData.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplayOrSceneLightOff;
                 passData.enableShadowMasks = m_EnableBakeShadowMask;
                 passData.numVariants = LightDefinitions.s_NumFeatureVariants;
@@ -1014,10 +888,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Compute Lighting
                 passData.deferredComputeShader = deferredComputeShader;
                 passData.viewCount = hdCamera.viewCount;
-
-                // Full Screen Pixel (debug)
-                passData.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, passData.enableShadowMasks, debugDisplayOrSceneLightOff);
-                passData.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, passData.enableShadowMasks, debugDisplayOrSceneLightOff);
 
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 if (passData.outputSplitLighting)
@@ -1075,19 +945,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
 
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
-
-                        if (data.enableTile)
-                        {
-                            bool useCompute = data.useComputeLightingEvaluation && !k_PreferFragment;
-                            if (useCompute)
-                                RenderComputeDeferredLighting(data, colorBuffers, context.cmd);
-                            else
-                                RenderComputeAsPixelDeferredLighting(data, colorBuffers, context.cmd);
-                        }
-                        else
-                        {
-                            RenderPixelDeferredLighting(data, colorBuffers, context.cmd);
-                        }
+                        RenderComputeDeferredLighting(data, colorBuffers, context.cmd);
                     });
 
                 return output;

@@ -189,7 +189,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_TileList = Shader.PropertyToID("g_TileList");
         public static readonly int g_NumTiles = Shader.PropertyToID("g_NumTiles");
         public static readonly int g_NumTilesX = Shader.PropertyToID("g_NumTilesX");
-        public static readonly int g_VertexPerTile = Shader.PropertyToID("g_VertexPerTile");
 
         public static readonly int _NumTiles = Shader.PropertyToID("_NumTiles");
 
