@@ -185,5 +185,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/380_STP.unity
     guid: 2b1e933506b286343a1128073e1d94e4
+  - enabled: 1
+    path: Assets/Scenes/400_OcclusionCulling_RenderScale.unity
+    guid: f1830625a97eb7246a86205545f61297
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -887,6 +887,8 @@ namespace UnityEngine.Rendering.Universal
         {
             var viewMatrix = cameraData.GetViewMatrix();
             var projMatrix = cameraData.GetProjectionMatrix();
+            int scaledWidth = (int)(cameraData.pixelWidth * cameraData.renderScale);
+            int scaledHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
             var occluderParams = new OccluderParameters(cameraData.camera.GetInstanceID())
             {
                 viewMatrix = viewMatrix,
@@ -894,7 +896,7 @@ namespace UnityEngine.Rendering.Universal
                 gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
                 viewOffsetWorldSpace = Vector3.zero,
                 depthTexture = depthTexture,
-                depthSize = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight),
+                depthSize = new Vector2Int(scaledWidth, scaledHeight),
             };
             GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams);
         }

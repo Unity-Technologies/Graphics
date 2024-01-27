@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
 
                     GPUResidentDrawer.RenderDebugOcclusionTestOverlay(renderGraph, debugSettings, cameraData.camera.GetInstanceID(), resourceData.activeColorTexture);
 
-                    float screenHeight = cameraData.camera.pixelHeight;
+                    float screenHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
                     float maxHeight = screenHeight * textureHeightPercent / 100.0f;
                     GPUResidentDrawer.RenderDebugOccluderOverlay(renderGraph, debugSettings, new Vector2(0.0f, screenHeight - maxHeight), maxHeight, resourceData.activeColorTexture);
                 }
