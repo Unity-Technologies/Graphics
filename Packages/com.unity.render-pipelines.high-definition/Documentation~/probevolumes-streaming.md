@@ -21,6 +21,10 @@ To enable streaming, do the following:
 
 You can configure streaming settings in the same window. See [HDRP Asset](HDRP-Asset.md#Lighting) for more information.
 
+## Compatibility with Asset Bundles
+
+The underlying system used to support streaming causes limitation with regards to Asset Bundles and Addressables. Please see [this section for more information](probevolumes-settings.md#probe-volume-limitations-with-asset-bundles-and-addressables)
+
 # Additional resources
 
 * [Understand Probe Volumes](probevolumes-concept.md)
