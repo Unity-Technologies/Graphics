@@ -12,7 +12,7 @@ namespace UnityEngine.VFX.Utility
     [RequireComponent(typeof(VisualEffect))]
     [DefaultExecutionOrder(1)]
     [DisallowMultipleComponent]
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     public class VFXPropertyBinder : MonoBehaviour
     {
         /// <summary>
