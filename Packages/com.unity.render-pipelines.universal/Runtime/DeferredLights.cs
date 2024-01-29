@@ -463,9 +463,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DeferredInputAttachments[1] = this.GbufferAttachments[1];
             this.DeferredInputAttachments[2] = this.GbufferAttachments[2];
             this.DeferredInputAttachments[3] = this.GbufferAttachments[4];
-            if (UseShadowMask)
+
+            if (UseShadowMask && UseRenderingLayers)
+            {
                 this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferShadowMask];
+                this.DeferredInputAttachments[5] = this.GbufferAttachments[GBufferRenderingLayers];
+            }
+            else if (UseShadowMask)
+            {
+                this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferShadowMask];
+            }
+            else if (UseRenderingLayers)
+            {
+                this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferRenderingLayers];
+            }
         }
+
 
         internal bool IsRuntimeSupportedThisFrame()
         {
@@ -493,7 +506,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            var inputCount = 4 + (UseShadowMask ?  1 : 0);
+            var inputCount = 4 + (UseShadowMask ?  1 : 0) + (UseRenderingLayers ?  1 : 0);
             if (this.DeferredInputAttachments == null && this.UseFramebufferFetch && this.GbufferAttachments.Length >= 3 ||
                 (this.DeferredInputAttachments != null && inputCount != this.DeferredInputAttachments.Length))
             {
