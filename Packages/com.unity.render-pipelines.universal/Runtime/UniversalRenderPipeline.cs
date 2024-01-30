@@ -209,8 +209,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Initial state of the RTHandle system.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            // Note: Use legacy DR control. Can be removed once URP integrates with core package DynamicResolutionHandler
-            RTHandles.Initialize(Screen.width, Screen.height, useLegacyDynamicResControl: true);
+            RTHandles.Initialize(Screen.width, Screen.height);
 
             // Init global shader keywords
             ShaderGlobalKeywords.InitializeShaderGlobalKeywords();
@@ -395,6 +394,13 @@ namespace UnityEngine.Rendering.Universal
             // This is for texture streaming
             UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
 #endif
+
+            // URP uses the camera's allowDynamicResolution flag to decide if useDynamicScale should be enabled for camera render targets.
+            // However, the RTHandle system has an additional setting that controls if useDynamicScale will be set for render targets allocated via RTHandles.
+            // In order to avoid issues at runtime, we must make the RTHandle system setting consistent with URP's logic. URP already synchronizes the setting
+            // during initialization, but unfortunately it's possible for external code to overwrite the setting due to RTHandle state being global.
+            // The best we can do to avoid errors in this situation is to ensure the state is set to the correct value every time we perform rendering.
+            RTHandles.SetHardwareDynamicResolutionState(true);
 
             SortCameras(cameras);
 #if UNITY_2021_1_OR_NEWER
