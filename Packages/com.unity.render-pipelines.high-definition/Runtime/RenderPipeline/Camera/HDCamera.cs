@@ -468,6 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal Vector2 lowResDrsFactor => DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() ? m_LowResHWDRSFactor : new Vector2(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y);
         internal float lowResScale = 0.5f;
+        internal float historyLowResScale = 0.5f;
         internal bool isLowResScaleHalf { get { return lowResScale == 0.5f; } }
         internal Rect lowResViewport
         {
@@ -479,6 +480,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     (float)Mathf.RoundToInt(((float)actualHeight) * lowResScale));
             }
         }
+
+        internal float lowResScaleForScreenSpaceLighting = 0.5f;
+        internal float historyLowResScaleForScreenSpaceLighting = 0.5f;
 
         static private Vector2 CalculateLowResHWDrsFactor(Vector2Int scaledSize, DynamicResolutionHandler resolutionHandler, float lowResFactor)
         {
@@ -1316,7 +1320,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
+            historyLowResScale = resetPostProcessingHistory ? 0.5f : lowResScale;
+            historyLowResScaleForScreenSpaceLighting = resetPostProcessingHistory ? 0.5f : lowResScaleForScreenSpaceLighting;
             lowResScale = 0.5f;
+            lowResScaleForScreenSpaceLighting = 0.5f;
+
             m_LowResHWDRSFactor = Vector2.one;
             if (canDoDynamicResolution)
             {
@@ -1329,6 +1337,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 //setting up constants for low resolution rendering (i.e. transparent low res)
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
                 m_LowResHWDRSFactor = CalculateLowResHWDrsFactor(scaledSize, DynamicResolutionHandler.instance, lowResScale);
+
+                lowResScaleForScreenSpaceLighting =  DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScaleForScreenSpaceLighting, hdrp.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold);
             }
 
             var screenWidth = actualWidth;

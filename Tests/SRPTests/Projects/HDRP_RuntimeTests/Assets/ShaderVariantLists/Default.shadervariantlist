@@ -94,7 +94,7 @@ Compiled compute shader: DepthOfFieldPrefilter, kernel: KMain, keywords ENABLE_A
 Compiled compute shader: DepthOfFieldPrefilter, kernel: KMain, keywords FAR HIGH_QUALITY NEAR
 Compiled compute shader: DepthOfFieldTileMax, kernel: KMain, keywords FAR NEAR
 Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords <no keywords>
-Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords FULL_RESOLUTION_INPUT
+Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: GeneratePointDistribution, keywords <no keywords>
 Compiled compute shader: DownsampleVTFeedback, kernel: KMain, keywords <no keywords>
 Compiled compute shader: DownsampleVTFeedback, kernel: KMainMSAA, keywords <no keywords>
@@ -167,9 +167,9 @@ Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuild, keywords <no ke
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuildArgs, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords ENABLE_MSAA
-Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColor, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColor, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION ENABLE_ALPHA LENS_DISTORTION VIGNETTE
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION GAMMA2_OUTPUT LENS_DISTORTION VIGNETTE
@@ -1195,6 +1195,7 @@ Compiled shader: Hidden/HDRP/UpsampleTransparent, pass: <Unnamed Pass 2>, stage:
 Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 3>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 4>, stage: all, keywords <no keywords>
+Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 5>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 6>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 7>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/VolumetricCloudsCombine, pass: <Unnamed Pass 7>, stage: all, keywords STEREO_INSTANCING_ON
