@@ -119,6 +119,7 @@ namespace UnityEngine.Rendering
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
                     SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
                     SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU &&
                     (s_SupportsLensFlare16bitsFormat || s_SupportsLensFlare32bitsFormat); //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
 #endif
         }

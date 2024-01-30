@@ -6,7 +6,7 @@
 #pragma kernel CSVFXBatchCopyCountKvp
 #pragma kernel CSVFXInitBoundsBuffer
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3 webgpu
 
 #include "HLSLSupport.cginc"
 

@@ -112,6 +112,7 @@ namespace UnityEditor.VFX
             yield return GraphicsDeviceType.PlayStation4;
             yield return GraphicsDeviceType.PlayStation5;
             yield return GraphicsDeviceType.Switch;
+            yield return GraphicsDeviceType.WebGPU;
         }
     }
 }
