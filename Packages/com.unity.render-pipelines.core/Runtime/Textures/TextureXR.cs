@@ -222,21 +222,21 @@ namespace UnityEngine.Rendering
             RenderTexture blackUIntTexture2D = new RenderTexture(1, 1, 0, GraphicsFormat.R32_UInt)
             {
                 dimension = TextureDimension.Tex2D,
-                volumeDepth = slices,
+                volumeDepth = 1,
                 useMipMap = false,
                 autoGenerateMips = false,
                 enableRandomWrite = true,
-                name = "Black UInt Texture Array"
+                name = "Black UInt Texture"
             };
 
             blackUIntTexture2D.Create();
 
-            // Workaround because we currently can't create a Texture2DArray using an R32_UInt format
+            // Workaround because we currently can't create a Texture2D using an R32_UInt format
             // So we create a R32_UInt RenderTarget and clear it using a compute shader, because we can't
             // Clear this type of target on metal devices (output type nor compatible: float4 vs uint)
             int kernel = clearR32_UIntShader.FindKernel("ClearUIntTexture");
             cmd.SetComputeTextureParam(clearR32_UIntShader, kernel, "_Target", blackUIntTexture2D);
-            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, slices);
+            cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, 1);
 
             return blackUIntTexture2D as Texture;
         }
