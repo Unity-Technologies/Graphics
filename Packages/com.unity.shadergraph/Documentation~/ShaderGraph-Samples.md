@@ -28,3 +28,9 @@ The following samples are currently available for Shader Graph.
 |:--------------------|
 |![](images/NodeReferenceSamples.png) |
 | This set of Shader Graph assets provides reference material for the nodes available in the Shader Graph node library. Each graph contains a description for a specific node, examples of how it can be used, and useful tips. Some example assets also show a break-down of the math that the node is doing. You can use these samples along with the documentation to learn more about the behavior of individual nodes. |
+
+| [Feature Examples](Shader-Graph-Sample-Feature-Examples.md) |
+|:--------------------|
+|![](images/FeatureExamplesSample.png) |
+| This is a collection of over 30 Shader Graph files.  Each file demonstrates a specific shader technique such as angle blending, triplanar projection, parallax mapping, and custom lighting. While you won’t use these shaders directly in your project, you can use them to quickly learn and understand the various techniques, and recreate them into your own work. Each file contains notes that describe what the shader is doing, and most of the shaders are set up with the core functionality contained in a subgraph that’s easy to copy and paste directly into your own shader. The sample also has extensive documentation describing each of the samples to help you learn.
+ |
