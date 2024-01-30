@@ -596,5 +596,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> Returns the type of the sky renderer. </summary>
         /// <returns> PhysicallyBasedSkyRenderer type. </returns>
         public override Type GetSkyRendererType() { return typeof(PhysicallyBasedSkyRenderer); }
+
+        /// <summary> Doesn't have any effect. </summary>
+        [SerializeField, Obsolete("Obsolete parameter, will be removed in 2023.3")]
+        public ClampedIntParameter numberOfBounces = new ClampedIntParameter(3, 1, 10);
     }
 }

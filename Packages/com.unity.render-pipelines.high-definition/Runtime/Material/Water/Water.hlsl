@@ -777,12 +777,18 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
+    float3 positionWS = posInput.positionWS;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0) && defined(USING_STEREO_MATRICES)
+    // Inverse of ApplyCameraRelativeXR
+    positionWS -= _WorldSpaceCameraPosViewOffset;
+#endif
+
     // Re-evaluate the refraction
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
     float refractedWaterDistance;
     float3 absorptionTint;
-    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
+    ComputeWaterRefractionParams(positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
         posInput.positionSS * _ScreenSize.zw, V, preLightData.aboveWater,
         preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
