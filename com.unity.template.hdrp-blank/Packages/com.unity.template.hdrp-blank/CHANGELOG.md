@@ -4,6 +4,12 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [17.0.1] - 2024-01-31
+
+### Changed
+
+- Set Input System as active input handler
+
 ## [17.0.0] - 2023-11-15
 
 ### Changed
