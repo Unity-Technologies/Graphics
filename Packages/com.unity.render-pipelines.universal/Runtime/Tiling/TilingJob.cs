@@ -485,9 +485,11 @@ namespace UnityEngine.Rendering.Universal
                     for (var i = 0; i < clippedPointsCount; i++)
                     {
                         var candidateLine = clippedPoints[i] - hullPoint;
+                        var det = math.determinant(math.float2x2(endpointLine, candidateLine));
 
-                        // Check if point i lies on the left side of the line to the current endpoint.
-                        if (endpointIndex == hullPointIndex || math.determinant(math.float2x2(endpointLine, candidateLine)) > 0)
+                        // Check if point i lies on the left side of the line to the current endpoint, or if it lies
+                        // collinear to the current endpoint but farther away.
+                        if (endpointIndex == hullPointIndex || det > 0 || (det == 0.0f && math.lengthsq(candidateLine) > math.lengthsq(endpointLine)))
                         {
                             endpointIndex = i;
                             endpointLine = candidateLine;
