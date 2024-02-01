@@ -244,6 +244,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
+            rgDesc.vrUsage = desc.vrUsage;
             // TODO RENDERGRAPH: depthStencilFormat handling?
 
             return renderGraph.CreateTexture(rgDesc);

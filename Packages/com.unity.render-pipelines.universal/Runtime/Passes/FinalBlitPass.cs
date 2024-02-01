@@ -279,7 +279,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.source = src;
                 builder.UseTexture(src, AccessFlags.Read);
                 passData.destination = dest;
-                builder.SetRenderAttachment(dest, 0, AccessFlags.Write); ;
+                builder.SetRenderAttachment(dest, 0, AccessFlags.Write);
 
                 if (outputsToHDR && overlayUITexture.IsValid())
                 {
