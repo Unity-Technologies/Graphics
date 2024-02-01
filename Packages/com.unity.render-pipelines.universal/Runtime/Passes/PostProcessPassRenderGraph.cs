@@ -397,23 +397,22 @@ namespace UnityEngine.Rendering.Universal
 
                 // Setting keywords can be somewhat expensive on low-end platforms.
                 // Previous params are cached to avoid setting the same keywords every frame.
+                var material = m_Materials.bloom;
                 bool bloomParamsDirty = !m_BloomParamsPrev.Equals(ref bloomParams);
-                if (bloomParamsDirty)
+                bool isParamsPropertySet = material.HasProperty(ShaderConstants._Params);
+                if (bloomParamsDirty || !isParamsPropertySet)
                 {
-                    {
-                        var material = m_Materials.bloom;
-                        material.SetVector(ShaderConstants._Params, bloomParams.parameters);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
-                    }
+                    material.SetVector(ShaderConstants._Params, bloomParams.parameters);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
 
                     // These materials are duplicate just to allow different bloom blits to use different textures.
                     for (uint i = 0; i < k_MaxPyramidSize; ++i)
                     {
-                        var material = m_Materials.bloomUpsample[i];
-                        material.SetVector(ShaderConstants._Params, bloomParams.parameters);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
+                        var materialPyramid = m_Materials.bloomUpsample[i];
+                        materialPyramid.SetVector(ShaderConstants._Params, bloomParams.parameters);
+                        CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
+                        CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
                     }
 
                     m_BloomParamsPrev = bloomParams;
