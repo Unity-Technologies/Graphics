@@ -106,9 +106,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int msaaSamples;
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
-
-            // The size of the camera target changes during the frame so we must make a copy of it here to preserve its record-time value.
-            internal Vector2Int cameraTargetSizeCopy;
         }
 
         /// <inheritdoc/>
@@ -122,7 +119,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
             m_PassData.copyToDepth = CopyToDepth;
             m_PassData.cameraData = cameraData;
-            m_PassData.cameraTargetSizeCopy = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
             var cmd = renderingData.commandBuffer;
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -210,8 +206,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
                 if (isGameViewFinalTarget)
                     cmd.SetViewport(passData.cameraData.pixelRect);
-                else
-                    cmd.SetViewport(new Rect(0, 0, passData.cameraTargetSizeCopy.x, passData.cameraTargetSizeCopy.y));
 
                 copyDepthMaterial.SetTexture(Shader.PropertyToID("_CameraDepthAttachment"), source);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
@@ -266,7 +260,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyDepthMaterial = m_CopyDepthMaterial;
                 passData.msaaSamples = MssaSamples;
                 passData.cameraData = cameraData;
-                passData.cameraTargetSizeCopy = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth;
 
