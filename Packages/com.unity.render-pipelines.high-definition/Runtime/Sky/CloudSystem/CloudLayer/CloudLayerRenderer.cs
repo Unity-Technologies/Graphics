@@ -140,7 +140,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CloudLayerMaterial.SetVector(HDShaderIDs._SunDirection, -builtinParams.sunLight.transform.forward);
 
-                var lightComponent = builtinParams.sunLight.GetComponent<Light>();
                 var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
                 lightColor = additionalLightData.EvaluateLightColor();
             }

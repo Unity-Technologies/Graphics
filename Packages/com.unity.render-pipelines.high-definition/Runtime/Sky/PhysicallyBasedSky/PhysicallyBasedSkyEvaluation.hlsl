@@ -149,7 +149,7 @@ float3 EvaluateMultipleScattering(float cosChi, float height)
     return SAMPLE_TEXTURE2D_LOD(_MultiScatteringLUT, s_linear_clamp_sampler, uv, 0).rgb;
 }
 
-void EvaluateAtmosphericScattering(float3 V, float2 positionNDC, float tFrag, out float3 skyColor, out float3 skyOpacity)
+void EvaluateCameraAtmosphericScattering(float3 V, float2 positionNDC, float tFrag, out float3 skyColor, out float3 skyOpacity)
 {
     skyColor = skyOpacity = 0.0f;
 

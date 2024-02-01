@@ -614,13 +614,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal override Vector3 EvaluateAtmosphericAttenuation(Vector3 sunDirection, Vector3 cameraPosition)
         {
+            HDCamera.PlanetData planet = new();
             var profile = SkyManager.GetStaticLightingSky()?.profile;
-            float radius = profile != null && profile.TryGet<VisualEnvironment>(out var env) ? env.planetRadius.value : VisualEnvironment.k_DefaultEarthRadius;
+            if (profile != null && profile.TryGet<VisualEnvironment>(out var env))
+                planet.Set(cameraPosition, env);
+            else
+                planet.Init(VisualEnvironment.k_DefaultEarthRadius);
 
             return EvaluateAtmosphericAttenuation(
                 GetAirScaleHeight(), GetAerosolScaleHeight(), GetAirExtinctionCoefficient(), GetAerosolExtinctionCoefficient(),
                 GetOzoneLayerMinimumAltitude(), GetOzoneLayerWidth(), GetOzoneExtinctionCoefficient(),
-                new Vector3(0.0f, -radius, 0.0f), radius, sunDirection, cameraPosition);
+                planet.center, planet.radius, sunDirection, cameraPosition);
         }
 
         /// <summary> Returns the type of the sky renderer. </summary>

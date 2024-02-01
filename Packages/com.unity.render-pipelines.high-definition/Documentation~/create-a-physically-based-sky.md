@@ -26,17 +26,19 @@ Refer to the [Physically Based Sky Volume Override Reference](physically-based-s
 
 ## Set the surface of the planet
 
-Where the surface of the planet is depends on whether you enable or disable the **Spherical Mode** property:
+Where the surface of the planet is depends on the planet settings that are in the [Visual Environment](Override-Visual-Environment.md).
 
-* If you enable **Spherical Mode**, the **Planetary Radius** and **Planet Center Position** properties define where the surface is. In this mode, the surface is at the distance set in **Planetary Radius** away from the position set in **Planet Center Position**.
-* Otherwise, the **Sea Level** property defines where the surface is. In this mode, the surface stretches out infinitely on the xz plane and **Sea Level** sets its world space height.
-
-The default values in either mode make it so the planet's surface is at **0** on the y-axis at the Scene origin. Since the default values for **Spherical Mode** simulate Earth, the radius is so large that, when you create your Scene environment, you can consider the surface to be flat. If you want some areas of your Scene environment to be below the current surface height, you can either vertically offset your Scene environment so that the lowest areas are above **0** on the y-axis, or decrease the surface height. To do the latter:
-
-* If in **Spherical Mode**, either decrease the **Planetary  Radius**, or move the **Planet Center Position** down.
-
-* If not in **Spherical Mode**, decrease the **Sea Level**.
+* If you set the **Rendering Space** to **World**, and the **Center** to **Automatic**, the surface of the planet will be at the worlds origin and the center is derived from the **Radius** property.
+* If you set the **Rendering Space** to **Camera**, the planet will move with the camera and the surface of the planet will always be under the camera.
 
 The planet does not render in the depth buffer, this means it won't occlude lens flare and will not behave correctly when using motion blur.
 
 Refer to the [Physically Based Sky Volume Override Reference](physically-based-sky-volume-override-reference.md) for more information.
+
+## Viewing the Physically Based Sky from space
+
+As discussed above, when the **Rendering Space** is in **World** mode, the camera can go in the sky and see the planet from outer space.
+For performance reasons, by default the sun light attenuation from the atmosphere is computed as if the objects are situated on the ground. Also the LUT used to compute atmospheric attenuation on objects has a maximum range of 128km.
+These approximations have very limited impact on visuals as long as the camera is not too high in the atmosphere, but can be noticeable when the camera is in outer space.
+HDRP supports using more correct computations to cover these scenarios using more complex shaders, which has a slight performance cost.
+In order to do that, you have to set the PrecomputedAtmosphericAttenuation value to `0` in the **ShaderOptions** enum of the HDRP config package. For information on how to set up and use the HDRP Config package, see [HDRP Config](configure-a-project-using-the-hdrp-config-package.md).

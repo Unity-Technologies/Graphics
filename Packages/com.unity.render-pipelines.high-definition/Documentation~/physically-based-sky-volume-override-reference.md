@@ -111,7 +111,7 @@ To make this section visible, set **Type** to **Custom Planet**.
 
 ## Implementation details
 
-This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](https://hal.inria.fr/inria-00288758/en) (Bruneton and Neyret, 2008), as well as the method outline in [A Scalable and Production Ready Sky and Atmosphere Rendering Technique](https://sebh.github.io/publications/egsr2020.pdf) (Hillaire 2020).
+This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](https://hal.inria.fr/inria-00288758/en) (Bruneton and Neyret, 2008), as well as the method outlined in [A Scalable and Production Ready Sky and Atmosphere Rendering Technique](https://sebh.github.io/publications/egsr2020.pdf) (Hillaire 2020).
 
 This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as if the camera was at ground level. Where the surface of the planet is depends on the **Planet** settings set from the **Visual Environement**.
 

@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class PhysicallyBasedSkyRenderer : SkyRenderer
     {
+        static bool SupportSpace => ShaderConfig.s_PrecomputedAtmosphericAttenuation == 0;
+
         class PrecomputationCache
         {
             class RefCountedData
@@ -112,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderMultiScatteringLut(cmd);
 
-                if (builtinParams.hdCamera.planet.renderingSpace == RenderingSpace.Camera)
+                if (!SupportSpace && builtinParams.hdCamera.planet.renderingSpace == RenderingSpace.Camera)
                 {
                     m_LastLightsHash = -1;
 
@@ -138,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     PrecomputeTables(cmd);
                 }
 
-                if (pbrSky.atmosphericScattering.value)
+                if (!SupportSpace && pbrSky.atmosphericScattering.value)
                 {
                     m_AtmosphericScatteringLut = RTHandles.Alloc(
                         (int)PbrSkyConfig.AtmosphericScatteringLutWidth,
@@ -267,10 +269,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void BindGlobalBuffers(CommandBuffer cmd)
             {
-                if (m_AtmosphericScatteringLut != null)
-                    cmd.SetGlobalTexture(HDShaderIDs._AtmosphericScatteringLUT, m_AtmosphericScatteringLut);
+                cmd.SetGlobalBuffer(HDShaderIDs._CelestialBodyDatas, s_CelestialBodyBuffer);
+
+                if (SupportSpace)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, m_InScatteredRadianceTables[0]);
+                    cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, m_InScatteredRadianceTables[1]);
+                    cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, m_InScatteredRadianceTables[2]);
+                }
                 else
-                    cmd.SetGlobalTexture(HDShaderIDs._AtmosphericScatteringLUT, CoreUtils.blackVolumeTexture);
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._AtmosphericScatteringLUT, m_AtmosphericScatteringLut ?? (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
+                }
             }
 
             public void BindBuffers(MaterialPropertyBlock mpb)
@@ -520,11 +530,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
-            var renderingSpace = builtinParams.hdCamera.planet.renderingSpace;
+            var renderingSpace = SupportSpace ? RenderingSpace.World : builtinParams.hdCamera.planet.renderingSpace;
 
             if (renderingSpace == RenderingSpace.Camera)
                 m_PrecomputedData.RenderSkyViewLut(builtinParams.commandBuffer);
-            if (pbrSky.atmosphericScattering.value && !renderForCubemap) // TODO: include fog & scattering in cubemaps
+            if (!SupportSpace && pbrSky.atmosphericScattering.value && !renderForCubemap) // TODO: include fog & scattering in cubemaps
                 m_PrecomputedData.RenderAtmosphericScatteringLut(builtinParams);
 
             m_PrecomputedData.BindGlobalBuffers(builtinParams.commandBuffer);

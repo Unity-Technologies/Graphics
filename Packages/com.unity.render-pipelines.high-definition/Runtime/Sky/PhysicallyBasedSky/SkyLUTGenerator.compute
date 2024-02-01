@@ -21,8 +21,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/VolumetricCloudsShadowSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
-StructuredBuffer<CelestialBodyData> _CelestialBodyDatas;
-
 // This is the main function that integrates atmosphere along a ray
 // It is baked in various LUTs by all the kernels below
 
@@ -309,9 +307,9 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
 
     skyTransmittance = ParallelPrefixProduct(s, transmittanceOverSegment);
 
-    for (uint i = 0; i < _DirectionalLightCount; i++)
+    for (uint i = 0; i < _CelestialLightCount; i++)
     {
-        DirectionalLightData light = _DirectionalLightDatas[i];
+        CelestialBodyData light = _CelestialBodyDatas[i];
         float3 L = -light.forward.xyz;
 
         float shadow = 1.0f;
@@ -328,7 +326,13 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
         */
 
         if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
-            shadow *= EvaluateVolumetricCloudsShadows(light, P + _PlanetCenterPosition);
+        {
+            DirectionalLightData dirLight;
+            dirLight.forward = light.forward;
+            dirLight.right = light.right;
+            dirLight.up = light.up;
+            shadow *= EvaluateVolumetricCloudsShadows(dirLight, P + _PlanetCenterPosition);
+        }
 
         const float3 sunTransmittance = shadow * EvaluateSunColorAttenuation(dot(N, L), r);
         const float3 phaseScatter = AirScatter(height) * AirPhase(-dot(L, V)) + AerosolScatter(height) * AerosolPhase(-dot(L, V));

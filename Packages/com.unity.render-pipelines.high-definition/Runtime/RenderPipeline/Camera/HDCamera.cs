@@ -408,6 +408,13 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Vector3 center;
             internal RenderingSpace renderingSpace;
 
+            internal void Init(float planetRadiusMeters)
+            {
+                radius = planetRadiusMeters;
+                center = new Vector3(0, -radius, 0);
+                renderingSpace = RenderingSpace.World;
+            }
+
             internal void Set(Vector3 cameraPos, VisualEnvironment visualEnv)
             {
                 renderingSpace = visualEnv.renderingSpace.value;

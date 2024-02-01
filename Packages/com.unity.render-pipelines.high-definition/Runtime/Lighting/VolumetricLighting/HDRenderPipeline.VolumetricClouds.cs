@@ -312,9 +312,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (currentSun != null)
             {
                 // Grab the target sun additional data
-                m_CurrentSunLight.TryGetComponent<HDAdditionalLightData>(out additionalLightData);
-                // m_CurrentSunLightDataIndex is supposed to be guaranteed to be non -1 if the current sun is not null
-                cb._SunLightColor = m_GpuLightsBuilder.directionalLights[m_CurrentSunLightDataIndex].color * settings.sunLightDimmer.value;
+                additionalLightData = m_CurrentSunLightAdditionalLightData;
+                cb._SunLightColor = additionalLightData.EvaluateLightColor() * settings.sunLightDimmer.value;
                 cb._SunDirection = -currentSun.transform.forward;
             }
             else

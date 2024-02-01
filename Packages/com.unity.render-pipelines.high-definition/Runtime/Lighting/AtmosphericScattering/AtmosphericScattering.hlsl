@@ -15,6 +15,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
+StructuredBuffer<CelestialBodyData> _CelestialBodyDatas;
+
 TEXTURE3D(_VBufferLighting);
 
 float3 GetFogColor(float3 V, float fragDist)
@@ -111,26 +113,19 @@ void EvaluatePbrAtmosphere(float3 positionPS, float3 V, float distAlongRay, bool
 
         skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth); // from 'tEntry' to 'tFrag'
 
-
-        for (uint i = 0; i < _DirectionalLightCount; i++)
+        for (uint i = 0; i < _CelestialLightCount; i++)
         {
-            DirectionalLightData light = _DirectionalLightDatas[i];
-
-            // Use scalar or integer cores (more efficient).
-            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
-
-            if (!interactsWithSky) continue;
-
+            CelestialBodyData light = _CelestialBodyDatas[i];
             float3 L = -light.forward.xyz;
 
             // The sun disk hack causes some issues when applied to nearby geometry, so don't do that.
-            if (renderSunDisk && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
+            if (renderSunDisk && asint(light.angularRadius) != 0 && light.distanceFromCamera <= tFrag)
             {
                 float c = dot(L, -V);
 
                 if (-0.99999 < c && c < 0.99999)
                 {
-                    float alpha = 0.5 * light.angularDiameter;
+                    float alpha = light.angularRadius;
                     float beta  = acos(c);
                     float gamma = min(alpha, beta);
 
@@ -223,6 +218,17 @@ void EvaluatePbrAtmosphere(float3 positionPS, float3 V, float distAlongRay, bool
         AtmosphereArtisticOverride(cosHor, cosChi, skyColor, skyOpacity);
         #endif
     }
+}
+
+void EvaluateAtmosphericScattering(float3 V, float2 positionNDC, float tFrag, out float3 skyColor, out float3 skyOpacity)
+{
+#if SHADEROPTIONS_PRECOMPUTED_ATMOSPHERIC_ATTENUATION
+    EvaluateCameraAtmosphericScattering(V, positionNDC, tFrag, skyColor, skyOpacity);
+#else
+    float3 O = GetCameraPositionWS() - _PlanetCenterPosition;
+    EvaluatePbrAtmosphere(O, -V, tFrag, false, skyColor, skyOpacity);
+    skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
+#endif
 }
 
 float3 GetViewForwardDir1(float4x4 viewMatrix)
@@ -324,7 +330,9 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
     {
         float3 skyColor = 0, skyOpacity = 0;
 
-        float tFrag = posInput.linearDepth;
+        // Convert depth to distance along the ray. Doesn't work with tilt shift, etc.
+        float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir()));
+
         EvaluateAtmosphericScattering(-V, posInput.positionNDC, tFrag, skyColor, skyOpacity);
 
         // Rendering of fog and atmospheric scattering cannot really be decoupled.
