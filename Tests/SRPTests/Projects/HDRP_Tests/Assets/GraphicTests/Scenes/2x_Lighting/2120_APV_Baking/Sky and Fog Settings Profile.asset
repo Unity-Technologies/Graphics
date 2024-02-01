@@ -29,17 +29,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   normalBias:
-    m_OverrideState: 0
-    m_Value: 0.33
+    m_OverrideState: 1
+    m_Value: 0
   viewBias:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   scaleBiasWithMinProbeDistance:
     m_OverrideState: 0
     m_Value: 0
   samplingNoise:
-    m_OverrideState: 0
-    m_Value: 0.1
+    m_OverrideState: 1
+    m_Value: 0
   animateSamplingNoise:
     m_OverrideState: 0
     m_Value: 1
@@ -50,6 +50,12 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.1
   occlusionOnlyReflectionNormalization:
+    m_OverrideState: 0
+    m_Value: 1
+  intensityMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  skyOcclusionIntensityMultiplier:
     m_OverrideState: 0
     m_Value: 1
 --- !u!114 &9129104383184685765

@@ -613,6 +613,9 @@ namespace UnityEngine.Rendering
 
         static void OnBakeStarted()
         {
+            if (HasAsyncBakeInProgress())
+                CancelAsyncBake();
+
             if (PrepareBaking())
             {
 
@@ -761,7 +764,7 @@ namespace UnityEngine.Rendering
                         {
                             if (m_CellsToDilate.ContainsKey(cell.desc.index))
                             {
-                                PerformDilation(cell, dilationSettings);
+                                PerformDilation(cell, m_BakingSet);
                                 dilatedCells.Add(cell);
                             }
                         }
@@ -802,7 +805,7 @@ namespace UnityEngine.Rendering
 
                             if (m_CellsToDilate.ContainsKey(cell.desc.index))
                             {
-                                PerformDilation(cell, dilationSettings);
+                                PerformDilation(cell, m_BakingSet);
                                 dilatedCells.Add(cell);
                             }
 
@@ -1961,7 +1964,7 @@ namespace UnityEngine.Rendering
 
         unsafe static void WriteDilatedCells(List<Cell> cells)
         {
-            m_BakingSet.GetBlobFileNames(m_BakingSet.lightingScenario, out var cellDataFilename, out var cellBricksDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
+            m_BakingSet.GetBlobFileNames(m_BakingSet.lightingScenario, out var cellDataFilename, out var _, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var _);
 
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
 
@@ -1973,12 +1976,21 @@ namespace UnityEngine.Rendering
             var L0L1TotalSize = m_TotalCellCounts.chunksCount * L0L1ChunkSize;
             using var probesL0L1 = new NativeArray<byte>(L0L1TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-
             // CellOptionalData
             // L2 Data: 15 Coeffs stored in 4 byte4 textures.
             var L2ChunkSize = 4 * sizeof(byte) * chunkSizeInProbes; // 4 byte component per probe
             var L2TotalSize = m_TotalCellCounts.chunksCount * L2ChunkSize * 4; // 4 textures
             using var probesL2 = new NativeArray<byte>(L2TotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            // CellSharedData
+            var sharedValidityMaskChunkSize = m_BakingSet.sharedValidityMaskChunkSize;
+            var sharedSkyOcclusionL0L1ChunkSize = m_BakingSet.sharedSkyOcclusionL0L1ChunkSize;
+            var sharedSkyShadingDirectionIndicesChunkSize = m_BakingSet.sharedSkyShadingDirectionIndicesChunkSize;
+            var sharedDataTotalSize = m_TotalCellCounts.chunksCount * m_BakingSet.sharedDataChunkSize;
+            using var sharedData = new NativeArray<byte>(sharedDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            // We don't want to overwrite validity data
+            sharedData.CopyFrom(System.IO.File.ReadAllBytes(cellSharedDataFilename));
 
             // When baking with partially loaded scenes, the list of cells being dilated might be smaller than the full list of cells in the bake.
             // In this case, in order not to destroy the rest of the data, we need to load it back before writing.
@@ -2001,6 +2013,7 @@ namespace UnityEngine.Rendering
 
                 var L0L1chunkBaseOffset = scenarioDataInfo.cellDataAsset.streamableCellDescs[srcCellDesc.index].offset;
                 var L2chunkBaseOffset = scenarioDataInfo.cellOptionalDataAsset.streamableCellDescs[srcCellDesc.index].offset;
+                var sharedchunkBaseOffset = m_BakingSet.cellSharedDataAsset.streamableCellDescs[srcCellDesc.index].offset;
                 var shChunksCount = srcCellDesc.shChunkCount;
 
                 NativeArray<ushort> probesTargetL0L1Rx = probesL0L1.GetSubArray(L0L1chunkBaseOffset, L0L1R1xChunkSize * shChunksCount).Reinterpret<ushort>(1);
@@ -2020,10 +2033,22 @@ namespace UnityEngine.Rendering
                 probesTargetL2_1.CopyFrom(scenarioData.shL2Data_1);
                 probesTargetL2_2.CopyFrom(scenarioData.shL2Data_2);
                 probesTargetL2_3.CopyFrom(scenarioData.shL2Data_3);
+
+                if (sharedSkyOcclusionL0L1ChunkSize != 0)
+                {
+                    NativeArray<ushort> skyOcclusionL0L1ChunkTarget = sharedData.GetSubArray(sharedchunkBaseOffset + shChunksCount * sharedValidityMaskChunkSize, sharedSkyOcclusionL0L1ChunkSize * shChunksCount).Reinterpret<ushort>(1);
+                    skyOcclusionL0L1ChunkTarget.CopyFrom(srcCell.data.skyOcclusionDataL0L1);
+                    
+                    if (sharedSkyShadingDirectionIndicesChunkSize != 0)
+                    {
+                        NativeArray<byte> skyShadingIndicesChunkTarget = sharedData.GetSubArray(sharedchunkBaseOffset + shChunksCount * (sharedValidityMaskChunkSize + sharedSkyOcclusionL0L1ChunkSize), sharedSkyShadingDirectionIndicesChunkSize * shChunksCount);
+                        skyShadingIndicesChunkTarget.CopyFrom(srcCell.data.skyShadingDirectionIndices);
+                    }
+                }
             }
 
             // Explicitly make sure the binary output files are writable since we write them using the C# file API (i.e. check out Perforce files if applicable)
-            var outputPaths = new List<string>(new[] { cellDataFilename, cellSharedDataFilename, cellSupportDataFilename, cellOptionalDataFilename });
+            var outputPaths = new List<string>(new[] { cellDataFilename, cellSharedDataFilename, cellOptionalDataFilename });
 
             if (!AssetDatabase.MakeEditable(outputPaths.ToArray()))
                 Debug.LogWarning($"Failed to make one or more probe volume output file(s) writable. This could result in baked data not being properly written to disk. {string.Join(",", outputPaths)}");
@@ -2034,10 +2059,13 @@ namespace UnityEngine.Rendering
                 {
                     WriteNativeArray(fs, probesL0L1);
                 }
-
                 using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
                     WriteNativeArray(fs, probesL2);
+                }
+                using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
+                    WriteNativeArray(fs, sharedData);
                 }
             }
         }

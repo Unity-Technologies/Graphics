@@ -438,10 +438,11 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_C = half3(SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb);
 #endif // PROBE_VOLUMES_L2
 
-    if(_SkyOcclusionIntensity > 0)
+    if (_SkyOcclusionIntensity > 0)
         apvSample.skyOcclusionL0L1 = SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).rgba;
     else
         apvSample.skyOcclusionL0L1 = float4(0, 0, 0, 0);
+
     if (_EnableSkyOcclusionShadingDirection > 0)
     {
         // No interpolation for sky shading indices

@@ -160,6 +160,12 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.Space();
                 EditorGUILayout.HelpBox("The scene this Adaptive Probe Volume is part of does not belong to any Baking Set.", MessageType.Warning);
             }
+
+            EditorGUILayout.Space();
+            using (new EditorGUI.DisabledScope(bakingSet == null))
+            {
+                ProbeVolumeLightingTab.BakeAPVButton();
+            }
         }
 
         static void Drawer_RebakeWarning(SerializedProbeVolume serialized, Editor owner)

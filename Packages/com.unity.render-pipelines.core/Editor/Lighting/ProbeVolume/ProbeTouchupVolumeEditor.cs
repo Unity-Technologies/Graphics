@@ -267,6 +267,8 @@ namespace UnityEditor.Rendering
                     {
                         if (GUILayout.Button("Bake"))
                             ProbeGIBaking.BakeAdjustmentVolume(bakingSet, ptv);
+
+                        ProbeVolumeLightingTab.BakeAPVButton();
                     }
                 }
                 */

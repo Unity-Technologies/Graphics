@@ -1,8 +1,4 @@
 using System.Collections.Generic;
-using Unity.Collections;
-using UnityEditor;
-using UnityEngine;
-using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 
 namespace UnityEngine.Rendering
 {
@@ -35,6 +31,9 @@ namespace UnityEngine.Rendering
             public Vector3 L2_2;
             public Vector3 L2_3;
             public Vector3 L2_4;
+
+            public Vector4 SO_L0L1;
+            public Vector3 SO_Direction;
 
             void ToSphericalHarmonicsL2(ref SphericalHarmonicsL2 sh)
             {
@@ -72,8 +71,16 @@ namespace UnityEngine.Rendering
 
                 ReadFromShaderCoeffsL0L1(ref sh, cellChunkData.shL0L1RxData, cellChunkData.shL1GL1RyData, cellChunkData.shL1BL1RzData, index * 4);
                 ReadFromShaderCoeffsL2(ref sh, cellChunkData.shL2Data_0, cellChunkData.shL2Data_1, cellChunkData.shL2Data_2, cellChunkData.shL2Data_3, index * 4);
-
                 FromSphericalHarmonicsL2(ref sh);
+
+                if (cellChunkData.skyOcclusionDataL0L1.Length != 0)
+                    ReadFromShaderCoeffsSkyOcclusion(ref SO_L0L1, cellChunkData.skyOcclusionDataL0L1, index);
+                if (cellChunkData.skyShadingDirectionIndices.Length != 0)
+                {
+                    int id = cellChunkData.skyShadingDirectionIndices[index];
+                    var directions = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
+                    SO_Direction = id == 255 ? Vector3.zero : directions[id];
+                }
             }
 
             internal void ToSphericalHarmonicsShaderConstants(ProbeReferenceVolume.Cell cell, int probeIdx)
@@ -87,6 +94,14 @@ namespace UnityEngine.Rendering
 
                 WriteToShaderCoeffsL0L1(sh, cellChunkData.shL0L1RxData, cellChunkData.shL1GL1RyData, cellChunkData.shL1BL1RzData, index * 4);
                 WriteToShaderCoeffsL2(sh, cellChunkData.shL2Data_0, cellChunkData.shL2Data_1, cellChunkData.shL2Data_2, cellChunkData.shL2Data_3, index * 4);
+
+                if (cellChunkData.skyOcclusionDataL0L1.Length != 0)
+                    WriteToShaderSkyOcclusion(SO_L0L1, cellChunkData.skyOcclusionDataL0L1, index * 4);
+                if (cellChunkData.skyShadingDirectionIndices.Length != 0)
+                {
+                    var directions = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
+                    cellChunkData.skyShadingDirectionIndices[index] = (byte)LinearSearchClosestDirection(directions, SO_Direction);
+                }
             }
         }
 
@@ -152,20 +167,12 @@ namespace UnityEngine.Rendering
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
-        static readonly int _APVResIndex = Shader.PropertyToID("_APVResIndex");
-        static readonly int _APVResCellIndices = Shader.PropertyToID("_APVResCellIndices");
-        static readonly int _APVResL0_L1Rx = Shader.PropertyToID("_APVResL0_L1Rx");
-        static readonly int _APVResL1G_L1Ry = Shader.PropertyToID("_APVResL1G_L1Ry");
-        static readonly int _APVResL1B_L1Rz = Shader.PropertyToID("_APVResL1B_L1Rz");
-        static readonly int _APVResL2_0 = Shader.PropertyToID("_APVResL2_0");
-        static readonly int _APVResL2_1 = Shader.PropertyToID("_APVResL2_1");
-        static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
-        static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
 
-        static void PerformDilation(ProbeReferenceVolume.Cell cell, ProbeDilationSettings settings)
+        static void PerformDilation(ProbeReferenceVolume.Cell cell, ProbeVolumeBakingSet bakingSet)
         {
             InitDilationShaders();
 
+            ProbeDilationSettings settings = bakingSet.settings.dilationSettings;
             DataForDilation data = new DataForDilation(cell, settings.dilationValidityThreshold);
 
             var cmd = CommandBufferPool.Get("Cell Dilation");
@@ -177,7 +184,7 @@ namespace UnityEngine.Rendering
             int probeCount = cell.data.probePositions.Length;
 
             cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, ProbeReferenceVolume.instance.MinBrickSize()));
-            cmd.SetComputeVectorParam(dilationShader, _DilationParameters2, new Vector4(settings.squaredDistWeighting ? 1 : 0, 0, 0, 0));
+            cmd.SetComputeVectorParam(dilationShader, _DilationParameters2, new Vector4(settings.squaredDistWeighting ? 1 : 0, bakingSet.skyOcclusion ? 1 : 0, bakingSet.skyOcclusionShadingDirection ? 1 : 0, 0));
 
             var refVolume = ProbeReferenceVolume.instance;
             ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
@@ -186,17 +193,21 @@ namespace UnityEngine.Rendering
 
             if (validResources)
             {
-                cmd.SetGlobalBuffer(_APVResIndex, rr.index);
-                cmd.SetGlobalBuffer(_APVResCellIndices, rr.cellIndices);
+                cmd.SetGlobalBuffer(ProbeReferenceVolume.ShaderIDs._APVResIndex, rr.index);
+                cmd.SetGlobalBuffer(ProbeReferenceVolume.ShaderIDs._APVResCellIndices, rr.cellIndices);
 
-                cmd.SetGlobalTexture(_APVResL0_L1Rx, rr.L0_L1rx);
-                cmd.SetGlobalTexture(_APVResL1G_L1Ry, rr.L1_G_ry);
-                cmd.SetGlobalTexture(_APVResL1B_L1Rz, rr.L1_B_rz);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
 
-                cmd.SetGlobalTexture(_APVResL2_0, rr.L2_0);
-                cmd.SetGlobalTexture(_APVResL2_1, rr.L2_1);
-                cmd.SetGlobalTexture(_APVResL2_2, rr.L2_2);
-                cmd.SetGlobalTexture(_APVResL2_3, rr.L2_3);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL2_0, rr.L2_0);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL2_1, rr.L2_1);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL2_2, rr.L2_2);
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL2_3, rr.L2_3);
+
+                cmd.SetComputeTextureParam(dilationShader, dilationKernel, ProbeReferenceVolume.ShaderIDs._SkyOcclusionTexL0L1, rr.SkyOcclusionL0L1 ?? (RenderTargetIdentifier)TextureXR.GetBlackTexture3D());
+                cmd.SetComputeTextureParam(dilationShader, dilationKernel, ProbeReferenceVolume.ShaderIDs._SkyShadingDirectionIndicesTex, rr.SkyShadingDirectionIndices ?? (RenderTargetIdentifier)TextureXR.GetBlackTexture3D());
+                cmd.SetComputeBufferParam(dilationShader, dilationKernel, ProbeReferenceVolume.ShaderIDs._SkyPrecomputedDirections, rr.SkyPrecomputedDirections);
             }
 
             ProbeVolumeShadingParameters parameters;

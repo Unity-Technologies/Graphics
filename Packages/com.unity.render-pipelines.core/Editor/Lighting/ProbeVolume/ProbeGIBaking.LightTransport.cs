@@ -202,8 +202,8 @@ namespace UnityEngine.Rendering
                     ref var job = ref s_BakeData.jobs[i];
                     if (job.indices.Length != 0)
                     {
-                        bool success = context.Bake(job, ref s_BakeData.irradianceResults, ref s_BakeData.validityResults, ref s_BakeData.cancel);                        
-                        if (success) 
+                        bool success = context.Bake(job, ref s_BakeData.irradianceResults, ref s_BakeData.validityResults, ref s_BakeData.cancel);
+                        if (success)
                             s_BakeData.bakedProbeCount += job.indices.Length;
                         s_BakeData.failed = !success;
                     }
@@ -687,8 +687,6 @@ namespace UnityEngine.Rendering
             static IRayTracingShader m_ShaderVO = null;
             static IRayTracingShader m_ShaderSO = null;
 
-            const string k_PackageLightTransport = "Packages/com.unity.rendering.light-transport";
-
             internal IRayTracingAccelStruct CreateAccelerationStructure()
             {
                 return context.CreateAccelerationStructure(new AccelerationStructureOptions
@@ -707,10 +705,8 @@ namespace UnityEngine.Rendering
                         m_RayTracingResources = new RayTracingResources();
                         m_RayTracingResources.Load();
 
-                        // Hardware backend is still inconsistent on yamato, using only compute backend for now.
-                        //m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
-                        m_Backend = RayTracingBackend.Compute;
-                        
+                        m_Backend = RayTracingContext.IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute;
+
                         m_Context = new RayTracingContext(m_Backend, m_RayTracingResources);
                     }
 
@@ -780,17 +776,50 @@ namespace UnityEngine.Rendering
 
         // Helper functions to bake a subset of the probes
 
-        internal static void BakeGI()
-        {
-            if (!PrepareBaking())
-                return;
+        static int s_AsyncBakeTaskID = -1;
+        internal static bool HasAsyncBakeInProgress() => s_AsyncBakeTaskID != -1;
+        internal static bool CancelAsyncBake() => Progress.Cancel(s_AsyncBakeTaskID);
 
+        internal static void AsyncBakeCallback()
+        {
             float progress = 0.0f;
             bool done = false;
-            while (!done)
-                BakeDelegate(ref progress, ref done);
+            BakeDelegate(ref progress, ref done);
+            Progress.Report(s_AsyncBakeTaskID, progress);
+            //Progress.Report(s_AsyncBakeTaskID, progress, s_BakeData.step.ToString());
 
-            UpdateLightStatus();
+            if (done)
+            {
+                UpdateLightStatus();
+                Progress.Remove(s_AsyncBakeTaskID);
+
+                EditorApplication.update -= AsyncBakeCallback;
+                s_AsyncBakeTaskID = -1;
+            }
+        }
+
+        internal static void BakeGI()
+        {
+            if (HasAsyncBakeInProgress() || !PrepareBaking())
+                return;
+
+            s_AsyncBakeTaskID = Progress.Start("Bake Adaptive Probe Volumes");
+            Progress.RegisterCancelCallback(s_AsyncBakeTaskID, () =>
+            {
+                if (s_BakeData.bakingThread != null)
+                {
+                    s_BakeData.cancel = true;
+                    s_BakeData.bakingThread.Join();
+                }
+
+                CleanBakeData();
+
+                EditorApplication.update -= AsyncBakeCallback;
+                s_AsyncBakeTaskID = -1;
+                return true;
+            });
+
+            EditorApplication.update += AsyncBakeCallback;
         }
 
         internal static void BakeProbes(Vector3[] positionValues, SphericalHarmonicsL2[] shValues, float[] validityValues)

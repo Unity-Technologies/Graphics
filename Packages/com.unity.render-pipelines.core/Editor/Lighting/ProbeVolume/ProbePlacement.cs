@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering
             public ComputeBuffer[] bricksBuffers;
             public ComputeBuffer[] readbackCountBuffers;
 
-            public Vector3[] brickPositions;
+            public Vector4[] brickPositions;
 
             public GPUSubdivisionContext(int probeVolumeCount, ProbeVolumeProfileInfo profile)
             {
@@ -95,11 +95,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i <= maxSubdivisionLevelInSubCell; i++)
                 {
                     int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivisionLevelInSubCell - i);
-                    bricksBuffers[i] = new ComputeBuffer(brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, sizeof(float) * 3, ComputeBufferType.Append);
+                    bricksBuffers[i] = new ComputeBuffer(brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, sizeof(float) * 4, ComputeBufferType.Append);
                     readbackCountBuffers[i] = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
                 }
 
-                brickPositions = new Vector3[maxBrickCountPerAxisInSubCell * maxBrickCountPerAxisInSubCell * maxBrickCountPerAxisInSubCell];
+                brickPositions = new Vector4[maxBrickCountPerAxisInSubCell * maxBrickCountPerAxisInSubCell * maxBrickCountPerAxisInSubCell];
             }
 
             public void Dispose()

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Default
   m_EditorClassIdentifier: 
   singleSceneMode: 0
+  dialogNoProbeVolumeInSetShown: 0
   settings:
     m_Version: 1
     dilationSettings:
@@ -31,7 +32,7 @@ MonoBehaviour:
         m_Bits: 4294967291
   m_SceneGUIDs:
   - fc784678bf952de4482e78aea61ccdc8
-  scenesToNotBake: []
+  obsoleteScenesToNotBake: []
   m_LightingScenarios:
   - Default
   cellDescs:
@@ -47,6 +48,7 @@ MonoBehaviour:
     m_StreamableCellDescs:
       m_Keys: 
       m_Values: []
+    m_Asset: {fileID: 0}
   scenarios:
     m_Keys: []
     m_Values: []
@@ -57,6 +59,7 @@ MonoBehaviour:
     m_StreamableCellDescs:
       m_Keys: 
       m_Values: []
+    m_Asset: {fileID: 0}
   cellSupportDataAsset:
     m_AssetGUID: 
     m_StreamableAssetPath: 
@@ -64,30 +67,51 @@ MonoBehaviour:
     m_StreamableCellDescs:
       m_Keys: 
       m_Values: []
+    m_Asset: {fileID: 0}
   chunkSizeInBricks: 128
   maxCellPosition: {x: 0, y: 0, z: 0}
   minCellPosition: {x: -1, y: -1, z: -1}
   globalBounds:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 81, y: 81, z: 81}
+    m_Extent: {x: 20.25, y: 20.25, z: 20.25}
   bakedSimplificationLevels: 3
-  bakedMinDistanceBetweenProbes: 1
-  maxSHChunkCount: 1
+  bakedMinDistanceBetweenProbes: 0.25
+  bakedSkyOcclusionValue: 0
+  bakedSkyShadingDirectionValue: 0
+  maxSHChunkCount: 4
   L0ChunkSize: 65536
   L1ChunkSize: 32768
   L2TextureChunkSize: 32768
-  validityMaskChunkSize: 8192
+  sharedValidityMaskChunkSize: 8192
+  sharedSkyOcclusionL0L1ChunkSize: 0
+  sharedSkyShadingDirectionIndicesChunkSize: 0
+  sharedDataChunkSize: 8192
   supportPositionChunkSize: 98304
   supportValidityChunkSize: 32768
   supportTouchupChunkSize: 32768
   supportOffsetsChunkSize: 98304
   supportDataChunkSize: 262144
   lightingScenario: Default
-  version: 0
+  version: 1
   freezePlacement: 0
   simplificationLevels: 3
-  minDistanceBetweenProbes: 1
+  minDistanceBetweenProbes: 0.25
   renderersLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
   minRendererVolumeSize: 0.1
+  skyOcclusion: 0
+  skyOcclusionBakingSamples: 2048
+  skyOcclusionBakingBounces: 2
+  skyOcclusionAverageAlbedo: 0.6
+  skyOcclusionBackFaceCulling: 0
+  skyOcclusionShadingDirection: 0
+  m_SceneBakeData:
+    m_Keys:
+    - fc784678bf952de4482e78aea61ccdc8
+    m_Values:
+    - hasProbeVolume: 1
+      bakeScene: 1
+      bounds:
+        m_Center: {x: 0, y: 0, z: 0}
+        m_Extent: {x: 20.25, y: 20.25, z: 20.25}

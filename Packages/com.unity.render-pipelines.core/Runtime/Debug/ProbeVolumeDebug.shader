@@ -6,7 +6,6 @@ Shader "Hidden/Core/ProbeVolumeDebug"
         LOD 100
 
         HLSLINCLUDE
-        #pragma editor_sync_compilation
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2

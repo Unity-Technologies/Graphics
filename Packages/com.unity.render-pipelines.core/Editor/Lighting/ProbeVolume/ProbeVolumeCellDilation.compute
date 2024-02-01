@@ -21,6 +21,8 @@ CBUFFER_END
 #define _MinBrickSizeForDilation _DilationParameters.w
 
 #define _SquaredDistanceWeight (_DilationParameters2.x > 0)
+#define _EnableSkyOcclusion (_DilationParameters2.y > 0)
+#define _EnableSkyDirection (_DilationParameters2.z > 0)
 
 StructuredBuffer<int> _NeedDilating;
 StructuredBuffer<float3> _ProbePositionsBuffer;
@@ -28,8 +30,10 @@ StructuredBuffer<float3> _ProbePositionsBuffer;
 RWStructuredBuffer<DilatedProbe> _OutputProbes;
 
 
-bool AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, float weight, inout float totalWeight)
+// Sampling is copied from SampleAPV()
+void AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, float weight, inout float shWeight, inout float soWeight)
 {
+    // SH data
     float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
     float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_point_clamp_sampler, uvw, 0).rgba;
     float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_point_clamp_sampler, uvw, 0).rgba;
@@ -52,17 +56,34 @@ bool AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, f
         probe.L2_3 += float3(l2_R.w, l2_G.w, l2_B.w) * weight;
         probe.L2_4 += float3(l2_C.x, l2_C.y, l2_C.z) * weight;
 
-        totalWeight += weight;
-
-        return true;
+        shWeight += weight;
     }
 
-    return false;
+    // Sky occlusion data
+    if (_EnableSkyOcclusion)
+    {
+        float4 SO_L0L1 = SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).rgba * weight;
+
+        if (SO_L0L1.x >= 0.0001f)
+        {
+            probe.SO_L0L1 += SO_L0L1 * weight;
+
+            if (_EnableSkyDirection)
+            {
+                int3 texCoord = uvw * _PoolDim - 0.5f; // No interpolation for sky shading indices
+                uint index = LOAD_TEXTURE3D(apvRes.SkyShadingDirectionIndices, texCoord).x * 255.0;
+
+                probe.SO_Direction = index == 255 ? float3(0, 0, 0) : apvRes.SkyPrecomputedDirections[index].rgb * weight;
+            }
+
+            soWeight += weight;
+        }
+    }
 }
 
 void ScaleProbe(inout DilatedProbe probe, float weight)
 {
-    probe.L0 *= weight;
+    probe.L0   *= weight;
     probe.L1_0 *= weight;
     probe.L1_1 *= weight;
     probe.L1_2 *= weight;
@@ -87,7 +108,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
 
             float3 uvw;
             uint subdiv;
-            float totalWeight = 0;
+            float shWeight = 0, soWeight = 0;
             float3 uvwDelta = rcp(_PoolDim);
 
             float3 biasedPosWS;
@@ -120,7 +141,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
                                         {
                                             d *= d;
                                         }
-                                        AddProbeSample(FillAPVResources(), sampleUVW, probe, rcp(d), totalWeight);
+                                        AddProbeSample(FillAPVResources(), sampleUVW, probe, rcp(d), shWeight, soWeight);
                                     }
                                 }
                             }
@@ -129,11 +150,14 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
                 }
             }
 
-            if (totalWeight > 0)
-            {
-                ScaleProbe(probe, rcp(totalWeight));
-                _OutputProbes[probeIdx] = probe;
-            }
+            if (shWeight > 0)
+                ScaleProbe(probe, rcp(shWeight));
+
+            if (soWeight > 0)
+                probe.SO_L0L1 *= rcp(soWeight);
+            probe.SO_Direction = SafeNormalize(probe.SO_Direction);
+
+            _OutputProbes[probeIdx] = probe;
         }
     }
 }

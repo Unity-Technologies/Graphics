@@ -160,12 +160,18 @@ namespace UnityEngine.Rendering
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
             DerivePoolSizeFromBudget(memoryBudget, out int width, out int height, out int depth);
-            m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", true, allocateValidityData, allocateSkyOcclusion, allocateSkyShadingData, out int estimatedCost);
-            estimatedVMemCost = estimatedCost;
+            AllocatePool(width, height, depth);
 
             m_AvailableChunkCount = (m_Pool.width / (kChunkSizeInBricks * kBrickProbeCountPerDim)) * (m_Pool.height / kBrickProbeCountPerDim) * (m_Pool.depth / kBrickProbeCountPerDim);
 
             Profiler.EndSample();
+        }
+
+        internal void AllocatePool(int width, int height, int depth)
+        {
+            m_Pool = CreateDataLocation(width * height * depth, false, m_SHBands, "APV", true,
+                m_ContainsValidity, m_ContainsSkyOcclusion, m_ContainsSkyShadingDirection, out int estimatedCost);
+            estimatedVMemCost = estimatedCost;
         }
 
         public int GetRemainingChunkCount()
@@ -179,10 +185,22 @@ namespace UnityEngine.Rendering
             if (m_Pool.TexL0_L1rx == null)
             {
                 m_Pool.Cleanup();
-                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, "APV",
-                    true, m_ContainsValidity, m_ContainsSkyOcclusion, m_ContainsSkyShadingDirection, out int estimatedCost);
-                estimatedVMemCost = estimatedCost;
+                AllocatePool(m_Pool.width, m_Pool.height, m_Pool.depth);
             }
+        }
+
+        internal bool EnsureTextureValidity(bool skyOcclusion, bool skyDirection)
+        {
+            if (m_ContainsSkyOcclusion != skyOcclusion || m_ContainsSkyShadingDirection != skyDirection)
+            {
+                m_Pool.Cleanup();
+
+                m_ContainsSkyOcclusion = skyOcclusion;
+                m_ContainsSkyShadingDirection = skyDirection;
+                AllocatePool(m_Pool.width, m_Pool.height, m_Pool.depth);
+                return false;
+            }
+            return true;
         }
 
         internal static int GetChunkSizeInBrickCount() { return kChunkSizeInBricks; }

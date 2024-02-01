@@ -7,11 +7,8 @@ using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEditor.Overlays;
-using UnityEngine.LightTransport;
-using UnityEngine.LightTransport.PostProcessing;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
-using UnityEngine.Assertions;
 using Unity.Collections;
 using Button = UnityEngine.UIElements.Button;
 
@@ -60,8 +57,11 @@ namespace UnityEngine.Rendering
 
             // Bake Button
             public static readonly GUIContent generateLighting = new GUIContent("Generate Lighting");
+            public static readonly GUIContent generateAPV = new GUIContent("Bake Probe Volumes", "Calculate probe positions and generate lighting data for Adaptive Probe Volumes.");
+            public static readonly GUIContent cancelBake = new GUIContent("Cancel", "Cancel current Adaptive Probe Volumes baking task.");
             public static readonly string[] bakeOptionsText = { "Bake Probe Volumes", "Bake Reflection Probes", "Clear Baked Data" };
 
+            public static readonly GUIStyle buttonStyle = "LargeButton";
             public const float lightingButtonWidth = 170;
 
             // Font styles
@@ -236,6 +236,10 @@ namespace UnityEngine.Rendering
                     UseTemporaryBakingSet(activeScene.GetGUID(), activeSet ? activeSet.Clone() : null);
             }
 
+            // Not sure how we can get to that state but we can
+            if (m_TempBakingSet && activeSet == null)
+                FindActiveSet();
+
             using (new EditorGUI.DisabledScope(!prv.isInitialized || !prv.enabledBySRP))
             {
                 m_ScrollPosition = EditorGUILayout.BeginScrollView(m_ScrollPosition);
@@ -254,7 +258,7 @@ namespace UnityEngine.Rendering
                     EditorGUILayout.Space();
                 }
 
-                using (new EditorGUI.DisabledScope(activeSet == null))
+                using (new EditorGUI.DisabledScope(activeSet == null && !m_TempBakingSet))
                     activeSetEditor.OnInspectorGUI();
 
                 EditorGUILayout.EndScrollView();
@@ -315,6 +319,13 @@ namespace UnityEngine.Rendering
                     case 2: ClearBakedData(); break;
                     default: Debug.Log("invalid option in BakeButtonCallback"); break;
                 }
+            }
+
+            if (ProbeGIBaking.HasAsyncBakeInProgress())
+            {
+                if (GUILayout.Button(Styles.cancelBake, Styles.buttonStyle))
+                    ProbeGIBaking.CancelAsyncBake();
+                return;
             }
 
             if (EditorGUI.LargeSplitButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback))
@@ -882,6 +893,22 @@ namespace UnityEngine.Rendering
             }
 
             return true;
+        }
+        #endregion
+
+        #region Async Bake
+        internal static void BakeAPVButton()
+        {
+            if (ProbeGIBaking.HasAsyncBakeInProgress())
+            {
+                if (GUILayout.Button(Styles.cancelBake))
+                    ProbeGIBaking.CancelAsyncBake();
+            }
+            else
+            {
+                if (GUILayout.Button(Styles.generateAPV))
+                    ProbeGIBaking.BakeGI();
+            }
         }
         #endregion
 

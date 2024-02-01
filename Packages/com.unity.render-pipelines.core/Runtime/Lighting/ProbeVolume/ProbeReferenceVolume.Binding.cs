@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering
             var refVolume = ProbeReferenceVolume.instance;
 
             // Do this only if probe volume is enabled
-            if (isProbeVolumeEnabled)
+            if (isProbeVolumeEnabled && m_ProbeReferenceVolumeInit)
             {
                 ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
 
@@ -56,7 +56,6 @@ namespace UnityEngine.Rendering
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResValidity, rr.Validity);
-
 
                     cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, rr.SkyOcclusionL0L1 ?? (RenderTargetIdentifier)TextureXR.GetBlackTexture3D());
                     cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, rr.SkyShadingDirectionIndices ?? (RenderTargetIdentifier)TextureXR.GetBlackTexture3D());
