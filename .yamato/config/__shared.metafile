@@ -282,7 +282,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:v0.1.0-841394
+        image: automation-tooling/macos-10.14:v2.989196
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
