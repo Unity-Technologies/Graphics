@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
 
 namespace UnityEngine.Rendering
 {
@@ -29,6 +30,12 @@ namespace UnityEngine.Rendering
         public void Dispose()
         {
             m_Bits.Dispose();
+            m_Length = 0;
+        }
+
+        public void Dispose(JobHandle inputDeps)
+        {
+            m_Bits.Dispose(inputDeps);
             m_Length = 0;
         }
 
@@ -142,6 +149,11 @@ namespace UnityEngine.Rendering
             array.m_Bits = m_Bits.GetSubArray(0, (length + 63) / 64);
             array.m_Length = length;
             return array;
+        }
+
+        public NativeArray<long> GetBitsArray()
+        {
+            return m_Bits;
         }
 
         public void FillZeroes(int length)

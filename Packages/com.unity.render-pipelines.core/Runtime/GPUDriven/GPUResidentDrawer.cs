@@ -453,6 +453,8 @@ namespace UnityEngine.Rendering
 
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
             // Depending on a UI setting, we want to either keep lightmaps as texture arrays,
             // or instead opt out and keep them as individual textures.
@@ -483,6 +485,8 @@ namespace UnityEngine.Rendering
 
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
             RemoveFromPlayerLoop();
 
@@ -528,7 +532,6 @@ namespace UnityEngine.Rendering
             m_Batcher.OnBeginContextRendering();
         }
 
-
 #if UNITY_EDITOR
         // If running in the editor the player loop might not run
         // In order to still have a single frame update we keep track of the camera ids
@@ -562,6 +565,16 @@ namespace UnityEngine.Rendering
                 return;
 
             m_Batcher.OnEndContextRendering();
+        }
+
+        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            m_Batcher.OnBeginCameraRendering(camera);
+        }
+
+        private void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            m_Batcher.OnEndCameraRendering(camera);
         }
 
         private void PostPostLateUpdate()

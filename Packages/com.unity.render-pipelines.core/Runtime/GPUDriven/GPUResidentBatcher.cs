@@ -64,6 +64,16 @@ namespace UnityEngine.Rendering
             m_InstanceCullingBatcher?.OnEndContextRendering();
         }
 
+        public void OnBeginCameraRendering(Camera camera)
+        {
+            m_InstanceCullingBatcher?.OnBeginCameraRendering(camera);
+        }
+
+        public void OnEndCameraRendering(Camera camera)
+        {
+            m_InstanceCullingBatcher?.OnEndCameraRendering(camera);
+        }
+
         public void UpdateFrame()
         {
             m_InstanceCullingBatcher.UpdateFrame();
