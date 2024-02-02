@@ -81,14 +81,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                 }
 
-                var volumeProfile = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>().volumeProfile;
-                if (volumeProfile == null)
+                EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<HDRPDefaultVolumeProfileSettings, HDRenderPipeline>(out var settings);
+                if (settings == null || settings.volumeProfile == null)
                 {
                     EditorGUI.HelpBox(r, $"The current {nameof(VolumeProfile)} is null, please assign one on Graphics Settings > HDRP", MessageType.Error);
                 }
                 else
                 {
-                    var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(volumeProfile);
+                    var diffusionProfileList = VolumeUtils.GetOrCreateDiffusionProfileList(settings.volumeProfile);
 
                     var profiles = diffusionProfileList.ToArray();
                     diffusionProfileList.ReplaceWithArray(overrides.ToArray());
