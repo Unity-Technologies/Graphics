@@ -358,14 +358,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float smoothnessFadeStart;
         public float smoothnessFadeDistance;
         public float roughnessEndValue;
-        // Color pyramid scale
-        public float colorPyramidScale;
+        public float padding1;
 
-        public Vector4 foamColor;
+        public Vector3 foamColor;
+        public float padding2;
 
         // Vertical direction of the water surface (used for SSR, Env Lighting, etc)
         public Vector3 upDirection;
-        public int colorPyramidMipOffset;
+        public float padding3;
 
         public int disableIOR;
         public float tipScatteringHeight;
