@@ -14,13 +14,7 @@ namespace UnityEditor.ShaderGraph
     {
         static MaterialGraphEditWindow GetFocusedShaderGraphEditorWindow()
         {
-            MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
-            foreach(var window in windows)
-            {
-                if (window.hasFocus)
-                    return window;
-            }
-            return null;
+            return EditorWindow.focusedWindow as MaterialGraphEditWindow;
         }
 
         static GraphEditorView GetGraphEditorView()
