@@ -6,7 +6,7 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [BurstCompile(FloatMode = FloatMode.Fast, DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    [BurstCompile(FloatMode = FloatMode.Default, DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     struct TilingJob : IJobFor
     {
         [ReadOnly]
