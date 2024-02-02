@@ -25,14 +25,14 @@ You must disable the feature in all the HDRP assets in your build. Unity include
 
 | **Feature** | **How to disable the feature** |
 | :-- | :-- |
-| Built-in fog | In [Graphics Settings](https://docs.unity3d.com/Manual/class-GraphicsSettings.html), in the **Shader Stripping** section, set **Fog Modes** to **Custom**, then disable **Linear**, **Exponential**, **Exponential Squared**. This strips built-in fog shaders that HDRP doesn't use. |
+| Built-in fog | In the [Graphics settings window](Default-Settings-Window.md), in the **Shader Stripping** section, set **Fog Modes** to **Custom**, then disable **Linear**, **Exponential**, **Exponential Squared**. This strips built-in fog shaders that HDRP doesn't use. |
 | Cameras generate additional [Arbitrary Output Variables (AOV)](AOVs.md) images | In the [HDRP asset](HDRP-Asset.md), in the **Rendering** section, disable **Runtime AOV API**. |
 | Cameras use both Deferred and Forward rendering | In the HDRP asset, in the **Rendering** section, set **Lit Shader Mode** to **Deferred**. This creates fewer variants than **Forward** or **Both**. |
 | Decals | In the HDRP asset, disable **Decals**. |
 | Distortion | In the HDRP asset, in the **Material** section, disable **Distortion**. |
-| GPU instancing variants you don't use | In Graphics Settings, in the **Shader Stripping** section, set **Instancing Variants** to **Strip Unused**. |
+| GPU instancing variants you don't use | In the [Graphics settings window](Default-Settings-Window.md), in the **Shader Stripping** section, set **Instancing Variants** to **Strip Unused**. |
 | Holes in Terrain | In the HDRP asset, in the **Rendering** section, disable **Terrain Holes**. |
-| Lightmaps HDRP doesn't use | In Graphics Settings, in the **Shader Stripping** section, set **Lightmap Modes** to **Custom**, and enable only the **Baked Directional** mode. This strips lightmap shader variants that HDRP doesn't use. |
+| Lightmaps HDRP doesn't use | In the [Graphics settings window](Default-Settings-Window.md), in the **Shader Stripping** section, set **Lightmap Modes** to **Custom**, and enable only the **Baked Directional** mode. This strips lightmap shader variants that HDRP doesn't use. |
 | Material Quality in Shader Graph shaders | In the HDRP asset, in the **Material** section, disable any **Available Material Quality** levels you don't need. This only has an effect if you use the [Material Quality Node](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Scalability-Manual.html) in Shader Graph. |
 | Motion vectors | In the HDRP asset, in the **Rendering** section, disable **Motion Vectors**. You shouldn't disable this unless your Scenes are fully static with no deformation. |
 | Realtime raytracing | You can do one of the following in the HDRP asset, in the **Rendering** section:<ul><li>Disable **Realtime Raytracing**.</li><li>Enable **Realtime Raytracing**, but set **Supported Ray Tracing Mode** to **Performance**.</li></ul> Performance mode doesn't support path tracing. |
@@ -49,7 +49,7 @@ If you don't use XR or VR, you can [disable the XR and VR modules](https://docs.
 
 ## Strip debug shader variants
 
-If you don't need to use the [Rendering Debugger](use-the-rendering-debugger.md) in a development build, you can disable **Runtime Debug Shaders** under **Miscellaneous** in the [HDRP Global Settings](Default-Settings-Window.md#miscellaneous). This strips any debug shader variants that the Rendering Debugger uses.
+If you don't need to use the [Rendering Debugger](use-the-rendering-debugger.md) in a development build, you can disable **Runtime Debug Shaders** under **Miscellaneous** in the [Graphics settings window](Default-Settings-Window.md). This strips any debug shader variants that the Rendering Debugger uses.
 
 You don't need to do this if you disable **Development Build** in your [Build Settings](https://docs.unity3d.com/Manual/BuildSettings.html).
 

@@ -10,11 +10,7 @@ The Rendering Debugger window is available in the following modes:
 * The Play mode.
 * At runtime in the standalone Unity Player, on any device. The window is only available in **Development Builds**.
 
-To open the Rendering Debugger in the Editor:
-
-* Enable **Runtime Debug Shaders** in **HDRP Global Settings** (in the menu: **Edit** > **Project Settings** > **Graphics** > **HDRP Settings**).
-
-* Select **Window** > **Analysis** > **Rendering Debugger**.
+To open the Rendering Debugger in the Editor, select **Window** > **Analysis** > **Rendering Debugger**.
 
 To open the window in the Play mode, or at runtime in a Development Build, use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller.
 

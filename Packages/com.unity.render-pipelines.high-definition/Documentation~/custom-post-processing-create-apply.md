@@ -20,9 +20,9 @@ This creates each template file in the **Project** window in the **Assets** fold
 
 ## Apply a custom post-processing effect 
 
-For HDRP to recognize a custom post-processing effect in your project, assign it in the Global Settings:
+For HDRP to recognize a custom post-processing effect in your project, assign it in HDRP graphics settings:
 
-1. Go to **Edit** > **Project Settings** > **Graphics** and select the [**HDRP Global Settings**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Default-Settings-Window.html) tab.
+1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 2. Scroll down until you find the **Custom Post Process Orders** section. This section contains a list for each injection point.
 3. In the **After Post Process** field, select **Add** (**+**).
 4. Select the name of the custom post-processing you want to apply.
@@ -53,7 +53,7 @@ For more information on which enums you can use, see [CustomPostProcessInjection
 
 To order your custom post-processing effects:
 
-1. Go to **Edit** > **Project Settings** > **Graphics** and select the [**HDRP Global Settings**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Default-Settings-Window.html) tab.
+1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 2. Scroll down until you find the **Custom Post Process Orders** section. This section contains a field for each injection point.
 3. Select the **Add** (**+**) icon to add an effect to an injection point field.
 

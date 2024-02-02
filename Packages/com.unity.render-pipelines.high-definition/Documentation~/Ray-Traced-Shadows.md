@@ -23,7 +23,7 @@ To use ray-traced shadows, enable screen space shadows in your HDRP Project. To 
 
 Then make sure you enable Screen Space Shadows for your Cameras. To do this:
 
-1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the **Graphics > HDRP Global Settings** tab.
+1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 2. Scroll down to **Frame Settings (Default Values)**.
 3. In the **Camera** section, open the **Lighting** foldout and enable Screen Space Shadows.
 

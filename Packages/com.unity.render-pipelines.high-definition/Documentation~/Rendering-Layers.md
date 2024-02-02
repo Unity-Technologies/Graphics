@@ -13,12 +13,12 @@ Rendering Layers are also supported on decal projectors, and can be sampled from
 
 To create and name Rendering Layers:
 
-- Open the [HDRP Global Settings](Default-Settings-Window.md).
+- Go to **Edit** > **Project Settings** > **Tags and Layers**.  
 - Go to the **Rendering Layers** section.
 - Open the foldout **Rendering Layer Names**.
 
 To use Rendering Layers with Lights:
-- Open the [HDRP Global Settings](Default-Settings-Window.md).
+- Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 - In the **Frame Settings (Default Values)** section, open the **Lighting** dropdown.
 - Enable **Light Layers**.
 - Open the [HDRP Asset](HDRP-Asset.md).
@@ -57,7 +57,7 @@ You can now use the **Shadow Layers** drop-down in the **Shadows** section to se
 
 ## Rename a rendering layers
 
-By default, in the UI for Lights, Decals, Mesh Renderers or Terrain, Rendering Layers are named **Layer 0-15**. To more easily differentiate between them, you can give each Layer a specific name. To do this, open the [HDRP Global Settings](Default-Settings-Window.md), and go to **Rendering Layer Names**. Here you can set the name of each Light Layer individually.
+By default, in the UI for Lights, Decals, Mesh Renderers or Terrain, Rendering Layers are named **Layer 0-15**. To more easily differentiate between them, you can give each Layer a specific name. To do this, go to **Edit** > **Project Settings** > **Tags and Layers**, then go to **Rendering Layer Names**. Here you can set the name of each Light Layer individually.
 
 ## Example scenario for Light Layers
 
@@ -76,3 +76,4 @@ To restore the transmission effect, create a Point Light and assign it to the sa
 ![](Images/LightLayers3.png)
 
 For more information on this process, see Pierre Donzallaz’s [expert guide](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf) on creating high quality light fixtures in Unity.
+

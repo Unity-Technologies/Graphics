@@ -143,7 +143,7 @@ You can also use the following:
 
 ## Disable refraction
 
-To disable refraction on all Materials, select **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings** > **Rendering** and disable **Refraction**.
+To disable refraction on all Materials, go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings** > **Rendering** and disable **Refraction**.
 
 If you disable **Refraction**, refractive Materials fall back to being opaque.
 

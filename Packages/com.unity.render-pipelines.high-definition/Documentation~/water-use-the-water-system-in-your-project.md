@@ -12,7 +12,7 @@ This page provides an overview of the basic workflow to include a water surface 
 
 ### Enable water in the Frame Settings
 1. Open the Project Settings.
-2. In **Graphics** > **HDRP Global Settings** > **Frame Settings** you need to enable water in three places:
+2. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings**, then enable water in three places:
 * **Camera** > **Rendering**.
 * **Realtime Reflection** > **Rendering**.
 * **Baked or Custom Reflection** > **Rendering**.

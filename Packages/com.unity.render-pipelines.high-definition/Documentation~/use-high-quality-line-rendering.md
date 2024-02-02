@@ -3,7 +3,7 @@
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
 * To enable High Quality Line Rendering in your HDRP Asset go to **Rendering** > **High Quality Line Rendering**.
-* To enable High Quality Line Rendering in your Frame Settings go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Camera** > **Rendering** > **High Quality Line Rendering**.
+* To enable High Quality Line Rendering in your Frame Settings go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Camera** > **Rendering** > **High Quality Line Rendering**.
 
 ## Using High Quality Line Rendering
 

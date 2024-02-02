@@ -495,7 +495,7 @@ You can sample the custom color and depth buffers in Shader Graph using the foll
 
 You can disable Custom Passes in one of the following ways:
 
-- In [Frame Settings](Frame-Settings.md): Go to **Edit > Project Settings > Graphics > HDRP Global Settings**. You can then disable custom passes in one of the following places:
+- In [Frame Settings](Frame-Settings.md): Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**. You can then disable custom passes in one of the following places:
 
 - - To disable custom passes in the Camera, go to **Frame Settings > Rendering** section and disable the **Custom Pass** property. This disables custom passes in the Camera, but not for reflection probes.
   - To disable custom passes for planar reflection probes and reflection probes that are not baked, go to **Frame Settings > Realtime Reflection** and disable the **Custom Pass** property.

@@ -1,34 +1,18 @@
-# HDRP Global Settings Window reference
+# HDRP graphics settings window reference
 
-The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's Graphics Settings window. Use this tab to set up default settings for certain features in your Project. You can:
+If a project has the High Definition Render Pipeline (HDRP) package installed, Unity shows HDRP-specific graphics settings in **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 
-- Assign Render Pipeline Resources Assets for your HDRP Project.
-- Set the verboseness of Shader variant information that Unity writes to the Console window when you build your Project.
-- Set up default [Frame Setting](Frame-Settings.md) values for [Cameras](hdrp-camera-component-reference.md) to use.
-- Assign and edit a default [Volume Profile](create-a-volume-profile.md).
+The section contains the following settings that let you define project-wide settings for HDRP.
 
-The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Global Settings**.
+You can also add your own settings. Refer to [Add custom settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/add-custom-graphics-settings.html) in the Scriptable Render Pipeline (SRP) Core manual for more information.
 
-## <a name="volume-profiles"></a> Volume Profiles
-
-You can use the **Volume Profiles** section to assign and edit a [Volume Profile](create-a-volume-profile.md) that [Volumes](understand-volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it's assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority.
-
-The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP package folder called `DefaultSettingsVolumeProfile` by default. Below it, you can add [Volume overrides](volume-component.md), and edit their properties. You can assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the `DefaultSettingsVolumeProfile` from the HDRP package folder.
-
-The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](test-and-debug-materials-in-different-lighting-conditions-look-dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](visual-environment-volume-override-reference.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
-
-## Frame Settings (Default Values)
-
-The [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras perform at runtime.
-
-Use this section to set default values for the Frame Settings that all Cameras use if you don't enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
-
-## Rendering Layers
+## Additional Shader Stripping Settings
 
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
-| Default Mesh Rendering Layer Mask | Defines the Default Rendering Layer Mask for any Terrains or Renderer you create after you set this property.<br/> To set a Layer Mast on existing Terrains or Renderers, use [Decal Layers](use-decals.md) |
-| Rendering Layer Names     | Defines the number and names of the Rendering Layers in your project. |
+| Shader Variant Log Level  | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only SRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
+| Export Shader Variants | Controls whether to output shader variant information to a file. |
+
 
 ## Custom Post Process Orders
 
@@ -37,6 +21,13 @@ Use this section to select which custom post processing effect HDRP uses in the 
 HDRP provides one list for each post processing injection point. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details.
 
 ![](Images/HDRPgs_Custom_PP.png)
+
+
+## Frame Settings (Default Values)
+
+The [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras perform at runtime.
+
+Use this section to set default values for the Frame Settings that all Cameras use if you don't enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
 
 ## Miscellaneous
 
@@ -48,14 +39,16 @@ HDRP provides one list for each post processing injection point. See the [Custom
 | Use DLSS Custom Project ID       | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID.<br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
 | DLSS Custom Project ID           | Controls whether to use a custom project ID for the NVIDIA Deep Learning Super Sampling (DLSS) module. If you enable this property, you can use **DLSS Custom Project ID** to specify a custom project ID. If you disable this property, Unity generates a unique project ID. <br/>This property only appears if you enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project. |
 | Runtime Debug Shaders            | When enabled, Unity includes shader variants that let you use the Rendering Debugger window to debug your build. When disabled, Unity excludes (strips) these variants. Enable this when you want to debug your shaders in the Rendering Debugger window, and disable it otherwise. |
-| Auto Register Diffusion Profiles | When enabled, diffusion profiles referenced by an imported material will be automatically added to the diffusion profile list in the HDRP Global Settings. |
+| Auto Register Diffusion Profiles | When enabled, diffusion profiles referenced by an imported material will be automatically added to the diffusion profile list in the [HDRP Graphics settings window](Default-Settings-Window.md) |
 
-## Shader Stripping
 
-| **Property**              | **Description**                                              |
-| --------------------------| ------------------------------------------------------------ |
-| Shader Variant Log Level  | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only SRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
-| Export Shader Variants | Controls whether to output shader variant information to a file. |
+## <a name="volume-profiles"></a> Volume Profiles
+
+You can use the **Volume Profiles** section to assign and edit a [Volume Profile](create-a-volume-profile.md) that [Volumes](understand-volumes.md) use by default in your Scenes. You do not need to create a Volume for this specific Volume Profile to be active, because HDRP always processes it as if it's assigned to a global Volume in the Scene, but with the lowest priority. This means that any Volume that you add to a Scene takes priority.
+
+The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP package folder called `DefaultSettingsVolumeProfile` by default. Below it, you can add [Volume overrides](volume-component.md), and edit their properties. You can assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the `DefaultSettingsVolumeProfile` from the HDRP package folder.
+
+The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](test-and-debug-materials-in-different-lighting-conditions-look-dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](visual-environment-volume-override-reference.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
 
 ## Resources
 

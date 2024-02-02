@@ -15,7 +15,7 @@ To enable SSGI:
 
 1. Open your HDRP Asset in the Inspector.
 2. Go to **Lighting** and enable **Screen Space Global Illumination**.
-3. Go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Global Illumination**.
+3. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Global Illumination**.
 
 ## Use Screen Space Global Illumination
 

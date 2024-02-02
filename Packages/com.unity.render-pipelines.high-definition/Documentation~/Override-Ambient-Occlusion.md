@@ -13,7 +13,7 @@ HDRP implements [ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md) 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
 * To enable SSAO in your HDRP Asset go to **Lighting** > **Screen Space Ambient Occlusion**.
-* To enable SSAO in your Frame Settings go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Camera** > **Lighting** > **Screen Space Ambient Occlusion**.
+* To enable SSAO in your Frame Settings go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Camera** > **Lighting** > **Screen Space Ambient Occlusion**.
 
 <a name="use-screen-space-ambient-occlusion"></md>
 

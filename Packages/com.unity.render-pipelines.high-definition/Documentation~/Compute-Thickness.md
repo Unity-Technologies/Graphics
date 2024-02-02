@@ -21,7 +21,7 @@ To enable compute thickness in your project, set up the following properties:
 1. Open the Project Settings (**Edit** > **Project Settings**).
 2. In **Quality** > **HDRP**, open the **Rendering** section.
 3. Enable the **Compute Thickness** toggle.
-4. In **Graphics** > **HDRP Global Settings** > **Frame Settings**.
+4. In **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings**.
 5. In the **Camera** section, select the **Rendering** heading. 
 6. Enable the **Compute Thickness** toggle.
 
@@ -74,7 +74,7 @@ To create a layer mask to apply compute thickness to, assign the compute thickne
    1. Go to **Quality** > **HDRP**
    2. Select the **Compute thickness** tab.
    3. Open the **Layer Mask** dropdown and select the custom layer you want to compute the thickness of. 
-   4. Go to **Graphics** > **HDRP Global Settings**
+   4. Go to **Graphics** > **Pipeline Specific Settings** > **HDRP**
    5. Open the **Rendering** tab.
    6. Enable the **Compute thickness** toggle.
 * In the HDRP Asset:
@@ -149,7 +149,7 @@ B: The compute thickness debug view when you enable **Show Overlap Count** .
 | ![img](Images/computethickness_debug_vidris.png)Vidris color scale | A gradient scale that represents thickness. Purple represents the minimum thickness and yellow represents the maximum thickness.<br/>When you enable **Show Overlap Count,** yellow areas indicate a high number of overlapping triangles. |
 | ![img](Images/computethickness_debug_red.png)Red             | Negative thickness caused by an open mesh, flipped triangles, or an odd number of triangles in the optical path. |
 | ![img](Images/computethickness_debug_gray.png)Gray           | The default background color. <br/>Gray areas inside a mesh indicate pixels that are in a similar position (z-fight) or have no thickness. |
-| ![img](Images/computethickness_debug_orange.png)Orange       | Compute Thickness is not active in the HDRP Global Settings. To fix this, [enable compute thickness](#computethickness-enable). |
+| ![img](Images/computethickness_debug_orange.png)Orange       | Compute Thickness is not active in HDRP graphics settings. To fix this, [enable compute thickness](#computethickness-enable). |
 | ![img](Images/computethickness_debug_pink.png)Pink           | This layer is not assigned to the HDRP Asset’s Layer Mask property. To fix this, [enable compute thickness](#computethickness-enable). |
 
 ## Limitations
