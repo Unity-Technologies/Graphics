@@ -58,10 +58,10 @@ test_platforms:
       # - [all]: --reruncount=2
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
-      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
+      - [Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
 
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_OpenGlCore]: --player-load-path=players
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_Vulkan]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -73,7 +73,7 @@ test_platforms:
 
       - [OSX_Apple_Silicon_Metal]: --architecture=ARM64
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
       - [all]: '%CACHE_ARGS%'
@@ -84,8 +84,8 @@ test_platforms:
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
-      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
+      - [Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_Metal]: --platform=StandaloneOSX
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
 
@@ -93,7 +93,7 @@ test_platforms:
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-save-path=players
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_Vulkan]: --player-save-path=players
 
       - [all]: --timeout=1200
 
@@ -136,9 +136,9 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
-      - [OSX_OpenGlCore, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
     allow_cache: False
     utr_flags:
@@ -162,7 +162,6 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
-      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
       - [OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
 
       - [OSX_Apple_Silicon_Metal]: --architecture=ARM64
@@ -181,7 +180,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal, Linux_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
@@ -207,7 +206,6 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
-      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
@@ -229,7 +227,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal, Linux_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -298,11 +296,6 @@ platforms:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
-    agents_project_OpenGLCore:
-      default:
-        type: Unity::VM::osx
-        image: automation-tooling/macos-10.14:v2.989196
-        flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
@@ -353,28 +346,6 @@ platforms:
           - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
         log_parser:
           - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-          - command: find_instabilities || exit 0
-      [OpenGlCore]:
-        setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-            retries: 2
-          - chmod +x utr
-        call_utr:
-          - command: |5-
-                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                    ./utr <UTR_FLAGS>
-            retries: 2
-        call_utr_without_git:
-          - command: ./utr <UTR_FLAGS>
-            retries: 2
-        unity_downloader_cli:
-          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - command: brew install unity-downloader-cli
-            retries: 2
-          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-            retries: 2
-        log_parser:
-          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
 
   OSX_Apple_Silicon:
@@ -437,7 +408,7 @@ platforms:
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     commands:
-      [OpenGlCore, Vulkan]:
+      [Vulkan]:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
