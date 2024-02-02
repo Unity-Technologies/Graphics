@@ -1784,7 +1784,9 @@ namespace UnityEditor.VFX.UI
                 controller.graph.RecompileIfNeeded(false, false);
             else
             {
+                VFXGraph.explicitCompile = true;
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
+                VFXGraph.explicitCompile = false;
             }
         }
 
@@ -3466,13 +3468,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXCompileErrorReporter StartCompilationErrorReport(VFXGraph graph, bool explicitCompile)
+        public VFXCompileErrorReporter StartCompilationErrorReport(VFXGraph graph)
         {
             if (graph.compileReporter is VFXCompileErrorReporter compileReporter)
                 return null; // Return null so the the current reporter is not disposed too early
 
             errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
-            return new VFXCompileErrorReporter(graph, errorManager, explicitCompile);
+            return new VFXCompileErrorReporter(graph, errorManager);
         }
 
         public VFXInvalidateErrorReporter StartInvalidateErrorReport(VFXModel model)

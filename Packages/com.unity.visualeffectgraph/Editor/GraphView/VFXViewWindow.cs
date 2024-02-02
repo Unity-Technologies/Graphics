@@ -395,10 +395,12 @@ namespace UnityEditor.VFX.UI
 
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
-                            using (graphView.StartCompilationErrorReport(graph, true))
+                            VFXGraph.explicitCompile = true;
+                            using (graphView.StartCompilationErrorReport(graph))
                             {
                                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
                             }
+                            VFXGraph.explicitCompile = false;
                             // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
                             graph.SetExpressionGraphDirty(false);
                         }
