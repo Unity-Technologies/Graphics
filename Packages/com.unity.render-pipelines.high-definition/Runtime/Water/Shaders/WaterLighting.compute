@@ -305,7 +305,7 @@ void WaterFogIndirect(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_
 
         float3 absorptionTint = exp(-absorptionDistance * prof.outScatteringCoefficient * (1.f - prof.transparencyColor));
 
-        float ambient = _UnderWaterAmbientProbeLuminance * GetCurrentExposureMultiplier();
+        float ambient = _WaterAmbientProbe.w * GetCurrentExposureMultiplier();
         float3 farColor = prof.scatteringColor * lerp(1.0, ambient, prof.underWaterAmbientProbeContribution);
 
         volColor = farColor * (1 - absorptionTint);

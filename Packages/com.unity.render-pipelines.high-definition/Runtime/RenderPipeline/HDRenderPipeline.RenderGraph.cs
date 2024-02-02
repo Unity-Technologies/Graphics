@@ -1547,7 +1547,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Water
             public WaterSurface underWaterSurface;
-            public Vector4 waterAmbientProbe;
 
             public WaterGBuffer waterGBuffer;
             public BufferHandle waterLine;
@@ -1620,7 +1619,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hasWater)
             {
                 // Render the water gbuffer (and prepare for the transparent SSR pass)
-                output.waterGBuffer = RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, output.waterSurfaceProfiles, lightLists);
+                output.waterGBuffer = RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, lightLists);
 
                 // Render Water Line
                 RenderWaterLine(renderGraph, hdCamera, prepassOutput.depthBuffer, ref output);
@@ -1711,7 +1710,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderWaterLighting(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, transparentPrepass, lightLists);
 
             // If required, render the water mask debug views
-            RenderWaterMaskDebug(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
+            RenderWaterMask(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
 
             // Generate color pyramid for refraction and transparent SSR next frame
             // - after water lighting to ensure it's present in transparent ssr

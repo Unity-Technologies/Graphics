@@ -61,6 +61,14 @@ namespace UnityEditor.VFX
             this.m_HlslCode = hlslCode;
         }
 
+        public VFXExpressionHLSL(string functionName, string hlslCode, System.Type returnType, VFXExpression[] parents) : base(Flags.InvalidOnCPU, parents)
+        {
+            this.m_TextureParentExpressionIndex = new List<int>();
+            this.m_FunctionName = functionName;
+            this.m_ValueType = GetVFXValueTypeFromType(returnType);
+            this.m_HlslCode = hlslCode;
+        }
+
         public override VFXValueType valueType => m_ValueType;
         public override VFXExpressionOperation operation => VFXExpressionOperation.None;
         public ShaderInclude shaderFile => null;

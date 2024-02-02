@@ -424,8 +424,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceSimulation)))
             {
                 // Bind the constant buffers
-                ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterSimulationCS, HDShaderIDs._ShaderVariablesWater);
-                ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_FourierTransformCS, HDShaderIDs._ShaderVariablesWater);
+                BindPerSurfaceConstantBuffer(cmd, m_WaterSimulationCS, currentWater.constantBuffer);
+                BindPerSurfaceConstantBuffer(cmd, m_FourierTransformCS, currentWater.constantBuffer);
 
                 // Raise the keyword if it should be raised
                 SetupWaterShaderKeyword(cmd, bandCount, false);
@@ -495,15 +495,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 int causticsResolution = (int)currentWater.causticsResolution;
                 currentWater.simulation.CheckCausticsResources(true, causticsResolution);
 
-                // Bind the constant buffer
-                ConstantBuffer.Set<ShaderVariablesWater>(m_CausticsMaterial, HDShaderIDs._ShaderVariablesWater);
-
-                // Render the caustics
-                CoreUtils.SetRenderTarget(cmd, currentWater.simulation.gpuBuffers.causticsBuffer, clearFlag: ClearFlag.Color, Color.black);
+                // Setup properties
+                m_WaterMaterialPropertyBlock.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, currentWater.constantBuffer, 0, currentWater.constantBuffer.stride);
                 m_WaterMaterialPropertyBlock.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 m_WaterMaterialPropertyBlock.SetFloat(HDShaderIDs._CausticsVirtualPlane, currentWater.virtualPlaneDistance);
                 m_WaterMaterialPropertyBlock.SetInt(HDShaderIDs._CausticsNormalsMipOffset, EvaluateNormalMipOffset(m_WaterBandResolution));
                 m_WaterMaterialPropertyBlock.SetInt(HDShaderIDs._CausticGeometryResolution, meshResolution);
+
+                // Render the caustics
+                CoreUtils.SetRenderTarget(cmd, currentWater.simulation.gpuBuffers.causticsBuffer, clearFlag: ClearFlag.Color, Color.black);
                 cmd.DrawProcedural(m_CausticsGeometry, Matrix4x4.identity, m_CausticsMaterial, 0, MeshTopology.Triangles, WaterConsts.k_WaterCausticsMeshNumQuads * 6, 1, m_WaterMaterialPropertyBlock);
 
                 // Make sure the mip-maps are generated

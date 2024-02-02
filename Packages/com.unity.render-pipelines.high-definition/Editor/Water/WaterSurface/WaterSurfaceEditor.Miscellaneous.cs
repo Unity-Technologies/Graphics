@@ -111,7 +111,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (new IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(serialized.m_WaterCurrentDebugMode, k_WaterCurrentDebugMode);
+                    if (currentSurfaceType != WaterSurfaceType.Pool)
+                        EditorGUILayout.PropertyField(serialized.m_WaterCurrentDebugMode, k_WaterCurrentDebugMode);
                     EditorGUILayout.PropertyField(serialized.m_CurrentDebugMultiplier, k_CurrentDebugMultiplier);
                     serialized.m_CurrentDebugMultiplier.floatValue = Mathf.Max(serialized.m_CurrentDebugMultiplier.floatValue, 0.1f);
                 }

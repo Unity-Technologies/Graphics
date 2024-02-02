@@ -156,14 +156,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, bool activeFoam, bool gpuReadback, out bool gpuSpectrumValid, out bool cpuSpectrumValid, out bool historyValid)
+        internal void CheckResources(int bandResolution, bool activeFoam, bool gpuReadback, out bool gpuSpectrumValid, out bool cpuSpectrumValid)
         {
             int bandCount = numActiveBands;
 
             // By default we shouldn't need an update
             gpuSpectrumValid = true;
             cpuSpectrumValid = true;
-            historyValid = true;
 
             // If the previously existing resources are not valid, just release them
             if (simulation != null && !simulation.ValidResources(bandResolution, bandCount))
@@ -181,7 +180,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // In this case the CPU buffers are invalid and we need to rebuild them
                 gpuSpectrumValid = false;
                 cpuSpectrumValid = false;
-                historyValid = false;
 
                 // Create the simulation resources
                 simulation = new WaterSimulationResources();
@@ -195,6 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // CPU buffers should be allocated only if required
                 if (cpuSimulationActive)
                     simulation.AllocateSimulationBuffersCPU();
+
+                CreateConstantBuffers();
             }
 
             // If the resources are no longer used, release them

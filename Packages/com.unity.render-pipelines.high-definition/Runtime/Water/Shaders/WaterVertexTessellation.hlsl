@@ -1,6 +1,35 @@
 // Setup function used by no one
 void SetupInstanceID() {}
 
+#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+StructuredBuffer<float2> _WaterPatchData;
+#endif
+
+float3 WaterSimulationPosition(float3 objectPosition, uint instanceID = 0)
+{
+    // This branch is useless but it improves occupancy
+    if (_GridSize.x < 0)
+        return 0;
+
+    float3 simulationPos = objectPosition;
+
+    float2 gridSize = _GridSize;
+    #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    // Grab the patch data for the current instance/patch
+    float2 patchData = _WaterPatchData[instanceID];
+    simulationPos.x = objectPosition.x * patchData.x - objectPosition.z * patchData.y;
+    simulationPos.z = objectPosition.x * patchData.y + objectPosition.z * patchData.x;
+    #elif !defined(WATER_DISPLACEMENT)
+    gridSize *= _GridSizeMultiplier;
+    #endif
+
+    // Scale and offset the position to where it should be
+    simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset;
+
+    // Return the simulation position
+    return simulationPos;
+}
+
 /// VERTEX STAGE START
 
 #ifdef TESSELLATION_ON
@@ -49,7 +78,7 @@ VaryingsMeshType VertMeshWater(AttributesMesh input)
     // does not return the expect value when we have both procedural and stereo instancing.
     // This variables is guaranted to be defined and set to the right value as soon as we have at least
     // one instancing technique.
-    input.positionOS = WaterSimulationPositionInstanced(input.positionOS, unity_InstanceID);
+    input.positionOS = WaterSimulationPosition(input.positionOS, unity_InstanceID);
 #else
     input.positionOS = WaterSimulationPosition(input.positionOS);
     #if defined(WATER_DISPLACEMENT)
@@ -71,10 +100,13 @@ VaryingsMeshType VertMeshWater(AttributesMesh input)
         );
 
     // Export for the following stage
-    output.positionRWS =  TransformObjectToWorld(input.positionOS);
-    output.normalWS = input.normalOS;
-    output.texCoord0 = input.uv0;
-    output.texCoord1 = input.uv1;
+    if (_GridSize.x >= 0)
+    {
+        output.positionRWS =  TransformObjectToWorld(input.positionOS);
+        output.normalWS = input.normalOS;
+        output.texCoord0 = input.uv0;
+        output.texCoord1 = input.uv1;
+    }
 
     #ifdef TESSELLATION_ON
     output.tessellationFactor = _WaterMaxTessellationFactor;

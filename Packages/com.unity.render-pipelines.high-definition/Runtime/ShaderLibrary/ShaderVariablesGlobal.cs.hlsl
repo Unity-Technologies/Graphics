@@ -87,10 +87,11 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _UpDirectionY;
     float _BufferStride;
     int _EnableWater;
-    float _UnderWaterAmbientProbeLuminance;
+    float4 _WaterAmbientProbe;
     int _UnderWaterSurfaceIndex;
     float _UnderWaterCausticsIntensity;
     float _UnderWaterCausticsPlaneBlendDistance;
+    float _PaddingG1;
     float4x4 _UnderWaterSurfaceTransform_Inverse;
     float _UnderWaterCausticsTilingFactor;
     float _UnderWaterCausticsMaxLOD;

@@ -172,10 +172,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _BufferStride;
         public int _EnableWater;
 
-        public float _UnderWaterAmbientProbeLuminance;
+        public Vector4 _WaterAmbientProbe;
         public int _UnderWaterSurfaceIndex;
         public float _UnderWaterCausticsIntensity;
         public float _UnderWaterCausticsPlaneBlendDistance;
+        public float _PaddingG1;
         public Matrix4x4 _UnderWaterSurfaceTransform_Inverse;
         public float _UnderWaterCausticsTilingFactor;
         public float _UnderWaterCausticsMaxLOD;

@@ -200,7 +200,7 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
                 #endif
             }
 
-            float ambient = _UnderWaterAmbientProbeLuminance * GetCurrentExposureMultiplier();
+            float ambient = _WaterAmbientProbe.w * GetCurrentExposureMultiplier();
             farColor = prof.scatteringColor * lerp(1.0, ambient, prof.underWaterAmbientProbeContribution);
         }
         else

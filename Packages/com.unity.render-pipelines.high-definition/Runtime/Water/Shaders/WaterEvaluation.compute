@@ -11,12 +11,14 @@
 // Required to be defined for some includes
 #define WATER_SIMULATION
 
+// Small optimization to reduce deformation reads
+#define IGNORE_WATER_DEFORMATION
+#define WATER_POST_INCLUDE_DEFORMATION
+
 // SRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/SampleWaterSurface.hlsl"
 
 // The set of input position we need to process
 RWStructuredBuffer<float> _WaterCameraHeightBufferRW;
@@ -27,89 +29,16 @@ RWStructuredBuffer<float> _WaterCameraHeightBufferRW;
 // We consider that we found the point if we were able to
 #define SEARCH_DISTANCE_THRESHOLD 0.001
 
-struct TapData
-{
-    float3 currentDisplacement;
-    float3 displacedPoint;
-    float2 offset;
-    float distance;
-    float height;
-};
-
-TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePosition)
-{
-    TapData data;
-
-    // Evaluate the displacement at the current point
-    WaterDisplacementData displacementData;
-    EvaluateWaterDisplacement(currentLocation, displacementData);
-    data.currentDisplacement = displacementData.displacement;
-
-    // Evaluate the complete position
-    data.displacedPoint = currentLocation + data.currentDisplacement;
-
-    // Evaluate the distance to the reference point
-    data.offset = data.displacedPoint.xz - referencePosition.xz;
-
-    // Length of the offset vector
-    data.distance = length(data.offset);
-
-    // Simulation height of the position of the offset vector
-    data.height = displacementData.displacement.y;
-
-    return data;
-}
-
 [numthreads(1, 1, 1)]
 void FindVerticalDisplacements(uint3 currentThread : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(currentThread.z);
 
-    // The point we will be looking for needs to be converted into the local space of the water simulation
-    float3 targetPosition = mul(_WaterCustomTransform_Inverse, float4(_WorldSpaceCameraPos.xyz, 1.0)).xyz;
+    int stepCount;
+    float currentError;
+    float height = FindVerticalDisplacement(_WorldSpaceCameraPos.xyz, SEARCH_ITERATION_COUNT, SEARCH_DISTANCE_THRESHOLD, stepCount, currentError);
 
-    // Initialize the search data
-    bool found = false;
-    int stepCount = 0;
-    TapData tapData = EvaluateDisplacementData(targetPosition, targetPosition);
-    float3 currentLocation = targetPosition;
-    float2 stepSize = tapData.offset;
-    float currentError = tapData.distance;
-    float currentHeight = tapData.height;
-
-    while (stepCount < SEARCH_ITERATION_COUNT)
-    {
-        bool progress = false;
-        // Is the point close enough to target position?
-        if (currentError < SEARCH_DISTANCE_THRESHOLD)
-        {
-            found = true;
-            break;
-        }
-
-        // Keep track of the step size that will be use for the 4 samples
-        float2 localSearchStepSize = stepSize;
-
-        float3 candidateLocation = currentLocation - float3(localSearchStepSize.x, 0, localSearchStepSize.y);
-        TapData tapData = EvaluateDisplacementData(candidateLocation, targetPosition);
-        if (tapData.distance < currentError)
-        {
-            currentLocation = candidateLocation;
-            stepSize = tapData.offset;
-            currentError = tapData.distance;
-            currentHeight = tapData.height;
-            progress = true;
-        }
-
-        // If we didn't make any progress in this step, this means out steps are probably too big make them smaller
-        if (!progress)
-            stepSize *= 0.25;
-
-        // If none of the 4 steps managed to get closer, we need a smaller step
-        stepCount++;
-    }
-
-    _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 0] = targetPosition.y - currentHeight;
+    _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 0] = height;
     _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 1] = currentError;
     _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 2] = stepCount;
     _WaterCameraHeightBufferRW[4 * unity_StereoEyeIndex + 3] = 0.0;

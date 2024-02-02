@@ -55,8 +55,7 @@ void Frag(PackedVaryingsToPS packedInput,
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_WATER_MASK)
     {
-        float2 maskUV = EvaluateWaterMaskUV(positionOS.xz);
-        float3 waterMask = RemapWaterMaskValue(SAMPLE_TEXTURE2D(_WaterMask, sampler_WaterMask, maskUV).xyz);
+        float3 waterMask = EvaluateWaterMask(positionOS);
         float3 debugMask = waterMask[_WaterMaskDebugMode];
         outGBuffer0 = float4(debugMask, 1.0);
     }

@@ -115,11 +115,11 @@ namespace UnityEngine.Rendering.HighDefinition
         WaterSurfaceCaustics,
         WaterSurfaceFoam,
         WaterExclusion,
-        WaterSurfaceRenderingGBuffer,
-        WaterSurfaceRenderingMaskDebug,
-        WaterSurfacePrepareLighting,
-        WaterSurfaceRenderingDeferred,
-        WaterSurfaceRenderingWaterLine,
+        WaterGBuffer,
+        WaterMaskDebug,
+        WaterPrepareLighting,
+        WaterDeferredLighting,
+        WaterLineRendering,
 
         // High Quality Lines
         LinesGeometrySetup,

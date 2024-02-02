@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
     }
 
+    // NOTE: make sure that any new feature on the CPU requests are matched on the VFX sammple node
+
     /// <summary>
     /// Structure that holds the input parameters of the search.
     /// </summary>
@@ -102,6 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies if the search should ignore the simulation.
         /// </summary>
         public bool excludeSimulation;
+
+        /// <summary>
+        /// Specifies if the search should compute the normal of the water surface at the projected position.
+        /// </summary>
+        public bool outputNormal;
     }
 
     /// <summary>
@@ -113,6 +120,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Returns the world space position projected on the water surface along the up vector of the water surface.
         /// </summary>
         public float3 projectedPositionWS;
+
+        /// <summary>
+        /// If requested in the search parameters, returns the world space normal of the water surface at the projected position.
+        /// </summary>
+        public float3 normalWS;
 
         /// <summary>
         /// Location of the 3D world space point that has been displaced to the target positions
@@ -137,18 +149,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public partial class HDRenderPipeline
     {
-        static void EvaluateWaterDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeSimulation, bool includeDeformation, out float3 totalDisplacement, out float2 dir)
+        static void EvaluateWaterDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeSimulation, out float3 totalDisplacement, out float2 dir)
         {
-            // Compute the simulation coordinates
-            float2 uv = float2(positionAWS.x, positionAWS.z);
-            float3 waterMask = EvaluateWaterMask(wsd, uv);
-
             // Will hold the total displacement
             totalDisplacement = 0.0f;
             dir = OrientationToDirection(wsd.spectrum.patchOrientation.x);
 
             if (includeSimulation)
             {
+                // Compute the simulation coordinates
+                float2 uv = float2(positionAWS.x, positionAWS.z);
+                float3 waterMask = EvaluateWaterMask(wsd, uv);
+
                 // The behavior is different if we have a current map or we don't
                 if (wsd.activeGroup0CurrentMap || wsd.activeGroup1CurrentMap)
                 {
@@ -189,21 +201,111 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    WaterSimCoord coords;
-                    ComputeWaterUVs(wsd, uv, out coords);
+                    ComputeWaterUVs(wsd, uv, out var coords);
                     totalDisplacement = EvaluateWaterSimulation(wsd, coords, waterMask);
+                }
+
+                // We only apply the choppiness tot he first two bands, doesn't behave very good past those
+                totalDisplacement.yz *= WaterConsts.k_WaterMaxChoppinessValue;
+
+                // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
+                totalDisplacement = ShuffleDisplacement(totalDisplacement);
+            }
+        }
+
+        static float3 LoadDisplacement(WaterSimSearchData wsd, int2 coord, int bandIdx)
+        {
+            return wsd.cpuSimulation ? LoadTexture2DArray(wsd.displacementDataCPU, coord, bandIdx, wsd.simulationRes).xyz :
+                LoadTexture2DArray(wsd.displacementDataGPU, coord, bandIdx, wsd.simulationRes).xyz;
+        }
+
+        static float2 EvaluateWaterNormal(WaterSimSearchData wsd, WaterSimCoord waterCoord, float3 waterMask)
+        {
+            float2 surfaceGradient = 0;
+
+            for (int bandIdx = 0; bandIdx < wsd.activeBandCount; bandIdx++)
+            {
+                PatchSimData data = bandIdx == 0 ? waterCoord.data0 : (bandIdx == 1 ? waterCoord.data1 : waterCoord.data2);
+                int2 coord = (int2)(data.uv * wsd.simulationRes);
+
+                // Get the displacement we need for the evaluate (and re-order them)
+                // Note: we could do some sort of bilinear here to filter the result
+                float3 displacementCenter = ShuffleDisplacement(LoadDisplacement(wsd, coord, bandIdx));
+                float3 displacementRight = ShuffleDisplacement(LoadDisplacement(wsd, coord + int2(1, 0), bandIdx));
+                float3 displacementUp = ShuffleDisplacement(LoadDisplacement(wsd, coord + int2(0, 1), bandIdx));
+
+                // Evaluate the displacement normalization factor and pixel size
+                float pixelSize = wsd.spectrum.patchSizes[bandIdx] / (float)wsd.simulationRes;
+
+                // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
+                EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, wsd.rendering.patchAmplitudeMultiplier[bandIdx], pixelSize,
+                    out var p0, out var p1, out var p2);
+
+                // Compute the surface gradients of this band
+                float2 additionalData = EvaluateSurfaceGradients(p0, p1, p2);
+                additionalData.xy *= data.blend * waterMask[bandIdx];
+
+                // Swizzle the displacement
+                additionalData.xy = float2(dot(additionalData.xy, data.swizzle.xy), dot(additionalData.xy, data.swizzle.zw));
+
+                // Evaluate the surface gradient
+                surfaceGradient += additionalData.xy;
+            }
+
+            return surfaceGradient;
+        }
+
+        static float3 EvaluateNormal(WaterSimSearchData wsd, WaterSearchParameters wsp, float3 positionAWS)
+        {
+            float2 surfaceGradient = 0;
+            float2 uv = float2(positionAWS.x, positionAWS.z);
+            float3 waterMask = EvaluateWaterMask(wsd, uv);
+
+            if (!wsp.excludeSimulation)
+            {
+                if (wsd.activeGroup0CurrentMap || wsd.activeGroup1CurrentMap)
+                {
+                    // Read the current data
+                    CurrentData gr0CurrentData, gr1CurrentData;
+                    EvaluateGroup0CurrentData(wsd, uv, out gr0CurrentData);
+                    EvaluateGroup1CurrentData(wsd, uv, out gr1CurrentData);
+
+                    // Compute the simulation coordinates
+                    float4 gr0uv, gr1uv;
+                    SwizzleSamplingCoordinates(uv, gr0CurrentData.quadrant, wsd.sectorData, out gr0uv);
+                    SwizzleSamplingCoordinates(uv, gr1CurrentData.quadrant, wsd.sectorData, out gr1uv);
+
+                    // Compute the 2 simulation coordinates
+                    WaterSimCoord gr0SimCoord;
+                    WaterSimCoord gr1SimCoord;
+                    WaterSimCoord finalSimCoord;
+
+                    // Sample the simulation (first time)
+                    ComputeWaterUVs(wsd, gr0uv.xy, out gr0SimCoord);
+                    ComputeWaterUVs(wsd, gr1uv.xy, out gr1SimCoord);
+                    AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, true, out finalSimCoord);
+                    float2 surfaceGradient0 = EvaluateWaterNormal(wsd, finalSimCoord, waterMask);
+
+                    // Sample the simulation (second time)
+                    ComputeWaterUVs(wsd, gr0uv.zw, out gr0SimCoord);
+                    ComputeWaterUVs(wsd, gr1uv.zw, out gr1SimCoord);
+                    AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, false, out finalSimCoord);
+                    float2 surfaceGradient1 = EvaluateWaterNormal(wsd, finalSimCoord, waterMask);
+
+                    // Combine both contributions
+                    surfaceGradient = surfaceGradient0 + surfaceGradient1;
+                }
+                else
+                {
+                    ComputeWaterUVs(wsd, uv, out var waterCoord);
+                    surfaceGradient = EvaluateWaterNormal(wsd, waterCoord, waterMask);
                 }
             }
 
-            // We only apply the choppiness tot he first two bands, doesn't behave very good past those
-            totalDisplacement.yz *= WaterConsts.k_WaterMaxChoppinessValue;
+            if (wsp.includeDeformation)
+                surfaceGradient += EvaluateDeformerNormal(wsd, wsp.targetPositionWS);
 
-            // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
-            totalDisplacement =  float3(-totalDisplacement.y, totalDisplacement.x, -totalDisplacement.z);
-
-            // Apply the deformation if required
-            if (includeDeformation && wsd.activeDeformation)
-                totalDisplacement.y += EvaluateDeformers(wsd, positionAWS + totalDisplacement);
+            return SurfaceGradientResolveNormal(float3(0, 1, 0), float3(surfaceGradient.x, 0, surfaceGradient.y));
         }
 
         internal struct WaterSimulationTapData
@@ -216,12 +318,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public float height;
         }
 
-        static WaterSimulationTapData EvaluateDisplacementData(WaterSimSearchData wsd, float3 currentLocation, float3 referencePosition, bool includeSimulation, bool includeDeformation)
+        static WaterSimulationTapData EvaluateDisplacementData(WaterSimSearchData wsd, float3 currentLocation, float3 referencePosition, bool includeSimulation)
         {
             WaterSimulationTapData data;
 
             // Evaluate the displacement at the current point
-            EvaluateWaterDisplacement(wsd, currentLocation, includeSimulation, includeDeformation, out data.currentDisplacement, out data.direction);
+            EvaluateWaterDisplacement(wsd, currentLocation, includeSimulation, out data.currentDisplacement, out data.direction);
 
             // Evaluate the complete position
             data.displacedPoint = currentLocation + data.currentDisplacement;
@@ -239,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static void ProjectPointOnWaterSurface(WaterSimSearchData wsd,
                                                     WaterSearchParameters wsp,
-                                                    out WaterSearchResult sr)
+                                                    ref WaterSearchResult sr)
         {
             // Convert the target position to the water object space
             float3 targetPositionOS = mul(wsd.rendering.worldToWaterMatrix, float4(wsp.targetPositionWS, 1.0f)).xyz;
@@ -248,10 +350,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float3 startPositionOS = mul(wsd.rendering.worldToWaterMatrix, float4(wsp.startPositionWS, 1.0f)).xyz;
 
             // Initialize the search data
-            WaterSimulationTapData tapData = EvaluateDisplacementData(wsd, startPositionOS, targetPositionOS, !wsp.excludeSimulation, wsp.includeDeformation);
+            WaterSimulationTapData tapData = EvaluateDisplacementData(wsd, startPositionOS, targetPositionOS, !wsp.excludeSimulation);
             float2 stepSize = tapData.offset;
             sr.error = tapData.distance;
-            float currentHeight = tapData.height;
             sr.candidateLocationWS = startPositionOS;
             sr.currentDirectionWS = float3(tapData.direction.x, 0, tapData.direction.y);
             sr.numIterations = 0;
@@ -267,13 +368,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool progress = false;
 
                 float3 candidateLocation = sr.candidateLocationWS + new float3(stepSize.x, 0, stepSize.y);
-                tapData = EvaluateDisplacementData(wsd, candidateLocation, targetPositionOS, !wsp.excludeSimulation, wsp.includeDeformation);
+                tapData = EvaluateDisplacementData(wsd, candidateLocation, targetPositionOS, !wsp.excludeSimulation);
                 if (tapData.distance < sr.error)
                 {
                     sr.candidateLocationWS = candidateLocation;
                     stepSize = tapData.offset;
                     sr.error = tapData.distance;
-                    currentHeight = tapData.height;
                     sr.currentDirectionWS = float3(tapData.direction.x, 0, tapData.direction.y);
                     progress = true;
                 }
@@ -285,9 +385,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 sr.numIterations++;
             }
 
+            // Apply the deformation if required
+            if (wsp.includeDeformation && wsd.activeDeformation)
+            {
+                float deformation = EvaluateDeformers(wsd, wsp.targetPositionWS);
+                tapData.displacedPoint.y += deformation;
+                tapData.currentDisplacement.y += deformation;
+                tapData.height = tapData.currentDisplacement.y;
+            }
+
             // Convert the positions from OS to world space
-            sr.projectedPositionWS = mul(wsd.rendering.waterToWorldMatrix, float4(targetPositionOS.x, currentHeight, targetPositionOS.z, 1.0f)).xyz;
+            sr.projectedPositionWS = mul(wsd.rendering.waterToWorldMatrix, float4(targetPositionOS.x, tapData.height, targetPositionOS.z, 1.0f)).xyz;
             sr.candidateLocationWS = mul(wsd.rendering.waterToWorldMatrix, float4(sr.candidateLocationWS, 1.0f)).xyz;
+
+            if (wsp.outputNormal)
+            {
+                float3 normalOS = EvaluateNormal(wsd, wsp, sr.candidateLocationWS);
+                sr.normalWS = mul((float3x3)wsd.rendering.waterToWorldMatrix, normalOS);
+            }
         }
     }
 
@@ -337,11 +452,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool excludeSimulation;
 
         /// <summary>
+        /// Specifies if the search should compute the normal of the water surface at the projected position.
+        /// </summary>
+        public bool outputNormal;
+
+        /// <summary>
         /// Output native array that holds the set of world space position projected on the water surface along the up vector of the water surface.
         /// </summary>
         [WriteOnly]
         [NativeDisableParallelForRestriction]
         public NativeArray<float3> projectedPositionWSBuffer;
+
+        /// <summary>
+        /// Output native array that holds the set of normals at projected positions.
+        /// </summary>
+        [WriteOnly]
+        [NativeDisableParallelForRestriction]
+        public NativeArray<float3> normalWSBuffer;
 
         /// <summary>
         /// Output native array that holds the set of horizontal error for each target position.
@@ -385,10 +512,11 @@ namespace UnityEngine.Rendering.HighDefinition
             wsp.maxIterations = maxIterations;
             wsp.includeDeformation = includeDeformation;
             wsp.excludeSimulation = excludeSimulation;
+            wsp.outputNormal = outputNormal;
 
             // Do the search
-            WaterSearchResult wsr = new WaterSearchResult();
-            HDRenderPipeline.ProjectPointOnWaterSurface(simSearchData, wsp, out wsr);
+            var wsr = new WaterSearchResult();
+            HDRenderPipeline.ProjectPointOnWaterSurface(simSearchData, wsp, ref wsr);
 
             // Output the result to the output buffers
             errorBuffer[index] = wsr.error;
@@ -396,6 +524,9 @@ namespace UnityEngine.Rendering.HighDefinition
             projectedPositionWSBuffer[index] = wsr.projectedPositionWS;
             directionBuffer[index] = wsr.currentDirectionWS;
             stepCountBuffer[index] = wsr.numIterations;
+
+            if (outputNormal)
+                normalWSBuffer[index] = wsr.normalWS;
         }
     }
 }

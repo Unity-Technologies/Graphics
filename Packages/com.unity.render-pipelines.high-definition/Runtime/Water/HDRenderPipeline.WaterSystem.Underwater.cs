@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 WaterSurface currentWater = waterSurfaces[surfaceIdx];
 
                 // Does this surface need underwater rendering?
-                if (!currentWater.underWater)
+                if (!currentWater.underWater || currentWater.debugMode != WaterDebugMode.None)
                     continue;
 
                 // If the surface is infinite, we need to check if the camera is between the top plane + max displacement  and the top plane - volume depth
@@ -105,6 +105,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return new float2(Min4(corner_1, corner_2, corner_3, corner_4), Max4(corner_1, corner_2, corner_3, corner_4));
         }
 
+        unsafe Vector4 EvaluateWaterAmbientProbe(HDCamera hdCamera, float ambientProbeDimmer)
+        {
+            SphericalHarmonicsL2 probeSH = m_SkyManager.GetAmbientProbe(hdCamera);
+            probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, ambientProbeDimmer);
+            SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsProbe, probeSH);
+            Vector4 ambient = EvaluateAmbientProbe(m_PackedCoeffsProbe, Vector3.up);
+            return new Vector4(ambient.x, ambient.y, ambient.z, ambient.x * 0.2126729f + ambient.y * 0.7151522f + ambient.z * 0.072175f);
+        }
+
         unsafe void UpdateShaderVariablesGlobalWater(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             cb._EnableWater = 0;
@@ -117,9 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluate the ambient probe for the frame
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            m_WaterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
-            cb._UnderWaterAmbientProbeLuminance = m_WaterAmbientProbe.w;
-
+            cb._WaterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
 
             EvaluateUnderWaterSurface(hdCamera);
             if (m_UnderWaterSurfaceIndex == -1)
@@ -205,13 +212,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Execute the unique lighting pass
-            using (var builder = renderGraph.AddRenderPass<WaterLineRenderingData>("Render Water Line", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingWaterLine)))
+            using (var builder = renderGraph.AddRenderPass<WaterLineRenderingData>("Render Water Line", out var passData, ProfilingSampler.Get(HDProfileId.WaterLineRendering)))
             {
                 // Fetch the water surface we will be using
                 WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
 
                 refractionOutput.waterLine = renderGraph.CreateBuffer(new BufferDesc(m_WaterLineBufferSize * hdCamera.viewCount, sizeof(int), GraphicsBuffer.Target.Structured) { name = "Waterline" });
-                refractionOutput.waterAmbientProbe = m_WaterAmbientProbe;
                 refractionOutput.underWaterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
 
                 // Prepare all the parameters

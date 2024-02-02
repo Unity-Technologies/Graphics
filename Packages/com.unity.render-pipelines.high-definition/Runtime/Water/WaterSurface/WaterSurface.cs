@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using Unity.Mathematics;
-using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.VFX;
 using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
@@ -473,6 +474,75 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool underWaterRefraction = false;
         #endregion
 
+        #region Constant Buffers
+        internal ShaderVariablesWaterPerSurface[] constantBufferData = new ShaderVariablesWaterPerSurface[1]; // API requires an array
+        internal GraphicsBuffer constantBuffer;
+        internal MaterialPropertyBlock mpb;
+
+        internal void CreateConstantBuffers()
+        {
+            if (constantBuffer == null)
+                constantBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, 1, UnsafeUtility.SizeOf<ShaderVariablesWaterPerSurface>());
+
+            // Prepare the material property block for the rendering
+            mpb = new MaterialPropertyBlock();
+            mpb.SetTexture(HDShaderIDs._WaterDisplacementBuffer, simulation.gpuBuffers.displacementBuffer);
+            mpb.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, simulation.gpuBuffers.additionalDataBuffer);
+            mpb.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
+        }
+
+        internal void FillMaterialPropertyBlock(bool supportFoam, bool supportDeformation)
+        {
+            // Textures
+            mpb.SetTexture(HDShaderIDs._SimulationFoamMask, simulationFoamMask != null ? simulationFoamMask : Texture2D.whiteTexture);
+            mpb.SetTexture(HDShaderIDs._WaterMask, waterMask != null ? waterMask : Texture2D.whiteTexture);
+            mpb.SetTexture(HDShaderIDs._Group0CurrentMap, largeCurrentMap != null ? largeCurrentMap : Texture2D.blackTexture);
+            mpb.SetTexture(HDShaderIDs._Group1CurrentMap, ripplesCurrentMap != null ? ripplesCurrentMap : Texture2D.blackTexture);
+
+            Texture deformationData = supportDeformation && deformation ? deformationBuffer : Texture2D.blackTexture;
+            mpb.SetTexture(HDShaderIDs._WaterDeformationBuffer, deformationData);
+
+            Texture deformationSGData = supportDeformation && deformation ? deformationSGBuffer : Texture2D.blackTexture;
+            mpb.SetTexture(HDShaderIDs._WaterDeformationSGBuffer, deformationSGData);
+
+            Texture causticsData = caustics ? simulation.gpuBuffers.causticsBuffer : Texture2D.blackTexture;
+            mpb.SetTexture(HDShaderIDs._WaterCausticsDataBuffer, causticsData);
+
+            Texture foamData = supportFoam && foam ? FoamBuffer() : Texture2D.blackTexture;
+            mpb.SetTexture(HDShaderIDs._WaterFoamBuffer, foamData);
+        }
+
+        /// <summary>
+        ///  Function that globally binds the textures and constant buffer for use by external systems such as VFX Graph
+        ///  As the binding is done globally, only one surface can be bound during a frame
+        /// </summary>
+        public void SetGlobalTextures()
+        {
+            bool supportFoam = true;
+            bool supportDeformation = true;
+
+            if (simulation == null)
+                return;
+
+            Shader.SetGlobalTexture(HDShaderIDs._WaterDisplacementBuffer, simulation.gpuBuffers.displacementBuffer);
+            Shader.SetGlobalTexture(HDShaderIDs._WaterAdditionalDataBuffer, simulation.gpuBuffers.additionalDataBuffer);
+            Shader.SetGlobalConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
+
+            Shader.SetGlobalTexture(HDShaderIDs._SimulationFoamMask, simulationFoamMask != null ? simulationFoamMask : Texture2D.whiteTexture);
+            Shader.SetGlobalTexture(HDShaderIDs._WaterMask, waterMask != null ? waterMask : Texture2D.whiteTexture);
+            Shader.SetGlobalTexture(HDShaderIDs._Group0CurrentMap, largeCurrentMap != null ? largeCurrentMap : Texture2D.blackTexture);
+            Shader.SetGlobalTexture(HDShaderIDs._Group1CurrentMap, ripplesCurrentMap != null ? ripplesCurrentMap : Texture2D.blackTexture);
+
+            Texture deformationData = supportDeformation && deformation ? deformationBuffer : Texture2D.blackTexture;
+            Shader.SetGlobalTexture(HDShaderIDs._WaterDeformationBuffer, deformationData);
+            Texture deformationSGData = supportDeformation && deformation ? deformationSGBuffer : Texture2D.blackTexture;
+            Shader.SetGlobalTexture(HDShaderIDs._WaterDeformationSGBuffer, deformationSGData);
+
+            Texture foamData = supportFoam && foam ? FoamBuffer() : Texture2D.blackTexture;
+            Shader.SetGlobalTexture(HDShaderIDs._WaterFoamBuffer, foamData);
+        }
+        #endregion
+
         /// <summary>
         /// Function that fills a WaterSimSearchData with the data of the current water surface.
         /// </summary>
@@ -540,6 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Invalidate the search result in case the simulation data is not available
             wsr.error = float.MaxValue;
             wsr.projectedPositionWS = float3(0, 0, 0);
+            wsr.normalWS = UpVector();
             wsr.candidateLocationWS = float3(0, 0, 0);
             wsr.currentDirectionWS = float3(1, 0, 0);
             wsr.numIterations = wsp.maxIterations;
@@ -548,7 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
             WaterSimSearchData wsd = new WaterSimSearchData();
             if (FillWaterSearchData(ref wsd))
             {
-                HDRenderPipeline.ProjectPointOnWaterSurface(wsd, wsp, out wsr);
+                HDRenderPipeline.ProjectPointOnWaterSurface(wsd, wsp, ref wsr);
                 return true;
             }
             return false;
@@ -668,6 +739,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseResources()
         {
+            if (constantBuffer != null)
+            {
+                constantBuffer.Dispose();
+                constantBuffer = null;
+            }
+
             ReleaseSimulationResources();
             ReleaseCurrentMapResources();
             ReleaseDeformationResources();

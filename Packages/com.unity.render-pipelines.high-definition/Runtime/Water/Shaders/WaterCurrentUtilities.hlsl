@@ -20,6 +20,13 @@ SAMPLER(sampler_Group1CurrentMap);
 #define SECTOR_DATA_SAMPLING_OFFSET 0
 #define SECTOR_DATA_OTHER_OFFSET 8
 
+// This define uses a LOD sample for vertex and compute
+#ifdef SHADER_STAGE_FRAGMENT
+#define SAMPLE_TEX2D(textureName, samplerName, coord2) SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
+#else
+#define SAMPLE_TEX2D(textureName, samplerName, coord2) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, 0)
+#endif
+
 float ConvertAngle_0_2PI(float angle)
 {
     angle = angle % (2.0 * PI);
@@ -43,6 +50,7 @@ struct CurrentData
 {
     uint quadrant;
     float proportion;
+    float angle;
 };
 
 void DecompressDirection(float3 cmpDir, float orientation, float influence, float2 flipDir, out CurrentData currentData)
@@ -53,6 +61,7 @@ void DecompressDirection(float3 cmpDir, float orientation, float influence, floa
     float relativeAngle = frac(data);
     // NOTE: We need to do it this way otherwise metal doesn't compile silently.
     uint uintData = (uint)data;
+    currentData.angle = angle;
     currentData.quadrant = uintData > NUM_SECTORS ? uintData - NUM_SECTORS : uintData;
     currentData.proportion = PositivePow((currentData.quadrant % 2u == 0) ? relativeAngle : 1.0 - relativeAngle, 0.75);
 }
@@ -67,35 +76,19 @@ float2 EvaluateWaterGroup1CurrentUV(float2 currentUV)
     return float2(currentUV.x - _Group1CurrentRegionScaleOffset.z, currentUV.y + _Group1CurrentRegionScaleOffset.w) * _Group1CurrentRegionScaleOffset.xy + float2(0.5f, 0.5f);
 }
 
-void EvaluateGroup0CurrentData_VS(float2 currentUV, out CurrentData currentData)
-{
-    float2 flipDir = sign(_Group0CurrentRegionScaleOffset.xy);
-    float2 uv = EvaluateWaterGroup0CurrentUV(currentUV);
-    float3 cmpDir = SAMPLE_TEXTURE2D_LOD(_Group0CurrentMap, sampler_Group0CurrentMap, uv, 0).xyz;
-    DecompressDirection(cmpDir, _GroupOrientation.x, _CurrentMapInfluence.x, flipDir, currentData);
-}
-
 void EvaluateGroup0CurrentData(float2 currentUV, out CurrentData currentData)
 {
     float2 flipDir = sign(_Group0CurrentRegionScaleOffset.xy);
     float2 uv = EvaluateWaterGroup0CurrentUV(currentUV);
-    float3 cmpDir = SAMPLE_TEXTURE2D(_Group0CurrentMap, sampler_Group0CurrentMap, uv).xyz;
+    float3 cmpDir = SAMPLE_TEX2D(_Group0CurrentMap, sampler_Group0CurrentMap, uv).xyz;
     DecompressDirection(cmpDir, _GroupOrientation.x, _CurrentMapInfluence.x, flipDir, currentData);
-}
-
-void EvaluateGroup1CurrentData_VS(float2 currentUV, out CurrentData currentData)
-{
-    float2 flipDir = sign(_Group1CurrentRegionScaleOffset.xy);
-    float2 uv = EvaluateWaterGroup1CurrentUV(currentUV);
-    float3 cmpDir = SAMPLE_TEXTURE2D_LOD(_Group1CurrentMap, sampler_Group1CurrentMap, uv, 0).xyz;
-    DecompressDirection(cmpDir, _GroupOrientation.y, _CurrentMapInfluence.y, flipDir, currentData);
 }
 
 void EvaluateGroup1CurrentData(float2 currentUV, out CurrentData currentData)
 {
     float2 flipDir = sign(_Group1CurrentRegionScaleOffset.xy);
     float2 uv = EvaluateWaterGroup1CurrentUV(currentUV);
-    float3 cmpDir = SAMPLE_TEXTURE2D(_Group1CurrentMap, sampler_Group1CurrentMap, uv).xyz;
+    float3 cmpDir = SAMPLE_TEX2D(_Group1CurrentMap, sampler_Group1CurrentMap, uv).xyz;
     DecompressDirection(cmpDir, _GroupOrientation.y, _CurrentMapInfluence.y, flipDir, currentData);
 }
 
@@ -103,7 +96,7 @@ float2 SampleWaterGroup0CurrentMap(float2 currentUV)
 {
     float2 flipDir = sign(_Group0CurrentRegionScaleOffset.xy);
     float2 uv = EvaluateWaterGroup0CurrentUV(currentUV);
-    float3 cmpDir = SAMPLE_TEXTURE2D(_Group0CurrentMap, sampler_Group0CurrentMap, uv).xyz;
+    float3 cmpDir = SAMPLE_TEX2D(_Group0CurrentMap, sampler_Group0CurrentMap, uv).xyz;
     float angle = EvaluateAngle(cmpDir, _GroupOrientation.x, _CurrentMapInfluence.x, flipDir);
     return float2(cos(angle), sin(angle));
 }
@@ -112,7 +105,7 @@ float2 SampleWaterGroup1CurrentMap(float2 currentUV)
 {
     float2 flipDir = sign(_Group1CurrentRegionScaleOffset.xy);
     float2 uv = EvaluateWaterGroup1CurrentUV(currentUV);
-    float3 cmpDir = SAMPLE_TEXTURE2D(_Group1CurrentMap, sampler_Group1CurrentMap, uv).xyz;
+    float3 cmpDir = SAMPLE_TEX2D(_Group1CurrentMap, sampler_Group1CurrentMap, uv).xyz;
     float angle = EvaluateAngle(cmpDir, _GroupOrientation.y, _CurrentMapInfluence.y, flipDir);
     return float2(cos(angle), sin(angle));
 }

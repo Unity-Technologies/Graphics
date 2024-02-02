@@ -202,14 +202,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // What are the type of foam injectors?
+            ref var cb = ref currentWater.constantBufferData[0];
             bool foamGenerators = m_ActiveWaterFoamGenerators > 0;
             bool waterDeformers = WaterHasDeformation(currentWater);
             if (!foamGenerators && !waterDeformers)
             {
                 if (m_MaxInjectedFoamIntensity <= k_FoamIntensityThreshold)
                     return;
+
                 // Attenuation formula must be in sync with WaterFoam.shader
-                m_MaxInjectedFoamIntensity *= Mathf.Exp(-m_ShaderVariablesWater._DeltaTime * m_ShaderVariablesWater._FoamPersistenceMultiplier * 0.5f);
+                m_MaxInjectedFoamIntensity *= Mathf.Exp(-cb._DeltaTime * cb._FoamPersistenceMultiplier * 0.5f);
             }
             else
                 m_MaxInjectedFoamIntensity = 1.0f;
@@ -220,8 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceFoam)))
             {
-                ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterFoamCS, HDShaderIDs._ShaderVariablesWater);
-                ConstantBuffer.Set<ShaderVariablesWater>(m_FoamMaterial, HDShaderIDs._ShaderVariablesWater);
+                BindPerSurfaceConstantBuffer(cmd, m_WaterFoamCS, currentWater.constantBuffer);
 
                 // Reproject the previous frame's foam buffer
                 int tileC = HDUtils.DivRoundUp((int)currentWater.foamResolution, 8);
@@ -232,13 +233,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply an attenuation on the existing foam
                 CoreUtils.SetRenderTarget(cmd, tmpFoamBuffer);
-                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ReprojectionPass, MeshTopology.Triangles, 3, 1);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ReprojectionPass, MeshTopology.Triangles, 3, 1, currentWater.mpb);
 
                 // Then we render the deformers and the generators
                 if (waterDeformers)
-                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ShoreWaveFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_ShoreWaveFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterDeformers, currentWater.mpb);
                 if (foamGenerators)
-                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_OtherFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoamMaterial, m_OtherFoamGenerationPass, MeshTopology.Triangles, 6, m_ActiveWaterFoamGenerators, currentWater.mpb);
 
                 // To avoid the swap in swap out of the textures, we do this.
                 cmd.SetComputeTextureParam(m_WaterFoamCS, m_PostProcessFoamKernel, HDShaderIDs._WaterFoamBuffer, tmpFoamBuffer);
@@ -246,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_WaterFoamCS, m_PostProcessFoamKernel, tileC, tileC, 1);
 
                 // Update the foam data for the next frame
-                currentWater.previousFoamRegionScaleOffset = new float4(m_ShaderVariablesWater._FoamRegionScale, m_ShaderVariablesWater._FoamRegionOffset);
+                currentWater.previousFoamRegionScaleOffset = new float4(cb._FoamRegionScale, cb._FoamRegionOffset);
             }
         }
     }

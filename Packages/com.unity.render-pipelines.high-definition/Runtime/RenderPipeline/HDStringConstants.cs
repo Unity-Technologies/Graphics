@@ -429,10 +429,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesDebugDisplay = Shader.PropertyToID("ShaderVariablesDebugDisplay");
         public static readonly int _ShaderVariablesClouds = Shader.PropertyToID("ShaderVariablesClouds");
         public static readonly int _ShaderVariablesCloudsShadows = Shader.PropertyToID("ShaderVariablesCloudsShadows");
-        public static readonly int _ShaderVariablesWater = Shader.PropertyToID("ShaderVariablesWater");
-        public static readonly int _ShaderVariablesUnderWater = Shader.PropertyToID("ShaderVariablesUnderWater");
-        public static readonly int _ShaderVariablesWaterRendering = Shader.PropertyToID("ShaderVariablesWaterRendering");
-        public static readonly int _ShaderVariablesWaterDebug = Shader.PropertyToID("ShaderVariablesWaterDebug");
 
         public static readonly int _VolumetricMaterialObbRight = Shader.PropertyToID("_VolumetricMaterialObbRight");
         public static readonly int _VolumetricMaterialObbUp = Shader.PropertyToID("_VolumetricMaterialObbUp");
@@ -592,6 +588,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricCloudsDepthTextureRW = Shader.PropertyToID("_VolumetricCloudsDepthTextureRW");
 
         // Water
+        public static readonly int _ShaderVariablesWaterPerSurface = Shader.PropertyToID("ShaderVariablesWaterPerSurface");
+        public static readonly int _ShaderVariablesWaterPerCamera = Shader.PropertyToID("ShaderVariablesWaterPerCamera");
+        public static readonly int _ShaderVariablesWaterDebug = Shader.PropertyToID("ShaderVariablesWaterDebug");
         public static readonly int _H0Buffer = Shader.PropertyToID("_H0Buffer");
         public static readonly int _H0BufferRW = Shader.PropertyToID("_H0BufferRW");
         public static readonly int _HtRealBufferRW = Shader.PropertyToID("_HtRealBufferRW");
@@ -658,7 +657,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CausticsNormalsMipOffset = Shader.PropertyToID("_CausticsNormalsMipOffset");
         public static readonly int _CausticGeometryResolution = Shader.PropertyToID("_CausticGeometryResolution");
         public static readonly int _CausticsVirtualPlane = Shader.PropertyToID("_CausticsVirtualPlane");
-        public static readonly int _CausticsBandIndex = Shader.PropertyToID("_CausticsBandIndex");
 
         // Cloud Layer
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
