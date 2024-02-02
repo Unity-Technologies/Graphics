@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -25,7 +25,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
-    XrSdk:
+    XrSdk: 
     StereoModes: 7
     Reason: 'XR : unstable'
   - FilteredScene: {fileID: 0}
@@ -44,7 +44,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 4
-    XrSdk:
+    XrSdk: 
     StereoModes: 7
     Reason: 'XR : development build text issue'
   - FilteredScene: {fileID: 0}
@@ -85,7 +85,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
-    XrSdk:
+    XrSdk: 
     StereoModes: 7
     Reason: 'XR : broken feature'
   - FilteredScene: {fileID: 0}
@@ -94,7 +94,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
   - FilteredScene: {fileID: 0}
@@ -123,23 +123,14 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk:
     StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-40684
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: e5246ff105a819940a71fba92909923c, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk:
-    StereoModes: 0
-    Reason: https://jira.unity3d.com/browse/UUM-40684
+    Reason: 
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: e5246ff105a819940a71fba92909923c, type: 3}
     ColorSpace: -1
     BuildPlatform: 42
     GraphicsDevice: 25
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Xbox instancing bug
   - FilteredScene: {fileID: 0}
@@ -148,7 +139,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 43
     GraphicsDevice: 24
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Xbox instancing bug
   - FilteredScene: {fileID: 0}
@@ -164,7 +155,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/WBTR-1187
   - FilteredScene: {fileID: 0}
@@ -176,7 +167,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/WBTR-1188
   - FilteredScene: {fileID: 0}
@@ -185,6 +176,6 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/WBTR-1189
