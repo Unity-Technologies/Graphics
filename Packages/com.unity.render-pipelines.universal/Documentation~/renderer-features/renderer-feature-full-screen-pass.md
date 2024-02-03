@@ -1,4 +1,4 @@
-# Full Screen Pass Renderer Feature
+# Full Screen Pass Renderer Feature reference
 
 The Full Screen Pass Renderer Feature lets you inject full screen render passes at pre-defined injection points to create full screen effects.
 
