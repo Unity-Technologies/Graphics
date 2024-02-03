@@ -9,7 +9,6 @@ using UnityEditorInternal;
 using UnityEditor.Overlays;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
-using Unity.Collections;
 using Button = UnityEngine.UIElements.Button;
 
 namespace UnityEngine.Rendering
@@ -194,7 +193,6 @@ namespace UnityEngine.Rendering
 
             FindActiveSet();
 
-            Undo.undoRedoEvent += OnUndoRedo;
             EditorSceneManager.sceneOpened += OnSceneOpened;
 
             m_Initialized = true;
@@ -205,16 +203,9 @@ namespace UnityEngine.Rendering
             if (m_ActiveSetEditor != null)
                 Object.DestroyImmediate(m_ActiveSetEditor);
 
-            Undo.undoRedoEvent -= OnUndoRedo;
             EditorSceneManager.sceneOpened -= OnSceneOpened;
 
             ProbeGIBaking.Dispose();
-        }
-
-        void OnUndoRedo(in UndoRedoInfo info)
-        {
-            if (activeSet != null)
-                activeSetEditor.UpdateScenarioStatuses();
         }
 
         #region On GUI
@@ -289,7 +280,7 @@ namespace UnityEngine.Rendering
             //    OpenProbeVolumeDebugPanel(null, null, 0);
         }
 
-        void OpenProbeVolumeDebugPanel(object userData, string[] options, int selected)
+        internal static void OpenProbeVolumeDebugPanel(object userData, string[] options, int selected)
         {
             var debugPanel = EditorWindow.GetWindow<DebugWindow>();
             debugPanel.titleContent = DebugWindow.Styles.windowTitle;
@@ -330,11 +321,6 @@ namespace UnityEngine.Rendering
 
             if (EditorGUI.LargeSplitButtonWithDropdownList(Styles.generateLighting, Styles.bakeOptionsText, BakeButtonCallback))
                 Lightmapping.BakeAsync();
-        }
-
-        internal void UpdateScenarioStatuses(string scenario)
-        {
-            activeSetEditor.UpdateScenarioStatuses(scenario);
         }
         #endregion
 
@@ -591,8 +577,6 @@ namespace UnityEngine.Rendering
                 Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Updated scene in baking set");
                 activeSet.SetScene(scene.guid, index);
             }
-
-            UpdateSceneData();
         }
 
         void TryAddSceneToSet(SceneAsset scene) { TryAddSceneToSet(scene.name, FindSceneData(scene).guid); }
@@ -614,8 +598,6 @@ namespace UnityEngine.Rendering
                 Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Added scene in baking set");
                 activeSet.AddScene(sceneGUID);
             }
-
-            UpdateSceneData();
         }
 
         void InitializeSceneList()
@@ -637,8 +619,6 @@ namespace UnityEngine.Rendering
 
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                     EditorUtility.SetDirty(activeSet);
-
-                    UpdateSceneData();
                 },
 
                 drawHeaderCallback = (rect) =>
@@ -754,13 +734,6 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            if (!AllSetScenesAreLoaded(activeSet))
-            {
-                // TODO: once baking set data is centralized, this may not be true anymore ?
-                EditorGUILayout.LabelField("This set contains scenes not currently loaded in the hierarchy. Displayed stats may be incomplete.", EditorStyles.wordWrappedMiniLabel);
-                EditorGUILayout.Space();
-            }
-
             long scenarioCost = activeSet.GetDiskSizeOfScenarioData(ProbeReferenceVolume.instance.lightingScenario);
 
             long sharedCost = activeSet.GetDiskSizeOfSharedData();
@@ -814,18 +787,11 @@ namespace UnityEngine.Rendering
                         prv.SetActiveScenario(set.m_LightingScenarios[0], false);
                 }
             }
-
-            activeSetEditor.UpdateScenarioStatuses();
         }
 
         bool NoSceneHasProbeVolume() => ProbeVolume.instances.Count == 0;
         bool ActiveSceneHasProbeVolume() => ProbeVolume.instances.Any(d => d.gameObject.scene == SceneManager.GetActiveScene());
         ProbeVolume GetFirstProbeVolumeInNonActiveScene() => ProbeVolume.instances.FirstOrDefault(d => d.gameObject.scene != SceneManager.GetActiveScene());
-
-        void UpdateSceneData()
-        {
-            activeSetEditor.UpdateScenarioStatuses();
-        }
 
         void RefreshSceneAssets()
         {
@@ -879,20 +845,6 @@ namespace UnityEngine.Rendering
                 return null;
 
             return instance.activeSet;
-        }
-
-        internal static bool AllSetScenesAreLoaded(ProbeVolumeBakingSet set)
-        {
-            var dataList = ProbeReferenceVolume.instance.perSceneDataList;
-            foreach (var guid in set.sceneGUIDs)
-            {
-                if (!ProbeVolumeBakingSet.SceneHasProbeVolumes(guid))
-                    continue;
-                if (dataList.All(data => data.gameObject.scene.GetGUID() != guid))
-                    return false;
-            }
-
-            return true;
         }
         #endregion
 

@@ -264,6 +264,8 @@ Select a [Probe Adjustment Volume Component](probevolumes-fixissues.md#add-a-pro
                     <li><strong>Override Validity Threshold:</strong> Override **Dilation Validity Threshold**.</li>
                     <li><strong>Apply Virtual Offset:</strong> Manually apply a Virtual Offset on selected probes.</li>
                     <li><strong>Override Virtual Offset Settings:</strong> Override Virtual Offset biases.</li>
+                    <li><strong>Override Sky Direction:</strong> Override the direction used for sampling the ambient probe when using Sky Occlusion.</li>
+                    <li><strong>Override Sample Count:</strong> Override the sample count used to compute Lighting and Sky Occlusion.</li>
                 </ul>
             </td>
         </tr>

@@ -59,10 +59,7 @@ namespace UnityEditor.Rendering
             public static readonly string[] placementOptions = new string[] { "Recalculate", "Don't Recalculate" };
 
             // Scenario section
-            public static readonly GUIContent invalidLabel = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Warning), "Lighting data for this scenario is invalid.\nThis can happen when probe positions have changed since lighting was last generated.");
             public static readonly GUIContent emptyLabel = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), "This scenario doesn't have any baked data. Set it as active scenario and click generate lighting to bake the lighting data.");
-            public static readonly GUIContent notLoadedLabel = new GUIContent("", CoreEditorStyles.GetMessageTypeIcon(MessageType.Info), "Some scene(s) in the Baking Set are not currently loaded in the Hierarchy. Scenario status cannot be displayed");
-            public static readonly GUIContent[] scenariosStatusLabel = new GUIContent[] { GUIContent.none, notLoadedLabel, invalidLabel, emptyLabel };
 
             // Probe Placement section
             public static readonly string msgProbeFreeze = "Some scene(s) in this Baking Set are not currently loaded in the Hierarchy. Set Probe Positions to Don't Recalculate to not break compatibility with already baked scenarios.";
@@ -106,18 +103,13 @@ namespace UnityEditor.Rendering
             m_SkyOcclusionShadingDirection = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusionShadingDirection));
 
             if (ProbeReferenceVolume.instance.supportScenarioBlending)
-            {
-                hasPendingScenarioUpdate = true;
-                Lightmapping.lightingDataCleared += UpdateScenarioStatuses;
                 InitializeScenarioList();
-            }
 
             Undo.undoRedoEvent += OnUndoRedo;
         }
 
         private void OnDisable()
         {
-            Lightmapping.lightingDataCleared -= UpdateScenarioStatuses;
             Undo.undoRedoEvent -= OnUndoRedo;
         }
 
@@ -139,8 +131,6 @@ namespace UnityEditor.Rendering
 
             if (m_Scenarios == null)
                 InitializeScenarioList();
-            if (hasPendingScenarioUpdate)
-                UpdateScenarioStatuses();
 
             using (new EditorGUI.IndentLevelScope())
                 ProbeVolumeLightingTab.DrawListWithIndent(m_Scenarios);
@@ -244,7 +234,7 @@ namespace UnityEditor.Rendering
             if (!ProbeVolumeLightingTab.Foldout(Styles.skyOcclusionSettingsTitle, ProbeVolumeLightingTab.Expandable.SettingsSkyOcclusion, true))
                 return;
 
-            EditorGUI.indentLevel++;
+            using var scope = new EditorGUI.IndentLevelScope();
 
             var lightmapper = ProbeVolumeLightingTab.GetLightingSettings().lightmapper;
             bool cpuLightmapperSelected = lightmapper == LightingSettings.Lightmapper.ProgressiveCPU;
@@ -267,7 +257,6 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            EditorGUI.indentLevel--;
             EditorGUILayout.Space();
         }
 
@@ -327,21 +316,11 @@ namespace UnityEditor.Rendering
 
         #region Lighting Scenarios
 
-        enum ScenariosStatus
-        {
-            Valid,
-            NotLoaded,
-            OutOfDate,
-            NotBaked
-        }
-
         const string k_RenameFocusKey = "Probe Volume Rename Field";
 
         ReorderableList m_Scenarios = null;
 
         bool renameSelectedScenario;
-        bool hasPendingScenarioUpdate = false;
-        ScenariosStatus[] scenariosStatuses = new ScenariosStatus[0];
 
         void SetActiveScenario(string scenario)
         {
@@ -373,7 +352,6 @@ namespace UnityEditor.Rendering
                 onReorderCallback = (ReorderableList list) =>
                 {
                     serializedObject.ApplyModifiedProperties();
-                    UpdateScenarioStatuses();
                 }
             };
 
@@ -383,16 +361,14 @@ namespace UnityEditor.Rendering
                 var scenarioName = bakingSet.m_LightingScenarios[index];
 
                 // Status
-                if (index < scenariosStatuses.Length && scenariosStatuses[index] != ScenariosStatus.Valid)
                 {
                     right.xMin += 8f;
                     right.width = right.height;
 
-                    var status = scenariosStatuses[index];
-                    var label = Styles.scenariosStatusLabel[(int)status];
+                    bool baked = bakingSet.scenarios.TryGetValue(scenarioName, out var stateData) && stateData.ComputeHasValidData(ProbeReferenceVolume.instance.shBands);
 
-                    using (new EditorGUI.DisabledScope(status != ScenariosStatus.OutOfDate))
-                        GUI.Label(right, label);
+                    using (new EditorGUI.DisabledScope(true))
+                        GUI.Label(right, baked ? GUIContent.none : Styles.emptyLabel);
                 }
 
                 // Label for active scene
@@ -431,24 +407,20 @@ namespace UnityEditor.Rendering
                     if (EditorGUI.EndChangeCheck())
                     {
                         renameSelectedScenario = false;
-                        if (ProbeVolumeLightingTab.AllSetScenesAreLoaded(bakingSet) || EditorUtility.DisplayDialog("Rename Lighting Scenario", "Some scenes in the baking set contain probe volumes but are not loaded.\nRenaming the lighting scenario may require you to rebake the scene.", "Rename", "Cancel"))
+                        try
                         {
-                            try
-                            {
-                                AssetDatabase.StartAssetEditing();
-                                Undo.RegisterCompleteObjectUndo(bakingSet, s_RenameScenarioUndoName);
-                                name = bakingSet.RenameScenario(scenarioName, name);
-                            }
-                            finally
-                            {
-                                AssetDatabase.StopAssetEditing();
-                                m_LightingScenarios.GetArrayElementAtIndex(index).stringValue = name;
-                                serializedObject.Update();
-                                serializedObject.ApplyModifiedProperties();
+                            AssetDatabase.StartAssetEditing();
+                            Undo.RegisterCompleteObjectUndo(bakingSet, s_RenameScenarioUndoName);
+                            name = bakingSet.RenameScenario(scenarioName, name);
+                        }
+                        finally
+                        {
+                            AssetDatabase.StopAssetEditing();
+                            m_LightingScenarios.GetArrayElementAtIndex(index).stringValue = name;
+                            serializedObject.Update();
+                            serializedObject.ApplyModifiedProperties();
 
-                                SetActiveScenario(name);
-                                UpdateScenarioStatuses();
-                            }
+                            SetActiveScenario(name);
                         }
                     }
                 }
@@ -467,8 +439,6 @@ namespace UnityEditor.Rendering
                 Undo.RegisterCompleteObjectUndo(bakingSet, "Added new lighting scenario");
                 var scenario = bakingSet.CreateScenario("New Lighting Scenario");
                 serializedObject.Update();
-
-                UpdateScenarioStatuses();
             };
 
             m_Scenarios.onRemoveCallback = (list) =>
@@ -495,70 +465,9 @@ namespace UnityEditor.Rendering
                 {
                     AssetDatabase.StopAssetEditing();
                     SetActiveScenario(bakingSet.m_LightingScenarios[0]);
-                    UpdateScenarioStatuses();
                 }
             };
-
-            hasPendingScenarioUpdate = true;
         }
-
-        internal void UpdateScenarioStatuses()
-        {
-            hasPendingScenarioUpdate = false;
-
-            if (bakingSet.sceneGUIDs.Count == 0)
-                return;
-
-            DateTime? refTime = null;
-            string mostRecentState = null;
-
-            foreach (var state in bakingSet.m_LightingScenarios)
-            {
-                if (bakingSet.scenarios.TryGetValue(state, out var stateData) && stateData.cellDataAsset != null)
-                {
-                    var dataPath = stateData.cellDataAsset.GetAssetPath();
-                    if (string.IsNullOrEmpty(dataPath))
-                        continue;
-                    var time = System.IO.File.GetLastWriteTime(dataPath);
-                    if (refTime == null || time > refTime)
-                    {
-                        refTime = time;
-                        mostRecentState = state;
-                    }
-                }
-            }
-
-            if (mostRecentState != null)
-                UpdateScenarioStatuses(mostRecentState);
-        }
-
-        internal void UpdateScenarioStatuses(string mostRecentState)
-        {
-            hasPendingScenarioUpdate = false;
-
-            var initialStatus = ProbeVolumeLightingTab.AllSetScenesAreLoaded(bakingSet) ? ScenariosStatus.Valid : ScenariosStatus.NotLoaded;
-
-            scenariosStatuses = new ScenariosStatus[bakingSet.m_LightingScenarios.Count];
-
-            for (int i = 0; i < scenariosStatuses.Length; i++)
-            {
-                scenariosStatuses[i] = initialStatus;
-                if (initialStatus == ScenariosStatus.NotLoaded)
-                    continue;
-
-                if (!bakingSet.scenarios.TryGetValue(bakingSet.m_LightingScenarios[i], out var stateData) || stateData.cellDataAsset == null)
-                {
-                    scenariosStatuses[i] = ScenariosStatus.NotBaked;
-                    continue;
-                }
-                else if (scenariosStatuses[i] != ScenariosStatus.OutOfDate && bakingSet.scenarios.TryGetValue(mostRecentState, out var mostRecentData) &&
-                    mostRecentData.cellDataAsset != null && stateData.sceneHash != mostRecentData.sceneHash)
-                {
-                    scenariosStatuses[i] = ScenariosStatus.OutOfDate;
-                }
-            }
-        }
-
         #endregion
     }
 }

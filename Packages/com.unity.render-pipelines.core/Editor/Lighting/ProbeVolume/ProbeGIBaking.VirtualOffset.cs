@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEditor;
 using UnityEngine.Rendering.UnifiedRayTracing;
 
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
             };
 
             int batchPosIdx;
-            Vector3[] positions;
+            NativeList<Vector3> positions;
             Dictionary<int, TouchupsPerCell> cellToVolumes;
             ProbeData[] probeData;
             Vector3[] batchResult;
@@ -45,21 +45,18 @@ namespace UnityEngine.Rendering
             private GraphicsBuffer scratchBuffer;
 
             public ulong currentStep => (ulong)batchPosIdx;
-            public ulong stepCount => positions == null ? 0 : (ulong)positions.Length;
+            public ulong stepCount => batchResult == null ? 0 : (ulong)positions.Length;
 
-            public void Initialize(ProbeVolumeBakingSet bakingSet, Vector3[] probePositions)
+            public void Initialize(ProbeVolumeBakingSet bakingSet, NativeList<Vector3> probePositions)
             {
                 var voSettings = bakingSet.settings.virtualOffsetSettings;
+                if (!voSettings.useVirtualOffset)
+                    return;
+
+                batchPosIdx = 0;
                 scaleForSearchDist = voSettings.searchMultiplier;
                 rayOriginBias = voSettings.rayOriginBias;
                 geometryBias = voSettings.outOfGeoOffset;
-
-                batchPosIdx = 0;
-                positions = null;
-                offsets = null;
-
-                if (!voSettings.useVirtualOffset)
-                    return;
 
                 offsets = new Vector3[probePositions.Length];
                 cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
@@ -135,89 +132,91 @@ namespace UnityEngine.Rendering
                 return accelStruct;
             }
 
-            public void RunVirtualOffsetStep()
+            public bool RunVirtualOffsetStep()
             {
-                if (batchPosIdx >= positions.Length)
-                    return;
+                if (currentStep >= stepCount)
+                    return true;
 
+                float cellSize = m_ProfileInfo.cellSizeInMeters;
+                float minBrickSize = m_ProfileInfo.minBrickSize;
+
+                // Prepare batch
+                int probeCountInBatch = 0;
+                do
+                {
+                    int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
+                    var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
+                    var searchDistance = (brickSize * minBrickSize) / ProbeBrickPool.kBrickCellCount;
+                    var distanceSearch = scaleForSearchDist * searchDistance;
+
+                    int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
+                    if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
+                    {
+                        bool adjusted = false;
+                        foreach (var (touchup, obb, center, offset) in volumes.appliers)
+                        {
+                            if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                            {
+                                positions[batchPosIdx] += offset;
+                                offsets[batchPosIdx] = offset;
+                                adjusted = true;
+                                break;
+                            }
+                        }
+
+                        if (adjusted)
+                            continue;
+
+                        foreach (var (touchup, obb, center) in volumes.overriders)
+                        {
+                            if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
+                            {
+                                rayOriginBias = touchup.rayOriginBias;
+                                geometryBias = touchup.geometryBias;
+                                break;
+                            }
+                        }
+                    }
+
+                    probeData[probeCountInBatch++] = new ProbeData
+                    {
+                        position = positions[batchPosIdx],
+                        originBias = rayOriginBias,
+                        tMax = distanceSearch,
+                        geometryBias = geometryBias,
+                        probeIndex = batchPosIdx,
+                    };
+                }
+                while (++batchPosIdx < positions.Length && probeCountInBatch < k_MaxProbeCountPerBatch);
+
+                if (probeCountInBatch == 0)
+                    return true;
+
+                // Execute job
                 var cmd = new CommandBuffer();
                 var virtualOffsetShader = s_TracingContext.shaderVO;
-
                 virtualOffsetShader.SetAccelerationStructure(cmd, "_AccelStruct", m_AccelerationStructure);
                 virtualOffsetShader.SetBufferParam(cmd, _Probes, probeBuffer);
                 virtualOffsetShader.SetBufferParam(cmd, _Offsets, offsetBuffer);
 
-                // Run one batch of computations
-                float cellSize = m_ProfileInfo.cellSizeInMeters;
-                float minBrickSize = m_ProfileInfo.minBrickSize;
-                {
-                    // Prepare batch
-                    int probeCountInBatch = 0;
-                    do
-                    {
-                        int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
-                        var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
-                        var searchDistance = (brickSize * minBrickSize) / ProbeBrickPool.kBrickCellCount;
-                        var distanceSearch = scaleForSearchDist * searchDistance;
+                cmd.SetBufferData(probeBuffer, probeData);
+                virtualOffsetShader.Dispatch(cmd, scratchBuffer, (uint)probeCountInBatch, 1, 1);
 
-                        int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
-                        if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
-                        {
-                            bool adjusted = false;
-                            foreach (var (touchup, obb, center, offset) in volumes.appliers)
-                            {
-                                if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
-                                {
-                                    positions[batchPosIdx] += offset;
-                                    offsets[batchPosIdx] = offset;
-                                    adjusted = true;
-                                    break;
-                                }
-                            }
+                Graphics.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
-                            if (adjusted)
-                                continue;
-
-                            foreach (var (touchup, obb, center) in volumes.overriders)
-                            {
-                                if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
-                                {
-                                    rayOriginBias = touchup.rayOriginBias;
-                                    geometryBias = touchup.geometryBias;
-                                    break;
-                                }
-                            }
-                        }
-
-                        probeData[probeCountInBatch++] = new ProbeData
-                        {
-                            position = positions[batchPosIdx],
-                            originBias = rayOriginBias,
-                            tMax = distanceSearch,
-                            geometryBias = geometryBias,
-                            probeIndex = batchPosIdx,
-                        };
-                    }
-                    while (++batchPosIdx < positions.Length && probeCountInBatch < k_MaxProbeCountPerBatch);
-
-                    // Execute job
-                    cmd.SetBufferData(probeBuffer, probeData);
-                    virtualOffsetShader.Dispatch(cmd, scratchBuffer, (uint)probeCountInBatch, 1, 1);
-
-                    Graphics.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    offsetBuffer.GetData(batchResult);
-                    for (int i = 0; i < probeCountInBatch; i++)
-                        offsets[probeData[i].probeIndex] = batchResult[i];
-                }
+                offsetBuffer.GetData(batchResult);
+                for (int i = 0; i < probeCountInBatch; i++)
+                    offsets[probeData[i].probeIndex] = batchResult[i];
 
                 cmd.Dispose();
+
+                return false;
             }
 
             public void Dispose()
             {
-                if (positions == null)
+                if (batchResult == null)
                     return;
 
                 m_AccelerationStructure.Dispose();
@@ -248,7 +247,7 @@ namespace UnityEngine.Rendering
             m_ProfileInfo = new ProbeVolumeProfileInfo();
             ModifyProfileFromLoadedData(m_BakingSet);
 
-            List <Vector3> positionList = new();
+            var positionList = new NativeList<Vector3>(Allocator.Persistent);
             Dictionary<int, int> positionToIndex = new();
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
@@ -290,7 +289,7 @@ namespace UnityEngine.Rendering
             }
 
             VirtualOffsetBaking job = new();
-            job.Initialize(m_BakingSet, positionList.ToArray());
+            job.Initialize(m_BakingSet, positionList);
 
             while (job.currentStep < job.stepCount)
                 job.RunVirtualOffsetStep();
@@ -338,8 +337,8 @@ namespace UnityEngine.Rendering
     {
         struct TouchupsPerCell
         {
-            public List<(ProbeTouchupVolume touchup, ProbeReferenceVolume.Volume obb, Vector3 center, Vector3 offset)> appliers;
-            public List<(ProbeTouchupVolume touchup, ProbeReferenceVolume.Volume obb, Vector3 center)> overriders;
+            public List<(ProbeAdjustmentVolume touchup, ProbeReferenceVolume.Volume obb, Vector3 center, Vector3 offset)> appliers;
+            public List<(ProbeAdjustmentVolume touchup, ProbeReferenceVolume.Volume obb, Vector3 center)> overriders;
         }
 
         static Dictionary<int, TouchupsPerCell> GetTouchupsPerCell(out bool hasAppliers)
@@ -347,17 +346,20 @@ namespace UnityEngine.Rendering
             float cellSize = m_ProfileInfo.cellSizeInMeters;
             hasAppliers = false;
 
+            var adjustmentVolumes = s_AdjustmentVolumes != null ? s_AdjustmentVolumes : GetAdjustementVolumes();
+
             Dictionary<int, TouchupsPerCell> cellToVolumes = new();
-            foreach (var touchup in Object.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID))
+            foreach (var adjustment in adjustmentVolumes)
             {
-                if (!touchup.isActiveAndEnabled || (touchup.mode != ProbeTouchupVolume.Mode.ApplyVirtualOffset && touchup.mode != ProbeTouchupVolume.Mode.OverrideVirtualOffsetSettings))
+                var volume = adjustment.volume;
+                var mode = volume.mode;
+                if (mode != ProbeAdjustmentVolume.Mode.ApplyVirtualOffset && mode != ProbeAdjustmentVolume.Mode.OverrideVirtualOffsetSettings)
                     continue;
 
-                hasAppliers |= touchup.mode == ProbeTouchupVolume.Mode.ApplyVirtualOffset;
-                touchup.GetOBBandAABB(out var obb, out var aabb);
+                hasAppliers |= mode == ProbeAdjustmentVolume.Mode.ApplyVirtualOffset;
 
-                Vector3Int min = Vector3Int.FloorToInt(aabb.min / cellSize);
-                Vector3Int max = Vector3Int.FloorToInt(aabb.max / cellSize);
+                Vector3Int min = Vector3Int.FloorToInt(adjustment.aabb.min / cellSize);
+                Vector3Int max = Vector3Int.FloorToInt(adjustment.aabb.max / cellSize);
 
                 for (int x = min.x; x <= max.x; x++)
                 {
@@ -369,10 +371,10 @@ namespace UnityEngine.Rendering
                             if (!cellToVolumes.TryGetValue(cell, out var volumes))
                                 cellToVolumes[cell] = volumes = new TouchupsPerCell() { appliers = new(), overriders = new() };
 
-                            if (touchup.mode == ProbeTouchupVolume.Mode.ApplyVirtualOffset)
-                                volumes.appliers.Add((touchup, obb, touchup.transform.position, touchup.GetVirtualOffset()));
+                            if (mode == ProbeAdjustmentVolume.Mode.ApplyVirtualOffset)
+                                volumes.appliers.Add((volume, adjustment.obb, volume.transform.position, volume.GetVirtualOffset()));
                             else
-                                volumes.overriders.Add((touchup, obb, touchup.transform.position));
+                                volumes.overriders.Add((volume, adjustment.obb, volume.transform.position));
                         }
 
                     }
@@ -382,7 +384,7 @@ namespace UnityEngine.Rendering
             return cellToVolumes;
         }
 
-        static Vector3[] DoApplyVirtualOffsetsFromAdjustmentVolumes(Vector3[] positions, Vector3[] offsets, Dictionary<int, TouchupsPerCell> cellToVolumes)
+        static Vector3[] DoApplyVirtualOffsetsFromAdjustmentVolumes(NativeList<Vector3> positions, Vector3[] offsets, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
             float cellSize = m_ProfileInfo.cellSizeInMeters;
             for (int i = 0; i < positions.Length; i++)

@@ -2055,6 +2055,9 @@ namespace UnityEngine.Rendering
 
                 m_TemporaryDataLocation.Cleanup();
                 m_ProbeReferenceVolumeInit = false;
+                
+                if (m_CurrentBakingSet != null)
+                    m_CurrentBakingSet.Cleanup();
                 m_CurrentBakingSet = null;
             }
 

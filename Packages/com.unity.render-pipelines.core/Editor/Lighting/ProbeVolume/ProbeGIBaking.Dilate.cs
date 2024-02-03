@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering
     {
         static ComputeShader dilationShader;
         static int dilationKernel = -1;
-        static internal Dictionary<(int, int), float> s_CustomDilationThresh = new Dictionary<(int, int), float>();
 
         static void InitDilationShaders()
         {
@@ -134,8 +133,8 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < probeCount; ++i)
                 {
                     dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell, i);
-                    needDilating[i] = s_CustomDilationThresh.ContainsKey((cellDesc.index, i)) ?
-                        (cellData.validity[i] > s_CustomDilationThresh[(cellDesc.index, i)] ? 1 : 0) : (cellData.validity[i] > defaultThreshold ? 1 : 0);
+                    needDilating[i] = m_BakingBatch.customDilationThresh.ContainsKey((cellDesc.index, i)) ?
+                        (cellData.validity[i] > m_BakingBatch.customDilationThresh[(cellDesc.index, i)] ? 1 : 0) : (cellData.validity[i] > defaultThreshold ? 1 : 0);
                 }
 
                 outputProbes.SetData(dilatedProbes);

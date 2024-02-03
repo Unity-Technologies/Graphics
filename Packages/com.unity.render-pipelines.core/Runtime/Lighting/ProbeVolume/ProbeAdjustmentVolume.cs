@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     [CoreRPHelpURL("probevolumes-settings#probe-adjustment-volume", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Probe Adjustment Volume")]
-    public class ProbeTouchupVolume : MonoBehaviour, ISerializationCallbackReceiver
+    public class ProbeAdjustmentVolume : MonoBehaviour, ISerializationCallbackReceiver
     {
         /// <summary>The type of shape that an adjustment volume can take. </summary>
         public enum Shape
@@ -115,6 +115,40 @@ namespace UnityEngine.Rendering
         /// <summary>Controls the number of bounces per light path for sky occlusion baking.</summary>
         [Range(0, 5)]
         public int skyOcclusionMaxBounces = 2;
+
+#if UNITY_EDITOR
+        [SerializeField] internal int cachedHashCode = 0;
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+
+            unchecked
+            {
+                hash = hash * 23 + gameObject.transform.worldToLocalMatrix.GetHashCode();
+                hash = hash * 23 + shape.GetHashCode();
+                hash = hash * 23 + size.GetHashCode();
+                hash = hash * 23 + radius.GetHashCode();
+                hash = hash * 23 + mode.GetHashCode();
+                hash = hash * 23 + intensityScale.GetHashCode();
+                hash = hash * 23 + overriddenDilationThreshold.GetHashCode();
+                hash = hash * 23 + virtualOffsetRotation.GetHashCode();
+                hash = hash * 23 + virtualOffsetDistance.GetHashCode();
+                hash = hash * 23 + geometryBias.GetHashCode();
+                hash = hash * 23 + rayOriginBias.GetHashCode();
+                hash = hash * 23 + skyDirection.GetHashCode();
+                hash = hash * 23 + skyShadingDirectionRotation.GetHashCode();
+                hash = hash * 23 + directSampleCount.GetHashCode();
+                hash = hash * 23 + indirectSampleCount.GetHashCode();
+                hash = hash * 23 + sampleCountMultiplier.GetHashCode();
+                hash = hash * 23 + maxBounces.GetHashCode();
+                hash = hash * 23 + skyOcclusionSampleCount.GetHashCode();
+                hash = hash * 23 + skyOcclusionMaxBounces.GetHashCode();
+            }
+
+            return hash;
+        }
+#endif
 
 #if UNITY_EDITOR
         /// <summary>

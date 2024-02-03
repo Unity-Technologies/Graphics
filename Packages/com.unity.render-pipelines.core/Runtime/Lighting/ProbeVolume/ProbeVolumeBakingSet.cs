@@ -85,6 +85,8 @@ namespace UnityEngine.Rendering
         [SerializeField] internal bool dialogNoProbeVolumeInSetShown = false;
         [SerializeField] internal ProbeVolumeBakingProcessSettings settings;
 
+        internal bool hasDilation => settings.dilationSettings.enableDilation && settings.dilationSettings.dilationDistance > 0.0f;
+
         // We keep a separate list with only the guids for the sake of convenience when iterating from outside this class.
         [SerializeField] private List<string> m_SceneGUIDs = new List<string>();
         [SerializeField, Obsolete("This is now contained in the SceneBakeData structure"), FormerlySerializedAs("scenesToNotBake")] internal List<string> obsoleteScenesToNotBake = new List<string>();
@@ -306,6 +308,9 @@ namespace UnityEngine.Rendering
 
 #pragma warning restore 618
             }
+
+            if (sharedValidityMaskChunkSize == 0)
+                sharedValidityMaskChunkSize = sizeof(byte) * ProbeBrickPool.GetChunkSizeInProbeCount();
         }
 
         // For functions below:

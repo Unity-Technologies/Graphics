@@ -12,9 +12,8 @@ using CellDesc = UnityEngine.Rendering.ProbeReferenceVolume.CellDesc;
 using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
 using IndirectionEntryInfo = UnityEngine.Rendering.ProbeReferenceVolume.IndirectionEntryInfo;
 using StreamableCellDesc = UnityEngine.Rendering.ProbeVolumeStreamableAsset.StreamableCellDesc;
-using UnityEngine.Rendering.UnifiedRayTracing;
 
-using TouchupVolumeWithBoundsList = System.Collections.Generic.List<(UnityEngine.Rendering.ProbeReferenceVolume.Volume obb, UnityEngine.Bounds aabb, UnityEngine.Rendering.ProbeTouchupVolume touchupVolume)>;
+using TouchupVolumeWithBoundsList = System.Collections.Generic.List<(UnityEngine.Rendering.ProbeReferenceVolume.Volume obb, UnityEngine.Bounds aabb, UnityEngine.Rendering.ProbeAdjustmentVolume volume)>;
 
 namespace UnityEngine.Rendering
 {
@@ -41,6 +40,170 @@ namespace UnityEngine.Rendering
         public int[] probeIndices;
 
         public Bounds bounds;
+
+        internal void ComputeBounds(float cellSize)
+        {
+            var center = new Vector3((position.x + 0.5f) * cellSize, (position.y + 0.5f) * cellSize, (position.z + 0.5f) * cellSize);
+            bounds = new Bounds(center, new Vector3(cellSize, cellSize, cellSize));
+        }
+
+        internal TouchupVolumeWithBoundsList SelectIntersectingAdjustmentVolumes(TouchupVolumeWithBoundsList touchupVolumesAndBounds)
+        {
+            // Find the subset of touchup volumes that will be considered for this cell.
+            // Capacity of the list to cover the worst case.
+            var localTouchupVolumes = new TouchupVolumeWithBoundsList(touchupVolumesAndBounds.Count);
+            foreach (var touchup in touchupVolumesAndBounds)
+            {
+                if (touchup.aabb.Intersects(bounds))
+                    localTouchupVolumes.Add(touchup);
+            }
+            return localTouchupVolumes;
+        }
+
+        static void CompressSH(ref SphericalHarmonicsL2 shv, float intensityScale, bool clearForDilation)
+        {
+            // Compress the range of all coefficients but the DC component to [0..1]
+            // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
+            // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
+            for (int rgb = 0; rgb < 3; ++rgb)
+            {
+                for (int k = 0; k < 9; ++k)
+                    shv[rgb, k] *= intensityScale;
+
+                var l0 = shv[rgb, 0];
+
+                if (l0 == 0.0f)
+                {
+                    shv[rgb, 0] = 0.0f;
+                    for (int k = 1; k < 9; ++k)
+                        shv[rgb, k] = 0.5f;
+                }
+                else if (clearForDilation)
+                {
+                    for (int k = 0; k < 9; ++k)
+                        shv[rgb, k] = 0.0f;
+                }
+                else
+                {
+                    // TODO: We're working on irradiance instead of radiance coefficients
+                    //       Add safety margin 2 to avoid out-of-bounds values
+                    float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
+                    float l2scale = 3.5777088f; // 4/sqrt(5) * 2
+
+                    // L_1^m
+                    shv[rgb, 1] = shv[rgb, 1] / (l0 * l1scale * 2.0f) + 0.5f;
+                    shv[rgb, 2] = shv[rgb, 2] / (l0 * l1scale * 2.0f) + 0.5f;
+                    shv[rgb, 3] = shv[rgb, 3] / (l0 * l1scale * 2.0f) + 0.5f;
+
+                    // L_2^-2
+                    shv[rgb, 4] = shv[rgb, 4] / (l0 * l2scale * 2.0f) + 0.5f;
+                    shv[rgb, 5] = shv[rgb, 5] / (l0 * l2scale * 2.0f) + 0.5f;
+                    shv[rgb, 6] = shv[rgb, 6] / (l0 * l2scale * 2.0f) + 0.5f;
+                    shv[rgb, 7] = shv[rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
+                    shv[rgb, 8] = shv[rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
+
+                    for (int coeff = 1; coeff < 9; ++coeff)
+                        Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
+                }
+            }
+        }
+
+        void SetSHCoefficients(int i, SphericalHarmonicsL2 value, float intensityScale, float valid, in ProbeDilationSettings dilationSettings)
+        {
+            bool clearForDilation = dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && valid > dilationSettings.dilationValidityThreshold;
+            CompressSH(ref value, intensityScale, clearForDilation);
+
+            SphericalHarmonicsL2Utils.SetL0(ref sh[i], new Vector3(value[0, 0], value[1, 0], value[2, 0]));
+            SphericalHarmonicsL2Utils.SetL1R(ref sh[i], new Vector3(value[0, 3], value[0, 1], value[0, 2]));
+            SphericalHarmonicsL2Utils.SetL1G(ref sh[i], new Vector3(value[1, 3], value[1, 1], value[1, 2]));
+            SphericalHarmonicsL2Utils.SetL1B(ref sh[i], new Vector3(value[2, 3], value[2, 1], value[2, 2]));
+
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh[i], 4, new Vector3(value[0, 4], value[1, 4], value[2, 4]));
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh[i], 5, new Vector3(value[0, 5], value[1, 5], value[2, 5]));
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh[i], 6, new Vector3(value[0, 6], value[1, 6], value[2, 6]));
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh[i], 7, new Vector3(value[0, 7], value[1, 7], value[2, 7]));
+            SphericalHarmonicsL2Utils.SetCoefficient(ref sh[i], 8, new Vector3(value[0, 8], value[1, 8], value[2, 8]));
+        }
+
+        void ReadAdjustmentVolumes(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, float validity,
+            out bool invalidatedProbe, out float intensityScale, out uint? skyShadingDirectionOverride)
+        {
+            invalidatedProbe = false;
+            intensityScale = 1.0f;
+            skyShadingDirectionOverride = null;
+
+            var skyPrecomputedDirections = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
+
+            foreach (var touchup in localTouchupVolumes)
+            {
+                var touchupBound = touchup.aabb;
+                var touchupVolume = touchup.volume;
+
+                // We check a small box around the probe to give some leniency (a couple of centimeters).
+                var probeBounds = new Bounds(probePositions[i], new Vector3(0.02f, 0.02f, 0.02f));
+                if (touchupVolume.IntersectsVolume(touchup.obb, touchup.aabb, probeBounds))
+                {
+                    if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.InvalidateProbes)
+                    {
+                        invalidatedProbe = true;
+
+                        if (validity < 0.05f) // We just want to add probes that were not already invalid or close to.
+                        {
+                            // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
+                            touchupVolumeInteraction[i] = 0.5f;
+
+                            bakingBatch.forceInvalidatedProbesAndTouchupVols[probePositions[i]] = touchupBound;
+                        }
+                        break;
+                    }
+                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideValidityThreshold)
+                    {
+                        float thresh = (1.0f - touchupVolume.overriddenDilationThreshold);
+                        // The 1.0f + is used to determine the action (debug shader tests above 1), then we add the threshold to be able to retrieve it in debug phase.
+                        touchupVolumeInteraction[i] = 1.0f + thresh;
+                        bakingBatch.customDilationThresh[(index, i)] = thresh;
+                    }
+                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideSkyDirection && bakingSet.skyOcclusion && bakingSet.skyOcclusionShadingDirection)
+                        skyShadingDirectionOverride = ProbeGIBaking.LinearSearchClosestDirection(skyPrecomputedDirections, touchupVolume.skyDirection);
+
+                    if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.IntensityScale)
+                        intensityScale = touchupVolume.intensityScale;
+                    if (intensityScale != 1.0f)
+                        touchupVolumeInteraction[i] = 2.0f + intensityScale;
+                }
+            }
+
+            if (validity < 0.05f && bakingBatch.invalidatedPositions.ContainsKey(probePositions[i]) && bakingBatch.invalidatedPositions[probePositions[i]])
+            {
+                if (!bakingBatch.forceInvalidatedProbesAndTouchupVols.ContainsKey(probePositions[i]))
+                    bakingBatch.forceInvalidatedProbesAndTouchupVols.Add(probePositions[i], new Bounds());
+
+                invalidatedProbe = true;
+            }
+        }
+
+        internal void SetBakedData(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, int probeIndex,
+            in SphericalHarmonicsL2 sh, float validity, Vector3[] virtualOffsets, Vector4[] skyOcclusion, uint[] skyDirection)
+        {
+            ReadAdjustmentVolumes(bakingSet, bakingBatch, localTouchupVolumes, i, validity, out var invalidatedProbe, out var intensityScale, out var skyShadingDirectionOverride);
+            SetSHCoefficients(i, sh, intensityScale, validity, bakingSet.settings.dilationSettings);
+
+            if (virtualOffsets != null)
+                offsetVectors[i] = virtualOffsets[probeIndex];
+
+            if (skyOcclusion != null)
+            {
+                skyOcclusionDataL0L1[i] = skyOcclusion[probeIndex];
+
+                if (skyDirection != null)
+                    skyShadingDirectionIndices[i] = skyShadingDirectionOverride.HasValue ? skyShadingDirectionOverride.Value : skyDirection[probeIndex];
+            }
+
+            float currValidity = invalidatedProbe ? 1.0f : validity;
+            byte currValidityNeighbourMask = 255;
+            this.validity[i] = currValidity;
+            validityNeighbourMask[i] = currValidityNeighbourMask;
+        }
 
         internal int GetBakingHashCode()
         {
@@ -71,6 +234,9 @@ namespace UnityEngine.Rendering
         // Utilities to compute unique probe position hash
         Vector3Int maxBrickCount;
         float inverseScale;
+
+        public Dictionary<(int, int), float> customDilationThresh = new Dictionary<(int, int), float>();
+        public Dictionary<Vector3, Bounds> forceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
 
         private GIContributors? m_Contributors;
         public GIContributors contributors
@@ -212,7 +378,6 @@ namespace UnityEngine.Rendering
             public enum Stages
             {
                 FinalizingBake,
-                FetchResults,
                 WriteBakedData,
                 PerformDilation,
                 None
@@ -732,19 +897,17 @@ namespace UnityEngine.Rendering
         // proper UX.
         internal static void PerformDilation()
         {
-            var perSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
+            var prv = ProbeReferenceVolume.instance;
+            var perSceneDataList = prv.perSceneDataList;
             if (perSceneDataList.Count == 0) return;
+            SetBakingContext(perSceneDataList);
 
             List<Cell> tempLoadedCells = new List<Cell>();
 
-            var prv = ProbeReferenceVolume.instance;
-
-            SetBakingContext(perSceneDataList);
-
-            var dilationSettings = m_BakingSet.settings.dilationSettings;
-
-            if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
+            if (m_BakingSet.hasDilation)
             {
+                var dilationSettings = m_BakingSet.settings.dilationSettings;
+
                 // Make sure all assets are loaded.
                 prv.PerformPendingOperations();
 
@@ -755,7 +918,7 @@ namespace UnityEngine.Rendering
                     prv.LoadAllCells();
 
                     // Dilate all cells
-                    List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(prv.cells.Values.Count);
+                    List<Cell> dilatedCells = new List<Cell>(prv.cells.Values.Count);
                     bool everythingLoaded = !prv.hasUnloadedCells;
 
                     if (everythingLoaded)
@@ -780,12 +943,15 @@ namespace UnityEngine.Rendering
 
                         foreach (var cell in prv.cells.Values)
                         {
-                            tempLoadedCells.Clear();
+                            if (!m_CellsToDilate.ContainsKey(cell.desc.index))
+                                continue;
 
                             var cellPos = cell.desc.position;
                             // Load the cell and all its neighbors before doing dilation.
                             for (int x = -1; x <= 1; ++x)
+                            {
                                 for (int y = -1; y <= 1; ++y)
+                                {
                                     for (int z = -1; z <= 1; ++z)
                                     {
                                         Vector3Int pos = cellPos + new Vector3Int(x, y, z);
@@ -802,19 +968,18 @@ namespace UnityEngine.Rendering
                                             }
                                         }
                                     }
-
-                            if (m_CellsToDilate.ContainsKey(cell.desc.index))
-                            {
-                                PerformDilation(cell, m_BakingSet);
-                                dilatedCells.Add(cell);
+                                }
                             }
+
+                            PerformDilation(cell, m_BakingSet);
+                            dilatedCells.Add(cell);
 
                             // Free memory again.
                             foreach (var cellToUnload in tempLoadedCells)
                                 prv.UnloadCell(cellToUnload);
+                            tempLoadedCells.Clear();
                         }
                     }
-
 
                     // Now write back the assets.
                     WriteDilatedCells(dilatedCells);
@@ -966,15 +1131,76 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static TouchupVolumeWithBoundsList GetAdjustementVolumes()
+        {
+            // This is slow, but we should have very little amount of touchup volumes.
+            var touchupVolumes = Object.FindObjectsByType<ProbeAdjustmentVolume>(FindObjectsSortMode.InstanceID);
+
+            var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList(touchupVolumes.Length);
+            foreach (var touchup in touchupVolumes)
+            {
+                if (touchup.isActiveAndEnabled)
+                {
+                    touchup.GetOBBandAABB(out var obb, out var aabb);
+                    touchupVolumesAndBounds.Add((obb, aabb, touchup));
+                    touchup.skyDirection.Normalize();
+                }
+            }
+
+            return touchupVolumesAndBounds;
+        }
+
+        static void FinalizeCell(int c, NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity, Vector3[] virtualOffsets, Vector4[] skyOcclusion, uint[] skyDirection)
+        {
+            if (c == 0)
+            {
+                m_BakedCells.Clear();
+                m_CellPosToIndex.Clear();
+                m_CellsToDilate.Clear();
+            }
+
+            bool hasVirtualOffset = virtualOffsets != null;
+            bool hasSkyOcclusion = skyOcclusion != null;
+            bool hasSkyDirection = skyDirection != null;
+
+            var cell = m_BakingBatch.cells[c];
+            int numProbes = cell.probePositions.Length;
+            Debug.Assert(numProbes > 0);
+
+            var probeRefVolume = ProbeReferenceVolume.instance;
+            var localTouchupVolumes = cell.SelectIntersectingAdjustmentVolumes(s_AdjustmentVolumes);
+
+            cell.sh = new SphericalHarmonicsL2[numProbes];
+            cell.validity = new float[numProbes];
+            cell.validityNeighbourMask = new byte[numProbes];
+            cell.skyOcclusionDataL0L1 = new Vector4[hasSkyOcclusion ? numProbes : 0];
+            cell.skyShadingDirectionIndices = new uint[hasSkyDirection ? numProbes : 0];
+            cell.offsetVectors = new Vector3[hasVirtualOffset ? numProbes : 0];
+            cell.touchupVolumeInteraction = new float[numProbes];
+            cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
+            cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
+
+            for (int i = 0; i < numProbes; ++i)
+            {
+                int brickIdx = i / 64;
+                int subdivLevel = cell.bricks[brickIdx].subdivisionLevel;
+                cell.minSubdiv = Mathf.Min(cell.minSubdiv, subdivLevel);
+
+                int uniqueProbeIndex = cell.probeIndices[i];
+                cell.SetBakedData(m_BakingSet, m_BakingBatch, localTouchupVolumes, i, uniqueProbeIndex,
+                    sh[uniqueProbeIndex], validity[uniqueProbeIndex], virtualOffsets, skyOcclusion, skyDirection);
+            }
+
+            ComputeValidityMasks(cell);
+
+            m_BakedCells[cell.index] = cell;
+            m_CellsToDilate[cell.index] = cell;
+            m_CellPosToIndex.Add(cell.position, cell.index);
+        }
+
         static void ApplyPostBakeOperations(NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity, Vector3[] virtualOffsets, Vector4[] skyOcclusion, uint[] skyDirection)
         {
             var probeRefVolume = ProbeReferenceVolume.instance;
-            var bakingCells = m_BakingBatch.cells;
-            var numCells = bakingCells.Count;
-
-            m_CellPosToIndex.Clear();
-            m_BakedCells.Clear();
-            m_CellsToDilate.Clear();
 
             // Clear baked data
             foreach (var data in probeRefVolume.perSceneDataList)
@@ -988,209 +1214,7 @@ namespace UnityEngine.Rendering
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
-            var dilationSettings = m_BakingSet.settings.dilationSettings;
-
-            // This is slow, but we should have very little amount of touchup volumes.
-            var touchupVolumes = GameObject.FindObjectsByType<ProbeTouchupVolume>(FindObjectsSortMode.InstanceID);
-            var touchupVolumesAndBounds = new TouchupVolumeWithBoundsList(touchupVolumes.Length);
-            foreach (var touchup in touchupVolumes)
-            {
-                if (touchup.isActiveAndEnabled)
-                {
-                    touchup.GetOBBandAABB(out var obb, out var aabb);
-                    touchupVolumesAndBounds.Add((obb, aabb, touchup));
-                    touchup.skyDirection.Normalize();
-                }
-            }
-
-            // Fetch results of all cells
-            using var fetchScope = new BakingCompleteProfiling(BakingCompleteProfiling.Stages.FetchResults);
-            BakingCompleteProfiling.GetProgressRange(out float progress0, out float progress1);
-            for (int c = 0; c < numCells; ++c)
-            {
-                var cell = bakingCells[c];
-
-                m_CellPosToIndex.Add(cell.position, cell.index);
-
-                if (cell.probePositions == null)
-                    continue;
-
-                int numProbes = cell.probePositions.Length;
-                Debug.Assert(numProbes > 0);
-
-                if (c % 10 == 0)
-                    EditorUtility.DisplayProgressBar("Baking Adaptive Probe Volumes", $"({c} of {numCells}) Read Cell Probes", Mathf.Lerp(progress0, progress1, c / (float)numCells));
-
-                cell.sh = new SphericalHarmonicsL2[numProbes];
-                cell.validity = new float[numProbes];
-                cell.validityNeighbourMask = new byte[numProbes];
-                cell.skyOcclusionDataL0L1 = new Vector4[m_BakingSet.skyOcclusion ? numProbes : 0];
-                cell.skyShadingDirectionIndices = new uint[ (m_BakingSet.skyOcclusion && m_BakingSet.skyOcclusionShadingDirection) ? numProbes : 0];
-                cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
-                cell.touchupVolumeInteraction = new float[numProbes];
-                cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
-
-                var skyPrecomputedDirections = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
-
-                // Find the subset of touchup volumes that will be considered for this cell.
-                // Capacity of the list to cover the worst case.
-                var localTouchupVolumes = new TouchupVolumeWithBoundsList(touchupVolumes.Length);
-                foreach (var touchup in touchupVolumesAndBounds)
-                {
-                    if (touchup.aabb.Intersects(cell.bounds))
-                        localTouchupVolumes.Add(touchup);
-                }
-
-                for (int i = 0; i < numProbes; ++i)
-                {
-                    int uniqueProbeIndex = cell.probeIndices[i];
-                    bool overrideSkyShadingDirection = false;
-
-                    if (virtualOffsets != null)
-                        cell.offsetVectors[i] = virtualOffsets[uniqueProbeIndex];
-
-                    SphericalHarmonicsL2 shv = sh[uniqueProbeIndex];
-                    float valid = validity[uniqueProbeIndex];
-
-                    int brickIdx = i / 64;
-                    int subdivLevel = cell.bricks[brickIdx].subdivisionLevel;
-                    cell.minSubdiv = Mathf.Min(cell.minSubdiv, subdivLevel);
-
-                    bool invalidatedProbe = false;
-                    float intensityScale = 1.0f;
-
-                    foreach (var touchup in localTouchupVolumes)
-                    {
-                        var touchupBound = touchup.aabb;
-                        var touchupVolume = touchup.touchupVolume;
-
-                        // We check a small box around the probe to give some leniency (a couple of centimeters).
-                        var probeBounds = new Bounds(cell.probePositions[i], new Vector3(0.02f, 0.02f, 0.02f));
-                        if (touchupVolume.IntersectsVolume(touchup.obb, touchup.aabb, probeBounds))
-                        {
-                            if (touchupVolume.mode == ProbeTouchupVolume.Mode.InvalidateProbes)
-                            {
-                                invalidatedProbe = true;
-
-                                if (valid < 0.05f) // We just want to add probes that were not already invalid or close to.
-                                {
-                                    // We check as below 1 but bigger than 0 in the debug shader, so any value <1 will do to signify touched up.
-                                    cell.touchupVolumeInteraction[i] = 0.5f;
-
-                                    s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
-                                }
-                                break;
-                            }
-                            else if (touchupVolume.mode == ProbeTouchupVolume.Mode.OverrideValidityThreshold)
-                            {
-                                float thresh = (1.0f - touchupVolume.overriddenDilationThreshold);
-                                // The 1.0f + is used to determine the action (debug shader tests above 1), then we add the threshold to be able to retrieve it in debug phase.
-                                cell.touchupVolumeInteraction[i] = 1.0f + thresh;
-                                s_CustomDilationThresh[(cell.index, i)] = thresh;
-                            }
-                            else if (touchupVolume.mode == ProbeTouchupVolume.Mode.OverrideSkyDirection && m_BakingSet.skyOcclusion && m_BakingSet.skyOcclusionShadingDirection)
-                            {
-                                cell.skyShadingDirectionIndices[i] = LinearSearchClosestDirection(skyPrecomputedDirections, touchupVolume.skyDirection);
-                                overrideSkyShadingDirection = true;
-                            }
-
-                            if (touchupVolume.mode == ProbeTouchupVolume.Mode.IntensityScale)
-                                intensityScale = touchupVolume.intensityScale;
-                            if (intensityScale != 1.0f)
-                                cell.touchupVolumeInteraction[i] = 2.0f + intensityScale;
-                        }
-                    }
-
-                    if (valid < 0.05f && m_BakingBatch.invalidatedPositions.ContainsKey(cell.probePositions[i]) && m_BakingBatch.invalidatedPositions[cell.probePositions[i]])
-                    {
-                        if (!s_ForceInvalidatedProbesAndTouchupVols.ContainsKey(cell.probePositions[i]))
-                            s_ForceInvalidatedProbesAndTouchupVols.Add(cell.probePositions[i], new Bounds());
-
-                        invalidatedProbe = true;
-                    }
-
-                    // Compress the range of all coefficients but the DC component to [0..1]
-                    // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
-                    // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
-                    for (int rgb = 0; rgb < 3; ++rgb)
-                    {
-                        for (int k = 0; k < 9; ++k)
-                            shv[rgb, k] *= intensityScale;
-
-                        var l0 = shv[rgb, 0];
-
-                        if (l0 == 0.0f)
-                        {
-                            shv[rgb, 0] = 0.0f;
-                            for (int k = 1; k < 9; ++k)
-                                shv[rgb, k] = 0.5f;
-                        }
-                        else if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && valid > dilationSettings.dilationValidityThreshold)
-                        {
-                            for (int k = 0; k < 9; ++k)
-                                shv[rgb, k] = 0.0f;
-                        }
-                        else
-                        {
-                            // TODO: We're working on irradiance instead of radiance coefficients
-                            //       Add safety margin 2 to avoid out-of-bounds values
-                            float l1scale = 2.0f; // Should be: 3/(2*sqrt(3)) * 2, but rounding to 2 to issues we are observing.
-                            float l2scale = 3.5777088f; // 4/sqrt(5) * 2
-
-                            // L_1^m
-                            shv[rgb, 1] = shv[rgb, 1] / (l0 * l1scale * 2.0f) + 0.5f;
-                            shv[rgb, 2] = shv[rgb, 2] / (l0 * l1scale * 2.0f) + 0.5f;
-                            shv[rgb, 3] = shv[rgb, 3] / (l0 * l1scale * 2.0f) + 0.5f;
-
-                            // L_2^-2
-                            shv[rgb, 4] = shv[rgb, 4] / (l0 * l2scale * 2.0f) + 0.5f;
-                            shv[rgb, 5] = shv[rgb, 5] / (l0 * l2scale * 2.0f) + 0.5f;
-                            shv[rgb, 6] = shv[rgb, 6] / (l0 * l2scale * 2.0f) + 0.5f;
-                            shv[rgb, 7] = shv[rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
-                            shv[rgb, 8] = shv[rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
-
-                            for (int coeff = 1; coeff < 9; ++coeff)
-                                Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
-                        }
-                    }
-
-                    SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
-                    SphericalHarmonicsL2Utils.SetL1R(ref cell.sh[i], new Vector3(shv[0, 3], shv[0, 1], shv[0, 2]));
-                    SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
-                    SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
-
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(shv[0, 4], shv[1, 4], shv[2, 4]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(shv[0, 5], shv[1, 5], shv[2, 5]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(shv[0, 6], shv[1, 6], shv[2, 6]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
-                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
-
-                    if (skyOcclusion != null)
-                    {
-                        cell.skyOcclusionDataL0L1[i] = skyOcclusion[uniqueProbeIndex];
-
-                        if (skyDirection != null && !overrideSkyShadingDirection)
-                            cell.skyShadingDirectionIndices[i] = skyDirection[uniqueProbeIndex];
-                    }
-
-                    float currValidity = invalidatedProbe ? 1.0f : valid;
-                    byte currValidityNeighbourMask = 255;
-                    cell.validity[i] = currValidity;
-                    cell.validityNeighbourMask[i] = currValidityNeighbourMask;
-                }
-
-                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
-
-                ComputeValidityMasks(cell);
-
-                m_BakedCells[cell.index] = cell;
-                m_CellsToDilate[cell.index] = cell;
-            }
-            fetchScope.Dispose();
-
             PrepareCellsForWriting(isBakingSceneSubset);
-
-            var fullSceneDataList = probeRefVolume.perSceneDataList;
 
             m_BakingSet.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
             m_BakingSet.minCellPosition = minCellPosition;
@@ -1207,42 +1231,46 @@ namespace UnityEngine.Rendering
             // Reset internal structures depending on current bake.
             probeRefVolume.EnsureCurrentBakingSet(m_BakingSet);
 
-            // This subsequent block needs to happen AFTER we call WriteBakingCells.
-            // Otherwise in cases where we change the spacing between probes, we end up loading cells with a certain layout in ForceSHBand
-            // And then we unload cells using the wrong layout in PerformDilation (after WriteBakingCells updates the baking set object) which leads to a broken internal state.
-
-            // Don't use Disk streaming to avoid having to wait for it when doing dilation.
-            probeRefVolume.ForceNoDiskStreaming(true);
-            // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
-            var prevSHBands = probeRefVolume.shBands;
-            probeRefVolume.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
-
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;
 
-            if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
+            if (m_BakingSet.hasDilation)
             {
+                // This subsequent block needs to happen AFTER we call WriteBakingCells.
+                // Otherwise in cases where we change the spacing between probes, we end up loading cells with a certain layout in ForceSHBand
+                // And then we unload cells using the wrong layout in PerformDilation (after WriteBakingCells updates the baking set object) which leads to a broken internal state.
+
+                // Don't use Disk streaming to avoid having to wait for it when doing dilation.
+                probeRefVolume.ForceNoDiskStreaming(true);
+                // Force maximum sh bands to perform baking, we need to store what sh bands was selected from the settings as we need to restore it after.
+                var prevSHBands = probeRefVolume.shBands;
+                probeRefVolume.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
+
                 // Do it now otherwise it messes the loading bar
                 InitDilationShaders();
 
                 using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.PerformDilation))
                     PerformDilation();
+
+                // Need to restore the original state
+                probeRefVolume.ForceNoDiskStreaming(false);
+                probeRefVolume.ForceSHBand(prevSHBands);
+            }
+            else
+            {
+                foreach (var data in probeRefVolume.perSceneDataList)
+                    data.Initialize();
+
+                probeRefVolume.PerformPendingOperations();
             }
 
-            s_ForceInvalidatedProbesAndTouchupVols.Clear();
-            s_CustomDilationThresh.Clear();
-
+            // Mark stuff as up to date
             m_BakingBatch = null;
             foreach (var probeVolume in GetProbeVolumeList())
                 probeVolume.OnBakeCompleted();
-
-            // Need to restore the original sh bands
-            probeRefVolume.ForceNoDiskStreaming(false);
-            probeRefVolume.ForceSHBand(prevSHBands);
-
-            // Mark old bakes as out of date if needed
-            ProbeVolumeLightingTab.instance?.UpdateScenarioStatuses(ProbeReferenceVolume.instance.lightingScenario);
+            foreach (var adjustment in s_AdjustmentVolumes)
+                adjustment.volume.cachedHashCode = adjustment.volume.GetHashCode();
         }
 
         static void AnalyzeBrickForIndirectionEntries(ref BakingCell cell)
@@ -2071,7 +2099,7 @@ namespace UnityEngine.Rendering
         }
 
         private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<int, int> positionToIndex, BakingBatch batch,
-            List<Vector3> positionList, out int[] indices)
+            NativeList<Vector3> uniquePositions, out int[] indices)
         {
             indices = new int[probePositions.Length];
             int uniqueIndex = positionToIndex.Count;
@@ -2094,13 +2122,13 @@ namespace UnityEngine.Rendering
                     positionToIndex[probeHash] = uniqueIndex;
                     indices[i] = uniqueIndex;
                     batch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
-                    positionList.Add(pos);
+                    uniquePositions.Add(pos);
                     uniqueIndex++;
                 }
             }
         }
 
-        static Vector3[] RunPlacement(Span<BakeJob> jobs)
+        static NativeList<Vector3> RunPlacement(Span<BakeJob> jobs)
         {
             // Overwrite loaded settings with data from profile. Note that the m_BakingSet.profile is already patched up if isFreezingPlacement
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
@@ -2117,9 +2145,9 @@ namespace UnityEngine.Rendering
                 result = GetWorldSubdivision();
 
             // Compute probe positions
-            Vector3[] positions;
+            NativeList<Vector3> positions;
             using (new BakingSetupProfiling(BakingSetupProfiling.Stages.ApplySubdivisionResults))
-                ApplySubdivisionResults(result, jobs, out positions);
+                positions = ApplySubdivisionResults(result, jobs);
 
             // Restore loaded asset settings
             ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(prevBrickSize, prevMaxSubdiv);
@@ -2284,32 +2312,32 @@ namespace UnityEngine.Rendering
             return normalizedPos.z * (cellCount.x * cellCount.y) + normalizedPos.y * cellCount.x + normalizedPos.x;
         }
 
-        static void ApplySubdivisionResults(ProbeSubdivisionResult results, Span<BakeJob> jobs, out Vector3[] positions)
+        static NativeList<Vector3> ApplySubdivisionResults(ProbeSubdivisionResult results, Span<BakeJob> jobs)
         {
             int cellIdx = 0, freq = 10; // Don't refresh progress bar at every iteration because it's slow
             LightTransportBakingProfiling.GetProgressRange(out float progress0, out float progress1);
 
-            List <Vector3> positionList = new();
+            var positions = new NativeList<Vector3>(Allocator.Persistent);
             Dictionary<int, int> positionToIndex = new();
             foreach ((var position, var bounds, var bricks) in results.cells)
             {
                 if (++cellIdx % freq == 0)
-                    EditorUtility.DisplayProgressBar("Baking Probe Volumes", $"Baking cell {cellIdx} out of {results.cells.Count}", Mathf.Lerp(progress0, progress1, cellIdx / (float)results.cells.Count));
+                    EditorUtility.DisplayProgressBar("Baking Probe Volumes", $"Subdividing cell {cellIdx} out of {results.cells.Count}", Mathf.Lerp(progress0, progress1, cellIdx / (float)results.cells.Count));
 
-                int positionStart = positionList.Count;
+                int positionStart = positions.Length;
 
                 ConvertBricksToPositions(bricks, out var probePositions, out var brickSubdivLevels);
-                DeduplicateProbePositions(in probePositions, in brickSubdivLevels, positionToIndex, m_BakingBatch, positionList, out var probeIndices);
+                DeduplicateProbePositions(in probePositions, in brickSubdivLevels, positionToIndex, m_BakingBatch, positions, out var probeIndices);
 
                 if (jobs != null)
                 {
                     // Place each newly created probe in the correct job
-                    for (int i = positionStart; i < positionList.Count; i++)
+                    for (int i = positionStart; i < positions.Length; i++)
                     {
                         int jobIndex = 0;
                         for (; jobIndex < jobs.Length - 1; jobIndex++)
                         {
-                            if (jobs[jobIndex].Contains(positionList[i]))
+                            if (jobs[jobIndex].Contains(positions[i]))
                                 break;
                         }
 
@@ -2331,7 +2359,7 @@ namespace UnityEngine.Rendering
                 m_BakingBatch.cellIndex2SceneReferences[cell.index] = new HashSet<string>(results.scenesPerCells[cell.position]);
             }
 
-            positions = positionList.ToArray();
+            return positions;
         }
 
         /// <summary>

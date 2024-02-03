@@ -2,7 +2,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    internal class SerializedProbeTouchupVolume
+    internal class SerializedProbeAdjustmentVolume
     {
         internal SerializedProperty shape;
         internal SerializedProperty size;
@@ -25,9 +25,9 @@ namespace UnityEditor.Rendering
         internal SerializedProperty skyOcclusionSampleCount;
         internal SerializedProperty skyOcclusionMaxBounces;
 
-        internal SerializedProbeTouchupVolume(SerializedObject obj)
+        internal SerializedProbeAdjustmentVolume(SerializedObject obj)
         {
-            var o = new PropertyFetcher<ProbeTouchupVolume>(obj);
+            var o = new PropertyFetcher<ProbeAdjustmentVolume>(obj);
 
             shape = o.Find(x => x.shape);
             size = o.Find(x => x.size);

@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using UnityEngine.Profiling;
 using System.Collections;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
 using CellIndexInfo = UnityEngine.Rendering.ProbeReferenceVolume.CellIndexInfo;
 
 namespace UnityEngine.Rendering
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
         int m_AvailableChunkCount;
 
         ComputeBuffer m_PhysicalIndexBuffer;
-        int[] m_PhysicalIndexBufferData;
+        NativeArray<int> m_PhysicalIndexBufferData;
         ComputeBuffer m_DebugFragmentationBuffer;
         int[] m_DebugFragmentationData;
 
@@ -156,12 +156,11 @@ namespace UnityEngine.Rendering
             m_IndexChunksCopyForChecks = new BitArray(m_ChunksCount);
 
             int physicalBufferSize = m_ChunksCount * kIndexChunkSize;
-            m_PhysicalIndexBufferData = new int[physicalBufferSize];
+            m_PhysicalIndexBufferData = new NativeArray<int>(physicalBufferSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_PhysicalIndexBuffer = new ComputeBuffer(physicalBufferSize, sizeof(int), ComputeBufferType.Structured);
 
             estimatedVMemCost = physicalBufferSize * sizeof(int);
 
-            // Should be done by a compute shader
             Clear();
             Profiler.EndSample();
         }
@@ -203,8 +202,11 @@ namespace UnityEngine.Rendering
         {
             Profiler.BeginSample("Clear Index");
 
-            for (int i = 0; i < m_PhysicalIndexBufferData.Length; ++i)
-                m_PhysicalIndexBufferData[i] = -1;
+            unsafe
+            {
+                uint* pBuffer = (uint*)NativeArrayUnsafeUtility.GetUnsafePtr(m_PhysicalIndexBufferData);
+                UnsafeUtility.MemSet(pBuffer, 0xFF, m_PhysicalIndexBufferData.Length * 4);
+            }
 
             m_NeedUpdateIndexComputeBuffer = true;
             m_UpdateMinIndex = 0;
@@ -288,6 +290,7 @@ namespace UnityEngine.Rendering
 
         internal void Cleanup()
         {
+            m_PhysicalIndexBufferData.Dispose();
             CoreUtils.SafeRelease(m_PhysicalIndexBuffer);
             m_PhysicalIndexBuffer = null;
             CoreUtils.SafeRelease(m_DebugFragmentationBuffer);

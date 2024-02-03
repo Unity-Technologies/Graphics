@@ -97,18 +97,18 @@ Note: Don't use very low values for the settings, or Dilation and Virtual Offset
 <a name="probevolumeadjustment"></a>
 ### Add a Probe Adjustment Volume Component
 
-Use a Probe Adjustment Volume Component to make Light Probes invalid in a small area. This triggers Dilation during baking, and improves the results of **Leak Reduction Mode** at runtime.
+Use a Probe Adjustment Volume Component to adjust various baking settings for probes covered by the volume.
+They can be used to adjust the sample counts, or fix a light leak trough Virtual Offset or by forcing dilation.
 
 1. In the Probe Volume Inspector, select **Add Component**, then select **Light** > **Probe Adjustment Volume**.
-2. Set the **Size** so the **Probe Adjustment Volume** area overlaps the Light Probes causing light leaks.
-3. Enable **Invalidate Probes** to invalidate the Light Probes.
-4. If you have a [Volume with a Probe Volume Options override](#volume), enable **Leak Reduction Mode**.
-5. If needed, use **Override Dilation Validity** and **Dilation Validity Threshold** to override the values in the **Probe Volume Settings**.
-6. In **Probe Volume Settings**, select **Generate Lighting** to rebake the scene using the new settings.
+2. Set the **Size** so the **Probe Adjustment Volume** area overlaps the Light Probes you want to adjust.
 
-Adding a Probe Adjustment Volume solves some light leak issues but usually not all. If you use many Probe Adjustment Volumes in a Scene, your bake will be slower, and your Scene might be harder to understand and maintain.
+Clicking the 'Update Probes' button inside the **Probe Adjustment Volume** editor will regenerate the lighting data for probes covered by the volume. This is useful when iterating on a region of the world as it avoids baking the whole scene to see the result.
+Note that this button will only run the lighting and validity computations, so changing the space between probes, or toggling Virtual Offset or Sky Occlusion will not have any effect until doing a full rebake of the Baking Set.
 
-See [Settings and properties related to Probe Volumes](probevolumes-settings.md#pv-adjustment).
+Adding a Probe Adjustment Volume solves some light leak issues but usually not all. If you use many Probe Adjustment Volumes in a Scene, your Scene might be harder to understand and maintain.
+
+See [Settings and properties related to Probe Adjustment Volumes](probevolumes-settings.md#pv-adjustment) for a list of all the settings that can be adjusted.
 
 ## Fix seams
 
