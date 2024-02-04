@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); overflow: visible; visibility: visible; opacity: 1; right: 0; bottom: 0; position: absolute; height: 135px; width: 210px;">
+        <ui:Button text="Log Error in Console" name="ErrorButton" style="width: 164px; font-size: 6px; right: 19px; bottom: 3px; position: absolute; left: auto;" />
+        <ui:TextField label="Text Field" style="width: 210px; height: auto; font-size: 6px; flex-direction: row; transform-origin: center; right: 3px; bottom: 40px; position: absolute; -unity-text-align: upper-right;" />
+        <ui:Label text="UI Toolkit Screen Space Overlay" style="width: 208px; align-self: flex-start; align-items: center; -unity-text-align: upper-center; font-size: 8px; position: absolute; right: 0; bottom: 110px;" />
+        <ui:Slider label="Empty Slider" value="42" high-value="100" style="width: 212px; font-size: 6px; text-overflow: clip; flex-direction: row; white-space: normal; position: absolute; right: 0; bottom: 78px; flex-shrink: 0; -unity-text-align: upper-right;" />
+    </ui:VisualElement>
+</ui:UXML>
