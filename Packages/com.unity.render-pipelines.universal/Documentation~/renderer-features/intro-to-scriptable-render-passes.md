@@ -21,7 +21,7 @@ A Scriptable Render Pass lets you to do the following:
 
 For example, you can use a Scriptable Render Pass to blur a camera’s view when showing the in-game menu.
 
-Unity injects Scriptable Render Passes at certain points during the URP render loop. These points are called injection points. You can change the injection point Unity inserts your pass at to control how the Scriptable Render Pass affects the appearance of your scene. For more information on injection points, see [Injection Points](../../customize/custom-pass-injection-points.md).
+Unity injects Scriptable Render Passes at certain points during the URP render loop. These points are called injection points. You can change the injection point Unity inserts your pass at to control how the Scriptable Render Pass affects the appearance of your scene. For more information on injection points, refer to [Injection Points](../customize/custom-pass-injection-points.md).
 
 ## Scriptable Render Passes in Scenes
 
@@ -33,6 +33,6 @@ For example, if you have two Cameras and you add the Scriptable Render Pass in t
 
 ## Additional resources
 
-* [How to create a Custom Renderer Feature](../create-custom-renderer-feature.md)
-* [Scriptable Renderer Feature Reference](./scriptable-renderer-feature-reference.md)
-* [How to inject a Custom Render Pass via scripting](../../customize/inject-render-pass-via-script.md)
+* [How to create a Custom Renderer Feature](create-custom-renderer-feature.md)
+* [Scriptable Renderer Feature Reference](scriptable-renderer-features/scriptable-renderer-feature-reference.md)
+* [How to inject a Custom Render Pass via scripting](../customize/custom-pass-injection-points.md)
