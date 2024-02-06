@@ -58,12 +58,10 @@ test_platforms:
       # - [all]: --reruncount=2
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
-      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
-      - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
+      - [Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-load-path=players
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_Vulkan]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -73,9 +71,9 @@ test_platforms:
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testfilter=%TEST_FILTER%
 
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_Apple_Silicon_Metal]: --architecture=ARM64
+      - [OSX_Apple_Silicon_Metal]: --architecture=ARM64
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
       - [all]: '%CACHE_ARGS%'
@@ -86,41 +84,30 @@ test_platforms:
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
-      - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
-      - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
+      - [Linux_Vulkan]: --platform=StandaloneLinux64
+      - [OSX_Metal]: --platform=StandaloneOSX
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
-      - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-enabledxrtargets=OculusXRSDK"
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-save-path=players
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_Vulkan]: --player-save-path=players
 
       - [all]: --timeout=1200
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700
-      - [iPhone]: --timeout=1800
 
       ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
       - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
 
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
@@ -134,7 +121,6 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
@@ -150,9 +136,9 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
-      - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
     allow_cache: False
     utr_flags:
@@ -167,7 +153,6 @@ test_platforms:
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       - [OSX_Apple_Silicon_Metal]: --editor-location=.Editor
 
@@ -177,7 +162,6 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
-      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
       - [OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
 
       - [OSX_Apple_Silicon_Metal]: --architecture=ARM64
@@ -196,7 +180,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal, Linux_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
@@ -208,14 +192,11 @@ test_platforms:
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
-      - [iPhone_Metal]: --platform=iOS
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       - [OSX_Apple_Silicon_Metal]: --editor-location=.Editor
 
@@ -225,14 +206,12 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
-      - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-force-metal"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal, OSX_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [OSX_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
@@ -248,7 +227,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_Metal, OSX_Apple_Silicon_Metal, Linux_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -317,11 +296,6 @@ platforms:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
         flavor: m1.mac
-    agents_project_OpenGLCore:
-      default:
-        type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:v0.1.0-841394
-        flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
@@ -372,28 +346,6 @@ platforms:
           - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
         log_parser:
           - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
-          - command: find_instabilities || exit 0
-      [OpenGlCore]:
-        setup_utr:
-          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
-            retries: 2
-          - chmod +x utr
-        call_utr:
-          - command: |5-
-                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                    ./utr <UTR_FLAGS>
-            retries: 2
-        call_utr_without_git:
-          - command: ./utr <UTR_FLAGS>
-            retries: 2
-        unity_downloader_cli:
-          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - command: brew install unity-downloader-cli
-            retries: 2
-          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-            retries: 2
-        log_parser:
-          - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
 
   OSX_Apple_Silicon:
@@ -456,7 +408,7 @@ platforms:
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     commands:
-      [OpenGlCore, Vulkan]:
+      [Vulkan]:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
