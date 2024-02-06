@@ -2011,17 +2011,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-            // When HDR is active we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            if (HDROutputForAnyDisplayIsActive())
-            {
-                SupportedRenderingFeatures.active.rendersUIOverlay = true;
-            }
-
 #if UNITY_2021_1_OR_NEWER
-            if (!m_ValidAPI || cameras.Count == 0)
+            int cameraCount = cameras.Count;
 #else
-            if (!m_ValidAPI || cameras.Length == 0)
+            int cameraCount = cameras.Length;
 #endif
+
+            AdjustUIOverlayOwnership(cameraCount);
+
+            if (!m_ValidAPI || cameraCount == 0)
                 return;
 
 #if UNITY_EDITOR
@@ -3231,6 +3229,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleasePersistentShadowAtlases()
         {
             m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+        }
+
+        /// <summary>
+        /// Enforce under specific circumstances whether HDRP or native engine triggers the Screen Space UI Overlay rendering
+        /// </summary>
+        static void AdjustUIOverlayOwnership(int cameraCount)
+        {
+            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            // If there is no camera to render in HDRP, SS UI overlay has to be rendered in the engine
+            if (XRSystem.displayActive || cameraCount == 0)
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            else if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
         }
     }
 }
