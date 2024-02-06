@@ -250,11 +250,6 @@ platforms:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:v0.3.4-687060
         flavor: m1.mac
-    agents_project_OpenGLCore:
-      default:
-        type: Unity::VM::osx
-        image: automation-tooling/macos-10.14:v2.989196
-        flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:v1.20.0-1079282
