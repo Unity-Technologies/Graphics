@@ -124,7 +124,8 @@ TEXTURE2D_X(_GBuffer6);
 #endif
 
 float4x4 _ScreenToWorld[2];
-SamplerState my_point_clamp_sampler;
+// 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
+#define my_point_clamp_sampler sampler_PointClamp
 
 float3 _LightPosWS;
 half3 _LightColor;
@@ -269,12 +270,12 @@ half4 DeferredShading(Varyings input) : SV_Target
     #else
     // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
     // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
-    float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-    half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
-    half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
-    half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
+    float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, sampler_PointClamp, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+    half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, sampler_PointClamp, screen_uv, 0);
+    half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, sampler_PointClamp, screen_uv, 0);
+    half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, sampler_PointClamp, screen_uv, 0);
     #if defined(_DEFERRED_MIXED_LIGHTING)
-    shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), my_point_clamp_sampler, screen_uv, 0);
+    shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), sampler_PointClamp, screen_uv, 0);
     #endif
     #endif
 
@@ -311,7 +312,7 @@ half4 DeferredShading(Varyings input) : SV_Target
         #if _RENDER_PASS_ENABLED
             float renderingLayers = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER4, input.positionCS.xy).x;
         #else
-            float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0).r;
+    float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), sampler_PointClamp, screen_uv, 0);
         #endif
         uint meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers);
         [branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
@@ -377,7 +378,7 @@ half4 FragSSAOOnly(Varyings input) : SV_Target
 
     float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
-    half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0).a;
+    half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, sampler_PointClamp, screen_uv, 0).a;
     // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
     // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
     // We must also avoid divide-by-0 that the reciprocal can generate.

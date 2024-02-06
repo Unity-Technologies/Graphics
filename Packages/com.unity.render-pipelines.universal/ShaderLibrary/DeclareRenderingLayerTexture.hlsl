@@ -3,11 +3,13 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
 TEXTURE2D_X_FLOAT(_CameraRenderingLayersTexture);
-SAMPLER(sampler_CameraRenderingLayersTexture);
+
+// 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
+#define sampler_CameraRenderingLayersTexture sampler_PointClamp
 
 uint SampleSceneRenderingLayer(float2 uv)
 {
-    float renderingLayer = SAMPLE_TEXTURE2D_X(_CameraRenderingLayersTexture, sampler_CameraRenderingLayersTexture, UnityStereoTransformScreenSpaceTex(uv)).r;
+    float renderingLayer = SAMPLE_TEXTURE2D_X(_CameraRenderingLayersTexture, sampler_PointClamp, UnityStereoTransformScreenSpaceTex(uv)).r;
     return DecodeMeshRenderingLayer(renderingLayer);
 }
 

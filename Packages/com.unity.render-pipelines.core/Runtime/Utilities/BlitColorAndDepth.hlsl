@@ -4,11 +4,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScaling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 
 TEXTURE2D (_BlitTexture);
 TEXTURE2D (_InputDepthTexture);
-SamplerState sampler_PointClamp;
-SamplerState sampler_LinearClamp;
 uniform float4 _BlitScaleBias;
 uniform float _BlitMipLevel;
 

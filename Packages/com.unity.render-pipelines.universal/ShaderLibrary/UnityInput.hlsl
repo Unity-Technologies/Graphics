@@ -2,6 +2,8 @@
 
 #ifndef UNIVERSAL_SHADER_VARIABLES_INCLUDED
 #define UNIVERSAL_SHADER_VARIABLES_INCLUDED
+// Unity Engine built-in shader input variables.
+// URP package specific shader input variables are defined in .universal/ShaderLibrary/Input.hlsl
 
 #if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || (defined(SHADER_API_METAL) && !defined(UNITY_COMPILER_DXC)))
 #define UNITY_STEREO_INSTANCING_ENABLED

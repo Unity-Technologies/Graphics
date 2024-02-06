@@ -1,5 +1,7 @@
 #ifndef UNIVERSAL_INPUT_INCLUDED
 #define UNIVERSAL_INPUT_INCLUDED
+// URP package specific shader input variables and defines.
+// Unity Engine specific built-in shader input variables are defined in .universal/ShaderLibrary/UnityInput.hlsl
 
 #include "Packages/com.unity.render-pipelines.universal-config/Runtime/ShaderConfig.cs.hlsl"
 
@@ -184,8 +186,10 @@ CBUFFER_START(urp_TileBuffer)
 CBUFFER_END
 
 TEXTURE2D(urp_ReflProbes_Atlas);
-SAMPLER(samplerurp_ReflProbes_Atlas);
 float urp_ReflProbes_Count;
+
+// 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
+#define samplerurp_ReflProbes_Atlas sampler_LinearClamp
 
 #ifndef SHADER_API_GLES3
 CBUFFER_START(urp_ReflectionProbeBuffer)

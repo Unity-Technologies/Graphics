@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScalingClamping.hlsl"
 
 TEXTURE2D_X(_CameraOpaqueTexture);
-SAMPLER(sampler_CameraOpaqueTexture);
+SAMPLER(sampler_CameraOpaqueTexture);  //NOTE: Configured at runtime by copy color, can be point or bilinear.
 float4 _CameraOpaqueTexture_TexelSize;
 
 float3 SampleSceneColor(float2 uv)
