@@ -1,11 +1,12 @@
 using System;
 using NUnit.Framework;
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Tests;
 
-namespace UnityEngine.Rendering.Tests
+namespace UnityEditor.Rendering.Tests
 {
-    public class VolumeComponentVisibilityTests : RenderPipelineTests
+    class VolumeComponentVisibilityTests : RenderPipelineTests
     {
         static TestCaseData[] s_TestCaseDataGetItem =
         {

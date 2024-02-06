@@ -3,13 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Tests;
 using ActionTest = System.Action<UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.AnimationCurve, UnityEngine.Rendering.VolumeStack, UnityEngine.Rendering.VolumeManager>;
 
-namespace UnityEngine.Rendering.Tests
+namespace UnityEditor.Rendering.Tests
 {
-    public class VolumeComponentAnimCurveTests
+    class TestAnimationCurveVolumeComponent : VolumeComponent
+    {
+        public AnimationCurveParameter testParameter = new(AnimationCurve.Linear(0.5f, 10.0f, 1.0f, 15.0f), true);
+    }
+
+    class VolumeComponentAnimCurveTests
     {
         #region Interpolation
         static bool TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
@@ -184,13 +190,13 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    public class VolumeComponentEditorTests : RenderPipelineTests
+    class VolumeComponentEditorTests : RenderPipelineTests
     {
 #pragma warning disable CS0618
 
         [HideInInspector]
         [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(CustomRenderPipeline))]
-        public class VolumeComponentNoAdditionalAttributes : VolumeComponent
+        class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
@@ -376,6 +382,17 @@ namespace UnityEngine.Rendering.Tests
             Assert.NotNull(typesForDisplay);
             foreach (var t in componentTypesWithHideInInspectorAttribute)
                 Assert.False(typesForDisplay.Any(p => p.Item2 == t));
+
+            volumeManager.Deinitialize();
+        }
+
+        [Test]
+        public void InvalidPipelineTypeThrowsException()
+        {
+            var volumeManager = new VolumeManager();
+            volumeManager.Initialize();
+
+            Assert.That(() => volumeManager.GetVolumeComponentsForDisplay(typeof(VolumeComponent)), Throws.ArgumentException);
 
             volumeManager.Deinitialize();
         }

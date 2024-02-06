@@ -6,64 +6,8 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public class VolumeComponentCopyPasteTests
+    class VolumeComponentCopyPasteTests
     {
-        class CopyPasteTestComponent1 : VolumeComponent
-        {
-            public FloatParameter p1 = new FloatParameter(0f);
-            public IntParameter p2 = new IntParameter(0);
-
-            public CopyPasteTestComponent1 WithModifiedValues()
-            {
-                p1.value = 123.0f;
-                p2.value = 123;
-                return this;
-            }
-
-            public void AssertEquality(CopyPasteTestComponent1 other, Action<object, object> assertionFunction)
-            {
-                Assert.AreEqual(GetType(), other.GetType());
-                assertionFunction(p1.value, other.p1.value);
-                assertionFunction(p2.value, other.p2.value);
-            }
-        }
-
-        class CopyPasteTestComponent2 : CopyPasteTestComponent1
-        {
-            public BoolParameter p21 = new BoolParameter(false);
-
-            public new CopyPasteTestComponent2 WithModifiedValues()
-            {
-                base.WithModifiedValues();
-                p21.value = true;
-                return this;
-            }
-
-            public void AssertEquality(CopyPasteTestComponent2 other, Action<object, object> assertionFunction)
-            {
-                base.AssertEquality(other, assertionFunction);
-                assertionFunction(p21.value, other.p21.value);
-            }
-        }
-
-        class CopyPasteTestComponent3 : CopyPasteTestComponent1
-        {
-            public ColorParameter p31 = new ColorParameter(Color.black);
-
-            public new CopyPasteTestComponent3 WithModifiedValues()
-            {
-                base.WithModifiedValues();
-                p31.value = Color.green;
-                return this;
-            }
-
-            public void AssertEquality(CopyPasteTestComponent3 other, Action<object, object> assertionFunction)
-            {
-                base.AssertEquality(other, assertionFunction);
-                assertionFunction(p31.value, other.p31.value);
-            }
-        }
-
         static T CreateComponent<T>() where T : CopyPasteTestComponent1 => ScriptableObject.CreateInstance<T>();
 
         CopyPasteTestComponent1 m_Src1;

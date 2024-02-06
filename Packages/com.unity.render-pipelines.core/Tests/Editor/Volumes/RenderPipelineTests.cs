@@ -1,10 +1,11 @@
 using System;
 using NUnit.Framework;
-using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering.Tests
+namespace UnityEditor.Rendering.Tests
 {
-    public class RenderPipelineTests
+    class RenderPipelineTests
     {
         RenderPipelineAsset m_PreviousRenderPipelineAssetInGraphicsSettings;
         RenderPipelineAsset m_PreviousRenderPipelineAssetInQualitySettings;
@@ -22,7 +23,7 @@ namespace UnityEngine.Rendering.Tests
         {
             GraphicsSettings.renderPipelineAsset = m_PreviousRenderPipelineAssetInGraphicsSettings;
             QualitySettings.renderPipeline = m_PreviousRenderPipelineAssetInQualitySettings;
-            Object.DestroyImmediate(m_CreatedRenderPipelineAsset);
+            UnityEngine.Object.DestroyImmediate(m_CreatedRenderPipelineAsset);
         }
 
         protected void SetupRenderPipeline<T>() where T : RenderPipelineAsset

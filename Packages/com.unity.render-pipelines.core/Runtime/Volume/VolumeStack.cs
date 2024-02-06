@@ -45,11 +45,15 @@ namespace UnityEngine.Rendering
             requiresResetForAllProperties = true;
 
             List<VolumeParameter> parametersList = new();
-            foreach (var type in componentTypes)
+            
+            if (componentTypes != null)
             {
-                var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                components.Add(type, component);
-                parametersList.AddRange(component.parameters);
+                foreach (var type in componentTypes)
+                {
+                    var component = (VolumeComponent)ScriptableObject.CreateInstance(type);
+                    components.Add(type, component);
+                    parametersList.AddRange(component.parameters);
+                }
             }
 
             parameters = parametersList.ToArray();
