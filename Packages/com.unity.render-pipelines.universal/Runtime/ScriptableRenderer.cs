@@ -88,6 +88,26 @@ namespace UnityEngine.Rendering.Universal
             return (SupportedCameraStackingTypes() & 1 << (int)cameraRenderType) != 0;
         }
 
+
+        // NOTE: This is a temporary solution until ScriptableRenderer has a system for partially shared features.
+        // TAA (and similar) affect the whole pipe. The code is split into two parts in terms of ownership.
+        // The ScriptableRenderer "shared" code (Camera) and the ScriptableRenderer "specific" code (the ScriptableRenderPasses).
+        // For example: TAA is enabled and configured from the Camera, which is used by any ScriptableRenderer.
+        // TAA also jitters the Camera matrix for all ScriptableRenderers.
+        // However a Renderer might not implement a motion vector pass, which the TAA needs to function correctly.
+        //
+        /// <summary>
+        /// Check if the ScriptableRenderer implements a motion vector pass for temporal techniques.
+        /// The Camera will check this to enable/disable features and/or apply jitter when required.
+        ///
+        /// For example, Temporal Anti-aliasing in the Camera settings is enabled only if the ScriptableRenderer can support motion vectors.
+        /// </summary>
+        /// <returns>Returns true if the ScriptableRenderer implements a motion vector pass. False otherwise.</returns>
+        protected internal virtual bool SupportsMotionVectors()
+        {
+            return false;
+        }
+
         /// <summary>
         /// Override to provide a custom profiling name
         /// </summary>

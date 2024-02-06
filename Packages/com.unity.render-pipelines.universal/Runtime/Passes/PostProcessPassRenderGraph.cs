@@ -999,6 +999,9 @@ namespace UnityEngine.Rendering.Universal
 
             TextureHandle cameraDepth = resourceData.cameraDepth;
             TextureHandle motionVectors = resourceData.motionVectorColor;
+
+            Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. TAA requires a motion vector texture.");
+
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
         }
         #endregion
@@ -1011,6 +1014,8 @@ namespace UnityEngine.Rendering.Universal
         {
             TextureHandle cameraDepth = resourceData.cameraDepth;
             TextureHandle motionVectors = resourceData.motionVectorColor;
+
+            Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. STP requires a motion vector texture.");
 
             var desc = GetCompatibleDescriptor(cameraData.cameraTargetDescriptor,
                 cameraData.pixelWidth,
@@ -1061,12 +1066,12 @@ namespace UnityEngine.Rendering.Universal
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_MotionBlurTarget", true, FilterMode.Bilinear);
 
+            TextureHandle motionVectorColor = resourceData.motionVectorColor;
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+
             var mode = m_MotionBlur.mode.value;
             int passIndex = (int)m_MotionBlur.quality.value;
             passIndex += (mode == MotionBlurMode.CameraAndObjects) ? 3 : 0;
-
-            TextureHandle motionVectorColor = resourceData.motionVectorColor;
-            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
@@ -1078,6 +1083,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (mode == MotionBlurMode.CameraAndObjects)
                 {
+                    Debug.Assert(motionVectorColor.IsValid(), "Motion vectors are invalid. Per-object motion blur requires a motion vector texture.");
+
                     passData.motionVectors = motionVectorColor;
                     builder.UseTexture(motionVectorColor, AccessFlags.Read);
                 }

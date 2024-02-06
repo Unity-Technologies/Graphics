@@ -423,12 +423,13 @@ namespace UnityEngine.Rendering.Universal
             UniversalAdditionalCameraData additionalCameraData;
             camera.TryGetComponent(out additionalCameraData);
 
-            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                         // Enabled
-                && (taaPersistentData != null)                                                                                     // Initialized
-                && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
-                && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
-                && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
-                && postProcessEnabled;                                                                                             // No Postprocessing
+            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
+                   && postProcessEnabled                                                                                              // Postprocessing Enabled
+                   && (taaPersistentData != null)                                                                                     // Initialized
+                   && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
+                   && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
+                   && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
+                   && renderer.SupportsMotionVectors();                                                                               // Motion Vectors implemented
         }
 
         /// <summary>

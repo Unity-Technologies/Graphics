@@ -518,8 +518,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
                 {
+                    Debug.Assert(m_MotionVectors != null, "MotionVectors are invalid. TAA requires a motion vector texture.");
 
-                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref renderingData.cameraData, source, destination, m_MotionVectors.rt);
+                    TemporalAA.ExecutePass(cmd, m_Materials.temporalAntialiasing, ref renderingData.cameraData, source, destination, m_MotionVectors?.rt);
                     Swap(ref renderer);
                 }
             }
@@ -766,8 +767,8 @@ namespace UnityEngine.Rendering.Universal
                 material, 0);
 
             // Pass 2: Blend weights
-            RenderingUtils.Blit(cmd, m_EdgeColorTexture, pixelRect, 
-                m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, 
+            RenderingUtils.Blit(cmd, m_EdgeColorTexture, pixelRect,
+                m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 stencil, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare,
                 ClearFlag.Color, Color.clear, material, 1);
 
@@ -1215,6 +1216,7 @@ namespace UnityEngine.Rendering.Universal
             var mode = m_MotionBlur.mode.value;
             if (mode == MotionBlurMode.CameraAndObjects)
             {
+                Debug.Assert(motionVectors != null, "Motion vectors are invalid. Per-object motion blur requires a motion vector texture.");
                 pass += 3;
                 material.SetTexture(MotionVectorRenderPass.k_MotionVectorTextureName, motionVectors);
             }
