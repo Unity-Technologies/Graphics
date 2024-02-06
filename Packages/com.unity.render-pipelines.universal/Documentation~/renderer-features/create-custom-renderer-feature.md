@@ -1,6 +1,6 @@
-# How to create a custom Renderer Feature
+# Example of a complete Scriptable Renderer Feature
 
-This section describes how to create a custom Renderer Feature for a URP Renderer.
+The example workflow on this page implements a custom Renderer Feature that uses [custom Render Passes](./intro-to-scriptable-render-passes.md) to add a blur effect to the camera output.
 
 This section assumes the following:
 
