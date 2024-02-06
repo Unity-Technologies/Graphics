@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.Universal
             // Collect valid, compiled sub-assets
             foreach (var asset in subassets)
             {
-                if (asset == null || asset.GetType().BaseType != typeof(ScriptableRendererFeature)) continue;
+                if (asset == null || !asset.GetType().IsSubclassOf(typeof(ScriptableRendererFeature))) continue;
                 AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out var guid, out long localId);
                 loadedAssets.Add(localId, asset);
                 debugOutput += $"-{asset.name}\n--localId={localId}\n";
