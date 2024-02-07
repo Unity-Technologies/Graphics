@@ -150,9 +150,8 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     uint t=threadID;
     int i;
 
-    UNITY_UNROLL
-    for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS) 
-        if(i<LIGHT_LIST_MAX_COARSE_ENTRIES) 
+    for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS)
+        if(i<LIGHT_LIST_MAX_COARSE_ENTRIES)
             prunedList[i]=0;
 
     uint iWidth = g_viDimensions.x;
@@ -260,7 +259,6 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
 #ifndef FINE_PRUNING_ENABLED
     {
-        UNITY_UNROLL
         for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS) if(i<iNrCoarseLights) prunedList[i] = coarseList[i];
         if(t==0) ldsNrLightsFinal=iNrCoarseLights;
     }

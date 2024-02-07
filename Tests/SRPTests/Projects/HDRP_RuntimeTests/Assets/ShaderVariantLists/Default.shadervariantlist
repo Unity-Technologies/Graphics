@@ -713,7 +713,9 @@ Compiled shader: HDRP/AxF, pass: DepthForwardOnly, stage: all, keywords _AXF_BRD
 Compiled shader: HDRP/AxF, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_CLUSTERED_LIGHTLIST _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/AxF, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/AxF, pass: ForwardOnly, stage: all, keywords _AXF_BRDF_TYPE_SVBRDF
+Compiled shader: HDRP/AxF, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_MSAA_DEPTH _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/AxF, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _AXF_BRDF_TYPE_SVBRDF
+Compiled shader: HDRP/AxF, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/AxF, pass: MotionVectors, stage: pixel, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_MSAA_DEPTH _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/AxF, pass: MotionVectors, stage: pixel, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _AXF_BRDF_TYPE_SVBRDF _DISABLE_SSR_TRANSPARENT
 Compiled shader: HDRP/AxF, pass: ShadowCaster, stage: all, keywords _AXF_BRDF_TYPE_SVBRDF
@@ -799,8 +801,10 @@ Compiled shader: HDRP/LayeredLitTessellation, pass: GBuffer, stage: all, keyword
 Compiled shader: HDRP/LayeredLitTessellation, pass: GBuffer, stage: all, keywords DECALS_4RT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: GBuffer, stage: all, keywords _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _TESSELLATION_DISPLACEMENT _TESSELLATION_PHONG _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: GBuffer, stage: all, keywords _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_MSAA_DEPTH WRITE_NORMAL_BUFFER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_NORMAL_BUFFER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _TESSELLATION_DISPLACEMENT _TESSELLATION_PHONG _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_NORMAL_BUFFER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _TESSELLATION_DISPLACEMENT _TESSELLATION_PHONG _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Compiled shader: HDRP/LayeredLitTessellation, pass: MotionVectors, stage: pixel, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_MSAA_DEPTH WRITE_NORMAL_BUFFER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP0 _HEIGHTMAP1 _HEIGHTMAP2 _HEIGHTMAP3 _LAYEREDLIT_4_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3 _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
@@ -1073,6 +1077,7 @@ Compiled shader: HDRP/Unlit, pass: ShadowCaster, stage: all, keywords <no keywor
 Compiled shader: HDRP/Unlit, pass: ShadowCaster, stage: all, keywords DOTS_INSTANCING_ON
 Compiled shader: HDRP/Unlit, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Hidden/BlitCopy, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
+Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 1>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/ColorPyramidPS, pass: <Unnamed Pass 1>, stage: all, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/CoreResources/FilterAreaLightCookies, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
@@ -1083,15 +1088,22 @@ Compiled shader: Hidden/HDRP/ApplyDistortion, pass: <Unnamed Pass 0>, stage: all
 Compiled shader: Hidden/HDRP/ApplyDistortion, pass: <Unnamed Pass 0>, stage: all, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/Blit, pass: Bilinear, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: Bilinear, stage: all, keywords STEREO_INSTANCING_ON
+Compiled shader: Hidden/HDRP/Blit, pass: BilinearCubeToOctahedralPadding, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: BilinearCubeToOctahedralPadding, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
+Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuad, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuad, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
+Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuadPadding, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuadPadding, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
+Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuadPaddingOctahedral, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuadPaddingOctahedral, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
+Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuadPaddingRepeat, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: BilinearQuadPaddingRepeat, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
 Compiled shader: Hidden/HDRP/Blit, pass: Nearest, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: Nearest, stage: all, keywords BLIT_SINGLE_SLICE
 Compiled shader: Hidden/HDRP/Blit, pass: Nearest, stage: all, keywords STEREO_INSTANCING_ON
+Compiled shader: Hidden/HDRP/Blit, pass: NearestCubeToOctahedralPadding, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: NearestCubeToOctahedralPadding, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
+Compiled shader: Hidden/HDRP/Blit, pass: NearestQuadPadding, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Blit, pass: NearestQuadPadding, stage: all, keywords DISABLE_TEXTURE2D_X_ARRAY
 Compiled shader: Hidden/HDRP/CameraMotionVectors, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/CameraMotionVectors, pass: <Unnamed Pass 0>, stage: all, keywords STEREO_INSTANCING_ON
@@ -1114,6 +1126,7 @@ Compiled shader: Hidden/HDRP/DepthValues, pass: <Unnamed Pass 1>, stage: all, ke
 Compiled shader: Hidden/HDRP/DepthValues, pass: <Unnamed Pass 1>, stage: all, keywords _HAS_MOTION_VECTORS
 Compiled shader: Hidden/HDRP/DownsampleDepth, pass: <Unnamed Pass 0>, stage: all, keywords <no keywords>
 Compiled shader: Hidden/HDRP/DownsampleDepth, pass: <Unnamed Pass 0>, stage: all, keywords CHECKERBOARD_DOWNSAMPLE
+Compiled shader: Hidden/HDRP/DownsampleDepth, pass: <Unnamed Pass 0>, stage: all, keywords CHECKERBOARD_DOWNSAMPLE OUTPUT_FIRST_MIP_OF_MIPCHAIN
 Compiled shader: Hidden/HDRP/DownsampleDepth, pass: <Unnamed Pass 0>, stage: all, keywords CHECKERBOARD_DOWNSAMPLE STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/DownsampleDepth, pass: <Unnamed Pass 0>, stage: all, keywords STEREO_INSTANCING_ON
 Compiled shader: Hidden/HDRP/DownsampleDepth, pass: <Unnamed Pass 0>, stage: pixel, keywords CHECKERBOARD_DOWNSAMPLE OUTPUT_FIRST_MIP_OF_MIPCHAIN
@@ -1627,6 +1640,8 @@ Compiled shader: Shader Graphs/StackLit, pass: ForwardOnly, stage: all, keywords
 Compiled shader: Shader Graphs/StackLit, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DIRECTIONAL_SHADOW_HIGH PUNCTUAL_SHADOW_HIGH SCREEN_SPACE_SHADOWS_OFF USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Compiled shader: Shader Graphs/StackLit, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Compiled shader: Shader Graphs/StackLit, pass: MotionVectors, stage: all, keywords <no keywords>
+Compiled shader: Shader Graphs/StackLit, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_MSAA_DEPTH _DISABLE_SSR_TRANSPARENT
+Compiled shader: Shader Graphs/StackLit, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT
 Compiled shader: Shader Graphs/StackLit, pass: MotionVectors, stage: pixel, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER WRITE_MSAA_DEPTH _DISABLE_SSR_TRANSPARENT
 Compiled shader: Shader Graphs/StackLit, pass: MotionVectors, stage: pixel, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT
 Compiled shader: Shader Graphs/StackLit, pass: ShadowCaster, stage: all, keywords <no keywords>
