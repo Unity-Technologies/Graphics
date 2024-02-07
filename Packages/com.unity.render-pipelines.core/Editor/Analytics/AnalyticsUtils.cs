@@ -231,7 +231,6 @@ namespace UnityEditor.Rendering
         /// <param name="current">The current object to obtain the fields and values.</param>
         /// <param name="compareAndSimplifyWithDefault">If a comparison against the default value must be done.</param>
         /// <returns>The nested columns in form of {key.nestedKey : value} </returns>
-        /// <exception cref="ArgumentNullException"></exception>
         public static string[] ToNestedColumn<T>([DisallowNull] this T current, bool compareAndSimplifyWithDefault = false)
             where T : new()
         {
@@ -259,6 +258,28 @@ namespace UnityEditor.Rendering
                 diff = DumpValues(type, current);
             }
 
+            return ToStringArray(diff);
+        }
+
+        /// <summary>
+        /// Obtains the Serialized fields and values in form of nested columns for BigQuery
+        /// https://cloud.google.com/bigquery/docs/nested-repeated
+        /// </summary>
+        /// <typeparam name="T">The given type</typeparam>
+        /// <param name="current">The current object to obtain the fields and values.</param>
+        /// <param name="defaultInstance">The default instance to compare values</param>
+        /// <returns>The nested columns in form of {key.nestedKey : value} </returns>
+        public static string[] ToNestedColumn<T>([DisallowNull] this T current, T defaultInstance)
+        {
+            if (current == null)
+                throw new ArgumentNullException(nameof(current));
+
+            if (defaultInstance == null)
+                throw new ArgumentNullException(nameof(defaultInstance));
+
+            var type = current.GetType();
+
+            Dictionary<string, string> diff = GetDiffAsDictionary(type, current, defaultInstance);
             return ToStringArray(diff);
         }
 
