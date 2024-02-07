@@ -280,6 +280,8 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618
                 });
             }
+
+            GPUResidentDrawer.ReinitializeIfNeeded();
         }
 
         /// <inheritdoc/>
@@ -363,8 +365,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
-
-            GPUResidentDrawer.ReinitializeIfNeeded();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -1352,8 +1352,12 @@ namespace UnityEngine.Rendering.Universal
             bool disableRenderScale = ((Mathf.Abs(1.0f - settings.renderScale) < kRenderScaleThreshold) || isScenePreviewOrReflectionCamera);
             cameraData.renderScale = disableRenderScale ? 1.0f : settings.renderScale;
 
+            bool enableRenderGraph =
+                GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) &&
+                !renderGraphSettings.enableRenderCompatibilityMode;
+
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode);
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, enableRenderGraph);
 
             if (cameraData.renderScale > 1.0f)
             {
