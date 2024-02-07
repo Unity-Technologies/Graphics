@@ -16,7 +16,7 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 ## Custom shaders
 
-You cannot upgrade Custom Unity shaders written for the Built-in Render Pipeline. Instead, custom shaders must be rewritten to work with URP or recreated in [ShaderGraph](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/index.html).
+You cannot upgrade Custom Unity shaders written for the Built-in Render Pipeline. Instead, custom shaders must be rewritten to work with URP or recreated in [ShaderGraph](https://docs.unity3d.com/Packages/com.unity.shadergraph@14.0/manual/index.html). For an example of how to rewrite and upgrade a Built-In Render Pipeline custom shader to be compatible with URP, refer to [Upgrade custom shaders for URP compatibility](urp-shaders/birp-urp-custom-shader-upgrade-guide.md).
 
 Any Materials in a Scene that use a custom shader when you upgrade a project to use URP turn pink to indicate the Material no longer works. To fix this, upgrade or change the Material's shader to one that is compatible with URP.
 
