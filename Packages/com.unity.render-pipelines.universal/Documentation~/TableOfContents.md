@@ -121,6 +121,7 @@
   * [Decal](decal-shader.md)
   * [Canvas](canvas-shader.md) 
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
+    * [Upgrade custom shaders for URP compatibility](urp-shaders/birp-urp-custom-shader-upgrade-guide.md)
   * [Shader stripping](shader-stripping.md)
   * [Writing custom shaders](writing-custom-shaders-urp.md)
     * [Creating a sample scene](writing-shaders-urp-basic-prerequisites.md)
