@@ -258,6 +258,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// True if the camera rendering is for regular in-game.
+        /// </summary>
+        public bool isGameCamera => cameraType == CameraType.Game;
+
+        /// <summary>
         /// True if the camera rendering is for the scene window in the editor.
         /// </summary>
         public bool isSceneViewCamera => cameraType == CameraType.SceneView;
