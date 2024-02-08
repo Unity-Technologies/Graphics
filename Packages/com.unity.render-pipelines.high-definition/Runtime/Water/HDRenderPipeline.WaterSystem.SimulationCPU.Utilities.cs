@@ -55,6 +55,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return float2(packedData & 0xff, (packedData >> 8) & 0xff) / 255.0f;
         }
 
+        static float LoadTexture2D(NativeArray<half> textureRawBuffer, TextureWrapMode wrapModeU, TextureWrapMode wrapModeV, int2 coord, int2 resolution)
+        {
+            int2 repeatCoord = coord;
+            repeatCoord.x = HandleWrapMode(repeatCoord.x, resolution.x, wrapModeU);
+            repeatCoord.y = HandleWrapMode(repeatCoord.y, resolution.y, wrapModeV);
+            int tapIndex = repeatCoord.x + repeatCoord.y * resolution.x;
+            return textureRawBuffer[tapIndex];
+        }
+
         static float LoadTexture2D(NativeArray<half> textureRawBuffer, int2 coord, int2 resolution)
         {
             int2 repeatCoord = coord;
@@ -238,22 +247,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public PatchSimData data2;
         }
 
+        static void ComputePatchSimData(in WaterSimSearchData wsd, float2 uv, int bandIdx, out PatchSimData simData)
+        {
+            simData.uv = (uv - OrientationToDirection(wsd.spectrum.patchOrientation[bandIdx]) * wsd.rendering.patchCurrentSpeed[bandIdx] * wsd.rendering.simulationTime) / wsd.spectrum.patchSizes[bandIdx];
+            simData.blend = 1.0f;
+            simData.swizzle = float4(1, 0, 0, 1);
+        }
+
         static void ComputeWaterUVs(in WaterSimSearchData wsd, float2 uv, out WaterSimCoord simCoord)
         {
-            // Band 0
-            simCoord.data0.uv = (uv - OrientationToDirection(wsd.spectrum.patchOrientation.x) * wsd.rendering.patchCurrentSpeed.x * wsd.rendering.simulationTime) / wsd.spectrum.patchSizes.x;
-            simCoord.data0.blend = 1.0f;
-            simCoord.data0.swizzle = float4(1, 0, 0, 1);
-
-            // Band 1
-            simCoord.data1.uv = (uv - OrientationToDirection(wsd.spectrum.patchOrientation.y) * wsd.rendering.patchCurrentSpeed.y * wsd.rendering.simulationTime) / wsd.spectrum.patchSizes.y;
-            simCoord.data1.blend = 1.0f;
-            simCoord.data1.swizzle = float4(1, 0, 0, 1);
-
-            // Band 2
-            simCoord.data2.uv = (uv - OrientationToDirection(wsd.spectrum.patchOrientation.z) * wsd.rendering.patchCurrentSpeed.z * wsd.rendering.simulationTime) / wsd.spectrum.patchSizes.z;
-            simCoord.data2.blend = 1.0f;
-            simCoord.data2.swizzle = float4(1, 0, 0, 1);
+            ComputePatchSimData(wsd, uv, 0, out simCoord.data0);
+            ComputePatchSimData(wsd, uv, 1, out simCoord.data1);
+            ComputePatchSimData(wsd, uv, 2, out simCoord.data2);
         }
 
         static void FillPatchData(int patchGroup,
@@ -328,6 +333,40 @@ namespace UnityEngine.Rendering.HighDefinition
                 waterMask = wsd.maskRemap.xxx + waterMask * wsd.maskRemap.yyy;
             }
             return waterMask;
+        }
+
+        static float3 ShuffleDisplacement(float3 displacement)
+        {
+            return float3(-displacement.y, displacement.x, -displacement.z);
+        }
+
+        static void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
+                                        float normalization, float pixelSize,
+                                        out float3 p0, out float3 p1, out float3 p2)
+        {
+            p0 = displacementC * normalization;
+            p1 = displacementR * normalization + float3(pixelSize, 0, 0);
+            p2 = displacementU * normalization + float3(0, 0, pixelSize);
+        }
+
+        static float3 SurfaceGradientFromPerturbedNormal(float3 nrmVertexNormal, float3 v)
+        {
+            float3 n = nrmVertexNormal;
+            float s = 1.0f / max(float.Epsilon, abs(dot(n, v)));
+            return s * (dot(n, v) * n - v);
+        }
+
+        static float2 EvaluateSurfaceGradients(float3 p0, float3 p1, float3 p2)
+        {
+            float3 v0 = normalize(p1 - p0);
+            float3 v1 = normalize(p2 - p0);
+            float3 geometryNormal = normalize(cross(v1, v0));
+            return SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), geometryNormal).xz;
+        }
+
+        static float3 SurfaceGradientResolveNormal(float3 nrmVertexNormal, float3 surfGrad)
+        {
+            return normalize(nrmVertexNormal - surfGrad);
         }
     }
 }

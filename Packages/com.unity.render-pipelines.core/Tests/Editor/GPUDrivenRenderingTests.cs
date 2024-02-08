@@ -228,6 +228,71 @@ namespace UnityEngine.Rendering.Tests
             instances.Dispose();
             objIDs.Dispose();
         }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestSceneViewHiddenRenderersCullingTier0()
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var simpleDots = Shader.Find("Unlit/SimpleDots");
+            var simpleDotsMat = new Material(simpleDots);
+            var renderer = go.GetComponent<MeshRenderer>();
+            renderer.material = simpleDotsMat;
+
+            var objIDs = new NativeArray<int>(1, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            objIDs[0] = renderer.GetInstanceID();
+            instances[0] = InstanceHandle.Invalid;
+
+            var gpuDrivenProcessor = new GPUDrivenProcessor();
+
+            using (var brgContext = new RenderersBatchersContext(RenderersBatchersContextDesc.NewDefault(), gpuDrivenProcessor, m_Resources))
+            {
+                var cpuDrivenDesc = InstanceCullingBatcherDesc.NewDefault();
+                var callbackCounter = new BoxedCounter();
+
+                cpuDrivenDesc.onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
+                {
+                    if (cc.viewType != BatchCullingViewType.Camera)
+                        return;
+
+                    jobHandle.Complete();
+                    BatchCullingOutputDrawCommands drawCommands = cullingOutput.drawCommands[0];
+                    callbackCounter.Value = drawCommands.visibleInstanceCount;
+                };
+
+                using (var brg = new GPUResidentBatcher(brgContext, cpuDrivenDesc, gpuDrivenProcessor))
+                {
+                    brg.UpdateRenderers(objIDs);
+
+                    var cameraObject = new GameObject("SceneViewCamera");
+                    var mainCamera = cameraObject.AddComponent<Camera>();
+                    mainCamera.cameraType = CameraType.SceneView;
+
+                    SceneVisibilityManager.instance.Hide(go, true);
+
+                    brg.OnBeginCameraRendering(mainCamera);
+                    mainCamera.Render();
+                    brg.OnEndCameraRendering(mainCamera);
+                    Assert.AreEqual(callbackCounter.Value, 0);
+
+                    SceneVisibilityManager.instance.Show(go, true);
+
+                    brg.OnBeginCameraRendering(mainCamera);
+                    mainCamera.Render();
+                    brg.OnEndCameraRendering(mainCamera);
+                    Assert.AreEqual(callbackCounter.Value, 1);
+
+                    GameObject.DestroyImmediate(cameraObject);
+                    brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs, instances).Complete();
+                    brg.DestroyInstances(instances);
+                }
+            }
+
+            gpuDrivenProcessor.Dispose();
+            instances.Dispose();
+            objIDs.Dispose();
+        }
+
         [Test, Ignore("Error in test shader (it is not DOTS compatible"), ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
         public void TestMultipleMetadata()
         {

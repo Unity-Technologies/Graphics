@@ -10,6 +10,6 @@
 		${VFXIncludeRP("Templates/Sphere/PassDepthForwardOnly.template"),HDRP_MATERIAL_TYPE_SIMPLELIT}
 		${VFXIncludeRP("Templates/Sphere/PassGBuffer.template"),IS_OPAQUE_NOT_SIMPLE_LIT_PARTICLE}
 		${VFXIncludeRP("Templates/Sphere/PassForward.template")}
-		${VFXInclude("Shaders/particleSpheres/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+		${VFXInclude("Shaders/ParticleSpheres/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

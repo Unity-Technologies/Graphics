@@ -1,6 +1,6 @@
 ## Add controls to the Rendering Debugger
 
-You can customise the [Rendering Debugger window](rendering-debugger.html) with your own controls and scripts, to visualize your project's lighting, rendering or Material properties.
+You can customise the [Rendering Debugger window](rendering-debugger.md) with your own controls and scripts, to visualize your project's lighting, rendering or Material properties.
 
 The **Rendering Debugger** window contains multiple tabs ('panels'). When you select a panel, the window displays one or more controls ('widgets').
 
@@ -86,7 +86,7 @@ The following code sample fetches the panel from the code sample above:
 var panel = DebugManager.instance.GetPanel("My Custom Panel", createIfNull: false);
 ```
 
-You shouldn't add widgets to [URP's built-in Rendering Debugger panels](rendering-debugger.html).
+You shouldn't add widgets to [URP's built-in Rendering Debugger panels](rendering-debugger.md).
 
 ## Add a container
 

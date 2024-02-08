@@ -185,6 +185,12 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights.SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(universalRenderingData.commandBuffer), universalRenderingData, cameraData, lightData);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler { get => true; }
+        internal override bool supportsNativeRenderPassRendergraphCompiler
+        {
+            get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
+                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
+            ;
+        }
     }
 }

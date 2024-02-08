@@ -25,3 +25,8 @@ Path tracing now has a *Seed Mode* parameter. The default is the **non repeating
 ## Enabling light sources in Path Tracing
 
 In this version, the setting to include light sources in ray traced effects has been split in one checkbox for hybrid ray tracing effects (`include for Ray Tracing`) and one checkbox for inclusion in Path Tracing (`include for Path Tracing`). When upgrading, this last checkbox might need to be updated.
+
+## Deferred lighting using pixel shader
+
+The pixel shader variant of the deferred lighting pass was removed, the lighting is now always computed with a compute shader.
+The framesetting to enable this option was deleted.

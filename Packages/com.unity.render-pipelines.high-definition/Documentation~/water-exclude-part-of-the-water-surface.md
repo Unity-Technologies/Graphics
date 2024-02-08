@@ -28,7 +28,7 @@ To use water exclusion, you need to enable it in the following locations:
 
 - Enable exclusion for all Cameras in the Frame Settings: 
 
-1. Open the HDRP Global Settings.
+1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 2. Go to the **Frame Settings (Default Values)** > **Camera** section. 
 3. In the **Rendering** section, enable **Water Exclusion**.
 

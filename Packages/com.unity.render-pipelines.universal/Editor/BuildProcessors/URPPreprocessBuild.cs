@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Build;
@@ -36,11 +37,16 @@ namespace UnityEditor.Rendering.Universal
             {
                 assetsIncluded.Clear();
 
-                assetsIncluded.Append($"{assetsList.Count} URP assets included in build");
+                assetsIncluded.AppendLine($"{assetsList.Count} URP assets included in build");
 
                 foreach (var urpAsset in assetsList)
                 {
                     assetsIncluded.AppendLine($"- {urpAsset.name} - {AssetDatabase.GetAssetPath(urpAsset)}");
+                    foreach (var rendererData in urpAsset.m_RendererDataList)
+                    {
+                        if (rendererData != null)
+                            assetsIncluded.AppendLine($"\t - {rendererData.name} - {AssetDatabase.GetAssetPath(rendererData)} - {rendererData.GetType()}");
+                    }
                 }
 
                 Debug.Log(assetsIncluded);

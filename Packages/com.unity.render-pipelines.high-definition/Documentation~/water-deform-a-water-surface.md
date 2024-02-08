@@ -30,7 +30,7 @@ To make a water deformer affect a water surface:
 You must also make sure it is enabled in your Project’s HDRP Asset and in the Frame Settings:
 
 1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Rendering** > **Water** and enable the **Deformation** checkbox.
-2. To enable Deformation for all Cameras, open the HDRP Global Settings, go to the **Frame Settings (Default Values)** > **Camera** section and, in the **Rendering** section, enable the **Water Deformation** checkbox.
+2. To enable Deformation for all Cameras, Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Camera** > **Rendering** > , then enable the **Water Deformation** checkbox.
 
 Lastly, make sure that your deformer is inside the deformation area. To see the area, you can select deformation in the debug dropdown in the Miscellaneous foldout at the bottom of the water surface inspector.
 

@@ -102,4 +102,12 @@ namespace UnityEngine.Rendering
         [Obsolete("Use DebugManager.instance.displayEditorUI property instead. #from(23.1)")]
         public void ToggleEditorUI(bool open) => editorUIState.open = open;
     }
+
+    /// <summary>
+    /// A marker to adjust probes in an area of the scene.
+    /// </summary>
+    [Obsolete("ProbeTouchupVolume has been deprecated (UnityUpgradable) -> ProbeAdjustmentVolume", false)]
+    public class ProbeTouchupVolume : ProbeAdjustmentVolume
+    {
+    }
 }

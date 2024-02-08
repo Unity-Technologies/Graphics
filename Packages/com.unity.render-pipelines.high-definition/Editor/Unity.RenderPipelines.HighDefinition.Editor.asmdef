@@ -12,6 +12,7 @@
         "Unity.ugui",
         "Unity.ugui.Editor",
         "Unity.VisualEffectGraph.Editor",
+        "Unity.VisualEffectGraph.Runtime",
         "Unity.PackageManagerDocTools.Editor",
         "Unity.Rendering.Denoising.Runtime",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",

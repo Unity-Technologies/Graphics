@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering
     {
         private static readonly ShaderDebugPrintManager s_Instance = new ShaderDebugPrintManager();
 
-        private const int k_DebugUAVSlot = 7;
         private const int k_FramesInFlight = 4;
         private const int k_MaxBufferElements = 1024 * 16; // Must match the shader size definition
 
@@ -35,6 +34,7 @@ namespace UnityEngine.Rendering
 
         private static readonly int m_ShaderPropertyIDInputMouse = Shader.PropertyToID("_ShaderDebugPrintInputMouse");
         private static readonly int m_ShaderPropertyIDInputFrame = Shader.PropertyToID("_ShaderDebugPrintInputFrame");
+        private static readonly int m_shaderDebugOutputData = Shader.PropertyToID("shaderDebugOutputData");
 
         // A static "container" for all profiler markers.
         private static class Profiling
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering
                 m_ReadbackRequests[index].WaitForCompletion();
             }
 
-            cmd.SetRandomWriteTarget(k_DebugUAVSlot, m_OutputBuffers[index]);
+            cmd.SetGlobalBuffer(m_shaderDebugOutputData, m_OutputBuffers[index]);
 
             ClearShaderDebugPrintBuffer();
         }
@@ -316,6 +316,20 @@ namespace UnityEngine.Rendering
         {
             int index = m_FrameCounter % k_FramesInFlight;
             m_ReadbackRequests[index] = Rendering.AsyncGPUReadback.Request(m_OutputBuffers[index], m_BufferReadCompleteAction);
+
+            m_FrameCounter++;
+            m_FrameCleared = false;
+        }
+
+        /// <summary>
+        /// Initiate synchronous read-back of the GPU buffer to the CPU and executes output action. By default prints to the debug log.
+        /// </summary>
+        public void PrintImmediate()
+        {
+            int index = m_FrameCounter % k_FramesInFlight;
+            var request = Rendering.AsyncGPUReadback.Request(m_OutputBuffers[index]);
+            request.WaitForCompletion();
+            m_BufferReadCompleteAction(request);
 
             m_FrameCounter++;
             m_FrameCleared = false;

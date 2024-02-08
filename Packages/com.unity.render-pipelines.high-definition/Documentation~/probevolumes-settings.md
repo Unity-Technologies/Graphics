@@ -264,6 +264,8 @@ Select a [Probe Adjustment Volume Component](probevolumes-fixissues.md#add-a-pro
                     <li><strong>Override Validity Threshold:</strong> Override **Dilation Validity Threshold**.</li>
                     <li><strong>Apply Virtual Offset:</strong> Manually apply a Virtual Offset on selected probes.</li>
                     <li><strong>Override Virtual Offset Settings:</strong> Override Virtual Offset biases.</li>
+                    <li><strong>Override Sky Direction:</strong> Override the direction used for sampling the ambient probe when using Sky Occlusion.</li>
+                    <li><strong>Override Sample Count:</strong> Override the sample count used to compute Lighting and Sky Occlusion.</li>
                 </ul>
             </td>
         </tr>
@@ -332,3 +334,9 @@ In this screenshot, a red box indicates the box gizmo handles.
 
 ![](Images/ProbeVolume-Size-gizmo.png)<br/>
 The resize handles for Probe Volumes.
+
+## Probe Volume limitations with Asset Bundles and Addressables
+<a name ="pv-assetbundles"></a>
+Internally, the Probe Volume system uses the Streaming Asset feature to store baked data. This is necessary to allow both efficient loading and streaming of data. The consequence is that Probe Volume baked data is incompatible with Asset Bundles and Addressables as it is explicitly moved inside the Streaming Asset folder upon Player build.
+In order to allow the use of Asset Bundles and Addressables when necessary, a toggle is provided in the Probe Volume Graphics settings: *Disable Streaming Assets*. When enabling this option, the system will no longer use Streaming Assets internally but regular Assets that can be managed manually by the user.
+Enabling this option will also disable the use of Disk Streaming and increase memory consumption in multi-scene setups.

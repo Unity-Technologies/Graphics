@@ -1,7 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewer.PassInspector.uss" />
-    <ui:ScrollView name="content-container"/>
-    <ui:VisualElement name="empty-contents-message">
-        <ui:TextElement text="Select a render pass to display pass details."/>
-    </ui:VisualElement>
-</ui:UXML>

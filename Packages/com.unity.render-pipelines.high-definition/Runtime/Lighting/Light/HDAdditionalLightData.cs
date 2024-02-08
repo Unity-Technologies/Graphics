@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 oldLossyScale;
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
-        public float oldIntensity;
         public bool lightEnabled;
     }
 
@@ -146,62 +145,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         internal HDLightRenderEntity lightEntity = HDLightRenderEntity.Invalid;
 
-        [SerializeField, FormerlySerializedAs("displayLightIntensity")]
-        float m_Intensity;
-        /// <summary>
-        /// Get/Set the intensity of the light using the current light unit.
-        /// </summary>
-        public float intensity
-        {
-            get => m_Intensity;
-            set
-            {
-                if (m_Intensity == value)
-                    return;
-
-                m_Intensity = Mathf.Clamp(value, 0, float.MaxValue);
-                UpdateLightIntensity();
-            }
-        }
-
-        // Only for Spotlight, should be hide for other light
-        [SerializeField, FormerlySerializedAs("enableSpotReflector")]
-        bool m_EnableSpotReflector = true;
-        /// <summary>
-        /// Get/Set the Spot Reflection option on spot lights.
-        /// </summary>
-        public bool enableSpotReflector
-        {
-            get => m_EnableSpotReflector;
-            set
-            {
-                if (m_EnableSpotReflector == value)
-                    return;
-
-                m_EnableSpotReflector = value;
-                UpdateLightIntensity();
-            }
-        }
-
-        // Lux unity for all light except directional require a distance
-        [SerializeField, FormerlySerializedAs("luxAtDistance")]
-        float m_LuxAtDistance = 1.0f;
-        /// <summary>
-        /// Set/Get the distance for spot lights where the emission intensity is matches the value set in the intensity property.
-        /// </summary>
-        public float luxAtDistance
-        {
-            get => m_LuxAtDistance;
-            set
-            {
-                if (m_LuxAtDistance == value)
-                    return;
-
-                m_LuxAtDistance = Mathf.Clamp(value, 0, float.MaxValue);
-                UpdateLightIntensity();
-            }
-        }
-
         [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
         [SerializeField]
         float m_InnerSpotPercent; // To display this field in the UI this need to be public
@@ -217,7 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_InnerSpotPercent = Mathf.Clamp(value, k_MinSpotInnerPercent, k_MaxSpotInnerPercent);
-                UpdateLightIntensity();
 
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).innerSpotPercent = m_InnerSpotPercent;
@@ -294,35 +236,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).volumetricDimmer = m_VolumetricDimmer;
-            }
-        }
-
-        // Used internally to convert any light unit input into light intensity
-        [SerializeField, FormerlySerializedAs("lightUnit")]
-        LightUnit m_LightUnit = LightUnit.Lumen;
-        /// <summary>
-        /// Get/Set the light unit. When changing the light unit, the intensity will be converted to match the previous intensity in the new unit.
-        /// </summary>
-        public LightUnit lightUnit
-        {
-            get => m_LightUnit;
-            set
-            {
-                if (m_LightUnit == value)
-                    return;
-
-                var lightType = legacyLight.type;
-                if (!IsValidLightUnitForType(lightType, value))
-                {
-                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(lightType));
-                    Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
-                    return;
-                }
-
-                LightUtils.ConvertLightIntensity(m_LightUnit, value, this, legacyLight);
-
-                m_LightUnit = value;
-                UpdateLightIntensity();
             }
         }
 
@@ -2721,6 +2634,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal Color EvaluateLightColor()
+        {
+            Color finalColor = legacyLight.color.linear * legacyLight.intensity;
+            
+            if (legacyLight.useColorTemperature)
+                finalColor *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
+
+            return finalColor;
+        }
+
         // TODO: we might be able to get rid to that
         [System.NonSerialized, ExcludeCopy]
         bool m_Animated;
@@ -2795,11 +2718,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.cachedLightType = lightData.legacyLight.type;
 
                     lightData.RegisterCachedShadowLightOptional();
-
-                    // If the current light unit is not supported by the new light type, we change it
-                    UInt64 supportedUnitsMask = GetSupportedLightUnitsBitMask(lightData.legacyLight.type);
-                    if ((supportedUnitsMask & (1UL << (int)lightData.lightUnit)) == 0)
-                        lightData.lightUnit = GetSupportedLightUnits(lightData.legacyLight.type)[0];
                 }
 
                 bool forceShadowCulling = false;
@@ -2899,22 +2817,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Check if the intensity have been changed by the inspector or an animator
                 if (lightData.timelineWorkaround.oldLossyScale != lightData.transform.lossyScale
-                    || lightData.intensity != lightData.timelineWorkaround.oldIntensity
                     || lightData.legacyLight.colorTemperature != lightData.timelineWorkaround.oldLightColorTemperature)
                 {
-                    lightData.UpdateLightIntensity();
                     lightData.UpdateAreaLightEmissiveMesh();
                     lightData.timelineWorkaround.oldLossyScale = lightData.transform.lossyScale;
-                    lightData.timelineWorkaround.oldIntensity = lightData.intensity;
                     lightData.timelineWorkaround.oldLightColorTemperature = lightData.legacyLight.colorTemperature;
                 }
 
+#if !UNITY_EDITOR
                 // Same check for light angle to update intensity using spot angle
-                if (lightData.legacyLight.type.IsSpot() && (lightData.timelineWorkaround.oldSpotAngle != lightData.legacyLight.spotAngle))
+                if ((lightData.legacyLight.type == LightType.Spot || lightData.legacyLight.type == LightType.Pyramid) &&
+                    (lightData.timelineWorkaround.oldSpotAngle != lightData.legacyLight.spotAngle))
                 {
-                    lightData.UpdateLightIntensity();
+                    // If light unit is currently displayed in lumen and 'reflector' is on and the spot angle has changed,
+                    // recalculate intensity (candela) so lumen value remains constant
+                    if (lightData.legacyLight.lightUnit == LightUnit.Lumen && lightData.legacyLight.enableSpotReflector)
+                    {
+                        float oldSolidAngle;
+                        float newSolidAngle;
+                        if (lightData.legacyLight.type == LightType.Spot)
+                        {
+                            oldSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(lightData.timelineWorkaround.oldSpotAngle);
+                            newSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(lightData.legacyLight.spotAngle);
+                        }
+                        else // Pyramid
+                        {
+                            oldSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(
+                                lightData.timelineWorkaround.oldSpotAngle,
+                                lightData.aspectRatio);
+                            newSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(
+                                lightData.legacyLight.spotAngle,
+                                lightData.aspectRatio);
+                        }
+
+                        float oldLumen = LightUnitUtils.CandelaToLumen(lightData.legacyLight.intensity, oldSolidAngle);
+                        lightData.legacyLight.intensity = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
+                    }
                     lightData.timelineWorkaround.oldSpotAngle = lightData.legacyLight.spotAngle;
                 }
+#endif
 
                 if (lightData.legacyLight.color != lightData.timelineWorkaround.oldLightColor
                     || lightData.timelineWorkaround.oldLossyScale != lightData.transform.lossyScale
@@ -2942,14 +2883,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="data">Destination component</param>
         public void CopyTo(HDAdditionalLightData data)
         {
-            data.m_Intensity = m_Intensity;
-            data.m_EnableSpotReflector = m_EnableSpotReflector;
-            data.m_LuxAtDistance = m_LuxAtDistance;
             data.m_InnerSpotPercent = m_InnerSpotPercent;
             data.m_SpotIESCutoffPercent = m_SpotIESCutoffPercent;
             data.m_LightDimmer = m_LightDimmer;
             data.m_VolumetricDimmer = m_VolumetricDimmer;
-            data.m_LightUnit = m_LightUnit;
             data.m_FadeDistance = m_FadeDistance;
             data.m_VolumetricFadeDistance = m_VolumetricFadeDistance;
             data.m_AffectDiffuse = m_AffectDiffuse;
@@ -3077,24 +3014,26 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (light.type)
             {
                 case LightType.Directional:
-                    lightData.lightUnit = LightUnit.Lux;
-                    lightData.intensity = k_DefaultDirectionalLightIntensity / Mathf.PI * 100000.0f; // Change back to just k_DefaultDirectionalLightIntensity on 11.0.0 (can't change constant as it's a breaking change)
+                    light.lightUnit = LightUnit.Lux;
+                    light.intensity = k_DefaultDirectionalLightIntensity / Mathf.PI * 100000.0f; // Change back to just k_DefaultDirectionalLightIntensity on 11.0.0 (can't change constant as it's a breaking change)
+                    break;
+                case LightType.Box:
+                    light.lightUnit = LightUnit.Lux;
+                    light.intensity = LightUnitUtils.LumenToCandela(k_DefaultPunctualLightIntensity, LightUnitUtils.SphereSolidAngle); // Find a proper default for box lights
                     break;
                 case LightType.Rectangle:
-                    lightData.lightUnit = LightUnit.Lumen;
-                    lightData.intensity = k_DefaultAreaLightIntensity;
+                case LightType.Disc:
+                case LightType.Tube:
+                    light.lightUnit = LightUnit.Lumen;
+                    light.intensity = LightUnitUtils.ConvertIntensity(light, k_DefaultAreaLightIntensity, LightUnit.Lumen, LightUnit.Nits);
                     lightData.shadowNearPlane = 0;
                     light.shadows = LightShadows.None;
                     break;
-                case LightType.Disc:
-                    //[TODO: to be defined]
-                    break;
                 case LightType.Point:
                 case LightType.Spot:
-                case LightType.Box:
                 case LightType.Pyramid:
-                    lightData.lightUnit = LightUnit.Lumen;
-                    lightData.intensity = k_DefaultPunctualLightIntensity;
+                    light.lightUnit = LightUnit.Lumen;
+                    light.intensity = LightUnitUtils.ConvertIntensity(light, k_DefaultPunctualLightIntensity, LightUnit.Lumen, LightUnit.Candela);
                     break;
             }
 
@@ -3127,93 +3066,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         #region Update functions to patch values in the Light component when we change properties inside HDAdditionalLightData
-
-        void SetLightIntensityPunctual(float intensity)
-        {
-            switch (legacyLight.type)
-            {
-                case LightType.Directional:
-                    legacyLight.intensity = intensity; // Always in lux
-                    break;
-                case LightType.Point:
-                    if (lightUnit == LightUnit.Candela)
-                        legacyLight.intensity = intensity;
-                    else
-                        legacyLight.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
-                    break;
-                case LightType.Spot:
-                case LightType.Box:
-                case LightType.Pyramid:
-                    if (lightUnit == LightUnit.Candela)
-                    {
-                        // When using candela, reflector don't have any effect. Our intensity is candela = lumens/steradian and the user
-                        // provide desired value for an angle of 1 steradian.
-                        legacyLight.intensity = intensity;
-                    }
-                    else  // lumen
-                    {
-                        if (enableSpotReflector)
-                        {
-                            var lightType = legacyLight.type;
-                            // If reflector is enabled all the lighting from the sphere is focus inside the solid angle of current shape
-                            if (lightType == LightType.Spot)
-                            {
-                                legacyLight.intensity = LightUtils.ConvertSpotLightLumenToCandela(intensity, legacyLight.spotAngle * Mathf.Deg2Rad, true);
-                            }
-                            else if (lightType == LightType.Pyramid)
-                            {
-                                float angleA, angleB;
-                                LightUtils.CalculateAnglesForPyramid(aspectRatio, legacyLight.spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
-
-                                legacyLight.intensity = LightUtils.ConvertFrustrumLightLumenToCandela(intensity, angleA, angleB);
-                            }
-                            else // Box shape, fallback to punctual light.
-                            {
-                                legacyLight.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
-                            }
-                        }
-                        else
-                        {
-                            // No reflector, angle act as occlusion of point light.
-                            legacyLight.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
-                        }
-                    }
-                    break;
-            }
-        }
-
-        void UpdateLightIntensity()
-        {
-            var lightType = legacyLight.type;
-            if (lightUnit == LightUnit.Lumen)
-            {
-                if (!lightType.IsArea())
-                    SetLightIntensityPunctual(intensity);
-                else
-                    legacyLight.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightType, intensity, shapeWidth, m_ShapeHeight);
-            }
-            else if (lightUnit == LightUnit.Ev100)
-            {
-                legacyLight.intensity = LightUtils.ConvertEvToLuminance(m_Intensity);
-            }
-            else
-            {
-                if ((lightType.IsSpot() || lightType == LightType.Point) && lightUnit == LightUnit.Lux)
-                {
-                    // Box are local directional light with lux unity without at distance
-                    if (lightType == LightType.Box)
-                        legacyLight.intensity = m_Intensity;
-                    else
-                        legacyLight.intensity = LightUtils.ConvertLuxToCandela(m_Intensity, luxAtDistance);
-                }
-                else
-                    legacyLight.intensity = m_Intensity;
-            }
-
-#if UNITY_EDITOR
-            legacyLight.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
-#endif
-        }
 
         void Awake()
         {
@@ -3318,9 +3170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightRenderData.shapeHeight = m_ShapeHeight;
             }
 
-#if UNITY_EDITOR
             legacyLight.areaSize = lightSize;
-#endif
 
             // Update child emissive mesh scale
             Vector3 lossyScale = emissiveMeshRenderer.transform.localRotation * transform.lossyScale;
@@ -3344,11 +3194,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
 
-            // We don't have access to the color temperature in the player because it's a private member of the Light component
-#if UNITY_EDITOR
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
-#endif
 
             value *= lightDimmer;
 
@@ -3455,11 +3302,16 @@ namespace UnityEngine.Rendering.HighDefinition
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
 
-#if UNITY_EDITOR
-            // We don't want to update the disc area since their shape is largely handled by builtin.
-            if (legacyLight.type != LightType.Disc)
+            if (legacyLight.type == LightType.Pyramid)
+            {
+                // Pyramid lights use areaSize.x for aspect ratio.
+                legacyLight.areaSize = new Vector2(aspectRatio, 0);
+            }
+            else if (legacyLight.type != LightType.Disc)
+            {
+                // We don't want to update the disc area since their shape is largely handled by builtin.
                 legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
-#endif
+            }
         }
 
         /// <summary>
@@ -3473,9 +3325,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void UpdateAllLightValues(bool fromTimeLine)
         {
             UpdateShapeSize();
-
-            // Update light intensity
-            UpdateLightIntensity();
 
             // Patch bounds
             UpdateBounds();
@@ -3521,34 +3370,6 @@ namespace UnityEngine.Rendering.HighDefinition
             useColorTemperature = enable;
         }
 
-        /// <summary>
-        /// Set the intensity of the light using the current unit.
-        /// </summary>
-        /// <param name="intensity"></param>
-        public void SetIntensity(float intensity) => this.intensity = intensity;
-
-        /// <summary>
-        /// Set the intensity of the light using unit in parameter.
-        /// </summary>
-        /// <param name="intensity"></param>
-        /// <param name="unit">Unit must be a valid Light Unit for the current light type</param>
-        public void SetIntensity(float intensity, LightUnit unit)
-        {
-            this.lightUnit = unit;
-            this.intensity = intensity;
-        }
-
-        /// <summary>
-        /// For Spot Lights only, set the intensity that the spot should emit at a certain distance in meter
-        /// </summary>
-        /// <param name="luxIntensity"></param>
-        /// <param name="distance"></param>
-        public void SetSpotLightLuxAt(float luxIntensity, float distance)
-        {
-            lightUnit = LightUnit.Lux;
-            luxAtDistance = distance;
-            intensity = luxIntensity;
-        }
 
         /// <summary>
         /// Set light cookie. Note that the texture must have a power of two size.
@@ -3616,11 +3437,6 @@ namespace UnityEngine.Rendering.HighDefinition
             this.volumetricDimmer = volumetricDimmer;
         }
 
-        /// <summary>
-        /// Set the light unit.
-        /// </summary>
-        /// <param name="unit">Unit of the light</param>
-        public void SetLightUnit(LightUnit unit) => lightUnit = unit;
 
         /// <summary>
         /// Enable shadows on a light.
@@ -3762,12 +3578,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="layerShadowCullDistances"></param>
         /// <returns></returns>
         public float[] SetLayerShadowCullDistances(float[] layerShadowCullDistances) => legacyLight.layerShadowCullDistances = layerShadowCullDistances;
-
-        /// <summary>
-        /// Get the list of supported light units depending on the current light type.
-        /// </summary>
-        /// <returns></returns>
-        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(legacyLight.type);
 
         /// <summary>
         /// Set the area light size.

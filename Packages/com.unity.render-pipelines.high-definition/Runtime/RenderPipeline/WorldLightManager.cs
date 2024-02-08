@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Build a visible light
                     VisibleLight visibleLight = new VisibleLight();
-                    visibleLight.finalColor = LightUtils.EvaluateLightColor(lightComponent, additionalLightData);
+                    visibleLight.finalColor = additionalLightData.EvaluateLightColor();
                     visibleLight.range = lightComponent.range;
                     // This should be done explicitly, localToWorld matrix doesn't work here
                     Matrix4x4 localToWorldMatrix = new Matrix4x4();

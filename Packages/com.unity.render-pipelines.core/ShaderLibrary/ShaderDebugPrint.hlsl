@@ -26,9 +26,8 @@
 // Print pixel at mouse position on button press.
 // ShaderDebugPrintMouseButtonOver(int2(thisPixel.xy), pixelColor);
 
-// Output buffer bound into "last" (DX11) slot by convention.
-// Avoids extra editing elsewhere and allows to just include this header.
-RWStructuredBuffer<uint> shaderDebugOutputData : register(u7);
+// Output buffer bound with cmd.SetGlobalTexture().
+RWStructuredBuffer<uint> shaderDebugOutputData;
 
 static const uint MaxShaderDebugOutputElements = 1024 * 16; // Must match the C# side buffer size (16K elems / 6 (header+tag+payload) ~= 2730 uint4s)
 

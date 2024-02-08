@@ -66,8 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ProcessWaterDeformers(CommandBuffer cmd)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (WaterDeformer.instanceCount >= m_MaxDeformerCount)
                 Debug.LogWarning("Maximum amount of Water Deformer reached. Adjust the maximum amount supported in the HDRP asset.");
+#endif
 
             // Reset the requested textures
             m_DeformerAtlas.ResetRequestedTexture();
@@ -251,8 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ActiveWaterDeformers > 0)
                 {
                     // Bind the constant buffers
-                    ConstantBuffer.Set<ShaderVariablesWater>(m_DeformerMaterial, HDShaderIDs._ShaderVariablesWater);
-                    ConstantBuffer.Set<ShaderVariablesWater>(cmd, m_WaterDeformationCS, HDShaderIDs._ShaderVariablesWater);
+                    BindPerSurfaceConstantBuffer(cmd, m_WaterDeformationCS, currentWater.constantBuffer);
 
                     // Disable wireframe for next drawcall
                     bool wireframe = GL.wireframe;
@@ -261,14 +262,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Clear the render target to black and draw all the deformers to the texture
                     CoreUtils.SetRenderTarget(cmd, currentWater.deformationSGBuffer, clearFlag: ClearFlag.Color, Color.black);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_DeformerMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_DeformerMaterial, 0, MeshTopology.Triangles, 6, m_ActiveWaterDeformers, currentWater.mpb);
 
                     // Reenable wireframe if needed
                     if (wireframe)
                         cmd.SetWireframe(true);
 
                     // Evaluate the normals
-                    int numTiles = HDUtils.DivRoundUp(m_ShaderVariablesWater._DeformationRegionResolution, 8);
+                    int numTiles = HDUtils.DivRoundUp((int)currentWater.deformationRes, 8);
 
                     // First we need to clear the edge pixel and blur the deformation a bit
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBuffer, currentWater.deformationSGBuffer);

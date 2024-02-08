@@ -1,6 +1,6 @@
 # Scripting in the Water System
 
-## Access Water Surface Height
+## Access Water Surface height
 
 You can add buoyancy to the water simulation with a script that queries the height of the water surface.
 
@@ -164,6 +164,43 @@ public class FitToWaterSurface_Burst : MonoBehaviour
 
 ```
 
+## Access Water Surface normal
+
+The normal of the water surface at a given point can be queried as an additional output when accessing height. To do this, set the following variable in the search parameter struct sent to the system.
+```
+searchParameters.outputNormal = true;
+```
+
+Then the result can be used, for example to align an object along the surface of the water
+```
+gameObject.transform.LookAt(searchResult.projectedPositionWS + searchResult.normalWS, Vector3.up);
+```
+
+When using the Burst version of the API as in the sample above, don't forget to allocate the array to store normal result.
+This following script contains only the relevant lines to add to the one above to support querying normals.
+```
+public class FitToWaterSurface_Burst : MonoBehaviour
+{
+    NativeArray<float3> normalWSBuffer;
+
+    void Start()
+    {
+        normalWSBuffer = new NativeArray<float3>(resolution * resolution, Allocator.Persistent);
+    }
+
+    void Update()
+    {
+        searchJob.outputNormal = true;
+        searchJob.normalWSBuffer = normalWSBuffer;
+    }
+
+    private void OnDestroy()
+    {
+        normalWSBuffer.Dispose();
+    }
+}
+```
+
 ## Synchronizing Water Surfaces
 
 When making a multiplayer game, it can be useful to ensure all clients have a water simulation that is running in sync.
@@ -178,8 +215,3 @@ Alternatively, if you have a reference water surface, you can make sure other ex
 ```cs
 water.simulationStart = referenceSurface.simulationStart;
 ```
-
-### Limitations
-[Masks](water-decals-and-masking-in-the-water-system.md) do not affect CPU simulations. As a result, buoyancy scripts produce incorrect results for masked water surfaces when CPU Simulation is selected as Simulation Mode parameter.
-
-

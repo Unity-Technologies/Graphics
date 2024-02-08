@@ -82,13 +82,16 @@ Planet parametrization for effects like fog, physically based sky and volumetric
 
 #### Physically Based Sky
 
-The PBR sky now additionally includes an ozone layer as part of the atmosphere model.
-Additionally, the precomputation steps have been optimized and can now be performed every frame without considerable framerate drop. The memory usage for the precomputed tables have also been reduced. Memory and performance can be increased further by setting the **Rendering Space** option to **Camera Space** in the Visual Environement, but the camera won't be able to leave the atmosphere anymore.
+The Physically Based sky has received a set of improvements and optimizations.
+Multiscattering have been optimized by removing some of the precomputation steps which allows to update the sky settings every frame without considerable framerate drop, and improves the amount of light scattering in the atmosphere as seen from the surface when the sun is below the horizon.
+The memory usage for the precomputed tables has also been reduced. Memory and performance can be increased further by setting the **Rendering Space** option to **Camera Space** in the Visual Environement, but the camera won't be able to leave the atmosphere anymore.
+
+Additionally, the PBR sky now includes an ozone layer as part of the atmosphere model. This is especially noticeable when the sun is close to the horizon.
+
+![](Images/ozone.png)
+
 Finally, aerial perspective can now be enabled to simulate light absorption by particles in the atmosphere when looking at objects in the distance, such as mountains or clouds.
-
-![](Images/WhatsNew17_sky.png)
-
-On the left is the sky on previous versions, on the right is the image on 23.3. Ozone layer, atmosphere anisotropy and aerial perspective have a great impact on the atmosphere look.
+![](Images/scattering.png)
 
 #### Volumetric clouds
 

@@ -65,14 +65,19 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 m_CustomPostProcessTypes.Clear();
 
-            foreach (var typeString in m_CustomPostProcessTypesAsString)
+            for (int i = 0; i < m_CustomPostProcessTypesAsString.Count; ++i)
             {
-                if (string.IsNullOrEmpty(typeString))
-                    throw new ArgumentNullException($"{nameof(typeString)} is empty");
+                //UUM-60204: Script can have been deleted by user. We cannot assum the type can still exists.
+                Type type = null;
+                try { type = Type.GetType(m_CustomPostProcessTypesAsString[i]); }
+                catch(Exception) { }
+                if (type == null || !typeof(CustomPostProcessVolumeComponent).IsAssignableFrom(type))
+                {
+                    m_CustomPostProcessTypesAsString.RemoveAt(i--);
+                    continue;
+                }
 
-                var type = Type.GetType(typeString);
-                if (type != null && typeof(CustomPostProcessVolumeComponent).IsAssignableFrom(type))
-                    m_CustomPostProcessTypes.Add(type);
+                m_CustomPostProcessTypes.Add(type);
             }
         }
 

@@ -265,9 +265,9 @@ void SetupTerrainDebugTextureData(inout InputData inputData, float2 uv)
                 break;
         }
 
-        // no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
+        // TERRAIN_STREAM_INFO: no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
         // also, set the per-material status to "4" to indicate warnings
-        inputData.streamInfo = float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f);
+        inputData.streamInfo = TERRAIN_STREAM_INFO;
     #endif
 }
 

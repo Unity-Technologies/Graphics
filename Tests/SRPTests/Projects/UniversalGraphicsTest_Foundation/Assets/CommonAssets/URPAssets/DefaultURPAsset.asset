@@ -40,6 +40,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7155e055dd29f9944927bdffff6eb366, type: 2}
   - {fileID: 11400000, guid: 74a701ce533b14adb8f98f35425f3aeb, type: 2}
   - {fileID: 11400000, guid: 846bf2a7afe0943388665d187143c7f6, type: 2}
+  - {fileID: 11400000, guid: 708aca6b4b64e8f41946dabb10fe1586, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -58,7 +59,8 @@ MonoBehaviour:
   m_LightProbeSystem: 0
   m_ProbeVolumeMemoryBudget: 1024
   m_ProbeVolumeBlendingMemoryBudget: 128
-  m_SupportProbeVolumeStreaming: 0
+  m_SupportProbeVolumeGPUStreaming: 0
+  m_SupportProbeVolumeDiskStreaming: 0
   m_SupportProbeVolumeScenarios: 0
   m_SupportProbeVolumeScenarioBlending: 0
   m_ProbeVolumeSHBands: 1
@@ -103,6 +105,9 @@ MonoBehaviour:
   m_SupportDataDrivenLensFlare: 0
   m_SupportScreenSpaceLensFlare: 0
   m_GPUResidentDrawerMode: 0
+  m_UseLegacyLightmaps: 0
+  m_SmallMeshScreenPercentage: 0
+  m_GPUResidentDrawerEnableOcclusionCullingInCameras: 0
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512
@@ -110,19 +115,11 @@ MonoBehaviour:
   m_ShadowAtlasResolution: 2048
   m_VolumeFrameworkUpdateMode: 0
   m_VolumeProfile: {fileID: 0}
-  m_Textures:
-    blueNoise64LTex: {fileID: 2800000, guid: e3d24661c1e055f45a7560c033dbb837, type: 3}
-    bayerMatrixTex: {fileID: 2800000, guid: f9ee4ed84c1d10c49aabb9b210b0fc44, type: 3}
   apvScenesData:
-    m_ObsoleteSerializedBakingSets: []
-    sceneToBakingSet:
+    obsoleteSceneBounds:
       m_Keys: []
       m_Values: []
-    bakingSets: []
-    sceneBounds:
-      m_Keys: []
-      m_Values: []
-    hasProbeVolumes:
+    obsoleteHasProbeVolumes:
       m_Keys: []
       m_Values: 
   m_PrefilteringModeMainLightShadows: 3
@@ -153,5 +150,9 @@ MonoBehaviour:
   m_PrefilterSoftShadows: 0
   m_PrefilterScreenCoord: 1
   m_PrefilterNativeRenderPass: 0
+  m_PrefilterUseLegacyLightmaps: 0
   m_ShaderVariantLogLevel: 0
   m_ShadowCascades: 3
+  m_Textures:
+    blueNoise64LTex: {fileID: 2800000, guid: e3d24661c1e055f45a7560c033dbb837, type: 3}
+    bayerMatrixTex: {fileID: 2800000, guid: f9ee4ed84c1d10c49aabb9b210b0fc44, type: 3}

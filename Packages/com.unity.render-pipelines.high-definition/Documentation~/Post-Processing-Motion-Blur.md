@@ -6,7 +6,7 @@ The Motion Blur effect simulates the blur that occurs in an image when a real-wo
 
 The Motion Blur effect uses velocities from HDRP's velocity buffer. This means that for Motion Blur to have an effect, you must enable Motion Vectors in your Unity Project. For information on how to enable Motion Vectors, see the [Motion Vectors documentation](Motion-Vectors.md).
 
-**Motion Blur** is enabled by default in **HDRP Global Settings**. However, if you want to modify **Motion Blur** properties without affecting the default settings, you must add a **Motion Blur** override to a [Volume](understand-volumes.md) in your Scene. To add **Motion Blur** to a Volume:
+**Motion Blur** is enabled by default in [HDRP Graphics settings](Default-Settings-Window.md). However, if you want to modify **Motion Blur** properties without affecting the default settings, you must add a **Motion Blur** override to a [Volume](understand-volumes.md) in your Scene. To add **Motion Blur** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** > **Post-processing** and select **Motion Blur**. HDRP now applies **Motion Blur** to any Camera this Volume affects.

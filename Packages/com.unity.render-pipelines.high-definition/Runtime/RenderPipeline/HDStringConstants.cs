@@ -189,7 +189,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_TileList = Shader.PropertyToID("g_TileList");
         public static readonly int g_NumTiles = Shader.PropertyToID("g_NumTiles");
         public static readonly int g_NumTilesX = Shader.PropertyToID("g_NumTilesX");
-        public static readonly int g_VertexPerTile = Shader.PropertyToID("g_VertexPerTile");
 
         public static readonly int _NumTiles = Shader.PropertyToID("_NumTiles");
 
@@ -430,10 +429,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShaderVariablesDebugDisplay = Shader.PropertyToID("ShaderVariablesDebugDisplay");
         public static readonly int _ShaderVariablesClouds = Shader.PropertyToID("ShaderVariablesClouds");
         public static readonly int _ShaderVariablesCloudsShadows = Shader.PropertyToID("ShaderVariablesCloudsShadows");
-        public static readonly int _ShaderVariablesWater = Shader.PropertyToID("ShaderVariablesWater");
-        public static readonly int _ShaderVariablesUnderWater = Shader.PropertyToID("ShaderVariablesUnderWater");
-        public static readonly int _ShaderVariablesWaterRendering = Shader.PropertyToID("ShaderVariablesWaterRendering");
-        public static readonly int _ShaderVariablesWaterDebug = Shader.PropertyToID("ShaderVariablesWaterDebug");
 
         public static readonly int _VolumetricMaterialObbRight = Shader.PropertyToID("_VolumetricMaterialObbRight");
         public static readonly int _VolumetricMaterialObbUp = Shader.PropertyToID("_VolumetricMaterialObbUp");
@@ -593,6 +588,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricCloudsDepthTextureRW = Shader.PropertyToID("_VolumetricCloudsDepthTextureRW");
 
         // Water
+        public static readonly int _ShaderVariablesWaterPerSurface = Shader.PropertyToID("ShaderVariablesWaterPerSurface");
+        public static readonly int _ShaderVariablesWaterPerCamera = Shader.PropertyToID("ShaderVariablesWaterPerCamera");
+        public static readonly int _ShaderVariablesWaterDebug = Shader.PropertyToID("ShaderVariablesWaterDebug");
         public static readonly int _H0Buffer = Shader.PropertyToID("_H0Buffer");
         public static readonly int _H0BufferRW = Shader.PropertyToID("_H0BufferRW");
         public static readonly int _HtRealBufferRW = Shader.PropertyToID("_HtRealBufferRW");
@@ -659,7 +657,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CausticsNormalsMipOffset = Shader.PropertyToID("_CausticsNormalsMipOffset");
         public static readonly int _CausticGeometryResolution = Shader.PropertyToID("_CausticGeometryResolution");
         public static readonly int _CausticsVirtualPlane = Shader.PropertyToID("_CausticsVirtualPlane");
-        public static readonly int _CausticsBandIndex = Shader.PropertyToID("_CausticsBandIndex");
 
         // Cloud Layer
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
@@ -798,6 +795,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AffectSmoothSurfaces = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit = Shader.PropertyToID("_ObjectMotionStencilBit");
         public static readonly int _PointDistribution = Shader.PropertyToID("_PointDistribution");
+        public static readonly int _DenoiserResolutionMultiplierVals = Shader.PropertyToID("_DenoiserResolutionMultiplierVals");
 
         public static readonly int _DenoiseInputArrayTexture = Shader.PropertyToID("_DenoiseInputArrayTexture");
         public static readonly int _ValidityInputArrayTexture = Shader.PropertyToID("_ValidityInputArrayTexture");
@@ -899,6 +897,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayMarchingSteps = Shader.PropertyToID("_RayMarchingSteps");
         public static readonly int _RayMarchingReflectSky = Shader.PropertyToID("_RayMarchingReflectSky");
         public static readonly int _RayMarchingFallbackHierarchy = Shader.PropertyToID("_RayMarchingFallbackHierarchy");
+        public static readonly int _RayMarchingLowResPercentageInv = Shader.PropertyToID("_RayMarchingLowResPercentageInv");
+        public static readonly int _RayMarchingLowResPercentage = Shader.PropertyToID("_RayMarchingLowResPercentage");
 
         // Ray binning
         public static readonly int _RayBinResult = Shader.PropertyToID("_RayBinResult");

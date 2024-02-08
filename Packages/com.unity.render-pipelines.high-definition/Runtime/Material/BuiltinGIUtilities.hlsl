@@ -49,18 +49,6 @@ float4x4 GetProbeVolumeWorldToObject()
 
 void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
-#ifdef UNITY_LIGHTMAP_FULL_HDR
-    bool useRGBMLightmap = false;
-    float4 decodeInstructions = float4(0.0, 0.0, 0.0, 0.0); // Never used but needed for the interface since it supports gamma lightmaps
-#else
-    bool useRGBMLightmap = true;
-#if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
-    float4 decodeInstructions = float4(34.493242, 2.2, 0.0, 0.0); // range^2.2 = 5^2.2, gamma = 2.2
-#else
-    float4 decodeInstructions = float4(2.0, 2.2, 0.0, 0.0); // range = 2.0^2.2 = 4.59
-#endif
-#endif
-
 #if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
 // ^ GPU-driven rendering is enabled, and we haven't opted-out from lightmap
 // texture arrays. This minimizes batch breakages, but texture arrays aren't
@@ -93,9 +81,9 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
     #ifdef DIRLIGHTMAP_COMBINED
         SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
             TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
-            LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+            LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, normalWS, backNormalWS, true, bakeDiffuseLighting, backBakeDiffuseLighting);
     #else
-        float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+        float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, true);
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
@@ -107,9 +95,9 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
     #ifdef DIRLIGHTMAP_COMBINED
         SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
             TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
-            uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+            uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, bakeDiffuseLighting, backBakeDiffuseLighting);
     #else
-        float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+        float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false);
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif

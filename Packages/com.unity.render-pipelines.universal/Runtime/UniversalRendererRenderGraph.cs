@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
@@ -243,6 +244,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
+            rgDesc.vrUsage = desc.vrUsage;
             // TODO RENDERGRAPH: depthStencilFormat handling?
 
             return renderGraph.CreateTexture(rgDesc);
@@ -886,6 +888,8 @@ namespace UnityEngine.Rendering.Universal
         {
             var viewMatrix = cameraData.GetViewMatrix();
             var projMatrix = cameraData.GetProjectionMatrix();
+            int scaledWidth = (int)(cameraData.pixelWidth * cameraData.renderScale);
+            int scaledHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
             var occluderParams = new OccluderParameters(cameraData.camera.GetInstanceID())
             {
                 viewMatrix = viewMatrix,
@@ -893,7 +897,7 @@ namespace UnityEngine.Rendering.Universal
                 gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
                 viewOffsetWorldSpace = Vector3.zero,
                 depthTexture = depthTexture,
-                depthSize = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight),
+                depthSize = new Vector2Int(scaledWidth, scaledHeight),
             };
             GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams);
         }
@@ -1623,9 +1627,10 @@ namespace UnityEngine.Rendering.Universal
             internal int nameID;
         }
 
-        public static void SetGlobalTexture(RenderGraph graph, int nameId, TextureHandle handle, string passName = "Set Global Texture")
+        public static void SetGlobalTexture(RenderGraph graph, int nameId, TextureHandle handle, string passName = "Set Global Texture",
+            [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
         {
-            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, s_SetGlobalTextureProfilingSampler, file, line))
             {
                 passData.nameID = nameId;
                 passData.texture = handle;

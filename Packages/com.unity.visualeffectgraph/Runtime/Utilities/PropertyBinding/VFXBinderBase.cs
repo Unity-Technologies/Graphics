@@ -8,7 +8,7 @@ namespace UnityEngine.VFX.Utility
     /// <summary>
     /// Base Class to derive in order to Write Visual Effect Binders
     /// </summary>
-    [ExecuteInEditMode, RequireComponent(typeof(VFXPropertyBinder))]
+    [ExecuteAlways, RequireComponent(typeof(VFXPropertyBinder))]
     public abstract class VFXBinderBase : MonoBehaviour
     {
         /// <summary>

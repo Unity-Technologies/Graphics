@@ -1776,7 +1776,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int j = 0; j < cameraSettings.Count; ++j)
             {
                 CubemapFace face = cameraCubemapFaces[j];
-                var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, face), Time.frameCount, CameraType.Reflection);
+                var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, face), Time.frameCount);
 
                 var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 settingsCopy.forcedPercentage = 100.0f;
@@ -1789,13 +1789,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                 {
                     additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                    additionalCameraData.hasPersistentHistory = true;
+                    additionalCameraData.clearDepth = true;
                 }
-                additionalCameraData.hasPersistentHistory = true;
 
                 // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
                 camera.targetTexture = visibleProbe.realtimeTexture;
-                camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
-                camera.gameObject.SetActive(false);
 
                 // Warning: accessing Object.name generate 48B of garbage at each frame here
                 // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
@@ -1804,9 +1803,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 camera.ApplySettings(cameraSettings[j]);
                 camera.ApplySettings(cameraPositionSettings[j]);
-                camera.cameraType = CameraType.Reflection;
                 camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
-                additionalCameraData.clearDepth = true;
 
                 var _cullingResults = m_CullingResultsPool.Get();
                 _cullingResults.Reset();
@@ -2122,23 +2119,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
-            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
-            if (XRSystem.displayActive)
-            {
-                SupportedRenderingFeatures.active.rendersUIOverlay = false;
-            }
-            // When HDR is active we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            else if (HDROutputForAnyDisplayIsActive())
-            {
-                SupportedRenderingFeatures.active.rendersUIOverlay = true;
-            }
-
 #if UNITY_2021_1_OR_NEWER
-            if (!m_ValidAPI || cameras.Count == 0)
+            int cameraCount = cameras.Count;
 #else
-            if (!m_ValidAPI || cameras.Length == 0)
+            int cameraCount = cameras.Length;
 #endif
+            // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
+            AdjustUIOverlayOwnership(cameraCount);
+
+            if (!m_ValidAPI || cameraCount == 0)
                 return;
+
+            GPUResidentDrawer.ReinitializeIfNeeded();
 
             ColorUtils.s_LensAttenuation = m_LensSettings.GetLensAttenuationValue();
 
@@ -3375,6 +3367,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleasePersistentShadowAtlases()
         {
             m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+        }
+
+        /// <summary>
+        /// Enforce under specific circumstances whether HDRP or native engine triggers the Screen Space UI Overlay rendering
+        /// </summary>
+        static void AdjustUIOverlayOwnership(int cameraCount)
+        {
+            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            // If there is no camera to render in HDRP, SS UI overlay has to be rendered in the engine
+            if (XRSystem.displayActive || cameraCount == 0)
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = false;
+            }
+            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            else if (HDROutputForAnyDisplayIsActive())
+            {
+                SupportedRenderingFeatures.active.rendersUIOverlay = true;
+            }
         }
     }
 }

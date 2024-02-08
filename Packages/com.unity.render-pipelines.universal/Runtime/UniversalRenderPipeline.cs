@@ -209,8 +209,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Initial state of the RTHandle system.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            // Note: Use legacy DR control. Can be removed once URP integrates with core package DynamicResolutionHandler
-            RTHandles.Initialize(Screen.width, Screen.height, useLegacyDynamicResControl: true);
+            RTHandles.Initialize(Screen.width, Screen.height);
 
             // Init global shader keywords
             ShaderGlobalKeywords.InitializeShaderGlobalKeywords();
@@ -281,6 +280,8 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618
                 });
             }
+
+            GPUResidentDrawer.ReinitializeIfNeeded();
         }
 
         /// <inheritdoc/>
@@ -357,8 +358,13 @@ namespace UnityEngine.Rendering.Universal
         {
             SetHDRState(cameras);
 
-            // For XR and HDR, UI Overlay ownership must be enforced
-            AdjustUIOverlayOwnership();
+#if UNITY_2021_1_OR_NEWER
+            int cameraCount = cameras.Count;
+#else
+            int cameraCount = cameras.Length;
+#endif
+            // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
+            AdjustUIOverlayOwnership(cameraCount);
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
@@ -388,6 +394,13 @@ namespace UnityEngine.Rendering.Universal
             // This is for texture streaming
             UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
 #endif
+
+            // URP uses the camera's allowDynamicResolution flag to decide if useDynamicScale should be enabled for camera render targets.
+            // However, the RTHandle system has an additional setting that controls if useDynamicScale will be set for render targets allocated via RTHandles.
+            // In order to avoid issues at runtime, we must make the RTHandle system setting consistent with URP's logic. URP already synchronizes the setting
+            // during initialization, but unfortunately it's possible for external code to overwrite the setting due to RTHandle state being global.
+            // The best we can do to avoid errors in this situation is to ensure the state is set to the correct value every time we perform rendering.
+            RTHandles.SetHardwareDynamicResolutionState(true);
 
             SortCameras(cameras);
 #if UNITY_2021_1_OR_NEWER
@@ -1136,6 +1149,12 @@ namespace UnityEngine.Rendering.Universal
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
             {
+                // If an invalid volume stack is present, destroy it
+                if (additionalCameraData.volumeStack != null && !additionalCameraData.volumeStack.isValid)
+                {
+                    camera.DestroyVolumeStack(additionalCameraData);
+                }
+
                 // Create a local volume stack and cache the state if it's null
                 if (additionalCameraData.volumeStack == null)
                 {
@@ -1333,8 +1352,12 @@ namespace UnityEngine.Rendering.Universal
             bool disableRenderScale = ((Mathf.Abs(1.0f - settings.renderScale) < kRenderScaleThreshold) || isScenePreviewOrReflectionCamera);
             cameraData.renderScale = disableRenderScale ? 1.0f : settings.renderScale;
 
+            bool enableRenderGraph =
+                GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) &&
+                !renderGraphSettings.enableRenderCompatibilityMode;
+
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode);
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, enableRenderGraph);
 
             if (cameraData.renderScale > 1.0f)
             {
@@ -2289,10 +2312,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Enforce under specific circumstances whether URP or native engine triggers the UI Overlay rendering
         /// </summary>
-        static void AdjustUIOverlayOwnership()
+        static void AdjustUIOverlayOwnership(int cameraCount)
         {
             // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
-            if (XRSystem.displayActive)
+            // If there is no camera to render in URP, SS UI overlay has to be rendered in the engine
+            if (XRSystem.displayActive || cameraCount == 0)
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = false;
             }

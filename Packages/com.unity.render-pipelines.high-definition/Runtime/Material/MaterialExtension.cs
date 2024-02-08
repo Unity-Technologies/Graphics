@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void SetEmissiveIntensity(Material material, float intensity, EmissiveIntensityUnit unit)
         {
             if (unit == EmissiveIntensityUnit.EV100)
-                intensity = LightUtils.ConvertEvToLuminance(intensity);
+                intensity = LightUnitUtils.Ev100ToNits(intensity);
             material.SetFloat(kEmissiveIntensity, intensity);
             material.SetFloat(kEmissiveIntensityUnit, (float)unit);
             if (material.GetFloat(kUseEmissiveIntensity) > 0.0f)

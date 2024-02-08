@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering
             DestroyStack(m_DefaultStack);
             m_DefaultStack = null;
             foreach (var s in m_CreatedVolumeStacks)
-                stack.Dispose();
+                s.Dispose();
             m_CreatedVolumeStacks.Clear();
             baseComponentTypeArray = null;
             globalDefaultProfile = null;

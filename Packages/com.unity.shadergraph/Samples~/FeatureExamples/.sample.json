@@ -1,0 +1,6 @@
+{
+	"displayName":"Feature Examples",
+	"interactiveImport": "false",
+	"description":"This set of assets provides examples for how to achieve specific features and effects in Shader Graph - such as parallax occlusion mapping, interior cube mapping, vertex animation, various types of UV projection, and more. While not intended to be used directly, these examples should help you learn how to achieve these specific effects in your own shaders.",
+	"createSeparatePackage": true
+}

@@ -389,7 +389,6 @@ namespace UnityEditor.Rendering.HighDefinition
             AmmendInfo(FrameSettingsField.VolumeVoxelizationsAsync, ignoreDependencies: true);
 
             //LightLoop
-            AmmendInfo(FrameSettingsField.ComputeLightEvaluation, ignoreDependencies: true);
             AmmendInfo(FrameSettingsField.ComputeLightVariants, ignoreDependencies: true);
             AmmendInfo(FrameSettingsField.ComputeMaterialVariants, ignoreDependencies: true);
         }

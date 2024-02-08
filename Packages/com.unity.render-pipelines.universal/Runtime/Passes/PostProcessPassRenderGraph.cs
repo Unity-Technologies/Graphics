@@ -397,23 +397,22 @@ namespace UnityEngine.Rendering.Universal
 
                 // Setting keywords can be somewhat expensive on low-end platforms.
                 // Previous params are cached to avoid setting the same keywords every frame.
+                var material = m_Materials.bloom;
                 bool bloomParamsDirty = !m_BloomParamsPrev.Equals(ref bloomParams);
-                if (bloomParamsDirty)
+                bool isParamsPropertySet = material.HasProperty(ShaderConstants._Params);
+                if (bloomParamsDirty || !isParamsPropertySet)
                 {
-                    {
-                        var material = m_Materials.bloom;
-                        material.SetVector(ShaderConstants._Params, bloomParams.parameters);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
-                    }
+                    material.SetVector(ShaderConstants._Params, bloomParams.parameters);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
 
                     // These materials are duplicate just to allow different bloom blits to use different textures.
                     for (uint i = 0; i < k_MaxPyramidSize; ++i)
                     {
-                        var material = m_Materials.bloomUpsample[i];
-                        material.SetVector(ShaderConstants._Params, bloomParams.parameters);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
-                        CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
+                        var materialPyramid = m_Materials.bloomUpsample[i];
+                        materialPyramid.SetVector(ShaderConstants._Params, bloomParams.parameters);
+                        CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
+                        CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
                     }
 
                     m_BloomParamsPrev = bloomParams;
@@ -422,8 +421,8 @@ namespace UnityEngine.Rendering.Universal
                 // Create bloom mip pyramid textures
                 {
                     var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
-                    _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[0].name, true, FilterMode.Bilinear);
-                    _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[0].name, true, FilterMode.Bilinear);
+                    _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[0].name, false, FilterMode.Bilinear);
+                    _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[0].name, false, FilterMode.Bilinear);
 
                     for (int i = 1; i < mipCount; i++)
                     {
@@ -436,8 +435,8 @@ namespace UnityEngine.Rendering.Universal
                         desc.height = th;
 
                         // NOTE: Reuse RTHandle names for TextureHandles
-                        mipDown = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[i].name, true, FilterMode.Bilinear);
-                        mipUp = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[i].name, true, FilterMode.Bilinear);
+                        mipDown = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[i].name, false, FilterMode.Bilinear);
+                        mipUp = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[i].name, false, FilterMode.Bilinear);
                     }
                 }
             }
@@ -1000,6 +999,9 @@ namespace UnityEngine.Rendering.Universal
 
             TextureHandle cameraDepth = resourceData.cameraDepth;
             TextureHandle motionVectors = resourceData.motionVectorColor;
+
+            Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. TAA requires a motion vector texture.");
+
             TemporalAA.Render(renderGraph, m_Materials.temporalAntialiasing, cameraData, ref source, ref cameraDepth, ref motionVectors, ref destination);
         }
         #endregion
@@ -1012,6 +1014,8 @@ namespace UnityEngine.Rendering.Universal
         {
             TextureHandle cameraDepth = resourceData.cameraDepth;
             TextureHandle motionVectors = resourceData.motionVectorColor;
+
+            Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. STP requires a motion vector texture.");
 
             var desc = GetCompatibleDescriptor(cameraData.cameraTargetDescriptor,
                 cameraData.pixelWidth,
@@ -1062,12 +1066,12 @@ namespace UnityEngine.Rendering.Universal
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_MotionBlurTarget", true, FilterMode.Bilinear);
 
+            TextureHandle motionVectorColor = resourceData.motionVectorColor;
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+
             var mode = m_MotionBlur.mode.value;
             int passIndex = (int)m_MotionBlur.quality.value;
             passIndex += (mode == MotionBlurMode.CameraAndObjects) ? 3 : 0;
-
-            TextureHandle motionVectorColor = resourceData.motionVectorColor;
-            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<MotionBlurPassData>("Motion Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_MotionBlur)))
             {
@@ -1079,6 +1083,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (mode == MotionBlurMode.CameraAndObjects)
                 {
+                    Debug.Assert(motionVectorColor.IsValid(), "Motion vectors are invalid. Per-object motion blur requires a motion vector texture.");
+
                     passData.motionVectors = motionVectorColor;
                     builder.UseTexture(motionVectorColor, AccessFlags.Read);
                 }

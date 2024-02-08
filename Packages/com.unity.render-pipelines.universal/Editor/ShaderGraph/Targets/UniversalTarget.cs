@@ -1216,7 +1216,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+                // NB Color is not strickly needed for scene picking but adding it here so that there are nodes to be 
+                // collected for the pixel shader. Some packages might use this to customize the scene picking rendering.
+                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
                 // Fields
                 structs = CoreStructCollections.Default,

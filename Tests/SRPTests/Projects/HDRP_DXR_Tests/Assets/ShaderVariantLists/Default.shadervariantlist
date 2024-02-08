@@ -1,6 +1,6 @@
 {"targetPlatform":4,"xr":false,"enabled":true}
 Compiled compute shader: AmbientProbeConvolution, kernel: AmbientProbeConvolutionDiffuseVolumetric, keywords <no keywords>
-Compiled compute shader: BilateralUpsample, kernel: BilateralUpSampleColor, keywords <no keywords>
+Compiled compute shader: BilateralUpsample, kernel: BilateralUpSampleColorHalf, keywords <no keywords>
 Compiled compute shader: BloomBlur, kernel: KDownsample, keywords <no keywords>
 Compiled compute shader: BloomBlur, kernel: KMain, keywords <no keywords>
 Compiled compute shader: BloomPrefilter, kernel: KMain, keywords LOW_QUALITY
@@ -73,10 +73,8 @@ Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keyw
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON
 Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords <no keywords>
-Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords FULL_RESOLUTION_INPUT
-Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterSingle, keywords FULL_RESOLUTION_INPUT
+Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterSingle, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: GatherColor, keywords <no keywords>
-Compiled compute shader: DiffuseDenoiser, kernel: GatherColor, keywords FULL_RESOLUTION_INPUT
 Compiled compute shader: DiffuseDenoiser, kernel: GeneratePointDistribution, keywords <no keywords>
 Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterHColorDirectional, keywords DISTANCE_BASED_DENOISER
 Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterHSingleBox, keywords <no keywords>
@@ -175,18 +173,16 @@ Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsT
 Compiled compute shader: SkyLUTGenerator, kernel: MultiScatteringLUT, keywords <no keywords>
 Compiled compute shader: Sort, kernel: BitonicSort128, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
-Compiled compute shader: TemporalFilter, kernel: BlendHistoryColorArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: BlendHistorySingleArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: BlendHistorySingleArrayNoValidity, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: BlendHistoryColorArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: BlendHistorySingleArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: BlendHistorySingleArrayNoValidity, keywords <no keywords>
 Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords <no keywords>
-Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: OutputHistoryArray, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: OutputHistoryArray, keywords <no keywords>
 Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColor, keywords <no keywords>
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColor, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColorArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationSingle, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationSingleArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColorArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationSingle, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationSingleArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords <no keywords>
 Compiled compute shader: VFXCopyBuffer, kernel: CSVFXBatchCopyCountKvp, keywords <no keywords>
 Compiled compute shader: VFXCopyBuffer, kernel: CSVFXCopyStructBuffer, keywords <no keywords>

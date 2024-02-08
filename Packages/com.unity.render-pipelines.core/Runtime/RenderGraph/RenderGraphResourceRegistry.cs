@@ -992,7 +992,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             CreatePooledResource(rgContext, handle.iType, handle.index);
         }
 
-        internal bool forceManualClearOfResourceDisabled = false;
+        // Only modified by native compiler when using native render pass
+        internal bool forceManualClearOfResource = true;
 
         void CreateTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
@@ -1006,15 +1007,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 #endif
 
-            if ((forceManualClearOfResourceDisabled == false && resource.desc.clearBuffer) || m_RenderGraphDebug.clearRenderTargetsAtCreation)
+            if ((forceManualClearOfResource && resource.desc.clearBuffer) || m_RenderGraphDebug.clearRenderTargetsAtCreation)
             {
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
-                using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(debugClear ? RenderGraphProfileId.RenderGraphClearDebug : RenderGraphProfileId.RenderGraphClear)))
-                {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
-                    var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
-                    CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
-                }
+                var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
+                var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
+                CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
             }
         }
 
@@ -1047,11 +1045,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             if (m_RenderGraphDebug.clearRenderTargetsAtRelease)
             {
-                using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
-                {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
-                    CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, Color.magenta);
-                }
+                var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
+                CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, Color.magenta);
             }
         }
 

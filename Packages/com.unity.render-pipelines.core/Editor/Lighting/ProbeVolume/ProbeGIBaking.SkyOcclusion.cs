@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering
             // Input data
             NativeArray<Vector3> probePositions;
             private BakeJob[] jobs;
-            private int jobCount;
             private int currentJob;
             public int sampleIndex;
             public int batchIndex;
@@ -60,7 +59,7 @@ namespace UnityEngine.Rendering
             public ulong currentStep;
             public ulong stepCount => (ulong)probeCount;
 
-            public void Initialize(ProbeVolumeBakingSet bakingSet, BakeJob[] bakeJobs, int bakeJobCount, int probeCount)
+            public void Initialize(ProbeVolumeBakingSet bakingSet, BakeJob[] bakeJobs, int probeCount)
             {
                 // We have to copy the values from the baking set as they may get modified by the user while baking
                 skyOcclusion = bakingSet.skyOcclusion;
@@ -69,7 +68,6 @@ namespace UnityEngine.Rendering
                 skyOcclusionBackFaceCulling = 0; // see PR #40707
 
                 jobs = bakeJobs;
-                jobCount = bakeJobCount;
                 currentJob = 0;
                 sampleIndex = 0;
                 batchIndex = 0;
@@ -171,14 +169,21 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            public void RunSkyOcclusionStep()
+            public bool RunSkyOcclusionStep()
             {
                 if (currentStep >= stepCount)
-                    return;
+                    return true;
+
+                ref var job = ref jobs[currentJob];
+                if (job.indices.Length == 0)
+                {
+                    currentJob++;
+                    return false;
+
+                }
 
                 var cmd = new CommandBuffer();
                 var skyOccShader = s_TracingContext.shaderSO;
-                ref var job = ref jobs[currentJob];
 
                 // Divide the job into batches of 128k probes to reduce memory usage.
                 int batchCount = CoreUtils.DivRoundUp(job.indices.Length, k_MaxProbeCountPerBatch);
@@ -241,6 +246,7 @@ namespace UnityEngine.Rendering
                 }
 
                 cmd.Dispose();
+                return false;
             }
 
             void FetchResults(in BakeJob job, int batchOffset, int batchSize)

@@ -138,9 +138,11 @@ namespace UnityEditor.VFX
                     VFXSlot.CopyLinksAndValue(toInputSlot, fromInputSlot, true);
                 }
             }
-            else
+            else // Add height sequencer
             {
-                if (shapeType != PositionShapeBase.Type.Torus && shapeType != PositionShapeBase.Type.Sphere)
+                if (shapeType != PositionShapeBase.Type.Torus &&
+                    shapeType != PositionShapeBase.Type.Sphere &&
+                    shapeType != PositionShapeBase.Type.Cone)
                     throw new InvalidOperationException("Unexpected migration to " + shapeType);
 
                 if (to.spawnMode != PositionBase.SpawnMode.Custom)
@@ -201,14 +203,14 @@ namespace UnityEditor.VFX
             if (from.inputSlots.Count != to.inputSlots.Count)
                 throw new InvalidOperationException();
 
+            VFXSlot.CopyLinksAndValue(to.activationSlot, from.activationSlot);
             for (int i = slotStartOffset; i < from.inputSlots.Count; ++i)
             {
                 var fromInputSlot = from.inputSlots[i];
-                var toInputSlot = to.inputSlots[i];
+                var toInputSlot = to.inputSlots.FirstOrDefault(o => o.name == fromInputSlot.name);
                 VFXSlot.CopyLinksAndValue(toInputSlot, fromInputSlot, true);
             }
-            VFXSlot.CopyLinksAndValue(to.activationSlot, from.activationSlot);
-
+            
             // Override bounce speed limit to 0 for sanitized block to avoid changes in behavior
             if (to.behavior == CollisionBase.Behavior.Collision)
             {

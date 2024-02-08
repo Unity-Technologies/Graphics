@@ -215,7 +215,7 @@ namespace UnityEditor.VFX.Operator
             base.CheckGraphBeforeImport();
 
             // If the graph is re-imported it can be because one of its dependency such as an external hlsl file that has changed.
-            if (!GetGraph().explicitCompile)
+            if (!VFXGraph.explicitCompile)
                 ResyncSlots(true);
         }
 

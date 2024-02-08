@@ -3,14 +3,12 @@ The Volume component lets you configure a Volume. Refer to [Understand volumes](
 
 ## Properties
 
-![image alt text](Images/Volumes1.png)
-
 | Property| Description |
 |:---|:---|
 | **Mode** | Use the drop-down to select the method that HDRP uses to calculate whether this Volume can affect a Camera:<br />&#8226; **Global**: Makes the Volume have no boundaries and allow it to affect every Camera in the Scene.<br />&#8226; **Local**: Allows you to specify boundaries for the Volume so that the Volume only affects Cameras inside the boundaries. Add a Collider to the Volume's GameObject and use that to set the boundaries. |
 | **Blend Distance** | The furthest distance from the Volume’s Collider that HDRP starts blending from. A value of 0 means HDRP applies this Volume’s overrides immediately upon entry.<br />This property only appears when you select **Local** from the **Mode** drop-down. |
 | **Weight** | The amount of influence the Volume has on the Scene. HDRP applies this multiplier to the value it calculates using the Camera position and Blend Distance.  |
-| **Priority** | HDRP uses this value to determine which Volume it uses when Volumes have an equal amount of influence on the Scene. HDRP uses Volumes with higher priorities first. |
+| **Priority** | HDRP uses this value to determine which Volume it uses when Volumes have an equal amount of influence on the Scene. HDRP uses Volumes with higher priorities first. If multiple volumes have the same priority, HDRP can evaluate them in any order. This means a global volume can take precedence over a local volume, even if the camera is inside the local volume. |
 | **Profile** | A Volume Profile Asset that contains the Volume overrides that store the properties HDRP uses to handle this Volume. |
 
 ## Volume Profiles

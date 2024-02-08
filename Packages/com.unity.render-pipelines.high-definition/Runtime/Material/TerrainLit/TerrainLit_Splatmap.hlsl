@@ -250,49 +250,40 @@ void TerrainLitDebug(float2 uv, uint2 screenSpaceCoords, out float3 baseColor)
 #ifdef DEBUG_DISPLAY
     if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL)
     {
-        SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Control0);
-        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv, _Control0);
+        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv, _Control0);
     }
     else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0)
     {
-        SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat0);
-        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat0_ST.xy + _Splat0_ST.zw, _Splat0);
+        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat0_ST.xy + _Splat0_ST.zw, _Splat0);
     }
     else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER1)
     {
-        SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat1);
-        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat1_ST.xy + _Splat1_ST.zw, _Splat1);
+        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat1_ST.xy + _Splat1_ST.zw, _Splat1);
     }
     else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER2)
     {
-        SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat2);
-        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat2_ST.xy + _Splat2_ST.zw, _Splat2);
+        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat2_ST.xy + _Splat2_ST.zw, _Splat2);
     }
     else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER3)
     {
-        SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat3);
-        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat3_ST.xy + _Splat3_ST.zw, _Splat3);
+        baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat3_ST.xy + _Splat3_ST.zw, _Splat3);
     }
     #ifdef _TERRAIN_8_LAYERS
         else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER4)
         {
-            SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat4);
-            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat4_ST.xy + _Splat4_ST.zw, _Splat4);
+            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat4_ST.xy + _Splat4_ST.zw, _Splat4);
         }
         else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER5)
         {
-            SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat5);
-            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat5_ST.xy + _Splat5_ST.zw, _Splat5);
+            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat5_ST.xy + _Splat5_ST.zw, _Splat5);
         }
         else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER6)
         {
-            SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat6);
-            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat6_ST.xy + _Splat6_ST.zw, _Splat6);
+            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat6_ST.xy + _Splat6_ST.zw, _Splat6);
         }
         else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER7)
         {
-            SET_TEXTURE_STREAMING_DEBUG_TERRAIN(_Splat7);
-            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TEX(screenSpaceCoords, uv * _Splat7_ST.xy + _Splat7_ST.zw, _Splat7);
+            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat7_ST.xy + _Splat7_ST.zw, _Splat7);
         }
     #endif
 #endif

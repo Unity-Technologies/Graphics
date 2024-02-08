@@ -1090,7 +1090,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Exposure.proceduralRadii.value.x * camera.actualWidth,
                 m_Exposure.proceduralRadii.value.y * camera.actualHeight);
 
-            proceduralParams2 = new Vector4(1.0f / m_Exposure.proceduralSoftness.value, LightUtils.ConvertEvToLuminance(m_Exposure.maskMinIntensity.value), LightUtils.ConvertEvToLuminance(m_Exposure.maskMaxIntensity.value), 0.0f);
+            proceduralParams2 = new Vector4(1.0f / m_Exposure.proceduralSoftness.value, LightUnitUtils.Ev100ToNits(m_Exposure.maskMinIntensity.value), LightUnitUtils.Ev100ToNits(m_Exposure.maskMaxIntensity.value), 0.0f);
         }
 
         ComputeBuffer GetDebugImageHistogramBuffer()
@@ -3392,7 +3392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                    if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
+                    if (sunOcclusionTexture.IsValid() && RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
                         passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
                     else
                         passData.sunOcclusion = TextureHandle.nullHandle;

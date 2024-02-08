@@ -1,6 +1,6 @@
 #pragma kernel CSVFXIndirectArgs
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3 webgpu
 
 #include "HLSLSupport.cginc"
 
@@ -21,7 +21,12 @@ struct InputData //TODO use generic name (indexCount isn't always what it expect
 
 ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
+#if SHADER_API_WEBGPU
+// WebGPU does not support "texel buffers" yet.
+RWStructuredBuffer<uint> outputIndirectArgs;
+#else
 RWBuffer<uint> outputIndirectArgs;
+#endif
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)

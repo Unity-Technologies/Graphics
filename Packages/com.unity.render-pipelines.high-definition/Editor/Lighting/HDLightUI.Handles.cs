@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 using System;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -575,7 +575,15 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / Mathf.Max(0.1f, outterAngleInnerAngleRange.x);
+                            outterAngleInnerAngleRange.x = Mathf.Min(179.0f, Mathf.Max(1.0f, outterAngleInnerAngleRange.x));
+                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                            // If light unit is currently displayed in lumen and 'reflector' is on, recalculate candela so lumen value remains constant
+                            if (light.spotAngle != outterAngleInnerAngleRange.x && light.enableSpotReflector && light.lightUnit == LightUnit.Lumen)
+                            {
+                                float oldLumen = LightUnitUtils.ConvertIntensity(light, light.intensity, LightUnit.Candela, LightUnit.Lumen);
+                                float newSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(Mathf.Max(1.0f, outterAngleInnerAngleRange.x));
+                                light.intensity = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
+                            }
                             light.spotAngle = outterAngleInnerAngleRange.x;
                             light.range = outterAngleInnerAngleRange.z;
                         }
@@ -607,6 +615,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");
+
+                            if ((light.spotAngle != aspectFovMaxRangeMinRange.y || additionalData.aspectRatio != aspectFovMaxRangeMinRange.x)
+                                && light.enableSpotReflector && light.lightUnit == LightUnit.Lumen)
+                            {
+                                float oldLumen = LightUnitUtils.ConvertIntensity(light, light.intensity, LightUnit.Candela, LightUnit.Lumen);
+                                float newSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(aspectFovMaxRangeMinRange.y, aspectFovMaxRangeMinRange.x);
+                                light.intensity = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
+                            }
                             additionalData.aspectRatio = aspectFovMaxRangeMinRange.x;
                             light.spotAngle = aspectFovMaxRangeMinRange.y;
                             light.range = aspectFovMaxRangeMinRange.z;
@@ -700,11 +716,29 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
-                            additionalData.shapeWidth = widthHeight.x;
+                            float oldWidth = additionalData.shapeWidth;
+                            float oldHeight = additionalData.shapeHeight;
                             if (withYAxis)
                             {
+                                if (light.lightUnit == LightUnit.Lumen)
+                                {
+                                    float oldArea = LightUnitUtils.GetAreaFromRectangleLight(oldWidth, oldHeight);
+                                    float oldLumen = LightUnitUtils.NitsToLumen(light.intensity, oldArea);
+
+                                    float newArea = LightUnitUtils.GetAreaFromRectangleLight(widthHeight);
+                                    light.intensity = LightUnitUtils.LumenToNits(oldLumen, newArea);
+                                }
                                 additionalData.shapeHeight = widthHeight.y;
                             }
+                            else if (light.lightUnit == LightUnit.Lumen)
+                            {
+                                float oldArea = LightUnitUtils.GetAreaFromTubeLight(oldWidth);
+                                float oldLumen = LightUnitUtils.NitsToLumen(light.intensity, oldArea);
+
+                                float newArea = LightUnitUtils.GetAreaFromTubeLight(widthHeight.x);
+                                light.intensity = LightUnitUtils.LumenToNits(oldLumen, newArea);
+                            }
+                            additionalData.shapeWidth = widthHeight.x;
                             light.range = range;
                         }
 

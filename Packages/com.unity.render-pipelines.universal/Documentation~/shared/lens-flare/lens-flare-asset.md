@@ -22,11 +22,11 @@ The Lens Flare Element asset has the following properties:
   - [AxisTransform](#AxisTransform)
   - [Distortion](#Distortion)
   - [Multiple Elements](#Multiple-Elements)
-    - [Uniform](#Uniform)
+    - [Uniform](#uniform)
     - [Curve](#Curve)
     - [Random](#Random)
 
-<a name="Image"></a>
+<a name="Type"></a>
 
 ### Type
 
@@ -114,7 +114,7 @@ That will trigger a warning and execution 16 recursions:
 | ----------------------- | ------------------------------------------------------------ |
 | Color Type              | Select the color type of Lens Flare Element this asset creates: <br />&#8226; [Constant](#ColorConstant) <br />&#8226; [Radial](#ColorRadial) <br />&#8226; [Angular](#ColorAngular) |
 | Tint                    | Changes the tint of the lens flare. If this asset is attached to the light, this property is based on the light tint. |
-| Modulate By Light Color | Allows light color to affect this Lens Flare Element. This only applies when the asset is used in a [SRP Lens Flare Override Component](srp-lens-flare-component.md) that is attached to a point, spot, or area light. |
+| Modulate By Light Color | Allows light color to affect this Lens Flare Element. This only applies when the asset is used in a [SRP Lens Flare Override Component](lens-flare-component.md) that is attached to a point, spot, or area light. |
 | Intensity               | Controls the intensity of this element.                      |
 | Blend Mode              | Select the blend mode of the Lens Flare Element this asset creates:<br />&#8226; Additive  <br />&#8226; Screen  <br />&#8226; Premultiplied <br />&#8226; Lerp |
 
@@ -213,7 +213,7 @@ That will trigger a warning and execution 16 recursions:
 | --------------- | ------------------------------------------------------------ |
 | Enable | Enable this to allow multiple lens flare elements in your scene. |
 | Count | Determines the number of identical lens flare elements Unity generates.<br/>A value of **1** appears the same as a single lens flare element. |
-| Distribution | Select the method that Unity uses to generate multiple lens flare elements:<br/>&#8226;[Uniform](#Uniform)<br/>&#8226;[Curve](#Curve)<br/>&#8226;[Random](#Random) |
+| Distribution | Select the method that Unity uses to generate multiple lens flare elements:<br/>&#8226;[Uniform](#uniform)<br/>&#8226;[Curve](#Curve)<br/>&#8226;[Random](#Random) |
 | Length Spread | Controls how spread out multiple lens flare elements appear. |
 | Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
 

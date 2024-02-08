@@ -73,6 +73,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
+        protected internal override bool SupportsMotionVectors()
+        {
+            // Motion vector pass for TAA and per-object motion blur (etc.) is available.
+            return true;
+        }
+
         // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
         internal RenderingMode renderingModeRequested => m_RenderingMode;
 

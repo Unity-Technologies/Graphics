@@ -323,6 +323,9 @@ namespace UnityEngine.Rendering.Universal
         {
             string warning = null;
 
+            if(warning == null && !cameraData.postProcessEnabled)
+                warning = "Disabling TAA because camera has post-processing disabled.";
+
             if (cameraData.taaPersistentData == null)
             {
                 warning = "Disabling TAA due to invalid persistent data.";
@@ -348,8 +351,8 @@ namespace UnityEngine.Rendering.Universal
             if (warning == null && cameraData.camera.allowDynamicResolution)
                 warning = "Disabling TAA because camera has dynamic resolution enabled. You can use a constant render scale instead.";
 
-            if(warning == null && !cameraData.postProcessEnabled)
-                warning = "Disabling TAA because camera has post-processing disabled.";
+            if(warning == null && !cameraData.renderer.SupportsMotionVectors())
+                warning = "Disabling TAA because the renderer does not implement motion vectors. Motion vectors are required for TAA.";
 
             const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
             if(Time.frameCount % warningThrottleFrames == 0)

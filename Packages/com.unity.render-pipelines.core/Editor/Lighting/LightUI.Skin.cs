@@ -48,6 +48,15 @@ namespace UnityEditor.Rendering
 
             /// <summary>When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.</summary>
             public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.");
+
+            /// <summary>Label for light intensity (with light units)</summary>
+            public static readonly GUIContent lightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
+
+            /// <summary>Label for light's lux at distance property</summary>
+            public static readonly GUIContent luxAtDistance = EditorGUIUtility.TrTextContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
+
+            /// <summary>Label for light's enable spot reflector property</summary>
+            public static readonly GUIContent enableSpotReflector = EditorGUIUtility.TrTextContent("Reflector", "When enabled, simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
         }
     }
 }

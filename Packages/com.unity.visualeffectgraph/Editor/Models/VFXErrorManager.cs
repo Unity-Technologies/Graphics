@@ -78,19 +78,17 @@ namespace UnityEditor.VFX
         private readonly VFXGraph m_Graph;
         readonly VFXErrorManager m_Manager;
 
-        public VFXCompileErrorReporter(VFXGraph graph, VFXErrorManager manager, bool explicitCompile)
+        public VFXCompileErrorReporter(VFXGraph graph, VFXErrorManager manager)
         {
             m_Graph = graph;
             m_Manager = manager;
             Assert.IsNull(m_Graph.compileReporter);
-            m_Graph.explicitCompile = explicitCompile;
             m_Graph.compileReporter = this;
         }
 
         public void Dispose()
         {
             Assert.IsNotNull(m_Graph.compileReporter);
-            m_Graph.explicitCompile = false;
             m_Graph.compileReporter = null;
         }
 

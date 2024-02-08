@@ -19,6 +19,7 @@ See the Waterline scene in the [HDRP Water samples](HDRP-Sample-Content.md#water
 ## Limitations
 
 * When using a custom mesh, underwater will not behave as expected if mesh is not at 0, or if the mesh isn't flat.
+* Fog and Volumetric Fog is not evaluated when the camera is underwater. A simpler attenuation is used when underwater: to control it, use **Absorption Distance Multiplier**. Additionnally, the **Receive Fog** option on materials also affects this simpler attenuation. This can be useful to disable absorption on objects when using excluder underwater (like a porthole in the hold of a boat).
 
 # Additional resources
 * [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md)

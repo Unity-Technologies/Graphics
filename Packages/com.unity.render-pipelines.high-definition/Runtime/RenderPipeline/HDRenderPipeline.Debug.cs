@@ -850,10 +850,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 data.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
                                 data.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                                if (DeferredUseComputeAsPixel(data.hdCamera.frameSettings))
-                                    data.debugViewTilesMaterial.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
-                                else
-                                    data.debugViewTilesMaterial.DisableKeyword("IS_DRAWPROCEDURALINDIRECT");
                                 ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
                             }
                         }
@@ -1513,7 +1509,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle depth = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
 
                 // Render the debug water
-                RenderWaterDebug(renderGraph, hdCamera, msaa, output, depth, lightLists);
+                RenderWaterDebug(renderGraph, hdCamera, output, depth, true);
 
                 // Render the debug lines.
                 RenderLines(renderGraph, depthBuffer, hdCamera, lightLists);

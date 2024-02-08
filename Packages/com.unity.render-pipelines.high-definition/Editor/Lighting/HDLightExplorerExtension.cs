@@ -418,15 +418,23 @@ namespace UnityEditor.Rendering.HighDefinition
                         return;
                     }
 
-                    float intensity = lightData.intensity;
+                    LightType lightType = lightData.legacyLight.type;
+                    LightUnit nativeUnit = LightUnitUtils.GetNativeLightUnit(lightType);
+                    LightUnit lightUnit = lightData.legacyLight.lightUnit;
+                    float nativeIntensity = lightData.legacyLight.intensity;
+
+                    // Verify that ui light unit is in fact supported or revert to native.
+                    lightUnit = LightUnitUtils.IsLightUnitSupported(lightType, lightUnit) ? lightUnit : nativeUnit;
+
+                    float curIntensity = LightUnitUtils.ConvertIntensity(lightData.legacyLight, nativeIntensity, nativeUnit, lightUnit);
 
                     EditorGUI.BeginProperty(r, GUIContent.none, prop);
                     EditorGUI.BeginChangeCheck();
-                    intensity = EditorGUI.FloatField(r, intensity);
+                    float newIntensity = EditorGUI.FloatField(r, curIntensity);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed light intensity");
-                        lightData.intensity = intensity;
+                        lightData.legacyLight.intensity = LightUnitUtils.ConvertIntensity(lightData.legacyLight, newIntensity, lightUnit, nativeUnit);
                     }
                     EditorGUI.EndProperty();
                 }, (lprop, rprop) =>
@@ -437,14 +445,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (IsNullComparison(lLightData, rLightData, out var order))
                             return order;
 
-                        return ((float)lLightData.intensity).CompareTo((float)rLightData.intensity);
+                        return ((float)lLightData.legacyLight.intensity).CompareTo((float)rLightData.legacyLight.intensity);
                     }, (target, source) =>
                     {
                         if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                             return;
 
                         Undo.RecordObjects(new Object[] { target.serializedObject.targetObject, tLightData }, "Changed light intensity");
-                        tLightData.intensity = sLightData.intensity;
+                        tLightData.legacyLight.intensity = sLightData.legacyLight.intensity;
                     }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.Unit, "m_Intensity", 70, (r, prop, dep) =>                      // 10: Unit
                 {
@@ -456,13 +464,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     EditorGUI.BeginChangeCheck();
 
-                    LightUnit unit = lightData.lightUnit;
-                    unit = HDLightUI.DrawLightIntensityUnitPopup(r, unit, lightData.legacyLight.type);
+                    LightUnit unit = lightData.legacyLight.lightUnit;
+                    unit = LightUI.DrawLightIntensityUnitPopup(r, unit, lightData.legacyLight.type);
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(lightData, "Changed light unit");
-                        lightData.lightUnit = unit;
+                        lightData.legacyLight.lightUnit = unit;
                     }
                 }, (lprop, rprop) =>
                     {
@@ -472,14 +480,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (IsNullComparison(lLightData, rLightData, out var order))
                             return order;
 
-                        return ((int)lLightData.lightUnit).CompareTo((int)rLightData.lightUnit);
+                        return ((int)lLightData.legacyLight.lightUnit).CompareTo((int)rLightData.legacyLight.lightUnit);
                     }, (target, source) =>
                     {
                         if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
                             return;
 
+                        if (!LightUnitUtils.IsLightUnitSupported(tLightData.legacyLight.type, sLightData.legacyLight.lightUnit))
+                            return;
+
                         Undo.RecordObject(tLightData, "Changed light unit");
-                        tLightData.lightUnit = sLightData.lightUnit;
+                        tLightData.legacyLight.lightUnit = sLightData.legacyLight.lightUnit;
                     }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.IndirectMultiplier, "m_BounceIntensity", 115),                 // 11: Indirect multiplier
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Shadows, "m_Shadows.m_Type", 60, (r, prop, dep) =>          // 12: Shadows

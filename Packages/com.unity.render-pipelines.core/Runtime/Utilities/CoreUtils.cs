@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
@@ -1156,12 +1156,27 @@ namespace UnityEngine.Rendering
 
         // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
         /// <summary>
-        /// Set a keyword immediatly on a Material.
+        /// Set a keyword immediately on a Material.
         /// </summary>
         /// <param name="material">Material on which to set the keyword.</param>
         /// <param name="keyword">Keyword to set on the material.</param>
         /// <param name="state">Value of the keyword to set on the material.</param>
         public static void SetKeyword(Material material, string keyword, bool state)
+        {
+            if (state)
+                material.EnableKeyword(keyword);
+            else
+                material.DisableKeyword(keyword);
+        }
+
+        // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
+        /// <summary>
+        /// Set a keyword immediately on a Material.
+        /// </summary>
+        /// <param name="material">Material on which to set the keyword.</param>
+        /// <param name="keyword">Keyword to set on the material.</param>
+        /// <param name="state">Value of the keyword to set on the material.</param>
+        public static void SetKeyword(Material material, LocalKeyword keyword, bool state)
         {
             if (state)
                 material.EnableKeyword(keyword);

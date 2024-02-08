@@ -181,7 +181,7 @@ half4 TerrainLitForwardFragment(Varyings input) : SV_Target
 
     InputData inputData;
     InitializeInputData(input, inputData);
-    SETUP_DEBUG_TEXTURE_DATA_FOR_TERRAIN(input)
+    SETUP_DEBUG_TEXTURE_DATA_FOR_TERRAIN(inputData);
     half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
     half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 

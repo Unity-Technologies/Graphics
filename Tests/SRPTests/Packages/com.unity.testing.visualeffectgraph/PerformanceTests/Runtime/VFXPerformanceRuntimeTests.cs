@@ -72,7 +72,10 @@ namespace UnityEditor.VFX.PerformanceTest
             get
             {
                 yield return "PlayerLoop";
+                yield return "EarlyUpdate.PresentBeforeUpdate";
+                yield return "Gfx.WaitForPresentOnGfxThread";
                 yield return "PostLateUpdate.PresentAfterDraw";
+                yield return "NintendoCore.WaitPresentEnd";
                 yield return "WaitForTargetFPS";
                 yield return "GPU Frame Time";
                 yield return "VFX.MeshSystem.Render";

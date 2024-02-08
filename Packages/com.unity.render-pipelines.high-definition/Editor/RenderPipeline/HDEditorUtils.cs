@@ -386,6 +386,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 var targetDisplay = (int)targetDisplayProp.GetValue(gameView);
                 foreach (var camera in HDCamera.GetHDCameras())
                 {
+                    if (camera == null || camera.camera == null)
+                        continue;
                     if (camera.camera.cameraType == CameraType.Game && camera.camera.targetDisplay == targetDisplay)
                         visibleCamera.Add(camera);
                 }

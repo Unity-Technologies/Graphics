@@ -2,7 +2,7 @@
 
 URP calculates the frame-to-frame screen-space movement of surface fragments using a [motion vector render pass](#motion-vectors-pass). URP stores the movement data in a full-screen texture and the stored per-pixel values are called [motion vectors](#definition).
 
-Unity runs the motion vector render pass only when there are active features in the frame with render passes that request it. For example, the following URP features request the motion vector pass: [temporal anti-aliasing (TAA)](../anti-aliasing.md#temporal-anti-aliasing-taa) and [motion blur](../Post-Processing-Motion-Blur.md). For information on how to request the motion vector pass in a custom passes, refer to section [Using the motion vector texture in your passes](#motion-vector-texture-in-passes).
+Unity runs the motion vector render pass only when there are active features in the frame with render passes that request it. For example, the following URP features request the motion vector pass: [temporal anti-aliasing (TAA)](../anti-aliasing.md#taa) and [motion blur](../Post-Processing-Motion-Blur.md). For information on how to request the motion vector pass in a custom passes, refer to section [Using the motion vector texture in your passes](#motion-vector-texture-in-passes).
 
 Incorrect or missing motion vectors can result in [visual artifacts](#motion-vectors-accuracy) in effects that rely on them. Follow the instructions on this page to ensure that your object renderers, Materials, and shaders are set up correctly to support motion vectors.
 

@@ -19,32 +19,32 @@
 #if _RENDER_PASS_ENABLED
     #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
     #define GBUFFER_OPTIONAL_SLOT_1_TYPE float
-#if OUTPUT_SHADOWMASK && (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
-    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
-    #define GBUFFER_OPTIONAL_SLOT_3 GBuffer6
-    #define GBUFFER_LIGHT_LAYERS GBuffer5
-    #define GBUFFER_SHADOWMASK GBuffer6
-#elif OUTPUT_SHADOWMASK
-    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
-    #define GBUFFER_SHADOWMASK GBuffer5
-#elif (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
-    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
-    #define GBUFFER_LIGHT_LAYERS GBuffer5
-#endif //#if OUTPUT_SHADOWMASK && defined(_WRITE_RENDERING_LAYERS)
+    #if OUTPUT_SHADOWMASK && (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
+        #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+        #define GBUFFER_OPTIONAL_SLOT_3 GBuffer6
+        #define GBUFFER_LIGHT_LAYERS GBuffer5
+        #define GBUFFER_SHADOWMASK GBuffer6
+    #elif OUTPUT_SHADOWMASK
+        #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+        #define GBUFFER_SHADOWMASK GBuffer5
+    #elif (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
+        #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+        #define GBUFFER_LIGHT_LAYERS GBuffer5
+    #endif //#if OUTPUT_SHADOWMASK && defined(_WRITE_RENDERING_LAYERS)
 #else
     #define GBUFFER_OPTIONAL_SLOT_1_TYPE half4
-#if OUTPUT_SHADOWMASK && (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
-    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
-    #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
-    #define GBUFFER_LIGHT_LAYERS GBuffer4
-    #define GBUFFER_SHADOWMASK GBuffer5
-#elif OUTPUT_SHADOWMASK
-    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
-    #define GBUFFER_SHADOWMASK GBuffer4
-#elif (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
-    #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
-    #define GBUFFER_LIGHT_LAYERS GBuffer4
-#endif //#if OUTPUT_SHADOWMASK && defined(_WRITE_RENDERING_LAYERS)
+    #if OUTPUT_SHADOWMASK && (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
+        #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+        #define GBUFFER_OPTIONAL_SLOT_2 GBuffer5
+        #define GBUFFER_LIGHT_LAYERS GBuffer4
+        #define GBUFFER_SHADOWMASK GBuffer5
+    #elif OUTPUT_SHADOWMASK
+        #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+        #define GBUFFER_SHADOWMASK GBuffer4
+    #elif (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
+        #define GBUFFER_OPTIONAL_SLOT_1 GBuffer4
+        #define GBUFFER_LIGHT_LAYERS GBuffer4
+    #endif //#if OUTPUT_SHADOWMASK && defined(_WRITE_RENDERING_LAYERS)
 #endif //#if _RENDER_PASS_ENABLED
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
 #define kLightingLit       1  // lit shader

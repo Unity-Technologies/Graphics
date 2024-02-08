@@ -177,6 +177,18 @@ EditorBuildSettings:
     path: Assets/Scenes/260_RenderScale_SMAA.unity
     guid: e6d774fccaa5ca149b739c894e55bfe5
   - enabled: 1
+    path: Assets/Scenes/270_AlphaPassthrough_RT.unity
+    guid: 95e8cd59a1c530b46b7c83c26d1b4d49
+  - enabled: 1
+    path: Assets/Scenes/271_AlphaPassthrough_CameraStacking_RT.unity
+    guid: 44b832e2d1dbce64d9d11a322439a58f
+  - enabled: 1
+    path: Assets/Scenes/272_AlphaPassthrough.unity
+    guid: cfc20a1d45cee514e989b372a12203b7
+  - enabled: 1
+    path: Assets/Scenes/273_AlphaPassthrough_CameraStacking.unity
+    guid: f03108b27b564954db827275d62736da
+  - enabled: 1
     path: Assets/Scenes/373_HDROutput_ColorGamut.unity
     guid: cef44dde9c315e54fa9e5cfe6a04edbb
   - enabled: 1
@@ -185,5 +197,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/380_STP.unity
     guid: 2b1e933506b286343a1128073e1d94e4
+  - enabled: 1
+    path: Assets/Scenes/400_OcclusionCulling_RenderScale.unity
+    guid: f1830625a97eb7246a86205545f61297
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -358,14 +358,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float smoothnessFadeStart;
         public float smoothnessFadeDistance;
         public float roughnessEndValue;
-        // Color pyramid scale
-        public float colorPyramidScale;
+        public float padding1;
 
-        public Vector4 foamColor;
+        public Vector3 foamColor;
+        public float padding2;
 
         // Vertical direction of the water surface (used for SSR, Env Lighting, etc)
         public Vector3 upDirection;
-        public int colorPyramidMipOffset;
+        public float padding3;
 
         public int disableIOR;
         public float tipScatteringHeight;
@@ -373,9 +373,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float absorptionDistanceMultiplier;
     }
 
+    // This buffer contains surface data that mostly don't change
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    unsafe struct ShaderVariablesWater
+    unsafe struct ShaderVariablesWaterPerSurface
     {
+        // Transform of the water surface
+        public Matrix4x4 _WaterSurfaceTransform;
+        public Matrix4x4 _WaterSurfaceTransform_Inverse;
+
         // Per band data
         public Vector4 _PatchOrientation;
         public Vector4 _PatchWindSpeed;
@@ -460,42 +465,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float2 _WaterForwardXZ;
         // Deformation region resolution
         public int _DeformationRegionResolution;
-        public float _PaddingW1;
-
-        // Maximal horizontal displacement
-        public float _MaxWaveDisplacement;
-        // Maximal wave height of the current setup
-        public float _MaxWaveHeight;
-
-        // Current simulation time
-        public float _SimulationTime;
-        // Delta-time since the last simulation step
-        public float _DeltaTime;
-    }
-
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    unsafe struct ShaderVariablesWaterRendering
-    {
-        // Transform of the water surface
-        public Matrix4x4 _WaterSurfaceTransform;
-        public Matrix4x4 _WaterSurfaceTransform_Inverse;
-
-        // Offset of the patch w/r to the origin. w is used to scale the low res water mesh
-        public float2 _PatchOffset;
-        // Horizontal size of the grid in the horizontal plane
-        public float2 _GridSize;
-
-        // Size of the quad in world space (to cull non-infinite instanced quads)
-        public float2 _RegionExtent;
-        // Current Map Influence
-        public Vector2 _CurrentMapInfluence;
-
-        // Low res grid multiplier
-        public float _GridSizeMultiplier;
-        // Maximum LOD
-        public uint _MaxLOD;
-        // Maximum horizontal deformation
-        public float _MaxWaterDeformation;
         // Offset applied to the caustics LOD
         public float _CausticsMaxLOD;
 
@@ -507,6 +476,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CausticsShadowIntensity;
         // Blend distance
         public float _CausticsPlaneBlendDistance;
+
+        // Maximal horizontal displacement
+        public float _MaxWaveDisplacement;
+        // Maximal wave height of the current setup
+        public float _MaxWaveHeight;
+
+        // Current Map Influence
+        public Vector2 _CurrentMapInfluence;
 
         // Scale & offset of the large
         public Vector4 _Group0CurrentRegionScaleOffset;
@@ -522,11 +499,38 @@ namespace UnityEngine.Rendering.HighDefinition
         // Size of the range of the tessellation
         public float _WaterTessellationFadeRange;
 
-        // Ambient probe of the water system
-        public Vector4 _WaterAmbientProbe;
-
         // This matrix is used for caustics in case of a custom mesh
         public Matrix4x4 _WaterCustomTransform_Inverse;
+
+        // Below are the only data that needs to be changed every frame
+        // Currently the whole buffer is reupload anyway, but this should be changed
+
+        // Maximum horizontal deformation
+        public float _MaxWaterDeformation;
+        // Current simulation time
+        public float _SimulationTime;
+        // Delta-time since the last simulation step
+        public float _DeltaTime;
+        // Padding
+        public float _PaddingW1;
+    }
+
+    // This buffer contains surface data that vary per camera
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    unsafe struct ShaderVariablesWaterPerCamera
+    {
+        // Offset of the patch w/r to the origin. w is used to scale the low res water mesh
+        public float2 _PatchOffset;
+        // Horizontal size of the grid in the horizontal plane
+        public float2 _GridSize;
+
+        // Size of the quad in world space (to cull non-infinite instanced quads)
+        public float2 _RegionExtent;
+
+        // Low res grid multiplier
+        public float _GridSizeMultiplier;
+        // Maximum LOD
+        public uint _MaxLOD;
     }
 
     [GenerateHLSL(PackingRules.Exact, false)]

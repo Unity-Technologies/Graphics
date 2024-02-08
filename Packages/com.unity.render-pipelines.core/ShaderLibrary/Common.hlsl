@@ -1130,6 +1130,11 @@ float3 LatlongToDirectionCoordinate(float2 coord)
     return direction;
 }
 
+float2 OrientationToDirection(float orientation)
+{
+    return float2(cos(orientation), sin(orientation));
+}
+
 // ----------------------------------------------------------------------------
 // Depth encoding/decoding
 // ----------------------------------------------------------------------------

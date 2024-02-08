@@ -26,6 +26,6 @@ You can create multiple HDRP Assets containing different settings. This is usefu
 
 To change which HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the active Quality Level of the Quality Settings window (as shown above), or use the QualitySettings.renderPipeline property via script.
 
-To change which HDRP Asset your render pipeline uses by default, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or use the GraphicsSettings.renderPipelineAsset property via script.
+To change which HDRP Asset your render pipeline uses by default, either manually select an HDRP Asset in the [Graphics settings window](Default-Settings-Window.md), or use the GraphicsSettings.renderPipelineAsset property via script.
 
 When you create an HDRP Asset, open it in the Inspector to edit its properties.

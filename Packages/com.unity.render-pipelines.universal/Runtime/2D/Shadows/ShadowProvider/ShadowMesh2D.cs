@@ -297,8 +297,30 @@ namespace UnityEngine.Rendering.Universal
 
         }
 
+
+        bool AreDegenerateVertices(NativeArray<Vector3> vertices)
+        {
+            if (vertices == null || vertices.Length == 0)
+                return true;
+
+            // This should is a trade off between perfomance and accuracy. This may need to be refined later if we find cases where this is not good enough.
+            int prevIndex = vertices.Length - 1;
+            for (int i=0;i< vertices.Length; i++)
+            {
+                if (vertices[prevIndex].x != vertices[i].x || vertices[prevIndex].y != vertices[i].y)
+                    return false;
+
+                prevIndex = i;
+            }
+
+            return true;
+        }
+
         public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false)
         {
+            if (AreDegenerateVertices(vertices))
+                return;
+
             if (m_TrimEdge == k_TrimEdgeUninitialized)
                 m_TrimEdge = m_InitialTrim;
 

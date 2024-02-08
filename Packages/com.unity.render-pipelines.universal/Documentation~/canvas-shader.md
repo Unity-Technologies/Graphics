@@ -96,7 +96,7 @@ The following table describes the Surface Options in the Graph Settings:
 <td>**Alpha Clipping**</td>
 <td>
 
-Indicates whether this material acts like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html).<br/>For more information about the feature and for the list of properties this feature exposes, refer to [Alpha Clipping documentation](../../../Alpha-Clipping.md).
+Indicates whether this material acts like a [Cutout Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html).<br/>For more information about the feature and for the list of properties this feature exposes, refer to [Alpha Clipping documentation](../../com.unity.render-pipelines.high-definition/Documentation~/Alpha-Clipping.md).
 
 </td>
 </tr>

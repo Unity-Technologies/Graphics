@@ -538,6 +538,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!1 &446513390
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,6 +588,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &446513393
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -709,6 +711,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &534300669
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1289,7 +1292,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
-  includeDeformation: 0
+  includeDeformation: 1
+  outputNormal: 1
 --- !u!65 &988374819
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1412,6 +1416,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &1049207506
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1534,6 +1539,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &1101829605
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1914,6 +1920,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &1485866815
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2408,6 +2415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &1735536577
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2592,6 +2600,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 1
+  outputNormal: 0
 --- !u!65 &1747717254
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2714,6 +2723,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 1
+  outputNormal: 0
 --- !u!65 &1790949767
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2836,6 +2846,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &1873968866
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3065,6 +3076,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSurface: {fileID: 1530353650}
   includeDeformation: 0
+  outputNormal: 0
 --- !u!65 &1992721654
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -1,6 +1,6 @@
-# How to create a custom Renderer Feature
+# Example of a complete Scriptable Renderer Feature
 
-This section describes how to create a [custom Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.
+This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.
 
 This walkthrough contains the following sections:
 
@@ -12,7 +12,7 @@ This walkthrough contains the following sections:
 * [Implement the settings for the custom render pass](#implement-the-settings-for-the-custom-render-pass)
 * [Enqueue the render pass in the custom renderer feature](#enqueue-the-render-pass-in-the-custom-renderer-feature)
 * [Implement the volume component](#volume-component)
-* [Complete code for the scripts in this example](#complete-code-for-the-scripts-in-this-example)
+* [All complete code for the scripts in this example](#all-complete-code-for-the-scripts-in-this-example)
     * [Custom Renderer Feature code](#code-renderer-feature)
     * [Custom render pass code](#code-render-pass)
     * [Volume Component code](#code-volume-component)
@@ -20,7 +20,7 @@ This walkthrough contains the following sections:
 
 ## <a name="example-implementation-overview"></a>Overview of this example implementation
 
-The example workflow on this page implements a custom Renderer Feature that uses [custom Render Passes](./scriptable-renderer-features/intro-to-scriptable-render-passes.md) to add a blur effect to the camera output.
+The example workflow on this page implements a custom Renderer Feature that uses [custom Render Passes](./intro-to-scriptable-render-passes.md) to add a blur effect to the camera output.
 
 The implementation consists of the following parts:
 
@@ -420,7 +420,7 @@ This section shows how to implement a volume component that lets you control the
     }
     ```
 
-5. In the Unity scene, create a [local Box Volume](../Volumes.md). If a [Volume Profile](../VolumeProfile.md) is missing, create a new one by clicking **New** next to the **Profile** property. Add the `Custom Volume Component` [override](../VolumeOverrides.md) to the Volume.
+5. In the Unity scene, create a [local Box Volume](../Volumes.md). If a [Volume Profile](../Volume-Profile.md) is missing, create a new one by clicking **New** next to the **Profile** property. Add the `Custom Volume Component` [override](../VolumeOverrides.md) to the Volume.
 
     ![Box Volume properties](../Images/customizing-urp/custom-renderer-feature/local-volume.png)
 

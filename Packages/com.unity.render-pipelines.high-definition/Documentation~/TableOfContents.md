@@ -291,7 +291,7 @@
   * [HDRP Wizard reference](Render-Pipeline-Wizard.md)
   * [Volume component reference](volume-component.md)
   * [Frame Settings reference](frame-settings-reference.md)
-  * [HDRP Global Settings window reference](Default-Settings-Window.md)
+  * [HDRP graphics settings window reference](Default-Settings-Window.md)
   * [Lighting reference](lighting-reference.md) 
     * [Light component reference](reference-light-component.md)
     * [Lighting environment reference](reference-lighting-environment.md)

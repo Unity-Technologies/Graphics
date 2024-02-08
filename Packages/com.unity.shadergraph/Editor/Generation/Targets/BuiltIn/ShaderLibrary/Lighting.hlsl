@@ -588,14 +588,6 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 // Realtime GI is not supported.
 half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 {
-#ifdef UNITY_LIGHTMAP_FULL_HDR
-    bool encodedLightmap = false;
-#else
-    bool encodedLightmap = true;
-#endif
-
-    half4 decodeInstructions = half4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0h, 0.0h);
-
     // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
     // However, builtin pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
     // the compiler will optimize the transform away.
@@ -604,9 +596,9 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
     return SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
         TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
-        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, true);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
+    return SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, true);
 #else
     return half3(0.0, 0.0, 0.0);
 #endif

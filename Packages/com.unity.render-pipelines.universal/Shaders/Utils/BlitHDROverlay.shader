@@ -3,8 +3,6 @@ Shader "Hidden/Universal/BlitHDROverlay"
     HLSLINCLUDE
         #pragma target 2.0
         #pragma editor_sync_compilation
-        #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
-        #pragma multi_compile _ BLIT_SINGLE_SLICE
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
         // Core.hlsl for XR dependencies

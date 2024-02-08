@@ -741,6 +741,9 @@ namespace UnityEditor
         ////////////////////////////////////
         #region MaterialDataFunctions
 
+        internal static event Action<Material> ShadowCasterPassEnabledChanged;
+        internal static event Action<Material> MotionVectorPassEnabledChanged;
+
         // this function is shared with ShaderGraph Lit/Unlit GUIs and also the hand-written GUIs
         internal static void UpdateMaterialSurfaceOptions(Material material, bool automaticRenderQueue)
         {
@@ -773,7 +776,13 @@ namespace UnityEditor
                     castShadows = Rendering.Universal.ShaderGUI.LitGUI.IsOpaque(material);
                 }
             }
-            material.SetShaderPassEnabled("ShadowCaster", castShadows);
+
+            string shadowCasterPass = "ShadowCaster";
+            if (material.GetShaderPassEnabled(shadowCasterPass) != castShadows)
+            {
+                material.SetShaderPassEnabled(shadowCasterPass, castShadows);
+                ShadowCasterPassEnabledChanged?.Invoke(material);
+            }
 
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
@@ -815,7 +824,12 @@ namespace UnityEditor
 
             // Calling this always as we might be in a situation where the material's shader was just changed to one
             // which doesn't have a pass with the { "LightMode" = "MotionVectors" } tag so we want to stop disabling
-            material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, motionVectorPassEnabled);
+            string motionVectorPass = MotionVectorRenderPass.k_MotionVectorsLightModeTag;
+            if (material.GetShaderPassEnabled(motionVectorPass) != motionVectorPassEnabled)
+            {
+                material.SetShaderPassEnabled(motionVectorPass, motionVectorPassEnabled);
+                MotionVectorPassEnabledChanged?.Invoke(material);
+            }
         }
 
         // this function is shared between ShaderGraph and hand-written GUIs

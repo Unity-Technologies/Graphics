@@ -93,7 +93,9 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP5", tapMode == TapMode.Tap5);
             CoreUtils.SetKeyword(cmd, "_DRAW_NORMALS_TAP9", tapMode == TapMode.Tap9);
 
-            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1f / viewport.width, 1f / viewport.height, width * -viewport.x * 2, height * -viewport.y * 2));
+            // Remove test case scaling as it adds noise.
+            //cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1f / viewport.width, 1f / viewport.height, width * -viewport.x * 2, height * -viewport.y * 2));
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1, 1, 0, 0));
             cmd.SetViewport(new Rect(width * viewport.x, height * viewport.y, width * viewport.width, height * viewport.height));
             Blitter.BlitTexture(cmd,  Vector2.one, m_Material, 0);
             cmd.SetViewProjectionMatrices(world, proj);

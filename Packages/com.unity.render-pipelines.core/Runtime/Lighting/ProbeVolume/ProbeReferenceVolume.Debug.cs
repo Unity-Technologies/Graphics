@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Show in red probes that have been made invalid by adjustment volumes. Important to note that this debug view will only show result for volumes still present in the scene.
         /// </summary>
-        InvalidatedByTouchupVolumes,
+        InvalidatedByAdjustmentVolumes,
         /// <summary>
         /// Based on size
         /// </summary>
@@ -94,6 +94,10 @@ namespace UnityEngine.Rendering
         public int otherStateIndex = 0;
         public bool verboseStreamingLog;
         public bool debugStreaming = false;
+        public bool autoDrawProbes = true;
+        public bool isolationProbeDebug = true;
+
+        static internal int s_ActiveAdjustmentVolumes = 0;
 
         public ProbeVolumeDebug()
         {
@@ -123,6 +127,8 @@ namespace UnityEngine.Rendering
             displayCellStreamingScore = false;
             displayIndexFragmentation = false;
             otherStateIndex = 0;
+            autoDrawProbes = true;
+            isolationProbeDebug = true;
         }
 
         public Action GetReset() => () => Init();
@@ -592,6 +598,28 @@ namespace UnityEngine.Rendering
             probeContainer.children.Add(new DebugUI.FloatField { displayName = "Debug Draw Distance", tooltip = "How far from the Scene Camera to draw probe debug visualizations. Large distances can impact Editor performance.", getter = () => probeVolumeDebug.probeCullingDistance, setter = value => probeVolumeDebug.probeCullingDistance = value, min = () => 0.0f });
             widgetList.Add(probeContainer);
 
+            var adjustmentContainer = new DebugUI.Container()
+            {
+                displayName = "Probe Adjustment Volumes"
+            };
+            adjustmentContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Auto Display Probes",
+                tooltip = "When enabled and a Probe Adjustment Volumes is selected, automatically display the probes.",
+                getter = () => probeVolumeDebug.autoDrawProbes,
+                setter = value => probeVolumeDebug.autoDrawProbes = value,
+                onValueChanged = RefreshDebug
+            });
+            adjustmentContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Isolate Affected",
+                tooltip = "When enabled, only displayed probes in the influence of the currently selected Probe Adjustment Volumes.",
+                getter = () => probeVolumeDebug.isolationProbeDebug,
+                setter = value => probeVolumeDebug.isolationProbeDebug = value,
+                onValueChanged = RefreshDebug
+            });
+            widgetList.Add(adjustmentContainer);
+
             var streamingContainer = new DebugUI.Container()
             {
                 displayName = "Streaming",
@@ -781,21 +809,22 @@ namespace UnityEngine.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
-        static void UpdateDebugFromSelection(out Vector4[] _AdjustmentVolumeBounds, out int _AdjustmentVolumeCount)
+        static Vector4[] s_BoundsArray = new Vector4[16];
+
+        static void UpdateDebugFromSelection(ref Vector4[] _AdjustmentVolumeBounds, ref int _AdjustmentVolumeCount)
         {
-            _AdjustmentVolumeBounds = new Vector4[16];
-            _AdjustmentVolumeCount = 0;
+            if (ProbeVolumeDebug.s_ActiveAdjustmentVolumes == 0)
+                return;
 
             #if UNITY_EDITOR
-            foreach (var go in Selection.gameObjects)
+            foreach (var touchup in Selection.GetFiltered<ProbeAdjustmentVolume>(SelectionMode.Unfiltered))
             {
-                if (!go.TryGetComponent<ProbeTouchupVolume>(out var touchup)) continue;
-                if (!go.activeInHierarchy || !touchup.isActiveAndEnabled) continue;
+                if (!touchup.isActiveAndEnabled) continue;
 
                 Volume volume = new Volume(Matrix4x4.TRS(touchup.transform.position, touchup.transform.rotation, touchup.GetExtents()), 0, 0);
                 volume.CalculateCenterAndSize(out Vector3 center, out var _);
 
-                if (touchup.shape == ProbeTouchupVolume.Shape.Sphere)
+                if (touchup.shape == ProbeAdjustmentVolume.Shape.Sphere)
                 {
                     volume.Z.x = float.MaxValue;
                     volume.X.x = touchup.radius;
@@ -817,12 +846,62 @@ namespace UnityEngine.Rendering
             #endif
         }
 
+        bool ShouldCullCell(Vector3 cellPosition, Vector4[] adjustmentVolumeBounds, int adjustmentVolumeCount)
+        {
+            var cellSize = MaxBrickSize();
+            Vector3 cellCenterWS = cellPosition * cellSize + Vector3.one * (cellSize / 2.0f);
+            var cellAABB = new Bounds(cellCenterWS, cellSize * Vector3.one);
+
+            for (int touchup = 0; touchup < adjustmentVolumeCount; touchup++)
+            {
+                Vector3 center = adjustmentVolumeBounds[touchup * 3 + 0];
+
+                if (adjustmentVolumeBounds[touchup * 3].w == float.MaxValue) // sphere
+                {
+                    var diameter = adjustmentVolumeBounds[touchup * 3 + 1].x * 2.0f;
+                    Bounds bounds = new Bounds(center, new Vector3(diameter, diameter, diameter));
+
+                    if (bounds.Intersects(cellAABB))
+                        return false;
+                }
+                else
+                {
+                    Volume volume = new Volume();
+                    volume.X = adjustmentVolumeBounds[touchup * 3 + 1];
+                    volume.Y = adjustmentVolumeBounds[touchup * 3 + 2];
+                    volume.Z = new Vector3(adjustmentVolumeBounds[touchup * 3 + 0].w, adjustmentVolumeBounds[touchup * 3 + 1].w, adjustmentVolumeBounds[touchup * 3 + 2].w);
+
+                    volume.corner = center - volume.X - volume.Y - volume.Z;
+                    volume.X *= 2.0f;
+                    volume.Y *= 2.05f;
+                    volume.Z *= 2.0f;
+
+                    if (ProbeVolumePositioning.OBBAABBIntersect(volume, cellAABB, volume.CalculateAABB()))
+                        return false;
+                }
+            }
+            return true;
+        }
+
         void DrawProbeDebug(Camera camera, Texture exposureTexture)
         {
             if (!enabledBySRP || !isInitialized)
                 return;
 
-            if (!probeVolumeDebug.drawProbes && !probeVolumeDebug.drawVirtualOffsetPush &&!probeVolumeDebug.drawProbeSamplingDebug)
+            bool drawProbes = probeVolumeDebug.drawProbes;
+            bool debugDraw = drawProbes ||
+                             probeVolumeDebug.drawVirtualOffsetPush ||
+                             probeVolumeDebug.drawProbeSamplingDebug;
+
+            int adjustmentVolumeCount = 0;
+            Vector4[] adjustmentVolumeBounds = s_BoundsArray;
+            if (!debugDraw && probeVolumeDebug.autoDrawProbes)
+            {
+                UpdateDebugFromSelection(ref adjustmentVolumeBounds, ref adjustmentVolumeCount);
+                drawProbes |= adjustmentVolumeCount != 0;
+            }
+
+            if (!debugDraw && !drawProbes)
                 return;
 
             GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
@@ -871,9 +950,13 @@ namespace UnityEngine.Rendering
             int minSubdivToVisualize = Mathf.Clamp(probeVolumeDebug.minSubdivToVisualize, minAvailableSubdiv, maxSubdivToVisualize);
             m_MaxSubdivVisualizedIsMaxAvailable = maxSubdivToVisualize == GetMaxSubdivision() - 1;
 
+            bool adjustmentCulling = drawProbes && !probeVolumeDebug.drawProbes && probeVolumeDebug.isolationProbeDebug;
             foreach (var cell in cells.Values)
             {
                 if (ShouldCullCell(cell.desc.position, camera.transform, m_DebugFrustumPlanes))
+                    continue;
+
+                if (adjustmentCulling && ShouldCullCell(cell.desc.position, adjustmentVolumeBounds, adjustmentVolumeCount))
                     continue;
 
                 var debug = CreateInstancedProbes(cell);
@@ -894,11 +977,10 @@ namespace UnityEngine.Rendering
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
                     props.SetTexture("_ExposureTexture", exposureTexture);
 
-                    if (probeVolumeDebug.drawProbes)
+                    if (drawProbes)
                     {
-                        UpdateDebugFromSelection(out var bounds, out var count);
-                        m_DebugMaterial.SetVectorArray("_TouchupVolumeBounds", bounds);
-                        m_DebugMaterial.SetInt("_AdjustmentVolumeCount", count);
+                        m_DebugMaterial.SetVectorArray("_TouchupVolumeBounds", adjustmentVolumeBounds);
+                        m_DebugMaterial.SetInt("_AdjustmentVolumeCount", probeVolumeDebug.isolationProbeDebug ? adjustmentVolumeCount : 0);
 
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
@@ -918,9 +1000,8 @@ namespace UnityEngine.Rendering
 
                     if (probeVolumeDebug.drawVirtualOffsetPush)
                     {
-                        UpdateDebugFromSelection(out var bounds, out var count);
-                        m_DebugOffsetMaterial.SetVectorArray("_TouchupVolumeBounds", bounds);
-                        m_DebugOffsetMaterial.SetInt("_AdjustmentVolumeCount", count);
+                        m_DebugOffsetMaterial.SetVectorArray("_TouchupVolumeBounds", adjustmentVolumeBounds);
+                        m_DebugOffsetMaterial.SetInt("_AdjustmentVolumeCount", probeVolumeDebug.isolationProbeDebug ? adjustmentVolumeCount : 0);
 
                         var offsetBuffer = debug.offsetBuffers[i];
                         Graphics.DrawMeshInstanced(m_DebugOffsetMesh, 0, m_DebugOffsetMaterial, offsetBuffer, offsetBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);

@@ -14,7 +14,12 @@
 
         if (!ShouldCull(o))
         {
-            if (_DebugProbeVolumeSampling) // Only sampled probes (8 of them) should be shown, the other should be culled
+            float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+            if (_AdjustmentVolumeCount > 0 && !IsInSelection(probePosition_WS))
+            {
+                DoCull(o);
+            }
+            else if (_DebugProbeVolumeSampling) // Only sampled probes (8 of them) should be shown, the other should be culled
             {
                 float4 debugPosition = _positionNormalBuffer[0];
                 float4 debugNormal = _positionNormalBuffer[1];
@@ -158,9 +163,14 @@
         o.vertex = 0;
         o.normal = 0;
 
+        float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 1.0f, 1.0f)).xyz;
         float3 offset = UNITY_ACCESS_INSTANCED_PROP(Props, _Offset).xyz;
         float offsetLenSqr = dot(offset, offset);
         if (offsetLenSqr <= 1e-6f)
+        {
+            DoCull(o);
+        }
+        else if (_AdjustmentVolumeCount > 0 && !IsInSelection(probePosition_WS))
         {
             DoCull(o);
         }

@@ -12,7 +12,7 @@ To enable SSR:
 
 1. Open your HDRP Asset in the Inspector.
 2. Go to **Lighting** > **Reflections** and enable **Screen Space Reflection**.
-3. Go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Reflection**.
+3. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Reflection**.
 
 ## Set up screen space reflection
 

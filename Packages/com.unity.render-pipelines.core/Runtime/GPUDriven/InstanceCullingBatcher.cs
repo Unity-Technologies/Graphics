@@ -1081,5 +1081,15 @@ namespace UnityEngine.Rendering
             if(compactedVisibilityMasks.IsCreated)
                 m_BatchersContext.UpdatePerFrameInstanceVisibility(compactedVisibilityMasks);
         }
+
+        public void OnBeginCameraRendering(Camera camera)
+        {
+            m_Culler.OnBeginCameraRendering(camera);
+        }
+
+        public void OnEndCameraRendering(Camera camera)
+        {
+            m_Culler.OnEndCameraRendering(camera);
+        }
     }
 }

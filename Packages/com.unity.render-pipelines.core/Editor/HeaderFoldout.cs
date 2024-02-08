@@ -5,15 +5,19 @@ using UnityEngine.UIElements;
 namespace UnityEditor.Rendering
 {
     /// <summary> UITK component to display header styled foldout</summary>
-    public class HeaderFoldout : Foldout
+    [UxmlElement]
+    public partial class HeaderFoldout : Foldout
     {
         const string k_StylesheetPathFormat = "Packages/com.unity.render-pipelines.core/Editor/StyleSheets/HeaderFoldout{0}.uss";
         const string k_Class = "header-foldout";
+        const string k_IconName = "header-foldout__icon";
 
         private string m_DocumentationURL;
+        private Texture2D m_Icon;
         private Func<GenericMenu> m_ContextMenuGenerator;
         private VisualElement m_HelpButton;
         private VisualElement m_ContextMenuButton;
+        private VisualElement m_IconElement;
 
         /// <summary>URL to use on documentation icon. If null, button don't show.</summary>
         public string documentationURL
@@ -29,7 +33,7 @@ namespace UnityEditor.Rendering
             }
         }
         
-        /// <summary>Context menu to show on clic of the context button. If null, button don't show.</summary>
+        /// <summary>Context menu to show on click of the context button. If null, button don't show.</summary>
         public Func<GenericMenu> contextMenuGenerator //Use ImGUI for now
         {
             get => m_ContextMenuGenerator;
@@ -40,6 +44,21 @@ namespace UnityEditor.Rendering
 
                 m_ContextMenuGenerator = value;
                 m_ContextMenuButton?.SetEnabled(m_ContextMenuGenerator != null);
+            }
+        }
+        
+        /// <summary>Optional icon image. If not set, no icon is shown.</summary>
+        public Texture2D icon
+        {
+            get => m_Icon;
+            set
+            {
+                if (m_Icon == value)
+                    return;
+
+                m_Icon = value;
+                m_IconElement.style.backgroundImage = Background.FromTexture2D(m_Icon);
+                m_IconElement.style.display = m_Icon != null ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
 
@@ -61,6 +80,12 @@ namespace UnityEditor.Rendering
             m_ContextMenuButton = new Button(Background.FromTexture2D(CoreEditorStyles.paneOptionsIcon), () => ShowMenu());
             m_ContextMenuButton.SetEnabled(m_ContextMenuGenerator != null);
             line.Add(m_ContextMenuButton);
+            
+            m_IconElement = new Image();
+            m_IconElement.name = k_IconName;
+            m_IconElement.style.display = DisplayStyle.None; // Disable by default, will be enabled if icon is set
+            // Delay insertion of icon to happen after foldout is constructed so we can put it in the right place
+            RegisterCallbackOnce<AttachToPanelEvent>(evt => line.Insert(1, m_IconElement));
         }
 
         void DelayedInit(AttachToPanelEvent evt)

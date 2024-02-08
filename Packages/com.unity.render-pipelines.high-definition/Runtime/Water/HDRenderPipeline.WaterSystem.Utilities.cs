@@ -36,6 +36,44 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static internal int EvaluateBandCount(WaterSurfaceType surfaceType, bool ripplesOn)
+        {
+            switch (surfaceType)
+            {
+                case WaterSurfaceType.OceanSeaLake:
+                    return ripplesOn ? 3 : 2;
+                case WaterSurfaceType.River:
+                    return ripplesOn ? 2 : 1;
+                case WaterSurfaceType.Pool:
+                    return 1;
+            }
+            return 1;
+        }
+
+        static internal int EvaluateCPUBandCount(WaterSurfaceType surfaceType, bool ripplesOn, bool evaluateRipplesCPU)
+        {
+            return EvaluateBandCount(surfaceType, ripplesOn && evaluateRipplesCPU);
+        }
+
+        static float EvaluateCausticsMaxLOD(WaterSurface.WaterCausticsResolution resolution)
+        {
+            switch (resolution)
+            {
+                case WaterSurface.WaterCausticsResolution.Caustics256:
+                    return 2.0f;
+                case WaterSurface.WaterCausticsResolution.Caustics512:
+                    return 3.0f;
+                case WaterSurface.WaterCausticsResolution.Caustics1024:
+                    return 4.0f;
+            }
+            return 2.0f;
+        }
+
+        static internal int SanitizeCausticsBand(int band, int bandCount)
+        {
+            return Mathf.Min(band, bandCount - 1);
+        }
+
         static internal float EvaluateFrequencyOffset(WaterSimulationResolution resolution)
         {
             switch (resolution)
@@ -298,39 +336,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WATER_LOCAL_CURRENT", false);
         }
 
-        static internal int SanitizeCausticsBand(int band, int bandCount)
-        {
-            return Mathf.Min(band, bandCount - 1);
-        }
-
-        static internal int EvaluateBandCount(WaterSurfaceType surfaceType, bool ripplesOn)
-        {
-            switch (surfaceType)
-            {
-                case WaterSurfaceType.OceanSeaLake:
-                    return ripplesOn ? 3 : 2;
-                case WaterSurfaceType.River:
-                    return ripplesOn ? 2 : 1;
-                case WaterSurfaceType.Pool:
-                    return 1;
-            }
-            return 1;
-        }
-
-        static internal int EvaluateCPUBandCount(WaterSurfaceType surfaceType, bool ripplesOn, bool evaluateRipplesCPU)
-        {
-            switch (surfaceType)
-            {
-                case WaterSurfaceType.OceanSeaLake:
-                    return evaluateRipplesCPU ? (ripplesOn ? 3 : 2) : 2;
-                case WaterSurfaceType.River:
-                    return evaluateRipplesCPU ? (ripplesOn ? 1 : 1) : 1;
-                case WaterSurfaceType.Pool:
-                    return 1;
-            }
-            return 1;
-        }
-
         static bool FindPassIndex(Material material, string passName, out int passIndex)
         {
             passIndex = material.FindPass(passName);
@@ -344,98 +349,88 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex, int lowResPassIndex,
-            GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
+        static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData, int passIndex, int lowResPassIndex)
         {
-            var cb = parameters.waterRenderingCB;
+            var cb = surfaceData.sharedPerCameraDataArray[surfaceData.surfaceIndex];
 
             bool drawCentralPatch = true;
-            bool drawInfinitePatch = parameters.drawInfiniteMesh;
-            if (!parameters.infinite)
+            bool drawInfinitePatch = surfaceData.drawInfiniteMesh;
+            if (!surfaceData.infinite)
             {
                 drawCentralPatch = all(abs(cb._PatchOffset) < cb._RegionExtent + cb._GridSize * 0.5f);
 
-                if (parameters.drawInfiniteMesh)
+                if (surfaceData.drawInfiniteMesh)
                     drawInfinitePatch = all(abs(cb._PatchOffset) < abs(cb._RegionExtent - cb._GridSize * 0.5f));
             }
 
             // Draw everything beyond distance fade with a single flat mesh
             if (drawInfinitePatch)
-                cmd.DrawMesh(parameters.ringMeshLow, Matrix4x4.identity, parameters.waterMaterial, 0, lowResPassIndex, parameters.mbp);
+                cmd.DrawMesh(parameters.ringMeshLow, Matrix4x4.identity, surfaceData.waterMaterial, 0, lowResPassIndex, surfaceData.mpb);
 
             // Draw high res grid under the camera
             if (drawCentralPatch)
-                cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, parameters.waterMaterial, 0, passIndex, parameters.mbp);
+                cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, surfaceData.waterMaterial, 0, passIndex, surfaceData.mpb);
 
             // Draw the remaining patches
             if (cb._MaxLOD > 0)
             {
-                // Makes both constant buffers are properly injected
-                ConstantBuffer.Set<ShaderVariablesWater>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWater);
-                ConstantBuffer.Set<ShaderVariablesWaterRendering>(cmd, parameters.waterSimulation, HDShaderIDs._ShaderVariablesWaterRendering);
+                int patchEvaluation = surfaceData.infinite ? parameters.patchEvaluationInfinite : parameters.patchEvaluation;
+
+                // Make sure both constant buffers are properly injected
+                BindPerSurfaceConstantBuffer(cmd, parameters.waterSimulation, surfaceData.perSurfaceCB);
 
                 // Prepare the indirect parameters
-                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterPatchDataRW, patchDataBuffer);
-                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._WaterInstanceDataRW, indirectBuffer);
-                cmd.SetComputeBufferParam(parameters.waterSimulation, parameters.patchEvaluation, HDShaderIDs._FrustumGPUBuffer, cameraFrustumBuffer);
-                cmd.DispatchCompute(parameters.waterSimulation, parameters.patchEvaluation, 1, 1, 1);
-
-                parameters.mbp.SetBuffer(HDShaderIDs._WaterPatchData, patchDataBuffer);
+                cmd.SetComputeConstantBufferParam(parameters.waterSimulation, HDShaderIDs._ShaderVariablesWaterPerCamera, parameters.perCameraCB, 0, parameters.perCameraCB.stride);
+                cmd.SetComputeBufferParam(parameters.waterSimulation, patchEvaluation, HDShaderIDs._WaterPatchDataRW, parameters.patchDataBuffer);
+                cmd.SetComputeBufferParam(parameters.waterSimulation, patchEvaluation, HDShaderIDs._WaterInstanceDataRW, parameters.indirectBuffer);
+                cmd.DispatchCompute(parameters.waterSimulation, patchEvaluation, 1, 1, 1);
 
                 // Draw all the patches
-                cmd.DrawMeshInstancedIndirect(parameters.ringMesh, 0, parameters.waterMaterial, passIndex, indirectBuffer, 0, parameters.mbp);
+                cmd.DrawMeshInstancedIndirect(parameters.ringMesh, 0, surfaceData.waterMaterial, passIndex, parameters.indirectBuffer, 0, surfaceData.mpb);
             }
         }
 
-        static void DrawMeshRenderers(CommandBuffer cmd, WaterRenderingParameters parameters, int passIndex)
+        static void DrawMeshRenderers(CommandBuffer cmd, ref WaterSurfaceGBufferData surfaceData, int passIndex)
         {
-            int numMeshRenderers = parameters.meshRenderers.Count;
+            int numMeshRenderers = surfaceData.meshRenderers.Count;
             for (int meshRenderer = 0; meshRenderer < numMeshRenderers; ++meshRenderer)
             {
-                MeshRenderer currentRenderer = parameters.meshRenderers[meshRenderer];
-                if (currentRenderer != null)
+                MeshRenderer currentRenderer = surfaceData.meshRenderers[meshRenderer];
+                if (currentRenderer != null && currentRenderer.TryGetComponent(out MeshFilter filter))
                 {
-                    MeshFilter filter;
-                    currentRenderer.TryGetComponent(out filter);
-                    if (filter != null)
-                    {
-                        Mesh mesh = filter.sharedMesh;
-                        int numSubMeshes = mesh.subMeshCount;
-                        for (int subMeshIdx = 0; subMeshIdx < numSubMeshes; ++subMeshIdx)
-                            cmd.DrawMesh(mesh, currentRenderer.transform.localToWorldMatrix, parameters.waterMaterial, subMeshIdx, passIndex, parameters.mbp);
-                    }
+                    Mesh mesh = filter.sharedMesh;
+                    int numSubMeshes = mesh.subMeshCount;
+                    for (int subMeshIdx = 0; subMeshIdx < numSubMeshes; ++subMeshIdx)
+                        cmd.DrawMesh(mesh, currentRenderer.transform.localToWorldMatrix, surfaceData.waterMaterial, subMeshIdx, passIndex, surfaceData.mpb);
                 }
             }
         }
 
-        static void DrawWaterSurface(CommandBuffer cmd, WaterRenderingParameters parameters, string[] passNames,
-            GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer)
+        static void DrawWaterSurface(CommandBuffer cmd, string[] passNames, WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData)
         {
             int lowResPassIndex = 0;
-            bool missingPass = !FindPassIndex(parameters.waterMaterial, passNames[0], out var passIndex);
-            if (parameters.instancedQuads)
-                missingPass |= !FindPassIndex(parameters.waterMaterial, passNames[1], out lowResPassIndex);
+            bool missingPass = !FindPassIndex(surfaceData.waterMaterial, passNames[0], out var passIndex);
+            if (surfaceData.instancedQuads)
+                missingPass |= !FindPassIndex(surfaceData.waterMaterial, passNames[1], out lowResPassIndex);
             if (missingPass)
                 return;
 
-            // Bind the constant buffers
-            ConstantBuffer.Set<ShaderVariablesWater>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWater);
-            ConstantBuffer.Set<ShaderVariablesWaterRendering>(parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterRendering);
+            surfaceData.mpb.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerCamera, parameters.perCameraCB, 0, parameters.perCameraCB.stride);
 
-            if (parameters.instancedQuads)
+            if (surfaceData.instancedQuads)
             {
-                DrawInstancedQuads(cmd, parameters, passIndex, lowResPassIndex, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
+                DrawInstancedQuads(cmd, parameters, ref surfaceData, passIndex, lowResPassIndex);
             }
             else
             {
                 // Based on if this is a custom mesh or not trigger the right geometry/geometries and shader pass
-                if (!parameters.customMesh)
+                if (!surfaceData.customMesh)
                 {
-                    cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, parameters.waterMaterial, 0, passIndex, parameters.mbp);
+                    cmd.DrawMesh(parameters.tessellableMesh, Matrix4x4.identity, surfaceData.waterMaterial, 0, passIndex, surfaceData.mpb);
                 }
                 else
                 {
-                    DrawMeshRenderers(cmd, parameters, passIndex);
+                    DrawMeshRenderers(cmd, ref surfaceData, passIndex);
                 }
             }
         }

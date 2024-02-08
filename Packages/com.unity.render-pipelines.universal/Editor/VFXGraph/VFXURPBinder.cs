@@ -13,6 +13,18 @@ namespace UnityEditor.VFX.URP
 {
     class VFXURPBinder : VFXSRPBinder
     {
+        public VFXURPBinder()
+        {
+            BaseShaderGUI.ShadowCasterPassEnabledChanged += OnShadowCasterPassEnabledChanged;
+            BaseShaderGUI.MotionVectorPassEnabledChanged += OnMotionVectorPassEnabledChanged;
+        }
+
+        ~VFXURPBinder()
+        {
+            BaseShaderGUI.ShadowCasterPassEnabledChanged -= OnShadowCasterPassEnabledChanged;
+            BaseShaderGUI.MotionVectorPassEnabledChanged -= OnMotionVectorPassEnabledChanged;
+        }
+
         public override string templatePath { get { return "Packages/com.unity.render-pipelines.universal/Editor/VFXGraph/Shaders"; } }
         public override string runtimePath { get { return "Packages/com.unity.render-pipelines.universal/Runtime/VFXGraph/Shaders"; } }
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
@@ -37,9 +49,15 @@ namespace UnityEditor.VFX.URP
 
         public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
-            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);
-            material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
+            if (!hasMotionVector)
+                material.shaderKeywords = material.shaderKeywords.Append(disableMotionVectorKeyword).ToArray();
+            if (!hasShadowCasting)
+                material.shaderKeywords = material.shaderKeywords.Append(disableShadowCasterKeyword).ToArray();
+
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
+            material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
+
+            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader, shaderGraph);
         }
 
         public override bool AllowMaterialOverride(ShaderGraphVfxAsset shaderGraph)
@@ -149,6 +167,44 @@ namespace UnityEditor.VFX.URP
                 }
             }
             return string.Empty;
+        }
+
+        private const string disableShadowCasterKeyword = "__VFX_DISABLE_SHADOW_CASTER";
+        public static bool DoesVFXControlShadowCaster(Material material, out bool vfxShadowCasterEnabled)
+        {
+            vfxShadowCasterEnabled = false;
+            // Currently only controls shadow caster pass to disable it.
+            if (material.shaderKeywords.Contains(disableShadowCasterKeyword))
+            {
+                vfxShadowCasterEnabled = false;
+                return true;
+            }
+            return false;
+        }
+
+        static void OnShadowCasterPassEnabledChanged(Material material)
+        {
+            if (DoesVFXControlShadowCaster(material, out bool vfxShadowCasterEnabled))
+                material.SetShaderPassEnabled("ShadowCaster", vfxShadowCasterEnabled);
+        }
+
+        private const string disableMotionVectorKeyword = "__VFX_DISABLE_MOTION_VECTOR";
+        public static bool DoesVFXControlMotionVector(Material material, out bool vfxMotionVectorEnabled)
+        {
+            vfxMotionVectorEnabled = false;
+            // Currently only controls motion vector pass to disable it.
+            if (material.shaderKeywords.Contains(disableMotionVectorKeyword))
+            {
+                vfxMotionVectorEnabled = false;
+                return true;
+            }
+            return false;
+        }
+
+        static void OnMotionVectorPassEnabledChanged(Material material)
+        {
+            if (DoesVFXControlMotionVector(material, out bool vfxMotionVectorEnabled))
+                material.SetShaderPassEnabled("MotionVectors", vfxMotionVectorEnabled);
         }
 
         static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection

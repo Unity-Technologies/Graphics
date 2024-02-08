@@ -38,7 +38,7 @@ public class Buoyancy : MonoBehaviour
     [Tooltip("When enabled, a bunch of gizmos will show showing in blue, the position of the sampling for normals, in magenta the computed normal, in green the direction of the deformation force, in red the direction of the current force, and in a yellow sphere, the approximation volume the buoyancy calculations.")]
     public bool drawDebug = false;
     
-    private Vector3 currentDirectionWS;
+    private Vector3 currentDirection;
     private Vector3 A, B, C;
     private Vector3 waterPosition;
     private Vector3 normal;
@@ -56,7 +56,7 @@ public class Buoyancy : MonoBehaviour
         // The script doesn't use ridigbody's gravity nor drag. 
         // Only angularDrag is used.  
         rigidbodyComponent.useGravity = false;
-        rigidbodyComponent.drag = defaultRigidbodyDrag;
+        rigidbodyComponent.linearDamping = defaultRigidbodyDrag;
         
         if(targetSurface == null)
             Debug.LogWarning("The variable 'targetSurface' needs a valid Water Surface to be assigned for the script to work properly.");
@@ -67,9 +67,8 @@ public class Buoyancy : MonoBehaviour
     {
         if (targetSurface != null)
         {
-            // Retrieving informations for computing buoyancy;
-            waterPosition = FindWaterPositionAtPoint(this.transform.position);
-            normal = FindNormalAtPoint(this.transform.position, sphereRadiusApproximation);
+            // Retrieving informations to compute buoyancy;
+            FetchWaterSurfaceData(this.transform.position, out waterPosition, out normal, out currentDirection);
             deformationDirection = Vector3.ProjectOnPlane(normal, Vector3.up);
             
             // height of the object that is below the surface. 0 means overwater
@@ -81,7 +80,7 @@ public class Buoyancy : MonoBehaviour
             // Volume of sphere that is below the surface in m3. This only applies if we approximate the volume of the object as a sphere. 
             float volumeOfFluidDisplaced = (Mathf.PI * h * h / 3f) * (3 * sphereRadiusApproximation - h);            
 
-            rigidbodyComponent.angularDrag = Mathf.Lerp(overwaterRigidbodyAngularDrag, underwaterRigidbodyAngularDrag, hNormalized);
+            rigidbodyComponent.angularDamping = Mathf.Lerp(overwaterRigidbodyAngularDrag, underwaterRigidbodyAngularDrag, hNormalized);
 
             Vector3 weight = rigidbodyComponent.mass * Physics.gravity; // Weight of the object            
             Vector3 gravityForce = Vector3.Lerp(Physics.gravity, weight, hNormalized);
@@ -97,8 +96,8 @@ public class Buoyancy : MonoBehaviour
             Vector3 archimedesForce = -waterDensity * volumeOfFluidDisplaced * Physics.gravity;
 
             // Drag forces (Stokes' Law)
-            Vector3 dragForceAir = 6 * Mathf.PI * sphereRadiusApproximation * airViscosity * -rigidbodyComponent.velocity;
-            Vector3 dragForceWater = 6 * Mathf.PI * sphereRadiusApproximation * waterViscosity * -rigidbodyComponent.velocity;
+            Vector3 dragForceAir = 6 * Mathf.PI * sphereRadiusApproximation * airViscosity * -rigidbodyComponent.linearVelocity;
+            Vector3 dragForceWater = 6 * Mathf.PI * sphereRadiusApproximation * waterViscosity * -rigidbodyComponent.linearVelocity;
             Vector3 dragForce = Vector3.Lerp(dragForceAir, dragForceWater, hNormalized) * dragMultiplier;
             
             // Terminal velocities
@@ -116,7 +115,7 @@ public class Buoyancy : MonoBehaviour
             // If our object is at the interface of the water surface, this is to avoid the object bouncing too much and simulation surface tension damping
             if (hNormalized > 0 &&  hNormalized < 1)
             {
-                Vector3 upwardVelocity = Vector3.Dot(rigidbodyComponent.velocity, Physics.gravity.normalized) * Physics.gravity.normalized;
+                Vector3 upwardVelocity = Vector3.Dot(rigidbodyComponent.linearVelocity, Physics.gravity.normalized) * Physics.gravity.normalized;
                 Vector3 dampingForce = -upwardVelocity * surfaceTensionDamping;
                 rigidbodyComponent.AddForce(dampingForce, ForceMode.Acceleration);
                 
@@ -124,43 +123,48 @@ public class Buoyancy : MonoBehaviour
                 rigidbodyComponent.AddForce(deformationDirection * waveForceMultiplier);
                 
                 // Adding force for currents.
-                rigidbodyComponent.AddForce(currentDirectionWS * currentSpeedMultiplier);
+                rigidbodyComponent.AddForce(currentDirection * currentSpeedMultiplier);
             } 
 
             // Preventing our object to reach a velocity higher than its terminal velocity in the current medium (air or water).
-            if (rigidbodyComponent.velocity.magnitude > terminalVelocity)
+            if (rigidbodyComponent.linearVelocity.magnitude > terminalVelocity)
             {
-                rigidbodyComponent.velocity = rigidbodyComponent.velocity.normalized * terminalVelocity;
+                rigidbodyComponent.linearVelocity = rigidbodyComponent.linearVelocity.normalized * terminalVelocity;
             }
 
         }
     }
     
-    private Vector3 FindWaterPositionAtPoint(Vector3 point)
+    private Vector3 FetchWaterSurfaceData(Vector3 point, out Vector3 positionWS, out Vector3 normalWS, out Vector3 currentDirectionWS)
     {
-        WaterSearchParameters searchParametersPosition = new WaterSearchParameters();
-        WaterSearchResult searchResultPosition = new WaterSearchResult();
+        WaterSearchParameters searchParameters = new WaterSearchParameters();
+        WaterSearchResult searchResult = new WaterSearchResult();
         
         // Build the search parameters
-        searchParametersPosition.startPositionWS = searchResultPosition.candidateLocationWS;
-        searchParametersPosition.targetPositionWS = point;
-        searchParametersPosition.error = 0.01f;
-        searchParametersPosition.maxIterations = 8;
-        searchParametersPosition.includeDeformation = includeDeformation;
+        searchParameters.startPositionWS = searchResult.candidateLocationWS;
+        searchParameters.targetPositionWS = point;
+        searchParameters.error = 0.01f;
+        searchParameters.maxIterations = 8;
+        searchParameters.includeDeformation = includeDeformation;
+        searchParameters.outputNormal = true;
 
-        Vector3 waterPosition = Vector3.zero;
+        // Init the out variable with default values. 
+        positionWS = searchResult.candidateLocationWS;
+        normalWS = Vector3.up;
+        currentDirectionWS = Vector3.right; 
         
         // Do the search
-        if (targetSurface.ProjectPointOnWaterSurface(searchParametersPosition, out searchResultPosition))
+        if (targetSurface.ProjectPointOnWaterSurface(searchParameters, out searchResult))
         {
-            waterPosition = searchResultPosition.projectedPositionWS;   
-            currentDirectionWS = searchResultPosition.currentDirectionWS;
+            positionWS = searchResult.projectedPositionWS;   
+            currentDirectionWS = searchResult.currentDirectionWS;
+            normalWS = searchResult.normalWS;
         }
         
         // Needed when geometry type is set to custom mesh 
         Vector3 offsetY = isWaterSurfaceACustomMesh ? Vector3.up * targetSurface.transform.position.y : Vector3.zero;
         
-        return waterPosition + offsetY;
+        return positionWS + offsetY;
     }
 	
 	public Vector3 GetCurrentWaterPosition()
@@ -168,6 +172,7 @@ public class Buoyancy : MonoBehaviour
 		return waterPosition;
 	}
     
+    // Keeping this function for learning purpose but not needed anymore since we can fetch the normal directly from FetchWaterSurfaceData function
     private Vector3 FindNormalAtPoint(Vector3 point, float sampleDistance)
     {
         A = point + new Vector3(sampleDistance * Mathf.Cos(0     * Mathf.PI/180), 0, sampleDistance * Mathf.Sin(0     * Mathf.PI/180));
@@ -257,7 +262,7 @@ public class Buoyancy : MonoBehaviour
             
             // Draws a red line to show the force for the current.
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, transform.position + currentDirectionWS);
+            Gizmos.DrawLine(transform.position, transform.position + currentDirection);
             
             // Draws in yellow a sphere representing the sphere used for volume approximation
             Gizmos.color = Color.yellow;

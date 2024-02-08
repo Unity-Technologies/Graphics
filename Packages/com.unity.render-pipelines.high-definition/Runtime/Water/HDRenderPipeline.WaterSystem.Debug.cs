@@ -7,98 +7,88 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        void RenderWaterMaskDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        ShaderVariablesWaterDebug[] m_WaterDebugCBs = new ShaderVariablesWaterDebug[k_MaxNumWaterSurfaceProfiles];
+
+        class WaterRenderingMaskData : WaterRenderingData
         {
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!waterGBuffer.debugRequired || !ShouldRenderWater(hdCamera))
+            public ShaderVariablesWaterDebug[] waterDebugCBs;
+        }
+
+        void RenderWaterMask(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        {
+            if (waterGBuffer.debugRequired)
+                RenderWaterDebug(renderGraph, hdCamera, colorBuffer, depthBuffer, false);
+        }
+
+        void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, bool debugDisplay)
+        {
+            if (!ShouldRenderWater(hdCamera))
                 return;
 
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
-
-            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
+            using (var builder = renderGraph.AddRenderPass<WaterRenderingMaskData>("Render Water Surface Mask Debug", out var passData, ProfilingSampler.Get(HDProfileId.WaterMaskDebug)))
             {
-                // Grab the current water surface
-                WaterSurface currentWater = waterSurfaces[surfaceIdx];
+                WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
+                PrepareWaterRenderingData(passData, hdCamera);
 
-                // If the resources are invalid, we cannot render this surface
-                if (currentWater.debugMode == WaterDebugMode.None)
-                    continue;
+                passData.waterDebugCBs = m_WaterDebugCBs;
 
-                // Render the water surface
-                RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
-            }
-        }
+                var waterSurfaces = WaterSurface.instancesAsArray;
+                for (int surfaceIdx = 0; surfaceIdx < passData.numSurfaces; ++surfaceIdx)
+                {
+                    // Grab the current water surface
+                    WaterSurface currentWater = waterSurfaces[surfaceIdx];
+                    ref var surfaceData = ref passData.surfaces[surfaceIdx];
 
-        class WaterRenderingMaskData
-        {
-            // All the parameters required to simulate and render the water
-            public WaterRenderingParameters parameters;
-            public ShaderVariablesWaterDebug waterDebugCB;
+                    surfaceData.renderDebug = debugDisplay || currentWater.debugMode != WaterDebugMode.None;
+                    if (!surfaceData.renderDebug) continue;
 
-            // Simulation buffers
-            public TextureHandle displacementBuffer;
-            public TextureHandle additionalDataBuffer;
-            public TextureHandle foamData;
-            public TextureHandle deformationBuffer;
-            public TextureHandle deformationSGBuffer;
+                    // Prepare all the internal parameters
+                    PrepareSurfaceGBufferData(hdCamera, settings, currentWater, surfaceIdx, ref surfaceData);
 
-            // Other resources
-            public BufferHandle indirectBuffer;
-            public BufferHandle patchDataBuffer;
-            public BufferHandle frustumBuffer;
-        }
+                    // Debug Data
+                    ref var debugCB = ref passData.waterDebugCBs[surfaceIdx];
+                    debugCB._WaterDebugMode = (int)currentWater.debugMode;
+                    debugCB._WaterMaskDebugMode = (int)currentWater.waterMaskDebugMode;
+                    debugCB._WaterCurrentDebugMode = (int)currentWater.waterCurrentDebugMode;
+                    debugCB._CurrentDebugMultiplier = currentWater.currentDebugMultiplier;
+                    debugCB._WaterFoamDebugMode = (int)currentWater.waterFoamDebugMode;
 
-        void RenderWaterSurfaceMask(RenderGraph renderGraph, HDCamera hdCamera, WaterSurface currentWater, WaterRendering settings, int surfaceIdx, TextureHandle colorBuffer, TextureHandle depthBuffer)
-        {
-            using (var builder = renderGraph.AddRenderPass<WaterRenderingMaskData>("Render Water Surface Mask Debug", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingMaskDebug)))
-            {
-                // Prepare all the internal parameters
-                passData.parameters = PrepareWaterRenderingParameters(hdCamera, settings, currentWater, surfaceIdx, false);
-                passData.waterDebugCB._WaterDebugMode = (int) currentWater.debugMode;
-                passData.waterDebugCB._WaterMaskDebugMode = (int) currentWater.waterMaskDebugMode;
-                if (currentWater.waterCurrentDebugMode == WaterCurrentDebugMode.Large)
-                    passData.waterDebugCB._WaterCurrentDebugMode = 0;
-                else
-                    passData.waterDebugCB._WaterCurrentDebugMode = currentWater.ripplesMotionMode == WaterPropertyOverrideMode.Custom ? 1 : 0;
-                passData.waterDebugCB._CurrentDebugMultiplier = currentWater.currentDebugMultiplier;
-                passData.waterDebugCB._WaterFoamDebugMode = (int)currentWater.waterFoamDebugMode;
+                    if (currentWater.waterCurrentDebugMode == WaterCurrentDebugMode.Ripples && currentWater.ripplesMotionMode == WaterPropertyOverrideMode.Inherit)
+                        debugCB._WaterCurrentDebugMode = (int)WaterCurrentDebugMode.Large;
+                    if (currentWater.surfaceType == WaterSurfaceType.Pool)
+                        debugCB._WaterCurrentDebugMode = (int)WaterCurrentDebugMode.Ripples;
+                }
 
-                // Allocate all the intermediate textures
+                // Output buffers
                 builder.UseColorBuffer(colorBuffer, 0);
                 builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-
-                // Import all the textures into the system
-                passData.displacementBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
-                passData.additionalDataBuffer = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
-                passData.foamData = passData.parameters.foam ? renderGraph.ImportTexture(currentWater.FoamBuffer()) : renderGraph.defaultResources.blackTexture;
-                passData.deformationBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationBuffer) : renderGraph.defaultResources.blackTexture;
-                passData.deformationSGBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationSGBuffer) : renderGraph.defaultResources.blackTexture;
-
-                // For GPU culling
-                passData.indirectBuffer = renderGraph.ImportBuffer(m_WaterIndirectDispatchBuffer);
-                passData.patchDataBuffer = renderGraph.ImportBuffer(m_WaterPatchDataBuffer);
-                passData.frustumBuffer = renderGraph.ImportBuffer(m_WaterCameraFrustrumBuffer);
 
                 // Request the output textures
                 builder.SetRenderFunc(
                     (WaterRenderingMaskData data, RenderGraphContext ctx) =>
                     {
-                        SetupCommonRenderingData(ctx.cmd, data.displacementBuffer, data.additionalDataBuffer, TextureXR.GetBlackTexture(),
-                            data.foamData, data.deformationBuffer, data.deformationSGBuffer, data.parameters);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._WaterSectorData, data.sectorDataBuffer);
+                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._WaterPatchData, data.patchDataBuffer);
+                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._FrustumGPUBuffer, data.frustumBuffer);
 
                         // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
                         ctx.cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, (int)CullMode.Off);
 
-                        // Bind the debug constant buffer
-                        ConstantBuffer.Push(ctx.cmd, data.waterDebugCB, data.parameters.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
+                        for (int surfaceIdx = 0; surfaceIdx < data.numSurfaces; ++surfaceIdx)
+                        {
+                            ref var surfaceData = ref data.surfaces[surfaceIdx];
 
-                        // For the debug mode, we don't bother using the indirect method as we do not care about perf.
-                        DrawWaterSurface(ctx.cmd, data.parameters, k_PassesWaterMask, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer);
+                            if (surfaceData.renderDebug)
+                            {
+                                ctx.cmd.SetBufferData(data.perCameraCB, surfaceData.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
+                                ConstantBuffer.Push(ctx.cmd, data.waterDebugCBs[surfaceIdx], surfaceData.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
-                        // Reset the keywords
-                        ResetWaterShaderKeyword(ctx.cmd);
+                                SetupWaterShaderKeyword(ctx.cmd, surfaceData.numActiveBands, surfaceData.activeCurrent);
+                                DrawWaterSurface(ctx.cmd, k_PassesWaterMask, data, ref surfaceData);
+                                ResetWaterShaderKeyword(ctx.cmd);
+                            }
+
+                        }
                     });
             }
         }

@@ -9,7 +9,7 @@ This page provides the basic workflow you need to use Probe Volumes in your proj
 1. Open the **Edit** menu and select **Project Settings** > **Quality** > **HDRP**.
 2. Expand **Lighting** > **Light Probe Lighting**.
 3. Set **Light Probe System** to **Probe Volumes**.
-4. Select **Graphics** > **HDRP Global Settings**.
+4. Select **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 5. Go to **Frame Settings**.
 6. Expand **Camera** > **Lighting** and enable **Probe Volumes**.
 

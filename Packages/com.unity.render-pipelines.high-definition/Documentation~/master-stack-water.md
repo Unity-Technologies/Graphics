@@ -28,7 +28,7 @@ See [Water Shader Graph nodes](Shader-Graph-Nodes.md) for more information.
 The water master stack shader graph has the following limitations:
 - When using a custom mesh, Vertex color is not imported in the Shader Graph, thus it cannot be used as an input for customizing the water surface appearence.
 - When disabling foam on the water surface, custom foam injected in the shader graph node is not affected. 
-- When sampling the scene color using the node HD Scene Color, make sure to disable **Dynamic Render Pass Culling** in the HDRP Global Settings to be sure to have the water surface rendered in the color buffer. (especially if the distortion feature is not used on the scene) 
+- When sampling the scene color using the node HD Scene Color, make sure to disable **Dynamic Render Pass Culling** in the [HDRP Graphics settings window](Default-Settings-Window.md) to be sure to have the water surface rendered in the color buffer. (especially if the distortion feature is not used on the scene) 
 - The UV node when in a water master stack is the world space position instead of the usual [0, 1] UV values. 
 ## Contexts
 

@@ -1,5 +1,3 @@
-#if UNITY_EDITOR
-
 namespace UnityEngine.Rendering
 {
     internal static class ProbeVolumePositioning
@@ -133,5 +131,3 @@ namespace UnityEngine.Rendering
         }
     }
 }
-
-#endif

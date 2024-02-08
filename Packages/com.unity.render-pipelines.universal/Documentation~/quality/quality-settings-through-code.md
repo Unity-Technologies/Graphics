@@ -133,7 +133,7 @@ You can change some properties of the URP Asset at runtime with C# scripts. This
 
 > **Note**: To change a property of the URP Asset with a C# script, the property must have a `set` method. For more information on these properties refer to [Accessible Properties](#accessible-properties).
 
-The following example uses the QualityControls script and QualityController object from the [Change Quality Level through code](#change-quality-level-through-code) section, and extends the functionality to locate the active URP Asset and change some of its properties to fit the performance level of the hardware.
+The following example uses the QualityControls script and QualityController object from the [Change Quality Level](#change-quality-level) section, and extends the functionality to locate the active URP Asset and change some of its properties to fit the performance level of the hardware.
 
 1. Open the QualityControls script.
 2. At the top of the script add `using UnityEngine.Rendering` and `using UnityEngine.Rendering.Universal`.

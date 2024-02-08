@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         [InspectorName("Auto Register Diffusion Profiles")]
-        [Tooltip("When enabled, diffusion profiles referenced by an imported material will be automatically added to the diffusion profile list in the HDRP Global Settings.")]
+        [Tooltip("When enabled, diffusion profiles referenced by an imported material will be automatically added to the Diffusion Profile List under Project Settings > Graphics > HDRP > Default Volume.")]
         private bool m_AutoRegisterDiffusionProfiles;
         #endregion
 

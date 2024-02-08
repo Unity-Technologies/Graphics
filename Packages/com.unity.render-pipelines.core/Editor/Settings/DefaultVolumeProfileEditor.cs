@@ -75,6 +75,8 @@ namespace UnityEditor.Rendering
 
             CreateComponentLists();
 
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+
             return m_Root;
         }
 
@@ -140,12 +142,19 @@ namespace UnityEditor.Rendering
             }
         }
 
+        void OnUndoRedoPerformed()
+        {
+            VolumeManager.instance.OnVolumeProfileChanged(m_Profile);
+        }
+
         /// <summary>
         /// Destroy all Editors owned by this class
         /// </summary>
         public void Destroy()
         {
             m_Categories.Destroy();
+
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
         /// <summary>

@@ -201,5 +201,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d966c23bcf6b0a442ab0a600f4d3d8f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thresholdSpeed: 2
-  maxSpeed: 12
+  prefab: {fileID: 8147672144557667316, guid: 955fa66aa1d829b45a46a3db0974ccbf, type: 3}
+  thresholdSpeed: 0.5

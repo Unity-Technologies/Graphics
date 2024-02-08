@@ -572,10 +572,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.runVolumeVoxelizationAsync, frameSettingsData.IsEnabled(FrameSettingsField.VolumeVoxelizationsAsync));
 
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableBigTilePrepass, frameSettingsData.IsEnabled(FrameSettingsField.BigTilePrepass));
-                Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableComputeLightEvaluation, frameSettingsData.IsEnabled(FrameSettingsField.ComputeLightEvaluation));
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableComputeLightVariants, frameSettingsData.IsEnabled(FrameSettingsField.ComputeLightVariants));
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableComputeMaterialVariants, frameSettingsData.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
-                Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableDeferredTileAndCluster, frameSettingsData.IsEnabled(FrameSettingsField.DeferredTile));
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableFptlForForwardOpaque, frameSettingsData.IsEnabled(FrameSettingsField.FPTLForForwardOpaque));
 
 
@@ -610,10 +608,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.VolumeVoxelizationsAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.VolumeVoxelizationsAsync]);
 
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.BigTilePrepass) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.BigTilePrepass]);
-                Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.ComputeLightEvaluation) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ComputeLightEvaluation]);
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.ComputeLightVariants) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ComputeLightVariants]);
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.ComputeMaterialVariants) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ComputeMaterialVariants]);
-                Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.TileAndCluster) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.DeferredTile]);
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.FptlForForwardOpaque) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.FPTLForForwardOpaque]);
             }
         }

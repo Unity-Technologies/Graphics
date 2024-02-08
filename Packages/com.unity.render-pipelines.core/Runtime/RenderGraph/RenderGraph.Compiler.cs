@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal NativeRenderPassCompiler.NativePassCompiler CompileNativeRenderGraph(int graphHash)
         {
-            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(NativeRenderPassCompiler.NativePassCompiler.NativeCompilerProfileId.NRPRGComp_Compile)))
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.CompileRenderGraph)))
             {
                 if (nativeCompiler == null)
                     nativeCompiler = new NativeRenderPassCompiler.NativePassCompiler(m_CompilationCache);
@@ -38,15 +38,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         void ExecuteNativeRenderGraph()
         {
-            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(NativeRenderPassCompiler.NativePassCompiler.NativeCompilerProfileId.NRPRGComp_Execute)))
+            using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.ExecuteRenderGraph)))
             {
                 nativeCompiler.ExecuteGraph(m_RenderGraphContext, m_Resources, m_RenderPasses);
+
+                if (m_RenderGraphContext.contextlessTesting == false)
+                    m_RenderGraphContext.renderContext.ExecuteCommandBuffer(m_RenderGraphContext.cmd);
+
+                m_RenderGraphContext.cmd.Clear();
             }
-
-            if (m_RenderGraphContext.contextlessTesting == false)
-                m_RenderGraphContext.renderContext.ExecuteCommandBuffer(m_RenderGraphContext.cmd);
-
-            m_RenderGraphContext.cmd.Clear();
         }
     }
 }

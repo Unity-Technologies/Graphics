@@ -151,8 +151,8 @@ void SixWayBakedDiffuseLighting(BSDFData bsdfData, inout BuiltinData builtinData
 
     bool alphaPremultipled = (_BlendMode == BLENDINGMODE_PREMULTIPLY);
 
-    const float3 L0 = float3(bsdfData.bakeDiffuseLighting0.w, bsdfData.bakeDiffuseLighting1.w, bsdfData.bakeDiffuseLighting2.w);
-    const float3 diffuseGIData[3] = { bsdfData.bakeDiffuseLighting0.xyz, bsdfData.bakeDiffuseLighting1.xyz, bsdfData.tangentWS.w * bsdfData.bakeDiffuseLighting2.xyz};
+    const real3 L0 = real3(bsdfData.bakeDiffuseLighting0.w, bsdfData.bakeDiffuseLighting1.w, bsdfData.bakeDiffuseLighting2.w);
+    const real3 diffuseGIData[3] = { bsdfData.bakeDiffuseLighting0.xyz, bsdfData.bakeDiffuseLighting1.xyz, bsdfData.tangentWS.w * bsdfData.bakeDiffuseLighting2.xyz};
 
 
     builtinData.bakeDiffuseLighting = GetSixWayDiffuseContributions(bsdfData.rightTopBack, bsdfData.leftBottomFront,

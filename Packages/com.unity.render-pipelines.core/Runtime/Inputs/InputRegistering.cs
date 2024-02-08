@@ -72,11 +72,14 @@ namespace UnityEngine
 
         static void AddEntriesWithoutCheck(SerializedProperty spAxes, List<InputManagerEntry> newEntries)
         {
+            if (newEntries.Count == 0)
+                return;
+
             int endOfCurrentInputList = spAxes.arraySize;
             spAxes.arraySize = endOfCurrentInputList + newEntries.Count;
-
-            SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(endOfCurrentInputList - 1);
-            spAxis.Next(false);
+            // Assignment to spAxes.arraySize resizes the spAxes array to at least 1 larger than it used to be, and 
+            // therefore it is OK to use endOfCurrentInputList ("one-past-end of previous size") to get the array iterator.
+            SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(endOfCurrentInputList);
             for (int i = 0; i < newEntries.Count; ++i, spAxis.Next(false))
                 CopyEntry(spAxis, newEntries[i]);
         }
@@ -86,6 +89,9 @@ namespace UnityEngine
         {
             int size = spAxes.arraySize;
             List<(string name, InputManagerEntry.Kind kind)> result = new List<(string name, InputManagerEntry.Kind kind)>(size);
+
+            if (size == 0)
+                return result;
 
             SerializedProperty spAxis = spAxes.GetArrayElementAtIndex(0);
             for (int i = 0; i < size; ++i, spAxis.Next(false))

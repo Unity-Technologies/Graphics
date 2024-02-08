@@ -355,15 +355,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Lighting
         [Header("Lighting")]
-        [SerializeField, ResourcePath("Runtime/Lighting/Deferred.Shader")]
-        private Shader m_DeferredPS;
-
-        public Shader deferredPS
-        {
-            get => m_DeferredPS;
-            set => this.SetValueAndNotify(ref m_DeferredPS, value);
-        }
-
         [SerializeField, ResourcePath("Runtime/Lighting/PlanarReflectionFiltering.compute")]
         private ComputeShader m_PlanarReflectionFilteringCS;
 
@@ -481,15 +472,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_DeferredCS;
             set => this.SetValueAndNotify(ref m_DeferredCS, value);
-        }
-
-        [SerializeField, ResourcePath("Runtime/Lighting/LightLoop/DeferredTile.shader")]
-        private Shader m_DeferredTilePS;
-
-        public Shader deferredTilePS
-        {
-            get => m_DeferredTilePS;
-            set => this.SetValueAndNotify(ref m_DeferredTilePS, value);
         }
         #endregion
 

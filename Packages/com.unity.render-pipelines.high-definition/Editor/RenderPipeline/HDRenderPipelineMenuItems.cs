@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             hdLight.flareSize = 0.0f;
 
             light.colorTemperature = 4100;
-            hdLight.intensity = 0.5f; // 0.5 lux is actually a bit more than max moon light intensity on a full moon
+            light.intensity = 0.5f; // 0.5 lux is actually a bit more than max moon light intensity on a full moon
 
             if (GraphicsSettings.TryGetRenderPipelineSettings<HDRenderPipelineEditorTextures>(out var defaultRenderPipelineTextures))
             {

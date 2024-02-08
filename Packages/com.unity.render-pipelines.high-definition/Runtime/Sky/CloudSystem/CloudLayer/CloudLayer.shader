@@ -67,13 +67,14 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
         color.rgb *= GetCurrentExposureMultiplier();
         RenderOutput output;
 
+        if (color.a != 0.0f)
         {
             float linearDepth = IntersectSphere(_LowestAltitude(0), -V.y, _PlanetaryRadius).y;
             float3 positionWS = -V * linearDepth;
 
             // Compute pos inputs
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, positionWS);
-            posInput.linearDepth = linearDepth;
+            posInput.linearDepth = linearDepth * dot(-V, GetViewForwardDir());
             posInput.deviceDepth = UNITY_NEAR_CLIP_VALUE; // unused, just to avoid culling
 
             // Apply atmospheric fog

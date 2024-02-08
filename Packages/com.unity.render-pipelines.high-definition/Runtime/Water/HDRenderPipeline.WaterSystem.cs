@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 #endif
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -26,6 +28,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_WaterEvaluationCS;
         int m_FindVerticalDisplacementsKernel;
 
+        // Constant buffer
+        GraphicsBuffer m_ShaderVariablesWaterPerCamera;
+
         // The shader passes used to render the water
         Material m_InternalWaterMaterial;
         Mesh m_GridMesh, m_RingMesh, m_RingMeshLow;
@@ -42,14 +47,14 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly static string[] k_PassesGBufferTessellation = new string[] { k_WaterGBufferPass + k_TessellationPass, k_LowResGBufferPass };
         readonly static string[] k_PassesWaterMask = new string[] { k_WaterMaskPass, k_WaterMaskPass + k_LowResGBufferPass };
 
-
         // Other internal rendering data
         MaterialPropertyBlock m_WaterMaterialPropertyBlock;
-        ShaderVariablesWater m_ShaderVariablesWater = new ShaderVariablesWater();
 
         // Handles the water profiles
         const int k_MaxNumWaterSurfaceProfiles = 16;
         WaterSurfaceProfile[] m_WaterSurfaceProfileArray = new WaterSurfaceProfile[k_MaxNumWaterSurfaceProfiles];
+        WaterSurfaceGBufferData[] m_WaterGBufferDataArray = new WaterSurfaceGBufferData[k_MaxNumWaterSurfaceProfiles];
+        ShaderVariablesWaterPerCamera[] m_ShaderVariablesPerCameraArray = new ShaderVariablesWaterPerCamera[k_MaxNumWaterSurfaceProfiles];
         GraphicsBuffer m_WaterProfileArrayGPU;
 
         // Caustics data
@@ -63,9 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Local Currents
         Texture2D m_WaterSectorData;
 
-        // Ambient probe evaluation for the water
-        Vector4 m_WaterAmbientProbe;
-
+        #region Initialization
         void InitializeWaterSystem()
         {
             m_ActiveWaterSystem = m_Asset.currentPlatformRenderPipelineSettings.supportWater;
@@ -74,11 +77,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DefaultWaterLineBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 3, sizeof(uint));
             m_DefaultWaterLineBuffer.SetData(new uint[] { 0xFFFFFFFF, 0, 2 });
 
-            m_WaterProfileArrayGPU = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_MaxNumWaterSurfaceProfiles, System.Runtime.InteropServices.Marshal.SizeOf<WaterSurfaceProfile>());
+            m_WaterProfileArrayGPU = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_MaxNumWaterSurfaceProfiles, UnsafeUtility.SizeOf<WaterSurfaceProfile>());
 
             // If the asset doesn't support water surfaces, nothing to do here
             if (!m_ActiveWaterSystem)
                 return;
+
+            m_ShaderVariablesWaterPerCamera = new GraphicsBuffer(GraphicsBuffer.Target.Constant, 1, UnsafeUtility.SizeOf<ShaderVariablesWaterPerCamera>());
 
             // Water simulation
             InitializeWaterSimulation();
@@ -130,57 +135,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeWaterFoam();
         }
 
-        void ReleaseWaterSystem()
-        {
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
-
-            // Loop through them and display them
-            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
-            {
-                WaterSurface waterSurface = waterSurfaces[surfaceIdx];
-                waterSurface.ReleaseResources();
-            }
-
-            // Release the default water line array
-            CoreUtils.SafeRelease(m_DefaultWaterLineBuffer);
-
-            // Release the water profile array
-            CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
-
-            // If the asset doesn't support water surfaces, nothing to do here
-            if (!m_ActiveWaterSystem)
-                return;
-
-            // Faom resources
-            ReleaseWaterFoam();
-
-            // Water deformers release
-            ReleaseWaterDeformers();
-
-            // Make sure the CPU simulation stuff is properly freed
-            ReleaseCPUWaterSimulation();
-
-            // Release the waterline underwater data
-            CoreUtils.SafeRelease(m_WaterCameraHeightBuffer);
-
-            // Release the caustics geometry
-            CoreUtils.Destroy(m_CausticsMaterial);
-            CoreUtils.SafeRelease(m_CausticsGeometry);
-
-            // Water rendering resources
-            CoreUtils.SafeRelease(m_WaterCameraFrustrumBuffer);
-            CoreUtils.SafeRelease(m_WaterPatchDataBuffer);
-            CoreUtils.SafeRelease(m_WaterIndirectDispatchBuffer);
-
-            // Simulation resources
-            ReleaseWaterSimulation();
-
-            // Free the meshes
-            m_GridMesh = m_RingMesh = m_RingMeshLow = null;
-        }
-
         void InitializeInstancingData()
         {
             // Allocate the indirect instancing buffer
@@ -214,8 +168,94 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateShaderVariablesWater(WaterSurface currentWater, int surfaceIndex, ref ShaderVariablesWater cb)
+        void ReleaseWaterSystem()
         {
+            // Grab all the water surfaces in the scene
+            var waterSurfaces = WaterSurface.instancesAsArray;
+            int numWaterSurfaces = WaterSurface.instanceCount;
+
+            // Loop through them and display them
+            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
+            {
+                WaterSurface waterSurface = waterSurfaces[surfaceIdx];
+                waterSurface.ReleaseResources();
+            }
+
+            // Release the default water line array
+            CoreUtils.SafeRelease(m_DefaultWaterLineBuffer);
+
+            // Release the water profile array
+            CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
+
+            // If the asset doesn't support water surfaces, nothing to do here
+            if (!m_ActiveWaterSystem)
+                return;
+
+            CoreUtils.SafeRelease(m_ShaderVariablesWaterPerCamera);
+
+            // Faom resources
+            ReleaseWaterFoam();
+
+            // Water deformers release
+            ReleaseWaterDeformers();
+
+            // Make sure the CPU simulation stuff is properly freed
+            ReleaseCPUWaterSimulation();
+
+            // Release the waterline underwater data
+            CoreUtils.SafeRelease(m_WaterCameraHeightBuffer);
+
+            // Release the caustics geometry
+            CoreUtils.Destroy(m_CausticsMaterial);
+            CoreUtils.SafeRelease(m_CausticsGeometry);
+
+            // Water rendering resources
+            CoreUtils.SafeRelease(m_WaterCameraFrustrumBuffer);
+            CoreUtils.SafeRelease(m_WaterPatchDataBuffer);
+            CoreUtils.SafeRelease(m_WaterIndirectDispatchBuffer);
+
+            // Simulation resources
+            ReleaseWaterSimulation();
+
+            // Free the meshes
+            m_GridMesh = m_RingMesh = m_RingMeshLow = null;
+        }
+        #endregion
+
+        #region Surface Update
+
+        /// <summary>
+        /// Computes the screen space size of an edge after camera projection
+        /// </summary>
+        /// <param name="hdCamera">camera</param>
+        /// <param name="cameraDistance">the distance between the edge and the camera</param>
+        /// <param name="sizeWS">the size of the edge in world space</param>
+        /// <returns>The screen space size</returns>
+        float ComputeScreenSpaceSize(HDCamera hdCamera, float cameraDistance, float sizeWS)
+        {
+            float4 positionWS = new float4(sizeWS, 0.0f, cameraDistance, 1.0f);
+            float4 positionCS = math.mul(hdCamera.mainViewConstants.nonJitteredProjMatrix, positionWS);
+            return math.abs(positionCS.x / positionCS.w) * 0.5f * hdCamera.actualWidth;
+        }
+
+        static void BindPerSurfaceConstantBuffer(CommandBuffer cmd, ComputeShader cs, GraphicsBuffer buffer)
+        {
+            cmd.SetComputeConstantBufferParam(cs, HDShaderIDs._ShaderVariablesWaterPerSurface, buffer, 0, buffer.stride);
+        }
+
+        void UpdatePerSurfaceConstantBuffer(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
+        {
+            ref var cb = ref currentWater.constantBufferData[0];
+
+            cb._MaxWaterDeformation = m_MaxWaterDeformation;
+            cb._SimulationTime = currentWater.simulation.simulationTime;
+            cb._DeltaTime = currentWater.simulation.deltaTime;
+
+            if (currentWater.timeMultiplier == 0.0f)
+                cb._DeltaTime = 1.0f; // This is to be able to see the foam generators even when time is paused
+
+            // all the data below mostly don't change from frame to frame
+
             // Resolution at which the simulation is evaluated
             cb._BandResolution = (uint)m_WaterBandResolution;
 
@@ -239,9 +279,6 @@ namespace UnityEngine.Rendering.HighDefinition
             PackBandData(currentWater.simulation, 2, out cb._Band2_ScaleOffset_AmplitudeMultiplier, out cb._Band2_Fade);
 
             cb._GroupOrientation = currentWater.simulation.spectrum.groupOrientation * Mathf.Deg2Rad;
-
-            // Current simulation time
-            cb._SimulationTime = currentWater.simulation.simulationTime;
 
             // Max wave height for the system
             float patchAmplitude = EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, cb._PatchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
@@ -272,15 +309,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // We currently only support properly up to 16 unique water surfaces
             cb._SurfaceIndex = surfaceIndex & 0xF;
 
-            cb._ScatteringColorTips = currentWater.scatteringColor; /*alpha is unsused*/
-            cb._DeltaTime = currentWater.timeMultiplier == 0.0f ? 1.0f : currentWater.simulation.deltaTime; // This is set to 1 when time is disabled to see the foam generators
-
             cb._MaxRefractionDistance = Mathf.Min(currentWater.absorptionDistance, currentWater.maxRefractionDistance);
 
             cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.absorptionDistance;
             cb._TransparencyColor = new Vector4(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
             cb._WaterUpDirection = new float4(currentWater.UpVector(), 1.0f);
 
+            cb._ScatteringColorTips = currentWater.scatteringColor; /*alpha is unsused*/
             cb._AmbientScattering = currentWater.ambientScattering;
             cb._HeightBasedScattering = currentWater.heightScattering;
             cb._DisplacementScattering = currentWater.displacementScattering;
@@ -321,52 +356,54 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DeformationRegionOffset = new Vector2(invertScale.x * deformationCenter.x + currentWater.transform.position.x, invertScale.y * deformationCenter.z + currentWater.transform.position.z);
             cb._DeformationRegionScale.Set(1.0f / currentWater.deformationAreaSize.x, 1.0f / currentWater.deformationAreaSize.y);
             cb._DeformationRegionResolution = (int)currentWater.deformationRes;
-        }
 
-        static float EvaluateCausticsMaxLOD(WaterSurface.WaterCausticsResolution resolution)
-        {
-            switch (resolution)
-            {
-                case WaterSurface.WaterCausticsResolution.Caustics256:
-                    return 2.0f;
-                case WaterSurface.WaterCausticsResolution.Caustics512:
-                    return 3.0f;
-                case WaterSurface.WaterCausticsResolution.Caustics1024:
-                    return 4.0f;
-            }
-            return 2.0f;
-        }
-
-        /// <summary>
-        /// Computes the screen space size of an edge after camera projection
-        /// </summary>
-        /// <param name="hdCamera">camera</param>
-        /// <param name="cameraDistance">the distance between the edge and the camera</param>
-        /// <param name="sizeWS">the size of the edge in world space</param>
-        /// <returns>The screen space size</returns>
-        float ComputeScreenSpaceSize(HDCamera hdCamera, float cameraDistance, float sizeWS)
-        {
-            float4 positionWS = new float4(sizeWS, 0.0f, cameraDistance, 1.0f);
-            float4 positionCS = math.mul(hdCamera.mainViewConstants.nonJitteredProjMatrix, positionWS);
-            return math.abs(positionCS.x / positionCS.w) * 0.5f * hdCamera.actualWidth;
-        }
-
-        void UpdateShaderVariablesWaterRendering(WaterSurface currentWater, HDCamera hdCamera, WaterRendering settings,
-                                                bool instancedQuads, bool infinite, bool customMesh,
-                                                float maxWaveDisplacement, float maxWaveHeight,
-                                                ref ShaderVariablesWaterRendering cb)
-        {
-            float3 waterPosition = currentWater.transform.position;
-            float2 extent = currentWater.IsProceduralGeometry() ? new Vector2(Mathf.Abs(currentWater.transform.lossyScale.x), Mathf.Abs(currentWater.transform.lossyScale.z)) : Vector2.one;
-
+            // Cautics
             cb._CausticsIntensity = currentWater.caustics ? currentWater.causticsIntensity : 0.0f;
             cb._CausticsShadowIntensity = currentWater.causticsDirectionalShadow ? currentWater.causticsDirectionalShadowDimmer : 1.0f;
             cb._CausticsPlaneBlendDistance = currentWater.causticsPlaneBlendDistance;
             cb._CausticsMaxLOD = EvaluateCausticsMaxLOD(currentWater.causticsResolution);
             cb._CausticsTilingFactor = 1.0f / currentWater.causticsTilingFactor;
 
-            cb._MaxWaterDeformation = m_MaxWaterDeformation;
-            cb._GridSizeMultiplier = 1.0f;
+            // Current maps
+            cb._Group0CurrentRegionScaleOffset.Set(invertScale.x / currentWater.largeCurrentRegionExtent.x, invertScale.y / currentWater.largeCurrentRegionExtent.y, currentWater.largeCurrentRegionOffset.x, -currentWater.largeCurrentRegionOffset.y);
+            if (currentWater.ripplesMotionMode == WaterPropertyOverrideMode.Inherit && currentWater.surfaceType != WaterSurfaceType.Pool)
+            {
+                cb._Group1CurrentRegionScaleOffset = cb._Group0CurrentRegionScaleOffset;
+                cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.largeCurrentMapInfluence);
+            }
+            else
+            {
+                cb._Group1CurrentRegionScaleOffset.Set(invertScale.x / currentWater.ripplesCurrentRegionExtent.x, invertScale.y / currentWater.ripplesCurrentRegionExtent.y, currentWater.ripplesCurrentRegionOffset.x, -currentWater.ripplesCurrentRegionOffset.y);
+                cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.ripplesCurrentMapInfluence);
+            }
+
+            // Tessellation
+            cb._WaterMaxTessellationFactor = currentWater.maxTessellationFactor;
+            cb._WaterTessellationFadeStart = currentWater.tessellationFactorFadeStart;
+            cb._WaterTessellationFadeRange = currentWater.tessellationFactorFadeRange;
+
+            // Bind the rendering layer data for decal layers
+            cb._WaterRenderingLayer = (uint)currentWater.renderingLayerMask;
+
+            // Evaluate the matrices
+            cb._WaterSurfaceTransform = currentWater.simulation.rendering.waterToWorldMatrix;
+            cb._WaterSurfaceTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrix;
+            cb._WaterCustomTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrixCustom;
+
+            ConstantBuffer.UpdateData(cmd, cb);
+            cmd.SetBufferData(currentWater.constantBuffer, currentWater.constantBufferData);
+        }
+
+        void UpdataPerCameraConstantBuffer(WaterSurface currentWater, HDCamera hdCamera, WaterRendering settings,
+                                            bool instancedQuads, bool infinite, bool customMesh,
+                                            ref ShaderVariablesWaterPerCamera cb)
+        {
+            float3 waterPosition = currentWater.transform.position;
+            float2 extent = currentWater.IsProceduralGeometry() ? new Vector2(Mathf.Abs(currentWater.transform.lossyScale.x), Mathf.Abs(currentWater.transform.lossyScale.z)) : Vector2.one;
+
+            ref var perSurfaceCB = ref currentWater.constantBufferData[0];
+            float maxWaveDisplacement = perSurfaceCB._MaxWaveDisplacement;
+            float maxWaveHeight = perSurfaceCB._MaxWaveHeight;
 
             // Rotation, size and offsets (patch, water mask and foam mask)
             if (instancedQuads)
@@ -438,35 +475,42 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cb._GridSizeMultiplier = (1 << (int)cb._MaxLOD) * 0.5f;
             }
-
-            var localScale = currentWater.transform.localScale;
-            Vector2 invertScale = new Vector2(localScale.x < 0.0f ? -1.0f : 1.0f, localScale.z < 0.0f ? -1.0f : 1.0f);
-
-            // Large Current
-            cb._Group0CurrentRegionScaleOffset.Set(invertScale.x / currentWater.largeCurrentRegionExtent.x, invertScale.y / currentWater.largeCurrentRegionExtent.y, currentWater.largeCurrentRegionOffset.x, -currentWater.largeCurrentRegionOffset.y);
-            if (currentWater.ripplesMotionMode == WaterPropertyOverrideMode.Inherit)
-            {
-                cb._Group1CurrentRegionScaleOffset = cb._Group0CurrentRegionScaleOffset;
-                cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.largeCurrentMapInfluence);
-            }
             else
-            {
-                cb._Group1CurrentRegionScaleOffset.Set(invertScale.x / currentWater.ripplesCurrentRegionExtent.x, invertScale.y / currentWater.ripplesCurrentRegionExtent.y, currentWater.ripplesCurrentRegionOffset.x, -currentWater.ripplesCurrentRegionOffset.y);
-                cb._CurrentMapInfluence.Set(currentWater.largeCurrentMapInfluence, currentWater.ripplesCurrentMapInfluence);
-            }
+                cb._GridSizeMultiplier = 1.0f;
+        }
 
-            // Tessellation
-            cb._WaterMaxTessellationFactor = currentWater.maxTessellationFactor;
-            cb._WaterTessellationFadeStart = currentWater.tessellationFactorFadeStart;
-            cb._WaterTessellationFadeRange = currentWater.tessellationFactorFadeRange;
+        void FillWaterSurfaceProfile(HDCamera hdCamera, WaterSurface waterSurface, int waterSurfaceIndex)
+        {
+            ref var cb = ref waterSurface.constantBufferData[0];
 
-            // Bind the rendering layer data for decal layers
-            cb._WaterRenderingLayer = (uint)currentWater.renderingLayerMask;
+            WaterSurfaceProfile profile = new WaterSurfaceProfile();
+            profile.maxRefractionDistance = cb._MaxRefractionDistance;
+            profile.renderingLayers = cb._WaterRenderingLayer;
+            profile.transparencyColor = cb._TransparencyColor;
+            profile.outScatteringCoefficient = cb._OutScatteringCoefficient;
+            profile.scatteringColor = cb._ScatteringColorTips;
+            profile.upDirection = cb._WaterUpDirection.xyz;
 
-            // Evaluate the matrices
-            cb._WaterSurfaceTransform = currentWater.simulation.rendering.waterToWorldMatrix;
-            cb._WaterSurfaceTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrix;
-            cb._WaterCustomTransform_Inverse = currentWater.simulation.rendering.worldToWaterMatrixCustom;
+            // Scattering parameters
+            profile.bodyScatteringHeight = waterSurface.directLightBodyScattering;
+            profile.tipScatteringHeight = waterSurface.directLightTipScattering;
+            profile.cameraUnderWater = waterSurfaceIndex == m_UnderWaterSurfaceIndex ? 1 : 0;
+            profile.envPerceptualRoughness = waterSurface.surfaceType == WaterSurfaceType.Pool ? 0.0f : Mathf.Lerp(0.0f, 0.15f, Mathf.Clamp(waterSurface.largeWindSpeed / WaterConsts.k_EnvRoughnessWindSpeed, 0.0f, 1.0f));
+            profile.disableIOR = waterSurface.underWaterRefraction ? 0 : 1;
+
+            // Smoothness fade
+            profile.smoothnessFadeStart = waterSurface.smoothnessFadeStart;
+            profile.smoothnessFadeDistance = waterSurface.smoothnessFadeDistance;
+            profile.roughnessEndValue = 1.0f - waterSurface.endSmoothness;
+
+            profile.foamColor.Set(waterSurface.foamColor.r, waterSurface.foamColor.g, waterSurface.foamColor.b);
+
+            // Under water stuff
+            profile.underWaterAmbientProbeContribution = waterSurface.underWaterAmbientProbeContribution;
+            profile.absorptionDistanceMultiplier = 1.0f / waterSurface.absorptionDistanceMultiplier;
+
+            // Profile has been filled, we're done
+            m_WaterSurfaceProfileArray[waterSurfaceIndex] = profile;
         }
 
         void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
@@ -475,15 +519,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitializeCPUWaterSimulation();
 
             // If the function returns false, this means the resources were just created and they need to be initialized.
-            bool validGPUResources, validCPUResources, validHistory;
-            currentWater.CheckResources((int)m_WaterBandResolution, m_ActiveWaterFoam, m_GPUReadbackMode, out validGPUResources, out validCPUResources, out validHistory);
+            currentWater.CheckResources((int)m_WaterBandResolution, m_ActiveWaterFoam, m_GPUReadbackMode, out bool validGPUResources, out bool validCPUResources);
 
             // Update the simulation time (include timescale)
             currentWater.simulation.Update(currentWater.timeMultiplier);
 
             // Update the constant buffer
-            UpdateShaderVariablesWater(currentWater, surfaceIndex, ref m_ShaderVariablesWater);
-            ConstantBuffer.UpdateData(cmd, m_ShaderVariablesWater);
+            UpdatePerSurfaceConstantBuffer(cmd, currentWater, surfaceIndex);
 
             // Update the GPU simulation for the water
             UpdateGPUWaterSimulation(cmd, currentWater, !validGPUResources);
@@ -547,6 +589,74 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+        #endregion
+
+        #region GBuffer
+        internal struct WaterGBuffer
+        {
+            // Flag that defines if at least one water surface was rendered into the gbuffer
+            public bool valid;
+
+            // Flag that defines if at least one water surface will need to be rendered as debug
+            public bool debugRequired;
+
+            // GBuffer targets
+            public TextureHandle waterGBuffer0;
+            public TextureHandle waterGBuffer1;
+            public TextureHandle waterGBuffer2;
+            public TextureHandle waterGBuffer3;
+
+            // Indirect dispatch and tile data
+            public BufferHandle indirectBuffer;
+            public BufferHandle tileBuffer;
+
+            public BufferHandle cameraHeight;
+        }
+
+        struct WaterSurfaceGBufferData
+        {
+            public bool render;
+            public bool renderDebug;
+            public int surfaceIndex;
+
+            // Simulation & Deformation buffers
+            public RenderTargetIdentifier displacementTexture;
+            public RenderTargetIdentifier deformationBuffer;
+
+            // Geometry parameters
+            public bool drawInfiniteMesh;
+            public bool tessellation;
+            public int numActiveBands;
+
+            // Geometry properties
+            public bool instancedQuads;
+            public bool infinite;
+            public bool customMesh;
+            public List<MeshRenderer> meshRenderers;
+
+            public bool foam;
+            public bool deformation;
+            public bool evaluateCameraPosition;
+
+            // Water Mask
+            public Texture waterMask;
+
+            // Current
+            public bool activeCurrent;
+            public Texture largeCurrentMap;
+            public Texture ripplesCurrentMap;
+
+            // Material data
+            public Material waterMaterial;
+            public MaterialPropertyBlock mpb;
+
+            // Constant buffer
+            public GraphicsBuffer perSurfaceCB;
+            public ShaderVariablesWaterPerCamera[] sharedPerCameraDataArray;
+
+            // Matrices
+            public Matrix4x4 worldToWaterMatrixCustom;
+        }
 
         void EvaluateWaterRenderingData(WaterSurface currentWater, out bool instancedQuads, out bool infinite, out bool customMesh, out List<MeshRenderer> meshRenderers)
         {
@@ -577,420 +687,183 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        struct WaterRenderingParameters
+        void PrepareSurfaceGBufferData(HDCamera hdCamera, WaterRendering settings, WaterSurface currentWater, int surfaceIndex, ref WaterSurfaceGBufferData parameters)
         {
-            // Camera parameters
-            public Vector3 cameraPosition;
-            public Frustum cameraFrustum;
-            public int viewCount;
+            parameters.surfaceIndex = surfaceIndex;
+            parameters.foam = m_ActiveWaterFoam && currentWater.foam;
+            parameters.deformation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterDeformation) && currentWater.deformation;
+            parameters.evaluateCameraPosition = surfaceIndex == m_UnderWaterSurfaceIndex;
 
-            // Geometry parameters
-            public bool drawInfiniteMesh;
-            public bool tessellation;
-            public int numActiveBands;
-            public Vector3 center;
-            public Vector2 waterMaskOffset;
-            public bool exclusion;
-
-            // Geometry properties
-            public bool instancedQuads;
-            public bool infinite;
-            public bool customMesh;
-            public Mesh tessellableMesh, ringMesh, ringMeshLow;
-            public List<MeshRenderer> meshRenderers;
-
-            // Deformation data
-            public bool deformation;
-
-            // Foam data
-            public bool foam;
-
-            // Underwater data
-            public bool evaluateCameraPosition;
-
-            // Caustics parameters
-            public bool simulationCaustics;
-
-            // Water patches
-            public ComputeShader waterSimulation;
-            public int patchEvaluation;
-
-            // Water Mask
-            public Texture waterMask;
-
-            // Current
-            public bool activeCurrent;
-            public Texture largeCurrentMap;
-            public Texture ripplesCurrentMap;
-            public Texture2D sectorDataBuffer;
-
-            // Foam data
-            public Texture2D surfaceFoamTexture;
-            public Texture2D simulationFoamMask;
-            public Vector2 simulationFoamMaskOffset;
-
-            // Material data
-            public Material waterMaterial;
-            public MaterialPropertyBlock mbp;
-
-            // Constant buffer
-            public ShaderVariablesWater waterCB;
-            public ShaderVariablesWaterRendering waterRenderingCB;
-
-            // Water elevation
-            public ComputeShader evaluationCS;
-            public int findVerticalDisplKernel;
-        }
-
-        WaterRenderingParameters PrepareWaterRenderingParameters(HDCamera hdCamera, WaterRendering settings, WaterSurface currentWater, int surfaceIndex, bool insideUnderWaterVolume)
-        {
-            WaterRenderingParameters parameters = new WaterRenderingParameters();
-
-            // Camera parameters
-            parameters.cameraPosition = hdCamera.camera.transform.position;
-            parameters.cameraFrustum = hdCamera.frustum;
-            parameters.viewCount = hdCamera.viewCount;
+            // Import all the textures into the system
+            parameters.displacementTexture = currentWater.simulation.gpuBuffers.displacementBuffer;
+            parameters.deformationBuffer = parameters.deformation ? currentWater.deformationBuffer : Texture2D.blackTexture;
 
             // Geometry parameters
             parameters.drawInfiniteMesh = currentWater.simulation.rendering.maxFadeDistance != float.MaxValue;
             parameters.tessellation = currentWater.tessellation;
             parameters.numActiveBands = currentWater.simulation.numActiveBands;
-            parameters.center = currentWater.transform.position;
-            parameters.simulationFoamMaskOffset = currentWater.simulationFoamMaskOffset;
-            parameters.waterMaskOffset = currentWater.waterMaskOffset;
-            parameters.exclusion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterExclusion);
 
             // Evaluate which mesh shall be used, etc
             EvaluateWaterRenderingData(currentWater, out parameters.instancedQuads, out parameters.infinite, out parameters.customMesh, out parameters.meshRenderers);
-            parameters.tessellableMesh = m_GridMesh;
-            parameters.ringMesh = m_RingMesh;
-            parameters.ringMeshLow = m_RingMeshLow;
 
             // At the moment indirect buffer for instanced mesh draw with tessellation does not work on metal
             if (parameters.instancedQuads && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                 parameters.tessellation = false;
 
-            // Under water data
-            parameters.evaluateCameraPosition = insideUnderWaterVolume;
-
-            // Patch evaluation parameters
-            parameters.waterSimulation = m_WaterSimulationCS;
-            parameters.patchEvaluation = parameters.infinite ? m_EvaluateInstanceDataInfiniteKernel : m_EvaluateInstanceDataKernel;
-
-            // Deformation parameters
-            parameters.deformation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterDeformation) && currentWater.deformation;
-
-            // Foam parameters
-            parameters.foam = m_ActiveWaterFoam && currentWater.foam;
-
-            // Caustics parameters
-            parameters.simulationCaustics = currentWater.caustics;
-
-            // All the required global textures
+            // Water mask
             parameters.waterMask = currentWater.waterMask != null ? currentWater.waterMask : Texture2D.whiteTexture;
-            parameters.surfaceFoamTexture = runtimeTextures.foamMask;
-            parameters.simulationFoamMask = currentWater.simulationFoamMask != null ? currentWater.simulationFoamMask : Texture2D.whiteTexture;
 
             // Current
-            parameters.activeCurrent = currentWater.largeCurrentMap != null || currentWater.ripplesCurrentMap != null;
+            bool supportLarge = currentWater.surfaceType != WaterSurfaceType.Pool;
+            bool supportRipple = currentWater.ripples || !supportLarge;
+            parameters.activeCurrent = (supportRipple ? currentWater.ripplesCurrentMap != null : false) || (supportLarge ?  currentWater.largeCurrentMap != null : false);
             parameters.largeCurrentMap = currentWater.largeCurrentMap != null ? currentWater.largeCurrentMap : Texture2D.blackTexture;
             parameters.ripplesCurrentMap = currentWater.ripplesCurrentMap != null ? currentWater.ripplesCurrentMap : Texture2D.blackTexture;
-            parameters.sectorDataBuffer = m_WaterSectorData;
 
             // Water material
             parameters.waterMaterial = currentWater.customMaterial != null ? currentWater.customMaterial : m_InternalWaterMaterial;
 
-            // Property bloc used for binding the textures
-            parameters.mbp = m_WaterMaterialPropertyBlock;
+            // Property block used for binding the textures
+            bool supportDeformation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterDeformation);
+            currentWater.FillMaterialPropertyBlock(m_ActiveWaterFoam, supportDeformation);
+            parameters.mpb = currentWater.mpb;
 
-            // Setup the simulation water constant buffer
-            UpdateShaderVariablesWater(currentWater, surfaceIndex, ref parameters.waterCB);
-
-            // Setup the rendering water constant buffer
-            UpdateShaderVariablesWaterRendering(currentWater, hdCamera, settings,
+            // Setup the constant buffers
+            parameters.perSurfaceCB = currentWater.constantBuffer;
+            parameters.sharedPerCameraDataArray = m_ShaderVariablesPerCameraArray;
+            UpdataPerCameraConstantBuffer(currentWater, hdCamera, settings,
                 parameters.instancedQuads, parameters.infinite, parameters.customMesh,
-                parameters.waterCB._MaxWaveDisplacement, parameters.waterCB._MaxWaveHeight,
-                ref parameters.waterRenderingCB);
+                ref m_ShaderVariablesPerCameraArray[surfaceIndex]);
 
-            // Waterline & underwater
-            parameters.evaluationCS = m_WaterEvaluationCS;
-            parameters.findVerticalDisplKernel = m_FindVerticalDisplacementsKernel;
-
-            return parameters;
+            parameters.worldToWaterMatrixCustom = currentWater.simulation.rendering.worldToWaterMatrixCustom;
         }
 
-        struct WaterRenderingDeferredParameters
+        class WaterRenderingData
         {
-            // Deferred Lighting
-            public ComputeShader waterLighting;
-            public int[] indirectLightingKernels;
-            public int lightingKernel;
-            public int numVariants;
-            public int waterFogKernel;
+            public GraphicsBuffer patchDataBuffer;
+            public GraphicsBuffer indirectBuffer;
+            public GraphicsBuffer frustumBuffer;
+            public GraphicsBuffer heightBuffer;
 
-            // Other
-            public ShaderVariablesWaterRendering waterRenderingCB;
+            public Texture2D surfaceFoamTexture;
+            public Texture2D sectorDataBuffer;
+
+            public int numSurfaces;
+            public WaterSurfaceGBufferData[] surfaces;
+            public GraphicsBuffer surfaceProfiles;
+
+            // Meshes
+            public Mesh tessellableMesh, ringMesh, ringMeshLow;
+
+            // Shaders
+            public ComputeShader waterSimulation;
+            public int patchEvaluation, patchEvaluationInfinite;
+            public ComputeShader evaluationCS;
+            public int findVerticalDisplKernel;
+
+            // Camera parameters
+            public int viewCount;
+            public bool exclusion;
+            public GraphicsBuffer perCameraCB;
+
+            public void BindGlobal(CommandBuffer cmd)
+            {
+                cmd.SetGlobalBuffer(HDShaderIDs._WaterPatchData, patchDataBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._WaterSurfaceProfiles, surfaceProfiles);
+                cmd.SetGlobalBuffer(HDShaderIDs._FrustumGPUBuffer, frustumBuffer);
+
+                cmd.SetGlobalTexture(HDShaderIDs._FoamTexture, surfaceFoamTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._WaterSectorData, sectorDataBuffer);
+            }
         }
 
-        WaterRenderingDeferredParameters PrepareWaterRenderingDeferredParameters(HDCamera hdCamera)
+        void PrepareWaterRenderingData(WaterRenderingData passData, HDCamera hdCamera)
         {
-            WaterRenderingDeferredParameters parameters = new WaterRenderingDeferredParameters();
+            PropagateFrustumDataToGPU(hdCamera);
+            CheckWaterCurrentData();
 
-            // Deferred Lighting
-            parameters.waterLighting = m_WaterLightingCS;
-            parameters.indirectLightingKernels = m_WaterIndirectDeferredKernels;
-            parameters.lightingKernel = m_WaterDeferredKernel;
-            parameters.numVariants = WaterConsts.k_NumWaterVariants;
-            parameters.waterFogKernel = m_WaterFogIndirectKernel;
+            passData.patchDataBuffer = m_WaterPatchDataBuffer;
+            passData.indirectBuffer = m_WaterIndirectDispatchBuffer;
+            passData.frustumBuffer = m_WaterCameraFrustrumBuffer;
+            passData.heightBuffer = m_WaterCameraHeightBuffer;
 
-            // Ambient probe
-            parameters.waterRenderingCB._WaterAmbientProbe = m_WaterAmbientProbe;
+            passData.surfaceFoamTexture = runtimeTextures.foamMask;
+            passData.sectorDataBuffer = m_WaterSectorData;
 
-            return parameters;
+            passData.numSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
+            passData.surfaces = m_WaterGBufferDataArray;
+            passData.surfaceProfiles = m_WaterProfileArrayGPU;
+
+            // Meshes
+            passData.tessellableMesh = m_GridMesh;
+            passData.ringMesh = m_RingMesh;
+            passData.ringMeshLow = m_RingMeshLow;
+
+            // Patch evaluation parameters
+            passData.waterSimulation = m_WaterSimulationCS;
+            passData.patchEvaluation = m_EvaluateInstanceDataKernel;
+            passData.patchEvaluationInfinite = m_EvaluateInstanceDataInfiniteKernel;
+
+            // Underwater
+            passData.evaluationCS = m_WaterEvaluationCS;
+            passData.findVerticalDisplKernel = m_FindVerticalDisplacementsKernel;
+
+            // Camera data
+            passData.viewCount = hdCamera.viewCount;
+            passData.exclusion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterExclusion);
+            passData.perCameraCB = m_ShaderVariablesWaterPerCamera;
         }
 
-        class WaterRenderingGBufferData
+        class WaterGBufferData : WaterRenderingData
         {
-            // All the parameters required to simulate and render the water
-            public WaterRenderingParameters parameters;
-
-            // Simulation & Deformation buffers
-            public TextureHandle displacementTexture;
-            public TextureHandle additionalData;
-            public TextureHandle causticsData;
-            public TextureHandle foamData;
-            public TextureHandle deformationBuffer;
-            public TextureHandle deformationSGBuffer;
-
-            // Other resources
-            public BufferHandle indirectBuffer;
-            public BufferHandle patchDataBuffer;
-            public BufferHandle frustumBuffer;
-            public TextureHandle normalBuffer;
-            public TextureHandle depthPyramid;
-
-            // Water rendered to this buffer
-            public TextureHandle colorPyramid;
-
-            // Light Cluster data
+            // Buffers
+            public bool decalsEnabled;
             public BufferHandle layeredOffsetsBuffer;
             public BufferHandle logBaseBuffer;
 
-            public bool decalsEnabled;
-            public BufferHandle heightBuffer;
-        }
-
-        class WaterPrepareLightingData
-        {
-            // Camera data
-            public int width;
-            public int height;
-            public int viewCount;
-            public int tileX;
-            public int tileY;
-            public int numTiles;
-            public bool transparentSSR;
-
-            // Shader data
-            public ComputeShader waterLighting;
-            public int clearIndirectKernel;
-            public int classifyTilesKernel;
-            public int prepareSSRKernel;
-
-            // Input textures
-            public TextureHandle depthBuffer;
-            public TextureHandle gbuffer1;
-            public TextureHandle gbuffer3;
-            public BufferHandle waterSurfaceProfiles;
-            public BufferHandle perVoxelOffset;
-            public BufferHandle perTileLogBaseTweak;
-
-            // Output texture
             public TextureHandle normalBuffer;
-            public BufferHandle indirectBuffer;
-            public BufferHandle tileBuffer;
+            public TextureHandle depthPyramid;
         }
 
-        unsafe Vector4 EvaluateWaterAmbientProbe(HDCamera hdCamera, float ambientProbeDimmer)
+        void PrepareWaterGBufferData(RenderGraphBuilder builder, HDCamera hdCamera, TextureHandle normalBuffer, TextureHandle depthPyramid,
+            in BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer, WaterGBufferData passData)
         {
-            SphericalHarmonicsL2 probeSH = m_SkyManager.GetAmbientProbe(hdCamera);
-            probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, ambientProbeDimmer);
-            SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsProbe, probeSH);
-            Vector4 ambient = EvaluateAmbientProbe(m_PackedCoeffsProbe, Vector3.up);
-            return new Vector4(ambient.x, ambient.y, ambient.z, ambient.x * 0.2126729f + ambient.y * 0.7151522f + ambient.z * 0.072175f);
-        }
+            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
+            PrepareWaterRenderingData(passData, hdCamera);
 
-        void FillWaterSurfaceProfile(HDCamera hdCamera, WaterSurface waterSurface, int waterSurfaceIndex)
-        {
-            WaterSurfaceProfile profile = new WaterSurfaceProfile();
-            profile.bodyScatteringHeight = waterSurface.directLightBodyScattering;
-            profile.tipScatteringHeight = waterSurface.directLightTipScattering;
-            profile.maxRefractionDistance = Mathf.Min(waterSurface.absorptionDistance, waterSurface.maxRefractionDistance);
-            profile.renderingLayers = (uint)waterSurface.renderingLayerMask;
-            profile.cameraUnderWater = waterSurfaceIndex == m_UnderWaterSurfaceIndex ? 1 : 0;
-            profile.transparencyColor = new Vector3(Mathf.Min(waterSurface.refractionColor.r, 0.99f),
-                                                    Mathf.Min(waterSurface.refractionColor.g, 0.99f),
-                                                    Mathf.Min(waterSurface.refractionColor.b, 0.99f));
-            profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.absorptionDistance;
-            profile.scatteringColor = new Vector3(waterSurface.scatteringColor.r, waterSurface.scatteringColor.g, waterSurface.scatteringColor.b);
-            profile.envPerceptualRoughness = waterSurface.surfaceType == WaterSurfaceType.Pool ? 0.0f : Mathf.Lerp(0.0f, 0.15f, Mathf.Clamp(waterSurface.largeWindSpeed / WaterConsts.k_EnvRoughnessWindSpeed, 0.0f, 1.0f));
-            profile.disableIOR = waterSurface.underWaterRefraction ? 0 : 1;
+            // Buffers
+            passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
+            passData.layeredOffsetsBuffer = builder.ReadBuffer(lightLists.perVoxelOffset);
+            passData.logBaseBuffer = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
 
-            // Smoothness fade
-            profile.smoothnessFadeStart = waterSurface.smoothnessFadeStart;
-            profile.smoothnessFadeDistance = waterSurface.smoothnessFadeDistance;
-            profile.roughnessEndValue = 1.0f - waterSurface.endSmoothness;
-            profile.upDirection = waterSurface.UpVector();
+            passData.normalBuffer = builder.ReadTexture(normalBuffer);
+            passData.depthPyramid = builder.ReadTexture(depthPyramid);
 
-            profile.foamColor = waterSurface.foamColor;
+            builder.WriteBuffer(gbuffer.cameraHeight);
 
-            // Color offset
-            profile.colorPyramidMipOffset = waterSurface.colorPyramidOffset;
-            profile.colorPyramidScale = 1.0f / (1 << waterSurface.colorPyramidOffset);
-
-            // Under water stuff
-            profile.underWaterAmbientProbeContribution = waterSurface.underWaterAmbientProbeContribution;
-            profile.absorptionDistanceMultiplier = 1.0f / waterSurface.absorptionDistanceMultiplier;
-
-            // Profile has been filled, we're done
-            m_WaterSurfaceProfileArray[waterSurfaceIndex] = profile;
-        }
-
-        static void SetupCommonRenderingData(CommandBuffer cmd,
-            RTHandle displacementBuffer, RTHandle additionalDataBuffer, RTHandle causticsBuffer,
-            RTHandle foamBuffer, Texture deformationBuffer, Texture deformationSGBuffer,
-            WaterRenderingParameters parameters)
-        {
-            ConstantBuffer.UpdateData(cmd, parameters.waterCB);
-            ConstantBuffer.UpdateData(cmd, parameters.waterRenderingCB);
-
-            // Raise the keywords for band count
-            SetupWaterShaderKeyword(cmd, parameters.numActiveBands, parameters.activeCurrent);
-
-            // Prepare the material property block for the rendering
-            parameters.mbp.SetTexture(HDShaderIDs._WaterDisplacementBuffer, displacementBuffer);
-            parameters.mbp.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, additionalDataBuffer);
-            parameters.mbp.SetTexture(HDShaderIDs._WaterCausticsDataBuffer, causticsBuffer);
-            parameters.mbp.SetTexture(HDShaderIDs._WaterFoamBuffer, foamBuffer);
-            parameters.mbp.SetTexture(HDShaderIDs._WaterDeformationBuffer, deformationBuffer);
-            parameters.mbp.SetTexture(HDShaderIDs._WaterDeformationSGBuffer, deformationSGBuffer);
-
-            // Bind the global water textures
-            parameters.mbp.SetTexture(HDShaderIDs._WaterMask, parameters.waterMask);
-            parameters.mbp.SetTexture(HDShaderIDs._FoamTexture, parameters.surfaceFoamTexture);
-            parameters.mbp.SetTexture(HDShaderIDs._SimulationFoamMask, parameters.simulationFoamMask);
-            if (parameters.activeCurrent)
+            // Grab all the water surfaces in the scene
+            var waterSurfaces = WaterSurface.instancesAsArray;
+            for (int surfaceIdx = 0; surfaceIdx < passData.numSurfaces; ++surfaceIdx)
             {
-                parameters.mbp.SetTexture(HDShaderIDs._Group0CurrentMap, parameters.largeCurrentMap);
-                parameters.mbp.SetTexture(HDShaderIDs._Group1CurrentMap, parameters.ripplesCurrentMap);
-                parameters.mbp.SetTexture(HDShaderIDs._WaterSectorData, parameters.sectorDataBuffer);
-            }
-        }
+                // Grab the current water surface
+                WaterSurface currentWater = waterSurfaces[surfaceIdx];
+                ref var surfaceData = ref passData.surfaces[surfaceIdx];
 
-        static void RenderWaterSurface(CommandBuffer cmd,
-            RTHandle displacementBuffer, RTHandle additionalDataBuffer, RTHandle causticsBuffer, RTHandle foamBuffer,
-            Texture deformationBuffer, Texture deformationSGBuffer,
-            RTHandle normalBuffer, RTHandle depthPyramid,
-            GraphicsBuffer layeredOffsetsBuffer, GraphicsBuffer logBaseBuffer,
-            GraphicsBuffer cameraHeightBuffer, GraphicsBuffer patchDataBuffer, GraphicsBuffer indirectBuffer, GraphicsBuffer cameraFrustumBuffer,
-            WaterRenderingParameters parameters)
-        {
-            SetupCommonRenderingData(cmd, displacementBuffer, additionalDataBuffer, causticsBuffer, foamBuffer, deformationBuffer, deformationSGBuffer, parameters);
+                surfaceData.render = ShouldRenderSurface(hdCamera, currentWater, ref gbuffer.debugRequired);
+                if (!surfaceData.render) continue;
 
-            // First we need to evaluate if we are in the underwater region of this water surface if the camera
-            // is above of under water. This will need to be done on the CPU later
-            if (parameters.evaluateCameraPosition)
-            {
-                ConstantBuffer.Set<ShaderVariablesWater>(cmd, parameters.evaluationCS, HDShaderIDs._ShaderVariablesWater);
-                ConstantBuffer.Set<ShaderVariablesWaterRendering>(cmd, parameters.evaluationCS, HDShaderIDs._ShaderVariablesWaterRendering);
+                // GBuffer is valid as long as one surface is rendered
+                gbuffer.valid = true;
 
-                // Evaluate the camera height, should be done on the CPU later
-                cmd.SetComputeBufferParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterCameraHeightBufferRW, cameraHeightBuffer);
-                cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterDisplacementBuffer, displacementBuffer);
-                cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterDeformationBuffer, deformationBuffer);
-                cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterMask, parameters.waterMask);
-                if (parameters.activeCurrent)
-                {
-                    cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterSectorData, parameters.sectorDataBuffer);
-                    cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._Group0CurrentMap, parameters.largeCurrentMap);
-                    cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._Group1CurrentMap, parameters.ripplesCurrentMap);
-                }
-                cmd.DispatchCompute(parameters.evaluationCS, parameters.findVerticalDisplKernel, 1, 1, parameters.viewCount);
-            }
+                // Fill the water surface profile
+                FillWaterSurfaceProfile(hdCamera, currentWater, surfaceIdx);
 
-            // Light cluster data
-            if (layeredOffsetsBuffer != null)
-                parameters.mbp.SetBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, layeredOffsetsBuffer);
-            if (logBaseBuffer != null)
-                parameters.mbp.SetBuffer(HDShaderIDs.g_logBaseBuffer, logBaseBuffer);
-
-            // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
-            parameters.mbp.SetBuffer(HDShaderIDs._WaterCameraHeightBuffer, cameraHeightBuffer);
-            parameters.mbp.SetTexture(HDShaderIDs._CameraDepthTexture, depthPyramid);
-            parameters.mbp.SetTexture(HDShaderIDs._NormalBufferTexture, normalBuffer);
-
-            // Raise the right stencil flags
-            cmd.SetGlobalFloat(HDShaderIDs._StencilWaterRefGBuffer, (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
-            cmd.SetGlobalFloat(HDShaderIDs._StencilWaterWriteMaskGBuffer, (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
-            cmd.SetGlobalFloat(HDShaderIDs._StencilWaterReadMaskGBuffer, parameters.exclusion ? (int)(StencilUsage.WaterExclusion) : 0);
-            cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, parameters.evaluateCameraPosition ? (int)CullMode.Off : (int)CullMode.Back);
-
-            var passNames = parameters.tessellation ? k_PassesGBufferTessellation : k_PassesGBuffer;
-            DrawWaterSurface(cmd, parameters, passNames, patchDataBuffer, indirectBuffer, cameraFrustumBuffer);
-
-            // Reset the keywords
-            ResetWaterShaderKeyword(cmd);
-        }
-
-        void RenderWaterSurfaceGBuffer(RenderGraph renderGraph, HDCamera hdCamera,
-                                        WaterSurface currentWater, WaterRendering settings, int surfaceIdx, bool evaluateCameraPos,
-                                        TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle depthPyramid, BufferHandle layeredOffsetsBuffer, BufferHandle logBaseBuffer,
-                                        TextureHandle WaterGbuffer0, TextureHandle WaterGbuffer1, TextureHandle WaterGbuffer2, TextureHandle WaterGbuffer3, BufferHandle cameraHeightBuffer)
-        {
-            using (var builder = renderGraph.AddRenderPass<WaterRenderingGBufferData>("Render Water Surface GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingGBuffer)))
-            {
                 // Prepare all the internal parameters
-                passData.parameters = PrepareWaterRenderingParameters(hdCamera, settings, currentWater, surfaceIdx, evaluateCameraPos);
-                passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
-
-                // Request the output textures
-                builder.UseColorBuffer(WaterGbuffer0, 0);
-                builder.UseColorBuffer(WaterGbuffer1, 1);
-                builder.UseColorBuffer(WaterGbuffer2, 2);
-                builder.UseColorBuffer(WaterGbuffer3, 3);
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.heightBuffer = builder.WriteBuffer(cameraHeightBuffer);
-
-                // Import all the textures into the system
-                passData.displacementTexture = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.displacementBuffer);
-                passData.additionalData = renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.additionalDataBuffer);
-                passData.causticsData = passData.parameters.simulationCaustics ? renderGraph.ImportTexture(currentWater.simulation.gpuBuffers.causticsBuffer) : renderGraph.defaultResources.blackTexture;
-                passData.foamData = passData.parameters.foam ? renderGraph.ImportTexture(currentWater.FoamBuffer()) : renderGraph.defaultResources.blackTexture;
-                passData.deformationBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationBuffer) : renderGraph.defaultResources.blackTexture;
-                passData.deformationSGBuffer = passData.parameters.deformation ? renderGraph.ImportTexture(currentWater.deformationSGBuffer) : renderGraph.defaultResources.blackTexture;
-                passData.indirectBuffer = renderGraph.ImportBuffer(m_WaterIndirectDispatchBuffer);
-                passData.patchDataBuffer = renderGraph.ImportBuffer(m_WaterPatchDataBuffer);
-                passData.frustumBuffer = renderGraph.ImportBuffer(m_WaterCameraFrustrumBuffer);
-                passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.layeredOffsetsBuffer = builder.ReadBuffer(layeredOffsetsBuffer);
-                passData.logBaseBuffer = builder.ReadBuffer(logBaseBuffer);
-
-                builder.SetRenderFunc(
-                    (WaterRenderingGBufferData data, RenderGraphContext ctx) =>
-                    {
-                        if (data.decalsEnabled)
-                            DecalSystem.instance.SetAtlas(ctx.cmd);
-
-                        // Render the water surface
-                        RenderWaterSurface(ctx.cmd,
-                            data.displacementTexture, data.additionalData, data.causticsData, data.foamData,
-                            data.deformationBuffer, data.deformationSGBuffer,
-                            data.normalBuffer, data.depthPyramid,
-                            data.layeredOffsetsBuffer, data.logBaseBuffer,
-                            data.heightBuffer, data.patchDataBuffer, data.indirectBuffer, data.frustumBuffer, data.parameters);
-                    });
+                PrepareSurfaceGBufferData(hdCamera, settings, currentWater, surfaceIdx, ref surfaceData);
             }
+
+            // Push the water profiles to the GPU for the deferred lighting pass
+            m_WaterProfileArrayGPU.SetData(m_WaterSurfaceProfileArray);
         }
 
         void PropagateFrustumDataToGPU(HDCamera hdCamera)
@@ -1035,27 +908,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WaterCameraFrustrumBuffer.SetData(m_WaterCameraFrustumCPU);
         }
 
-        internal struct WaterGBuffer
-        {
-            // Flag that defines if at least one water surface was rendered into the gbuffer
-            public bool valid;
-
-            // Flag that defines if at least one water surface will need to be rendered as debug
-            public bool debugRequired;
-
-            // GBuffer targets
-            public TextureHandle waterGBuffer0;
-            public TextureHandle waterGBuffer1;
-            public TextureHandle waterGBuffer2;
-            public TextureHandle waterGBuffer3;
-
-            // Indirect dispatch and tile data
-            public BufferHandle indirectBuffer;
-            public BufferHandle tileBuffer;
-
-            public BufferHandle cameraHeight;
-        }
-
         bool ShouldRenderWater(HDCamera hdCamera)
         {
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
@@ -1064,108 +916,190 @@ namespace UnityEngine.Rendering.HighDefinition
                 || WaterSurface.instanceCount == 0);
         }
 
+        bool ShouldRenderSurface(HDCamera hdCamera, WaterSurface currentWater, ref bool debugRequired)
+        {
+            // At least one surface will need to be rendered as a debug view.
+            if (currentWater.debugMode != WaterDebugMode.None)
+            {
+                debugRequired = true;
+                return false;
+            }
+
+            // Only render the water surface if it is included in the layers that the camera requires
+            int waterCullingMask = 1 << currentWater.gameObject.layer;
+            if (hdCamera.camera.cullingMask != 0 && (waterCullingMask & hdCamera.camera.cullingMask) == 0)
+                return false;
+
+#if UNITY_EDITOR
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (!CoreUtils.IsSceneViewPrefabStageContextHidden() && stage != null && stage.mode == PrefabStage.Mode.InContext)
+            {
+                bool isInPrefabScene = stage.scene == currentWater.gameObject.scene;
+                if ((hdCamera.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.Off && isInPrefabScene)
+                    || (hdCamera.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered && !isInPrefabScene))
+                    return false;
+            }
+
+            if (currentWater.customMaterial != null && !WaterSurface.IsWaterMaterial(currentWater.customMaterial))
+                return false;
+#endif
+
+            return true;
+        }
+
+        static void RenderWaterSurface(CommandBuffer cmd, WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData)
+        {
+            cmd.SetBufferData(parameters.perCameraCB, surfaceData.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
+
+            // Raise the keywords for band count
+            SetupWaterShaderKeyword(cmd, surfaceData.numActiveBands, surfaceData.activeCurrent);
+
+            // First we need to evaluate if we are in the underwater region of this water surface if the camera
+            // is above of under water. This will need to be done on the CPU later
+            if (surfaceData.evaluateCameraPosition)
+            {
+                BindPerSurfaceConstantBuffer(cmd, parameters.evaluationCS, surfaceData.perSurfaceCB);
+
+                cmd.SetComputeConstantBufferParam(parameters.evaluationCS, HDShaderIDs._ShaderVariablesWaterPerCamera, parameters.perCameraCB, 0, parameters.perCameraCB.stride);
+                cmd.SetComputeBufferParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterCameraHeightBufferRW, parameters.heightBuffer);
+                cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterDisplacementBuffer, surfaceData.displacementTexture);
+                cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterDeformationBuffer, surfaceData.deformationBuffer);
+                cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterMask, surfaceData.waterMask);
+                if (surfaceData.activeCurrent)
+                {
+                    cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._WaterSectorData, parameters.sectorDataBuffer);
+                    cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._Group0CurrentMap, surfaceData.largeCurrentMap);
+                    cmd.SetComputeTextureParam(parameters.evaluationCS, parameters.findVerticalDisplKernel, HDShaderIDs._Group1CurrentMap, surfaceData.ripplesCurrentMap);
+                }
+
+                cmd.DispatchCompute(parameters.evaluationCS, parameters.findVerticalDisplKernel, 1, 1, parameters.viewCount);
+            }
+
+            // Raise the right stencil flags
+            cmd.SetGlobalFloat(HDShaderIDs._StencilWaterRefGBuffer, (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
+            cmd.SetGlobalFloat(HDShaderIDs._StencilWaterWriteMaskGBuffer, (int)(StencilUsage.WaterSurface | StencilUsage.TraceReflectionRay));
+            cmd.SetGlobalFloat(HDShaderIDs._StencilWaterReadMaskGBuffer, parameters.exclusion ? (int)(StencilUsage.WaterExclusion) : 0);
+            cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, surfaceData.evaluateCameraPosition ? (int)CullMode.Off : (int)CullMode.Back);
+
+            var passNames = surfaceData.tessellation ? k_PassesGBufferTessellation : k_PassesGBuffer;
+            DrawWaterSurface(cmd, passNames, parameters, ref surfaceData);
+
+            // Reset the keywords
+            ResetWaterShaderKeyword(cmd);
+        }
+
         WaterGBuffer RenderWaterGBuffer(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera,
                                         TextureHandle depthBuffer, TextureHandle normalBuffer,
                                         TextureHandle colorPyramid, TextureHandle depthPyramid,
-                                        BufferHandle waterSurfaceProfiles,
                                         in BuildGPULightListOutput lightLists)
         {
-            // Allocate the return structure
-            WaterGBuffer outputGBuffer = new WaterGBuffer();
-            outputGBuffer.valid = false;
-            outputGBuffer.debugRequired = false;
-
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
-
             // Tile sizes
             int tileX = (hdCamera.actualWidth + 7) / 8;
             int tileY = (hdCamera.actualHeight + 7) / 8;
             int numTiles = tileX * tileY;
 
-            // Make sure the current data is valid
-            CheckWaterCurrentData();
-
             // We need to tag the stencil for water rejection
             WaterRejectionTag(renderGraph, cull, hdCamera, depthBuffer);
 
-            // Copy the frustum data to the GPU
-            PropagateFrustumDataToGPU(hdCamera);
-
             // Request all the gbuffer textures we will need
-            TextureHandle WaterGbuffer0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Water GBuffer 0", fallBackToBlackTexture = true });
-            TextureHandle WaterGbuffer1 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 1", fallBackToBlackTexture = true });
-            TextureHandle WaterGbuffer2 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 2", fallBackToBlackTexture = true });
-            TextureHandle WaterGbuffer3 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 3", fallBackToBlackTexture = true });
-            BufferHandle indirectBuffer = renderGraph.CreateBuffer(new BufferDesc((WaterConsts.k_NumWaterVariants + 1) * 3,
-                sizeof(uint), GraphicsBuffer.Target.IndirectArguments) { name = "Water Deferred Indirect" });
-            BufferHandle tileBuffer = renderGraph.CreateBuffer(new BufferDesc((WaterConsts.k_NumWaterVariants + 1) * numTiles * m_MaxViewCount, sizeof(uint)) { name = "Water Deferred Tiles" });
-
-            // Set the textures handles for the water gbuffer
-            outputGBuffer.waterGBuffer0 = WaterGbuffer0;
-            outputGBuffer.waterGBuffer1 = WaterGbuffer1;
-            outputGBuffer.waterGBuffer2 = WaterGbuffer2;
-            outputGBuffer.waterGBuffer3 = WaterGbuffer3;
-            outputGBuffer.indirectBuffer = indirectBuffer;
-            outputGBuffer.tileBuffer = tileBuffer;
-            outputGBuffer.cameraHeight = renderGraph.ImportBuffer(m_WaterCameraHeightBuffer);
-
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-
-            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
+            WaterGBuffer outputGBuffer = new WaterGBuffer()
             {
-                // Grab the current water surface
-                WaterSurface currentWater = waterSurfaces[surfaceIdx];
+                valid = false,
+                debugRequired = false,
+                cameraHeight = renderGraph.ImportBuffer(m_WaterCameraHeightBuffer),
 
-                // At least one surface will need to be rendered as a debug view.
-                if (currentWater.debugMode != WaterDebugMode.None)
-                {
-                    outputGBuffer.debugRequired = true;
-                    continue;
-                }
+                waterGBuffer0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Water GBuffer 0", fallBackToBlackTexture = true }),
+                waterGBuffer1 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 1", fallBackToBlackTexture = true }),
+                waterGBuffer2 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 2", fallBackToBlackTexture = true }),
+                waterGBuffer3 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 3", fallBackToBlackTexture = true }),
 
-                // Only render the water surface if it is included in the layers that the camera requires
-                int waterCullingMask = 1 << currentWater.gameObject.layer;
-                if (hdCamera.camera.cullingMask != 0 && (waterCullingMask & hdCamera.camera.cullingMask) == 0)
-                    continue;
+                indirectBuffer = renderGraph.CreateBuffer(new BufferDesc((WaterConsts.k_NumWaterVariants + 1) * 3, sizeof(uint), GraphicsBuffer.Target.IndirectArguments) { name = "Water Deferred Indirect" }),
+                tileBuffer = renderGraph.CreateBuffer(new BufferDesc((WaterConsts.k_NumWaterVariants + 1) * numTiles * m_MaxViewCount, sizeof(uint)) { name = "Water Deferred Tiles" })
+            };
 
-#if UNITY_EDITOR
-                var stage = PrefabStageUtility.GetCurrentPrefabStage();
-                if (!CoreUtils.IsSceneViewPrefabStageContextHidden() && stage != null && stage.mode == PrefabStage.Mode.InContext)
-                {
-                    bool isInPrefabScene = stage.scene == currentWater.gameObject.scene;
-                    if ((hdCamera.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.Off && isInPrefabScene)
-                        || (hdCamera.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered && !isInPrefabScene))
+            using (var builder = renderGraph.AddRenderPass<WaterGBufferData>("Render Water GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterGBuffer)))
+            {
+                // Prepare data
+                PrepareWaterGBufferData(builder, hdCamera, normalBuffer, depthPyramid, in lightLists, ref outputGBuffer, passData);
+
+                // Request the output textures
+                builder.UseColorBuffer(outputGBuffer.waterGBuffer0, 0);
+                builder.UseColorBuffer(outputGBuffer.waterGBuffer1, 1);
+                builder.UseColorBuffer(outputGBuffer.waterGBuffer2, 2);
+                builder.UseColorBuffer(outputGBuffer.waterGBuffer3, 3);
+                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+
+                builder.SetRenderFunc(
+                    (WaterGBufferData data, RenderGraphContext ctx) =>
                     {
-                        continue;
-                    }
-                }
+                        if (data.decalsEnabled)
+                            DecalSystem.instance.SetAtlas(ctx.cmd);
 
-                if (currentWater.customMaterial != null && !WaterSurface.IsWaterMaterial(currentWater.customMaterial))
-                    continue;
-#endif
-                // One surface needs to pass the resource tests for the gbuffer to be valid
-                outputGBuffer.valid = true;
+                        if (data.layeredOffsetsBuffer.IsValid())
+                            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.layeredOffsetsBuffer);
+                        if (data.logBaseBuffer.IsValid())
+                            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.logBaseBuffer);
 
-                // Fill the water surface profile
-                FillWaterSurfaceProfile(hdCamera, currentWater, surfaceIdx);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
 
-                // Render the water surface
-                RenderWaterSurfaceGBuffer(renderGraph, hdCamera, currentWater, settings, surfaceIdx, surfaceIdx == m_UnderWaterSurfaceIndex,
-                                depthBuffer, normalBuffer, depthPyramid, lightLists.perVoxelOffset, lightLists.perTileLogBaseTweak,
-                                WaterGbuffer0, WaterGbuffer1, WaterGbuffer2, WaterGbuffer3, outputGBuffer.cameraHeight);
+                        data.BindGlobal(ctx.cmd);
+
+                        for (int surfaceIdx = 0; surfaceIdx < data.numSurfaces; ++surfaceIdx)
+                        {
+                            ref var surfaceData = ref data.surfaces[surfaceIdx];
+
+                            if (surfaceData.render)
+                                RenderWaterSurface(ctx.cmd, data, ref surfaceData);
+                        }
+                    });
             }
 
-            // If no water surface wrote to the water gbuffer, we can exit right now.
-            if (!outputGBuffer.valid)
-                return outputGBuffer;
+            if (outputGBuffer.valid)
+                PrepareWaterLighting(renderGraph, hdCamera, depthBuffer, normalBuffer, lightLists, ref outputGBuffer);
 
-            using (var builder = renderGraph.AddRenderPass<WaterPrepareLightingData>("Prepare water for lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfacePrepareLighting)))
+            return outputGBuffer;
+        }
+        #endregion
+
+        #region Prepare Lighting
+        class WaterPrepareLightingData
+        {
+            // Camera data
+            public int width;
+            public int height;
+            public int viewCount;
+            public int tileX;
+            public int tileY;
+            public int numTiles;
+            public bool transparentSSR;
+
+            // Shader data
+            public ComputeShader waterLighting;
+            public int clearIndirectKernel;
+            public int classifyTilesKernel;
+            public int prepareSSRKernel;
+
+            // Input textures
+            public TextureHandle depthBuffer;
+            public TextureHandle gbuffer1;
+            public TextureHandle gbuffer3;
+            public BufferHandle perVoxelOffset;
+            public BufferHandle perTileLogBaseTweak;
+
+            // Output texture
+            public TextureHandle normalBuffer;
+            public BufferHandle indirectBuffer;
+            public BufferHandle tileBuffer;
+        }
+
+        void PrepareWaterLighting(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, in BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<WaterPrepareLightingData>("Prepare water for lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterPrepareLighting)))
             {
                 // Camera parameters
                 passData.width = hdCamera.actualWidth;
@@ -1183,17 +1117,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.classifyTilesKernel = m_WaterClassifyTilesKernel;
 
                 // Input resources
-                passData.gbuffer1 = builder.ReadTexture(WaterGbuffer1);
-                passData.gbuffer3 = builder.ReadTexture(WaterGbuffer3);
+                passData.gbuffer1 = builder.ReadTexture(gbuffer.waterGBuffer1);
+                passData.gbuffer3 = builder.ReadTexture(gbuffer.waterGBuffer3);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
-                passData.waterSurfaceProfiles = builder.ReadBuffer(renderGraph.ImportBuffer(m_WaterProfileArrayGPU));
                 passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
                 passData.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
 
                 // Output resources
                 passData.normalBuffer = builder.WriteTexture(normalBuffer);
-                passData.indirectBuffer = builder.WriteBuffer(indirectBuffer);
-                passData.tileBuffer = builder.WriteBuffer(tileBuffer);
+                passData.indirectBuffer = builder.WriteBuffer(gbuffer.indirectBuffer);
+                passData.tileBuffer = builder.WriteBuffer(gbuffer.tileBuffer);
 
                 builder.SetRenderFunc(
                     (WaterPrepareLightingData data, RenderGraphContext ctx) =>
@@ -1219,71 +1152,38 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterGBufferTexture1, data.gbuffer1);
                             ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
                             ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                            ctx.cmd.SetComputeBufferParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
                             ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._NormalBufferRW, data.normalBuffer);
                             ctx.cmd.SetComputeBufferParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
                             ctx.cmd.DispatchCompute(data.waterLighting, data.prepareSSRKernel, data.indirectBuffer, (uint)WaterConsts.k_NumWaterVariants * 3 * sizeof(uint));
                         }
                     });
             }
+        }
+        #endregion
 
-            return outputGBuffer;
+        #region Deferred Lighting
+        struct WaterRenderingDeferredParameters
+        {
+            // Deferred Lighting
+            public ComputeShader waterLighting;
+            public int[] indirectLightingKernels;
+            public int lightingKernel;
+            public int numVariants;
+            public int waterFogKernel;
         }
 
-        void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists)
+        WaterRenderingDeferredParameters PrepareWaterRenderingDeferredParameters(HDCamera hdCamera)
         {
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
+            WaterRenderingDeferredParameters parameters = new WaterRenderingDeferredParameters();
 
-            // If the water is disabled, no need to render or simulate
-            if (!ShouldRenderWater(hdCamera))
-                return;
+            // Deferred Lighting
+            parameters.waterLighting = m_WaterLightingCS;
+            parameters.indirectLightingKernels = m_WaterIndirectDeferredKernels;
+            parameters.lightingKernel = m_WaterDeferredKernel;
+            parameters.numVariants = WaterConsts.k_NumWaterVariants;
+            parameters.waterFogKernel = m_WaterFogIndirectKernel;
 
-            // Make sure the current data is valid
-            CheckWaterCurrentData();
-            // Copy the frustum data to the GPU
-            PropagateFrustumDataToGPU(hdCamera);
-
-            // Request all the gbuffer textures we will need
-            TextureHandle WaterGbuffer0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            {
-                colorFormat = GraphicsFormat.B10G11R11_UFloatPack32,
-                bindTextureMS = msaa,
-                msaaSamples = hdCamera.msaaSamples,
-                clearColor = Color.clear,
-                name = msaa ? "WaterGBuffer0MSAA" : "WaterGBuffer0"
-            });
-
-            TextureHandle WaterGbuffer2 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            {
-                colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
-                bindTextureMS = msaa,
-                msaaSamples = hdCamera.msaaSamples,
-                clearColor = Color.clear,
-                name = msaa ? "WaterGBuffer2MSAA" : "WaterGBuffer2"
-            });
-
-            TextureHandle WaterGbuffer3 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            {
-                colorFormat = GraphicsFormat.R16G16_UInt,
-                bindTextureMS = msaa,
-                msaaSamples = hdCamera.msaaSamples,
-                clearColor = Color.clear,
-                name = msaa ? "WaterGBuffer3MSAA" : "WaterGBuffer3"
-            });
-
-            BufferHandle cameraHeight = renderGraph.ImportBuffer(m_WaterCameraHeightBuffer);
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-
-            for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
-            {
-                // Grab the current water surface
-                WaterSurface currentWater = waterSurfaces[surfaceIdx];
-
-                // Render the water surface
-                RenderWaterSurfaceMask(renderGraph, hdCamera, currentWater, settings, surfaceIdx, colorBuffer, depthBuffer);
-            }
+            return parameters;
         }
 
         class WaterRenderingDeferredData
@@ -1301,9 +1201,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gbuffer3;
             public TextureHandle depthBuffer;
             public TextureHandle depthPyramid;
-
-            // Profiles
-            public BufferHandle waterSurfaceProfiles;
 
             // Lighting textures/buffers
             public TextureHandle volumetricLightingTexture;
@@ -1331,11 +1228,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!ShouldRenderWater(hdCamera) || !prepassOutput.waterGBuffer.valid)
                 return;
 
-            // Push the water profiles to the GPU for the deferred lighting pass
-            m_WaterProfileArrayGPU.SetData(m_WaterSurfaceProfileArray);
-
             // Execute the unique lighting pass
-            using (var builder = renderGraph.AddRenderPass<WaterRenderingDeferredData>("Render Water Surfaces Deferred", out var passData, ProfilingSampler.Get(HDProfileId.WaterSurfaceRenderingDeferred)))
+            using (var builder = renderGraph.AddRenderPass<WaterRenderingDeferredData>("Water Deferred Lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterDeferredLighting)))
             {
                 // Prepare all the internal parameters
                 passData.parameters = PrepareWaterRenderingDeferredParameters(hdCamera);
@@ -1351,7 +1245,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.waterSurfaceProfiles = builder.ReadBuffer(prepassOutput.waterSurfaceProfiles);
                 passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
                 passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
                 passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
@@ -1367,9 +1260,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (WaterRenderingDeferredData data, RenderGraphContext ctx) =>
                     {
-                        // Make sure the constant buffer is pushed
-                        ConstantBuffer.Push(ctx.cmd, data.parameters.waterRenderingCB, data.parameters.waterLighting, HDShaderIDs._ShaderVariablesWaterRendering);
-
                         for (int variantIdx = 0; variantIdx < data.parameters.numVariants; ++variantIdx)
                         {
                             // Kernel to be used for the target variant
@@ -1381,13 +1271,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture1, data.gbuffer1);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture2, data.gbuffer2);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
-                            ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
                             ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._ColorPyramidTexture, data.colorBuffer); // caution, this is not a pyramid, we can't access LODs
 
                             // Bind the output texture
                             ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraColorTextureRW, data.waterLightingBuffer);
@@ -1404,7 +1294,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
                         ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
                         ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
                         ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
                         ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._VBufferLighting, data.volumetricLightingTexture);
                         ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
@@ -1415,7 +1304,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
             }
         }
+        #endregion
 
+        #region Exclusion
         class WaterExclusionPassData
         {
             public FrameSettings frameSettings;
@@ -1443,5 +1334,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
             }
         }
+        #endregion
     }
 }

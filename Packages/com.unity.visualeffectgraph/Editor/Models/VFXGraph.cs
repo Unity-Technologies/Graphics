@@ -135,11 +135,19 @@ namespace UnityEditor.VFX
                         var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
 
                         var window = VFXViewWindow.GetWindow(graph, false, false);
-                        var reporter = window != null ? window.graphView.StartCompilationErrorReport(graph, false) : null;
+                        var reporter = window != null ? window.graphView.StartCompilationErrorReport(graph) : null;
                         graph.CompileForImport();
                         reporter?.Dispose();
 
-                        VFXMemorySerializer.ExtractObjects(backup, false);
+                        VFXGraph.restoringGraph = true;
+                        try
+                        {
+                            VFXMemorySerializer.ExtractObjects(backup, false);
+                        }
+                        finally
+                        {
+                            VFXGraph.restoringGraph = false;
+                        }
                         //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
                         //You have to avoid because it will call ResyncSlot
                     }
@@ -628,7 +636,8 @@ namespace UnityEditor.VFX
                     m_DependenciesCustomAttributes.Add(customAttribute);
                 }
 
-                Invalidate(InvalidationCause.kStructureChanged);
+                if (!isReadOnly) // if not from subgraph
+                    Invalidate(InvalidationCause.kStructureChanged);
                 return true;
             }
 
@@ -758,7 +767,8 @@ namespace UnityEditor.VFX
                     ((VFXModel)node).Invalidate(InvalidationCause.kSettingChanged);
                 }
 
-                Invalidate(this, InvalidationCause.kStructureChanged);
+                if (isReadOnly == false || (isReadOnly == null && !customAttributeDescriptor.isReadOnly)) // if not from subgraph
+                    Invalidate(this, InvalidationCause.kStructureChanged);
                 return true;
             }
 
@@ -1076,10 +1086,12 @@ namespace UnityEditor.VFX
                 m_DependentDirty = true;
             }
 
-            if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
-                cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
-                cause != VFXModel.InvalidationCause.kExpressionValueInvalidated &&
-                cause != VFXModel.InvalidationCause.kUIChangedTransient &&
+            if ((cause == InvalidationCause.kStructureChanged ||
+                cause == InvalidationCause.kParamChanged ||
+                cause == InvalidationCause.kSettingChanged ||
+                cause == InvalidationCause.kSpaceChanged ||
+                cause == InvalidationCause.kConnectionChanged ||
+                cause == InvalidationCause.kUIChanged) &&
                 (model.hideFlags & HideFlags.DontSave) == 0)
             {
                 EditorUtility.SetDirty(this);
@@ -1356,8 +1368,9 @@ namespace UnityEditor.VFX
         }
 
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
-        public bool explicitCompile { get; set; } = false;
-
+        public static bool explicitCompile { get; set; } = false;
+        //Set to true when restoring graph post compilation. Some costly behavior can be skipped in that situation (like reloading the whole UI). This is a safe hack.
+        public static bool restoringGraph { get; set; } = false;
 
         public void SanitizeForImport()
         {

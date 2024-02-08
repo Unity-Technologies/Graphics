@@ -25,7 +25,7 @@ To use volumetric fog, enable it in the all of the following locations:
 To enable Volumetric Fog in the Project Settings window, open the Project settings window (menu: **Edit > Project Settings)** and enable the following properties**:**
 
 1. Go to **Quality** > **HDRP** > **Lighting** > **Volumetrics** and enable **Volumetric Fog**.
-2. Go to **Graphics** > **HDRP Global Settings**. 
+2. Go to **Graphics** > **Pipeline Specific Settings** > **HDRP**. 
 3. Under Frame Settings (Default Values), in the Camera section: 
    - Select **Lighting**.
    - Enable **Fog**.

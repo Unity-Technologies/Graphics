@@ -5,6 +5,7 @@ public class FitToWaterSurface : MonoBehaviour
 {
     public WaterSurface targetSurface = null;
     public bool includeDeformation = false;
+    public bool outputNormal = false;
 
     // Internal search params
     WaterSearchParameters searchParameters = new WaterSearchParameters();
@@ -26,11 +27,14 @@ public class FitToWaterSurface : MonoBehaviour
             searchParameters.error = 0.01f;
             searchParameters.maxIterations = 8;
             searchParameters.includeDeformation = includeDeformation;
+            searchParameters.outputNormal = outputNormal;
 
             // Do the search
             if (targetSurface.ProjectPointOnWaterSurface(searchParameters, out searchResult))
             {
                 gameObject.transform.position = searchResult.projectedPositionWS;
+                if (searchParameters.outputNormal)
+                    gameObject.transform.LookAt(searchResult.projectedPositionWS + searchResult.normalWS, Vector3.up);
             }
         }
     }

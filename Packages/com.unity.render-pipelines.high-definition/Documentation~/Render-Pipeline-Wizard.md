@@ -29,8 +29,8 @@ There are three tabs that you can use to set up your HDRP Project for different 
 
 Each configuration is separated in two scopes:
 
-- **Global:** Changes the configuration settings in the Unity Editor, [HDRP Global Settings](Default-Settings-Window.md), or Graphics Settings'  [HDRP Asset](HDRP-Asset.md)
-- **Current Quality:** Changes the configuration settings in the [HDRP Asset](HDRP-Asset.md) set in Quality Settings. If no asset is assigned in Quality Settings, this mode uses the [HDRP Asset](HDRP-Asset.md) set in Graphics Settings.
+- **Global:** Changes the configuration settings in the Unity Editor, [HDRP graphics settings](Default-Settings-Window.md), or [HDRP Asset](HDRP-Asset.md)
+- **Current Quality:** Changes the configuration settings in the [HDRP Asset](HDRP-Asset.md) set in Quality Settings. If no asset is assigned in Quality Settings, this mode uses the [HDRP Asset](HDRP-Asset.md) set in the [Graphics settings window](Default-Settings-Window.md).
 
 <a name="HDRPTab"></a>
 
@@ -46,7 +46,7 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Lightmap Encoding**            | Checks to make sure **Lightmap Encoding** is set to **High Quality**, which is the only mode that HDRP supports. <br />Press the **Fix** button to make Unity encode lightmaps in **High Quality** mode. This fixes lightmaps for all platforms. |
 | **Shadows**                      | Checks to make sure **Shadow Quality** is set to **All**. Unity hides this option when you install HDRP, and automatically sets it to **All**. <br />Press the **Fix** button to set **Shadow Quality** to **All**. |
 | **Shadowmask Mode**              | Checks to make sure **Shadowmask Mode** is set to **Distance Shadowmask** at the Project level. This allows you to change the **Shadowmask Mode** on a per-[Light](Light-Component.md) level. <br />Press the **Fix** button to set the **Shadowmask Mode** to **Distance Shadowmask**. |
-| **Assigned - Graphics** | Checks to make sure you have assigned an [HDRP Asset](HDRP-Asset.md) to the **Graphics Settings** field (menu: **Edit** > **Project Settings** > **Graphics**).<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
+| **Assigned - Graphics** | Checks to make sure you have assigned an [HDRP Asset](HDRP-Asset.md) to the **Default Render Pipeline** field (menu: **Edit** > **Project Settings** > **Graphics**).<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
 | **Assigned - HDRP Settings** | Checks to make sure you have assigned an **HDRenderPipelineGlobalSettings** asset to the **HDRP Settings** field (menu: **Edit** > **Project Settings** > **HDRP Graphics**).<br/>Press the **Fix** button to find and assign an available **HDRenderPipelineGlobalSettings** asset. If there isn't one available, Unity creates an **HDRenderPipelineGlobalSettings** in the **Default Resources Folder**. |
 | **Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.md)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |

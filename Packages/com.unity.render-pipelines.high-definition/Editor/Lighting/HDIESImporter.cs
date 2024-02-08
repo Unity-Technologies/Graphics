@@ -40,11 +40,12 @@ namespace UnityEditor.Rendering.HighDefinition
             LightType lightType = (light.type == LightType.Point) ? LightType.Point : LightType.Spot;
 
             HDAdditionalLightData hdLight = GameObjectExtension.AddHDLight(light.gameObject, lightType);
+            Light coreLight = hdLight.GetComponent<Light>();
 
             if (useIESMaximumIntensity)
             {
                 LightUnit lightUnit = (iesMaximumIntensityUnit == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
-                hdLight.SetIntensity(iesMaximumIntensity, lightUnit);
+                coreLight.intensity = LightUnitUtils.ConvertIntensity(coreLight, iesMaximumIntensity, lightUnit, LightUnit.Candela);
                 if (light.type == LightType.Point)
                     hdLight.IESPoint = ies;
                 else

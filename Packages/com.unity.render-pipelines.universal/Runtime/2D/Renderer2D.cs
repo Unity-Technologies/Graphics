@@ -126,8 +126,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
-
-            Blitter.Cleanup();
+            
             CleanupRenderGraphResources();
 
             base.Dispose(disposing);

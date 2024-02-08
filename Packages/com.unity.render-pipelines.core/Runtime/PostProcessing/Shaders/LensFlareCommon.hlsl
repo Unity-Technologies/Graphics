@@ -164,7 +164,16 @@ float GetLinearDepthValue(float2 uv)
     depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
 
     if (_ViewId >= 0)
-        depth = LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), _ViewId, 0).x;
+    {
+#if defined(DISABLE_TEXTURE2D_X_ARRAY)
+        // This should never happen in theory since _ViewId can only be >= 0 IF xr is enabled and so DISABLE_TEXTURE2D_X_ARRAY is disabled.
+        // We just have to manage the DISABLE_TEXTURE2D_X_ARRAY variant here for avoiding warnings.
+        // HDRP does not need this because it never uses DISABLE_TEXTURE2D_X_ARRAY.
+        depth = LOAD_TEXTURE2D_LOD(_CameraDepthTexture, int2(uv * GetScaledScreenParams().xy), 0).x;
+#else
+        depth = LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, int2(uv * GetScaledScreenParams().xy), _ViewId, 0).x;
+#endif
+    }
     else
         depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * GetScaledScreenParams().xy), 0).x;
 

@@ -18,9 +18,18 @@ namespace UnityEngine.Rendering.Universal
         public int version => m_Version;
         bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
-        [SerializeField]
-        [ResourcePath("Shaders/Utils/CoreBlit.shader")]
-        internal Shader m_CoreBlitPS;
+        [SerializeField, ResourcePath("Shaders/Utils/FallbackError.shader")]
+        Shader m_FallbackErrorShader;
+
+        /// <summary>
+        /// Fallback error shader
+        /// </summary>
+        public Shader fallbackErrorShader
+        {
+            get => m_FallbackErrorShader;
+            set => this.SetValueAndNotify(ref m_FallbackErrorShader, value, nameof(m_FallbackErrorShader));
+        }
+
 
         [SerializeField]
         [ResourcePath("Shaders/Utils/BlitHDROverlay.shader")]
@@ -34,6 +43,10 @@ namespace UnityEngine.Rendering.Universal
             get => m_BlitHDROverlay;
             set => this.SetValueAndNotify(ref m_BlitHDROverlay, value, nameof(m_BlitHDROverlay));
         }
+
+        [SerializeField]
+        [ResourcePath("Shaders/Utils/CoreBlit.shader")]
+        internal Shader m_CoreBlitPS;
 
         /// <summary>
         /// Core Blit shader.

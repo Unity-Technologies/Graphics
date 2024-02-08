@@ -58,8 +58,6 @@ namespace UnityEditor.Rendering
         {
             RenderPipelineManager.activeRenderPipelineCreated -= CreateDefaultVolumeProfileEditor;
 
-            Debug.Assert(VolumeManager.instance.isInitialized);
-
             VolumeProfile profile = m_VolumeProfileSerializedProperty.objectReferenceValue as VolumeProfile;
             if (profile == null)
                 return;

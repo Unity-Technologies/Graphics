@@ -23,7 +23,7 @@ To use Decal Layers, enable them in your Project’s [HDRP Asset](HDRP-Asset.md)
 
 You can then enable Decal Layers in your [Frame Settings](Frame-Settings.md) to enable Decal Layers for all Cameras. To do this:
 
-1. Go to **Edit** > **Project Settings** open the **Graphics** section and select [HDRP Global Settings](Default-Settings-Window.md).
+1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
 2. Go to the **Frame Settings (Default Values**) > **Camera** section.
 3. Open the **Rendering** section.
 4. Enable the **Decal Layers** checkbox.

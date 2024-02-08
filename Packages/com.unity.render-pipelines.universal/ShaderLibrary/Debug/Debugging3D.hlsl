@@ -13,6 +13,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
+#define TERRAIN_STREAM_INFO float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f) // 0-15 are reserved for per-texture codes (use "6" to indicate terrain); per-material code "4" signifies "warnings/issues"
 #define SETUP_DEBUG_TEXTURE_DATA(inputData, uv)                   SetupDebugDataTexture(inputData, TRANSFORM_TEX(uv.xy, unity_MipmapStreaming_DebugTex), unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo, unity_MipmapStreaming_DebugTex)
 #define SETUP_DEBUG_TEXTURE_DATA_NO_UV(inputData)                 SetupDebugDataTexture(inputData, float2(0.0f, 0.0f), unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo, unity_MipmapStreaming_DebugTex)
 #define SETUP_DEBUG_TEXTURE_DATA_FOR_TEX(inputData, uv, texture)  SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, texture##_StreamInfo, texture)
@@ -41,9 +42,9 @@ void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdf
 
 void SetupDebugDataTerrain(inout InputData inputData)
 {
-    // no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
+    // TERRAIN_STREAM_INFO: no streamInfo will have been set (no MeshRenderer); set status to "6" to reflect in the debug status that this is a terrain
     // also, set the per-material status to "4" to indicate warnings
-    inputData.streamInfo = float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f);
+    inputData.streamInfo = TERRAIN_STREAM_INFO;
 }
 
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)

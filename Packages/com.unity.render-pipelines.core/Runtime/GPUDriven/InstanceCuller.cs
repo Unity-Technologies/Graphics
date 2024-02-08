@@ -8,10 +8,13 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
+using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.RenderGraphModule;
+
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.Rendering;
 #endif
-using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
 {
@@ -1172,6 +1175,31 @@ namespace UnityEngine.Rendering
             cullingOutput[0] = output;
         }
     }
+
+    [BurstCompile]
+    internal struct CullSceneViewHiddenRenderersJob : IJobParallelFor
+    {
+        public const int k_BatchSize = 128;
+
+        [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
+        [ReadOnly] public CPUSharedInstanceData.ReadOnly sharedInstanceData;
+        [ReadOnly] public ParallelBitArray hiddenBits;
+
+        [NativeDisableParallelForRestriction] public NativeArray<byte> rendererVisibilityMasks;
+
+        public void Execute(int instanceIndex)
+        {
+            InstanceHandle instance = instanceData.instances[instanceIndex];
+
+            if (rendererVisibilityMasks[instance.index] > 0)
+            {
+                int sharedInstanceIndex = sharedInstanceData.InstanceToIndex(instanceData, instance);
+
+                if (hiddenBits.Get(sharedInstanceIndex))
+                    rendererVisibilityMasks[instance.index] = 0;
+            }
+        }
+    }
 #endif
 
     internal enum InstanceCullerSplitDebugCounter
@@ -1447,6 +1475,11 @@ namespace UnityEngine.Rendering
 
         private CommandBuffer m_CommandBuffer;
 
+#if UNITY_EDITOR
+        private bool m_IsSceneViewCamera;
+        private bool m_IsAnyObjectHiddenInSceneView;
+#endif
+
         private static class ShaderIDs
         {
             public static readonly int InstanceOcclusionCullerShaderVariables = Shader.PropertyToID("InstanceOcclusionCullerShaderVariables");
@@ -1631,9 +1664,11 @@ namespace UnityEngine.Rendering
             m_CompactedVisibilityMasksJobsHandle = JobHandle.CombineDependencies(m_CompactedVisibilityMasksJobsHandle, compactVisibilityMasksJobHandle);
 
 #if UNITY_EDITOR
+            cullingJobHandle = ScheduleSceneViewHiddenObjectsCullingJob(cc.viewType, instanceData, sharedInstanceData, rendererVisibilityMasks, cullingJobHandle);
+
             if (cc.viewType == BatchCullingViewType.Picking || cc.viewType == BatchCullingViewType.SelectionOutline)
             {
-                var pickingIDs = UnityEditor.HandleUtility.GetPickingIncludeExcludeList(Allocator.TempJob);
+                var pickingIDs = HandleUtility.GetPickingIncludeExcludeList(Allocator.TempJob);
                 var excludedRenderers = pickingIDs.ExcludeRenderers.IsCreated ? pickingIDs.ExcludeRenderers : new NativeArray<int>(0, Allocator.TempJob);
                 var dummyFilteringResults = new NativeArray<bool>(0, Allocator.TempJob);
                 var drawOutputJob = new DrawCommandOutputFiltering
@@ -1797,6 +1832,33 @@ namespace UnityEngine.Rendering
                 return drawCommandOutputHandle;
             }
         }
+
+#if UNITY_EDITOR
+        private JobHandle ScheduleSceneViewHiddenObjectsCullingJob(BatchCullingViewType viewType, in CPUInstanceData.ReadOnly instanceData, in CPUSharedInstanceData.ReadOnly sharedInstanceData,
+            NativeArray<byte> rendererVisibilityMasks, JobHandle inputDeps)
+        {
+            if (!m_IsSceneViewCamera || !m_IsAnyObjectHiddenInSceneView)
+                return inputDeps;
+
+            if (viewType != BatchCullingViewType.Camera && viewType != BatchCullingViewType.Light)
+                return inputDeps;
+
+            var hiddenBits = new ParallelBitArray(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            EditorCameraUtils.GetRenderersHiddenResultBits(sharedInstanceData.rendererGroupIDs, hiddenBits.GetBitsArray().Reinterpret<ulong>());
+
+            var jobHandle = new CullSceneViewHiddenRenderersJob
+            {
+                instanceData = instanceData,
+                sharedInstanceData = sharedInstanceData,
+                hiddenBits = hiddenBits,
+                rendererVisibilityMasks = rendererVisibilityMasks,
+            }.Schedule(instanceData.instancesLength, CullSceneViewHiddenRenderersJob.k_BatchSize, inputDeps);
+
+            hiddenBits.Dispose(jobHandle);
+
+            return jobHandle;
+        }
+#endif
 
         public void InstanceOccludersUpdated(int viewInstanceID, RenderersBatchersContext batchersContext)
         {
@@ -2116,11 +2178,49 @@ namespace UnityEngine.Rendering
             }
         }
 
+        private void OnBeginSceneViewCameraRendering()
+        {
+#if UNITY_EDITOR
+            m_IsSceneViewCamera = true;
+            m_IsAnyObjectHiddenInSceneView = false;
+
+            for (int i = 0; i < SceneManager.sceneCount; ++i)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                if (SceneVisibilityManager.instance.AreAnyDescendantsHidden(scene))
+                {
+                    m_IsAnyObjectHiddenInSceneView = true;
+                    break;
+                }
+            }
+#endif
+        }
+
+        private void OnEndSceneViewCameraRendering()
+        {
+#if UNITY_EDITOR
+            m_IsSceneViewCamera = false;
+#endif
+        }
+
         public void UpdateFrame()
         {
             DisposeCompactVisibilityMasks();
             FlushDebugCounters();
             m_IndirectStorage.ClearContextsAndGrowBuffers();
+        }
+
+        public void OnBeginCameraRendering(Camera camera)
+        {
+            if (camera.cameraType == CameraType.SceneView)
+                OnBeginSceneViewCameraRendering();
+        }
+
+        public void OnEndCameraRendering(Camera camera)
+        {
+            if (camera.cameraType == CameraType.SceneView)
+                OnEndSceneViewCameraRendering();
         }
 
         public void Dispose()

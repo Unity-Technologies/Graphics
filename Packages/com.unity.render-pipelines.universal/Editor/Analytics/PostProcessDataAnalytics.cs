@@ -15,7 +15,9 @@ namespace UnityEditor.Rendering.Universal
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.universal";
-        const string k_EventName = "uUniversalRenderPipelinePostProcessDataUsage";
+        const string k_EventName = "uURPPostProcessAsset";
+        // SCHEMA: com.unity3d.data.schemas.editor.analytics.uURPPostProcessAsset_v1
+        // TAXONOMY : editor.analytics.uURPPostProcessAsset.v1
 
         [AnalyticInfo(eventName: k_EventName, vendorKey: k_VendorKey, maxEventsPerHour: k_MaxEventsPerHour, maxNumberOfElements: k_MaxNumberOfElements)]
         public class Analytic : IAnalytic

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -17,7 +18,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
         protected List<int> m_RemoveList = new List<int>(32); // Used to remove stale resources as there is no RemoveAll on SortedLists
 
-        // This list allows us to determine if all resources were correctly released in the frame.
+        // This list allows us to determine if all resources were correctly released in the frame when validity checks are enabled.
         // This is useful to warn in case of user error or avoid leaks when a render graph execution errors occurs for example.
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
 
@@ -67,40 +68,47 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void RegisterFrameAllocation(int hash, Type value)
         {
-            if (hash != -1)
+            if (RenderGraph.enableValidityChecks && hash != -1)
                 m_FrameAllocatedResources.Add((hash, value));
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void UnregisterFrameAllocation(int hash, Type value)
         {
-            if (hash != -1)
+            if (RenderGraph.enableValidityChecks && hash != -1)
                 m_FrameAllocatedResources.Remove((hash, value));
         }
 
         public override void CheckFrameAllocation(bool onException, int frameIndex)
         {
-            // In case of exception we need to release all resources to the pool to avoid leaking.
-            // If it's not an exception then it's a user error so we need to log the problem.
-            if (m_FrameAllocatedResources.Count != 0)
+#if DEVELOPMENT_BUILD || UNITY_EDITOR // conditional not working with override
+            if (RenderGraph.enableValidityChecks)
             {
-                string logMessage = "";
-                if (!onException)
-                    logMessage = $"RenderGraph: Not all resources of type {GetResourceTypeName()} were released. This can be caused by a resources being allocated but never read by any pass.";
-
-                foreach (var value in m_FrameAllocatedResources)
+                // In case of exception we need to release all resources to the pool to avoid leaking.
+                // If it's not an exception then it's a user error so we need to log the problem.
+                if (m_FrameAllocatedResources.Count != 0)
                 {
+                    string logMessage = "";
                     if (!onException)
-                        logMessage = $"{logMessage}\n\t{GetResourceName(value.Item2)}";
-                    ReleaseResource(value.Item1, value.Item2, frameIndex);
+                        logMessage = $"RenderGraph: Not all resources of type {GetResourceTypeName()} were released. This can be caused by a resources being allocated but never read by any pass.";
+
+                    foreach (var value in m_FrameAllocatedResources)
+                    {
+                        if (!onException)
+                            logMessage = $"{logMessage}\n\t{GetResourceName(value.Item2)}";
+                        ReleaseResource(value.Item1, value.Item2, frameIndex);
+                    }
+
+                    Debug.LogWarning(logMessage);
                 }
 
-                Debug.LogWarning(logMessage);
+                // If an error occurred during execution, it's expected that textures are not all released so we clear the tracking list.
+                m_FrameAllocatedResources.Clear();
             }
-
-            // If an error occurred during execution, it's expected that textures are not all released so we clear the tracking list.
-            m_FrameAllocatedResources.Clear();
+#endif
         }
 
         struct ResourceLogInfo

@@ -13,13 +13,69 @@
 // Required to be defined for some includes
 #define WATER_SIMULATION
 
+// These values are chosen so that an iFFT patch of 1000km^2 will
+// yield a Phillips spectrum distribution in the [-1, 1] range
+#define EARTH_GRAVITY 9.81
+#define SQRT2 1.41421356237
+#define ONE_OVER_SQRT2 0.70710678118
+#define PHILLIPS_AMPLITUDE_SCALAR 0.2
+
 // SRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/FrustumCulling.hlsl"
+
+uint4 WaterHashFunctionUInt4(uint3 coord)
+{
+    uint4 x = coord.xyzz;
+    x = ((x >> 16u) ^ x.yzxy) * 0x45d9f3bu;
+    x = ((x >> 16u) ^ x.yzxz) * 0x45d9f3bu;
+    x = ((x >> 16u) ^ x.yzxx) * 0x45d9f3bu;
+    return x;
+}
+
+float4 WaterHashFunctionFloat4(uint3 p)
+{
+    return WaterHashFunctionUInt4(p) / (float)0xffffffffU;
+}
+
+//http://www.dspguide.com/ch2/6.htm
+float GaussianDis(float u, float v)
+{
+    return sqrt(-2.0 * log(max(u, 1e-6f))) * cos(PI * v);
+}
+
+float Phillips(float2 k, float2 w, float V, float directionDampener, float invPatchSize)
+{
+    float kk = k.x * k.x + k.y * k.y;
+    float result = 0.0;
+    if (kk != 0.0)
+    {
+        float L = (V * V) / EARTH_GRAVITY;
+        // To avoid _any_ directional bias when there is no wind we lerp towards 0.5f
+        float wk = lerp(dot(normalize(k), w), 0.5, directionDampener);
+        float phillips = (exp(-1.0f / (kk * L * L)) / (kk * kk)) * (wk * wk);
+        result = phillips * (wk < 0.0f ? directionDampener : 1.0);
+    }
+    return PHILLIPS_AMPLITUDE_SCALAR * result * invPatchSize * invPatchSize;
+}
+
+float2 ComplexExp(float arg)
+{
+    return float2(cos(arg), sin(arg));
+}
+
+float2 ComplexMult(float2 a, float2 b)
+{
+    return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
+}
+
+float3 ShuffleDisplacement(float3 displacement)
+{
+    return float3(-displacement.y, displacement.x, -displacement.z);
+}
 
 // InitializePhillipsSpectrum UAVS
 RWTexture2DArray<float2> _H0BufferRW;
@@ -99,6 +155,25 @@ void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
 // EvaluateNormals UAVS
 Texture2DArray<float4> _PreviousWaterAdditionalDataBuffer;
 RWTexture2DArray<float4> _WaterAdditionalDataBufferRW;
+
+void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
+                                float normalization, float pixelSize,
+                                out float3 p0, out float3 p1, out float3 p2)
+{
+    p0 = displacementC * normalization;
+    p1 = displacementR * normalization + float3(pixelSize, 0, 0);
+    p2 = displacementU * normalization + float3(0, 0, pixelSize);
+}
+
+float EvaluateJacobian(float3 p0, float3 p1, float3 p2, float pixelSize)
+{
+    // Compute the jacobian of this texel
+    float Jxx = 1.f + (p1.x - p0.x) / pixelSize;
+    float Jyy = 1.f + (p2.z - p0.z) / pixelSize;
+    float Jyx = (p1.z - p0.z) / pixelSize;
+    float Jxy = (p2.x - p0.x) / pixelSize;
+    return (Jxx * Jyy - Jxy * Jyx);
+}
 
 [numthreads(8, 8, 1)]
 void EVALUATE_ADDITIONAL_DATA(uint3 currentThread : SV_DispatchThreadID)

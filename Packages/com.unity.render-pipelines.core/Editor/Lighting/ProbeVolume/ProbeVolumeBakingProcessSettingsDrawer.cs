@@ -23,6 +23,15 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent virtualOffsetSettingsTitle = EditorGUIUtility.TrTextContent("Virtual Offset Settings");
         }
 
+        static internal bool IndentedButton(GUIContent content)
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.Space(15 * EditorGUI.indentLevel, false);
+            bool value = GUILayout.Button(content, EditorStyles.miniButton);
+            GUILayout.EndHorizontal();
+            return value;
+        }
+
         // PropertyDrawer are not made to use GUILayout, so it will try to reserve a rect before calling OnGUI
         // Tell we have a height of 0 so it doesn't interfere with our usage of GUILayout
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => 0;
@@ -66,7 +75,7 @@ namespace UnityEngine.Rendering
 
                 if (Unsupported.IsDeveloperMode())
                 {
-                    if (ProbeTouchupVolumeEditor.Button(EditorGUIUtility.TrTextContent("Refresh Dilation")))
+                    if (IndentedButton(EditorGUIUtility.TrTextContent("Refresh Dilation")))
                     {
                         ProbeGIBaking.RevertDilation();
                         ProbeGIBaking.PerformDilation();
@@ -94,7 +103,7 @@ namespace UnityEngine.Rendering
                 EditorGUILayout.PropertyField(virtualOffsetRayOriginBias, Styles.virtualOffsetRayOriginBias);
                 EditorGUILayout.PropertyField(virtualOffsetCollisionMask, Styles.virtualOffsetCollisionMask);
 
-                if (ProbeTouchupVolumeEditor.Button(EditorGUIUtility.TrTextContent("Refresh Virtual Offset Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data.")))
+                if (IndentedButton(EditorGUIUtility.TrTextContent("Refresh Virtual Offset Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data.")))
                 {
                     ProbeGIBaking.RecomputeVOForDebugOnly();
                 }

@@ -18,11 +18,13 @@ Texture3D _ProbeVolumeData;
 RWTexture3D<float4> _Output;
 RWTexture3D<float4> _FinalOutput;
 
-AppendStructuredBuffer<float3> _Bricks;
+// Technically float3, but AppendBuffers stride must be a multiple of 4
+AppendStructuredBuffer<float4> _Bricks;
 RWStructuredBuffer<float3> _BricksToClear;
 
 StructuredBuffer<GPUProbeVolumeOBB> _ProbeVolumes;
 
+CBUFFER_START(cb0)
 float4 _Size;
 float4 _MaxBrickSize;
 float4 _VolumeSizeInBricks;
@@ -35,6 +37,7 @@ float _SubdivisionLevel;
 float _MaxSubdivisionLevel;
 float _ProbeVolumeCount;
 float _ClearValue;
+CBUFFER_END
 
 [numthreads(8,8,1)]
 void Clear(uint3 id : SV_DispatchThreadID)
@@ -42,7 +45,7 @@ void Clear(uint3 id : SV_DispatchThreadID)
     if (any(id >= uint3(_Size.xyz)))
         return;
 
-    _Output[id] = _ClearValue;
+    _Output[id] = _ClearValue.xxxx;
 }
 
 [numthreads(64,1,1)]
@@ -261,6 +264,6 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     {
         // transform id to world position
         float3 positionInCell = _VolumeOffsetInBricks.xyz + (id / _MaxBrickSize.xyz) * _VolumeSizeInBricks.xyz;
-        _Bricks.Append(positionInCell);
+        _Bricks.Append(float4(positionInCell, 0.0f));
     }
 }

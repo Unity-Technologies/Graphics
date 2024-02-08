@@ -69,14 +69,6 @@ MonoBehaviour:
     validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 8
-  - m_name: Distortion
-    m_description: Enable distortion pass.
-    propertyPath: m_RenderPipelineSettings.supportDistortion
-    valueType: 0
-    targetValue: 1
-    validationType: 0
-    uiSectionInt: 16
-    uiSubSectionInt: 0
   - m_name: Volumetric Clouds
     m_description: Enable volumetric clouds.
     propertyPath: m_RenderPipelineSettings.supportVolumetricClouds

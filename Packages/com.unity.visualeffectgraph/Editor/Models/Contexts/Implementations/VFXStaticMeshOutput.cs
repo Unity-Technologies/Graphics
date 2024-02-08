@@ -49,9 +49,7 @@ namespace UnityEditor.VFX
 
         public virtual void SetupMaterial(Material material)
         {
-            VFXLibrary.currentSRPBinder.SetupMaterial(material);
-
-            // TODO Deactivate mv and shadow passes if needed
+            VFXLibrary.currentSRPBinder.SetupMaterial(material, false, hasShadowCasting);
         }
 
         protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) { }
@@ -269,7 +267,7 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its dependency such as the shadergraphs, has been changed.
-            if (!GetGraph().explicitCompile)
+            if (!VFXGraph.explicitCompile)
                 ResyncSlots(true);
 
             Invalidate(InvalidationCause.kUIChangedTransient);

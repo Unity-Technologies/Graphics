@@ -41,8 +41,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 msg += $"Failed to merge {ctx.passNames[nativePass.breakAudit.breakPass].name} into this native pass.\n";
             }
 
-            var reason = PassBreakAudit.BreakReasonMessages[(int) nativePass.breakAudit.reason];
-            msg += reason + "\n";
+            msg += PassBreakAudit.BreakReasonMessages[(int) nativePass.breakAudit.reason];
             return msg;
         }
 
@@ -205,6 +204,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.generateDebugData = graphPass.generateDebugData;
                 debugPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
                 debugPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
+
+                RenderGraph.DebugData.s_PassScriptMetadata.TryGetValue(debugPass.name, out debugPass.scriptInfo);
 
                 debugPass.syncFromPassIndex = -1; // TODO async compute support
                 debugPass.syncToPassIndex = -1; // TODO async compute support

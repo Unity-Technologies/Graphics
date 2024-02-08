@@ -4,17 +4,24 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScalingClamping.hlsl"
 
 TEXTURE2D_X_FLOAT(_CameraDepthTexture);
-SAMPLER(sampler_CameraDepthTexture);
 float4 _CameraDepthTexture_TexelSize;
+
+// 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
+#define sampler_CameraDepthTexture sampler_PointClamp
+
+float SampleSceneDepth(float2 uv, SAMPLER(samplerParam))
+{
+    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy);
+    return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, samplerParam, uv).r;
+}
 
 float SampleSceneDepth(float2 uv)
 {
-    uv = ClampAndScaleUVForBilinear(UnityStereoTransformScreenSpaceTex(uv), _CameraDepthTexture_TexelSize.xy);
-    return SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
+    return SampleSceneDepth(uv, sampler_PointClamp);
 }
 
-float LoadSceneDepth(uint2 uv)
+float LoadSceneDepth(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_X(_CameraDepthTexture, uv).r;
+    return LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoords).r;
 }
 #endif

@@ -711,7 +711,7 @@ Internally, HDRP uses the Render Graph API to describe its render loop. This all
 #### Dynamic Renderer List Culling
 
 HDRP can use the Render Graph system to cull out passes when they depend on an empty rendering object list. For example, the distortion pass can be removed if no object generating distortion are visible within the camera frustum. However, this particular type of pass culling can create unwanted dependency between the main thread and the culling jobs which can in turn reduce CPU performance. For this reason, this optimization is disabled by default and needs to be considered on a case by case basis depending on each game specificities.
-You can enable it in the Miscellaneous section of the HDRP global settings.
+You can enable it in the Miscellaneous section of the [HDRP Graphics settings window](Default-Settings-Window.md).
 
 ### Volume System API
 

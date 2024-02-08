@@ -31,7 +31,7 @@ To use shadowmasks in HDRP, you must set up your Project to support them. To do 
    1. Open the Lighting window (menu: **Window** > **Rendering** > **Lighting**).
    2. In the **Mixed Lighting** section, enable **Baked Global Illumination** and set the **Lighting Mode** to **Shadowmask**.
 4. Make your Cameras use shadowmasks when they render the Scene. To set this as the default behaviour for Cameras:
-   1. Open the Project Settings window (menu: **Edit** > **Project Settings**) and select the **HDRP Global Settings** tab.
+   1. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP**.
    2. Go to **Frame Settings (Default Values)** > **Camera** > **Lighting** and enable **Shadowmask**.
 5. Optionally, you can make your [Reflection Probes](Reflection-Probes-Intro.md) use shadowmask for baked or real-time reflections. To do this:
    1. Go to **Frame Settings (Default Values)** > **Realtime Reflection** or **Baked or Custom Reflection** > **Lighting** and enable **Shadowmask**.

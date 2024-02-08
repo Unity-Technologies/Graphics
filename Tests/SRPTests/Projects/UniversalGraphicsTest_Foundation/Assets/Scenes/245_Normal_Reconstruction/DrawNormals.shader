@@ -37,6 +37,10 @@ Shader "Hidden/Universal Render Pipeline/DrawNormals"
                 half3 normalWS = ReconstructNormalDerivative(input.positionCS.xy * _ScaleBias.xy + _ScaleBias.zw);
 #endif
 
+                // Add subtle lines between the test cases.
+                if(any(int2(input.positionCS.xy) == int2(_ScreenSize.xy)/2))
+                    return half4((normalWS * 0.5 + 0.5) * 0.75, 1);
+
                 return half4(normalWS * 0.5 + 0.5, 1);
             }
             ENDHLSL

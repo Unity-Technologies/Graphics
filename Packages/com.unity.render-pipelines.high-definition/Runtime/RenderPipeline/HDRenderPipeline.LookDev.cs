@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(additionalLightData);
 #endif
-            additionalLightData.intensity = 0f;
+            light.intensity = 0f;
             additionalLightData.SetShadowResolution(2048);
 
             GameObject volumeGO = SRI.AddGameObject(persistent: true);
@@ -237,12 +237,12 @@ namespace UnityEngine.Rendering.HighDefinition
             var oldClearMode = data.additionalCameraData.clearColorMode;
             data.additionalCameraData.backgroundColorHDR = Color.white;
             data.additionalCameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
-            data.additionalLightData.intensity = 1f;
+            SRI.sunLight.intensity = 1f;
             debugDisplaySettings.SetShadowDebugMode(ShadowMapDebugMode.SingleShadow);
             SRI.camera.targetTexture = output;
             SRI.camera.Render();
             debugDisplaySettings.SetShadowDebugMode(ShadowMapDebugMode.None);
-            data.additionalLightData.intensity = 0f;
+            SRI.sunLight.intensity = 0f;
             data.additionalCameraData.backgroundColorHDR = oldBackgroundColor;
             data.additionalCameraData.clearColorMode = oldClearMode;
         }

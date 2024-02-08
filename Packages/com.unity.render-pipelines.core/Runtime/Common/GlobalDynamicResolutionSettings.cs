@@ -172,6 +172,9 @@ namespace UnityEngine.Rendering
         /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
         public float rayTracingHalfResThreshold;
 
+        /// <summary>The minimum percentage threshold allowed to clamp low resolution for SSGI (Screen Space Global Illumination). When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
+        public float lowResSSGIMinimumThreshold;
+
 #pragma warning disable 618 // Type or member is obsolete
         /// <summary>Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.</summary>
         [Obsolete("Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.")]

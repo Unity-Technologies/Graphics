@@ -258,6 +258,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// True if the camera rendering is for regular in-game.
+        /// </summary>
+        public bool isGameCamera => cameraType == CameraType.Game;
+
+        /// <summary>
         /// True if the camera rendering is for the scene window in the editor.
         /// </summary>
         public bool isSceneViewCamera => cameraType == CameraType.SceneView;
@@ -423,12 +428,13 @@ namespace UnityEngine.Rendering.Universal
             UniversalAdditionalCameraData additionalCameraData;
             camera.TryGetComponent(out additionalCameraData);
 
-            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                         // Enabled
-                && (taaPersistentData != null)                                                                                     // Initialized
-                && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
-                && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
-                && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
-                && postProcessEnabled;                                                                                             // No Postprocessing
+            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
+                   && postProcessEnabled                                                                                              // Postprocessing Enabled
+                   && (taaPersistentData != null)                                                                                     // Initialized
+                   && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
+                   && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
+                   && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
+                   && renderer.SupportsMotionVectors();                                                                               // Motion Vectors implemented
         }
 
         /// <summary>

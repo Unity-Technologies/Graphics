@@ -29,18 +29,21 @@ public class SpawnDeformation : MonoBehaviour
         if (deltaPos.magnitude > thresholdSpeed && normalizedHeight > 0 && normalizedHeight < 1)
         {
             if ((Time.realtimeSinceStartup - lastDeformationSpawnedTime) >= TimeBtwnEachDeformation)
-            {       
-                GameObject deformer = PoolManager.Instances[PoolManager.InstanceType.Deformer].getNextAvailable();
-                if(deformer != null)
+            {   
+                if(PoolManager.Instances[PoolManager.InstanceType.Deformer] != null)
                 {
-                    lastDeformationSpawnedTime = Time.realtimeSinceStartup;
-                    deformer.transform.position = this.transform.position + this.transform.forward * deltaPos.magnitude * 0.01f;
-                    
-					// The normalized speed acts like a multiplier, more speed means bigger ripples.
-                    float normalizedSpeed = Mathf.InverseLerp(thresholdSpeed, maxSpeed, deltaPos.magnitude);
-                    
-                    deformer.GetComponent<DeformationManager>().SetAmplitude(normalizedSpeed * deformationAmplitudeMultipler);
-                    deformer.SetActive(true);
+                    GameObject deformer = PoolManager.Instances[PoolManager.InstanceType.Deformer].getNextAvailable();
+                    if(deformer != null)
+                    {
+                        lastDeformationSpawnedTime = Time.realtimeSinceStartup;
+                        deformer.transform.position = this.transform.position + this.transform.forward * deltaPos.magnitude * 0.01f;
+                        
+                        // The normalized speed acts like a multiplier, more speed means bigger ripples.
+                        float normalizedSpeed = Mathf.InverseLerp(thresholdSpeed, maxSpeed, deltaPos.magnitude);
+                        
+                        deformer.GetComponent<DeformationManager>().SetAmplitude(normalizedSpeed * deformationAmplitudeMultipler);
+                        deformer.SetActive(true);
+                    }
                 }
             }
             

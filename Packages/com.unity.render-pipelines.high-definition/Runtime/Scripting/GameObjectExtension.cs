@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Reflector have been change to true by default in the UX, however to not break compatibility
             // with previous 2020.2 project that use light scripting we must keep reflector to false for scripted light
-            hdLight.enableSpotReflector = false;
+            hdLight.legacyLight.enableSpotReflector = false;
             hdLight.legacyLight.type = type;
 
             return hdLight;

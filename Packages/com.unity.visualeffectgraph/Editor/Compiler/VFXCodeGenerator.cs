@@ -617,6 +617,22 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!context.SetupCompilation())
                 return null;
 
+            var contextData = context.GetData();
+
+            // Readable identifier for the profile marker
+            string shaderIdStr = string.Empty;
+            if (!string.IsNullOrEmpty(contextData.title))
+                shaderIdStr += contextData.title;
+            if (!string.IsNullOrEmpty(context.name))
+                shaderIdStr += "/" + context.name;
+            if (!string.IsNullOrEmpty(context.label))
+                shaderIdStr += "/" + context.label;
+            if (!string.IsNullOrEmpty(task.name))
+                shaderIdStr += "/" + task.name;
+            shaderIdStr = shaderIdStr.Replace("\n", " ");
+
+            Profiler.BeginSample($"GenerateShader ({shaderIdStr})");
+
             if (context is IVFXShaderGraphOutput shaderGraphOutput)
             {
                 var shaderGraph = shaderGraphOutput.GetShaderGraph();
@@ -624,6 +640,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 {
                     var result = TryBuildFromShaderGraph(context, taskData, out errors);
                     context.EndCompilation();
+                    Profiler.EndSample();
                     return result;
                 }
             }
@@ -631,16 +648,16 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var allAdditionalDefines = context.additionalDefines.Concat(task.additionalDefines ?? Enumerable.Empty<string>());
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), allAdditionalDefines, dependencies);
 
-            var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
-                (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
-                (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
+            var allCurrentAttributes = contextData.GetAttributes().Where(a =>
+                (contextData.IsCurrentAttributeUsed(a.attrib, context)) ||
+                (context.contextType == VFXContextType.Init && contextData.IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
 
-            var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
+            var allSourceAttributes = contextData.GetAttributes().Where(a => (contextData.IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
             globalDeclaration.WriteLine();
-            var particleData = (context.GetData() as VFXDataParticle);
+            var particleData = (contextData as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
             taskData.uniformMapper.OverrideUniformsNamesWithOther(systemUniformMapper);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(taskData.uniformMapper);
@@ -698,9 +715,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), allAdditionalDefines, dependencies));
             }
 
-            if (context.GetData() is ISpaceable)
+            if (contextData is ISpaceable)
             {
-                var spaceable = context.GetData() as ISpaceable;
+                var spaceable = contextData as ISpaceable;
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
@@ -708,7 +725,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (needsGraphValueStruct)
                 globalIncludeContent.WriteLine("#define VFX_USE_GRAPH_VALUES 1");
 
-            foreach (string s in GetInstancingAdditionalDefines(context, particleData))
+            foreach (string s in GetInstancingAdditionalDefines(context, task.type, particleData))
                 globalIncludeContent.WriteLine(s);
 
             var perPassIncludeContent = new VFXShaderWriter();
@@ -812,6 +829,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
             context.EndCompilation();
+            Profiler.EndSample();
             return stringBuilder;
         }
 
@@ -828,6 +846,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             GraphicsDeviceType.PlayStation4 => "playstation",
             GraphicsDeviceType.Switch => "switch",
             GraphicsDeviceType.PlayStation5 => "ps5",
+            GraphicsDeviceType.WebGPU => "webgpu",
             _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),
         };
 
@@ -999,11 +1018,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             blockIndex++;
         }
 
-        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXDataParticle particleData)
+        internal static IEnumerable<string> GetInstancingAdditionalDefines(VFXContext context, VFXTaskType taskType, VFXDataParticle particleData)
         {
             yield return "#define VFX_USE_INSTANCING 1";
 
-            bool isOutputTask = (context.taskType & VFXTaskType.Output) != 0;
+            bool isOutputTask = (taskType & VFXTaskType.Output) != 0;
             if (context is VFXAbstractParticleOutput output && isOutputTask)
             {
                 uint fixedSize;

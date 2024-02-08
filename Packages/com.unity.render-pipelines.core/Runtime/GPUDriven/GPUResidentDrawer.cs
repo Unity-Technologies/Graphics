@@ -93,6 +93,20 @@ namespace UnityEngine.Rendering
             s_Instance?.batcher.UpdateInstanceOccluders(renderGraph, occluderParameters);
         }
 
+        /// <summary>
+        /// Enable or disable GPUResidentDrawer based on the project settings.
+        /// We call this every frame bacause GPUResidentDrawer can be enabled/disabled by the settings outside the render pipeline asset.
+        /// </summary>
+        public static void ReinitializeIfNeeded()
+        {
+#if UNITY_EDITOR
+            if (!IsForcedOnViaCommandLine() && (IsProjectSupported(false) != IsEnabled()))
+            {
+                Reinitialize();
+            }
+#endif
+        }
+
         #endregion
 
         #region Public Debug API
@@ -205,6 +219,15 @@ namespace UnityEngine.Rendering
             }
 
 #if UNITY_EDITOR
+            // Check the build target is supported by checking the depth downscale kernel (which has an only_renderers pragma) is present
+            var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
+            if (!resources.occluderDepthPyramidKernels.HasKernel("OccluderDepthDownscale"))
+            {
+                if (logReason)
+                    Debug.LogWarning("GPUResidentDrawer: kernel not present, please ensure the player settings includes a supported graphics API.");
+                supported = false;
+            }
+
             if (EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll)
             {
                 if(logReason)
@@ -331,7 +354,6 @@ namespace UnityEngine.Rendering
             // not supported
             if (!supported)
             {
-                Debug.LogWarning("GPUResidentDrawer: Disabled due to platform of support limitation. Please check the log.");
                 return;
             }
 
@@ -431,6 +453,8 @@ namespace UnityEngine.Rendering
 
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
             // Depending on a UI setting, we want to either keep lightmaps as texture arrays,
             // or instead opt out and keep them as individual textures.
@@ -461,6 +485,8 @@ namespace UnityEngine.Rendering
 
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
             RemoveFromPlayerLoop();
 
@@ -506,7 +532,6 @@ namespace UnityEngine.Rendering
             m_Batcher.OnBeginContextRendering();
         }
 
-
 #if UNITY_EDITOR
         // If running in the editor the player loop might not run
         // In order to still have a single frame update we keep track of the camera ids
@@ -540,6 +565,16 @@ namespace UnityEngine.Rendering
                 return;
 
             m_Batcher.OnEndContextRendering();
+        }
+
+        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            m_Batcher.OnBeginCameraRendering(camera);
+        }
+
+        private void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            m_Batcher.OnEndCameraRendering(camera);
         }
 
         private void PostPostLateUpdate()

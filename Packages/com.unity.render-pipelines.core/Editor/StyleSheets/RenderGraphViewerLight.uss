@@ -15,6 +15,9 @@
     --resource-helper-line-color: #b0b0b0;
     --resource-helper-line-color--hover: white;
     --usage-range-color: #979797;
+    --main-background-color: #c8c8c8;
+    --side-panel-background-color: #cbcbcb;
+    --side-panel-item-border-color: #666666;
 }
 
 #capture-button {
@@ -59,4 +62,17 @@
 
 .resource-helper-line--highlight {
     background-size: 8px 20px; /* light theme needs a wider dashed line to be properly visible */
+}
+
+.pass-block.pass-block-script-link {
+    background-image: url("../Icons/RenderGraphViewer/ScriptLink@2x.png");
+    background-color: #555555;
+}
+
+.custom-foldout-arrow #unity-checkmark {
+    -unity-background-image-tint-color: black;
+}
+
+.custom-foldout-arrow > Toggle > VisualElement:hover #unity-checkmark {
+    -unity-background-image-tint-color: grey;
 }

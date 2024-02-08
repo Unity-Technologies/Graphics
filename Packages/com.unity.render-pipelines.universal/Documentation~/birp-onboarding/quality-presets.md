@@ -10,7 +10,7 @@ This page is split into the following sections:
 * [Project Settings](#project-settings)
 * [URP Asset](#urp-asset)
 
-> **Note**: In URP, many quality level settings have moved from the Project Settings window to the URP Asset. For more information on where to find these settings in URP projects, refer to [Built-In Render Pipeline Quality Settings Reference](./birp-quality-settings-location.md).
+> **Note**: In URP, many quality level settings have moved from the Project Settings window to the URP Asset. For more information on where to find these settings in URP projects, refer to [Built-In Render Pipeline Quality Settings Reference](quality-settings-location.md).
 
 ## Project Settings
 

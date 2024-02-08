@@ -11,7 +11,10 @@ float _RangeMaximum;
 
 TEXTURE2D_X(_DebugTexture);
 TEXTURE2D(_DebugTextureNoStereo);
-SAMPLER(sampler_DebugTexture);
+
+// 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
+#define sampler_DebugTexture sampler_PointClamp
+
 half4 _DebugTextureDisplayRect;
 int _DebugRenderTargetSupportsStereo;
 

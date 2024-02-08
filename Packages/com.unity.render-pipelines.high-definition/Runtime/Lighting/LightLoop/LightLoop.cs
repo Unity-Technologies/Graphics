@@ -300,17 +300,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxLightsPerClusterCell = ShaderConfig.LightClusterMaxCellElementCount;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
-#if UNITY_SWITCH
-        static bool k_PreferFragment = true;
-#else
-        static bool k_PreferFragment = false;
-#endif
-#if !UNITY_EDITOR && UNITY_SWITCH
-        const bool k_HasNativeQuadSupport = true;
-#else
-        const bool k_HasNativeQuadSupport = false;
-#endif
-
 #if !UNITY_EDITOR && UNITY_SWITCH
         const int k_ThreadGroupOptimalSize = 32;
 #else
@@ -518,8 +507,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader deferredComputeShader => runtimeShaders.deferredCS;
         ComputeShader contactShadowComputeShader => runtimeShaders.contactShadowCS;
         Shader screenSpaceShadowsShader => runtimeShaders.screenSpaceShadowPS;
-        Shader deferredPS => runtimeShaders.deferredPS;
-        Shader deferredTilePixelShader => runtimeShaders.deferredTilePS;
 
         ShaderVariablesLightList m_ShaderVariablesLightListCB = new ShaderVariablesLightList();
 
@@ -555,7 +542,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_ClearVoxelAtomicKernel;
         static int s_ClearDispatchIndirectKernel;
         static int s_BuildIndirectKernel;
-        static int s_ClearDrawProceduralIndirectKernel;
         static int s_BuildMaterialFlagsWriteKernel;
         static int s_BuildMaterialFlagsOrKernel;
 
@@ -583,18 +569,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static DebugLightVolumes s_lightVolumes = null;
 
 
-        static Material s_DeferredTileRegularLightingMat;   // stencil-test set to touch regular pixels only
-        static Material s_DeferredTileSplitLightingMat;     // stencil-test set to touch split-lighting pixels only
-        static Material s_DeferredTileMat;                  // fallback when regular and split-lighting pixels must be touch
-        static String[] s_variantNames = new String[LightDefinitions.s_NumFeatureVariants];
-
         ContactShadows m_ContactShadows = null;
         bool m_EnableContactShadow = false;
 
         IndirectLightingController m_indirectLightingController = null;
-
-        // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_DISABLE_TILE_AND_CLUSTER - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
-        Material[] m_deferredLightingMaterial;
 
         HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
 
@@ -691,22 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool GetFeatureVariantsEnabled(FrameSettings frameSettings) =>
             frameSettings.litShaderMode == LitShaderMode.Deferred
-            && frameSettings.IsEnabled(FrameSettingsField.DeferredTile)
             && (frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants) || frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
-
-        int GetDeferredLightingMaterialIndex(int outputSplitLighting, int shadowMask, int debugDisplay)
-        {
-            return (outputSplitLighting) | (shadowMask << 1) | (debugDisplay << 2);
-        }
-
-        Material GetDeferredLightingMaterial(bool outputSplitLighting, bool shadowMask, bool debugDisplayEnabled)
-        {
-            int index = GetDeferredLightingMaterialIndex(outputSplitLighting ? 1 : 0,
-                shadowMask ? 1 : 0,
-                debugDisplayEnabled ? 1 : 0);
-
-            return m_deferredLightingMaterial[index];
-        }
 
         void InitializeLightLoop(IBLFilterBSDF[] iBLFilterBSDFArray)
         {
@@ -748,8 +711,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_BuildIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildIndirect");
             s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
 
-            s_ClearDrawProceduralIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDrawProceduralIndirect");
-
             s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen");
 
             s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
@@ -768,59 +729,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightLoopLightData.Initialize(m_MaxDirectionalLightsOnScreen, m_MaxPunctualLightsOnScreen, m_MaxAreaLightsOnScreen, m_MaxEnvLightsOnScreen, m_MaxDecalsOnScreen);
 
             m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer, maxLightCount: m_MaxLightsOnScreen);
-
-            // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
-            m_deferredLightingMaterial = new Material[8];
-            int stencilMask = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
-
-            for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
-            {
-                for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
-                {
-                    for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                    {
-                        int index = GetDeferredLightingMaterialIndex(outputSplitLighting, shadowMask, debugDisplay);
-
-                        m_deferredLightingMaterial[index] = CoreUtils.CreateEngineMaterial(deferredPS);
-                        m_deferredLightingMaterial[index].name = string.Format("{0}_{1}", deferredPS.name, index);
-                        CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "OUTPUT_SPLIT_LIGHTING", outputSplitLighting == 1);
-                        CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "SHADOWS_SHADOWMASK", shadowMask == 1);
-                        CoreUtils.SetKeyword(m_deferredLightingMaterial[index], "DEBUG_DISPLAY", debugDisplay == 1);
-
-                        int stencilRef = (int)StencilUsage.RequiresDeferredLighting;
-
-                        if (outputSplitLighting == 1)
-                        {
-                            stencilRef |= (int)StencilUsage.SubsurfaceScattering;
-                        }
-
-                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, stencilMask);
-                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, stencilRef);
-                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-                    }
-                }
-            }
-
-            // Stencil set to only touch "regular lighting" pixels.
-            s_DeferredTileRegularLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering);
-            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.RequiresDeferredLighting);
-            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-
-            // Stencil set to only touch "split-lighting" pixels.
-            s_DeferredTileSplitLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
-            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
-            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
-
-            // Stencil set to touch all pixels excepted background/sky.
-            s_DeferredTileMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
-            s_DeferredTileMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.Clear);
-            s_DeferredTileMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
-
-            for (int i = 0; i < LightDefinitions.s_NumFeatureVariants; ++i)
-                s_variantNames[i] = "VARIANT" + i;
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
@@ -887,22 +795,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.Cleanup();
 
             LightLoopReleaseResolutionDependentBuffers();
-
-            for (int outputSplitLighting = 0; outputSplitLighting < 2; ++outputSplitLighting)
-            {
-                for (int shadowMask = 0; shadowMask < 2; ++shadowMask)
-                {
-                    for (int debugDisplay = 0; debugDisplay < 2; ++debugDisplay)
-                    {
-                        int index = GetDeferredLightingMaterialIndex(outputSplitLighting, shadowMask, debugDisplay);
-                        CoreUtils.Destroy(m_deferredLightingMaterial[index]);
-                    }
-                }
-            }
-
-            CoreUtils.Destroy(s_DeferredTileRegularLightingMat);
-            CoreUtils.Destroy(s_DeferredTileSplitLightingMat);
-            CoreUtils.Destroy(s_DeferredTileMat);
 
             m_ProcessedLightsBuilder.Cleanup();
             m_GpuLightsBuilder.Cleanup();
@@ -1089,7 +981,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // If the max number of planar on screen is reached
                     if (fetchIndex >= m_MaxPlanarReflectionsOnScreen)
                     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                         Debug.LogWarning("Maximum planar reflection probes on screen reached. To fix this error, increase the 'Maximum Planar Reflection Probes on Screen' property in the HDRP asset.");
+#endif
                         break;
                     }
 
@@ -1115,7 +1009,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // If the max number of reflection probes on screen is reached
                     if (fetchIndex >= m_MaxCubeReflectionsOnScreen)
                     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                         Debug.LogWarning("Maximum reflection probes on screen reached. To fix this error, increase the 'Maximum Cube Reflection Probes on Screen' property in the HDRP asset.");
+#endif
                         break;
                     }
 
@@ -1497,7 +1393,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // in the PBR sky, so we need to allocate space for the cookie
                         foreach (var directional in lightEntities.directionalLights)
                         {
-                            if (directional.intensity == 0.0f && directional.interactsWithSky)
+                            if (directional.legacyLight.intensity == 0.0f && directional.interactsWithSky)
                                 m_TextureCaches.lightCookieManager.ReserveSpace(directional.surfaceTexture);
                         }
                     }

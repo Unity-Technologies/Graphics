@@ -416,7 +416,7 @@ namespace UnityEditor.VFX
             {
                 MarkCacheAsDirty();
                 base.CheckGraphBeforeImport();
-                if (!GetGraph().explicitCompile)
+                if (!VFXGraph.explicitCompile)
                 {
                     ResyncSlots(true);
                 }

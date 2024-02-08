@@ -1,4 +1,5 @@
-#pragma kernel BilateralUpSampleColor               BILATERAL_UPSAMPLE=BilateralUpSampleColor
+#pragma kernel BilateralUpSampleColorHalf
+#pragma kernel BilateralUpSampleColor
 
 //#pragma enable_d3d11_debug_symbols
 
@@ -21,6 +22,8 @@ TEXTURE2D_X(_LowResolutionTexture);
 // LDS that store the half resolution data
 groupshared float3 gs_cacheLighting[36];
 groupshared float gs_cacheDepth[36];
+
+float _RayMarchingLowResPercentage;
 
 void FillUpsampleDataLDS(uint groupIndex, uint2 groupOrigin)
 {
@@ -79,7 +82,7 @@ void FillUpsampleNeighborhoodData_2x2(int2 groupThreadId, int subRegionIdx, out 
 RW_TEXTURE2D_X(float3, _OutputUpscaledTexture);
 
 [numthreads(BILATERAL_UPSAMPLE_TILE_SIZE, BILATERAL_UPSAMPLE_TILE_SIZE, 1)]
-void BILATERAL_UPSAMPLE(uint3 currentCoord : SV_DispatchThreadID,
+void BilateralUpSampleColorHalf(uint3 currentCoord : SV_DispatchThreadID,
                     int groupIndex : SV_GroupIndex,
                     uint2 groupThreadId : SV_GroupThreadID,
                     uint2 groupId : SV_GroupID)
@@ -110,4 +113,55 @@ void BILATERAL_UPSAMPLE(uint3 currentCoord : SV_DispatchThreadID,
 
     // Upscale and return the result
     _OutputUpscaledTexture[COORD_TEXTURE2D_X(currentCoord.xy)] = BilUpColor2x2_RGB(hiResDepth, upsampleData);
+}
+
+SAMPLER(sampler_LinearClamp);
+SAMPLER(sampler_PointClamp);
+
+[numthreads(BILATERAL_UPSAMPLE_TILE_SIZE, BILATERAL_UPSAMPLE_TILE_SIZE, 1)]
+void BilateralUpSampleColor(uint3 currentCoord : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    // Only 36 workers of the 64 region do the pre-fetching
+    // If out of bounds, discard
+    if (any(currentCoord.xy >= uint2(_ScreenSize.xy)))
+        return;
+
+    // Read the depth value as early as possible and use it as late as possible
+    // TODO: do a gather here.
+    float4 depthNeighborhood = float4(
+        LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy + uint2(0,1)).x,
+        LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy + uint2(1,1)).x,
+        LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy + uint2(1,0)).x,
+        LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy + uint2(0,0)).x);
+
+    float closestDepth = max(depthNeighborhood.x, max(depthNeighborhood.y, max(depthNeighborhood.z, depthNeighborhood.w)));
+
+    float2 uvAtLowRes = min((currentCoord.xy) * _RayMarchingLowResPercentage + 0.5, _HalfScreenSize.xy - 1) * _ScreenSize.zw;
+    float2 sampleUV = ClampAndScaleUVForBilinear(uvAtLowRes); 
+
+    float2 samplePixel = sampleUV * _ScreenSize.xy;
+    float2 bottomRight = frac(samplePixel + 0.5);
+    float2 topLeft = 1.0 - bottomRight;
+    float4 linearWeights = float4(
+                    topLeft.x * bottomRight.y,
+                    bottomRight.x * bottomRight.y,
+                    bottomRight.x * topLeft.y,
+                    topLeft.x * topLeft.y);
+
+    float4 reds = GATHER_RED_TEXTURE2D_X(_LowResolutionTexture, sampler_LinearClamp, sampleUV);
+    float4 greens = GATHER_GREEN_TEXTURE2D_X(_LowResolutionTexture, sampler_LinearClamp, sampleUV);
+    float4 blues = GATHER_BLUE_TEXTURE2D_X(_LowResolutionTexture, sampler_LinearClamp, sampleUV);
+
+    float3 trueCol = SAMPLE_TEXTURE2D_X_LOD(_LowResolutionTexture, sampler_LinearClamp, sampleUV, 0.0).rgb;
+    float3 s0  = float3(reds.x, greens.x, blues.x);
+    float3 s1  = float3(reds.y, greens.y, blues.y);
+    float3 s2  = float3(reds.z, greens.z, blues.z);
+    float3 s3 = float3(reds.w, greens.w, blues.w);
+
+    float3 bilCol = BilUpColor3WithWeight(closestDepth, depthNeighborhood, s0, s1, s2, s3, linearWeights);
+
+    // Upscale and return the result
+    _OutputUpscaledTexture[COORD_TEXTURE2D_X(currentCoord.xy)] = bilCol;
 }

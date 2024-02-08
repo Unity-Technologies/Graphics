@@ -731,7 +731,7 @@ namespace UnityEngine.Rendering
         bool m_VertexSampling = false;
 
         /// <summary>Is Probe Volume initialized.</summary>
-        public bool isInitialized => m_ProbeReferenceVolumeInit;
+        public bool isInitialized => m_IsInitialized;
         internal bool enabledBySRP => m_EnabledBySRP;
         internal bool vertexSampling => m_VertexSampling;
 
@@ -851,6 +851,9 @@ namespace UnityEngine.Rendering
             // Can happen when you have only one scene loaded and you remove it from any baking set.
             if (m_CurrentBakingSet != null)
             {
+                // Delay first time init to after baking set is loaded to ensure we allocate what's needed
+                InitProbeReferenceVolume();
+
                 m_CurrentBakingSet.Initialize(m_UseStreamingAssets);
                 m_CurrGlobalBounds = m_CurrentBakingSet.globalBounds;
                 SetMinBrickAndMaxSubdiv(bakingSet.minBrickSize, bakingSet.maxSubdivision);
@@ -975,7 +978,6 @@ namespace UnityEngine.Rendering
             DynamicSkyPrecomputedDirections.Initialize();
             ProbeBrickPool.Initialize();
             ProbeBrickBlendingPool.Initialize();
-            InitProbeReferenceVolume();
             InitStreaming();
 
             m_IsInitialized = true;
@@ -989,6 +991,9 @@ namespace UnityEngine.Rendering
             ProbeVolumeBakingSet.SyncBakingSets();
 #endif
             m_EnabledBySRP = true;
+
+            foreach (var data in perSceneDataList)
+                data.Initialize();
         }
 
         /// <summary>
@@ -1017,7 +1022,9 @@ namespace UnityEngine.Rendering
             m_SHBands = shBands;
 
             DeinitProbeReferenceVolume();
-            InitProbeReferenceVolume();
+
+            foreach (var data in perSceneDataList)
+                data.Initialize();
 
             PerformPendingOperations();
         }
@@ -1037,8 +1044,6 @@ namespace UnityEngine.Rendering
             CoreUtils.SafeRelease(m_EmptyDirectionsBuffer);
             m_EmptyDirectionsBuffer = null;
             DynamicSkyPrecomputedDirections.Cleanup();
-
-            if (!m_ProbeReferenceVolumeInit) return;
 
 #if UNITY_EDITOR
             UnityEditor.SceneManagement.EditorSceneManager.sceneSaving -= ProbeVolumeBakingSet.OnSceneSaving;
@@ -1520,10 +1525,20 @@ namespace UnityEngine.Rendering
         /// </summary>
         void InitProbeReferenceVolume()
         {
+            // If a set without sky occlusion was loaded, and a set with sky occlusion is now loaded,
+            // the pools will not have allocated all necessary buffers
+            // To support that case, we can force reinit here because we know no scenes are loaded (as we are changing baking set)
+            if (m_ProbeReferenceVolumeInit && !m_Pool.EnsureTextureValidity(skyOcclusion, skyOcclusionShadingDirection))
+            {
+                m_TemporaryDataLocation.Cleanup();
+                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
+                    false, true, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
+            }
+
             if (!m_ProbeReferenceVolumeInit)
             {
                 Profiler.BeginSample("Initialize Reference Volume");
-                m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, skyOcclusion, (skyOcclusion && skyOcclusionShadingDirection));
+                m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, skyOcclusion, skyOcclusionShadingDirection);
                 m_BlendingPool = new ProbeBrickBlendingPool(m_BlendingMemoryBudget, m_SHBands);
 
                 m_Index = new ProbeBrickIndex(m_MemoryBudget);
@@ -1536,7 +1551,7 @@ namespace UnityEngine.Rendering
                 InitializeGlobalIndirection();
 
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
-                    false, true, skyOcclusion, (skyOcclusion && skyOcclusionShadingDirection), out m_TemporaryDataLocationMemCost);
+                    false, true, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -1552,9 +1567,6 @@ namespace UnityEngine.Rendering
                 ClearDebugData();
 
                 m_NeedLoadAsset = true;
-
-                foreach (var data in perSceneDataList)
-                    data.Initialize();
             }
         }
 
@@ -1631,7 +1643,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns></returns>
         public bool DataHasBeenLoaded() => m_LoadedCells.size != 0;
-          
+
         internal void Clear()
         {
             if (m_ProbeReferenceVolumeInit)
@@ -2043,6 +2055,10 @@ namespace UnityEngine.Rendering
 
                 m_TemporaryDataLocation.Cleanup();
                 m_ProbeReferenceVolumeInit = false;
+                
+                if (m_CurrentBakingSet != null)
+                    m_CurrentBakingSet.Cleanup();
+                m_CurrentBakingSet = null;
             }
 
             ClearDebugData();
