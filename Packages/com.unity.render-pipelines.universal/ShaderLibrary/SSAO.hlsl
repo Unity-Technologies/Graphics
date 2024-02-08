@@ -215,9 +215,14 @@ half3 PickSamplePoint(float2 uv, int sampleIndex, half sampleIndexHalf, half rcp
     return v;
 }
 
+// For Downsampled SSAO we need to adjust the UV coordinates
+// so it hits the center of the pixel inside the depth texture.
+// The texelSize multiplier is 1.0 when DOWNSAMPLE is enabled, otherwise 0.0
+#define ADJUSTED_DEPTH_UV(uv) uv.xy + ((_CameraDepthTexture_TexelSize.xy * 0.5) * (1.0 - (DOWNSAMPLE - 0.5) * 2.0))
+
 float SampleDepth(float2 uv)
 {
-    return SampleSceneDepth(uv.xy);
+    return SampleSceneDepth(ADJUSTED_DEPTH_UV(uv.xy));
 }
 
 float GetLinearEyeDepth(float rawDepth)
