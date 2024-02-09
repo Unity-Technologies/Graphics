@@ -30,7 +30,7 @@ In the [RenderPipelineManager](https://docs.unity3d.com/ScriptReference/Renderin
 * [endCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-endCameraRendering.html)
 * [endFrameRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-endFrameRendering.html)
 
-For the example of how to use the beginCameraRendering event, see the page [Using the beginCameraRendering event](using-begincamerarendering.md).
+For the example of how to use the beginCameraRendering event, refer to [Inject a render pass via scripting](./customize/inject-render-pass-via-script.md).
 
 ## Camera loop
 
