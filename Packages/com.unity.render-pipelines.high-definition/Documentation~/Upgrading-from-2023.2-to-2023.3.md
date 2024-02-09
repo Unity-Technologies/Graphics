@@ -30,3 +30,12 @@ In this version, the setting to include light sources in ray traced effects has 
 
 The pixel shader variant of the deferred lighting pass was removed, the lighting is now always computed with a compute shader.
 The framesetting to enable this option was deleted.
+
+## Physically Based Sky
+
+The Shader Config option `PrecomputedAtmosphericAttenuation` is now enabled by default. This optimizes the rendering on GPU by computing the directional light atmospheric attenuation on the CPU.
+
+Note that this change will result in a loss of precision for the attenuation value, if your game have a very large scale (like space games) it may be good to disable this option.
+
+To disable `PrecomputedAtmosphericAttenuation`, first you need to install the HDRP config package which can be done using the [Render Pipeline Wizard](Render-Pipeline-Wizard.md). For more info, see [HDRP Config](configure-a-project-using-the-hdrp-config-package.md).
+Once installed, go in ShaderConfig.cs and set `PrecomputedAtmosphericAttenuation` to 0.
