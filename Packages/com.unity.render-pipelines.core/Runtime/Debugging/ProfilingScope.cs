@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering
         /// <typeparam name="TEnum">Type of the enumeration.</typeparam>
         /// <param name="marker">Enumeration value.</param>
         /// <returns>The profiling sampler for the given enumeration value.</returns>
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
         public static ProfilingSampler Get<TEnum>(TEnum marker)
             where TEnum : Enum
         {
@@ -73,6 +74,13 @@ namespace UnityEngine.Rendering
             return sampler;
 #endif
         }
+#else
+        public static ProfilingSampler Get<TEnum>(TEnum marker)
+            where TEnum : Enum
+        {
+            return null;
+        }
+#endif
 
         /// <summary>
         /// Constructor.

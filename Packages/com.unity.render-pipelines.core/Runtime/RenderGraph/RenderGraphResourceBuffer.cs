@@ -161,7 +161,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public override void CreateGraphicsResource(string name = "")
         {
             graphicsResource = new GraphicsBuffer(desc.target, desc.usageFlags, desc.count, desc.stride);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             graphicsResource.name = name == "" ? $"RenderGraphBuffer_{desc.count}_{desc.stride}_{desc.target}" : name;
+#endif
         }
 
         public override void ReleaseGraphicsResource()
