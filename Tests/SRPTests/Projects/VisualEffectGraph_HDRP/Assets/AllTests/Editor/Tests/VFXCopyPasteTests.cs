@@ -1,5 +1,6 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Experimental.VFX.Utility;
+using UnityEditor.VFX.Block;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.Test
@@ -389,6 +393,57 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(dataExpectedCount, vfxDatas.Length, "There should be one distinct VFXData per system (8 spawners and 8 initialize");
             // Assert all names are unique, and the expected number of elements was obtained
             Assert.AreEqual(dataExpectedCount, uniqueNames.Count, "Some systems have the same name or are null or empty.");
+        }
+
+        [UnityTest, Description("UUM-46548")]
+        public IEnumerator PasteMissingPointCacheAsset()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            // Create one system
+            const int spawnerCount = 1, GPUSystemsCount = 1;
+            var spawner = VFXTestCommon.CreateSpawners(view, m_ViewController, spawnerCount).Single();
+            VFXTestCommon.CreateSystems(view, m_ViewController, GPUSystemsCount, 0);
+
+            // Create a point cache operator
+            var pCacheAssetPath = "Assets/AllTests/VFXTests/GraphicsTests/UnityLogoPrimeCount.pcache";
+            var copypCacheAssetPath = Path.Combine(VFXTestCommon.tempBasePath, "pointCache.pcache");
+            File.Copy(pCacheAssetPath, copypCacheAssetPath, true);
+            AssetDatabase.ImportAsset(copypCacheAssetPath);
+            var pointCacheAsset = AssetDatabase.LoadAssetAtPath(copypCacheAssetPath, typeof(PointCacheAsset));
+            var pointCacheOperator = VFXLibrary.GetOperators().Single(x => x.modelType == typeof(VFXOperatorPointCache)).CreateInstance() as VFXOperatorPointCache;
+            pointCacheOperator.SetSettingValue("Asset", pointCacheAsset);
+            m_ViewController.AddVFXModel(Vector2.zero, pointCacheOperator);
+            yield return null;
+
+            // Create a set position from map
+            var setPositionBlock = VFXLibrary.GetBlocks().First(x => x.name == "Set Position from Map (Random)").CreateInstance() as AttributeFromMap;
+            var initializeContext = m_ViewController.contexts.Single(x => x.model is VFXBasicInitialize);
+            initializeContext.model.LinkFrom(spawner, 0, 0);
+            initializeContext.AddBlock(0, setPositionBlock);
+            setPositionBlock.GetInputSlot(0).Link(pointCacheOperator.GetOutputSlot(1));
+            m_ViewController.ApplyChanges();
+            yield return null;
+
+            // Copy paste them
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<GraphElement>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+            view.CopySelectionCallback();
+            // We delete the point cache asset to check that it does not break the past operation
+            AssetDatabase.DeleteAsset(copypCacheAssetPath);
+            view.PasteCallback();
+            m_ViewController.ApplyChanges();
+            yield return null;
+
+            Assert.AreEqual(1, spawner.outputFlowSlot.Length);
+            Assert.AreEqual(1, initializeContext.model.inputFlowSlot.Length);
+            Assert.AreEqual(1, initializeContext.model.outputFlowSlot.Length);
         }
     }
 }

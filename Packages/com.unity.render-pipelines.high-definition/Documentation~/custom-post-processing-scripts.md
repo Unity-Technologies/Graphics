@@ -46,7 +46,8 @@ public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessCo
             return;
 
         m_Material.SetFloat("_Intensity", intensity.value);
-        cmd.Blit(source, destination, m_Material, 0);
+        m_Material.SetTexture("_MainTex", source);
+        HDUtils.DrawFullScreen(cmd, m_Material, destination);
     }
 
     public override void Cleanup() => CoreUtils.Destroy(m_Material);
@@ -76,9 +77,10 @@ To learn when in the render pipeline HDRP can execute custom post-processing pas
 
 The `Setup`, `Render`, and `Cleanup` functions allocate, use, and release the resources that the effect needs. The only resource that the above script example uses is a single Material. This example creates the Material in `Setup` and, in `Cleanup`, uses `CoreUtils.Destroy()` to release the Material.
 
-In the `Render` function, you have access to a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute. You can use [CommandBuffer.Blit](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Blit.html) here to render a fullscreen quad. When you use the `Blit` function, Unity binds the source buffer in parameter to the `_MainTex` property in the shader. For this to happen, you need to declare the `_MainTex` property in the [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) section of the shader.
+In the `Render` function, you have access to a [CommandBuffer](https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute.
+To draw a fullscreen quad, use the [HDUtils.DrawFullscreen](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDUtils.html#UnityEngine_Rendering_HighDefinition_HDUtils_DrawFullScreen_UnityEngine_Rendering_CommandBuffer_UnityEngine_Material_UnityEngine_Rendering_RTHandle_UnityEngine_MaterialPropertyBlock_System_Int32_) method. This method works well with [RTHandle](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/api/UnityEngine.Rendering.RTHandle.html) used to store the RenderTextures in HDRP, it mainly avoid rendering in a viewport bigger than actual view which can lead to scaling issues and performance problems.
 
-**Note**: You can also use the [HDUtils.DrawFullscreen](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDUtils.html#UnityEngine_Rendering_HighDefinition_HDUtils_DrawFullScreen_UnityEngine_Rendering_CommandBuffer_UnityEngine_Material_UnityEngine_Rendering_RTHandle_UnityEngine_MaterialPropertyBlock_System_Int32_) method. To do this, you need to multiply the `input.texcoord` by the `_RTHandleScale.xy` property to account for dynamic scaling.
+**Note**: To sample a fullscreen texture in a shader rendered with [HDUtils.DrawFullscreen](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDUtils.html#UnityEngine_Rendering_HighDefinition_HDUtils_DrawFullScreen_UnityEngine_Rendering_CommandBuffer_UnityEngine_Material_UnityEngine_Rendering_RTHandle_UnityEngine_MaterialPropertyBlock_System_Int32_), the UVs need to be scaled and clamped with the function `ClampAndScaleUVForBilinearPostProcessTexture`. This function also avoid having issue with scaling when dynamic resolution scaling is enabled.
 
 <a name="Shader"></a>
 
@@ -143,7 +145,8 @@ Shader "Hidden/Shader/GrayScale"
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler, input.texcoord).xyz;
+        float2 uv = ClampAndScaleUVForBilinearPostProcessTexture(input.texcoord);
+        float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler, uv).xyz;
 
         // Apply greyscale effect
         float3 color = lerp(sourceColor, Luminance(sourceColor), _Intensity);
@@ -186,12 +189,12 @@ If none of your Scenes reference the Shader, Unity doesn't build the Shader and 
 
 By default, the Shader template provides you with the following inputs:
 
-| Input         | description                                                  |
-| :------------ | :----------------------------------------------------------- |
-| positionCS    | The clip space position of the pixel. This value is between 0 and the current screen size. |
-| texcoord      | The full screen UV coordinate. This value is between 0 and 1. |
-| _InputTexture | The source Texture. The GrayScale C# script passes this to the Shader. |
-| _Intensity    | The intensity of the effect. The GrayScale C# script passes this to the Shader. |
+| Input        | description                                                  |
+|:-------------| :----------------------------------------------------------- |
+| positionCS   | The clip space position of the pixel. This value is between 0 and the current screen size. |
+| texcoord     | The full screen UV coordinate. This value is between 0 and 1. |
+| _MainTex     | The source Texture. The GrayScale C# script passes this to the Shader. |
+| _Intensity   | The intensity of the effect. The GrayScale C# script passes this to the Shader. |
 
 <a name="CustomEditor"></a>
 
@@ -203,43 +206,26 @@ The following is an example of a custom editor for the GrayScale effect:
 
 ```C#
 using UnityEditor.Rendering;
-
 using UnityEngine;
-
 using UnityEngine.Rendering.HighDefinition;
-
 using UnityEditor;
 
-[VolumeComponentEditor(typeof(GrayScale))]
-
+[CustomEditor(typeof(GrayScale))]
 sealed class GrayScaleEditor : VolumeComponentEditor
-
 {
-
     SerializedDataParameter m_Intensity;
-
-    public override bool hasAdvancedMode => false;
+    public override bool hasAdditionalProperties => false;
 
     public override void OnEnable()
-
     {
-
         base.OnEnable();
-
         var o = new PropertyFetcher<GrayScale>(serializedObject);
-
         m_Intensity = Unpack(o.Find(x => x.intensity));
-
     }
-
     public override void OnInspectorGUI()
-
     {
-
         PropertyField(m_Intensity);
-
     }
-
 }
 ```
 

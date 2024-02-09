@@ -56,6 +56,12 @@ namespace UnityEditor.Rendering
                 return;
             }
 
+            if (!VolumeManager.instance.isInitialized)
+            {
+                tree.Add(new GroupElement(0, "Volume Manager is not initialized."));
+                return;
+            }
+
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
             var volumeComponentTypesFiltered = VolumeManager.instance.GetVolumeComponentsForDisplay(currentPipelineAssetType);

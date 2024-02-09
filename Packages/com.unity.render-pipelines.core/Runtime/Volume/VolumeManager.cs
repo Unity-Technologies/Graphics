@@ -44,20 +44,31 @@ namespace UnityEngine.Rendering
 
         static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
 
-        internal List<(string, Type)> GetVolumeComponentsForDisplay(Type currentPipelineType)
+        internal List<(string, Type)> GetVolumeComponentsForDisplay(Type currentPipelineAssetType)
         {
-            if (currentPipelineType != null && s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType, out var supportedVolumeComponents))
+            if (!typeof(RenderPipelineAsset).IsAssignableFrom(currentPipelineAssetType))
+                throw new ArgumentException(nameof(currentPipelineAssetType));
+
+            if (currentPipelineAssetType == null)
+                return new List<(string, Type)>();
+
+            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineAssetType, out var supportedVolumeComponents))
                 return supportedVolumeComponents;
 
+            if (baseComponentTypeArray == null)
+                LoadBaseTypes(currentPipelineAssetType);
+
             supportedVolumeComponents = BuildVolumeComponentDisplayList(baseComponentTypeArray);
-            if (currentPipelineType != null)
-                s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
+            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineAssetType] = supportedVolumeComponents;
 
             return supportedVolumeComponents;
         }
 
         List<(string, Type)> BuildVolumeComponentDisplayList(Type[] types)
         {
+            if (types == null)
+                throw new ArgumentNullException(nameof(types));
+
             var volumes = new List<(string, Type)>();
             foreach (var t in types)
             {
@@ -237,7 +248,7 @@ namespace UnityEngine.Rendering
             DestroyStack(m_DefaultStack);
             m_DefaultStack = null;
             foreach (var s in m_CreatedVolumeStacks)
-                stack.Dispose();
+                s.Dispose();
             m_CreatedVolumeStacks.Clear();
             baseComponentTypeArray = null;
             globalDefaultProfile = null;
