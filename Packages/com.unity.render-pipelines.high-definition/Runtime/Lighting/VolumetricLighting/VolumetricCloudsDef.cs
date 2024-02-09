@@ -112,8 +112,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Max step size for raymarching
         public float _MaxStepSize;
 
-        public Matrix4x4 _CloudsPixelCoordToViewDirWS;
-        public Matrix4x4 _CameraPrevViewProjection;
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _CloudsPixelCoordToViewDirWS[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _CameraPrevViewProjection[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
         // Controls the intensity of the wind distortion at high altitudes
         public float _AltitudeDistortion;

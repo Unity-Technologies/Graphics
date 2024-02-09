@@ -380,12 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ErosionOcclusion = settings.erosionOcclusion.value;
             cb._ErosionFactorCompensation = ErosionNoiseTypeToErosionCompensation(settings.erosionNoiseType.value);
 
-            // Correct prev view proj matrix for local mode
-            cb._CameraPrevViewProjection = hdCamera.mainViewConstants.prevViewProjMatrix;
-            if (hdCamera.planet.renderingSpace == RenderingSpace.Camera)
-                cb._CameraPrevViewProjection *= Matrix4x4.Translate(new Vector3(0.0f, hdCamera.mainViewConstants.prevWorldSpaceCameraPos.y, 0.0f));
-
-            cb._CloudsPixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+            UpdateMatricesForXR(ref cb, hdCamera);
 
             Vector3 cameraPosPS = hdCamera.mainViewConstants.worldSpaceCameraPos - hdCamera.planet.center;
             Vector3 prevCameraPosPS = cameraPosPS + hdCamera.mainViewConstants.prevWorldSpaceCameraPos; // prev pos is camera relative
@@ -406,6 +401,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int p = 0; p < 4; ++p)
                     for (int i = 0; i < 9; ++i)
                         cb._DistanceBasedWeights[12 * p + i] = BilateralUpsample.distanceBasedWeights_3x3[9 * p + i];
+            }
+        }
+
+        unsafe internal void UpdateMatricesForXR(ref ShaderVariablesClouds cb, HDCamera hdCamera)
+        {
+
+            for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+            {
+                var vp = hdCamera.m_XRViewConstants[viewIndex].prevViewProjMatrix;
+                
+                // Correct prev view proj matrix for local mode
+                if (hdCamera.planet.renderingSpace == RenderingSpace.Camera)
+                    vp *= Matrix4x4.Translate(new Vector3(0.0f, hdCamera.m_XRViewConstants[viewIndex].prevWorldSpaceCameraPos.y, 0.0f));
+
+                for (int j = 0; j < 16; ++j)
+                {
+                    cb._CloudsPixelCoordToViewDirWS[viewIndex * 16 + j] = hdCamera.m_XRViewConstants[viewIndex].pixelCoordToViewDirWS[j];
+                    cb._CameraPrevViewProjection[viewIndex * 16 + j] = vp[j];
+                }
             }
         }
 

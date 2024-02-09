@@ -25,7 +25,7 @@ float2 EvaluateCloudMotionVectors(float2 fullResCoord, float deviceDepth, float 
     float4 prevPos = worldPos;
 
     float4 curClipPos = mul(UNITY_MATRIX_UNJITTERED_VP, worldPos);
-    float4 prevClipPos = mul(_CameraPrevViewProjection, prevPos);
+    float4 prevClipPos = mul(_CameraPrevViewProjection[unity_StereoEyeIndex], prevPos);
 
     float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
     float2 positionCS = curClipPos.xy / curClipPos.w;
