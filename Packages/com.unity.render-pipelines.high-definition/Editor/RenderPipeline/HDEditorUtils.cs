@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -289,13 +290,12 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        internal static void GlobalSettingsHelpBox(string message, MessageType type, string propertyPath)
+        internal static void GlobalSettingsHelpBox<TGraphicsSettings>(string message, MessageType type)
+            where TGraphicsSettings: IRenderPipelineGraphicsSettings
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
-                SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
-                CoreEditorUtils.Highlight("Project Settings", propertyPath);
-                GUIUtility.ExitGUI();
+                GraphicsSettingsInspectorUtility.OpenAndScrollTo<TGraphicsSettings>();
             });
         }
 
@@ -305,10 +305,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var attribute = FrameSettingsExtractedDatas.GetFieldAttribute(field);
 
-                SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
-                FrameSettingsPropertyDrawer.SetExpended(FrameSettingsRenderType.Camera.ToString(), attribute.group, true);
-                CoreEditorUtils.Highlight("Project Settings", displayName, HighlightSearchMode.Auto);
-                GUIUtility.ExitGUI();
+                GraphicsSettingsInspectorUtility.OpenAndScrollTo<RenderingPathFrameSettings, FrameSettingsArea.LineField>(line =>
+                {
+                    if (line.name != $"line-field-{field}")
+                        return false;
+
+                    FrameSettingsPropertyDrawer.SetExpended(FrameSettingsRenderType.Camera.ToString(), attribute.group, true);
+                    return true;
+                });
             });
         }
 

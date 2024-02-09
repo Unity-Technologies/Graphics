@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                HDEditorUtils.GlobalSettingsHelpBox(Styles.helpBoxMessage, MessageType.Error, Styles.helpBoxLabel);
+                HDEditorUtils.GlobalSettingsHelpBox<CustomPostProcessOrdersSettings>(Styles.helpBoxMessage, MessageType.Error);
             }
         }
     }
