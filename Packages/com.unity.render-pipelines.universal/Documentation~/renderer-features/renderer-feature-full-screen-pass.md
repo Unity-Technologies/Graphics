@@ -1,18 +1,6 @@
-# Full Screen Pass Renderer Feature
+# Full Screen Pass Renderer Feature reference
 
-The Full Screen Pass Renderer Feature lets you inject full screen render passes at pre-defined injection points to create full screen effects.
-
-You can use this Renderer Feature to create [custom post-processing effects](../post-processing/custom-post-processing.md).
-
-## How to use the feature
-
-To add the Renderer Feature to your Scene:
-
-1. [Add the Full Screen Pass Renderer Feature](../urp-renderer-feature-how-to-add.md) to the URP Renderer.
-
-Refer to the following page for an example of how to use this feature:
-
-* [How to create a custom post-processing effect](../post-processing/post-processing-custom-effect-low-code.md).
+Refer to [How to create a custom post-processing effect](../post-processing/post-processing-custom-effect-low-code.md) for information on how to create a full screen effect using the Full Screen Pass Renderer Feature.
 
 ## Properties
 

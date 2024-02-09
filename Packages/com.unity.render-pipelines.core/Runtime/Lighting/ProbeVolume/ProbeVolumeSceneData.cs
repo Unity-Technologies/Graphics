@@ -491,22 +491,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void EnsureSceneIsInBakingSet(Scene scene)
-        {
-            var sceneGUID = GetSceneGUID(scene);
-
-            foreach (var set in bakingSets)
-                if (set.sceneGUIDs.Contains(sceneGUID))
-                    return;
-
-            // The scene is not in a baking set, we need to add it
-            if (bakingSets.Count == 0)
-                return; // Technically shouldn't be possible since it's blocked in the UI
-
-            bakingSets[0].sceneGUIDs.Add(sceneGUID);
-            SyncBakingSetSettings();
-        }
-
         internal string GetFirstProbeVolumeSceneGUID(ProbeVolumeSceneData.BakingSet set)
         {
             foreach (var guid in set.sceneGUIDs)
@@ -519,10 +503,13 @@ namespace UnityEngine.Rendering
 
         internal void OnSceneSaving(Scene scene, string path = null)
         {
+            var bakingSet = GetBakingSetForScene(scene);
+            if (bakingSet == null)
+                return;
+
             // If we are called from the scene callback, we want to update all global volumes that are potentially affected
             bool updateGlobalVolumes = path != null;
             
-            EnsureSceneIsInBakingSet(scene);
             UpdateSceneBounds(scene, updateGlobalVolumes);
             EnsurePerSceneData(scene);
         }

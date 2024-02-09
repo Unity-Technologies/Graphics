@@ -288,6 +288,9 @@ EditorBuildSettings:
     path: Assets/Scenes/202_SSAO_Depth.unity
     guid: 2696010bf40d644cc8abc0b1304c59db
   - enabled: 1
+    path: Assets/Scenes/202_SSAO_Depth_DownSample.unity
+    guid: 07434decccca04d53bb951a513c06901
+  - enabled: 1
     path: Assets/Scenes/203_SSAO_DepthNormal.unity
     guid: c207f769f3e194ebc8cbd51e788ac65d
   - enabled: 1

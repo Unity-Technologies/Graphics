@@ -18,6 +18,11 @@
       "displayName": "Node Reference",
       "description": "This set of Shader Graph assets provides reference material for the nodes available in the Shader Graph node library. Each graph contains a description for a specific node, examples of how it can be used, and useful tips. Some example assets also show a break-down of the math that the node is doing. You can use these samples along with the documentation to learn more about the behavior of individual nodes.",
       "path": "Samples~/NodeReference"
-    }
+    },
+    {
+      "displayName": "Feature Examples",
+      "description": "This set of assets provides examples for how to achieve specific features and effects in Shader Graph - such as parallax occlusion mapping, interior cube mapping, vertex animation, various types of UV projection, and more. While not intended to be used directly, these examples should help you learn how to achieve these specific effects in your own shaders.",
+      "path": "Samples~/FeatureExamples"
+    }	
   ]
 }

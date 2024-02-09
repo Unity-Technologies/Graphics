@@ -4,9 +4,9 @@ namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-SampleCameraBuffer")]
     [VFXInfo(category = "Sampling")]
-    class SampleCameraBuffer : VFXOperator
+    sealed class SampleCameraBuffer : VFXOperator
     {
-        override public string name { get { return "Sample Camera Buffer"; } }
+        public override string name { get { return "Sample Camera Buffer"; } }
 
         public class InputProperties
         {
@@ -24,9 +24,16 @@ namespace UnityEditor.VFX.Operator
             public Vector4 s = Vector4.zero;
         }
 
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionSampleCameraBuffer(inputExpression[0], inputExpression[1], inputExpression[2]) };
+            VFXExpression textureWidth = new VFXExpressionTextureWidth(inputExpression[0]);
+            VFXExpression textureHeight = new VFXExpressionTextureHeight(inputExpression[0]);
+            textureWidth = new VFXExpressionCastUintToFloat(textureWidth);
+            textureHeight = new VFXExpressionCastUintToFloat(textureHeight);
+            VFXExpression texelSize = new VFXExpressionCombine(textureWidth, textureHeight);
+            texelSize = VFXOperatorUtility.Reciprocal(texelSize);
+
+            return new [] { new VFXExpressionSampleCameraBuffer(inputExpression[0], inputExpression[1] * inputExpression[2] * texelSize) };
         }
     }
 }

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.9] - 2024-01-22
+
+This version is compatible with Unity 2022.3.19f1.
+
+### Added
+- Added the Feature Examples Sample to Shader Graph to show users how to achieve specific effects in Shader Graph.
+
 ## [14.0.9] - 2023-12-21
 
 This version is compatible with Unity 2022.3.18f1.

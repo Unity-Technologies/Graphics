@@ -48,7 +48,9 @@ When a GameObject is within multiple reflection probe volumes, maximum two of th
 
 * If the Importance values and the box volumes are the same, Unity determines which two reflection probe volumes contain larger surface areas of a GameObject, and picks the probes of those volumes.
 
-When two reflection probes affect a GameObject, for each pixel, Unity calculates the weight of each probe depending on the distance of this pixel from the faces of the probe box volumes and the values of the **Blend Distance** properties. If the pixel is relatively close to faces of both box volumes and the sum of weights of both probes is less than 1, Unity assigns the remaining weight to the skybox reflection.
+When two reflection probes affect a GameObject, for each pixel, Unity calculates the weight of each probe depending on the distance of this pixel from the faces of the probe box volumes and the values of the **Blend Distance** properties.
+
+If the pixel is relatively close to faces of both box volumes and the sum of weights of both probes is less than 1, Unity assigns the remaining weight to the `_GlossyEnvironmentCubeMap`. This cube map contains the reflection from the lighting source set in the Lighting window under **Environment Lighting** > **Source**. In most cases this source is the skybox.
 
 If the pixel is within both box volumes and farther than the Blend Distance values from faces of both volumes:
 

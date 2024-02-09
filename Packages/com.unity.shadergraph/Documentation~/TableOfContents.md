@@ -17,6 +17,7 @@
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
+        * [Feature Examples](Shader-Graph-Sample-Feature-Examples.md)    
     * [Material Variants](materialvariant-SG)
 * Upgrade Guides
   * [Upgrade to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)

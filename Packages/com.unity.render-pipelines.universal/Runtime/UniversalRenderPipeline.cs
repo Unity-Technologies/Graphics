@@ -473,7 +473,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    RenderSingleCameraInternal(context, camera);
+                    camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                    RenderSingleCameraInternal(context, camera, ref additionalCameraData);
                 }
 
                 if(temporaryRT)
@@ -522,6 +523,11 @@ namespace UnityEngine.Rendering.Universal
             if (IsGameCamera(camera))
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
+            RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+        }
+
+        internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, ref UniversalAdditionalCameraData additionalCameraData)
+        {
             if (additionalCameraData != null && additionalCameraData.renderType != CameraRenderType.Base)
             {
                 Debug.LogWarning("Only Base cameras can be rendered with standalone RenderSingleCamera. Camera will be skipped.");
