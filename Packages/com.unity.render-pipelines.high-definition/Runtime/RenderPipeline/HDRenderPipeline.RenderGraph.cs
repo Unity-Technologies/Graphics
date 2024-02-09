@@ -2071,7 +2071,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderScreenSpaceOverlayUI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            if (!HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
+            if (!HDROutputActiveForCameraType(hdCamera) && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.isMainGameView)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
                 {
