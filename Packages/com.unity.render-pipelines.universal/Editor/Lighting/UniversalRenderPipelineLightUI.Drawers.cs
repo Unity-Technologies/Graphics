@@ -255,8 +255,28 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             serializedLight.settings.DrawRenderMode();
+            var rendererList = UniversalRenderPipeline.asset.m_RendererDataList;
+            bool hasNonForwardPlusRenderer = false;
+            foreach (var r in rendererList)
+            {
+                if (r is UniversalRendererData ur)
+                {
+                    if (ur.renderingMode != RenderingMode.ForwardPlus)
+                    {
+                        hasNonForwardPlusRenderer = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    hasNonForwardPlusRenderer = true;
+                    break;
+                }
+            }
 
-            EditorGUILayout.PropertyField(serializedLight.settings.cullingMask, Styles.CullingMask);
+            GUI.enabled = hasNonForwardPlusRenderer;
+            EditorGUILayout.PropertyField(serializedLight.settings.cullingMask, hasNonForwardPlusRenderer ? Styles.CullingMask : Styles.CullingMaskDisabled);
+            GUI.enabled = true;
         }
 
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
