@@ -74,6 +74,83 @@ float4 _ST_HistoryRipple_NoisePosTurbulence_Independence;
 float4 _ST_HistoryRipple_Planar_Directional_Flexibility_Shimmer;
 CBUFFER_END
 
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+
+#define DOTS_ST_WindVector DOTS_ST_WindParam0
+#define DOTS_ST_TreeExtents_SharedHeightStart DOTS_ST_WindParam1
+#define DOTS_ST_BranchStretchLimits DOTS_ST_WindParam2
+#define DOTS_ST_Shared_NoisePosTurbulence_Independence DOTS_ST_WindParam3
+#define DOTS_ST_Shared_Bend_Oscillation_Turbulence_Flexibility DOTS_ST_WindParam4
+#define DOTS_ST_Branch1_NoisePosTurbulence_Independence DOTS_ST_WindParam5
+#define DOTS_ST_Branch1_Bend_Oscillation_Turbulence_Flexibility DOTS_ST_WindParam6
+#define DOTS_ST_Branch2_NoisePosTurbulence_Independence DOTS_ST_WindParam7
+#define DOTS_ST_Branch2_Bend_Oscillation_Turbulence_Flexibility DOTS_ST_WindParam8
+#define DOTS_ST_Ripple_NoisePosTurbulence_Independence DOTS_ST_WindParam9
+#define DOTS_ST_Ripple_Planar_Directional_Flexibility_Shimmer DOTS_ST_WindParam10
+
+#define DOTS_ST_HistoryWindVector DOTS_ST_WindHistoryParam0
+#define DOTS_ST_HistoryTreeExtents_SharedHeightStart DOTS_ST_WindHistoryParam1
+#define DOTS_ST_HistoryBranchStretchLimits DOTS_ST_WindHistoryParam2
+#define DOTS_ST_HistoryShared_NoisePosTurbulence_Independence DOTS_ST_WindHistoryParam3
+#define DOTS_ST_HistoryShared_Bend_Oscillation_Turbulence_Flexibility DOTS_ST_WindHistoryParam4
+#define DOTS_ST_HistoryBranch1_NoisePosTurbulence_Independence DOTS_ST_WindHistoryParam5
+#define DOTS_ST_HistoryBranch1_Bend_Oscillation_Turbulence_Flexibility DOTS_ST_WindHistoryParam6
+#define DOTS_ST_HistoryBranch2_NoisePosTurbulence_Independence DOTS_ST_WindHistoryParam7
+#define DOTS_ST_HistoryBranch2_Bend_Oscillation_Turbulence_Flexibility DOTS_ST_WindHistoryParam8
+#define DOTS_ST_HistoryRipple_NoisePosTurbulence_Independence DOTS_ST_WindHistoryParam9
+#define DOTS_ST_HistoryRipple_Planar_Directional_Flexibility_Shimmer DOTS_ST_WindHistoryParam10
+
+UNITY_DOTS_INSTANCING_START(UserPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindVector)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_TreeExtents_SharedHeightStart)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_BranchStretchLimits)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Shared_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Shared_Bend_Oscillation_Turbulence_Flexibility)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch1_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch1_Bend_Oscillation_Turbulence_Flexibility)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch2_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch2_Bend_Oscillation_Turbulence_Flexibility)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Ripple_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_Ripple_Planar_Directional_Flexibility_Shimmer)
+
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryWindVector)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryTreeExtents_SharedHeightStart)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranchStretchLimits)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryShared_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryShared_Bend_Oscillation_Turbulence_Flexibility)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch1_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch1_Bend_Oscillation_Turbulence_Flexibility)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch2_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch2_Bend_Oscillation_Turbulence_Flexibility)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryRipple_NoisePosTurbulence_Independence)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryRipple_Planar_Directional_Flexibility_Shimmer)
+UNITY_DOTS_INSTANCING_END(UserPropertyMetadata)
+
+#define _ST_WindVector                                              UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindVector)
+#define _ST_TreeExtents_SharedHeightStart                           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_TreeExtents_SharedHeightStart)
+#define _ST_BranchStretchLimits                                     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_BranchStretchLimits)
+#define _ST_Shared_NoisePosTurbulence_Independence                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Shared_NoisePosTurbulence_Independence)
+#define _ST_Shared_Bend_Oscillation_Turbulence_Flexibility          UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Shared_Bend_Oscillation_Turbulence_Flexibility)
+#define _ST_Branch1_NoisePosTurbulence_Independence                 UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch1_NoisePosTurbulence_Independence)
+#define _ST_Branch1_Bend_Oscillation_Turbulence_Flexibility         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch1_Bend_Oscillation_Turbulence_Flexibility)
+#define _ST_Branch2_NoisePosTurbulence_Independence                 UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch2_NoisePosTurbulence_Independence)
+#define _ST_Branch2_Bend_Oscillation_Turbulence_Flexibility         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Branch2_Bend_Oscillation_Turbulence_Flexibility)
+#define _ST_Ripple_NoisePosTurbulence_Independence                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Ripple_NoisePosTurbulence_Independence)
+#define _ST_Ripple_Planar_Directional_Flexibility_Shimmer           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_Ripple_Planar_Directional_Flexibility_Shimmer)
+
+#define _ST_HistoryWindVector                                       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryWindVector)
+#define _ST_HistoryTreeExtents_SharedHeightStart                    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryTreeExtents_SharedHeightStart)
+#define _ST_HistoryBranchStretchLimits                              UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranchStretchLimits)
+#define _ST_HistoryShared_NoisePosTurbulence_Independence           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryShared_NoisePosTurbulence_Independence)
+#define _ST_HistoryShared_Bend_Oscillation_Turbulence_Flexibility   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryShared_Bend_Oscillation_Turbulence_Flexibility)
+#define _ST_HistoryBranch1_NoisePosTurbulence_Independence          UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch1_NoisePosTurbulence_Independence)
+#define _ST_HistoryBranch1_Bend_Oscillation_Turbulence_Flexibility  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch1_Bend_Oscillation_Turbulence_Flexibility)
+#define _ST_HistoryBranch2_NoisePosTurbulence_Independence          UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch2_NoisePosTurbulence_Independence)
+#define _ST_HistoryBranch2_Bend_Oscillation_Turbulence_Flexibility  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryBranch2_Bend_Oscillation_Turbulence_Flexibility)
+#define _ST_HistoryRipple_NoisePosTurbulence_Independence           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryRipple_NoisePosTurbulence_Independence)
+#define _ST_HistoryRipple_Planar_Directional_Flexibility_Shimmer    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_HistoryRipple_Planar_Directional_Flexibility_Shimmer)
+
+#endif
 
 CBufferSpeedTree9 ReadCBuffer(bool bHistory /*must be known compile-time*/)
 {

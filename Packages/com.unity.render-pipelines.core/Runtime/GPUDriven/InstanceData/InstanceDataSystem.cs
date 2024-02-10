@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering
         public CPUSharedInstanceData.ReadOnly sharedInstanceData { get { return m_SharedInstanceData.AsReadOnly(); } }
         public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceData.instances.GetSubArray(0, m_InstanceData.instancesLength); } }
 
+        private readonly int[] m_ScratchWindParamAddressArray = new int[(int)SpeedTreeWindParamIndex.MaxWindParamsCount * 4];
+
         public InstanceDataSystem(int maxInstances, bool enableBoundingSpheres, GPUResidentDrawerResources resources)
         {
             m_InstanceAllocators = new InstanceAllocators();
@@ -282,38 +284,13 @@ namespace UnityEngine.Rendering
             m_UpdateIndexQueueBuffer.SetData(gpuInstanceIndices, 0, 0, instancesCount);
 
             m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindDataQueueCount, instancesCount);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindVectorAddress, renderersParameters.windVector.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindGlobalAddress, renderersParameters.windGlobal.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchAddress, renderersParameters.windBranch.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchTwitchAddress, renderersParameters.windBranchTwitch.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchWhipAddress, renderersParameters.windBranchWhip.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchAnchorAddress, renderersParameters.windBranchAnchor.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchAdherencesAddress, renderersParameters.windBranchAdherences.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindTurbulencesAddress, renderersParameters.windTurbulences.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf1RippleAddress, renderersParameters.windLeaf1Ripple.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf1TwitchAddress, renderersParameters.windLeaf1Twitch.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf1TumbleAddress, renderersParameters.windLeaf1Tumble.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf2RippleAddress, renderersParameters.windLeaf2Ripple.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf2TumbleAddress, renderersParameters.windLeaf2Tumble.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf2TwitchAddress, renderersParameters.windLeaf2Twitch.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindFrondRippleAddress, renderersParameters.windFrondRipple.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindAnimationAddress, renderersParameters.windAnimation.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindVectorHistoryAddress, renderersParameters.windVectorHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindGlobalHistoryAddress, renderersParameters.windGlobalHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchHistoryAddress, renderersParameters.windBranchHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchTwitchHistoryAddress, renderersParameters.windBranchTwitchHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchWhipHistoryAddress, renderersParameters.windBranchWhipHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchAnchorHistoryAddress, renderersParameters.windBranchAnchorHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindBranchAdherencesHistoryAddress, renderersParameters.windBranchAdherencesHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindTurbulencesHistoryAddress, renderersParameters.windTurbulencesHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf1RippleHistoryAddress, renderersParameters.windLeaf1RippleHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf1TwitchHistoryAddress, renderersParameters.windLeaf1TwitchHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf1TumbleHistoryAddress, renderersParameters.windLeaf1TumbleHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf2RippleHistoryAddress, renderersParameters.windLeaf2RippleHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf2TumbleHistoryAddress, renderersParameters.windLeaf2TumbleHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindLeaf2TwitchHistoryAddress, renderersParameters.windLeaf2TwitchHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindFrondRippleHistoryAddress, renderersParameters.windFrondRippleHistory.gpuAddress);
-            m_WindDataUpdateCS.SetInt(InstanceWindDataUpdateIDs._WindAnimationHistoryAddress, renderersParameters.windAnimationHistory.gpuAddress);
+            for (int i = 0; i < (int)SpeedTreeWindParamIndex.MaxWindParamsCount; ++i)
+                m_ScratchWindParamAddressArray[i * 4] = renderersParameters.windParams[i].gpuAddress;
+            m_WindDataUpdateCS.SetInts(InstanceWindDataUpdateIDs._WindParamAddressArray, m_ScratchWindParamAddressArray);
+            for (int i = 0; i < (int)SpeedTreeWindParamIndex.MaxWindParamsCount; ++i)
+                m_ScratchWindParamAddressArray[i * 4] = renderersParameters.windHistoryParams[i].gpuAddress;
+            m_WindDataUpdateCS.SetInts(InstanceWindDataUpdateIDs._WindHistoryParamAddressArray, m_ScratchWindParamAddressArray);
+
             m_WindDataUpdateCS.SetBuffer(kernel, InstanceWindDataUpdateIDs._WindDataUpdateIndexQueue, m_UpdateIndexQueueBuffer);
             m_WindDataUpdateCS.SetBuffer(kernel, InstanceWindDataUpdateIDs._WindDataBuffer, outputBuffer.gpuBuffer);
             m_WindDataUpdateCS.Dispatch(kernel, (instancesCount + 63) / 64, 1, 1);
@@ -827,40 +804,10 @@ namespace UnityEngine.Rendering
         private static class InstanceWindDataUpdateIDs
         {
             public static readonly int _WindDataQueueCount = Shader.PropertyToID("_WindDataQueueCount");
-            public static readonly int _WindVectorAddress = Shader.PropertyToID("_WindVectorAddress");
-            public static readonly int _WindGlobalAddress = Shader.PropertyToID("_WindGlobalAddress");
-            public static readonly int _WindBranchAddress = Shader.PropertyToID("_WindBranchAddress");
-            public static readonly int _WindBranchTwitchAddress = Shader.PropertyToID("_WindBranchTwitchAddress");
-            public static readonly int _WindBranchWhipAddress = Shader.PropertyToID("_WindBranchWhipAddress");
-            public static readonly int _WindBranchAnchorAddress = Shader.PropertyToID("_WindBranchAnchorAddress");
-            public static readonly int _WindBranchAdherencesAddress = Shader.PropertyToID("_WindBranchAdherencesAddress");
-            public static readonly int _WindTurbulencesAddress = Shader.PropertyToID("_WindTurbulencesAddress");
-            public static readonly int _WindLeaf1RippleAddress = Shader.PropertyToID("_WindLeaf1RippleAddress");
-            public static readonly int _WindLeaf1TwitchAddress = Shader.PropertyToID("_WindLeaf1TwitchAddress");
-            public static readonly int _WindLeaf1TumbleAddress = Shader.PropertyToID("_WindLeaf1TumbleAddress");
-            public static readonly int _WindLeaf2RippleAddress = Shader.PropertyToID("_WindLeaf2RippleAddress");
-            public static readonly int _WindLeaf2TumbleAddress = Shader.PropertyToID("_WindLeaf2TumbleAddress");
-            public static readonly int _WindLeaf2TwitchAddress = Shader.PropertyToID("_WindLeaf2TwitchAddress");
-            public static readonly int _WindFrondRippleAddress = Shader.PropertyToID("_WindFrondRippleAddress");
-            public static readonly int _WindAnimationAddress = Shader.PropertyToID("_WindAnimationAddress");
-            public static readonly int _WindVectorHistoryAddress = Shader.PropertyToID("_WindVectorHistoryAddress");
-            public static readonly int _WindGlobalHistoryAddress = Shader.PropertyToID("_WindGlobalHistoryAddress");
-            public static readonly int _WindBranchHistoryAddress = Shader.PropertyToID("_WindBranchHistoryAddress");
-            public static readonly int _WindBranchTwitchHistoryAddress = Shader.PropertyToID("_WindBranchTwitchHistoryAddress");
-            public static readonly int _WindBranchWhipHistoryAddress = Shader.PropertyToID("_WindBranchWhipHistoryAddress");
-            public static readonly int _WindBranchAnchorHistoryAddress = Shader.PropertyToID("_WindBranchAnchorHistoryAddress");
-            public static readonly int _WindBranchAdherencesHistoryAddress = Shader.PropertyToID("_WindBranchAdherencesHistoryAddress");
-            public static readonly int _WindTurbulencesHistoryAddress = Shader.PropertyToID("_WindTurbulencesHistoryAddress");
-            public static readonly int _WindLeaf1RippleHistoryAddress = Shader.PropertyToID("_WindLeaf1RippleHistoryAddress");
-            public static readonly int _WindLeaf1TumbleHistoryAddress = Shader.PropertyToID("_WindLeaf1TumbleHistoryAddress");
-            public static readonly int _WindLeaf1TwitchHistoryAddress = Shader.PropertyToID("_WindLeaf1TwitchHistoryAddress");
-            public static readonly int _WindLeaf2RippleHistoryAddress = Shader.PropertyToID("_WindLeaf2RippleHistoryAddress");
-            public static readonly int _WindLeaf2TumbleHistoryAddress = Shader.PropertyToID("_WindLeaf2TumbleHistoryAddress");
-            public static readonly int _WindLeaf2TwitchHistoryAddress = Shader.PropertyToID("_WindLeaf2TwitchHistoryAddress");
-            public static readonly int _WindFrondRippleHistoryAddress = Shader.PropertyToID("_WindFrondRippleHistoryAddress");
-            public static readonly int _WindAnimationHistoryAddress = Shader.PropertyToID("_WindAnimationHistoryAddress");
             public static readonly int _WindDataUpdateIndexQueue = Shader.PropertyToID("_WindDataUpdateIndexQueue");
             public static readonly int _WindDataBuffer = Shader.PropertyToID("_WindDataBuffer");
+            public static readonly int _WindParamAddressArray = Shader.PropertyToID("_WindParamAddressArray");
+            public static readonly int _WindHistoryParamAddressArray = Shader.PropertyToID("_WindHistoryParamAddressArray");
         }
     }
 }
