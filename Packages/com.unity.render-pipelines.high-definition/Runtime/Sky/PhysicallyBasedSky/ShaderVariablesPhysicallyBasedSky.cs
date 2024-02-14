@@ -11,6 +11,10 @@ namespace UnityEngine.Rendering.HighDefinition
         InScatteredRadianceTableSizeY = 32,  // height
         InScatteredRadianceTableSizeZ = 16,  // AzimuthAngle(L) w.r.t. the view vector
         InScatteredRadianceTableSizeW = 64,  // <N, L>,
+
+        // 4 KiB
+        MultiScatteringLutWidth = 32,
+        MultiScatteringLutHeight = 32,
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.PBRSky)]

@@ -1,0 +1,186 @@
+// Ref: A Scalable and Production Ready Sky and Atmosphere Rendering Technique - Hillaire, ESGR 2020
+// https://sebh.github.io/publications/egsr2020.pdf
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel MultiScatteringLUT   OUTPUT_MULTISCATTERING
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyEvaluation.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+
+// This is the main function that integrates atmosphere along a ray
+// It is baked in various LUTs by all the kernels below
+
+// O is position in planet space, V is view dir in world space
+void EvaluateAtmosphericColor(float3 O, float3 V, float tExit,
+#ifdef OUTPUT_MULTISCATTERING
+    float3 L, out float3 multiScattering,
+#endif
+    out float3 skyColor, out float3 skyTransmittance)
+{
+    skyColor = 0.0f;
+    skyTransmittance = 1.0f;
+
+#ifdef OUTPUT_MULTISCATTERING
+    multiScattering = 0.0f;
+#endif
+
+    const uint sampleCount = 16;
+
+    for (uint s = 0; s < sampleCount; s++)
+    {
+        float t, dt;
+        GetSample(s, sampleCount, tExit, t, dt);
+
+        const float3 P = O + t * V;
+        const float  r = max(length(P), _PlanetaryRadius);
+        const float3 N = P * rcp(r);
+        const float  height = r - _PlanetaryRadius;
+
+        const float3 sigmaE       = AtmosphereExtinction(height);
+        const float3 scatteringMS = AirScatter(height) + AerosolScatter(height);
+        const float3 transmittanceOverSegment = TransmittanceFromOpticalDepth(sigmaE * dt);
+
+#ifdef OUTPUT_MULTISCATTERING
+        multiScattering += IntegrateOverSegment(scatteringMS, transmittanceOverSegment, skyTransmittance, sigmaE);
+
+        const float3 phaseScatter = scatteringMS * IsotropicPhaseFunction();
+        const float3 S = EvaluateSunColorAttenuation(dot(N, L), r) * phaseScatter;
+        skyColor += IntegrateOverSegment(S, transmittanceOverSegment, skyTransmittance, sigmaE);
+#else
+        for (uint i = 0; i < _CelestialLightCount; i++)
+        {
+            CelestialBodyData light = _CelestialBodyDatas[i];
+            float3 L = -light.forward.xyz;
+
+            const float3 sunTransmittance = EvaluateSunColorAttenuation(dot(N, L), r);
+            const float3 phaseScatter = AirScatter(height) * AirPhase(-dot(L, V)) + AerosolScatter(height) * AerosolPhase(-dot(L, V));
+            const float3 multiScatteredLuminance = EvaluateMultipleScattering(dot(N, L), height);
+
+            float3 S = sunTransmittance * phaseScatter + multiScatteredLuminance * scatteringMS;
+            skyColor += IntegrateOverSegment(light.color * S, transmittanceOverSegment, skyTransmittance, sigmaE);
+        }
+#endif
+
+        skyTransmittance *= transmittanceOverSegment;
+    }
+}
+
+// Multiple-Scattering LUT
+
+#define SAMPLE_COUNT 64
+
+RW_TEXTURE2D(float3, _MultiScatteringLUT_RW);
+
+groupshared float3 gs_radianceMS[SAMPLE_COUNT];
+groupshared float3 gs_radiance[SAMPLE_COUNT];
+
+float3 RenderPlanet(float3 P, float3 L)
+{
+    float3 N = normalize(P);
+
+    float3 albedo = _GroundAlbedo.xyz;
+    float3 gBrdf = INV_PI * albedo;
+
+    float cosHoriz = ComputeCosineOfHorizonAngle(_PlanetaryRadius);
+    float cosTheta = dot(N, L);
+
+    float3 intensity = 0.0f;
+    if (cosTheta >= cosHoriz)
+    {
+        float3 opticalDepth = ComputeAtmosphericOpticalDepth(_PlanetaryRadius, cosTheta, true);
+        intensity = TransmittanceFromOpticalDepth(opticalDepth);
+    }
+
+    return gBrdf * (saturate(dot(N, L)) * intensity);
+}
+
+void ParallelSum(uint threadIdx, inout float3 radiance, inout float3 radianceMS)
+{
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    radiance   = float3(WaveActiveSum(radiance.x),   WaveActiveSum(radiance.y),   WaveActiveSum(radiance.z));
+    radianceMS = float3(WaveActiveSum(radianceMS.x), WaveActiveSum(radianceMS.y), WaveActiveSum(radianceMS.z));
+#else
+    gs_radiance[threadIdx]   = radiance;
+    gs_radianceMS[threadIdx] = radianceMS;
+    GroupMemoryBarrierWithGroupSync();
+
+    UNITY_UNROLL
+    for (uint s = SAMPLE_COUNT / 2u; s > 0u; s >>= 1u)
+    {
+        if (threadIdx < s)
+        {
+            gs_radiance[threadIdx]   += gs_radiance[threadIdx + s];
+            gs_radianceMS[threadIdx] += gs_radianceMS[threadIdx + s];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    radiance   = gs_radiance[0];
+    radianceMS = gs_radianceMS[0];
+#endif
+}
+
+[numthreads(1, 1, SAMPLE_COUNT)]
+void MultiScatteringLUT(uint3 coord : SV_DispatchThreadID)
+{
+    const uint threadIdx = coord.z;
+
+    /// Map thread id to position in planet space + light direction
+
+    float sunZenithCosAngle, radialDistance;
+    UnmapMultipleScattering(coord.xy, sunZenithCosAngle, radialDistance);
+
+    float3 L = float3(0.0, sunZenithCosAngle, SinFromCos(sunZenithCosAngle));
+    float3 O = float3(0.0f, radialDistance, 0.0f);
+
+    float2 U = Hammersley2d(threadIdx, SAMPLE_COUNT);
+    float3 V = SampleSphereUniform(U.x, U.y);
+
+    /// Compute single scattering light in direction V
+
+    float3 N; float r; // These params correspond to the entry point
+    float tEntry = IntersectAtmosphere(O, -V, N, r).x;
+    float tExit  = IntersectAtmosphere(O, -V, N, r).y;
+
+    float cosChi = dot(N, V);
+    float cosHor = ComputeCosineOfHorizonAngle(r);
+
+    bool rayIntersectsAtmosphere = (tEntry >= 0);
+    bool lookAboveHorizon        = (cosChi >= cosHor);
+    bool seeGround               = rayIntersectsAtmosphere && !lookAboveHorizon;
+
+    if (seeGround)
+        tExit = tEntry + IntersectSphere(_PlanetaryRadius, cosChi, r).x;
+
+    float3 multiScattering = 0.0f, skyColor = 0.0f, skyTransmittance = 1.0f;
+    if (tExit > 0.0f)
+        EvaluateAtmosphericColor(O, V, tExit, L, multiScattering, skyColor, skyTransmittance);
+
+    if (seeGround)
+        skyColor += RenderPlanet(O + tExit * V, L) * skyTransmittance;
+
+    const float dS = FOUR_PI * IsotropicPhaseFunction() / SAMPLE_COUNT;
+    float3 radiance = skyColor * dS;
+    float3 radianceMS = multiScattering * dS;
+
+    /// Accumulate light from all directions using LDS
+
+    ParallelSum(threadIdx, radiance, radianceMS);
+    if (threadIdx > 0)
+        return;
+
+    /// Approximate infinite multiple scattering
+
+    const float3 F_ms = 1.0f * rcp(1.0 - radianceMS); // Equation 9
+    const float3 MS   = radiance * F_ms;           // Equation 10
+
+    _MultiScatteringLUT_RW[coord.xy] = MS;
+}

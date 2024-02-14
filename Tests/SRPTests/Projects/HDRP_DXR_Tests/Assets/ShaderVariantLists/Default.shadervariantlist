@@ -482,9 +482,7 @@ Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterVSingleSp
 Compiled compute shader: EVSMBlur, kernel: ConvertAndBlur, keywords <no keywords>
 Compiled compute shader: Exposure, kernel: KFixedExposure, keywords <no keywords>
 Compiled compute shader: GPUCopy, kernel: KSampleCopy4_1_x_8, keywords <no keywords>
-Compiled compute shader: GroundIrradiancePrecomputation, kernel: MAIN_1, keywords <no keywords>
-Compiled compute shader: GroundIrradiancePrecomputation, kernel: MAIN_M, keywords <no keywords>
-Compiled compute shader: GroundIrradiancePrecomputation, kernel: MAIN_S, keywords <no keywords>
+Compiled compute shader: GroundIrradiancePrecomputation, kernel: main, keywords <no keywords>
 Compiled compute shader: GTAO, kernel: GTAOMain, keywords HALF_RES TEMPORAL
 Compiled compute shader: GTAOBlurAndUpsample, kernel: BilateralUpsampling, keywords <no keywords>
 Compiled compute shader: GTAOCopyHistory, kernel: GTAODenoise_CopyHistory, keywords <no keywords>
@@ -494,10 +492,7 @@ Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAt
 Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAttenuationForward, keywords <no keywords>
 Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeAzimuthalScattering, keywords <no keywords>
 Compiled compute shader: HairMultipleScatteringPreIntegration, kernel: ComputeLongitudinalScattering, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_1, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_A, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_M, keywords <no keywords>
-Compiled compute shader: InScatteredRadiancePrecomputation, kernel: MAIN_S, keywords <no keywords>
+Compiled compute shader: InScatteredRadiancePrecomputation, kernel: main, keywords <no keywords>
 Compiled compute shader: Internal-Skinning, kernel: main, keywords <no keywords>
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_FEATURE_FLAGS USE_TWO_PASS_TILED_LIGHTING
 Compiled compute shader: lightlistbuild, kernel: TileLightListGen, keywords USE_TWO_PASS_TILED_LIGHTING
@@ -576,6 +571,7 @@ Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsR
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsReprojection, keywords SSR_APPROX
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsTracing, keywords DEPTH_SOURCE_NOT_FROM_MIP_CHAIN SSR_APPROX
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsTracing, keywords SSR_APPROX
+Compiled compute shader: SkyLUTGenerator, kernel: MultiScatteringLUT, keywords <no keywords>
 Compiled compute shader: Sort, kernel: BitonicSort128, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
 Compiled compute shader: TemporalFilter, kernel: BlendHistoryColorArray, keywords FULL_RESOLUTION_FILTER
@@ -1420,10 +1416,12 @@ Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: all, keywords
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
 Compiled shader: Hidden/HDRP/Sky/HDRISky, pass: FragRender, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: all, keywords LOCAL_SKY
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: pixel, keywords LOCAL_SKY
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky Cubemap, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: all, keywords <no keywords>
-Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: pixel, keywords <no keywords>
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: all, keywords LOCAL_SKY
+Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: pixel, keywords LOCAL_SKY
 Compiled shader: Hidden/HDRP/Sky/PbrSky, pass: PBRSky, stage: vertex, keywords <no keywords>
 Compiled shader: Hidden/HDRP/TerrainLit_Basemap, pass: ShadowCaster, stage: all, keywords _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 Compiled shader: Hidden/HDRP/TerrainLit_Basemap, pass: ShadowCaster, stage: all, keywords <no keywords>

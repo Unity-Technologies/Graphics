@@ -416,6 +416,18 @@ MonoBehaviour:
   material:
     m_OverrideState: 1
     m_Value: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e, type: 3}
+  sphericalMode:
+    m_OverrideState: 0
+    m_Value: 1
+  seaLevel:
+    m_OverrideState: 0
+    m_Value: 0
+  planetaryRadius:
+    m_OverrideState: 0
+    m_Value: 6378100
+  planetCenterPosition:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: -6378100, z: 0}
   airDensityR:
     m_OverrideState: 0
     m_Value: 0.04534
@@ -443,9 +455,6 @@ MonoBehaviour:
   aerosolAnisotropy:
     m_OverrideState: 0
     m_Value: 0.7
-  numberOfBounces:
-    m_OverrideState: 0
-    m_Value: 3
   groundTint:
     m_OverrideState: 0
     m_Value: {r: 0.4, g: 0.25, b: 0.15, a: 1}
@@ -488,22 +497,13 @@ MonoBehaviour:
   horizonZenithShift:
     m_OverrideState: 0
     m_Value: 0
+  numberOfBounces:
+    m_OverrideState: 0
+    m_Value: 3
   m_SkyVersion: 3
   m_ObsoleteEarthPreset:
     m_OverrideState: 0
     m_Value: 1
-  sphericalMode:
-    m_OverrideState: 0
-    m_Value: 1
-  seaLevel:
-    m_OverrideState: 0
-    m_Value: 0
-  planetaryRadius:
-    m_OverrideState: 0
-    m_Value: 6378100
-  planetCenterPosition:
-    m_OverrideState: 0
-    m_Value: {x: 0, y: -6378100, z: 0}
 --- !u!114 &5305602202033311358
 MonoBehaviour:
   m_ObjectHideFlags: 3

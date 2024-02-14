@@ -10,8 +10,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
-StructuredBuffer<CelestialBodyData> _CelestialBodyDatas;
-
 float3 _PBRSkyCameraPosPS;
 int _RenderSunDisk;
 
