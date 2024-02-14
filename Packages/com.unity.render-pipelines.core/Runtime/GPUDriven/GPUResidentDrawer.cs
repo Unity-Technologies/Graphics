@@ -146,54 +146,58 @@ namespace UnityEngine.Rendering
         private void InsertIntoPlayerLoop()
         {
             var rootLoop = LowLevel.PlayerLoop.GetCurrentPlayerLoop();
-            var newList = new List<PlayerLoopSystem>();
             bool isAdded = false;
-            for (int i = 0; i < rootLoop.subSystemList.Length; i++)
+
+            for (var i = 0; i < rootLoop.subSystemList.Length; i++)
             {
-                // ensure we preserve all existing systems
-                newList.Add(rootLoop.subSystemList[i]);
+                var subSystem = rootLoop.subSystemList[i];
 
-                var type = rootLoop.subSystemList[i].type;
-
-                // We have to update after the PostLateUpdate systems, because we have to be able to get previous matrices from renderers.
+                // We have to update inside the PostLateUpdate systems, because we have to be able to get previous matrices from renderers.
                 // Previous matrices are updated by renderer managers on UpdateAllRenderers which is part of PostLateUpdate.
-                if (!isAdded && type == typeof(PostLateUpdate))
+                if (!isAdded && subSystem.type == typeof(PostLateUpdate))
                 {
-                    PlayerLoopSystem s = default;
-                    s.updateDelegate += PostPostLateUpdateStatic;
-                    s.type = GetType();
-                    newList.Add(s);
-                    isAdded = true;
+                    var subSubSystems = new List<PlayerLoopSystem>();
+                    foreach (var subSubSystem in subSystem.subSystemList)
+                    {
+                        if (subSubSystem.type == typeof(PostLateUpdate.FinishFrameRendering))
+                        {
+                            PlayerLoopSystem s = default;
+                            s.updateDelegate += PostPostLateUpdateStatic;
+                            s.type = GetType();
+                            subSubSystems.Add(s);
+                            isAdded = true;
+                        }
+
+                        subSubSystems.Add(subSubSystem);
+                    }
+
+                    subSystem.subSystemList = subSubSystems.ToArray();
+                    rootLoop.subSystemList[i] = subSystem;
                 }
             }
 
-            rootLoop.subSystemList = newList.ToArray();
             LowLevel.PlayerLoop.SetPlayerLoop(rootLoop);
-
-            try
-            {
-                // We inject to the player loop during the first frame so we have to call PostPostLateUpdate manually here once.
-                // If an exception is not caught explicitly here, then the player loop becomes broken in the editor.
-                PostPostLateUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
         }
 
         private void RemoveFromPlayerLoop()
         {
             var rootLoop = LowLevel.PlayerLoop.GetCurrentPlayerLoop();
-            var newList = new List<PlayerLoopSystem>();
+
             for (int i = 0; i < rootLoop.subSystemList.Length; i++)
             {
-                var type = rootLoop.subSystemList[i].type;
-                if (type != GetType())
-                    newList.Add(rootLoop.subSystemList[i]);
-            }
+                var subsystem = rootLoop.subSystemList[i];
+                if (subsystem.type != typeof(PostLateUpdate))
+                    continue;
 
-            rootLoop.subSystemList = newList.ToArray();
+                var newList = new List<PlayerLoopSystem>();
+                foreach (var subSubSystem in subsystem.subSystemList)
+                {
+                    if (subSubSystem.type != GetType())
+                        newList.Add(subSubSystem);
+                }
+                subsystem.subSystemList = newList.ToArray();
+                rootLoop.subSystemList[i] = subsystem;
+            }
             LowLevel.PlayerLoop.SetPlayerLoop(rootLoop);
         }
 
