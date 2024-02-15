@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,8 +6,9 @@ namespace UnityEngine.Rendering.Universal
     /// Class that stores the shader stripping settings that are specific for <see cref="UniversalRenderPipeline"/>
     /// </summary>
     [Serializable]
-    [Category("Additional Shader Stripping Settings")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Additional Shader Stripping Settings", Order = 40)]
+    [Categorization.ElementInfo(Order = 10)]
     public class URPShaderStrippingSetting : IRenderPipelineGraphicsSettings
     {
         #region Version

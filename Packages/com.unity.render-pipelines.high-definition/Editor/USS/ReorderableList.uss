@@ -27,3 +27,8 @@
 	-unity-text-align: middle-left;
 	height: 18px;
 }
+
+#ReorderableList .unity-list-view__empty-label
+{
+	padding-left: 6px;
+}

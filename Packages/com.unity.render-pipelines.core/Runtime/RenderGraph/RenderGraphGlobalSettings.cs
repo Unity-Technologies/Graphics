@@ -1,12 +1,14 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Render Graph global settings class.
     /// </summary>
-    [Serializable, SupportedOnRenderPipeline, Category("Render Graph")]
+    [Serializable] 
+    [SupportedOnRenderPipeline] 
+    [Categorization.CategoryInfo(Name = "Render Graph", Order = 50)]
+    [Categorization.ElementInfo(Order = 0)]
     public class RenderGraphGlobalSettings : IRenderPipelineGraphicsSettings
     {
         enum Version

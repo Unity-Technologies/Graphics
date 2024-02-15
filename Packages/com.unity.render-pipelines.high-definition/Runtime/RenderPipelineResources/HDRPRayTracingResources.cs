@@ -1,12 +1,10 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [HideInInspector]
-    [Category("Resources/Ray Tracing")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "R: Ray Tracing", Order = 1000), HideInInspector]
     class HDRPRayTracingResources : IRenderPipelineResources
     {
         public int version => 0;

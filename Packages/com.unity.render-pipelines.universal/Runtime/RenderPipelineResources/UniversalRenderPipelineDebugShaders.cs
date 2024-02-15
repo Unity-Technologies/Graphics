@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,9 +6,8 @@ namespace UnityEngine.Rendering.Universal
     /// Class containing debug shader resources used in URP.
     /// </summary>
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Category("Resources/Debug Shaders")]
+    [Categorization.CategoryInfo(Name = "R: Debug Shaders", Order = 1000), HideInInspector]
     public class UniversalRenderPipelineDebugShaders : IRenderPipelineResources
     {
         /// <summary>

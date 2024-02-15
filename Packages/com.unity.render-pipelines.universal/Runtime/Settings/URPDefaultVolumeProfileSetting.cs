@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,8 +6,8 @@ namespace UnityEngine.Rendering.Universal
     /// Settings class that stores the default volume profile for Volume Framework.
     /// </summary>
     [Serializable]
-    [Category("Volume/Default Profile")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Volume", Order = 0)]
     public class URPDefaultVolumeProfileSettings : IDefaultVolumeProfileSettings
     {
         #region Version

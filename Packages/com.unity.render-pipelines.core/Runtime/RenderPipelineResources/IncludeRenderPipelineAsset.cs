@@ -6,7 +6,9 @@ namespace UnityEngine.Rendering
     /// Define the RPAsset inclusion at build time, for your pipeline.
     /// Default: only RPAsset in QualitySettings are embedded on build
     /// </summary>
-    [HideInInspector, Serializable, SupportedOnRenderPipeline]
+    [Serializable]
+    [SupportedOnRenderPipeline]
+    [Categorization.CategoryInfo(Name = "H: RP Assets Inclusion", Order = 990), HideInInspector]
     public class IncludeAdditionalRPAssets : IRenderPipelineGraphicsSettings
     {
         enum Version

@@ -1,13 +1,11 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering
 {
     /// <summary> Class for tracking resources used by the GPUResidentDrawer </summary>
     [Serializable]
-    [HideInInspector]
-    [Category("Resources/GPU Resident Drawers")]
     [SupportedOnRenderPipeline]
+    [Categorization.CategoryInfo(Name = "R: GPU Resident Drawers", Order = 1000), HideInInspector]
     class GPUResidentDrawerResources : IRenderPipelineResources
     {
         public enum Version

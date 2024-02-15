@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -11,8 +10,9 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    [Category("Miscellaneous")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Miscellaneous", Order = 100)]
+    [Categorization.ElementInfo(Order = 20)]
     class ColorGradingSettings : IRenderPipelineGraphicsSettings
     {
         #region Version

@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,9 +6,8 @@ namespace UnityEngine.Rendering.Universal
     /// Class containing shader resources used in URP.
     /// </summary>
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Category("Resources/Universal Renderer Shaders")]
+    [Categorization.CategoryInfo(Name = "R: Universal Renderer Shaders", Order = 1000), HideInInspector]
     public class UniversalRendererResources : IRenderPipelineResources
     {
         [SerializeField][HideInInspector] private int m_Version = 0;

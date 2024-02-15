@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Rendering Layers settings class.
     /// </summary>
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [UnityEngine.Categorization.CategoryInfo(Name = "H: Rendering Layer Settings", Order = 980), HideInInspector]
     public class HDRenderingLayersLimitSettings : RenderingLayersLimitSettings
     {
         /// <summary>

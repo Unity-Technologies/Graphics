@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -7,8 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Settings class that stores the default volume profile for Volume Framework.
     /// </summary>
     [Serializable]
-    [Category("Volume/Default Profile")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Volume", Order = 0)]
+    [Categorization.ElementInfo(Order = 0)]
     public class HDRPDefaultVolumeProfileSettings : IDefaultVolumeProfileSettings
     {
         #region Version

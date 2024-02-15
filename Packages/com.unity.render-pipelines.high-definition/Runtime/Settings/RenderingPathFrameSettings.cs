@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
 // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
@@ -7,8 +6,8 @@ using System.ComponentModel;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [Category("Frame Settings (Default Values)")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Frame Settings (Default Values)", Order = 10)]
     class RenderingPathFrameSettings : IRenderPipelineGraphicsSettings
     {
         #region Version

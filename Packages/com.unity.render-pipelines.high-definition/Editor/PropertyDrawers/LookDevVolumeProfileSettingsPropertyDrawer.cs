@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         EditorPrefBool m_DefaultVolumeProfileFoldoutExpanded;
 
         const int k_DefaultVolumeLabelWidth = 260;
-        static readonly GUIContent k_LookDevVolumeProfileAssetLabel = EditorGUIUtility.TrTextContent("Volume Profile");
+        static readonly GUIContent k_LookDevVolumeProfileAssetLabel = EditorGUIUtility.TrTextContent("LookDev Profile");
 
         const int k_ImguiContainerLeftMargin = 32;
         const int k_AssetFieldBottomMargin = 6;
@@ -25,6 +25,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             m_Root = new VisualElement();
+            
+            var label = new Label("LookDev");
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            label.style.paddingTop = 6;
+            m_Root.Add(label);
+
             m_SettingsSerializedObject = property.serializedObject;
             m_VolumeProfileSerializedProperty = property.FindPropertyRelative("m_VolumeProfile");
             m_DefaultVolumeProfileFoldoutExpanded = new EditorPrefBool($"{GetType()}.LookDevVolumeProfileFoldoutExpanded", false);
@@ -48,13 +54,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         VisualElement CreateAssetFieldUI()
         {
-            return new IMGUIContainer(() =>
+            IMGUIContainer container = null;
+            container = new IMGUIContainer(() =>
             {
                 using var indentLevelScope = new EditorGUI.IndentLevelScope();
                 using var changeScope = new EditorGUI.ChangeCheckScope();
-
-                var oldWidth = EditorGUIUtility.labelWidth;
-                EditorGUIUtility.labelWidth = k_DefaultVolumeLabelWidth;
+                
+                /* values adapted to the ProjectSettings > Graphics */
+                var minWidth = 91;
+                var indent = 94;
+                var ratio = 0.45f;
+                EditorGUIUtility.labelWidth = Mathf.Max(minWidth, (int)((container.worldBound.width - indent) * ratio));
 
                 var lookDevVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<LookDevVolumeProfileSettings>();
 
@@ -82,9 +92,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (changeScope.changed)
                     m_SettingsSerializedObject.ApplyModifiedProperties();
-
-                EditorGUIUtility.labelWidth = oldWidth;
             });
+            return container;
         }
 
         static Lazy<GUIStyle> s_ImguiContainerScopeStyle = new(() => new GUIStyle

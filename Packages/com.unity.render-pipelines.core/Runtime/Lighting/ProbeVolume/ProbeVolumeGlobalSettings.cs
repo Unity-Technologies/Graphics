@@ -1,20 +1,18 @@
 using System;
-using System.ComponentModel;
-using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Category("Probe Volume")]
-    [HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: Probe Volume", Order = 1000), HideInInspector]
     class ProbeVolumeRuntimeResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
         int m_Version = 1;
 
         public int version { get => m_Version; }
-
+        
+        [Header("Runtime")]
         [ResourcePath("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
         public ComputeShader probeVolumeBlendStatesCS;
         [ResourcePath("Runtime/Lighting/ProbeVolume/ProbeVolumeUploadData.compute")]
@@ -25,15 +23,15 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Category("Probe Volume")]
-    [HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: Probe Volume", Order = 1000), HideInInspector]
     class ProbeVolumeDebugResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
         int m_Version = 1;
 
         public int version { get => m_Version; }
-
+        
+        [Header("Debug")]
         [ResourcePath("Runtime/Debug/ProbeVolumeDebug.shader")]
         public Shader probeVolumeDebugShader;
         [ResourcePath("Runtime/Debug/ProbeVolumeFragmentationDebug.shader")]
@@ -50,15 +48,15 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Category("Probe Volume")]
-    [HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: Probe Volume", Order = 1000), HideInInspector]
     class ProbeVolumeBakingResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
         int m_Version = 1;
 
         public int version { get => m_Version; }
-
+        
+        [Header("Baking")]
         [ResourcePath("Editor/Lighting/ProbeVolume/ProbeVolumeCellDilation.compute")]
         public ComputeShader dilationShader;
         [ResourcePath("Editor/Lighting/ProbeVolume/ProbeVolumeSubdivide.compute")]
@@ -79,7 +77,7 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Category("Probe Volume")]
+    [Categorization.CategoryInfo(Name = "Probe Volume", Order = 20)]
     class ProbeVolumeGlobalSettings : IRenderPipelineGraphicsSettings
     {
         [SerializeField, HideInInspector]

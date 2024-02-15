@@ -1,12 +1,10 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [Category("Resources/Runtime Textures")]
+    [Categorization.CategoryInfo(Name = "R: Runtime Textures", Order = 1000), HideInInspector]
     class HDRenderPipelineRuntimeTextures : IRenderPipelineResources
     {
         public int version => 0;

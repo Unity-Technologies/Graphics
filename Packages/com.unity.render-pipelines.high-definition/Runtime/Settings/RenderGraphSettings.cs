@@ -1,11 +1,11 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [Category("Miscellaneous")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Render Graph", Order = 50)]
+    [Categorization.ElementInfo(Order = 10)]
     class RenderGraphSettings: IRenderPipelineGraphicsSettings
     {
         #region Version
@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #region SerializeFields
         
         [SerializeField]
-        [InspectorName("Dynamic Render Pass Culling")]
         [Tooltip("When enabled, rendering passes are automatically culled based on what is visible on the camera.")]
         private bool m_DynamicRenderPassCulling;
         #endregion

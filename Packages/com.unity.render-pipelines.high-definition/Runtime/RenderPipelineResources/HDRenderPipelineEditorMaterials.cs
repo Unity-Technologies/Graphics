@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [Category("Resources/Editor Materials")]
+    [Categorization.CategoryInfo(Name = "R: Editor Materials", Order = 1000), HideInInspector]
     class HDRenderPipelineEditorMaterials : IRenderPipelineResources
     {
         public int version => 0;

@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,9 +6,8 @@ namespace UnityEngine.Rendering.Universal
     /// Class containing texture resources used in URP.
     /// </summary>
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Category("Resources/Runtime Textures")]
+    [Categorization.CategoryInfo(Name = "R: Runtime Textures", Order = 1000), HideInInspector]
     public class UniversalRenderPipelineRuntimeTextures : IRenderPipelineResources
     {
         [SerializeField][HideInInspector] private int m_Version = 1;
