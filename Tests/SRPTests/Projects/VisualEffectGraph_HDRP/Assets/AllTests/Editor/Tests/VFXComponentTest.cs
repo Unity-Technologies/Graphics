@@ -1,5 +1,6 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
+using System.Text;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -1355,6 +1356,83 @@ namespace UnityEditor.VFX.Test
             {
                 GameObject.DestroyImmediate(editor);
             }
+        }
+
+        [UnityTest]
+        public IEnumerator CreateComponentWithAllBasicTypeExposed_Check_Animation_Curve()
+        {
+            var commonBaseName = "animation_expected_";
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            foreach (var parameter in VFXLibrary.GetParameters())
+            {
+                var newInstance = parameter.CreateInstance();
+                var type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(newInstance.type) == e);
+                if (type != VFXValueType.None)
+                {
+                    newInstance.SetSettingValue("m_ExposedName", commonBaseName + newInstance.type.UserFriendlyName().ToLowerInvariant());
+                    newInstance.SetSettingValue("m_Exposed", true);
+                    var value = GetValue_A_Type(newInstance.type);
+                    Assert.IsNotNull(value);
+                    newInstance.value = value;
+                    graph.AddChild(newInstance);
+                }
+            }
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            }
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+            yield return null;
+
+            var editorCurveUtility = AnimationUtility.GetAnimatableBindings(vfxComponent.gameObject, vfxComponent.gameObject);
+            editorCurveUtility = editorCurveUtility.Where(o => o.type == typeof(VisualEffect) || o.type == typeof(VFXRenderer)).ToArray();
+            var allCurveName = editorCurveUtility
+                .Select(o => $"{o.type.Name}:{o.propertyName}")
+                .OrderBy(o => o)
+                .ToArray();
+
+            var dump = new StringBuilder("\n");
+            foreach (var curve in allCurveName)
+            {
+                dump.Append(curve + "\n");
+            }
+            
+            var expected = @"
+VFXRenderer:m_Enabled
+VFXRenderer:m_ReceiveShadows
+VFXRenderer:m_RendererPriority
+VFXRenderer:m_SortingOrder
+VisualEffect:bool.animation_expected_bool
+VisualEffect:float.animation_expected_float
+VisualEffect:int.animation_expected_int
+VisualEffect:m_Enabled
+VisualEffect:Object.animation_expected_cubemap
+VisualEffect:Object.animation_expected_cubemaparray
+VisualEffect:Object.animation_expected_mesh
+VisualEffect:Object.animation_expected_texture2d
+VisualEffect:Object.animation_expected_texture2darray
+VisualEffect:Object.animation_expected_texture3d
+VisualEffect:uint.animation_expected_uint
+VisualEffect:Vector2.animation_expected_vector2.x
+VisualEffect:Vector2.animation_expected_vector2.y
+VisualEffect:Vector3.animation_expected_vector3.x
+VisualEffect:Vector3.animation_expected_vector3.y
+VisualEffect:Vector3.animation_expected_vector3.z
+VisualEffect:Vector4.animation_expected_color.w
+VisualEffect:Vector4.animation_expected_color.x
+VisualEffect:Vector4.animation_expected_color.y
+VisualEffect:Vector4.animation_expected_color.z
+VisualEffect:Vector4.animation_expected_vector4.w
+VisualEffect:Vector4.animation_expected_vector4.x
+VisualEffect:Vector4.animation_expected_vector4.y
+VisualEffect:Vector4.animation_expected_vector4.z
+";
+
+            var dumpActual = dump.ToString();
+            Assert.AreEqual(expected, dumpActual, "Unexpected Curve Listing:" + dumpActual);
+            yield return null;
         }
 
         static readonly VFXValueType[] s_supportedValueType =
