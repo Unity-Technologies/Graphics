@@ -1,10 +1,8 @@
 # Converting your shaders
 
-Shaders written for the Built-in Render Pipeline are not compatible with the URP shaders.
+Shaders written for the Built-in Render Pipeline are not compatible with Universal Render Pipeline (URP) shaders. Unity renders objects with the [default magenta error shader](https://docs.unity3d.com/Manual/shader-error.html) if they use Built-In Render Pipeline shaders.
 
-For an overview of the mapping between built-in shaders and URP shaders, see [Shader mappings](#shader-mappings).
-
-Use the [Render Pipeline Converter](features/rp-converter.md) to apply the shader mappings automatically.
+Use the [Render Pipeline Converter](features/rp-converter.md) to convert any of Unity's built-in Built-In Render Pipeline materials and shaders to a URP material and shader. Refer to [Shader mappings](#shader-mappings) for more information.
 
 **Note**: The Render Pipeline Converter makes irreversible changes to the project. Back up your project before the conversion.
 
