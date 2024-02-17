@@ -41,6 +41,14 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_ColorPyramidPS, value);
         }
 
+        [SerializeField, ResourcePath("Runtime/RenderPipeline/RenderPass/ColorPyramid.compute")]
+        public ComputeShader m_ColorPyramidCS;
+        public ComputeShader colorPyramidCS
+        {
+            get => m_ColorPyramidCS;
+            set => this.SetValueAndNotify(ref m_ColorPyramidCS, value);
+        }
+
         [SerializeField, ResourcePath("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
         private ComputeShader m_DepthPyramidCS;
 

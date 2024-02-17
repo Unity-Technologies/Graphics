@@ -25,18 +25,11 @@
 #pragma kernel KColorDownsample                     KERNEL_SIZE=8  MAIN_DOWNSAMPLE=KColorDownsample
 
 #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
-#pragma multi_compile _ COPY_MIP_0
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 
-#if COPY_MIP_0
-       TEXTURE2D_X(_Source);
-    RW_TEXTURE2D_X(float4, _Mip0);
-#else
-    RW_TEXTURE2D_X(float4, _Source);
-#endif
-
+RW_TEXTURE2D_X(float4, _Source);
 RW_TEXTURE2D_X(float4, _Destination);
 
 SamplerState sampler_LinearClamp;
@@ -175,13 +168,6 @@ void MAIN_DOWNSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID)
     float4 p10 = _Source[COORD_TEXTURE2D_X(c10)];
     float4 p11 = _Source[COORD_TEXTURE2D_X(c11)];
     float4 p01 = _Source[COORD_TEXTURE2D_X(c01)];
-
-    #if COPY_MIP_0
-    _Mip0[COORD_TEXTURE2D_X(c00)] = p00;
-    _Mip0[COORD_TEXTURE2D_X(c10)] = p10;
-    _Mip0[COORD_TEXTURE2D_X(c11)] = p11;
-    _Mip0[COORD_TEXTURE2D_X(c01)] = p01;
-    #endif
 
     _Destination[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = (p00 + p01 + p11 + p10) * 0.25;
 }

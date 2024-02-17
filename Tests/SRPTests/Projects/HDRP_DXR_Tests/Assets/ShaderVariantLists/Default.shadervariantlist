@@ -11,6 +11,10 @@ Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTexture, keywor
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTextureArray, keywords <no keywords>
 Compiled compute shader: ComputeGgxIblSampleData, kernel: ComputeGgxIblSampleData, keywords <no keywords>
 Compiled compute shader: ContactShadows, kernel: DeferredContactShadow, keywords <no keywords>
+Compiled compute shader: ColorPyramid, kernel: KColorGaussian, keywords <no keywords>
+Compiled compute shader: ColorPyramid, kernel: KColorDownsample, keywords <no keywords>
+Compiled compute shader: ColorPyramid, kernel: KColorGaussian, keywords DISABLE_TEXTURE2D_X_ARRAY
+Compiled compute shader: ColorPyramid, kernel: KColorDownsample, keywords DISABLE_TEXTURE2D_X_ARRAY
 Compiled compute shader: Deferred, kernel: Deferred_Direct_Fptl_DebugDisplay, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Direct_Fptl_DebugDisplay, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant0, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_OFF

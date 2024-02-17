@@ -98,6 +98,12 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousEnableCookiesInLightmapper = true;
 #endif
 
+#if UNITY_SWITCH
+        internal static bool k_PreferFragment = true;
+#else
+        internal static bool k_PreferFragment = false;
+#endif
+
         /// <summary>
         /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
         /// </summary>
