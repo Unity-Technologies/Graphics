@@ -29,9 +29,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources)
+        public void Render(RenderGraph graph, ref RenderingData renderingData, Renderer2DData rendererData, ref LayerBatch layerBatch, FrameResources resources, int batchIndex, int batchCount)
         {
-            if (!layerBatch.lightStats.useNormalMap)
+            bool hasSpriteMask = UnityEngine.SpriteMaskUtility.HasSpriteMaskInScene();
+            int lastBatchIndex = batchCount - 1;
+
+            // Account for Sprite Mask and normal map usage where the first and last layer has to render the stencil pass
+            if (!layerBatch.lightStats.useNormalMap &&
+                !(hasSpriteMask && batchIndex == 0) &&
+                !(hasSpriteMask && batchIndex == lastBatchIndex))
                 return;
 
             using (var builder = graph.AddRasterRenderPass<PassData>("Normals 2D Pass", out var passData, m_ProfilingSampler))
