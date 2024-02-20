@@ -195,3 +195,13 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     > **NOTE:** To visualize the example in XR, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
 
 The example is complete.
+
+## Additional resources
+
+* [Blit Camera color texture to RTHandle](../customize/blit-to-rthandle.md)
+
+    This page describes how to blit a camera color texture to an output texture, and set the output texture as a global property.
+
+* [Blit multiple RTHandle textures and draw them on the screen](../customize/blit-multiple-rthandles.md)
+
+    This page describes a more complex blit operation that uses multiple textures defined as `RTHandle`.

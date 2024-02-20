@@ -137,6 +137,8 @@
     * [Using textures](working-with-textures.md)
       * [URP blit best practices](customize/blit-overview.md)
       * [Perform a full screen blit in URP](renderer-features/how-to-fullscreen-blit.md)
+      * [Blit input and output textures](customize/blit-to-rthandle.md)
+      * [Blit multiple RTHandle textures](customize/blit-multiple-rthandles.md)
   * [Injection points reference](customize/custom-pass-injection-points.md)
   * [Scriptable Renderer Feature and Scriptable Render Pass API reference](renderer-features/scriptable-renderer-features/scriptable-renderer-feature-reference.md)
 * [Optimization](urp-optimization.md)
