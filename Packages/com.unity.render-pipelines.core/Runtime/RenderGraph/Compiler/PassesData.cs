@@ -572,7 +572,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx) => ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void GetPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
+        public readonly void GetGraphPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
         {
             foreach (ref readonly var pass in GraphPasses(ctx))
             {

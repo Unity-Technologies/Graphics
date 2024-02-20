@@ -691,8 +691,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 #endif
             // You can never have enough ways to reference a render target...
-            // This function is just perfect and certainly not full of legacy if's and but's
-
+            // Lots of legacy if's and but's
             TextureResource tex = GetTextureResource(res);
             if (tex.imported)
             {
