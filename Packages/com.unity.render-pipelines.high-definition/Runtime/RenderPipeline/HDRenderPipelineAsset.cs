@@ -245,7 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
             supportDitheringCrossFade = QualitySettings.enableLODCrossFade,
             enableOcclusionCulling = m_RenderPipelineSettings.gpuResidentDrawerSettings.enableOcclusionCullingInCameras,
             allowInEditMode = true,
-            useLegacyLightmaps = m_RenderPipelineSettings.gpuResidentDrawerSettings.useLegacyLightmaps,
             smallMeshScreenPercentage = m_RenderPipelineSettings.gpuResidentDrawerSettings.smallMeshScreenPercentage,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/HDRP/BRGPicking"),
@@ -269,17 +268,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 OnValidate();
             }
         }
-
-        /// <summary>
-        /// Returns true if we have opted out from binding lightmaps as texture arrays.
-        /// In this case, we bind them as individual textures, which breaks the batch every time lightmaps are changed.
-        /// This is well-supported on all GPUs and consumes less memory.
-        /// Returns false if we opt for lightmap texture arrays. This is the default.
-        /// This minimizes batch breakages, but texture arrays aren't supported in a performant way on all GPUs.
-        /// Only relevant when GPU Resident Drawer is enabled.
-        /// </summary>
-		public bool useLegacyLightmaps => m_RenderPipelineSettings.gpuResidentDrawerSettings.useLegacyLightmaps
-                                          && gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
 
 		/// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.

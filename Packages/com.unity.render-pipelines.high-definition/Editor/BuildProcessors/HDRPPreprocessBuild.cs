@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             ShaderFeatures hdrpAssetShaderFeatures = ShaderFeatures.None;
 
-            if (hdrpAsset.useLegacyLightmaps)
+            if (hdrpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
                 hdrpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
 
             return hdrpAssetShaderFeatures;

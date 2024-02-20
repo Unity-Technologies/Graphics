@@ -309,10 +309,8 @@ namespace UnityEngine.Rendering
         [ReadOnly] public bool implicitInstanceIndices;
         [ReadOnly] public NativeArray<InstanceHandle> instances;
         [ReadOnly] public GPUDrivenRendererGroupData rendererData;
-        [ReadOnly] public NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap;
         [ReadOnly] public NativeParallelHashMap<int, BatchMeshID> batchMeshHash;
         [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash;
-        [ReadOnly] public bool useLegacyLightmaps;
 
         public NativeParallelHashMap<RangeKey, int> rangeHash;
         public NativeList<DrawRange> drawRanges;
@@ -464,10 +462,6 @@ namespace UnityEngine.Rendering
                 var materialID = rendererData.materialID[materialIndex];
                 var packedMaterialData = rendererData.packedMaterialData[materialIndex];
 
-                if (rendererToMaterialMap.TryGetValue(new LightmapManager.RendererSubmeshPair(rendererGroupID, matIndex), out var cachedMaterialID))
-                    materialID = cachedMaterialID;
-
-
                 if (materialID == 0)
                 {
                     Debug.LogWarning("Material in the shared materials list is null. Object will be partially rendered.");
@@ -479,6 +473,9 @@ namespace UnityEngine.Rendering
                 // We always provide crossfade value packed in instance index. We don't use None even if there is no LOD to not split the batch.
                 var flags = BatchDrawCommandFlags.LODCrossFadeValuePacked;
 
+                // Let the engine know if we've opted out of lightmap texture arrays
+                flags |= BatchDrawCommandFlags.UseLegacyLightmapsKeyword;
+
                 // assume that a custom motion vectors pass contains deformation motion, so should always output motion vectors
                 // (otherwise this flag is set dynamically during culling only when the transform is changing)
                 if (packedMaterialData.isMotionVectorsPassEnabled)
@@ -486,10 +483,6 @@ namespace UnityEngine.Rendering
 
                 if (packedMaterialData.isTransparent)
                     flags |= BatchDrawCommandFlags.HasSortingPosition;
-
-                // Let the engine know if we've opted out of lightmap texture arrays
-                if (useLegacyLightmaps)
-                    flags |= BatchDrawCommandFlags.UseLegacyLightmapsKeyword;
 
                 {
                     var submeshIndex = startSubMesh + matIndex;
@@ -1034,7 +1027,6 @@ namespace UnityEngine.Rendering
             NativeArray<InstanceHandle> instances,
             NativeArray<int> usedMaterialIDs,
             NativeArray<int> usedMeshIDs,
-            NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap,
             in GPUDrivenRendererGroupData rendererData)
         {
             RegisterBatchMaterials(usedMaterialIDs);
@@ -1045,15 +1037,13 @@ namespace UnityEngine.Rendering
                 implicitInstanceIndices = rendererData.instancesCount.Length == 0,
                 instances = instances,
                 rendererData = rendererData,
-                rendererToMaterialMap = rendererToMaterialMap,
                 batchMeshHash = m_BatchMeshHash,
                 batchMaterialHash = m_BatchMaterialHash,
                 rangeHash = m_DrawInstanceData.rangeHash,
                 drawRanges = m_DrawInstanceData.drawRanges,
                 batchHash = m_DrawInstanceData.batchHash,
                 drawBatches = m_DrawInstanceData.drawBatches,
-                drawInstances = m_DrawInstanceData.drawInstances,
-				useLegacyLightmaps = m_BatchersContext.lightmapManager == null,
+                drawInstances = m_DrawInstanceData.drawInstances
             }.Run();
 
             m_DrawInstanceData.NeedsRebuild();

@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering
         private InstanceCullingBatcher m_InstanceCullingBatcher = null;
 
         private ParallelBitArray m_ProcessedThisFrameTreeBits;
-        private NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> m_RendererToMaterialMapDummy;
 
         public GPUResidentBatcher(
             RenderersBatchersContext batcherContext,
@@ -34,17 +33,12 @@ namespace UnityEngine.Rendering
             m_UpdateRendererDataCallback = UpdateRendererData;
 
             m_InstanceCullingBatcher = new InstanceCullingBatcher(batcherContext, instanceCullerBatcherDesc, OnFinishedCulling);
-            // We need this in case lightmap texture arrays are disabled and we cannot get it from the lightmap manager,
-            // because a map is always expected when creating the draw batches.
-            m_RendererToMaterialMapDummy = new NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int>(0,
-                Allocator.Persistent);
         }
 
         public void Dispose()
         {
             m_GPUDrivenProcessor.ClearMaterialFilters();
             m_InstanceCullingBatcher.Dispose();
-            m_RendererToMaterialMapDummy.Dispose();
 
             if (m_ProcessedThisFrameTreeBits.IsCreated)
                 m_ProcessedThisFrameTreeBits.Dispose();
@@ -134,22 +128,6 @@ namespace UnityEngine.Rendering
             {
                 var usedMaterialIDs = new NativeList<int>(Allocator.TempJob);
                 usedMaterialIDs.AddRange(rendererData.materialID);
-                NativeParallelHashMap<LightmapManager.RendererSubmeshPair, int> rendererToMaterialMap;
-                NativeArray<float4> lightMapTextureIndices;
-
-                // ----------------------------------------------------------------------------------------------------------------------------------
-                // Register lightmaps.
-                // ----------------------------------------------------------------------------------------------------------------------------------
-                Profiler.BeginSample("GenerateLightmappingData");
-                {
-                    // The lightmap manager may be null here if lightmap texture arrays are disabled
-                    rendererToMaterialMap = m_BatchersContext.lightmapManager?.GenerateLightmappingData(rendererData, materials, usedMaterialIDs) ?? m_RendererToMaterialMapDummy;
-                    Profiler.BeginSample("GetLightmapTextureIndex");
-                    lightMapTextureIndices = new NativeArray<float4>(rendererData.rendererGroupID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                    m_BatchersContext.lightmapManager?.GetLightmapTextureIndices(rendererData, lightMapTextureIndices);
-                    Profiler.EndSample();
-                }
-                Profiler.EndSample();
 
                 // --------------------------------------------------------------------------------------------------------------------------------------
                 // Allocate and Update CPU instance data
@@ -164,14 +142,11 @@ namespace UnityEngine.Rendering
                     GPUInstanceDataBufferUploader uploader = m_BatchersContext.CreateDataBufferUploader(instances.Length, InstanceType.MeshRenderer);
                     uploader.AllocateUploadHandles(instances.Length);
                     JobHandle writeJobHandle = default;
-                    writeJobHandle = uploader.WriteInstanceDataJob(m_BatchersContext.renderersParameters.lightmapIndex.index, lightMapTextureIndices, rendererData.rendererGroupIndex);
-                    writeJobHandle = JobHandle.CombineDependencies(uploader.WriteInstanceDataJob(m_BatchersContext.renderersParameters.lightmapScale.index, rendererData.lightmapScaleOffset, rendererData.rendererGroupIndex), writeJobHandle);
-
+                    writeJobHandle = uploader.WriteInstanceDataJob(m_BatchersContext.renderersParameters.lightmapScale.index, rendererData.lightmapScaleOffset, rendererData.rendererGroupIndex);
                     writeJobHandle.Complete();
 
                     m_BatchersContext.SubmitToGpu(instances, ref uploader, submitOnlyWrittenParams: true);
                     m_BatchersContext.ChangeInstanceBufferVersion();
-                    lightMapTextureIndices.Dispose();
                     uploader.Dispose();
 
                     // --------------------------------------------------------------------------------------------------------------------------------------
@@ -193,7 +168,6 @@ namespace UnityEngine.Rendering
                         instances,
                         usedMaterialIDs.AsArray(),
                         rendererData.meshID,
-                        rendererToMaterialMap,
                         rendererData);
 
                 }

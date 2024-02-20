@@ -147,7 +147,6 @@ namespace UnityEditor.Rendering.Universal
                     ++EditorGUI.indentLevel;
                     serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
                     EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
-					EditorGUILayout.PropertyField(serialized.useLegacyLightmaps, Styles.useLegacyLightmaps);
                     --EditorGUI.indentLevel;
 
                     if (brgStrippingError)

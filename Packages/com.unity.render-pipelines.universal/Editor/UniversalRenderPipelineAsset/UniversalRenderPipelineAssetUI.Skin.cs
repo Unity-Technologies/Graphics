@@ -123,10 +123,6 @@ namespace UnityEditor.Rendering.Universal
 
             // GPU Resident Drawer
             public static GUIContent gpuResidentDrawerMode = EditorGUIUtility.TrTextContent("GPU Resident Drawer", "Enables draw submission through the GPU Resident Drawer, which can improve CPU performance");
-            public static GUIContent useLegacyLightmaps = EditorGUIUtility.TrTextContent("Use Legacy Lightmaps",
-                "When enabled, lightmaps will be bound as individual textures instead of as a single texture array. This causes the batch to break if a new lightmap needs to be bound, potentially increasing the number of draw calls."
-                + "This can reduce memory usage and may improve performance on certain hardware that doesn't support texture arrays efficiently."
-            );
             public static GUIContent smallMeshScreenPercentage = EditorGUIUtility.TrTextContent("Small-Mesh Screen-Percentage", "Default minimum screen percentage (0-20%) gpu-driven Renderers can cover before getting culled. If a Renderer is part of a LODGroup, this will be ignored.");
             public static GUIContent gpuResidentDrawerEnableOcclusionCullingInCameras = EditorGUIUtility.TrTextContent("GPU Occlusion Culling", "Enables GPU occlusion culling in Game and SceneView cameras.");
 

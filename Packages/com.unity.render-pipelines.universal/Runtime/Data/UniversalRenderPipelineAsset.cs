@@ -611,7 +611,6 @@ namespace UnityEngine.Rendering.Universal
         // GPU Resident Drawer
         [FormerlySerializedAs("m_MacroBatcherMode"), SerializeField]
         private GPUResidentDrawerMode m_GPUResidentDrawerMode = GPUResidentDrawerMode.Disabled;
-        [SerializeField] bool m_UseLegacyLightmaps = false;
         [SerializeField] float m_SmallMeshScreenPercentage = 0.0f;
 
         [SerializeField] bool m_GPUResidentDrawerEnableOcclusionCullingInCameras;
@@ -622,7 +621,6 @@ namespace UnityEngine.Rendering.Universal
             enableOcclusionCulling = m_GPUResidentDrawerEnableOcclusionCullingInCameras,
             supportDitheringCrossFade = m_EnableLODCrossFade,
             allowInEditMode = true,
-            useLegacyLightmaps = m_UseLegacyLightmaps,
             smallMeshScreenPercentage = m_SmallMeshScreenPercentage,
 #if UNITY_EDITOR
             pickingShader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking"),
@@ -1588,16 +1586,6 @@ namespace UnityEngine.Rendering.Universal
         /// Returns true if Data Driven Lens Flare are supported by this asset, false otherwise.
         /// </summary>
         public bool supportDataDrivenLensFlare => m_SupportDataDrivenLensFlare;
-
-        /// <summary>
-        /// Returns true if we have opted out from binding lightmaps as texture arrays.
-        /// In this case, we bind them as individual textures, which breaks the batch every time lightmaps are changed.
-        /// This is well-supported on all GPUs and consumes less memory.
-        /// Returns false if we opt for lightmap texture arrays. This is the default.
-        /// This minimizes batch breakages, but texture arrays aren't supported in a performant way on all GPUs.
-        /// Only relevant when GPU Resident Drawer is enabled.
-        /// </summary>
-        public bool useLegacyLightmaps => m_UseLegacyLightmaps && m_GPUResidentDrawerMode != GPUResidentDrawerMode.Disabled;
 
         /// <summary>
         /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.

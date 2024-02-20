@@ -405,8 +405,6 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        private List<Object> m_ChangedMaterials;
-
         private GPUResidentDrawer(GPUResidentDrawerSettings settings, int maxInstanceCount, int maxTreeInstanceCount)
         {
             var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
@@ -416,14 +414,12 @@ namespace UnityEngine.Rendering
             Assert.IsFalse(settings.mode == GPUResidentDrawerMode.Disabled);
             m_Settings = settings;
 
-            var mode = settings.mode;
             var rbcDesc = RenderersBatchersContextDesc.NewDefault();
             rbcDesc.instanceNumInfo = new InstanceNumInfo(meshRendererNum: maxInstanceCount, speedTreeNum: maxTreeInstanceCount);
             rbcDesc.supportDitheringCrossFade = settings.supportDitheringCrossFade;
             rbcDesc.smallMeshScreenPercentage = settings.smallMeshScreenPercentage;
             rbcDesc.enableBoundingSpheresInstanceData = settings.enableOcclusionCulling;
             rbcDesc.enableCullerDebugStats = true; // for now, always allow the possibility of reading counter stats from the cullers.
-            rbcDesc.useLegacyLightmaps = settings.useLegacyLightmaps;
 
             var instanceCullingBatcherDesc = InstanceCullingBatcherDesc.NewDefault();
 #if UNITY_EDITOR
@@ -447,7 +443,6 @@ namespace UnityEngine.Rendering
             m_Dispatcher.EnableTransformTracking<LODGroup>(TransformTrackingType.GlobalTRS);
 
             m_MeshRendererDrawer = new MeshRendererDrawer(this, m_Dispatcher);
-            m_ChangedMaterials = new List<Object>();
 
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
@@ -460,18 +455,10 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 
-            // Depending on a UI setting, we want to either keep lightmaps as texture arrays,
-            // or instead opt out and keep them as individual textures.
+            // GPU Resident Drawer only supports legacy lightmap binding.
             // Accordingly, we set the keyword globally across all shaders.
             const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
-            if (settings.useLegacyLightmaps)
-            {
-                Shader.EnableKeyword(useLegacyLightmapsKeyword);
-            }
-            else
-            {
-                Shader.DisableKeyword(useLegacyLightmapsKeyword);
-            }
+            Shader.EnableKeyword(useLegacyLightmapsKeyword);
 
             InsertIntoPlayerLoop();
         }
@@ -496,9 +483,6 @@ namespace UnityEngine.Rendering
 
             const string useLegacyLightmapsKeyword = "USE_LEGACY_LIGHTMAPS";
             Shader.DisableKeyword(useLegacyLightmapsKeyword);
-
-            m_ChangedMaterials.Clear();
-            m_ChangedMaterials = null;
 
             m_MeshRendererDrawer.Dispose();
             m_MeshRendererDrawer = null;
@@ -587,16 +571,11 @@ namespace UnityEngine.Rendering
             var lodGroupTransformData = m_Dispatcher.GetTransformChangesAndClear<LODGroup>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
             var lodGroupData = m_Dispatcher.GetTypeChangesAndClear<LODGroup>(Allocator.TempJob, noScriptingArray: true);
             var meshDataSorted = m_Dispatcher.GetTypeChangesAndClear<Mesh>(Allocator.TempJob, sortByInstanceID: true, noScriptingArray: true);
-            var lightmapSettingsData = m_Dispatcher.GetTypeChangesAndClear<LightmapSettings>(Allocator.TempJob, noScriptingArray: true);
-            m_Dispatcher.GetTypeChangesAndClear<Material>(m_ChangedMaterials, out var changedMateirlasID, out var destroyedMaterialsID, Allocator.TempJob);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("GPUResindentDrawer.ProcessLightmapSettings");
-            ProcessLightmapSettings(lightmapSettingsData.changedID, lightmapSettingsData.destroyedID);
+            var materialData = m_Dispatcher.GetTypeChangesAndClear<Material>(Allocator.TempJob);
             Profiler.EndSample();
 
             Profiler.BeginSample("GPUResindentDrawer.ProcessMaterials");
-            ProcessMaterials(m_ChangedMaterials, changedMateirlasID, destroyedMaterialsID);
+            ProcessMaterials(materialData.destroyedID);
             Profiler.EndSample();
 
             Profiler.BeginSample("GPUResindentDrawer.ProcessMeshes");
@@ -610,9 +589,7 @@ namespace UnityEngine.Rendering
             lodGroupTransformData.Dispose();
             lodGroupData.Dispose();
             meshDataSorted.Dispose();
-            lightmapSettingsData.Dispose();
-            changedMateirlasID.Dispose();
-            destroyedMaterialsID.Dispose();
+            materialData.Dispose();
 
             Profiler.BeginSample("GPUResindentDrawer.ProcessDraws");
             m_MeshRendererDrawer.ProcessDraws();
@@ -629,27 +606,11 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        private void ProcessLightmapSettings(NativeArray<int> changed, NativeArray<int> destroyed)
+        private void ProcessMaterials(NativeArray<int> destroyedID)
         {
-            if (changed.Length == 0 && destroyed.Length == 0)
+            if(destroyedID.Length == 0)
                 return;
 
-            // The lightmap manager is null if lightmap texture arrays are disabled.
-            m_BatchersContext.lightmapManager?.RecreateLightmaps();
-        }
-
-        private void ProcessMaterials(IList<Object> changed, NativeArray<int> changedID, NativeArray<int> destroyedID)
-        {
-            if(changedID.Length == 0 && destroyedID.Length == 0)
-                return;
-
-            var destroyedLightmappedMaterialsID = new NativeList<int>(Allocator.TempJob);
-			// The lightmap manager is null if lightmap texture arrays are disabled.
-            m_BatchersContext.lightmapManager?.DestroyMaterials(destroyedID, destroyedLightmappedMaterialsID);
-            m_Batcher.DestroyMaterials(destroyedLightmappedMaterialsID.AsArray());
-            destroyedLightmappedMaterialsID.Dispose();
-
-            m_BatchersContext.lightmapManager?.UpdateMaterials(changed, changedID);
             m_Batcher.DestroyMaterials(destroyedID);
         }
 

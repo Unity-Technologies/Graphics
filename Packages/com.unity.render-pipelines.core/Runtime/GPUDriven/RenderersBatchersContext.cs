@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering
         public bool enableBoundingSpheresInstanceData;
         public float smallMeshScreenPercentage;
         public bool enableCullerDebugStats;
-        public bool useLegacyLightmaps;
 
         public static RenderersBatchersContextDesc NewDefault()
         {
@@ -39,7 +38,6 @@ namespace UnityEngine.Rendering
         public NativeList<LODGroupCullingData> lodGroupCullingData { get { return m_LODGroupDataPool.lodGroupCullingData; } }
         public int instanceDataBufferVersion { get { return m_InstanceDataBuffer.version; } }
         public int instanceDataBufferLayoutVersion { get { return m_InstanceDataBuffer.layoutVersion; } }
-        public LightmapManager lightmapManager { get { return m_LightmapManager; } }
         public int crossfadedRendererCount { get { return m_LODGroupDataPool.crossfadedRendererCount; } }
         public SphericalHarmonicsL2 cachedAmbientProbe { get { return m_CachedAmbientProbe; } }
 
@@ -59,8 +57,6 @@ namespace UnityEngine.Rendering
         private GPUDrivenProcessor m_GPUDrivenProcessor;
 
         private LODGroupDataPool m_LODGroupDataPool;
-
-        private LightmapManager m_LightmapManager;
 
         internal GPUInstanceDataBuffer m_InstanceDataBuffer;
         private RenderersParameters m_RenderersParameters;
@@ -105,10 +101,6 @@ namespace UnityEngine.Rendering
 
             m_CachedAmbientProbe = RenderSettings.ambientProbe;
 
-            // If lightmap texture arrays are disabled, the engine binds the individual lightmap texture before issuing a draw call.
-            // We don't need any of the texture atlasing functionality provided by the LightmapManager, so we initialize it to null.
-            m_LightmapManager = desc.useLegacyLightmaps ? null : new LightmapManager();
-
             m_InstanceDataSystem = new InstanceDataSystem(desc.instanceNumInfo.GetTotalInstanceNum(), desc.enableBoundingSpheresInstanceData, resources);
             m_SmallMeshScreenPercentage = desc.smallMeshScreenPercentage;
 
@@ -134,7 +126,6 @@ namespace UnityEngine.Rendering
             m_UploadResources.Dispose();
             m_LODGroupDataPool.Dispose();
             m_InstanceDataBuffer.Dispose();
-            m_LightmapManager?.Dispose();
 
             m_UpdateLODGroupCallback = null;
             m_TransformLODGroupCallback = null;

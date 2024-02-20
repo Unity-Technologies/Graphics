@@ -427,7 +427,7 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.supportDataDrivenLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.DataDrivenLensFlare;
 
-            if (urpAsset.useLegacyLightmaps)
+            if (urpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
                 urpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
 
             // Check each renderer & renderer feature
