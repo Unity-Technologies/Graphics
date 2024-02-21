@@ -30,7 +30,8 @@ A single full-screen pass is enough to calculate camera motion vectors. Such pas
 
 Object motion vectors have computation load which depends on the number and complexity of the moving objects in the scene because a draw per-object is required to account for each object's motion. Each draw needs to apply the camera's motion contribution too.
 
-> **NOTE**: if a camera is locked to an object that moves, for example, a model of a car in a racing game, select the **Per Object Motion** option in the **Motion Vectors** property of that object. If you don't select that option, the object will have incorrectly large motion vectors. This happens because Unity calculates camera motion vectors assuming that the geometry of the object is static in the world, and that the camera is moving relative to it. This might cause significant TAA or motion blur artifacts.
+> [!NOTE]
+> If a camera is locked to an object that moves, for example, a model of a car in a racing game, select the **Per Object Motion** option in the **Motion Vectors** property of that object. If you don't select that option, the object will have incorrectly large motion vectors. This happens because Unity calculates camera motion vectors assuming that the geometry of the object is static in the world, and that the camera is moving relative to it. This might cause significant TAA or motion blur artifacts.
 
 ### Motion vectors accuracy
 
@@ -56,7 +57,8 @@ Unity renders object motion vectors for a mesh in a frame when the following thr
     
     1. The `MotionVectorGenerationMode` property is set to `ForceNoMotion` on the `MeshRenderer` or the `RenderParams.MotionVectorMode` struct member of the `Grphics.Render...` APIs.
     
-        **Note**: the `ForceNoMotion` option requires a per-object motion vector pass to be rendered every frame so that the camera motion vectors for such objects can be overwritten with zeros.
+        > [!NOTE]
+        > The `ForceNoMotion` option requires a per-object motion vector pass to be rendered every frame so that the camera motion vectors for such objects can be overwritten with zeros.
     
     2. The **MotionVectors** pass [is enabled on the material](https://docs.unity3d.com/ScriptReference/Material.SetPass.html) (for example, when a material has a vertex animation in Shader Graph or alembic animation).
 
@@ -139,7 +141,8 @@ URP `Lit`, `Unlit`, `Simple Lit`, `Complex Lit`, and `Baked Lit` shaders support
 
 To enable alembic motion vectors for particular material, enable the **Alembic Motion Vectors** checkbox in the **Advanced** section of the material inspector.
 
-> **NOTE**: use materials with the **Alembic Motion Vectors** checkbox enabled only on alembic vertex animation caches rendered with a **PlayableDirectors** component. When using such materials with regular draw calls and MeshRenderers, the materials cannot read the correct motion vector attribute stream, which results in incorrect motion vectors.
+> [!NOTE]
+> use materials with the **Alembic Motion Vectors** checkbox enabled only on alembic vertex animation caches rendered with a **PlayableDirectors** component. When using such materials with regular draw calls and MeshRenderers, the materials cannot read the correct motion vector attribute stream, which results in incorrect motion vectors.
 
 ### <a name="motion-vectors-in-shaderlab"></a>Motion vectors for custom ShaderLab shaders
 
@@ -189,7 +192,8 @@ Shader “Example/MyCustomShaderWithPerObjectMotionVectorFallback"
 }
 ```
 
-> **NOTE:** in Unity versions earlier than 2023.2, URP would automatically use the fallback pass for all SubShader blocks which don't have a pass tagged with the `MotionVectors` [LightMode tag](../urp-shaders/urp-shaderlab-pass-tags.md). Starting from Unity 2023.2, this fallback logic is disabled for the following reasons:
+> [!NOTE]
+> In Unity versions earlier than 2023.2, URP would automatically use the fallback pass for all SubShader blocks which don't have a pass tagged with the `MotionVectors` [LightMode tag](../urp-shaders/urp-shaderlab-pass-tags.md). Starting from Unity 2023.2, this fallback logic is disabled for the following reasons:
 >
 >    * The fallback logic was only an initial implementation detail meant for URP's own Materials.
 >    * URP Materials now use material-type-specific motion vector passes to support features like alpha clip, LOD cross-fade, or alembic animation, making the fallback obsolete.

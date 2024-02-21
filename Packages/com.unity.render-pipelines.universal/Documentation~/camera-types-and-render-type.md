@@ -1,4 +1,4 @@
-# Render Type
+# Camera render types
 
 There are two types of Camera in the Universal Render Pipeline (URP):
 
@@ -21,12 +21,14 @@ To change the type of a Camera in the Unity Editor:
 
 You can change a Camera’s type in a script, by setting the `renderType` property of the Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
-```
+```c#
 var cameraData = camera.GetUniversalAdditionalCameraData();
 cameraData.renderType = CameraRenderType.Base;
 ```
 
-## <a name="base-camera"></a>Base Camera
+<a name="base-camera"></a>
+
+## Base Camera
 
 Base Camera is the default type of Camera in URP. A Base Camera is a general purpose Camera that renders to a given render target.
 
@@ -46,7 +48,8 @@ An Overlay Camera is a Camera that renders its view on top of another Camera's o
 
 You must use Overlay Cameras in conjunction with one or more Base Cameras using the [Camera Stacking](camera-stacking.md) system. You cannot use Overlay Cameras on their own. An Overlay Camera that is not part of a Camera Stack does not perform any steps of its render loop, and is known as an orphan Camera.
 
-> **Note**: In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer.
+> [!NOTE]
+> In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer.
 
 When you have an active Overlay Camera in your scene, this icon appears next to the Camera Gizmo in the Scene view:
 
