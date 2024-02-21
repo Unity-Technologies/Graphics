@@ -321,7 +321,10 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (renderingData.cameraData.xr.hasValidOcclusionMesh)
-            m_XROcclusionMeshPass.Render(renderGraph, frameResources.cameraDepth, ref renderingData);
+            {
+                m_XROcclusionMeshPass.m_IsActiveTargetBackBuffer = m_TargetIsBackbuffer;
+                m_XROcclusionMeshPass.Render(renderGraph, frameResources.cameraColor, frameResources.cameraDepth, ref renderingData);
+            }
 #endif
 
             if (this.renderingModeActual == RenderingMode.Deferred)
@@ -341,6 +344,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = m_TargetIsBackbuffer;
                 m_RenderOpaqueForwardPass.Render(renderGraph, m_ActiveRenderGraphColor, m_ActiveRenderGraphDepth, frameResources.mainShadowsTexture, frameResources.additionalShadowsTexture, ref renderingData);
             }
             // RunCustomPasses(RenderPassEvent.AfterOpaque);

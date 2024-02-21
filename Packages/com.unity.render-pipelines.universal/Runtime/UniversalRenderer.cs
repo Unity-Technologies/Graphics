@@ -780,6 +780,11 @@ namespace UnityEngine.Rendering.Universal
                 if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming, cmd, ref cameraData);
 
+                m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                m_XROcclusionMeshPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+#endif
+
                 m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.PeekBackBuffer() : m_XRTargetHandleAlias;
                 m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
             }
