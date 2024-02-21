@@ -167,17 +167,6 @@ namespace UnityEditor.Rendering.Universal
                     serializedLight.settings.lightmapping.intValue = (int)LightmapBakeType.Baked;
                     serializedLight.Apply();
                 }
-
-                if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.useRenderingLayers && !isInPreset)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    EditorUtils.DrawRenderingLayerMask(serializedLight.renderingLayers, Styles.RenderingLayers);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if (!serializedLight.customShadowLayers.boolValue)
-                            SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
-                    }
-                }
             }
         }
 
@@ -255,6 +244,24 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             serializedLight.settings.DrawRenderMode();
+
+            if (serializedLight.settings.light.type != LightType.Rectangle &&
+                !serializedLight.settings.isCompletelyBaked)
+            {
+                EditorGUI.BeginChangeCheck();
+                GUI.enabled = UniversalRenderPipeline.asset.useRenderingLayers;
+                EditorUtils.DrawRenderingLayerMask(
+                    serializedLight.renderingLayers,
+                    UniversalRenderPipeline.asset.useRenderingLayers ? Styles.RenderingLayers : Styles.RenderingLayersDisabled
+                );
+                GUI.enabled = true;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!serializedLight.customShadowLayers.boolValue)
+                        SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
+                }
+            }
+
             var rendererList = UniversalRenderPipeline.asset.m_RendererDataList;
             bool hasNonForwardPlusRenderer = false;
             foreach (var r in rendererList)
@@ -277,6 +284,10 @@ namespace UnityEditor.Rendering.Universal
             GUI.enabled = hasNonForwardPlusRenderer;
             EditorGUILayout.PropertyField(serializedLight.settings.cullingMask, hasNonForwardPlusRenderer ? Styles.CullingMask : Styles.CullingMaskDisabled);
             GUI.enabled = true;
+            if (serializedLight.settings.cullingMask.intValue != -1)
+            {
+                EditorGUILayout.HelpBox(Styles.CullingMaskWarning.text, MessageType.Warning);
+            }
         }
 
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
