@@ -24,6 +24,11 @@
       "displayName": "URP Package Samples",
       "description": "Collection of scenes showcasing different features of the Universal Render Pipeline.",
       "path": "Samples~/URPPackageSamples"
+    },
+    {
+      "displayName": "URP RenderGraph Samples",
+      "description": "Collection of scripts with some examples of RenderGraph and how it is used within the Universal Render Pipeline.",
+      "path": "Samples~/URPRenderGraphSamples"
     }
   ]
 }
