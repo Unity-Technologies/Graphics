@@ -11,6 +11,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Moq;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.Search;
 using UnityEditor.SearchService;
 using UnityEditor.VFX.UI;
@@ -943,6 +944,35 @@ namespace UnityEditor.VFX.Test
                     EditorWindow.GetWindow<SearchPickerWindow>().Close();
                 }
             }
+        }
+
+        [UnityTest, Description("Covers: UUM-61929")]
+        public IEnumerator Check_Selection_Is_Emptied_On_Delete()
+        {
+            // Prepare
+            EditorWindow.GetWindow<InspectorWindow>(); // Show the inspector because the issue was triggered by our inspector editor
+            EditorWindow.GetWindow<ProjectBrowser>(); // Show the project browser to select asset (so that the selection is not empty)
+
+            var window = CreateSimpleVFXGraph();
+            var setAgeOperatorDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name == "Set age");
+            var setAgeBlock = setAgeOperatorDesc.CreateInstance();
+            window.graphView.controller.contexts.Single(x => x.model is VFXBasicUpdate).model.AddChild(setAgeBlock);
+            window.graphView.controller.ApplyChanges();
+
+            window.graphView.Focus();
+            window.graphView.AddRangeToSelection(window.graphView
+                .GetAllNodes()
+                .Union(window.graphView.nodes.Where(x => x is VFXBlockUI block && block.controller.model is SetAttribute).OfType<ISelectable>())
+                .ToList());
+            Selection.Add(window.displayedResource.asset);
+            Assert.IsTrue(Selection.objects?.Length > 1);
+
+            // Act
+            window.graphView.Delete();
+            yield return null;
+
+            // Assert
+            Assert.IsTrue(Selection.objects?.Length == 1);
         }
 
         private void CheckNumericPropertyRM<T,U>(Func<IPropertyRMProvider, NumericPropertyRM<T, U>> creator, UnityEngine.PropertyAttribute attribute, T initialValue, List<(T, T)> testCases)
