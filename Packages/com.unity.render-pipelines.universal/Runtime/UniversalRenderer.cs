@@ -1572,8 +1572,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 // We don't add one to the maximum light because mainlight is treated as any other light.
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-                // Sort the reflection probes in engine.
-                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize;
+                // Do not sort reflection probe from engine it will come in reverse order from what we need.
+                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.None;
             }
             else
             {
