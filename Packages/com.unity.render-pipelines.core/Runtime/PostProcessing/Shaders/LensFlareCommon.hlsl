@@ -48,9 +48,6 @@ SAMPLER(sampler_StencilTexture);
 TEXTURE2D_X(_DepthWithWaterTexture);
 SAMPLER(sampler_DepthWithWaterTexture);
 
-TEXTURE2D_X(_FlareCloudOpacity);
-SAMPLER(sampler_FlareCloudOpacity);
-
 TEXTURE2D_X(_FlareSunOcclusionTex);
 SAMPLER(sampler_FlareSunOcclusionTex);
 
@@ -204,7 +201,7 @@ float GetOcclusion(float ratio)
         {
             float depth0 = GetLinearDepthValue(pos);
 
-#if UNITY_REVERSED_Z 
+#if UNITY_REVERSED_Z
             if (depth0 > _ScreenPosZ)
 #else
             if (depth0 < _ScreenPosZ)
@@ -213,24 +210,14 @@ float GetOcclusion(float ratio)
                 float occlusionValue = 1.0f;
 
 #ifdef HDRP_FLARE
-                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_CLOUD_LAYER) != 0)
+                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_FOG_OPACITY) != 0)
                 {
-                    float cloudOpacity;
+                    float fogOcclusion;
                     if (_ViewId >= 0)
-                        cloudOpacity = LOAD_TEXTURE2D_ARRAY(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy), _ViewId).x;
+                        fogOcclusion = SAMPLE_TEXTURE2D_ARRAY_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos * _RTHandleScale.xy, _ViewId, 0).x;
                     else
-                        cloudOpacity = LOAD_TEXTURE2D_X(_FlareCloudOpacity, uint2(pos * _ScreenParams.xy)).x;
-                    occlusionValue *= saturate(cloudOpacity);
-                }
-
-                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_VOLUMETRIC_CLOUD) != 0)
-                {
-                    float volumetricCloudOcclusion;
-                    if (_ViewId >= 0)
-                        volumetricCloudOcclusion = SAMPLE_TEXTURE2D_ARRAY_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, _ViewId, 0).w;
-                    else
-                        volumetricCloudOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos, 0).w;
-                    occlusionValue *= saturate(volumetricCloudOcclusion);
+                        fogOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos * _RTHandleScale.xy, 0).x;
+                    occlusionValue *= saturate(fogOcclusion);
                 }
 
                 if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)

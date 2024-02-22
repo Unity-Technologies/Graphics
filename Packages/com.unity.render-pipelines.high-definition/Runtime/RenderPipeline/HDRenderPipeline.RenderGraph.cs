@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ShadowResult shadowResult = new ShadowResult();
                 BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
-                TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
+                TextureHandle opticalFogTransmittance = TextureHandle.nullHandle;
 
                 // Volume components
                 PathTracing pathTracing = hdCamera.volumeStack.GetComponent<PathTracing>();
@@ -239,12 +239,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     var transparentPrepass = RenderTransparentPrepass(m_RenderGraph, cullingResults, hdCamera, currentColorPyramid, gpuLightListOutput, ref prepassOutput);
                     waterGBuffer = transparentPrepass.waterGBuffer;
 
-                    colorBuffer = RenderOpaqueFog(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, msaa, in prepassOutput, in transparentPrepass);
+                    colorBuffer = RenderOpaqueFog(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, msaa, in prepassOutput, in transparentPrepass, ref opticalFogTransmittance);
 
-                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, volumetricLighting, in prepassOutput, ref transparentPrepass);
-                    sunOcclusionTexture = transparentPrepass.clouds.lightingBuffer;
+                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, volumetricLighting, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
 
-                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture,
+                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, opticalFogTransmittance,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
 
                     uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera);
@@ -334,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera, aovRequest);
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, pathTracing, cullingResults, prepassOutput);
                 var postProcessTargetFace = postProcessIsFinalPass ? target.face : CubemapFace.Unknown;
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, waterGBuffer, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, sunOcclusionTexture, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, waterGBuffer, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
@@ -1663,6 +1662,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle currentColorPyramid,
             TextureHandle volumetricLighting,
             TextureHandle rayCountTexture,
+            TextureHandle opticalFogTransmittance,
             Texture skyTexture,
             in BuildGPULightListOutput lightLists,
             in TransparentPrepassOutput transparentPrepass,
@@ -1697,7 +1697,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ApplyCameraMipBias(hdCamera);
 
             // Combine volumetric clouds with prerefraction transparents
-            CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass);
+            CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass, ref opticalFogTransmittance);
 
             var preRefractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, true));
             var refractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, false));
@@ -1712,14 +1712,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // If required, render the water mask debug views
             RenderWaterMask(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
 
+            bool ssmsEnabled = Fog.IsMultipleScatteringEnabled(hdCamera, out float fogMultipleScatteringIntensity);
             // Generate color pyramid for refraction and transparent SSR next frame
             // - after water lighting to ensure it's present in transparent ssr
             // - before render refractive transparents
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled() || ssmsEnabled)
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
             }
+
+            // Just after the color pyramid, we apply the fake multi-scattering effect on the fog
+            if (ssmsEnabled && opticalFogTransmittance.IsValid())
+                ScreenSpaceFogMultipleScattering(renderGraph, hdCamera, colorBuffer, opticalFogTransmittance, currentColorPyramid, fogMultipleScatteringIntensity);
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
             RenderCustomPass(renderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
@@ -1971,22 +1976,22 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyManager.RenderSky(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, "Render Sky", ProfilingSampler.Get(HDProfileId.RenderSky));
         }
 
-        TextureHandle RenderOpaqueFog(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, bool msaa, in PrepassOutput prepassOutput, in TransparentPrepassOutput refractionOutput)
+        TextureHandle RenderOpaqueFog(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, bool msaa, in PrepassOutput prepassOutput, in TransparentPrepassOutput refractionOutput, ref TextureHandle opticalFogTransmittance)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return colorBuffer;
 
-            return m_SkyManager.RenderOpaqueAtmosphericScattering(renderGraph, hdCamera, in refractionOutput, colorBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.normalBuffer);
+            return m_SkyManager.RenderOpaqueAtmosphericScattering(renderGraph, hdCamera, in refractionOutput, colorBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.normalBuffer, ref opticalFogTransmittance);
         }
 
-        void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle volumetricLighting, in PrepassOutput prepassOutput, ref TransparentPrepassOutput transparentPrepass)
+        void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle volumetricLighting, in PrepassOutput prepassOutput, ref TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
 
-            m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer);
+            m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, ref opticalFogTransmittance);
 
-            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, ref transparentPrepass);
+            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, ref transparentPrepass, ref opticalFogTransmittance);
         }
 
         class GenerateColorPyramidData
@@ -2426,6 +2431,48 @@ namespace UnityEngine.Rendering.HighDefinition
                             CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.rendererList);
                         });
                 }
+            }
+        }
+
+        class ScreenSpaceFogMultipleScatteringData
+        {
+            public ComputeShader multipleScatteringCompute;
+            public TextureHandle colorBuffer;
+            public TextureHandle opticalFogTransmittance;
+            public TextureHandle colorPyramid;
+            public float intensity;
+            public int outputWidth;
+            public int outputHeight;
+            public int channel;
+            public int viewCount;
+        }
+
+        void ScreenSpaceFogMultipleScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle opticalFogTransmittance, TextureHandle colorPyramid, float intensity)
+        {
+            using (var builder = renderGraph.AddRenderPass<ScreenSpaceFogMultipleScatteringData>("Screen Space Fog Multiple Scattering", out var passData))
+            {
+                passData.multipleScatteringCompute = runtimeShaders.screenSpaceMultipleScatteringCS;
+                passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
+                passData.colorPyramid = builder.ReadTexture(colorPyramid);
+                passData.opticalFogTransmittance = builder.ReadTexture(opticalFogTransmittance);
+                passData.outputWidth = hdCamera.actualWidth;
+                passData.outputHeight = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
+                passData.channel = LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera) ? 1 : 0;
+                // Scale the multiplier to have consistent results between resolutions:
+                float finalIntensity = intensity * Mathf.Clamp01(hdCamera.actualHeight / 1080f);
+                passData.intensity = finalIntensity;
+                builder.SetRenderFunc(
+                    (ScreenSpaceFogMultipleScatteringData data, RenderGraphContext ctx) =>
+                    {
+                        // lerp the color buffer and color pyramid using fog opacity factor
+                        ctx.cmd.SetComputeTextureParam(data.multipleScatteringCompute, 0, HDShaderIDs._OpticalFogTransmittance, data.opticalFogTransmittance);
+                        ctx.cmd.SetComputeTextureParam(data.multipleScatteringCompute, 0, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
+                        ctx.cmd.SetComputeTextureParam(data.multipleScatteringCompute, 0, HDShaderIDs._Destination, data.colorBuffer);
+                        ctx.cmd.SetComputeFloatParam(data.multipleScatteringCompute, HDShaderIDs._MultipleScatteringIntensity, data.intensity);
+                        ctx.cmd.SetComputeFloatParam(data.multipleScatteringCompute, HDShaderIDs._OpticalFogTextureChannel, data.channel);
+                        ctx.cmd.DispatchCompute(data.multipleScatteringCompute, 0, HDUtils.DivRoundUp(data.outputWidth, 8), HDUtils.DivRoundUp(data.outputHeight, 8), data.viewCount);
+                    });
             }
         }
 

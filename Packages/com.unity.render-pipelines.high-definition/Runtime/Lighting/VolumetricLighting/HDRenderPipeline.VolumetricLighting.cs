@@ -833,6 +833,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return (priority << 12) | (fogIndex << 0);
         }
 
+        internal static TextureDesc GetOpticalFogTransmittanceDesc(HDCamera hdCamera)
+        {
+            var format = GraphicsFormat.R16_SFloat;
+            if (LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera) && Fog.IsMultipleScatteringEnabled(hdCamera, out _))
+                format = GraphicsFormat.R16G16_SFloat;
+
+            return new TextureDesc(Vector2.one, true, true)
+            {
+                name = "Optical Fog Transmittance",
+                colorFormat = format,
+                clearBuffer = true,
+                clearColor = Color.white,
+            };
+        }
+
         void PrepareVisibleLocalVolumetricFogList(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))

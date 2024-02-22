@@ -505,6 +505,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
         public static readonly int _FogVolumeOverdrawMaxValue = Shader.PropertyToID("_FogVolumeOverdrawMaxValue");
         public static readonly int _VolumetricFogGlobalIndex = Shader.PropertyToID("_VolumetricFogGlobalIndex");
+        public static readonly int _OpticalFogTransmittance = Shader.PropertyToID("_OpticalFogTransmittance");
+        public static readonly int _MultipleScatteringIntensity = Shader.PropertyToID("_MultipleScatteringIntensity");
+        public static readonly int _OpticalFogTextureChannel = Shader.PropertyToID("_OpticalFogTextureChannel");
         public static readonly int _QuadOverdrawClearBuffParams = Shader.PropertyToID("_QuadOverdrawClearBuffParams");
         public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
         public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
@@ -666,6 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source = Shader.PropertyToID("_Source");
+        public static readonly int _Source_MSAA = Shader.PropertyToID("_Source_MSAA");
         public static readonly int _Destination = Shader.PropertyToID("_Destination");
         public static readonly int _Mip0 = Shader.PropertyToID("_Mip0");
         public static readonly int _SourceMip = Shader.PropertyToID("_SourceMip");

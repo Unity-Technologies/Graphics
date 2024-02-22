@@ -519,6 +519,14 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_DefaultFogVolumeShader, value);
         }
 
+        [SerializeField, ResourcePath("Runtime/Lighting/AtmosphericScattering/ScreenSpaceMultipleScattering.compute")]
+        private ComputeShader m_ScreenSpaceMultipleScatteringCS;
+        public ComputeShader screenSpaceMultipleScatteringCS
+        {
+            get => m_ScreenSpaceMultipleScatteringCS;
+            set => this.SetValueAndNotify(ref m_ScreenSpaceMultipleScatteringCS, value);
+        }
+        
         #endregion
 
         #region SSS

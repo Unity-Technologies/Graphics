@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Combine pass via hardware blending.
         Material m_CloudCombinePass;
 
+        LocalKeyword m_OutputFogTransmittanceKeyword;
+
         // Animation time is shared for all cameras, but only updated by the main camera
         internal struct VolumetricCloudsAnimationData
         {
@@ -97,6 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Create the material needed for the combination
             m_CloudCombinePass = CoreUtils.CreateEngineMaterial(runtimeShaders.volumetricCloudsCombinePS);
+
+            m_OutputFogTransmittanceKeyword = new LocalKeyword(m_CloudCombinePass.shader, "OUTPUT_TRANSMITTANCE_BUFFER");
 
             m_VolumetricCloudsTraceCS = runtimeShaders.volumetricCloudsTraceCS;
             m_CloudRenderKernel = m_VolumetricCloudsTraceCS.FindKernel("RenderClouds");
@@ -410,7 +414,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 var vp = hdCamera.m_XRViewConstants[viewIndex].prevViewProjMatrix;
-                
+
                 // Correct prev view proj matrix for local mode
                 if (hdCamera.planet.renderingSpace == RenderingSpace.Camera)
                     vp *= Matrix4x4.Translate(new Vector3(0.0f, hdCamera.m_XRViewConstants[viewIndex].prevWorldSpaceCameraPos.y, 0.0f));
@@ -552,9 +556,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle cameraHeightBuffer;
             public BufferHandle waterSurfaceProfiles;
             public TextureHandle waterGBuffer3;
+
+            public bool needOpticalFogTransmittance;
+            public LocalKeyword outputFogTransmittanceKeyword;
         }
 
-        void CombineVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle resolvedDepthBuffer, in TransparentPrepassOutput transparentPrepass)
+        void CombineVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle resolvedDepthBuffer, in TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             if (!transparentPrepass.clouds.valid)
                 return;
@@ -582,12 +589,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output buffers
                 builder.UseColorBuffer(colorBuffer, 0);
+                int opticalFogBufferIndex = 1;
 
                 if (passData.perPixelSorting)
                 {
                     builder.UseDepthBuffer(transparentPrepass.beforeRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
                     builder.UseColorBuffer(transparentPrepass.beforeRefraction, 1);
                     builder.UseColorBuffer(transparentPrepass.beforeRefractionAlpha, 2);
+                    opticalFogBufferIndex = 3;
+                }
+
+                passData.needOpticalFogTransmittance = LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera);
+                passData.outputFogTransmittanceKeyword = m_OutputFogTransmittanceKeyword;
+
+                if (passData.needOpticalFogTransmittance)
+                {
+                    if (!opticalFogTransmittance.IsValid())
+                        opticalFogTransmittance = builder.UseColorBuffer(renderGraph.CreateTexture(GetOpticalFogTransmittanceDesc(hdCamera)), opticalFogBufferIndex);
+                    else
+                        builder.UseColorBuffer(opticalFogTransmittance, opticalFogBufferIndex);
                 }
 
                 builder.SetRenderFunc(
@@ -607,6 +627,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.cloudsCombineMaterial.SetBuffer(HDShaderIDs._WaterLineBuffer, data.waterLine);
                         }
 
+                        ctx.cmd.SetKeyword(data.cloudsCombineMaterial, data.outputFogTransmittanceKeyword, data.needOpticalFogTransmittance);
+
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.cloudsCombineMaterial, data.perPixelSorting ? 7 : 0, MeshTopology.Triangles, 3);
                     });
             }
@@ -619,7 +641,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool valid;
         }
 
-        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, ref TransparentPrepassOutput transparentPrepass)
+        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid,
+            TextureHandle motionVector,TextureHandle volumetricLighting, ref TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             // If the current volume does not enable the feature, quit right away.
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -659,6 +682,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(m_RenderGraph, transparentPrepass.clouds.lightingBuffer, FullScreenDebugMode.VolumetricClouds);
             else
                 PushFullScreenDebugTexture(m_RenderGraph, transparentPrepass.clouds.depthBuffer, FullScreenDebugMode.VolumetricClouds, GraphicsFormat.R32_SFloat);
+        }
+
+        class AccumulateOpticalFogTransmittancePassData
+        {
+            public TextureHandle cloudsLighting;
+            public TextureHandle opticalFogTransmittance;
+            public Material cloudCombinePass;
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)

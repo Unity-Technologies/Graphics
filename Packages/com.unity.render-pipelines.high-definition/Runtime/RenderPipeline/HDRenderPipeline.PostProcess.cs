@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle backBuffer,
             TextureHandle uiBuffer,
             TextureHandle afterPostProcessBuffer,
-            TextureHandle sunOcclusionTexture,
+            TextureHandle opticalFogTransmittance,
             CullingResults cullResults,
             HDCamera hdCamera,
             CubemapFace cubemapFace,
@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ComposeLines(renderGraph, hdCamera, source, prepassOutput.depthBuffer, motionVectors, (int)LineRendering.CompositionMode.AfterDepthOfField);
 
                 source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
-        
+
                 source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
 
                 if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !hdCamera.IsPathTracingEnabled())
@@ -609,7 +609,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
                 bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
-                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, stencilBuffer, sunOcclusionTexture, waterGBuffer, taaEnabled);
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, stencilBuffer, opticalFogTransmittance, waterGBuffer, taaEnabled);
                 if (taaEnabled)
                 {
                     LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
@@ -626,7 +626,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bloomTexture = LensFlareScreenSpacePass(renderGraph, hdCamera, source, bloomTexture, screenSpaceLensFlareBloomMipTexture);
                 }
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, sunOcclusionTexture, taaEnabled);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBufferMipChain, taaEnabled);
 
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.ColorLog);
@@ -709,7 +709,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #region Upscaler Common Passes 
+        #region Upscaler Common Passes
         class UpscalerColorMaskPassData
         {
             public Material colorMaskMaterial;
@@ -822,7 +822,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region FSR2 
+        #region FSR2
         class FSR2Data
         {
             public FSR2Pass.Parameters parameters;
@@ -1748,7 +1748,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 neighbourOffsets[(i / 4)][(i % 4)] = TAASampleOffsets[i / 2 + 1][i % 2];
             }
-        }        
+        }
 
         void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
             TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilTexture, bool postDoF, string outputName)
@@ -3376,7 +3376,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool hasCloudLayer;
         }
 
-        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle sunOcclusionTexture, WaterGBuffer waterGBuffer, bool taaEnabled)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle opticalFogTransmittance, WaterGBuffer waterGBuffer, bool taaEnabled)
         {
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
@@ -3392,8 +3392,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hdCamera = hdCamera;
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                    if (sunOcclusionTexture.IsValid() && RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
-                        passData.sunOcclusion = builder.ReadTexture(sunOcclusionTexture);
+                    if (opticalFogTransmittance.IsValid())
+                        passData.sunOcclusion = builder.ReadTexture(opticalFogTransmittance);
                     else
                         passData.sunOcclusion = TextureHandle.nullHandle;
                     if (waterGBuffer.valid && waterGBuffer.waterGBuffer3.IsValid())
@@ -3508,7 +3508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture, bool taaEnabled)
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, bool taaEnabled)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
