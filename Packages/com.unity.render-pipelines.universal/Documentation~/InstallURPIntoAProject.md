@@ -57,7 +57,8 @@ If your project uses the prebuilt [Standard Shader](https://docs.unity3d.com/Man
 
 When you upgrade a project from the Built-in Render Pipeline (BiRP) to the Universal Render Pipeline (URP), there are many changes which occur. These changes are wide reaching and require some work beyond the initial installation process for URP shown here. The following pages explain more about these changes and provide guidance on any additional steps required:
 
-- [Converting your shaders](./../upgrading-your-shaders.md)
-- [Render Pipeline Converter](./../features/rp-converter.md)
-- [Find graphics quality settings in URP](./quality-settings-location.md)
-- [Update graphics quality levels for URP](./quality-presets.md)
+* [Converting your shaders](upgrading-your-shaders.md)
+* [Render Pipeline Converter](features/rp-converter.md)
+* [Upgrade custom shaders for URP compatibility](urp-shaders/birp-urp-custom-shader-upgrade-guide.md)
+* [Find graphics quality settings in URP](quality-settings-location.md)
+* [Update graphics quality levels for URP](quality-presets.md)
