@@ -10,7 +10,7 @@ In a **DrawRenderers Custom Pass** you can only use certain materials at specifi
 
 To analyse the actions Unity performs in a render loop and see where Unity executes your Custom Pass, use the [frame debugger](https://docs.unity3d.com/Manual/FrameDebugger.html).
 
-To learn when injection points happen in the render pipeline refer to [Excecution order](rendering-excecution-order.md).
+To learn when injection points happen in the render pipeline refer to [Execution order](rendering-execution-order.md).
 
 Unity triggers the following injection points in a frame, in order from top to bottom:
 
