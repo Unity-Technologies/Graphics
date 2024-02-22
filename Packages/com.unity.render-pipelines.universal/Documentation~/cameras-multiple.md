@@ -15,4 +15,5 @@ For information on Camera rendering order when working with multiple Cameras, re
 |-|-|
 | [Set up a camera stack](camera-stacking.md)| Stack cameras to layer the outputs of multiple cameras into a single combined output. Camera stacking allows you to create effects such as 3D models in a 2D UI, or the cockpit of a vehicle.|
 | [Set up split-screen rendering](rendering-to-the-same-render-target.md) | Render multiple camera outputs to a single render target to create effects such as split screen rendering. |
+| [Apply different post processing effects to separate cameras](cameras/apply-different-post-proc-to-cameras.md) | Apply different post-processing setups to individual cameas within a scene. |
 | [Render a camera's output to a Render Texture](rendering-to-a-render-texture.md) | Render to a Render Texture to create effects such as in-game CCTV monitors. |
