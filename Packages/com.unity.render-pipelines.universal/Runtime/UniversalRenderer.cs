@@ -1494,6 +1494,10 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
                     RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
+
+                    // update the descriptor to match the depth attachment
+                    descriptor.depthStencilFormat = depthDescriptor.depthStencilFormat;
+                    descriptor.depthBufferBits = depthDescriptor.depthBufferBits;
                 }
             }
 
