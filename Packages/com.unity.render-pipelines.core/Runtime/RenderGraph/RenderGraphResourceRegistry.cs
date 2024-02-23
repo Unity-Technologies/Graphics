@@ -873,6 +873,30 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }
 
+        internal RendererListHandle CreateSkyboxRendererList(ScriptableRenderContext context, in Camera camera)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateSkyboxRendererList(camera);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
+        }
+
+        internal RendererListHandle CreateSkyboxRendererList(ScriptableRenderContext context, in Camera camera, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateSkyboxRendererList(camera, projectionMatrix, viewMatrix);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
+        }
+
+        internal RendererListHandle CreateSkyboxRendererList(ScriptableRenderContext context, in Camera camera, Matrix4x4 projectionMatrixL, Matrix4x4 viewMatrixL, Matrix4x4 projectionMatrixR, Matrix4x4 viewMatrixR)
+        {
+            RendererListLegacyResource resource = new RendererListLegacyResource();
+            resource.rendererList = context.CreateSkyboxRendererList(camera, projectionMatrixL, viewMatrixL, projectionMatrixR, viewMatrixR);
+            int newHandle = m_RendererListLegacyResources.Add(resource);
+            return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
+        }
+
         internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
         {
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);

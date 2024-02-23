@@ -915,6 +915,42 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Creates a new Skybox Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Skybox.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateSkyboxRendererList(in Camera camera)
+        {
+            return m_Resources.CreateSkyboxRendererList(m_RenderGraphContext.renderContext, camera);
+        }
+
+        /// <summary>
+        /// Creates a new Skybox Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Skybox.</param>
+        /// <param name="projectionMatrix">The projection matrix used during XR rendering of the skybox.</param>
+        /// <param name="viewMatrix">The view matrix used during XR rendering of the skybox.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateSkyboxRendererList(in Camera camera, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix)
+        {
+            return m_Resources.CreateSkyboxRendererList(m_RenderGraphContext.renderContext, camera, projectionMatrix, viewMatrix);
+        }
+
+        /// <summary>
+        /// Creates a new Skybox Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Skybox.</param>
+        /// <param name="projectionMatrixL">The left eye projection matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <param name="viewMatrixL">The left eye view matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <param name="projectionMatrixR">The right eye projection matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <param name="viewMatrixR">The right eye view matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateSkyboxRendererList(in Camera camera, Matrix4x4 projectionMatrixL, Matrix4x4 viewMatrixL, Matrix4x4 projectionMatrixR, Matrix4x4 viewMatrixR)
+        {
+            return m_Resources.CreateSkyboxRendererList(m_RenderGraphContext.renderContext, camera, projectionMatrixL, viewMatrixL, projectionMatrixR, viewMatrixR);
+        }
+
+        /// <summary>
         /// Import an external Graphics Buffer to the Render Graph.
         /// Any pass writing to an imported graphics buffer will be considered having side effects and can't be automatically culled.
         /// </summary>
