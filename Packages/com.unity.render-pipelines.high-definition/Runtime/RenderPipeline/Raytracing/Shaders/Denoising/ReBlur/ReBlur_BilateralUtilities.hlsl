@@ -42,7 +42,7 @@ void EvaluateBilateralData(float2 tapCoords, out ReBlurBilateralData data)
 
     // Read the history signal
     int2 tap0 = floor(tapCoords);
-    if (all(tap0 > 0 && tap0 <_ScreenSize.xy))
+    if (all(tap0 > 0) && all(tap0 <_ScreenSize.xy))
     {
         data.signal0 = LOAD_TEXTURE2D_X(_LightingDistanceHistoryBuffer, tap0);
         data.acc0 = LOAD_TEXTURE2D_X(_AccumulationHistoryBuffer, tap0).x;
@@ -54,7 +54,7 @@ void EvaluateBilateralData(float2 tapCoords, out ReBlurBilateralData data)
     }
 
     int2 tap1 = tap0 + int2(1, 0);
-    if (all(tap1 > 0 && tap1 <_ScreenSize.xy))
+    if (all(tap1 > 0) && all(tap1 <_ScreenSize.xy))
     {
         data.signal1 = LOAD_TEXTURE2D_X(_LightingDistanceHistoryBuffer, tap1);
         data.acc1 = LOAD_TEXTURE2D_X(_AccumulationHistoryBuffer, tap1).x;
@@ -66,7 +66,7 @@ void EvaluateBilateralData(float2 tapCoords, out ReBlurBilateralData data)
     }
 
     int2 tap2 = tap0 + int2(0, 1);
-    if (all(tap2 > 0 && tap2 <_ScreenSize.xy))
+    if (all(tap2 > 0) && all(tap2 <_ScreenSize.xy))
     {
         data.signal2 = LOAD_TEXTURE2D_X(_LightingDistanceHistoryBuffer, tap2);
         data.acc2 = LOAD_TEXTURE2D_X(_AccumulationHistoryBuffer, tap2).x;
@@ -78,7 +78,7 @@ void EvaluateBilateralData(float2 tapCoords, out ReBlurBilateralData data)
     }
 
     int2 tap3 = tap0 + int2(1, 1);
-    if (all(tap3 > 0 && tap3 <_ScreenSize.xy))
+    if (all(tap3 > 0) && all(tap3 <_ScreenSize.xy))
     {
         data.signal3 = LOAD_TEXTURE2D_X(_LightingDistanceHistoryBuffer, tap3);
         data.acc3 = LOAD_TEXTURE2D_X(_AccumulationHistoryBuffer, tap3).x;
