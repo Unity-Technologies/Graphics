@@ -153,7 +153,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
     output.instanceID = input.instanceID; //Transfer again because we modify it in GetMeshAndElementIndex
 #endif
 
-    if(!GetInterpolatorAndElementData(output, element))
+    if(!GetInterpolatorAndElementData(input, output, element))
         return output; // Dead particle.
 
     SetupVFXMatrices(element, output);

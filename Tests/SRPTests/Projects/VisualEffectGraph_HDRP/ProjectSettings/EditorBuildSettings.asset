@@ -314,5 +314,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/42_CollisionEvents.unity
     guid: fb106688165d26647926932af7131b83
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/43_OddNegativeScale/43_OddNegativeScale.unity
+    guid: 1b0e8bd450fc8f349b6bbd4f9230b3d9
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

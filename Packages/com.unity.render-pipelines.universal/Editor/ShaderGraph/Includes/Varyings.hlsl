@@ -76,7 +76,7 @@ Varyings BuildVaryings(Attributes input
     output.instanceID = input.instanceID; //Transfer instanceID again because we modify it in GetMeshAndElementIndex
 #endif
 
-    if (!GetInterpolatorAndElementData(output, element))
+    if (!GetInterpolatorAndElementData(input, output, element))
         return output; // Dead particle.
 
     SetupVFXMatrices(element, output);

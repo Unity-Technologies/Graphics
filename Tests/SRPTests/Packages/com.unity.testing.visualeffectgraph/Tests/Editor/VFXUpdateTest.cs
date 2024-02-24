@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Update
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 exportedPackageAssetList.Add(path);
             }
-            AssetDatabase.ExportPackage(exportedPackageAssetList.ToArray(), absolutePath, ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies);
+            AssetDatabase.ExportPackage(exportedPackageAssetList.ToArray(), absolutePath, ExportPackageOptions.Recurse);
             yield return null;
             Directory.Delete(expectedDirectory, true);
             File.Delete(expectedDirectory + ".meta");

@@ -221,7 +221,7 @@ $OutputType.PlanarPrimitive: $include("VFXConfigPlanarPrimitive.template.hlsl")
 #if !defined(SHADER_STAGE_RAY_TRACING)
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
-bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout AttributesElement element)
+bool GetInterpolatorAndElementData(inout VFX_SRP_ATTRIBUTES input, inout VFX_SRP_VARYINGS output, inout AttributesElement element)
 {
     GetElementData(element);
     #if VFX_USE_GRAPH_VALUES
@@ -234,7 +234,11 @@ bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout Attribut
     if (!attributes.alive)
         return false;
     #endif
-
+    #ifdef ATTRIBUTES_NEED_NORMAL
+    float3 size3 = GetElementSize(element.attributes);
+    float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
+    input.normalOS *= normalFlip;
+    #endif
     $splice(VFXInterpolantsGeneration)
 
     return true;
