@@ -25,18 +25,19 @@ Shader "Hidden/Test/RandomUAVReadWriteShader"
                     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                     const float2 uv = input.texcoord;
 
-                    // Scene color
+                    // Input colors
                     const float4 sceneColor = float4(SampleSceneColor(uv), 0.0);
+                    const float4 uavTextureBufferColor = ReadFromTextureBuffer(uv);
+                    const float4 uavBufferColor = ReadFromBuffer(uv);
 
                     // UAV Texture Buffer output
-                    const float4 uavTextureBufferColor = ReadFromTextureBuffer(uv);
                     const float4 uavModifiedTextureBufferColor = float4(1.0, 1.0, 1.0, 1.0) - uavTextureBufferColor;
-                    WriteToTextureBuffer(uv, uavModifiedTextureBufferColor);
 
                     // UAV Buffer output
                     const float lerpVal = EaseInOutQuad((uv.x - ONE_THIRD) / ONE_THIRD);
-                    const float4 uavBufferColor = ReadFromBuffer(uv);
                     const float4 uavModifiedBufferColor = lerp(uavModifiedTextureBufferColor, uavBufferColor, lerpVal);
+
+                    WriteToTextureBuffer(uv, uavModifiedTextureBufferColor);
                     WriteToBuffer(uv, uavModifiedBufferColor);
 
                     // Normal output - Not used.
