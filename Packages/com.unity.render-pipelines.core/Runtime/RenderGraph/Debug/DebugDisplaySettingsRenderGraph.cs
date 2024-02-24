@@ -9,6 +9,14 @@ namespace UnityEngine.Rendering
     /// </summary>
     class DebugDisplaySettingsRenderGraph : IDebugDisplaySettingsData
     {
+        public DebugDisplaySettingsRenderGraph()
+        {
+            foreach (var graph in RenderGraph.GetRegisteredRenderGraphs())
+            {
+                graph.debugParams.Reset();
+            }
+        }
+
         [DisplayInfo(name = "Render Graph", order = 10)]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
