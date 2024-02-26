@@ -71,7 +71,7 @@ The **injectionPoint** override allows you to specify where in the pipeline HDRP
 - **AfterPostProcessBlurs.**
 - **AfterPostProcess.**
 
-To learn when in the render pipeline HDRP can execute custom post-processing passes, refer to [Excecution order](rendering-excecution-order.md).
+To learn when in the render pipeline HDRP can execute custom post-processing passes, refer to [Execution order](rendering-execution-order.md).
 
 **Note**: When you enable [Temporal antialiasing (TAA)](Anti-Aliasing.md#TAA), HDRP applies TAA between the injection points **BeforeTAA** and **beforePostProcess**. When you use [Depth Of Field](Post-Processing-Depth-of-Field.md) and enable its **Physically Based** property, HDRP performs a second TAA pass to perform temporal accumulation for this effect.
 

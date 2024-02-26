@@ -1,6 +1,4 @@
 using System;
-using System.ComponentModel;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -8,8 +6,9 @@ namespace UnityEngine.Rendering.Universal
     /// Settings for Render Graph
     /// </summary>
     [Serializable]
-    [Category("Render Graph")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Render Graph", Order = 50)]
+    [Categorization.ElementInfo(Order = -10)]
     public class RenderGraphSettings: IRenderPipelineGraphicsSettings
     {
         #region Version

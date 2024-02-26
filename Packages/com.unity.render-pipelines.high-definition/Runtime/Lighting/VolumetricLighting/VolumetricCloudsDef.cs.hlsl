@@ -52,8 +52,8 @@ CBUFFER_START(ShaderVariablesClouds)
     int _SubPixelIndex;
     float _NearPlaneReprojection;
     float _MaxStepSize;
-    float4x4 _CloudsPixelCoordToViewDirWS;
-    float4x4 _CameraPrevViewProjection;
+    float4x4 _CloudsPixelCoordToViewDirWS[2];
+    float4x4 _CameraPrevViewProjection[2];
     float _AltitudeDistortion;
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;

@@ -613,7 +613,7 @@ namespace UnityEngine.Rendering
                     // Bake direct radiance
                     using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateDirectRadiance))
                     {
-                        var integrationResult = integrator.IntegrateDirectRadiance(ctx, 0, probeCount, job.directSampleCount, job.ignoreEnvironement, job.ignoreEnvironement, directRadianceSlice);
+                        var integrationResult = integrator.IntegrateDirectRadiance(ctx, 0, probeCount, job.directSampleCount, job.ignoreEnvironement, directRadianceSlice);
                         if (integrationResult.type != IProbeIntegrator.ResultType.Success) return false;
                         if (cancel) return true;
                     }
@@ -621,7 +621,7 @@ namespace UnityEngine.Rendering
                     // Bake indirect radiance
                     using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.IntegrateIndirectRadiance))
                     {
-                        var integrationResult = integrator.IntegrateIndirectRadiance(ctx, 0, probeCount, job.indirectSampleCount, job.ignoreEnvironement, job.ignoreEnvironement, indirectRadianceSlice);
+                        var integrationResult = integrator.IntegrateIndirectRadiance(ctx, 0, probeCount, job.indirectSampleCount, job.ignoreEnvironement, indirectRadianceSlice);
                         if (integrationResult.type != IProbeIntegrator.ResultType.Success) return false;
                         if (cancel) return true;
                     }

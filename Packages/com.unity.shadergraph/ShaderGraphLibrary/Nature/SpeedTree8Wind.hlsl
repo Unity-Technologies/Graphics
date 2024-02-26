@@ -49,73 +49,109 @@ CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
+#define DOTS_ST_WindVector DOTS_ST_WindParam0
+#define DOTS_ST_WindGlobal DOTS_ST_WindParam1
+#define DOTS_ST_WindBranch DOTS_ST_WindParam2
+#define DOTS_ST_WindBranchTwitch DOTS_ST_WindParam3
+#define DOTS_ST_WindBranchWhip DOTS_ST_WindParam4
+#define DOTS_ST_WindBranchAnchor DOTS_ST_WindParam5
+#define DOTS_ST_WindBranchAdherences DOTS_ST_WindParam6
+#define DOTS_ST_WindTurbulences DOTS_ST_WindParam7
+#define DOTS_ST_WindLeaf1Ripple DOTS_ST_WindParam8
+#define DOTS_ST_WindLeaf1Tumble DOTS_ST_WindParam9
+#define DOTS_ST_WindLeaf1Twitch DOTS_ST_WindParam10
+#define DOTS_ST_WindLeaf2Ripple DOTS_ST_WindParam11
+#define DOTS_ST_WindLeaf2Tumble DOTS_ST_WindParam12
+#define DOTS_ST_WindLeaf2Twitch DOTS_ST_WindParam13
+#define DOTS_ST_WindFrondRipple DOTS_ST_WindParam14
+#define DOTS_ST_WindAnimation DOTS_ST_WindParam15
+
+#define DOTS_ST_WindVectorHistory DOTS_ST_WindHistoryParam0
+#define DOTS_ST_WindGlobalHistory DOTS_ST_WindHistoryParam1
+#define DOTS_ST_WindBranchHistory DOTS_ST_WindHistoryParam2
+#define DOTS_ST_WindBranchTwitchHistory DOTS_ST_WindHistoryParam3
+#define DOTS_ST_WindBranchWhipHistory DOTS_ST_WindHistoryParam4
+#define DOTS_ST_WindBranchAnchorHistory DOTS_ST_WindHistoryParam5
+#define DOTS_ST_WindBranchAdherencesHistory DOTS_ST_WindHistoryParam6
+#define DOTS_ST_WindTurbulencesHistory DOTS_ST_WindHistoryParam7
+#define DOTS_ST_WindLeaf1RippleHistory DOTS_ST_WindHistoryParam8
+#define DOTS_ST_WindLeaf1TumbleHistory DOTS_ST_WindHistoryParam9
+#define DOTS_ST_WindLeaf1TwitchHistory DOTS_ST_WindHistoryParam10
+#define DOTS_ST_WindLeaf2RippleHistory DOTS_ST_WindHistoryParam11
+#define DOTS_ST_WindLeaf2TumbleHistory DOTS_ST_WindHistoryParam12
+#define DOTS_ST_WindLeaf2TwitchHistory DOTS_ST_WindHistoryParam13
+#define DOTS_ST_WindFrondRippleHistory DOTS_ST_WindHistoryParam14
+#define DOTS_ST_WindAnimationHistory DOTS_ST_WindHistoryParam15
+
 UNITY_DOTS_INSTANCING_START(UserPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindVector)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindGlobal)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranch)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchTwitch)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchWhip)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAnchor)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAdherences)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindTurbulences)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1Ripple)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1Tumble)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1Twitch)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2Ripple)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2Tumble)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2Twitch)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindFrondRipple)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindAnimation)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindVectorHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindGlobalHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchTwitchHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchWhipHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAnchorHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindBranchAdherencesHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindTurbulencesHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1RippleHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1TumbleHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf1TwitchHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2RippleHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2TumbleHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindLeaf2TwitchHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindFrondRippleHistory)
-    UNITY_DOTS_INSTANCED_PROP(float4, _ST_WindAnimationHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindVector)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindGlobal)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranch)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchTwitch)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchWhip)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAnchor)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAdherences)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindTurbulences)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1Ripple)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1Tumble)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1Twitch)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2Ripple)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2Tumble)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2Twitch)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindFrondRipple)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindAnimation)
+
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindVectorHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindGlobalHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchTwitchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchWhipHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAnchorHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAdherencesHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindTurbulencesHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1RippleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1TumbleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1TwitchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2RippleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2TumbleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2TwitchHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindFrondRippleHistory)
+    UNITY_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindAnimationHistory)
 UNITY_DOTS_INSTANCING_END(UserPropertyMetadata)
 
-#define _ST_WindVector                  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindVector)
-#define _ST_WindGlobal                  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindGlobal)
-#define _ST_WindBranch                  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranch)
-#define _ST_WindBranchTwitch            UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchTwitch)
-#define _ST_WindBranchWhip              UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchWhip)
-#define _ST_WindBranchAnchor            UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAnchor)
-#define _ST_WindBranchAdherences        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAdherences)
-#define _ST_WindTurbulences             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindTurbulences)
-#define _ST_WindLeaf1Ripple             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1Ripple)
-#define _ST_WindLeaf1Tumble             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1Tumble)
-#define _ST_WindLeaf1Twitch             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1Twitch)
-#define _ST_WindLeaf2Ripple             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2Ripple)
-#define _ST_WindLeaf2Tumble             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2Tumble)
-#define _ST_WindLeaf2Twitch             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2Twitch)
-#define _ST_WindFrondRipple             UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindFrondRipple)
-#define _ST_WindAnimation               UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindAnimation)
-#define _ST_WindVectorHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindVectorHistory)
-#define _ST_WindGlobalHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindGlobalHistory)
-#define _ST_WindBranchHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchHistory)
-#define _ST_WindBranchTwitchHistory     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchTwitchHistory)
-#define _ST_WindBranchWhipHistory       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchWhipHistory)
-#define _ST_WindBranchAnchorHistory     UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAnchorHistory)
-#define _ST_WindBranchAdherencesHistory UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindBranchAdherencesHistory)
-#define _ST_WindTurbulencesHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindTurbulencesHistory)
-#define _ST_WindLeaf1RippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1RippleHistory)
-#define _ST_WindLeaf1TumbleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1TumbleHistory)
-#define _ST_WindLeaf1TwitchHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf1TwitchHistory)
-#define _ST_WindLeaf2RippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2RippleHistory)
-#define _ST_WindLeaf2TumbleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2TumbleHistory)
-#define _ST_WindLeaf2TwitchHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindLeaf2TwitchHistory)
-#define _ST_WindFrondRippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindFrondRippleHistory)
-#define _ST_WindAnimationHistory        UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _ST_WindAnimationHistory)
+#define _ST_WindVector                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindVector)
+#define _ST_WindGlobal                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindGlobal)
+#define _ST_WindBranch                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranch)
+#define _ST_WindBranchTwitch            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchTwitch)
+#define _ST_WindBranchWhip              UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchWhip)
+#define _ST_WindBranchAnchor            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAnchor)
+#define _ST_WindBranchAdherences        UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAdherences)
+#define _ST_WindTurbulences             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindTurbulences)
+#define _ST_WindLeaf1Ripple             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1Ripple)
+#define _ST_WindLeaf1Tumble             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1Tumble)
+#define _ST_WindLeaf1Twitch             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1Twitch)
+#define _ST_WindLeaf2Ripple             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2Ripple)
+#define _ST_WindLeaf2Tumble             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2Tumble)
+#define _ST_WindLeaf2Twitch             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2Twitch)
+#define _ST_WindFrondRipple             UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindFrondRipple)
+#define _ST_WindAnimation               UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindAnimation)
+
+#define _ST_WindVectorHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindVectorHistory)
+#define _ST_WindGlobalHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindGlobalHistory)
+#define _ST_WindBranchHistory           UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchHistory)
+#define _ST_WindBranchTwitchHistory     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchTwitchHistory)
+#define _ST_WindBranchWhipHistory       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchWhipHistory)
+#define _ST_WindBranchAnchorHistory     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAnchorHistory)
+#define _ST_WindBranchAdherencesHistory UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindBranchAdherencesHistory)
+#define _ST_WindTurbulencesHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindTurbulencesHistory)
+#define _ST_WindLeaf1RippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1RippleHistory)
+#define _ST_WindLeaf1TumbleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1TumbleHistory)
+#define _ST_WindLeaf1TwitchHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf1TwitchHistory)
+#define _ST_WindLeaf2RippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2RippleHistory)
+#define _ST_WindLeaf2TumbleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2TumbleHistory)
+#define _ST_WindLeaf2TwitchHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindLeaf2TwitchHistory)
+#define _ST_WindFrondRippleHistory      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindFrondRippleHistory)
+#define _ST_WindAnimationHistory        UNITY_ACCESS_DOTS_INSTANCED_PROP(float4, DOTS_ST_WindAnimationHistory)
 
 #endif
 

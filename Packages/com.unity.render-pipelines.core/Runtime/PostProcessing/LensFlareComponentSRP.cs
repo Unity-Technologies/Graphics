@@ -4,6 +4,7 @@ using UnityEditor;
 
 using System;
 using System.Dynamic;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
 {
@@ -16,6 +17,16 @@ namespace UnityEngine.Rendering
     {
         [SerializeField]
         private LensFlareDataSRP m_LensFlareData = null;
+
+        enum Version
+        {
+            Initial,
+        }
+
+        #pragma warning disable 414
+        [SerializeField]
+        Version version = Version.Initial;
+        #pragma warning restore 414
 
         /// <summary>
         /// Lens flare asset used on this component
@@ -71,8 +82,14 @@ namespace UnityEngine.Rendering
         public bool useOcclusion = false;
         /// <summary>
         /// Enable Occlusion using Background Cloud (for instance: CloudLayer)
+        /// Please use useFogOpacityOcclusion instead.
         /// </summary>
+        [Obsolete("Replaced by useFogOpacityOcclusion.")]
         public bool useBackgroundCloudOcclusion = false;
+
+        /// <summary>Enable Occlusion using fog opacity from volumetric clouds, cloud layers and fog.</summary>
+        [FormerlySerializedAs("volumetricCloudOcclusion")]
+        public bool useFogOpacityOcclusion = false;
         /// <summary>
         /// Enable Occlusion with Water
         /// </summary>
@@ -103,7 +120,9 @@ namespace UnityEngine.Rendering
         public bool allowOffScreen = false;
         /// <summary>
         /// If volumetricCloudOcclusion is true then use the volumetric cloud (on HDRP only) for the occlusion
+        /// Please use useFogOpacityOcclusion instead.
         /// </summary>
+        [Obsolete("Please use useFogOpacityOcclusion instead.")]
         public bool volumetricCloudOcclusion = false;
 
         /// Our default celestial body will have an angular radius of 3.3 degrees. This is an arbitrary number, but must be kept constant

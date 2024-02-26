@@ -688,7 +688,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected class LineField : VisualElement
+        internal class LineField : VisualElement
         {
             FrameSettingsField m_FrameSettingsField;
             VisualElement m_Field;

@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     class URPDefaultVolumeProfileSettingsPropertyDrawer : DefaultVolumeProfileSettingsPropertyDrawer
     {
-        GUIContent defaultVolumeProfileAssetLabel => EditorGUIUtility.TrTextContent("Volume Profile",
+        GUIContent defaultVolumeProfileAssetLabel => EditorGUIUtility.TrTextContent("Default Profile",
             "Settings that will be applied project-wide to all Volumes by default when URP is active.");
 
         protected override GUIContent volumeInfoBoxLabel => EditorGUIUtility.TrTextContent(

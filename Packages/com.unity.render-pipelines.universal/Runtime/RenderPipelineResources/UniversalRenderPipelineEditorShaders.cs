@@ -1,13 +1,11 @@
 #if UNITY_EDITOR
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    [Category("Resources/Editor Shaders")]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "R: Editor Shaders", Order = 1000), HideInInspector]
     class UniversalRenderPipelineEditorShaders : IRenderPipelineResources
     {
         public int version => 0;

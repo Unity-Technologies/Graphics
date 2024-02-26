@@ -1,4 +1,5 @@
-# Camera Stacking
+# Set up a camera stack
+
 In the Universal Render Pipeline (URP), you use Camera Stacking to layer the output of multiple Cameras and create a single combined output. Camera Stacking allows you to create effects such as a 3D model in a 2D UI, or the cockpit of a vehicle.
 
 ![Camera Stacking in URP](Images/camera-stacking-example.png)
@@ -10,6 +11,7 @@ A Camera Stack consists of a [Base Camera](camera-types-and-render-type.md#base-
 For examples of how to use Camera Stacking, refer to the [Camera Stacking samples in URP Package Samples](package-sample-urp-package-samples.md#camera-stacking).
 
 <a name="adding-a-camera-to-a-camera-stack"></a>
+
 ## Adding a Camera to a Camera Stack
 
 ![Adding a Camera to a Camera Stack](Images/camera-stack-add-camera.png)
@@ -23,7 +25,7 @@ The Overlay Camera is now part of the Base Camera's Camera Stack. Unity renders 
 
 You can add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
-```
+```c#
 var cameraData = camera.GetUniversalAdditionalCameraData();
 cameraData.cameraStack.Add(myOverlayCamera);
 ```
@@ -40,7 +42,7 @@ The Overlay Camera remains in the scene, but is no longer part of the Camera Sta
 
 You can remove a Camera from a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
-```
+```c#
 var cameraData = camera.GetUniversalAdditionalCameraData();
 cameraData.cameraStack.Remove(myOverlayCamera);
 ```
@@ -71,7 +73,7 @@ The Overlay Camera is now rendering in both Camera Stacks.
 
 You can also add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
-```
+```c#
 var cameraData = camera.GetUniversalAdditionalCameraData();
 cameraData.cameraStack.Add(myOverlayCamera);
 ```

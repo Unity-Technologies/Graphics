@@ -15,6 +15,20 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         private DiffusionProfileSettings[] m_RollBackProfiles;
         private DiffusionProfileList m_List;
 
+        static DiffusionProfileSettings CreateValidDiffusionProfile()
+        {
+            // Some profile guids cannot be saved when float serializes to nan, recreate an asset if that's the case to avoid instabitities
+            while (true)
+            {
+                var profile = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
+                var path = AssetDatabase.GenerateUniqueAssetPath(k_ProfilePath);
+                AssetDatabase.CreateAsset(profile, path);
+                string guid = UnityEditor.AssetDatabase.AssetPathToGUID(path);
+                if (guid == HDUtils.ConvertVector4ToGUID(HDUtils.ConvertGUIDToVector4(guid)))
+                    return profile;
+            }
+        }
+
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
@@ -24,9 +38,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 return;
             }
 
-            m_Profile = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
             CoreUtils.EnsureFolderTreeInAssetFilePath(k_ProfilePath);
-            AssetDatabase.CreateAsset(m_Profile, k_ProfilePath);
+            m_Profile = CreateValidDiffusionProfile();
 
             Assert.IsTrue(GraphicsSettings.TryGetRenderPipelineSettings<DiffusionProfileDefaultSettings>(out var diffusionProfileDefaultSettings));
             Assert.IsInstanceOf<DiffusionProfileDefaultSettings>(diffusionProfileDefaultSettings);
@@ -67,8 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             m_List.ReplaceWithArray(Array.Empty<DiffusionProfileSettings>());
             GraphicsSettings.GetRenderPipelineSettings<DiffusionProfileDefaultSettings>().autoRegister = true;
 
-            var profile1 = ScriptableObject.CreateInstance<DiffusionProfileSettings>();
-            AssetDatabase.CreateAsset(profile1, AssetDatabase.GenerateUniqueAssetPath(k_ProfilePath));
+            var profile1 = CreateValidDiffusionProfile();
 
             var materialPath = $"Assets/Temp/{nameof(DiffusionProfileTests)}/{nameof(DiffusionProfile_AutoRegister)}/Material.mat";
 

@@ -275,6 +275,35 @@ namespace UnityEngine.Rendering
             m_TmpDataBuffer = new NativeArray<uint>(m_Capacity * m_UintPerInstance, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
         }
 
+        public unsafe IntPtr GetUploadBufferPtr()
+        {
+            Assert.IsTrue(m_TmpDataBuffer.IsCreated);
+            Assert.IsTrue(m_TmpDataBuffer.Length > 0 && m_InstanceCount > 0);
+            return new IntPtr(m_TmpDataBuffer.GetUnsafePtr());
+        }
+
+        public int GetUIntPerInstance()
+        {
+            return m_UintPerInstance;
+        }
+
+        public int GetParamUIntOffset(int parameterIndex)
+        {
+            Assert.IsTrue(m_ComponentIsInstanced[parameterIndex], "Component is non instanced. Can only call this function on parameters that are for all instances.");
+            Assert.IsTrue(parameterIndex >= 0 && parameterIndex < m_ComponentDataIndex.Length, "Parameter index invalid.");
+            Assert.IsTrue(m_ComponentDataIndex[parameterIndex] != -1, "Parameter index is not allocated. Did you allocate proper InstanceType parameters?");
+            return m_ComponentDataIndex[parameterIndex];
+        }
+
+        public int PrepareParamWrite<T>(int parameterIndex) where T : unmanaged
+        {
+            int uintPerParameter = UnsafeUtility.SizeOf<T>() / UnsafeUtility.SizeOf<uint>();
+            Assert.IsTrue(uintPerParameter == m_DescriptionsUintSize[parameterIndex], "Parameter to write is incompatible, must be same stride as destination.");
+            if (!m_WritenComponentIndices.Contains(parameterIndex))
+                m_WritenComponentIndices.Add(parameterIndex);
+            return GetParamUIntOffset(parameterIndex);
+        }
+
         public unsafe void AllocateUploadHandles(int handlesLength)
         {
             // No need to preallocate instances anymore, as those are passed as parameters to SubmitToGPU to avoid data duplication

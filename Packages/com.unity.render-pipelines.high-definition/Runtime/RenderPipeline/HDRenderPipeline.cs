@@ -98,6 +98,12 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousEnableCookiesInLightmapper = true;
 #endif
 
+#if UNITY_SWITCH
+        internal static bool k_PreferFragment = true;
+#else
+        internal static bool k_PreferFragment = false;
+#endif
+
         /// <summary>
         /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
         /// </summary>
@@ -110,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock m_CopyDepthPropertyBlock = new MaterialPropertyBlock();
         Material m_CopyDepth;
         Material m_UpsampleTransparency;
-        MipGenerator m_MipGenerator;
+        internal MipGenerator m_MipGenerator;
         BlueNoise m_BlueNoise;
 
         IBLFilterBSDF[] m_IBLFilterArray = null;
@@ -422,7 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
 
         internal HDRPRayTracingResources rayTracingResources { get; private set; }
-        
+
         internal bool reflectionProbeBaking { get; set; }
 
         /// <summary>
@@ -627,6 +633,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
+            m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.colorResolvePS);
+            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(runtimeShaders.resolveMotionVecPS);
+            s_ColorResolve1XPassIndex = m_ColorResolveMaterial.FindPass("MSAA1X");
+            s_ColorResolve2XPassIndex = m_ColorResolveMaterial.FindPass("MSAA2X");
+            s_ColorResolve4XPassIndex = m_ColorResolveMaterial.FindPass("MSAA4X");
+            s_ColorResolve8XPassIndex = m_ColorResolveMaterial.FindPass("MSAA8X");
 
             m_SkyManager.Build(asset, this, m_IBLFilterArray);
 
@@ -684,12 +696,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CameraCaptureBridge.enabled = true;
 
             InitializePrepass(m_Asset);
-            m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.colorResolvePS);
-            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(runtimeShaders.resolveMotionVecPS);
-            s_ColorResolve1XPassIndex = m_ColorResolveMaterial.FindPass("MSAA1X");
-            s_ColorResolve2XPassIndex = m_ColorResolveMaterial.FindPass("MSAA2X");
-            s_ColorResolve4XPassIndex = m_ColorResolveMaterial.FindPass("MSAA4X");
-            s_ColorResolve8XPassIndex = m_ColorResolveMaterial.FindPass("MSAA8X");
 
             CustomPassUtils.Initialize(this);
 

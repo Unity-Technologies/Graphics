@@ -1,12 +1,10 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Category("Resources/Renderer 2D")]
+    [Categorization.CategoryInfo(Name = "R: 2D Renderer", Order = 1000), HideInInspector]
     class Renderer2DResources : IRenderPipelineResources
     {
         [SerializeField][HideInInspector] private int m_Version = 0;

@@ -626,6 +626,7 @@ namespace UnityEngine.Rendering
         /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (colorBuffer.rt != null && depthBuffer.rt != null)
             {
                 int cw = colorBuffer.rt.width;
@@ -635,6 +636,7 @@ namespace UnityEngine.Rendering
 
                 Debug.Assert(cw == dw && ch == dh);
             }
+#endif
 
             SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
@@ -651,6 +653,7 @@ namespace UnityEngine.Rendering
         /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (colorBuffer.rt != null && depthBuffer.rt != null)
             {
                 int cw = colorBuffer.rt.width;
@@ -660,6 +663,7 @@ namespace UnityEngine.Rendering
 
                 Debug.Assert(cw == dw && ch == dh);
             }
+#endif
 
             SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
@@ -677,6 +681,7 @@ namespace UnityEngine.Rendering
         /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
         public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (colorBuffer.rt != null && depthBuffer.rt != null)
             {
                 int cw = colorBuffer.rt.width;
@@ -686,6 +691,7 @@ namespace UnityEngine.Rendering
 
                 Debug.Assert(cw == dw && ch == dh);
             }
+#endif
 
             SetRenderTarget(cmd, colorBuffer.nameID, depthBuffer.nameID, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
@@ -729,6 +735,7 @@ namespace UnityEngine.Rendering
             RTHandle depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (colorBuffer.rt != null && depthBuffer.rt != null)
             {
                 int cw = colorBuffer.rt.width;
@@ -738,6 +745,7 @@ namespace UnityEngine.Rendering
 
                 Debug.Assert(cw == dw && ch == dh);
             }
+#endif
 
             SetRenderTarget(cmd, colorBuffer.nameID, colorLoadAction, colorStoreAction, depthBuffer.nameID, depthLoadAction, depthStoreAction, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);

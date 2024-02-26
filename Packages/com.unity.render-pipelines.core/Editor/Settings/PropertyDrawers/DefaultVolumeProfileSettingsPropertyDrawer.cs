@@ -34,6 +34,11 @@ namespace UnityEditor.Rendering
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             m_Root = new VisualElement();
+
+            var header = CreateHeader();
+            if (header != null)
+                m_Root.Add(header);
+
             m_SettingsSerializedObject = property.serializedObject;
             m_VolumeProfileSerializedProperty = property.FindPropertyRelative("m_VolumeProfile");
             m_DefaultVolumeProfileFoldoutExpanded = new EditorPrefBool($"{GetType()}.DefaultVolumeProfileFoldoutExpanded", true);
@@ -50,6 +55,12 @@ namespace UnityEditor.Rendering
 
             return m_Root;
         }
+        
+        /// <summary>
+        /// Creates the header for the Volume Profile editor.
+        /// </summary>
+        /// <returns>VisualElement containing the header. Null for no header.</returns>
+        protected virtual VisualElement CreateHeader() => null;
 
         /// <summary>
         /// Creates the Default Volume Profile editor.

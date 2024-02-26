@@ -522,7 +522,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         #region DoF
-        public void RenderDoF(RenderGraph renderGraph, UniversalResourceData resourceData, in TextureHandle source, out TextureHandle destination)
+        public void RenderDoF(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, out TextureHandle destination)
         {
             var dofMaterial = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian ? m_Materials.gaussianDepthOfField : m_Materials.bokehDepthOfField;
 
@@ -535,11 +535,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
             {
-                RenderDoFGaussian(renderGraph, resourceData, source, destination, ref dofMaterial);
+                RenderDoFGaussian(renderGraph, resourceData, cameraData, source, destination, ref dofMaterial);
             }
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
             {
-                RenderDoFBokeh(renderGraph, resourceData, source, destination, ref dofMaterial);
+                RenderDoFBokeh(renderGraph, resourceData, cameraData, source, destination, ref dofMaterial);
             }
         }
 
@@ -551,6 +551,7 @@ namespace UnityEngine.Rendering.Universal
             internal Vector3 cocParams;
             internal bool highQualitySamplingValue;
             internal Material material;
+            internal Material materialCoC;
         };
 
         private class DoFGaussianPassData
@@ -558,10 +559,11 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle cocTexture;
             internal TextureHandle colorTexture;
             internal TextureHandle sourceTexture;
+            internal TextureHandle depthTexture;
             internal Material material;
         };
 
-        public void RenderDoFGaussian(RenderGraph renderGraph, UniversalResourceData resourceData, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial)
+        public void RenderDoFGaussian(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial)
         {
             int downSample = 2;
             var material = dofMaterial;
@@ -584,6 +586,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cocParams = new Vector3(farStart, farEnd, maxRadius);
                 passData.highQualitySamplingValue = m_DepthOfField.highQualitySampling.value;
                 passData.material = material;
+                passData.materialCoC = m_Materials.gaussianDepthOfFieldCoC;
 
                 // TODO RENDERGRAPH: properly setup dependencies between passes
                 builder.AllowPassCulling(false);
@@ -592,10 +595,15 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderFunc((DoFGaussianSetupPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
-                    var dofmaterial = data.material;
 
-                    dofmaterial.SetVector(ShaderConstants._CoCParams, data.cocParams);
-                    CoreUtils.SetKeyword(dofmaterial, ShaderKeywordStrings.HighQualitySampling, data.highQualitySamplingValue);
+                    var dofMaterial = data.material;
+                    dofMaterial.SetVector(ShaderConstants._CoCParams, data.cocParams);
+                    CoreUtils.SetKeyword(dofMaterial, ShaderKeywordStrings.HighQualitySampling, data.highQualitySamplingValue);
+
+                    var dofMaterialCoC = data.materialCoC;
+                    dofMaterialCoC.SetVector(ShaderConstants._CoCParams, data.cocParams);
+                    CoreUtils.SetKeyword(dofMaterialCoC, ShaderKeywordStrings.HighQualitySampling, data.highQualitySamplingValue);
+
                     PostProcessUtils.SetSourceSize(cmd, data.source);
                     cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample, data.downSample));
                 });
@@ -616,15 +624,23 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(fullCoCTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = source;
                 builder.UseTexture(source, AccessFlags.Read);
+                passData.depthTexture = resourceData.cameraDepthTexture;
+                passData.material = m_Materials.gaussianDepthOfFieldCoC;
 
-                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
+                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                if (renderer.renderingModeActual != RenderingMode.Deferred)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
+                else if (renderer.deferredLights.GbufferDepthIndex != -1)
+                    builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
 
-                passData.material = material;
                 builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
+
+                    dofmaterial.SetTexture(s_CameraDepthTextureID, data.depthTexture);
+
                     // Compute CoC
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 0);
@@ -741,6 +757,7 @@ namespace UnityEngine.Rendering.Universal
             internal Vector4 cocParams;
             internal bool useFastSRGBLinearConversion;
             internal Material material;
+            internal Material materialCoC;
         };
 
         private class DoFBokehPassData
@@ -748,10 +765,11 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle cocTexture;
             internal TextureHandle dofTexture;
             internal TextureHandle sourceTexture;
+            internal TextureHandle depthTexture;
             internal Material material;
         };
 
-        public void RenderDoFBokeh(RenderGraph renderGraph, UniversalResourceData resourceData, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial)
+        public void RenderDoFBokeh(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial)
         {
             int downSample = 2;
             var material = dofMaterial;
@@ -787,6 +805,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cocParams = new Vector4(P, maxCoC, maxRadius, rcpAspect);
                 passData.useFastSRGBLinearConversion = m_UseFastSRGBLinearConversion;
                 passData.material = material;
+                passData.materialCoC = m_Materials.bokehDepthOfFieldCoC;
 
                 // TODO RENDERGRAPH: properly setup dependencies between passes
                 builder.AllowPassCulling(false);
@@ -794,10 +813,14 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((DoFBokehSetupPassData data, RasterGraphContext context) =>
                 {
-                    var dofmaterial = data.material;
                     var cmd = context.cmd;
 
-                    CoreUtils.SetKeyword(dofmaterial, ShaderKeywordStrings.UseFastSRGBLinearConversion, data.useFastSRGBLinearConversion);
+                    var dofMaterial = data.material;
+                    CoreUtils.SetKeyword(dofMaterial, ShaderKeywordStrings.UseFastSRGBLinearConversion, data.useFastSRGBLinearConversion);
+
+                    var dofMaterialCoC = data.materialCoC;
+                    CoreUtils.SetKeyword(dofMaterialCoC, ShaderKeywordStrings.UseFastSRGBLinearConversion, data.useFastSRGBLinearConversion);
+
                     cmd.SetGlobalVector(ShaderConstants._CoCParams, data.cocParams);
                     cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, data.bokehKernel);
                     cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample, data.downSample));
@@ -819,15 +842,22 @@ namespace UnityEngine.Rendering.Universal
                 builder.SetRenderAttachment(fullCoCTexture, 0, AccessFlags.Write);
                 passData.sourceTexture = source;
                 builder.UseTexture(source, AccessFlags.Read);
-                passData.material = material;
+                passData.depthTexture = resourceData.cameraDepthTexture;
+                passData.material = m_Materials.bokehDepthOfFieldCoC;
 
-                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
+                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                if (renderer.renderingModeActual != RenderingMode.Deferred)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
+                else if (renderer.deferredLights.GbufferDepthIndex != -1)
+                    builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
 
                 builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
+
+                    dofmaterial.SetTexture(s_CameraDepthTextureID, data.depthTexture);
 
                     // Compute CoC
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
@@ -2008,7 +2038,7 @@ namespace UnityEngine.Rendering.Universal
             // DOF shader uses #pragma target 3.5 which adds requirement for instancing support, thus marking the shader unsupported on those devices.
             if (useDepthOfField)
             {
-                RenderDoF(renderGraph, resourceData, in currentSource, out var DoFTarget);
+                RenderDoF(renderGraph, resourceData, cameraData, in currentSource, out var DoFTarget);
                 currentSource = DoFTarget;
             }
 

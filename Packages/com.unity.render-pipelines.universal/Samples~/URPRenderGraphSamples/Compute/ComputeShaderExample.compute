@@ -1,0 +1,16 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a StructuredBuffer/ComputeBuffer with read only flag.
+StructuredBuffer<int> inputData;
+// Create a StructuredBuffer/ComputeBuffer with read & write flag.
+RWStructuredBuffer<int> outputData;
+
+// We allocate 20 threads one for each number given to the shader.
+// CSMain is the entry point we use we have to define the entry points as kernel.
+[numthreads(20,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    // We use the thead id as index for the data.
+    outputData[id.x] = 2 * inputData[id.x];
+}

@@ -50,7 +50,7 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
     struct RenderOutput
     {
         float4 colorBuffer : SV_Target0;
-        float4 opacityBuffer : SV_Target1;
+        float4 transmittanceBuffer : SV_Target1;
     };
     #else
     struct RenderOutput
@@ -86,7 +86,9 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
         output.colorBuffer = color;
 
         #ifdef CLOUD_RENDER_OPACITY_MRT
-        output.opacityBuffer = 1.0f - color.a;
+        // We always store the total transmittance in the first channel as we don't want to accumulate cloud layers
+        // for the opacity used in the fog multiple scattering.
+        output.transmittanceBuffer = float4(1 - color.a, 1, 1, 1);
         #endif
 
         return output;
@@ -101,7 +103,8 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
         {
             ZWrite Off
             ZTest Always
-            Blend One OneMinusSrcAlpha // Premultiplied alpha
+            Blend 0 One OneMinusSrcAlpha // Premultiplied alpha
+            Blend 1 DstColor Zero
             Cull Off
 
             HLSLPROGRAM
@@ -113,7 +116,8 @@ Shader "Hidden/HDRP/Sky/CloudLayer"
         {
             ZWrite Off
             ZTest LEqual
-            Blend One OneMinusSrcAlpha // Premultiplied alpha
+            Blend 0 One OneMinusSrcAlpha // Premultiplied alpha
+            Blend 1 DstColor Zero
             Cull Off
 
             HLSLPROGRAM

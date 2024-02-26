@@ -477,6 +477,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         List<int>[] m_ImmediateModeResourceList = new List<int>[(int)RenderGraphResourceType.Count];
         RenderGraphCompilationCache m_CompilationCache;
 
+        RenderTargetIdentifier[][] m_TempMRTArrays = null;
+
         internal interface ICompiledGraph
         {
             public void Clear();
@@ -589,6 +591,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
                 enableValidityChecks = true;
             }
+
+            m_TempMRTArrays = new RenderTargetIdentifier[kMaxMRTCount][];
+            for (int i = 0; i < kMaxMRTCount; ++i)
+                m_TempMRTArrays[i] = new RenderTargetIdentifier[i + 1];
 
             m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_FrameInformationLogger);
             s_RegisteredGraphs.Add(this);
@@ -1317,7 +1323,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0)
         {
-            using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, (ProfilingSampler)null))
+            if (sampler == null)
+                return;
+
+            using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
@@ -1339,7 +1348,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerFilePath] string file = "",
             [CallerLineNumber] int line = 0)
         {
-            using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, (ProfilingSampler)null))
+            if (sampler == null)
+                return;
+
+            using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
@@ -2174,58 +2186,48 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, RenderGraphPass pass, InternalRenderGraphContext rgContext)
         {
-            if (pass.depthBuffer.IsValid() || pass.colorBufferMaxIndex != -1)
+            var depthBufferIsValid = pass.depthBuffer.IsValid();
+            if (depthBufferIsValid || pass.colorBufferMaxIndex != -1)
             {
-                var mrtArray = rgContext.renderGraphPool.GetTempArray<RenderTargetIdentifier>(pass.colorBufferMaxIndex + 1);
                 var colorBuffers = pass.colorBuffers;
 
                 if (pass.colorBufferMaxIndex > 0)
                 {
+                    var mrtArray = m_TempMRTArrays[pass.colorBufferMaxIndex];
+
                     for (int i = 0; i <= pass.colorBufferMaxIndex; ++i)
                     {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
                         if (!colorBuffers[i].IsValid())
                             throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
+#endif
                         mrtArray[i] = m_Resources.GetTexture(colorBuffers[i]);
                     }
 
-                    CoreUtils.SetViewport(rgContext.cmd , m_Resources.GetTexture(colorBuffers[0]));
-
-                    if (pass.depthBuffer.IsValid())
+                    if (depthBufferIsValid)
                     {
                         CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, m_Resources.GetTexture(pass.depthBuffer));
                     }
                     else
                     {
                         throw new InvalidOperationException("Setting MRTs without a depth buffer is not supported.");
-                    }
+                    } 
                 }
                 else
                 {
-                    if (pass.depthBuffer.IsValid())
+                    if (depthBufferIsValid)
                     {
                         if (pass.colorBufferMaxIndex > -1)
-                        {
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]),
-                                m_Resources.GetTexture(pass.depthBuffer));
-                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
-                        }
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]), m_Resources.GetTexture(pass.depthBuffer));
                         else
-                        {
                             CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthBuffer));
-                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.depthBuffer));
-                        }
                     }
                     else
                     {
                         if (pass.colorBuffers[0].IsValid())
-                        {
                             CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
-                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
-                        }
                         else
-                        {
                             throw new InvalidOperationException("Neither Depth nor color render targets are correctly setup at pass " + pass.name + ".");
-                        }
                     }
                 }
             }
@@ -2379,6 +2381,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         ProfilingSampler GetDefaultProfilingSampler(string name)
         {
+            // In non-dev builds, ProfilingSampler.Get returns null, so we'd always end up executing this.
+            // To avoid that we also ifdef the code out here.
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             int hash = name.GetHashCode();
             if (!m_DefaultProfilingSamplers.TryGetValue(hash, out var sampler))
             {
@@ -2387,6 +2392,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 
             return sampler;
+#else
+            return null;
+#endif
         }
 
         void UpdateImportedResourceLifeTime(ref DebugData.ResourceData data, List<int> passList)
@@ -2574,7 +2582,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_DebugData.Clear();
         }
 
-        #endregion
+#endregion
 
 
         Dictionary<int, TextureHandle> registeredGlobals = new Dictionary<int, TextureHandle>();
@@ -2602,6 +2610,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
     }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
     /// <summary>
     /// Render Graph Scoped Profiling markers
     /// </summary>
@@ -2649,4 +2658,32 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Disposed = true;
         }
     }
+#else
+    /// <summary>
+    /// Render Graph Scoped Profiling markers
+    /// </summary>
+    public struct RenderGraphProfilingScope : IDisposable
+    {
+        /// <summary>
+        /// Profiling Scope constructor
+        /// </summary>
+        /// <param name="renderGraph">Render Graph used for this scope.</param>
+        /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
+        public RenderGraphProfilingScope(RenderGraph renderGraph, ProfilingSampler sampler)
+        {
+        }
+
+        /// <summary>
+        ///  Dispose pattern implementation
+        /// </summary>
+        public void Dispose()
+        {
+        }
+
+        // Protected implementation of Dispose pattern.
+        void Dispose(bool disposing)
+        {
+        }
+    }
+#endif
 }

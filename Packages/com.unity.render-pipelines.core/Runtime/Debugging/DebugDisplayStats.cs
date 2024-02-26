@@ -200,6 +200,10 @@ namespace UnityEngine.Rendering
             {
                 var sampler = ProfilingSampler.Get(samplerId);
 
+                // In non-dev build ProfilingSampler.Get always returns null.
+                if (sampler == null)
+                    continue;
+
                 sampler.enableRecording = true;
 
                 result.Add(new DebugUI.ValueTuple

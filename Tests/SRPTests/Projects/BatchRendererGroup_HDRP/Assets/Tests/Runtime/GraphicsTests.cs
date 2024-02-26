@@ -23,6 +23,11 @@ public class GraphicsTests
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        if (testCase.ScenePath.Contains("ErrorMaterial"))
+        {
+            LogAssert.ignoreFailingMessages = true;
+        }
+
 		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
@@ -31,7 +36,7 @@ public class GraphicsTests
 
         //Get Test settings
         //ignore instead of failing, because some scenes might not be used for GraphicsTest
-        var settings = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
+        var settings = Object.FindAnyObjectByType<GraphicsTestSettingsCustom>();
         if (settings == null) Assert.Ignore("Ignoring this test for GraphicsTest because couldn't find GraphicsTestSettingsCustom");
 
 #if !UNITY_EDITOR
@@ -70,7 +75,6 @@ public class GraphicsTests
             wasFirstSceneRan = true;
         }
 #endif
-
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
     }
 

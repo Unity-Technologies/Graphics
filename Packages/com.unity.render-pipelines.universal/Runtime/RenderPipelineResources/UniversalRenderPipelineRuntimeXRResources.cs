@@ -1,6 +1,5 @@
 #if ENABLE_VR && ENABLE_XR_MODULE
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -9,9 +8,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     /// <seealso cref="Shader"/>
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Category("Resources/Runtime XR")]
+    [Categorization.CategoryInfo(Name = "R: Runtime XR", Order = 1000), HideInInspector]
     public class UniversalRenderPipelineRuntimeXRResources : IRenderPipelineResources
     {
         /// <summary>

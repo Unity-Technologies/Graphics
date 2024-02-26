@@ -1,7 +1,15 @@
-# Clearing, rendering order and overdraw
+# Understand camera render order
 
-<a name="clearing"></a>
-## Clearing
+This page describes when a Universal Render Pipeline (URP) camera performs the following operations:
+
+* [Clearing the color and depth buffers](#clearing)
+  * [Base Camera](#base-camera)
+  * [Overlay Camera](#overlay-camera)
+* [Culling and rendering](#camera-culling-and-rendering-order)
+* [Rendering order optimizations.](#rendering-order-optimizations)
+* [Render requests](#render-requests)
+
+## Clearing the color and depth buffers
 
 In the Universal Render Pipeline (URP), Camera clearing behavior depends on the Camera's [Render Type](camera-types-and-render-type.md).
 
@@ -17,7 +25,7 @@ Note that the contents of the uninitialized color buffer vary by platform. On so
 
 A Base Camera always clears its depth buffer at the start of each render loop.
 
-## Overlay Camera
+### Overlay Camera
 
 #### Color buffer
 
@@ -29,9 +37,7 @@ At the start of its render loop, an Overlay Camera receives a depth buffer conta
 
 When **Clear Depth** is set to true, the Overlay Camera clears the depth buffer and draws its view to the color buffer on top of any existing color data. When **Clear Depth** is set to false, the Overlay Camera tests against the depth buffer before drawing its view to the color buffer.
 
-<a name="rendering-order"></a>
-
-## Camera culling and rendering order
+## Culling and rendering
 
 If your URP scene contains multiple Cameras, Unity performs their culling and rendering operations in a predictable order.
 
@@ -56,13 +62,22 @@ Once per frame, Unity performs the following operations:
 
 Unity can render an Overlay Camera’s view multiple times during a frame - either because the Overlay Camera appears in more than one Camera Stack, or because the Overlay Camera appears in the same Camera Stack more than once. When this happens, Unity does not reuse any element of the culling or rendering operation. The operations are repeated in full, in the order detailed above.
 
-> **Note**: In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer. Overlay Cameras will not perform any part of their rendering loop if using the 2D Renderer.
+> [!NOTE]
+> In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer. Overlay Cameras will not perform any part of their rendering loop if using the 2D Renderer.
 
-<a name="overdraw"></a>
-## Overdraw
+## Rendering order optimizations
 
 URP performs several optimizations within a Camera, including rendering order optimizations to reduce overdraw. However, when you use a Camera Stack, you effectively define the order in which those Cameras are rendered. You must therefore be careful not to order the Cameras in a way that causes excessive overdraw.
 
 When multiple Cameras in a Camera Stack render to the same render target, Unity draws each pixel in the render target for each Camera in the Camera Stack. Additionally, if more than one Base Camera or Camera Stack renders to the same area of the same render target, Unity draws any pixels in the overlapping area again, as many times as required by each Base Camera or Camera Stack.
 
 You can use Unity's [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger.html), or platform-specific frame capture and debugging tools, to understand where excessive overdraw occurs in your scene. You can then optimize your Camera Stacks accordingly.
+
+## Render requests
+
+You can use a render request in a C# script to trigger a camera to render to a render texture, outside the URP rendering loop. You can use two types of render request in URP, which do the following:
+
+* [RenderPipeline.StandardRequest](xref:Rendering.RenderPipeline.StandardRequest) renders the output of a full stack of cameras.
+* [UniversalRenderPipeline.SingleCameraRequest](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/api/UnityEngine.Rendering.Universal.UniversalRenderPipeline.SingleCameraRequest.html) renders the output of a single camera.
+
+For more information on how to use render requests, refer to [Render Requests](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/User-Render-Requests.html).

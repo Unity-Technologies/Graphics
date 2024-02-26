@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
 #define ENABLE_PICKING
-//#define ENABLE_ERROR_LOADING_MATERIALS
+#define ENABLE_ERROR_LOADING_MATERIALS
 #endif
 
 using System;
@@ -77,7 +77,7 @@ public struct DrawKey : IEquatable<DrawKey>, IComparable<DrawKey>
 
     public bool isTransparent { get { return transparentInstanceID != 0; } }
 
-    public BatchDrawCommandFlags drawCommandFlags { get { 
+    public BatchDrawCommandFlags drawCommandFlags { get {
         var flags = BatchDrawCommandFlags.None;
         if (isTransparent)
             flags |= BatchDrawCommandFlags.HasSortingPosition;
@@ -141,7 +141,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
     public bool useBatchLayer = false;
     public int batchLayer = 0;
-    
+
     public static T* Malloc<T>(int count) where T : unmanaged
     {
         return (T*)UnsafeUtility.Malloc(
@@ -541,12 +541,12 @@ public unsafe class RenderBRG : MonoBehaviour
 
         // If splits are involved, defer allocation until we know exactly how many we will need
         if (splitCounts.Length > 1)
-        { 
+        {
             drawCommands.drawCommands = null;
             drawCommands.instanceSortingPositions = null;
         }
         else
-        { 
+        {
             drawCommands.drawCommands = Malloc<BatchDrawCommand>(maxDrawCommands);
             drawCommands.instanceSortingPositions = Malloc<float>(3 * maxDrawCommands);
         }
@@ -1121,7 +1121,7 @@ public unsafe class RenderBRG : MonoBehaviour
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                bool isTransparent = sharedMaterials[matIndex].renderQueue > (int)RenderQueue.GeometryLast;
+                bool isTransparent = sharedMaterials[matIndex]?.renderQueue > (int)RenderQueue.GeometryLast;
 
                 var key = new DrawKey
                 {

@@ -640,7 +640,10 @@ namespace UnityEngine.Rendering
             if (Debug.isDebugBuild)
             {
                 streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Display Index Fragmentation", getter = () => probeVolumeDebug.displayIndexFragmentation, setter = value => probeVolumeDebug.displayIndexFragmentation = value });
-                var indexDefragContainerChildren = new DebugUI.Container();
+                var indexDefragContainerChildren = new DebugUI.Container()
+                {
+                    isHiddenCallback = () => !probeVolumeDebug.displayIndexFragmentation
+                };
                 indexDefragContainerChildren.children.Add(new DebugUI.Value { displayName = "Index Fragmentation Rate", getter = () => instance.indexFragmentationRate });
                 streamingContainer.children.Add(indexDefragContainerChildren);
                 streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Verbose Log", getter = () => probeVolumeDebug.verboseStreamingLog, setter = value => probeVolumeDebug.verboseStreamingLog = value });
@@ -768,7 +771,7 @@ namespace UnityEngine.Rendering
         /// <param name="debugOverlay"></param>
         public void RenderFragmentationOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, DebugOverlay debugOverlay)
         {
-            if (!probeVolumeDebug.displayIndexFragmentation)
+            if (!m_ProbeReferenceVolumeInit || !probeVolumeDebug.displayIndexFragmentation)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderFragmentationOverlayPassData>("APVFragmentationOverlay", out var passData))

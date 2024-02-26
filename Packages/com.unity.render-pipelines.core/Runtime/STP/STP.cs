@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -908,9 +907,9 @@ namespace UnityEngine.Rendering
         /// Contains the compute shaders used during STP's passes
         /// </summary>
         [Serializable]
-        [HideInInspector]
-        [Category("Resources/STP")]
         [SupportedOnRenderPipeline]
+        [Categorization.CategoryInfo(Name = "R: STP", Order = 1000)]
+        [Categorization.ElementInfo(Order = 0), HideInInspector]
         class RuntimeResources : IRenderPipelineResources
         {
             public int version => 0;

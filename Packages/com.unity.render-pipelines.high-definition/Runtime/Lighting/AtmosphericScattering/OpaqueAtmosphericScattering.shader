@@ -4,9 +4,10 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-        //#pragma enable_d3d11_debug_symbols
+        // #pragma enable_d3d11_debug_symbols
 
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
+        #pragma multi_compile_fragment _ OUTPUT_TRANSMITTANCE_BUFFER
 
         #if defined(SUPPORT_WATER) || defined(SUPPORT_WATER_CAUSTICS) || defined(SUPPORT_WATER_CAUSTICS_SHADOW)
         #define SUPPORT_WATER_ABSORPTION
@@ -32,6 +33,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
         TEXTURE2D_X_MSAA(float,  _DepthTextureMS);
         TEXTURE2D_X(_ColorTexture);
+        float _MultipleScatteringIntensity;
 
         // Water absorption stuff
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
@@ -48,6 +50,14 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
+        struct FragOutput
+        {
+            float4 color : SV_Target0;
+#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+            float2 opticalFogTransmittance : SV_Target1;
+#endif
+        };
+
         Varyings Vert(Attributes input)
         {
             Varyings output;
@@ -57,9 +67,9 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             return output;
         }
 
-        void AtmosphericScatteringCompute(Varyings input, float3 V, float depth, bool atmosphericScattering, out float3 color, out float3 opacity)
+        void AtmosphericScatteringCompute(float2 positionCS, float3 V, float depth, bool atmosphericScattering, out float3 color, out float3 opacity, out float3 opacityWithoutWater)
         {
-            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+            PositionInputs posInput = GetPositionInput(positionCS, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             #ifdef SUPPORT_WATER_ABSORPTION
             if (_EnableWater == 0 || !EvaluateUnderwaterAbsorption(posInput, color, opacity))
@@ -82,39 +92,56 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
                 posInput.deviceDepth = UNITY_RAW_FAR_CLIP_VALUE;
 
             EvaluateAtmosphericScattering(posInput, V, color, opacity); // Premultiplied alpha
+            opacityWithoutWater = opacity;
 
             #ifdef SUPPORT_WATER_ABSORPTION
+            }
+            else
+            {
+                opacityWithoutWater = 0;
             }
             #endif
         }
 
-        float4 Frag(Varyings input) : SV_Target
+        FragOutput ComputeFragmentOutput(float4 outputColor, float3 opacity)
+        {
+            FragOutput output;
+
+            output.color = outputColor;
+#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+            float finalOpacity = (opacity.x + opacity.y + opacity.z) / 3.0f;
+            output.opticalFogTransmittance = 1 - finalOpacity;
+#endif
+            return output;
+        }
+
+        FragOutput Frag(Varyings input)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS  = input.positionCS.xy;
             float3 V           = GetSkyViewDirWS(positionSS);
             float  depth       = LoadCameraDepth(positionSS);
 
-            float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, false, volColor, volOpacity);
+            float3 volColor, volOpacity, opacity2;
+            AtmosphericScatteringCompute(positionSS, V, depth, false, volColor, volOpacity, opacity2);
 
-            return float4(volColor, 1.0 - volOpacity.x);
+            return ComputeFragmentOutput(float4(volColor, 1.0 - volOpacity.x), volOpacity);
         }
 
-        float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
+        FragOutput FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS  = input.positionCS.xy;
             float3 V           = GetSkyViewDirWS(positionSS);
             float  depth       = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
 
-            float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, false, volColor, volOpacity);
+            float3 volColor, volOpacity, opacity2;
+            AtmosphericScatteringCompute(positionSS, V, depth, false, volColor, volOpacity, opacity2);
 
-            return float4(volColor, 1.0 - volOpacity.x);
+            return ComputeFragmentOutput(float4(volColor, 1.0 - volOpacity.x), volOpacity);
         }
 
-        float4 FragPolychromatic(Varyings input) : SV_Target
+        FragOutput FragPolychromatic(Varyings input)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
@@ -122,13 +149,13 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float  depth = LoadCameraDepth(positionSS);
             float4 surfColor = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS);
 
-            float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, true, volColor, volOpacity);
+            float3 volColor, volOpacity, opacity2;
+            AtmosphericScatteringCompute(positionSS, V, depth, true, volColor, volOpacity, opacity2);
 
-            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
+            return ComputeFragmentOutput(float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a), volOpacity); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
 
-        float4 FragMSAAPolychromatic(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
+        FragOutput FragMSAAPolychromatic(Varyings input, uint sampleIndex: SV_SampleIndex)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 positionSS = input.positionCS.xy;
@@ -136,10 +163,10 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float  depth = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
             float4 surfColor = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex);
 
-            float3 volColor, volOpacity;
-            AtmosphericScatteringCompute(input, V, depth, true, volColor, volOpacity);
+            float3 volColor, volOpacity, opacity2;
+            AtmosphericScatteringCompute(positionSS, V, depth, true, volColor, volOpacity, opacity2);
 
-            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
+            return ComputeFragmentOutput(float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a), volOpacity); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
     ENDHLSL
 
@@ -153,7 +180,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             Name "Default"
 
             Cull Off    ZWrite Off
-            Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
+            Blend 0 One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
+            Blend 1 Off
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
@@ -168,7 +196,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             Name "MSAA"
 
             Cull Off    ZWrite Off
-            Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
+            Blend 0 One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
+            Blend 1 Off
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM

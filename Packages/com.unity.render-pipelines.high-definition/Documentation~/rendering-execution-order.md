@@ -1,4 +1,4 @@
-# Understand excecution order
+# Understand execution order
 
 The following diagram shows the order in which the High Definition Render Pipeline (HDRP) executes render passes. 
 

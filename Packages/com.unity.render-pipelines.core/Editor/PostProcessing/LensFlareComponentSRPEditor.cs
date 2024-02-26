@@ -22,16 +22,17 @@ namespace UnityEditor.Rendering
         SerializedProperty m_AttenuationByLightShape;
         SerializedProperty m_RadialScreenAttenuationCurve;
         SerializedProperty m_UseOcclusion;
-        SerializedProperty m_BackgroundCloudOcclusion;
+        SerializedProperty m_fogOcclusion;
         SerializedProperty m_WaterOcclusion;
         SerializedProperty m_OcclusionRadius;
         SerializedProperty m_SamplesCount;
         SerializedProperty m_OcclusionOffset;
         SerializedProperty m_AllowOffScreen;
-        SerializedProperty m_VolumetricCloudOcclusion;
         SerializedProperty m_OcclusionRemapTextureCurve;
         SerializedProperty m_OcclusionRemapCurve;
         SerializedProperty m_LightOverride;
+
+        Light m_AttachedLight;
 
         void MakeTextureDirtyCallback()
         {
@@ -41,6 +42,10 @@ namespace UnityEditor.Rendering
 
         void OnEnable()
         {
+            if (targets.Length == 1)
+                m_AttachedLight = (target as Component)?.GetComponent<Light>();
+            else
+                m_AttachedLight = null;
             PropertyFetcher<LensFlareComponentSRP> entryPoint = new PropertyFetcher<LensFlareComponentSRP>(serializedObject);
             m_LensFlareData = entryPoint.Find("m_LensFlareData");
             m_Intensity = entryPoint.Find(x => x.intensity);
@@ -52,13 +57,12 @@ namespace UnityEditor.Rendering
             m_AttenuationByLightShape = entryPoint.Find(x => x.attenuationByLightShape);
             m_RadialScreenAttenuationCurve = entryPoint.Find(x => x.radialScreenAttenuationCurve);
             m_UseOcclusion = entryPoint.Find(x => x.useOcclusion);
-            m_BackgroundCloudOcclusion = entryPoint.Find(x => x.useBackgroundCloudOcclusion);
+            m_fogOcclusion = entryPoint.Find(x => x.useFogOpacityOcclusion);
             m_WaterOcclusion = entryPoint.Find(x => x.useWaterOcclusion);
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
             m_SamplesCount = entryPoint.Find(x => x.sampleCount);
             m_OcclusionOffset = entryPoint.Find(x => x.occlusionOffset);
             m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
-            m_VolumetricCloudOcclusion = entryPoint.Find(x => x.volumetricCloudOcclusion);
             m_OcclusionRemapTextureCurve = entryPoint.Find(x => x.occlusionRemapCurve);
             m_OcclusionRemapCurve = m_OcclusionRemapTextureCurve.FindPropertyRelative("m_Curve");
             m_LightOverride = entryPoint.Find(x => x.lightOverride);
@@ -156,12 +160,16 @@ namespace UnityEditor.Rendering
             if (m_UseOcclusion.boolValue)
             {
                 ++EditorGUI.indentLevel;
-                if (RenderPipelineManager.currentPipeline is ICloudBackground)
-                    EditorGUILayout.PropertyField(m_BackgroundCloudOcclusion, Styles.backgroundCloudOcclusion);
-                if (RenderPipelineManager.currentPipeline is IVolumetricCloud volumetricCloud && volumetricCloud.IsVolumetricCloudUsable())
-                    EditorGUILayout.PropertyField(m_VolumetricCloudOcclusion, Styles.volumetricCloudOcclusion);
-                if (RenderPipelineManager.currentPipeline is IWaterRendering waterRendering && waterRendering.IsWaterRenderingUsable())
-                    EditorGUILayout.PropertyField(m_WaterOcclusion, Styles.waterOcclusion);
+                EditorGUI.BeginDisabledGroup(m_AttachedLight != null && m_AttachedLight.type != LightType.Directional);
+                {
+                    if (RenderPipelineManager.currentPipeline is ICloudBackground)
+                        EditorGUILayout.PropertyField(m_fogOcclusion, Styles.fogAndCloudOpacityOcclusion);
+                    if (RenderPipelineManager.currentPipeline is IWaterRendering waterRendering &&
+                        waterRendering.IsWaterRenderingUsable())
+                        EditorGUILayout.PropertyField(m_WaterOcclusion, Styles.waterOcclusion);
+                }
+                EditorGUI.EndDisabledGroup();
+
                 EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
@@ -199,7 +207,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent attenuationByLightShape = EditorGUIUtility.TrTextContent("Attenuation By Light Shape", "When enabled, if the component is attached to a light, automatically reduces the effect of the lens flare based on the type and shape of the light.");
             static public readonly GUIContent radialScreenAttenuationCurve = EditorGUIUtility.TrTextContent("Screen Attenuation Curve", "Specifies the curve that modifies the intensity of the lens flare based on its distance from the edge of the screen.");
             static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Enable", "When enabled, the renderer uses the depth buffer to occlude (partially or completely) the lens flare. Partial occlusion also occurs when the lens flare is partially offscreen.");
-            static public readonly GUIContent backgroundCloudOcclusion = EditorGUIUtility.TrTextContent("Background Clouds", "When enabled, the occlusion is attenuated by the Background Clouds used on the Visual Environnement (Cloud layer).");
+            static public readonly GUIContent fogAndCloudOpacityOcclusion = EditorGUIUtility.TrTextContent("Fog And Cloud Opacity", "When enabled, the occlusion is attenuated by the Background Clouds, Volumetric Clouds and the Fog.");
             static public readonly GUIContent occlusionRadius = EditorGUIUtility.TrTextContent("Occlusion Radius", "Sets the radius, in meters, around the light used to compute the occlusion of the lens flare. If this area is half occluded by geometry (or half off-screen), the intensity of the lens flare is cut by half.");
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Sets the number of random samples used inside the Occlusion Radius area. A higher sample count gives a smoother attenuation when occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Sets the offset of the occlusion area in meters between the GameObject this asset is attached to, and the Camera. A positive value moves the occlusion area closer to the Camera.");

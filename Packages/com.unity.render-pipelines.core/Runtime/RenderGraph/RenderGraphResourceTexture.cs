@@ -365,49 +365,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 return desc.name;
         }
 
-        // NOTE:
-        // Next two functions should have been implemented in RenderGraphResource<DescType, ResType> but for some reason,
-        // when doing so, it's impossible to break in the Texture version of the virtual function (with VS2017 at least), making this completely un-debuggable.
-        // To work around this, we just copy/pasted the implementation in each final class...
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override int GetDescHashCode() { return desc.GetHashCode(); }
 
-        public override void CreatePooledGraphicsResource()
+        public override void CreateGraphicsResource()
         {
-            Debug.Assert(m_Pool != null, "TextureResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
+            var name = GetName();
 
-            int hashCode = desc.GetHashCode();
-
-            if (graphicsResource != null)
-                throw new InvalidOperationException(string.Format("TextureResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
-
-            var pool = m_Pool as TexturePool;
-            if (!pool.TryGetResource(hashCode, out graphicsResource))
-            {
-                CreateGraphicsResource(desc.name);
-            }
-
-            cachedHash = hashCode;
-            pool.RegisterFrameAllocation(cachedHash, graphicsResource);
-            graphicsResource.m_Name = desc.name;
-        }
-
-        public override void ReleasePooledGraphicsResource(int frameIndex)
-        {
-            if (graphicsResource == null)
-                throw new InvalidOperationException($"TextureResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
-
-            // Shared resources don't use the pool
-            var pool = m_Pool as TexturePool;
-            if (pool != null)
-            {
-                pool.ReleaseResource(cachedHash, graphicsResource, frameIndex);
-                pool.UnregisterFrameAllocation(cachedHash, graphicsResource);
-            }
-
-            Reset(null);
-        }
-
-        public override void CreateGraphicsResource(string name = "")
-        {
             // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
             // The name in the desc is going to be used for debugging purpose and render graph visualization.
             if (name == "")
@@ -428,6 +392,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.useDynamicScaleExplicit, desc.memoryless, desc.vrUsage, name);
                     break;
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void UpdateGraphicsResource()
+        {
+            if (graphicsResource != null)
+                graphicsResource.m_Name = GetName();
         }
 
         public override void ReleaseGraphicsResource()
@@ -473,37 +444,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         override protected int GetSortIndex(RTHandle res)
         {
             return res.GetInstanceID();
-        }
-
-        // Another C# nicety.
-        // We need to re-implement the whole thing every time because:
-        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, GraphicsBuffers etc)
-        // - We can't use a virtual release function because it will capture 'this' in the lambda for RemoveAll generating GCAlloc in the process.
-        override public void PurgeUnusedResources(int currentFrameIndex)
-        {
-            // Update the frame index for the lambda. Static because we don't want to capture.
-            s_CurrentFrameIndex = currentFrameIndex;
-            m_RemoveList.Clear();
-
-            foreach (var kvp in m_ResourcePool)
-            {
-                // WARNING: No foreach here. Sorted list GetEnumerator generates garbage...
-                var list = kvp.Value;
-                var keys = list.Keys;
-                var values = list.Values;
-                for (int i = 0; i < list.Count; ++i)
-                {
-                    var value = values[i];
-                    if (ShouldReleaseResource(value.frameIndex, s_CurrentFrameIndex))
-                    {
-                        value.resource.Release();
-                        m_RemoveList.Add(keys[i]);
-                    }
-                }
-
-                foreach (var key in m_RemoveList)
-                    list.Remove(key);
-            }
         }
     }
 }

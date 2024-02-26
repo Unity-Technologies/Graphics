@@ -1163,10 +1163,15 @@ namespace UnityEditor.VFX.UI
 
                 if (shouldClearBlackboardSelection)
                 {
-                    selection.Clear();
                     blackboard.EmptySelection();
                 }
 
+                // Remove VFX items from the editor selection
+                var newSelection = Selection.objects.ToList();
+                newSelection.RemoveAll(x => x is VFXModel);
+
+                selection.Clear();
+                Selection.objects = newSelection.ToArray();
                 controller.Remove(selectionCopy.OfType<IControlledElement>().Select(t => t.controller).ToArray(), true);
             }
         }

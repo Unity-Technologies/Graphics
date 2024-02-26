@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
@@ -21,15 +22,19 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
+        internal static string GetFrameSettingsFieldName(string name, int group) => $"UI_State_{nameof(FrameSettingsPropertyDrawer)}_{name}_{group}";
+
         internal static bool IsExpended(string name, int group)
-            => EditorPrefs.GetBool($"UI_State_{nameof(FrameSettingsPropertyDrawer)}_{name}_{group}");
+            => EditorPrefs.GetBool(GetFrameSettingsFieldName(name, group));
 
         internal static void SetExpended(string name, int group, bool value)
-            => EditorPrefs.SetBool($"UI_State_{nameof(FrameSettingsPropertyDrawer)}_{name}_{group}", value);
+            => EditorPrefs.SetBool(GetFrameSettingsFieldName(name, group), value);
 
-        private float m_TotalHeight = 0f;
+        float m_TotalHeight = 0f;
 
-        bool TryExtractUsageInfosFromAttribute(SerializedProperty dataProperty, out SerializedProperty maskProperty, out FrameSettingsRenderType defaultValues, out HDRenderPipelineAsset hdrpAssetUsedForOverrideChecks)
+
+        bool TryExtractUsageInfosFromAttribute(SerializedProperty dataProperty, out SerializedProperty maskProperty, out FrameSettingsRenderType defaultValues,
+            out HDRenderPipelineAsset hdrpAssetUsedForOverrideChecks)
         {
             maskProperty = null;
             defaultValues = default;
@@ -51,7 +56,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldName = dataProperty.propertyPath.Substring(baseLength + 1);
                 hostType = dataProperty.serializedObject.FindProperty(basePath).boxedValue.GetType();
             }
-            var attributes = hostType.GetField(fieldName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetCustomAttributes(typeof(UseOverrideMaskAttribute), true);
+
+            var attributes = hostType.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetCustomAttributes(typeof(UseOverrideMaskAttribute), true);
             if (attributes.Length == 0)
                 return false;
 
@@ -74,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Else rely on GraphicsSettings are you should be in hdrp
                 hdrpAssetUsedForOverrideChecks = HDRenderPipeline.currentAsset;
             }
+
             return true;
         }
 
@@ -91,19 +99,22 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 boundInstance = FrameSettingsExtractedDatas.CreateBoundInstance(data, null, null);
             }
-            
+
             var root = new VisualElement() { name = "frame-settings" };
 
-            root.Add(new Label(property.displayName) { tooltip = property.tooltip, name = "frame-settings-header" });
-            
+            var labelHeader = new Label(property.displayName) { tooltip = property.tooltip };
+            labelHeader.AddToClassList("frame-settings-header");
+            root.Add(labelHeader);
+
             for (int i = 0; i < Styles.headerContents.Length; ++i)
             {
                 var header = new HeaderFoldout()
                 {
                     text = Styles.headerContents[i].text,
                     tooltip = Styles.headerContents[i].tooltip,
-                    name = "frame-settings-section-header",
+                    name = GetFrameSettingsFieldName(property.displayName, i),
                 };
+                header.AddToClassList("frame-settings-section-header");
                 header.value = IsExpended(property.displayName, i);
                 var encapsulatedIndex = i;
                 header.RegisterValueChangedCallback(evt => SetExpended(property.displayName, encapsulatedIndex, evt.newValue));
@@ -114,6 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(string.Format(FrameSettingsArea.k_StylesheetPathFormat, "")));
+
             return root;
         }
 
@@ -139,14 +151,14 @@ namespace UnityEditor.Rendering.HighDefinition
             float y = position.y;
             var subHeaderHeight = CoreEditorStyles.subSectionHeaderStyle.CalcHeight(label, position.width);
 
-            EditorGUI.LabelField(new Rect(position.x,y,position.width, subHeaderHeight), label, CoreEditorStyles.subSectionHeaderStyle);
+            EditorGUI.LabelField(new Rect(position.x, y, position.width, subHeaderHeight), label, CoreEditorStyles.subSectionHeaderStyle);
             y += subHeaderHeight + EditorGUIUtility.standardVerticalSpacing;
 
             for (int i = 0; i < Styles.headerContents.Length; ++i)
             {
                 CoreEditorUtils.DrawSplitter(new Rect(position.x, y, position.width, 1f));
                 y += 1;
-                
+
                 var oldExpendedState = IsExpended(property.displayName, i);
                 var newExpendedState = CoreEditorUtils.DrawHeaderFoldout(new Rect(position.x, y, position.width, subHeaderHeight), Styles.headerContents[i], oldExpendedState);
                 y += subHeaderHeight;
@@ -157,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (newExpendedState)
                 {
                     y += EditorGUIUtility.standardVerticalSpacing;
-                    
+
                     if (mask == null)
                         FrameSettingsAreaImGUI.DrawWithoutOverride(new Rect(position.x, y, position.width, 0), boundInstance, i);
                     else
@@ -183,11 +195,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    
+
     [CustomPropertyDrawer(typeof(FrameSettingsOverrideMask))]
     class FrameSettingsOverrideMaskPropertyDrawer : PropertyDrawer
     {
-        static readonly GUIContent k_Label = EditorGUIUtility.TrTextContent("Unavailable", $"{nameof(FrameSettingsOverrideMask)} should not be displayed directly. Use [{nameof(UseOverrideMaskAttribute)}(pathToMask)] instead.");
+        static readonly GUIContent k_Label = EditorGUIUtility.TrTextContent("Unavailable",
+            $"{nameof(FrameSettingsOverrideMask)} should not be displayed directly. Use [{nameof(UseOverrideMaskAttribute)}(pathToMask)] instead.");
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {

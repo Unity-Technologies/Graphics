@@ -259,16 +259,16 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompileKeepOffVariant(m_ChromaticAberration, VolumeFeatures.ChromaticAberration))
                 return true;
 
-            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQ, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQ, VolumeFeatures.BloomLQ))
                 return true;
 
-            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQ, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQ, VolumeFeatures.BloomHQ))
                 return true;
 
-            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQDirt, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQDirt, VolumeFeatures.BloomLQDirt))
                 return true;
 
-            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQDirt, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQDirt, VolumeFeatures.BloomHQDirt))
                 return true;
 
             if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapACES, VolumeFeatures.ToneMapping))
@@ -320,7 +320,12 @@ namespace UnityEditor.Rendering.Universal
             if (strippingData.shader != m_Bloom)
                 return false;
 
-            return !strippingData.IsVolumeFeatureEnabled(VolumeFeatures.Bloom);
+            bool isBloomEnabled = strippingData.IsVolumeFeatureEnabled(VolumeFeatures.BloomHQ)
+                                  || strippingData.IsVolumeFeatureEnabled(VolumeFeatures.BloomHQDirt)
+                                  || strippingData.IsVolumeFeatureEnabled(VolumeFeatures.BloomLQ)
+                                  || strippingData.IsVolumeFeatureEnabled(VolumeFeatures.BloomLQDirt);
+
+            return !isBloomEnabled;
         }
 
 

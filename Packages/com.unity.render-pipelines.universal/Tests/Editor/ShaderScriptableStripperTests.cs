@@ -73,6 +73,10 @@ namespace ShaderStrippingAndPrefiltering
 
             private Shader shader;
 
+            public static readonly VolumeFeatures s_AllBloomFeatures = VolumeFeatures.BloomLQ | VolumeFeatures.BloomLQDirt
+                                                                     | VolumeFeatures.BloomHQ | VolumeFeatures.BloomHQDirt;
+
+
             public TestHelper(Shader shader, ShaderFeatures shaderFeatures, VolumeFeatures volumeFeatures = VolumeFeatures.None, bool stripUnusedVariants = true)
             {
                 s_PassKeywords = new List<string>() { };
@@ -2185,11 +2189,11 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = passKeywords;
             helper.AreEqual(isCorrectShader, helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.BloomLQ};
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
@@ -2200,11 +2204,11 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = passKeywords;
             helper.AreEqual(isCorrectShader, helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.BloomHQ};
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
@@ -2215,11 +2219,11 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = passKeywords;
             helper.AreEqual(isCorrectShader, helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.BloomLQDirt};
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
@@ -2230,11 +2234,11 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_PassKeywords = passKeywords;
             helper.AreEqual(isCorrectShader, helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.BloomHQDirt};
             TestHelper.s_PassKeywords = passKeywords;
             helper.IsFalse(helper.stripper.StripVolumeFeatures_UberPostShader(ref helper.data));
@@ -2341,7 +2345,7 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.None);
             helper.AreEqual(isCorrectShader, helper.stripper.StripVolumeFeatures_BloomShader(ref helper.data));
 
-            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:VolumeFeatures.Bloom);
+            helper = new TestHelper(shader, ShaderFeatures.None, volumeFeatures:TestHelper.s_AllBloomFeatures);
             helper.IsFalse(helper.stripper.StripVolumeFeatures_BloomShader(ref helper.data));
         }
     }

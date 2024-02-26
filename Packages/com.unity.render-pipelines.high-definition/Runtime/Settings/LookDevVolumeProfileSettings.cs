@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -7,8 +6,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Settings class that stores the volume profile for HDRP LookDev.
     /// </summary>
     [Serializable]
-    [Category("Volume/LookDev Profile")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Volume", Order = 0)]
+    [Categorization.ElementInfo(Order = 10)]
     public class LookDevVolumeProfileSettings : IRenderPipelineGraphicsSettings
     {
         #region Version

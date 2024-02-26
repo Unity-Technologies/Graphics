@@ -65,16 +65,23 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             ZWrite Off
 
             // If this is a background pixel, we want the cloud value, otherwise we do not.
-            Blend One OneMinusSrcAlpha, Zero One
+            Blend 0 One OneMinusSrcAlpha, Zero One
+            Blend 1 DstColor Zero // Multiply to combine the transmittance
 
             HLSLPROGRAM
 
-            float4 Frag(Varyings input) : SV_Target
+            void Frag(Varyings input
+                , out float4 color : SV_Target0
+#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                , out float2 fogTranmittance : SV_Target3
+#endif
+                )
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
                 float4 outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                float transmittance = outColor.a;
                 outColor.a = 1.0f - outColor.a;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
@@ -92,7 +99,12 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
 
                 // Composite the result via hardware blending.
-                return ApplyFogOnTransparent(outColor, volColor, volOpacity);
+                color = ApplyFogOnTransparent(outColor, volColor, volOpacity);
+
+#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                // channel 1 is used when fog multiple scattering is enabled and we don't want clouds in this opacity (it doesn't work well with water and transparent sorting)
+                fogTranmittance = float2(transmittance, 1);
+#endif
             }
             ENDHLSL
         }
@@ -237,8 +249,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
 
             Blend 1 One OneMinusSrcAlpha // before refraction
             Blend 2 One OneMinusSrcAlpha // before refraction alpha
+            Blend 3 DstColor Zero // Multiply to combine the transmittance
 
             HLSLPROGRAM
+
+            #pragma multi_compile_fragment _ OUTPUT_TRANSMITTANCE_BUFFER
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
 
@@ -246,12 +261,16 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 , out float4 outColor : SV_Target0
                 , out float4 outBeforeRefractionColor : SV_Target1
                 , out float4 outBeforeRefractionAlpha : SV_Target2
+#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                , out float2 fogTranmittance : SV_Target3
+#endif
             )
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
                 outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                float transmittance = outColor.a;
                 outColor.a = 1.0f - outColor.a;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
@@ -269,6 +288,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
 
                 // Sort clouds with refractive objects
                 ComputeRefractionSplitColor(posInput, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
+
+#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                // channel 1 is used when fog multiple scattering is enabled and we don't want clouds in this opacity (it doesn't work well with water and transparent sorting)
+                fogTranmittance = float2(transmittance, 1);
+#endif
             }
             ENDHLSL
         }

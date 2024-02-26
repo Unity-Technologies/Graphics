@@ -255,6 +255,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4[] pixelCoordToViewDir;
         }
 
+        unsafe internal void UpdatePixelCoordToViewDir(ref ShaderVariablesClouds cb, in Matrix4x4 pixelCoordToViewDir)
+        {
+            for (int j = 0; j < 16; ++j)
+                cb._CloudsPixelCoordToViewDirWS[j] = pixelCoordToViewDir[j];
+        }
+
         internal void RenderVolumetricClouds_Sky(RenderGraph renderGraph, HDCamera hdCamera, Matrix4x4[] pixelCoordToViewDir, VolumetricClouds settings, SkyRenderer skyRenderer,
             int width, int height, GraphicsBuffer probeBuffer, TextureHandle skyboxCubemap)
         {
@@ -275,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Update the cubemap face and the inverse projection matrix
                             data.cubemapFace = (CubemapFace)faceIdx;
-                            data.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = data.pixelCoordToViewDir[faceIdx];
+                            UpdatePixelCoordToViewDir(ref data.commonData.cloudsCB, data.pixelCoordToViewDir[faceIdx]);
 
                             // Render the face straight to the output cubemap
                             RenderVolumetricClouds_Sky_High(ctx.cmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
@@ -298,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Update the cubemap face and the inverse projection matrix
                             data.cubemapFace = (CubemapFace)faceIdx;
-                            data.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = data.pixelCoordToViewDir[faceIdx];
+                            UpdatePixelCoordToViewDir(ref data.commonData.cloudsCB, data.pixelCoordToViewDir[faceIdx]);
 
                             // Render the face straight to the output cubemap
                             TraceVolumetricClouds_Sky_Low(ctx.cmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());

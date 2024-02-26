@@ -133,10 +133,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int sharedResourceLastFrameUsed;
         public int version;
 
-        protected IRenderGraphResourcePool m_Pool;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void Reset(IRenderGraphResourcePool pool)
+        public virtual void Reset(IRenderGraphResourcePool _ = null)
         {
             imported = false;
             shared = false;
@@ -148,8 +146,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             forceRelease = false;
             writeCount = 0;
             version = 0;
-
-            m_Pool = pool;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -184,12 +180,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         public virtual void CreatePooledGraphicsResource() { }
-        public virtual void CreateGraphicsResource(string name = "") { }
+        public virtual void CreateGraphicsResource() { }
+        public virtual void UpdateGraphicsResource() { }
         public virtual void ReleasePooledGraphicsResource(int frameIndex) { }
         public virtual void ReleaseGraphicsResource() { }
         public virtual void LogCreation(RenderGraphLogger logger) { }
         public virtual void LogRelease(RenderGraphLogger logger) { }
         public virtual int GetSortIndex() { return 0; }
+        public virtual int GetDescHashCode() { return 0; }
     }
 
     [DebuggerDisplay("Resource ({GetType().Name}:{GetName()})")]
@@ -201,14 +199,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public DescType desc;
         public ResType graphicsResource;
 
+        protected RenderGraphResourcePool<ResType> m_Pool;
+
         protected RenderGraphResource()
         {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override void Reset(IRenderGraphResourcePool pool)
+        public override void Reset(IRenderGraphResourcePool pool = null)
         {
-            base.Reset(pool);
+            base.Reset();
+            m_Pool = pool as RenderGraphResourcePool<ResType>;
             graphicsResource = null;
         }
 
@@ -222,6 +223,45 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public override void ReleaseGraphicsResource()
         {
             graphicsResource = null;
+        }
+
+        public override void CreatePooledGraphicsResource()
+        {
+            Debug.Assert(m_Pool != null, "RenderGraphResource: CreatePooledGraphicsResource should only be called for regular pooled resources");
+
+            int hashCode = GetDescHashCode();
+
+            if (graphicsResource != null)
+                throw new InvalidOperationException(string.Format("RenderGraphResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+
+            // If the pool doesn't have any available resource that we can use, we will create one
+            // In any case, we will update the graphicsResource name based on the RenderGraph resource name
+            if (!m_Pool.TryGetResource(hashCode, out graphicsResource))
+            {
+                CreateGraphicsResource();
+            }
+            else
+            {
+                UpdateGraphicsResource();
+            }
+
+            cachedHash = hashCode;
+            m_Pool.RegisterFrameAllocation(cachedHash, graphicsResource);
+        }
+
+        public override void ReleasePooledGraphicsResource(int frameIndex)
+        {
+            if (graphicsResource == null)
+                throw new InvalidOperationException($"RenderGraphResource: Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+
+            // Shared resources don't use the pool
+            if (m_Pool != null)
+            {
+                m_Pool.ReleaseResource(cachedHash, graphicsResource, frameIndex);
+                m_Pool.UnregisterFrameAllocation(cachedHash, graphicsResource);
+            }
+
+            Reset();
         }
     }
 }

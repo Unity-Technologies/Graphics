@@ -1589,10 +1589,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     AddTexture(cmd, textureScaleBias);
                 }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                 if (!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
-                {
                     Debug.LogWarning(s_AtlasSizeWarningMessage);
-                }
+#endif
             }
             m_PrevAllocationSuccess = m_AllocationSuccess;
             // now that textures have been stored in the atlas we can update their location info in decal data

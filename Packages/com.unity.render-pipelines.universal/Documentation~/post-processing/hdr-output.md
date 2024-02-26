@@ -4,6 +4,8 @@
 
 URP can output HDR content for displays which support that functionality.
 
+> **Note**: You can only use HDR Output with a linear color space. For more information on color spaces in Unity, refer to [Color space](xref:LinearLighting).
+
 ## How to enable HDR Output
 
 To activate HDR output, follow these steps.

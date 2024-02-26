@@ -11,11 +11,18 @@ namespace UnityEditor.Rendering.HighDefinition
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class HDRPDefaultVolumeProfileSettingsPropertyDrawer : DefaultVolumeProfileSettingsPropertyDrawer
     {
-        GUIContent defaultVolumeProfileAssetLabel => EditorGUIUtility.TrTextContent("Volume Profile",
+        GUIContent defaultVolumeProfileAssetLabel => EditorGUIUtility.TrTextContent("Default Profile",
             "Settings that will be applied project-wide to all Volumes by default when HDRP is active.");
 
         protected override GUIContent volumeInfoBoxLabel => EditorGUIUtility.TrTextContent(
             "The values in the Default Volume can be overridden by a Volume Profile assigned to HDRP asset and Volumes inside scenes.");
+
+        protected override VisualElement CreateHeader()
+        {
+            var label = new Label("Default");
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
+            return label;
+        }
 
         protected override VisualElement CreateAssetFieldUI()
         {

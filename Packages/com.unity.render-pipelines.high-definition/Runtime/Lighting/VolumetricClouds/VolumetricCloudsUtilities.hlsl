@@ -37,7 +37,7 @@
 // Function that takes a clip space positions and converts it to a view direction
 float3 GetCloudViewDirWS(float2 positionCS)
 {
-    float4 viewDirWS = mul(float4(positionCS, 1.0f, 1.0f), _CloudsPixelCoordToViewDirWS);
+    float4 viewDirWS = mul(float4(positionCS, 1.0f, 1.0f), _CloudsPixelCoordToViewDirWS[unity_StereoEyeIndex]);
     return -normalize(viewDirWS.xyz);
 }
 

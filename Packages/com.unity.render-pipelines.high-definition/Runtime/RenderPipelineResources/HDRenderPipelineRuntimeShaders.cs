@@ -1,13 +1,11 @@
 using System;
-using System.ComponentModel;
 using System.Reflection;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [HideInInspector]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [Category("Resources/Runtime Shaders")]
+    [Categorization.CategoryInfo(Name = "R: Runtime Shaders", Order = 1000), HideInInspector]
     class HDRenderPipelineRuntimeShaders : IRenderPipelineResources
     {
         public int version => 0;
@@ -41,6 +39,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_ColorPyramidPS;
             set => this.SetValueAndNotify(ref m_ColorPyramidPS, value);
+        }
+
+        [SerializeField, ResourcePath("Runtime/RenderPipeline/RenderPass/ColorPyramid.compute")]
+        public ComputeShader m_ColorPyramidCS;
+        public ComputeShader colorPyramidCS
+        {
+            get => m_ColorPyramidCS;
+            set => this.SetValueAndNotify(ref m_ColorPyramidCS, value);
         }
 
         [SerializeField, ResourcePath("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
@@ -513,6 +519,14 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_DefaultFogVolumeShader, value);
         }
 
+        [SerializeField, ResourcePath("Runtime/Lighting/AtmosphericScattering/ScreenSpaceMultipleScattering.compute")]
+        private ComputeShader m_ScreenSpaceMultipleScatteringCS;
+        public ComputeShader screenSpaceMultipleScatteringCS
+        {
+            get => m_ScreenSpaceMultipleScatteringCS;
+            set => this.SetValueAndNotify(ref m_ScreenSpaceMultipleScatteringCS, value);
+        }
+        
         #endregion
 
         #region SSS

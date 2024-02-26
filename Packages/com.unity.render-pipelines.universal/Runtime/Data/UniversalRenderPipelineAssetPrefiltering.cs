@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT1)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT2)]
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DBufferMRT3)]
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS)]
         private const bool k_CommonGLDefaults = true;
 
         // Foveated Rendering
@@ -172,7 +173,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private bool m_PrefilterNativeRenderPass = false;
 
         // Use legacy lightmaps (GPU resident drawer)
-        [ShaderKeywordFilter.SelectOrRemove(true,     keywordNames: ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS)]
+        [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS)]
         [SerializeField] private bool m_PrefilterUseLegacyLightmaps = false;
 
         /// <summary>

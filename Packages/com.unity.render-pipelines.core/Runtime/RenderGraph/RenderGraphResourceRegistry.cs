@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             var texResource = GetTextureResource(texture.handle);
             texResource.ReleaseGraphicsResource();
-            texResource.Reset(null);
+            texResource.Reset();
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, in RenderTargetInfo info, in ImportResourceParams importParams)
@@ -691,8 +691,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 #endif
             // You can never have enough ways to reference a render target...
-            // This function is just perfect and certainly not full of legacy if's and but's
-
+            // Lots of legacy if's and but's
             TextureResource tex = GetTextureResource(res);
             if (tex.imported)
             {
@@ -954,14 +953,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     var resource = m_RenderGraphResources[type].resourceArray[i];
                     bool isCreated = resource.IsCreated();
-                    // Alloc if needed.
+                    // Alloc if needed
                     if (resource.sharedResourceLastFrameUsed == m_ExecutionCount && !isCreated)
                     {
-                        // Here we want the resource to have the name given by users because we know that it won't be reused at all.
-                        // So no need for an automatic generic name.
-                        resource.CreateGraphicsResource(resource.GetName());
+                        // User name provided through the resource desc will be used
+                        resource.CreateGraphicsResource();
                     }
-                    // Release if not used anymore.
+                    // Release if not used anymore
                     else if (isCreated && !resource.sharedExplicitRelease && ((resource.sharedResourceLastFrameUsed + kSharedResourceLifetime) < m_ExecutionCount))
                     {
                         resource.ReleaseGraphicsResource();

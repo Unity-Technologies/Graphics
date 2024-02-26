@@ -1,11 +1,10 @@
 using System;
-using System.ComponentModel;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
-    [Category("Custom Post Process Orders")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
+    [Categorization.CategoryInfo(Name = "Custom Post Process Orders", Order = 30)]
     class CustomPostProcessOrdersSettings : IRenderPipelineGraphicsSettings
     {
         #region Version

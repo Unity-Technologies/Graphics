@@ -1806,7 +1806,9 @@ namespace UnityEngine.Rendering.Universal
             public readonly Material stopNaN;
             public readonly Material subpixelMorphologicalAntialiasing;
             public readonly Material gaussianDepthOfField;
+            public readonly Material gaussianDepthOfFieldCoC;
             public readonly Material bokehDepthOfField;
+            public readonly Material bokehDepthOfFieldCoC;
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
@@ -1828,7 +1830,9 @@ namespace UnityEngine.Rendering.Universal
                 stopNaN = Load(data.shaders.stopNanPS);
                 subpixelMorphologicalAntialiasing = Load(data.shaders.subpixelMorphologicalAntialiasingPS);
                 gaussianDepthOfField = Load(data.shaders.gaussianDepthOfFieldPS);
+                gaussianDepthOfFieldCoC = Load(data.shaders.gaussianDepthOfFieldPS);
                 bokehDepthOfField = Load(data.shaders.bokehDepthOfFieldPS);
+                bokehDepthOfFieldCoC = Load(data.shaders.bokehDepthOfFieldPS);
                 cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
@@ -1865,7 +1869,9 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.Destroy(stopNaN);
                 CoreUtils.Destroy(subpixelMorphologicalAntialiasing);
                 CoreUtils.Destroy(gaussianDepthOfField);
+                CoreUtils.Destroy(gaussianDepthOfFieldCoC);
                 CoreUtils.Destroy(bokehDepthOfField);
+                CoreUtils.Destroy(bokehDepthOfFieldCoC);
                 CoreUtils.Destroy(cameraMotionBlur);
                 CoreUtils.Destroy(paniniProjection);
                 CoreUtils.Destroy(bloom);

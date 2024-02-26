@@ -5,6 +5,13 @@
 #ifndef LENSFLAREDATASRP_CS_HLSL
 #define LENSFLAREDATASRP_CS_HLSL
 //
+// UnityEngine.Rendering.SRPLensFlareColorType:  static fields
+//
+#define SRPLENSFLARECOLORTYPE_CONSTANT (0)
+#define SRPLENSFLARECOLORTYPE_RADIAL_GRADIENT (1)
+#define SRPLENSFLARECOLORTYPE_ANGULAR_GRADIENT (2)
+
+//
 // UnityEngine.Rendering.SRPLensFlareType:  static fields
 //
 #define SRPLENSFLARETYPE_IMAGE (0)

@@ -62,7 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public RTHandle colorBuffer;
         /// <summary>Depth buffer used for rendering.</summary>
         public RTHandle depthBuffer;
-        /// <summary>Fullscreen texture rendering 1.0f - opacity of the cloud</summary>
+        /// <summary>Fullscreen texture rendering transmittance (1 - opacity) of the cloud and fog.
+        /// This texture also contain the transmittance used for the multiple scattering in the Y component.</summary>
         public RTHandle cloudOpacity;
         /// <summary>Ambient probe containing sky lighting to be used when rendering clouds</summary>
         public GraphicsBuffer cloudAmbientProbe;
@@ -206,6 +207,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ComputeAmbientProbeKernel;
         int m_ComputeAmbientProbeVolumetricKernel;
         int m_ComputeAmbientProbeCloudsKernel;
+        LocalKeyword m_OutputFogTransmittanceKeyword;
+        RenderTargetIdentifier[] m_OpaqueAtmosphericFogTargets = new RenderTargetIdentifier[2];
 
         CubemapArray m_BlackCubemapArray;
         GraphicsBuffer m_BlackAmbientProbeBuffer;
@@ -422,13 +425,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_OpaqueAtmScatteringMaterial.FindPass("Default"),
                 m_OpaqueAtmScatteringMaterial.FindPass("MSAA"),
                 m_OpaqueAtmScatteringMaterial.FindPass("Polychromatic Alpha"),
-                m_OpaqueAtmScatteringMaterial.FindPass("MSAA + Polychromatic Alpha")
+                m_OpaqueAtmScatteringMaterial.FindPass("MSAA + Polychromatic Alpha"),
             };
 
             m_ComputeAmbientProbeCS = m_RenderPipeline.runtimeShaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuse");
             m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuseVolumetric");
             m_ComputeAmbientProbeCloudsKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionClouds");
+
+            m_OutputFogTransmittanceKeyword = new LocalKeyword(m_OpaqueAtmScatteringMaterial.shader, "OUTPUT_TRANSMITTANCE_BUFFER");
 
             lightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             lightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
@@ -1355,7 +1360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        public void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, ref TextureHandle opticalFogTransmittance)
         {
             m_CloudOpacity = TextureHandle.nullHandle;
 
@@ -1373,17 +1378,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Allocate only if the cloudLayer is used and at least one LensFlare request an occlusion with the CloudLayer
                 CloudLayer cloudLayer = skyContext.cloudSettings as CloudLayer;
                 bool isCloudLayerUsed = cloudLayer != null && cloudLayer.opacity.value > 0.0f;
-                if (isCloudLayerUsed && LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera))
+                bool needOpticalFogDensity = LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera);
+                if (isCloudLayerUsed && needOpticalFogDensity)
                 {
-                    // Nice-to-have: analyze the asset, if a 16 bits for the Rendering use the alpha channel to store
-                    // the cloud occlusion instead of allocating a new texture
-                    m_CloudOpacity = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    {
-                        colorFormat = GraphicsFormat.R8_UNorm,
-                        clearBuffer = true,
-                        clearColor = Color.black,
-                        name = "Cloud Occlusion"
-                    }));
+                    if (!opticalFogTransmittance.IsValid())
+                        opticalFogTransmittance = builder.ReadWriteTexture(renderGraph.CreateTexture(HDRenderPipeline.GetOpticalFogTransmittanceDesc(hdCamera)));
+                    m_CloudOpacity = opticalFogTransmittance;
                 }
 
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
@@ -1422,6 +1422,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthTexture;
             public TextureHandle volumetricLighting;
             public TextureHandle depthBuffer;
+            public TextureHandle opticalFogTransmittance;
             public Matrix4x4 pixelCoordToViewDirWS;
             public Material opaqueAtmosphericalScatteringMaterial;
             public int passIndex;
@@ -1429,6 +1430,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool pbrFog;
             public bool msaa;
             public bool volumetricFogDebug;
+            public bool needsOpticalFogTransmittance;
+            public RenderTargetIdentifier[] opaqueAtmosphericFogTargets;
+            public LocalKeyword outputFogTransmittanceKeyword;
 
             public bool polychromaticAlpha;
             public TextureHandle outputColorBuffer;
@@ -1445,7 +1449,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle RenderOpaqueAtmosphericScattering(RenderGraph renderGraph, HDCamera hdCamera, in HDRenderPipeline.TransparentPrepassOutput transparentPrepass,
-            TextureHandle colorBuffer, TextureHandle depthTexture, TextureHandle volumetricLighting, TextureHandle depthBuffer, TextureHandle normalBuffer)
+            TextureHandle colorBuffer, TextureHandle depthTexture, TextureHandle volumetricLighting, TextureHandle depthBuffer, TextureHandle normalBuffer, ref TextureHandle opticalFogTransmittance)
         {
             bool waterEnabled = transparentPrepass.waterGBuffer.valid;
             if (!Fog.IsFogEnabled(hdCamera) && !Fog.IsPBRFogEnabled(hdCamera) && !waterEnabled)
@@ -1497,6 +1501,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.outputColorBuffer = colorBuffer;
                 }
 
+                passData.needsOpticalFogTransmittance = LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera) || Fog.IsMultipleScatteringEnabled(hdCamera, out _);
+                passData.outputFogTransmittanceKeyword = m_OutputFogTransmittanceKeyword;
+                if (passData.needsOpticalFogTransmittance)
+                {
+                    opticalFogTransmittance = passData.opticalFogTransmittance = builder.WriteTexture(renderGraph.CreateTexture(HDRenderPipeline.GetOpticalFogTransmittanceDesc(hdCamera)));
+                    passData.opaqueAtmosphericFogTargets = m_OpaqueAtmosphericFogTargets;
+                }
 
                 builder.SetRenderFunc(
                     (OpaqueAtmosphericScatteringPassData data, RenderGraphContext ctx) =>
@@ -1508,6 +1519,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         // The texture can be null when volumetrics are disabled.
                         if (data.volumetricLighting.IsValid())
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
+
+                        ctx.cmd.SetKeyword(data.opaqueAtmosphericalScatteringMaterial, data.outputFogTransmittanceKeyword, data.needsOpticalFogTransmittance);
+
+                        if (data.needsOpticalFogTransmittance)
+                        {
+                            data.opaqueAtmosphericFogTargets[0] = data.outputColorBuffer;
+                            data.opaqueAtmosphericFogTargets[1] = data.opticalFogTransmittance;
+                        }
 
                         if (data.polychromaticAlpha)
                         {
@@ -1536,13 +1555,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
                             // We load from the color buffer, perform blending manually, and store to a new color buffer.
-
                             mpb.SetTexture(data.msaa ? HDShaderIDs._ColorTextureMS : HDShaderIDs._ColorTexture, data.colorBuffer);
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, data.passIndex);
+
+                            if (data.needsOpticalFogTransmittance)
+                                HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.opaqueAtmosphericFogTargets, data.depthBuffer, mpb, data.passIndex);
+                            else
+                                HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, data.passIndex);
                         }
                         else
                         {
-                            HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.colorBuffer, data.depthBuffer, mpb, data.passIndex);
+                            if (data.needsOpticalFogTransmittance)
+                                HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.opaqueAtmosphericFogTargets, data.depthBuffer, mpb, data.passIndex);
+                            else
+                                HDUtils.DrawFullScreen(ctx.cmd, data.opaqueAtmosphericalScatteringMaterial, data.outputColorBuffer, data.depthBuffer, mpb, data.passIndex);
 
                             if (data.volumetricFogDebug)
                             {

@@ -75,6 +75,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
 
+        /// <summary>Controls how much the multiple-scattering will affect the scene. Directly controls the amount of blur depending on the fog density.</summary>
+        [AdditionalProperty]
+        [Tooltip("Use this value to simulate multiple scattering when combining the fog with the scene color.")]
+        public ClampedFloatParameter multipleScatteringIntensity = new ClampedFloatParameter(0.0f, 0.0f, 2.0f);
+
         // Limit parameters for the fog quality
         internal const float minFogScreenResolutionPercentage = (1.0f / 16.0f) * 100;
         internal const float optimalFogScreenResolutionPercentage = (1.0f / 8.0f) * 100;
@@ -174,6 +179,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = hdCamera.volumeStack.GetComponent<PhysicallyBasedSky>();
             var fs = hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering);
             return (visualEnv.skyType.value == (int)SkyType.PhysicallyBased) && pbrSky.atmosphericScattering.value && fs;
+        }
+
+        internal static bool IsMultipleScatteringEnabled(HDCamera hdCamera, out float intensity)
+        {
+            var fog = hdCamera.volumeStack.GetComponent<Fog>();
+            intensity = fog.multipleScatteringIntensity.value;
+            return intensity > 0.0f;
         }
 
         static float ScaleHeightFromLayerDepth(float d)

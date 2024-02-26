@@ -78,13 +78,17 @@ namespace UnityEditor.Rendering.Universal
         None = 0,
         Calculated = (1 << 0),
         LensDistortion = (1 << 1),
-        Bloom = (1 << 2),
+        //2: Unused for now
         ChromaticAberration = (1 << 3),
         ToneMapping = (1 << 4),
         FilmGrain = (1 << 5),
         DepthOfField = (1 << 6),
         CameraMotionBlur = (1 << 7),
         PaniniProjection = (1 << 8),
+        BloomLQ     = (1 << 9),
+        BloomLQDirt = (1 << 10),
+        BloomHQ     = (1 << 11),
+        BloomHQDirt = (1 << 12),
     }
 
 
@@ -299,8 +303,27 @@ namespace UnityEditor.Rendering.Universal
 
                 if (asset.Has<LensDistortion>())
                     s_VolumeFeatures |= VolumeFeatures.LensDistortion;
-                if (asset.Has<Bloom>())
-                    s_VolumeFeatures |= VolumeFeatures.Bloom;
+
+                Bloom bloom;
+                if (asset.TryGet<Bloom>(out bloom))
+                {
+                    //strip unused bloom variants. #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
+                    if (bloom.highQualityFiltering.value)
+                    {
+                        if (bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null)
+                            s_VolumeFeatures |= VolumeFeatures.BloomHQDirt;
+                        else
+                            s_VolumeFeatures |= VolumeFeatures.BloomHQ;
+                    }
+                    else
+                    {
+                        if (bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null)
+                            s_VolumeFeatures |= VolumeFeatures.BloomLQDirt;
+                        else
+                            s_VolumeFeatures |= VolumeFeatures.BloomLQ;
+                    }
+                }
+
                 if (asset.Has<Tonemapping>())
                     s_VolumeFeatures |= VolumeFeatures.ToneMapping;
                 if (asset.Has<FilmGrain>())
@@ -427,7 +450,7 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.supportDataDrivenLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.DataDrivenLensFlare;
 
-            if (urpAsset.useLegacyLightmaps)
+            if (urpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
                 urpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
 
             // Check each renderer & renderer feature

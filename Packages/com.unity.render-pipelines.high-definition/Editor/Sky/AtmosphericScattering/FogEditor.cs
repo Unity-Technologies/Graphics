@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected SerializedDataParameter m_EnableVolumetricFog;
         protected SerializedDataParameter m_Anisotropy;
+        protected SerializedDataParameter m_MultipleScatteringIntensity;
         protected SerializedDataParameter m_DepthExtent;
         protected SerializedDataParameter m_GlobalLightProbeDimmer;
         protected SerializedDataParameter m_SliceDistributionUniformity;
@@ -63,7 +64,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BaseHeight = Unpack(o.Find(x => x.baseHeight));
             m_MaximumHeight = Unpack(o.Find(x => x.maximumHeight));
             m_Anisotropy = Unpack(o.Find(x => x.anisotropy));
+            m_MultipleScatteringIntensity = Unpack(o.Find(x => x.multipleScatteringIntensity));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
+            
             m_EnableVolumetricFog = Unpack(o.Find(x => x.enableVolumetricFog));
             m_DepthExtent = Unpack(o.Find(x => x.depthExtent));
             m_SliceDistributionUniformity = Unpack(o.Find(x => x.sliceDistributionUniformity));
@@ -165,6 +168,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                         EndAdditionalPropertiesScope();
                     }
+
+                    PropertyField(m_MultipleScatteringIntensity);
                 }
             }
         }

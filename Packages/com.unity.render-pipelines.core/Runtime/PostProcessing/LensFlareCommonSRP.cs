@@ -557,28 +557,22 @@ namespace UnityEngine.Rendering
                     (comp.useOcclusion && comp.sampleCount == 0))
                     continue;
 
-                if (comp.useBackgroundCloudOcclusion)
+                if (comp.useFogOpacityOcclusion)
                     return true;
             }
 
             return false;
         }
 
-        static void SetOcclusionPermutation(Rendering.CommandBuffer cmd,
-            bool useBackgroundCloudOcclusion, bool volumetricCloudOcclusion, bool waterOcclusion,
-            int _FlareCloudOpacity, int _FlareSunOcclusionTex,
-            Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
+        static void SetOcclusionPermutation(CommandBuffer cmd,
+            bool useFogOpacityOcclusion, bool waterOcclusion, int _FlareSunOcclusionTex,
+            Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
         {
             uint occlusionPermutation = (uint)(LensFlareOcclusionPermutation.Depth);
-            if (useBackgroundCloudOcclusion && cloudOpacityTexture != null)
-            {
-                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.CloudLayer);
-                cmd.SetGlobalTexture(_FlareCloudOpacity, cloudOpacityTexture);
-            }
 
-            if (volumetricCloudOcclusion && sunOcclusionTexture != null)
+            if (useFogOpacityOcclusion && sunOcclusionTexture != null)
             {
-                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.VolumetricCloud);
+                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.FogOpacity);
                 cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
             }
 
@@ -947,10 +941,8 @@ namespace UnityEngine.Rendering
 
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
-                SetOcclusionPermutation(cmd,
-                    comp.useBackgroundCloudOcclusion && hasCloudLayer, comp.volumetricCloudOcclusion, comp.useWaterOcclusion,
-                    _FlareCloudOpacity, _FlareSunOcclusionTex,
-                    cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
+                SetOcclusionPermutation(cmd, comp.useFogOpacityOcclusion, comp.useWaterOcclusion,
+                    _FlareSunOcclusionTex, sunOcclusionTexture, waterGBuffer3Thickness);
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, -(2.0f * viewportPos.y - 1.0f));
@@ -1716,7 +1708,7 @@ namespace UnityEngine.Rendering
 
                 if(!SystemInfo.graphicsUVStartsAtTop && isDirLight) // Y-flip for OpenGL & directional light
                     screenPos.y = -screenPos.y;
-                
+
                 Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                 float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                 float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
@@ -1955,15 +1947,15 @@ namespace UnityEngine.Rendering
             RTHandle result,
             bool debugView)
         {
-            
-            //Multiplying parameters value here for easier maintenance since they are the same numbers between SRPs 
+
+            //Multiplying parameters value here for easier maintenance since they are the same numbers between SRPs
             parameters2.x = Mathf.Pow(parameters2.x, 0.25f);        // Vignette effect
             parameters3.z = parameters3.z / 20f;                    // chromaticAbberationIntensity
-            parameters4.y = parameters4.y * 10f;                    // Streak Length                  
+            parameters4.y = parameters4.y * 10f;                    // Streak Length
             parameters4.z = parameters4.z / 90f;                    // Streak Orientation
             parameters5.y = 1.0f / parameters5.y;                   // WarpedFlareScale X
             parameters5.z = 1.0f / parameters5.z;                   // WarpedFlareScale Y
-            
+
             cmd.SetViewport(new Rect() { width = actualWidth, height = actualHeight });
             if (debugView)
             {
