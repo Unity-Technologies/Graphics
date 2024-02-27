@@ -556,9 +556,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget, LightStats lightStats)
+        internal static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget, ref bool bFirstClear)
         {
             var cmd = renderingData.commandBuffer;
+
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 // figure out the scale
@@ -574,6 +575,9 @@ namespace UnityEngine.Rendering.Universal
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 var clearFlag = pass.rendererData.useDepthStencilBuffer ? ClearFlag.All : ClearFlag.Color;
+                clearFlag = bFirstClear ? clearFlag : ClearFlag.None;
+                bFirstClear = false;
+
                 if (depthTarget != null)
                 {
                     CoreUtils.SetRenderTarget(cmd,

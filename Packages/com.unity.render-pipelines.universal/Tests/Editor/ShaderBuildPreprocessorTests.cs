@@ -731,6 +731,7 @@ namespace ShaderStrippingAndPrefiltering
                                               | ShaderFeatures.DBufferMRT1
                                               | ShaderFeatures.DBufferMRT2
                                               | ShaderFeatures.DBufferMRT3
+                                              | ShaderFeatures.DecalScreenSpace
                                               | ShaderFeatures.DecalNormalBlendLow
                                               | ShaderFeatures.DecalNormalBlendMedium
                                               | ShaderFeatures.DecalNormalBlendHigh
@@ -955,6 +956,7 @@ namespace ShaderStrippingAndPrefiltering
                                               | ShaderFeatures.DBufferMRT1
                                               | ShaderFeatures.DBufferMRT2
                                               | ShaderFeatures.DBufferMRT3
+                                              | ShaderFeatures.DecalScreenSpace
                                               | ShaderFeatures.DecalNormalBlendLow
                                               | ShaderFeatures.DecalNormalBlendMedium
                                               | ShaderFeatures.DecalNormalBlendHigh

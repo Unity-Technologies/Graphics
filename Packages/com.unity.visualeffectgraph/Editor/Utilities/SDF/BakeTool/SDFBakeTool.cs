@@ -213,7 +213,7 @@ namespace UnityEditor.VFX.SDF
             }
             EditorGUIUtility.wideMode = prevWideMode;
 
-            if (mesh != null)
+            using (new EditorGUI.DisabledScope(mesh == null))
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUI.BeginChangeCheck();

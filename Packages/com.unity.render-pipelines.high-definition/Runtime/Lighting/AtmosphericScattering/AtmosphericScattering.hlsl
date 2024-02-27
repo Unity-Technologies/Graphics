@@ -15,6 +15,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
+StructuredBuffer<CelestialBodyData> _CelestialBodyDatas;
+
 TEXTURE3D(_VBufferLighting);
 
 float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
@@ -121,26 +123,20 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
         skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth); // from 'tEntry' to 'tFrag'
 
-
-        for (uint i = 0; i < _DirectionalLightCount; i++)
+        for (uint i = 0; i < _CelestialLightCount; i++)
         {
-            DirectionalLightData light = _DirectionalLightDatas[i];
-
-            // Use scalar or integer cores (more efficient).
-            bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
-
-            if (!interactsWithSky) continue;
+            CelestialBodyData light = _CelestialBodyDatas[i];
 
             float3 L = -light.forward.xyz;
 
             // The sun disk hack causes some issues when applied to nearby geometry, so don't do that.
-            if (renderSunDisk && asint(light.angularDiameter) != 0 && light.distanceFromCamera <= tFrag)
+            if (renderSunDisk && asint(light.angularRadius) != 0 && light.distanceFromCamera <= tFrag)
             {
                 float c = dot(L, -V);
 
                 if (-0.99999 < c && c < 0.99999)
                 {
-                    float alpha = 0.5 * light.angularDiameter;
+                    float alpha = light.angularRadius;
                     float beta  = acos(c);
                     float gamma = min(alpha, beta);
 
@@ -185,7 +181,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             // MS.
             radiance += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                              SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                             tc.a);
+                             tc.a) * MS_EXPOSURE_INV;
 
             if (rayEndsInsideAtmosphere)
             {
@@ -218,7 +214,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
                 // MS.
                 radiance1 += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                                   SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                                  tc.a);
+                                  tc.a) * MS_EXPOSURE_INV;
 
                 // L(tEntry, tFrag) = L(tEntry, tExit) - T(tEntry, tFrag) * L(tFrag, tExit)
                 radiance = max(0, radiance - (1 - skyOpacity) * radiance1);

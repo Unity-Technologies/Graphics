@@ -15,8 +15,8 @@ namespace UnityEditor.Rendering
 
         public DefaultVolumeProfileCategories(VolumeProfile profile, Editor baseEditor)
         {
-            var pipelineType = RenderPipelineManager.currentPipeline.GetType();
-            var volumeComponentTypeList = VolumeManager.instance.GetVolumeComponentsForDisplay(pipelineType);
+            var volumeComponentTypeList = VolumeManager.instance
+                .GetVolumeComponentsForDisplay(GraphicsSettings.currentRenderPipelineAssetType);
 
             foreach (var defaultCategory in s_DefaultCategoryNames)
                 categories.Add(defaultCategory, new());

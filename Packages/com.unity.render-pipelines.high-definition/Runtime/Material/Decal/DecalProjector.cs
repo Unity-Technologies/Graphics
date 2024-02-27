@@ -364,6 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         static List<DecalProjector> m_DecalProjectorInstances;  // List of decal projectors that have had OnEnable() called on them
+        [NonSerialized] int m_EditorInstanceIndex = -1;
 #endif
         void OnEnable()
         {
@@ -393,6 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (PrefabStageUtility.GetCurrentPrefabStage() != null) // In case the prefab stage is already opened when enabling the decal
                     RegisterDecalVisibilityUpdatePrefabStage();
             }
+            m_EditorInstanceIndex = m_DecalProjectorInstances.Count;
             m_DecalProjectorInstances.Add(this);
 #endif
         }
@@ -489,8 +491,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Remove this instance from the list tracking active decal projectors.
             // We do this by swapping the last element of the array into the slot we are deleting rather than shuffling the entire contents above the slot down as it's faster and the actual ordering is not significant
-            int instanceIndex = m_DecalProjectorInstances.FindIndex((x) => ReferenceEquals(x, this));
-            m_DecalProjectorInstances[instanceIndex] = m_DecalProjectorInstances[m_DecalProjectorInstances.Count - 1];
+            var movedInstance = m_DecalProjectorInstances[m_EditorInstanceIndex] = m_DecalProjectorInstances[m_DecalProjectorInstances.Count - 1];
+            movedInstance.m_EditorInstanceIndex = m_EditorInstanceIndex;
+            m_EditorInstanceIndex = -1;
             m_DecalProjectorInstances.RemoveAt(m_DecalProjectorInstances.Count - 1);
 
             // If the list of active instances is now empty delete it and un-register our event handlers

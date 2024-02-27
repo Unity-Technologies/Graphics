@@ -1,16 +1,13 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel MAIN_1 main=MAIN_1 SINGLE_SCATTERING
-#pragma kernel MAIN_S main=MAIN_S MULTIPLE_SCATTERING SRC_SS
-#pragma kernel MAIN_M main=MAIN_M MULTIPLE_SCATTERING SRC_MS
+#pragma kernel main
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 #define TABLE_SIZE uint(PBRSKYCONFIG_GROUND_IRRADIANCE_TABLE_SIZE)
 
-RW_TEXTURE2D(float4, _GroundIrradianceTable);      // of TABLE_SIZE
-RW_TEXTURE2D(float4, _GroundIrradianceTableOrder); // of TABLE_SIZE
+RW_TEXTURE2D(float3, _GroundIrradianceTable);      // of TABLE_SIZE
 
 [numthreads(64, 1, 1)]
 void main(uint dispatchThreadId : SV_DispatchThreadID)
@@ -27,21 +24,15 @@ void main(uint dispatchThreadId : SV_DispatchThreadID)
     // As we look at the planet in the direction of the sun, the ground is rotationally invariant.
     float NdotL = UnmapCosineOfZenithAngle(uv.x);
 
-    float4 tableEntry = float4(0, 0, 0, 1);
+    float3 groundIrradiance = 0.0f;
 
-#ifdef SINGLE_SCATTERING
     if (NdotL > 0)
     {
         float3 oDepth = ComputeAtmosphericOpticalDepth(_PlanetaryRadius, NdotL, true);
         float3 transm = TransmittanceFromOpticalDepth(oDepth);
 
-        tableEntry.rgb = transm * NdotL;
+        groundIrradiance = transm * NdotL;
     }
-
-    _GroundIrradianceTableOrder[tableCoord] = tableEntry; // One order
-    _GroundIrradianceTable[tableCoord]      = tableEntry; // All orders
-
-#else  // MULTIPLE_SCATTERING
 
     // Gather the volume contribution.
     // Arbitrary number of samples...
@@ -60,7 +51,6 @@ void main(uint dispatchThreadId : SV_DispatchThreadID)
 
         float3 radiance = 0;
 
-    #ifdef SRC_SS
         // Single scattering does not contain the phase function.
         float LdotV = SphericalDot(NdotV, 0, NdotL, phiL);
 
@@ -71,20 +61,15 @@ void main(uint dispatchThreadId : SV_DispatchThreadID)
         radiance += lerp(SAMPLE_TEXTURE3D_LOD(_AerosolSingleScatteringTexture, s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                          SAMPLE_TEXTURE3D_LOD(_AerosolSingleScatteringTexture, s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
                          tc.a) * AerosolPhase(LdotV);
-    #else  // SRC_MS
+
         radiance += lerp(SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w0), 0).rgb,
                          SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
-                         tc.a);
-    #endif // SRC_MS
+                         tc.a) * MS_EXPOSURE_INV;
 
         float weight = PI * rcp(numVolumeSamples);
 
-        tableEntry.rgb += weight * radiance;
+        groundIrradiance += weight * radiance;
     }
 
-    _GroundIrradianceTableOrder[tableCoord] = tableEntry;                // One order
-    _GroundIrradianceTable[tableCoord]     += float4(tableEntry.rgb, 0); // All orders
-
-#endif // MULTIPLE_SCATTERING
-
+    _GroundIrradianceTable[tableCoord] = groundIrradiance;
 }

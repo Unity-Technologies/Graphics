@@ -67,16 +67,12 @@ namespace UnityEngine.VFX.SDF
 
         internal VFXRuntimeResources m_RuntimeResources;
 
-        private struct Triangle
-        {
-            Vector3 a, b, c;
-        }
-
         /// <summary>
         /// Returns the texture containing the baked Signed Distance Field
         /// </summary>
         public RenderTexture SdfTexture => m_DistanceTexture;
-        private void InitMeshFromList(List<Mesh> meshes, List<Matrix4x4> transforms)
+
+        private static Mesh InitMeshFromList(List<Mesh> meshes, List<Matrix4x4> transforms)
         {
             int nMeshes = meshes.Count;
             if (nMeshes != transforms.Count)
@@ -94,9 +90,11 @@ namespace UnityEngine.VFX.SDF
                     combine.Add(comb);
                 }
             }
-            m_Mesh = new Mesh();
-            m_Mesh.indexFormat = IndexFormat.UInt32;
-            m_Mesh.CombineMeshes(combine.ToArray());
+
+            Mesh outMesh = new Mesh();
+            outMesh.indexFormat = IndexFormat.UInt32;
+            outMesh.CombineMeshes(combine.ToArray());
+            return outMesh;
         }
 
         private void InitCommandBuffer()
@@ -184,30 +182,23 @@ namespace UnityEngine.VFX.SDF
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
         /// <param name="cmd">The CommandBuffer on which the baking process will be added.</param>
-        public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, CommandBuffer cmd = null)
+        public MeshToSDFBaker(Vector3 sizeBox,
+            Vector3 center,
+            int maxRes,
+            Mesh mesh,
+            int signPassesCount = 1,
+            float threshold = 0.5f,
+            float sdfOffset = 0.0f,
+            CommandBuffer cmd = null)
         {
-            m_SignPassesCount = signPassesCount;
-            if (m_SignPassesCount >= 20)
-            {
-                throw new ArgumentException("The signPassCount argument should be smaller than 20.");
-            }
-            m_InOutThreshold = threshold;
-            m_RuntimeResources = VFXRuntimeResources.runtimeResources;
-            if (m_RuntimeResources == null)
-            {
-                throw new InvalidOperationException("VFX Runtime Resources could not be loaded.");
-            }
-
-            m_SdfOffset = sdfOffset;
-            m_Center = center;
-            m_SizeBox = sizeBox;
+            LoadRuntimeResources();
             m_Mesh = mesh;
-            m_maxResolution = maxRes;
             if (cmd != null)
             {
                 m_Cmd = cmd;
                 m_OwnsCommandBuffer = false;
             }
+            SetParameters(sizeBox, center, maxRes, signPassesCount, threshold, sdfOffset);
             Init();
         }
 
@@ -223,26 +214,17 @@ namespace UnityEngine.VFX.SDF
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
         /// <param name="cmd">The CommandBuffer on which the baking process will be added.</param>
-        public MeshToSDFBaker(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f, CommandBuffer cmd = null)
+        public MeshToSDFBaker(Vector3 sizeBox,
+            Vector3 center,
+            int maxRes,
+            List<Mesh> meshes,
+            List<Matrix4x4> transforms,
+            int signPassesCount = 1,
+            float threshold = 0.5f,
+            float sdfOffset = 0.0f,
+            CommandBuffer cmd = null) :
+            this(sizeBox, center, maxRes, InitMeshFromList(meshes, transforms), signPassesCount, threshold, sdfOffset, cmd)
         {
-            m_RuntimeResources = VFXRuntimeResources.runtimeResources;
-            if (m_RuntimeResources == null)
-            {
-                throw new InvalidOperationException("VFX Runtime Resources could not be loaded.");
-            }
-            InitMeshFromList(meshes, transforms);
-            m_SdfOffset = sdfOffset;
-            m_Center = center;
-            m_SizeBox = sizeBox;
-            m_maxResolution = maxRes;
-            if (cmd != null)
-            {
-                m_Cmd = cmd;
-                m_OwnsCommandBuffer = false;
-            }
-            m_SignPassesCount = signPassesCount;
-            m_InOutThreshold = threshold;
-            Init();
         }
 
         /// <summary>
@@ -266,15 +248,16 @@ namespace UnityEngine.VFX.SDF
         /// <param name="signPassesCount">The number of refinement passes on the sign of the SDF. This should stay below 20.</param>
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
-        public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, Mesh mesh, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f)
+        public void Reinit(Vector3 sizeBox,
+            Vector3 center,
+            int maxRes,
+            Mesh mesh,
+            int signPassesCount = 1,
+            float threshold = 0.5f,
+            float sdfOffset = 0.0f)
         {
             m_Mesh = mesh;
-            m_Center = center;
-            m_SizeBox = sizeBox;
-            m_maxResolution = maxRes;
-            m_SignPassesCount = signPassesCount;
-            m_InOutThreshold = threshold;
-            m_SdfOffset = sdfOffset;
+            SetParameters(sizeBox, center, maxRes, signPassesCount, threshold, sdfOffset);
             Init();
         }
 
@@ -289,16 +272,43 @@ namespace UnityEngine.VFX.SDF
         /// <param name="signPassesCount">The number of refinement passes on the sign of the SDF. This should stay below 20.</param>
         /// <param name="threshold">The threshold controlling which voxels will be considered inside or outside of the surface.</param>
         /// <param name="sdfOffset">The Offset to add to the SDF. It can be used to make the SDF more bulky or skinny.</param>
-        public void Reinit(Vector3 sizeBox, Vector3 center, int maxRes, List<Mesh> meshes, List<Matrix4x4> transforms, int signPassesCount = 1, float threshold = 0.5f, float sdfOffset = 0.0f)
+        public void Reinit(Vector3 sizeBox,
+            Vector3 center,
+            int maxRes,
+            List<Mesh> meshes,
+            List<Matrix4x4> transforms,
+            int signPassesCount = 1,
+            float threshold = 0.5f,
+            float sdfOffset = 0.0f)
         {
-            InitMeshFromList(meshes, transforms);
-            m_Center = center;
-            m_SizeBox = sizeBox;
-            m_maxResolution = maxRes;
+            Reinit(sizeBox, center, maxRes, InitMeshFromList(meshes, transforms), signPassesCount, threshold, sdfOffset);
+        }
+
+        private void SetParameters(Vector3 sizeBox, Vector3 center, int maxRes, int signPassesCount, float threshold, float sdfOffset)
+        {
+            if (m_SignPassesCount >= 20)
+            {
+                throw new ArgumentException("The signPassCount argument should be smaller than 20.");
+            }
             m_SignPassesCount = signPassesCount;
             m_InOutThreshold = threshold;
             m_SdfOffset = sdfOffset;
-            Init();
+            m_Center = center;
+            m_SizeBox = sizeBox;
+            m_maxResolution = maxRes;
+        }
+        private void LoadRuntimeResources()
+        {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+            {
+                Debug.LogWarning("MeshToSDFBaker compute shaders are not supported on OpenGLES3");
+            }
+
+            m_RuntimeResources = VFXRuntimeResources.runtimeResources;
+            if (m_RuntimeResources == null)
+            {
+                throw new InvalidOperationException("VFX Runtime Resources could not be loaded.");
+            }
         }
 
         void InitTextures()
@@ -707,6 +717,10 @@ namespace UnityEngine.VFX.SDF
         /// </summary>
         public void BakeSDF()
         {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+            {
+                throw new NotSupportedException("MeshToSDFBaker compute shaders are not supported on OpenGLES3");
+            }
             m_Cmd.BeginSample("BakeSDF");
             UpdateCameras();
             m_Cmd.SetComputeIntParams(m_computeShader, ShaderProperties.size, m_Dimensions);

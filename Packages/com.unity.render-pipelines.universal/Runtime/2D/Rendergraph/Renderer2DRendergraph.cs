@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.Universal
                 ref var layerBatch = ref layerBatches[i];
 
                 // Normal Pass
-                m_NormalPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, resources);
+                m_NormalPass.Render(renderGraph, ref renderingData, m_Renderer2DData, ref layerBatch, resources, i, batchCount);
 
                 bool doClear = true;
 
