@@ -20,6 +20,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsOpaque;
 
         bool m_UseDepthPriming;
+		
+        /// <summary>
+        /// Used to indicate if the active target of the pass is the back buffer
+        /// </summary>
+        public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
 
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
@@ -35,6 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
+            m_IsActiveTargetBackBuffer = false;
 
             if (stencilState.enabled)
             {
@@ -78,6 +84,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (renderingData.cameraData.xr.enabled && m_IsActiveTargetBackBuffer)
+                    cmd.SetViewport(renderingData.cameraData.xr.GetViewport());
+#endif
+
                 // Global render pass data containing various settings.
                 // x,y,z are currently unused
                 // w is used for knowing whether the object is opaque(1) or alpha blended(0)
