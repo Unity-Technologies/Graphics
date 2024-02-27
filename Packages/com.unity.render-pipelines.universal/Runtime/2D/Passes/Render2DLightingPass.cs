@@ -194,6 +194,10 @@ namespace UnityEngine.Rendering.Universal
             var batchesDrawn = 0;
             var rtCount = 0U;
 
+            // Account for Sprite Mask and normal map usage where the first and last layer has to render the stencil pass
+            bool hasSpriteMask = UnityEngine.SpriteMaskUtility.HasSpriteMaskInScene();
+            bool normalsFirstClear = true;
+
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
@@ -216,11 +220,13 @@ namespace UnityEngine.Rendering.Universal
 
                     batchesDrawn++;
 
-                    if (layerBatch.lightStats.totalNormalMapUsage > 0)
+                    if (layerBatch.lightStats.totalNormalMapUsage > 0 ||
+                        (hasSpriteMask && i == 0) ||
+                        (hasSpriteMask && i + 1 == batchCount))
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
                         var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
-                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, layerBatch.lightStats);
+                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, ref normalsFirstClear);
                     }
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))

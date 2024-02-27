@@ -53,7 +53,18 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #if defined(USING_STEREO_MATRICES)
     zBinBaseIndex += URP_FP_ZBIN_COUNT * unity_StereoEyeIndex;
 #endif
-    zBinBaseIndex = min(4*MAX_ZBIN_VEC4S - 1, zBinBaseIndex) * (2 + URP_FP_WORDS_PER_TILE);
+    // The Zbin buffer is laid out in the following manner:
+    //                          ZBin 0                                      ZBin 1
+    //  .-------------------------^------------------------. .----------------^-------
+    // | header0 | header1 | word 1 | word 2 | ... | word N | header0 | header 1 | ...
+    //                     `----------------v--------------'
+    //                            URP_FP_WORDS_PER_TILE
+    //
+    // The total length of this buffer is `4*MAX_ZBIN_VEC4S`. `zBinBaseIndex` should
+    // always point to the `header 0` of a ZBin, so we clamp it accordingly, to
+    // avoid out-of-bounds indexing of the ZBin buffer.
+    zBinBaseIndex = zBinBaseIndex * (2 + URP_FP_WORDS_PER_TILE);
+    zBinBaseIndex = min(zBinBaseIndex, 4*MAX_ZBIN_VEC4S - (2 + URP_FP_WORDS_PER_TILE));
 
     uint zBinHeaderIndex = zBinBaseIndex + headerIndex;
     state.zBinOffset = zBinBaseIndex + 2;

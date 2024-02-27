@@ -119,7 +119,11 @@ void CSMain(uint3 groupId		: SV_GroupID,
             {
                 ${VFXLoadSize}
 #if HAS_STRIPS
-                size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
+                // Add an epsilon so that size is never 0 for strips
+                size3.x += size3.x < 0.0f ? -VFX_EPSILON : VFX_EPSILON;
+                size3.y += size3.y < 0.0f ? -VFX_EPSILON : VFX_EPSILON;
+                size3.z += size3.z < 0.0f ? -VFX_EPSILON : VFX_EPSILON;
+
 #endif
                 float4x4 elementToVFX = GetElementToVFXMatrix(
                     attributes.axisX,

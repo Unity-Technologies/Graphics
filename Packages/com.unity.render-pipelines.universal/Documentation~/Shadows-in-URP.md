@@ -2,6 +2,10 @@
 
 The Universal Render Pipeline’s [Lights](light-component.md) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a Scene that could otherwise look flat.
 
+URP uses [shadow maps](https://docs.unity3d.com/Manual/shadow-mapping.html) and [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html).
+
+You can add a [Screen Space Shadows Renderer Feature](renderer-feature-screen-space-shadows.md) so the Universal Render Pipeline (URP) uses a single render texture to calculate and draw shadows from the main Directional Light, instead of multiple shadow cascade textures.
+
 ## Shadow map resolution
 
 The resolution of a Light’s shadow map determines the size of its shadow maps. The larger the shadow map, the more precise the shadows can be, and the better the Universal Render Pipeline can capture small details in the shadow casting geometry. Rendering shadow maps at higher resolutions make them look sharper.

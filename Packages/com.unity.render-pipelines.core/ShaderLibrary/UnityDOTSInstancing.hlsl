@@ -212,7 +212,7 @@ struct DOTSVisibleData
 // detected as an "instancing cbuffer" by some platforms that use string matching
 // to detect this.
 CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
-    DOTSVisibleData unity_DOTSVisibleInstances[256];	// warning: if you change 256 value you should also change kBRGVisibilityGLESMaxElementCount in c++ code base
+    DOTSVisibleData unity_DOTSVisibleInstances[256];	// warning: if you change 256 value you should also change kBRGVisibilityUBOShaderArraySize in c++ code base
 CBUFFER_END
 
 // Keep these in sync with SRP Batcher DOTSInstancingFlags

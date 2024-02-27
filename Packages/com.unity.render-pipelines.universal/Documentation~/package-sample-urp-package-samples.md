@@ -45,14 +45,16 @@ The `URP Package Samples/Lighting` folder contains examples for [lighting](light
 | ------------------ | ------------------------------------------------------------ |
 | **Reflection probes**   | The example in `Lighting/Reflection Probes` uses [reflection probes](lighting/reflection-probes.md) to create reflection maps for a reflective sphere GameObject. This sample shows how the **Probe Blending** and **Box Projection** settings can change the reflection within a scene that uses reflection probes. |
 
-<a name="renderer-features"></a>
-## Renderer Features
+## <a name="renderer-features"></a>Renderer Features
 
 The `URP Package Samples/RendererFeatures` folder contains examples for [Renderer Features](urp-renderer-feature.md). The following table describes each Renderer Feature example in this folder.
 
 | **Example**           | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
 | **Ambient occlusion** | The example in `RendererFeatures/AmbientOcclusion` uses a Renderer Feature to add [screen space ambient occlusion (SSAO)](post-processing-ssao.md) to URP. See the `SSAO_Renderer` asset for an example of how to set up this effect. |
+| **Blit to RTHandle** | This example describes the operation of blitting a camera color texture to an output texture, and setting the output texture as a global property. The shaders in the Scene use the global texture.<br/>Refer to the page [Blit Camera color texture to RTHandle](customize/blit-to-rthandle.md) to read the example description. |
+| **Depth Blit** | This sample uses a custom renderer feature to copy or render the depth texture to an RTHandle and then perform a full screen blit to screen to achieve the fading effect. |
+| **Distort Tunnel** | This example describes the blit operation involving multiple `RTHandle` textures and a custom shader effect.<br/>Refer to the page [Blit multiple RTHandle textures](customize/blit-multiple-rthandles.md) to read the example description. |
 | **Glitch effect**     | The example in `RendererFeatures/GlitchEffect` uses the [Render Objects](renderer-features/renderer-feature-render-objects.md) Render Feature and the [Scene Color](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Scene-Color-Node.html) Shader Graph node to draw some GameObjects with a glitchy effect. See the `Glitch_Renderer` asset for an example of how to set up this effect. |
 | **Keep frame**        | The example in `RendererFeatures/KeepFrame` uses a custom Renderer Feature to preserve frame color between frames. The example uses this to create a swirl effect from a simple particle system.<br/>**Note**: The effect is only visible in Play Mode. |
 | **Occlusion effect**  | The example in `RendererFeatures/OcclusionEffect` uses the Render Objects Renderer Feature to draw occluded geometry. The example achieves this effect without any code and sets everything up in the `OcclusionEffect_Renderer` asset. |

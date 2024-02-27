@@ -50,27 +50,26 @@ ${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
-// Due to a bug in HLSL compiler, disable spurious "unitialized variable" due to mid function return statement
-#pragma warning(push)
-#pragma warning(disable : 4000)
 #if HAS_STRIPS
 bool GetParticleIndex(inout uint particleIndex, uint stripIndex, uint instanceIndex, uint stripCountPerInstance )
 {
-	uint relativeIndex;
+    uint relativeIndex;
     uint bufferIndex = (instanceIndex * stripCountPerInstance) + stripIndex;
 
-	InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex), 1, relativeIndex);
-	if (relativeIndex >= PARTICLE_PER_STRIP_COUNT) // strip is full
-	{
-		InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex), -1); // Remove previous increment
-		return false;
-	}
+    InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex), 1, relativeIndex);
+    bool isFull = relativeIndex >= PARTICLE_PER_STRIP_COUNT;
+    if (isFull)
+    {
+        InterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, bufferIndex), -1); // Remove previous increment
+    }
+    else
+    {
+        particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
+    }
 
-	particleIndex = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, bufferIndex) + relativeIndex) % PARTICLE_PER_STRIP_COUNT);
-    return true;
+    return !isFull;
 }
 #endif
-#pragma warning(pop)
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,

@@ -17,7 +17,7 @@ This guide demonstrates how to upgrade a custom unlit shader from Built-In Rende
 
 The following shader is a simple unlit shader that works with the Built-In Render Pipeline. This guide demonstrates how to upgrade this shader to be compatible with URP.
 
-```hlsl
+```c++
 Shader "Custom/UnlitShader"
 {
     Properties
@@ -81,7 +81,7 @@ The following steps show how to solve these issues and make a shader compatible 
 1. Change `CGPROGRAM` and `ENDCG` to `HLSLPROGRAM` and `ENDHLSL`.
 2. Update the include statement to reference the `Core.hlsl` file.
 
-    ```hlsl
+    ```c++
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     ```
 
@@ -89,7 +89,7 @@ The following steps show how to solve these issues and make a shader compatible 
 
 3. Add `"RenderPipeline" = "UniversalPipeline"` to the shader tags.
 
-    ```hlsl
+    ```c++
     Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
     ```
 
@@ -97,7 +97,7 @@ The following steps show how to solve these issues and make a shader compatible 
 
 4. Replace the `struct v2f` code block with the following `struct Varyings` code block. This changes the struct to use the URP naming convention of `Varyings` instead of `v2f`, and updates the shader to use the correct variables for URP.
 
-    ```hlsl
+    ```c++
     struct Varyings
     {
         // The positions in this struct must have the SV_POSITION semantic.
@@ -109,7 +109,7 @@ The following steps show how to solve these issues and make a shader compatible 
 5. Beneath the include statement and above the `Varyings` struct, define a new struct with the name `Attributes`. This is equivalent to the Built-In Render Pipeline's appdata structs but with the new URP naming conventions.
 6. Add the variables shown below to the `Attributes` struct.
 
-    ```hlsl
+    ```c++
     struct Attributes
     {
         float4 positionOS   : POSITION;
@@ -119,13 +119,13 @@ The following steps show how to solve these issues and make a shader compatible 
 
 7. Update the `v2f vert` function definition to use the new `Varyings` struct and take an instance of the `Attributes` struct as an input, as shown below.
 
-    ```hlsl
+    ```c++
     Varyings vert(Attributes IN)
     ```
 
 8. Update the vert function to output an instance of the `Varyings` struct and use the `TransformObjectToHClip` function to convert from object space to clip space. The function also needs to take the input `Attributes` UV and pass it to the output `Varyings` UV.
 
-    ```hlsl
+    ```c++
     Varyings vert(Attributes IN)
     {
         Varyings OUT;
@@ -141,7 +141,7 @@ The following steps show how to solve these issues and make a shader compatible 
 
 9. Place a `CBUFFER` code block around the properties the shader uses, along with the `UnityPerMaterial` parameter.
 
-    ```hlsl
+    ```c++
     CBUFFER_START(UnityPerMaterial)
     float4 _Color;
     sampler2D _MainTex;
@@ -152,7 +152,7 @@ The following steps show how to solve these issues and make a shader compatible 
 
 10. Update the `frag` function to use the `Varyings` input and the type `half4`, as shown below. The `frag` function must now use this type, as URP shaders do not support fixed types.
 
-    ```hlsl
+    ```c++
     half4 frag(Varyings IN) : SV_Target
     {
         half4 texel = tex2D(_MainTex, IN.uv);
@@ -173,7 +173,7 @@ Although the shader is now compatible with URP and the SRP Batcher, you can't us
 2. Remove the `[NoScaleOffset]` ShaderLab attribute from the `_BaseMap` property. You can now see **Tiling** and **Offset** properties in the shader's Inspector window.
 3. Add the `[MainTexture]` ShaderLab attribute to the `_BaseMap` property and the `[MainColor]` attribute to the `_Color` property. This tells the Editor which property to return when you request the main texture or main color from another part of your project or in the Editor. The `Properties` section of your shader should now look as follows:
 
-    ```hlsl
+    ```c++
     Properties
     {
         [MainTexture] _BaseMap("Main Texture", 2D) = "white" {}
@@ -183,14 +183,14 @@ Although the shader is now compatible with URP and the SRP Batcher, you can't us
 
 4. Add the `TEXTURE2D(_BaseMap)` and `SAMPLER(sampler_BaseMap)` macros above the `CBUFFER` block. These macros define the texture and sampler state variables for use later. For more information on sampler states, refer to [Using sampler states](xref:SL-SamplerStates).
 
-    ```hlsl
+    ```c++
     TEXTURE2D(_BaseMap);
     SAMPLER(sampler_BaseMap);
     ```
 
 5. Change the `sampler2D _BaseMap` variable inside the `CBUFFER` block to `float4 _BaseMap_ST`. This variable now stores the tiling and offset values set in the Inspector.
 
-    ```hlsl
+    ```c++
     CBUFFER_START(UnityPerMaterial)
     float4 _Color;
     float4 _BaseMap_ST;
@@ -199,7 +199,7 @@ Although the shader is now compatible with URP and the SRP Batcher, you can't us
 
 6. Change the `frag` function to access the texture with a macro instead of `tex2D` directly. To do this, replace `tex2D` with the `SAMPLE_TEXTURE2D` macro and add `sampler_BaseMap` as an additional parameter, as shown below:
 
-    ```hlsl
+    ```c++
     half4 frag(Varyings IN) : SV_Target
     {
         half4 texel = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, IN.uv);
@@ -209,7 +209,7 @@ Although the shader is now compatible with URP and the SRP Batcher, you can't us
 
 7. In the `vert` function, change `OUT.uv` to use a macro instead of passing the texture coordinates as `IN.uv` directly. To do this, replace `IN.uv` with `TRANSFORM_TEX(IN.uv, _BaseMap)`. Your `vert` function should now look like the following example:
 
-    ```hlsl
+    ```c++
     Varyings vert(Attributes IN)
     {
         Varyings OUT;
@@ -229,7 +229,7 @@ To see an example of the complete shader code, refer to the [Complete shader cod
 
 ## Complete shader code
 
-```hlsl
+```c++
 Shader "Custom/UnlitShader"
 {
     Properties

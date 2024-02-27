@@ -266,6 +266,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         private const int kDecalBlockSize = 128;
+        private const int kDecalBlockGrowthPercentage = 20;
+        private const int kDecalMaxBlockSize = 2048;
 
         // to work on Vulkan Mobile?
         // Core\CoreRP\ShaderLibrary\UnityInstancing.hlsl
@@ -565,11 +567,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
                 {
-                    int newCapacity = m_DecalsCount + kDecalBlockSize;
+                    int growByAmount = Math.Min(Math.Max(m_DecalsCount * kDecalBlockGrowthPercentage / 100, kDecalBlockSize), kDecalMaxBlockSize);
+                    int newCapacity = m_DecalsCount + growByAmount;
 
                     m_ResultIndices = new int[newCapacity];
 
-                    ResizeJobArrays(newCapacity);
+                    GrowJobArrays(growByAmount);
 
                     ArrayExtensions.ResizeArray(ref m_Handles, newCapacity);
                     ArrayExtensions.ResizeArray(ref m_CachedDrawDistances, newCapacity);
@@ -977,12 +980,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public DecalHandle AddDecal(DecalProjector decalProjector)
         {
             var material = decalProjector.material;
-            SetupMipStreamingSettings(material, true);
 
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
             {
+				SetupMipStreamingSettings(material, true);
                 decalSet = new DecalSet(material);
                 m_DecalSets.Add(key, decalSet);
             }
@@ -1162,10 +1165,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     AddTexture(cmd, textureScaleBias);
                 }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                 if (!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
-                {
                     Debug.LogWarning(s_AtlasSizeWarningMessage);
-                }
+#endif
             }
             m_PrevAllocationSuccess = m_AllocationSuccess;
             // now that textures have been stored in the atlas we can update their location info in decal data
