@@ -60,6 +60,8 @@ The **Rendering Debugger** window contains the following sections:
 
 * [Rendering](#rendering)
 
+* [Probe Volume](#probe-volume-panel)
+
 The following illustration shows the Rendering Debugger window in the Scene view.
 
 ![Rendering Debugger window.](../Images/rendering-debugger/rendering-debugger-ui-sections.png)
@@ -72,7 +74,7 @@ Use the [runtime shortcuts](#Navigation at runtime) to open the Display stats wi
 
 ### <a name="frame-stats"></a>Frame Stats
 
-The Frame Stats section displays the average, minimum, and maximum value of each property. HDRP calculates each Frame Stat value over the 30 most recent frames.
+The Frame Stats section displays the average, minimum, and maximum value of each property. URP calculates each Frame Stat value over the 30 most recent frames.
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
@@ -107,8 +109,8 @@ The **Bottlenecks** section describes the distribution of the last 60 frames acr
 
 If Vsync limited 20 of the 60 most recent frames, the Bottleneck section might appear as follows: 
 
-- **CPU** 0.0%: This indicates that HDRP did not render any of the last 60 frames on the CPU.
-- **GPU** 66.6%: This indicates that the GPU limited 66.6% of the 60 most recent frames rendered by HDRP.
+- **CPU** 0.0%: This indicates that URP did not render any of the last 60 frames on the CPU.
+- **GPU** 66.6%: This indicates that the GPU limited 66.6% of the 60 most recent frames rendered by URP.
 - **Present Limited** 33.3%: This indicates that presentation constraints (Vsync or the [target framerate](https://docs.unity3d.com/ScriptReference/Application-targetFrameRate.html)) limited 33.3% of the last 60 frames.
 - **Balanced** 0.0%: This indicates that in the last 60 frames, there were 0 frames where the CPU processing time and GPU processing time were the same.
 
@@ -118,7 +120,7 @@ In this example, the bottleneck is the GPU.
 
 ### Detailed Stats
 
-The Detailed Stats section displays the amount of time in milliseconds that each rendering step takes on the CPU and GPU. HDRP updates these values once every frame based on the previous frame. 
+The Detailed Stats section displays the amount of time in milliseconds that each rendering step takes on the CPU and GPU. URP updates these values once every frame based on the previous frame. 
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -192,6 +194,53 @@ The properties in this section let you visualize different rendering features.
 | **&nbsp;&nbsp;Channels**         | Specifies which value to use for the pixel value range validation. The options are:<ul><li>**RGB**: Validates the pixel using the luminance value calculated from the red, green, and blue color channels.</li><li>**R**: Validates the pixel using the value from the red color channel.</li><li>**G**: Validates the pixel using the value from the green color channel.</li><li>**B**: Validates the pixel using the value from the blue color channel.</li><li>**A**: Validates the pixel using the value from the alpha channel.</li></ul>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 | **&nbsp;&nbsp; Value Range Min** | The minimum valid color value. Unity highlights color values that are less than this value.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 | **&nbsp;&nbsp; Value Range Max** | The maximum valid color value. Unity highlights color values that are greater than this value.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
+
+<a name="ProbeVolume"></a>
+
+## Probe Volume panel
+
+These settings make it possible for you to visualize [Probe Volumes](probevolumes.md) in your Scene, and configure the visualization.
+
+### Subdivision Visualization
+
+| **Property** | **Sub-property** | **Description** |
+|-|-|-|
+| **Display Cells** || Display cells. Refer to [Understanding Probe Volumes](../probevolumes-concept.md) for more information. |
+| **Display Bricks** || Display bricks. Refer to [Understanding Probe Volumes](../probevolumes-concept.md) for more information. |
+| **Live Subdivision Preview** || Enable a preview of Probe Volume data in the scene without baking. This might make the Editor slower. This setting appears only if you select **Display Cells** or **Display Bricks**. |
+|| **Cell Updates Per Frame** | Set the number of cells, bricks, and probe positions to update per frame. Higher values might make the Editor slower.  The default value is 4. This property appears only if you enable **Live Subdivision Preview**. |
+|| **Update Frequency** | Set how frequently Unity updates cell, bricks, and probe positions, in seconds. The default value is 1. This property appears only if you enable **Live Subdivision Preview**. |
+| **Debug Draw Distance** || Set how far from the scene camera Unity draws debug visuals for cells and bricks, in meters. The default value is 500. |
+
+### Probe Visualization
+
+| **Property** | **Sub-property** | **Description** |
+|-|-|-|
+| **Display Probes** || Display probes. |
+|| **Probe Shading Mode** | Set what the Rendering Debugger displays. The options are:<ul><li><strong>SH</strong>: Display the [spherical harmonics (SH) lighting data](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) for the final color calculation. The number of bands depends on the **SH Bands** setting in the active [URP Asset](../universalrp-asset.md).</li><li><strong>SHL0</strong>: Display the spherical harmonics (SH) lighting data with only the first band.</li><li><strong>SHL0L1</strong>: Display the spherical Harmonics (SH) lighting data with the first two bands.</li><li><strong>Validity</strong>: Display whether probes are valid, based on the number of backfaces the probe samples. Refer to [Fix issues with Probe Volumes](../probevolumes-fixissues.md) for more information about probe validity.</li><li><strong>Probe Validity Over Dilation Threshold</strong>: Display red if a probe samples too many backfaces, based on the **Validity Threshold** set in the [Probe Volumes panel](../probevolumes-lighting-panel-reference.md). This means the probe can't be baked or sampled.</li><li><strong>Invalidated By Touchup Volumes</strong>: Display probes that a [Probe Adjustment Volume component](../probevolumes-adjustment-volume-component-reference.md) has made invalid.</li><li><strong>Size</strong>: Display a different color for each size of [brick](../probevolumes-concept.md).</li></ul>|
+|| **Debug Size** | Set the size of the displayed probes. The default is 0.3. |
+|| **Exposure Compensation** | Set the brightness of the displayed probes. Decrease the value to increase brightness. The default is 0. This property appears only if you set **Probe Shading Mode** to **SH**, **SHL0**, or **SHL0L1**. |
+|| **Max Subdivisions Displayed** | Set the lowest probe density to display. For example, set this to 0 to display only the highest probe density. |
+|| **Min Subdivisions Displayed** | Set the highest probe density to display. |
+| **Debug Probe Sampling** || Display how probes are sampled for a pixel. In the Scene view, in the **Adaptive Probe Volumes** overlay, select **Select Pixel** to change the pixel. |
+|| **Debug Size** | Set the size of the **Debug Probe Sampling** display. |
+|| **Debug With Sampling Noise** | Enable sampling noise for this debug view. Enabling this gives more accurate information, but makes the information more difficult to read. |
+| **Virtual Offset Debug** || Display the offsets Unity applies to Light Probe capture positions. |
+|| **Debug Size** | Set the size of the arrows that represent Virtual Offset values. |
+| **Debug Draw Distance** || Set how far from the scene camera Unity draws debug visuals for cells and bricks, in meters. The default is 200. |
+
+### Streaming
+
+Use the following properties to control how URP streams Probe Volumes. Refer to [Streaming Probe Volumes](../probevolumes-streaming.md) for more information.
+
+| **Property** | **Description** |
+| ------------ | --------------- |
+| **Freeze Streaming** | Stop Unity from streaming probe data. |
+| **Display Streaming Score** | If you enable **Display Cells**, this setting darkens cells that have a lower priority for streaming. Cells closer to the camera usually have the highest priority. |
+| **Maximum cell streaming** | Stream as many cells as possible every frame. |
+| **Display Index Fragmentation** | Open an overlay that displays how fragmented the streaming memory is. A green square is an area of used memory. The more spaces between the green squares, the more fragmented the memory. |
+| **Index Fragmentation Rate** | Displays the amount of fragmentation as a numerical value, where 0 is no fragmentation. |
+| **Verbose Log** | Log information about streaming. |
 
 ## Navigation at runtime
 
