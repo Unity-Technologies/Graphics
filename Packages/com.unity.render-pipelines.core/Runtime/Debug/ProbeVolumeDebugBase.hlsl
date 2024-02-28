@@ -300,7 +300,7 @@ float3 CalculateDiffuseLighting(v2f i)
         }
         else
         {
-            return _DebugEmptyProbeData / GetCurrentExposureMultiplier();
+            return _DebugEmptyProbeData.xyz / GetCurrentExposureMultiplier();
         }
     }
     else
@@ -318,37 +318,39 @@ float3 CalculateDiffuseLighting(v2f i)
             if(_SkyOcclusionIntensity > 0)
                 return skyOcclusion / GetCurrentExposureMultiplier();
             else
-                return _DebugEmptyProbeData / GetCurrentExposureMultiplier();
+                return _DebugEmptyProbeData.xyz / GetCurrentExposureMultiplier();
         }
+        else
+        {
+            float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
+            float3 L0 = L0_L1Rx.xyz;
 
-        float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
-        float3 L0 = L0_L1Rx.xyz;
+            if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0)
+                return L0;
 
-        if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0)
-            return L0;
+            float  L1Rx = L0_L1Rx.w;
+            float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
+            float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
 
-        float  L1Rx = L0_L1Rx.w;
-        float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
-        float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
+            float3 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
+            bakeDiffuseLighting += L0;
 
-        float3 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
-        bakeDiffuseLighting += L0;
+            if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0L1)
+                return bakeDiffuseLighting;
 
-        if (_ShadingMode == DEBUGPROBESHADINGMODE_SHL0L1)
+    #ifdef PROBE_VOLUMES_L2
+            float4 L2_R = apvRes.L2_0[texLoc].rgba;
+            float4 L2_G = apvRes.L2_1[texLoc].rgba;
+            float4 L2_B = apvRes.L2_2[texLoc].rgba;
+            float4 L2_C = apvRes.L2_3[texLoc].rgba;
+
+            bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
+    #endif
+            if (_SkyOcclusionIntensity > 0)
+                bakeDiffuseLighting += skyOcclusion * EvaluateAmbientProbe(skyShadingDirection);
+
             return bakeDiffuseLighting;
-
-#ifdef PROBE_VOLUMES_L2
-        float4 L2_R = apvRes.L2_0[texLoc].rgba;
-        float4 L2_G = apvRes.L2_1[texLoc].rgba;
-        float4 L2_B = apvRes.L2_2[texLoc].rgba;
-        float4 L2_C = apvRes.L2_3[texLoc].rgba;
-
-        bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
-#endif
-        if (_SkyOcclusionIntensity > 0)
-            bakeDiffuseLighting += skyOcclusion * EvaluateAmbientProbe(skyShadingDirection);
-
-        return bakeDiffuseLighting;
+        }
     }
 }
 

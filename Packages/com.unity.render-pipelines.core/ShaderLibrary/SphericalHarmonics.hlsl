@@ -93,7 +93,7 @@ half3 SampleSH4_L1(half4 SHCoefficients[3], half3 N)
     half4 shAb = SHCoefficients[2];
 
     // Linear + constant polynomial terms
-    half3 res = SHEvalLinearL1(N, shAr, shAg, shAb);
+    half3 res = SHEvalLinearL1(N, shAr.xyz, shAg.xyz, shAb.xyz);
 
     #ifdef UNITY_COLORSPACE_GAMMA
     res = LinearToSRGB(res);
