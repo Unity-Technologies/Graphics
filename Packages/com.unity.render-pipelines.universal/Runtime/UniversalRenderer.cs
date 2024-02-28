@@ -648,7 +648,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
-            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
+            bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup();
 
             bool forcePrepass = (m_CopyDepthMode == CopyDepthMode.ForcePrepass);
 

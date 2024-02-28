@@ -1,3 +1,6 @@
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.Universal.Internal;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -18,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
             m_shouldReceiveShadows = shadowReceiveSupported;
         }
 
-        public bool Setup(ref RenderingData renderingData)
+        public bool Setup()
         {
             // Currently we only need to enqueue this pass when the user
             // doesn't want transparent objects to receive shadows
@@ -36,10 +39,10 @@ namespace UnityEngine.Rendering.Universal
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                // Toggle light shadows enabled based on the renderer setting set in the constructor
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shouldReceiveShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shouldReceiveShadows);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shouldReceiveShadows);
+                // This pass is only used when transparent objects should not
+                // receive shadows using the setting on the URP Renderer.
+                MainLightShadowCasterPass.SetEmptyMainLightShadowParams(cmd);
+                AdditionalLightsShadowCasterPass.SetEmptyAdditionalLightShadowParams(cmd, AdditionalLightsShadowCasterPass.s_EmptyAdditionalLightIndexToShadowParams);
             }
         }
     }
