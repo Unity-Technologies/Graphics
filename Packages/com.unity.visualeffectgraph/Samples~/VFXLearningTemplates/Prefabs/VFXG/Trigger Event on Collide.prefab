@@ -97,7 +97,7 @@ PrefabInstance:
     - target: {fileID: 598425183958095028, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
       propertyPath: m_Name
-      value: VFXG Trigger Event Advanced
+      value: VFXG Trigger Event on Collide
       objectReference: {fileID: 0}
     - target: {fileID: 598425183958095028, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
@@ -148,7 +148,7 @@ PrefabInstance:
     - target: {fileID: 3081683560716131922, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
       propertyPath: m_MotionVectors
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3081683560716131922, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
@@ -258,22 +258,13 @@ PrefabInstance:
     - target: {fileID: 6393118192857248175, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
       propertyPath: m_text
-      value: 'This VFX is displaying an advanced usage of the Trigger on Die block
+      value: "This VFX is displaying an advanced usage of the Trigger on Die block
         that allows us to spawn new particles when a particle dies. Dart particles
         are thrown at the dartboard. When they collide, they instantaneously die
         and trigger different GPU Events. Those GPU Events are used to spawn new
         particles like the Springy darts or the UI Score particles, that all inherit
-        attributes from their parent.
-
-
-        <b>Covered Aspects</b>:
-
-        Trigger
-        on Die
-
-        GPU Events
-
-        Source Attribute'
+        attributes from their parent.\n\n<b>Covered Aspects</b>:\n\u2022 Trigger
+        on Die\n\u2022 GPU Events\n\u2022 Source Attribute"
       objectReference: {fileID: 0}
     - target: {fileID: 6393118192857248175, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
@@ -293,7 +284,7 @@ PrefabInstance:
     - target: {fileID: 6424475011069275086, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}
       propertyPath: m_fontSize
-      value: 1.55
+      value: 1.6
       objectReference: {fileID: 0}
     - target: {fileID: 6424475011069275086, guid: 7837c49e89b12db43b2a59edba6bff6b,
         type: 3}

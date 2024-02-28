@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a977458597c62ae48aca0c6ba7674959
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Flipbook Blending
+    category: Learning Templates
+    description: This VFX illustrates the differences between a traditional frame
+      blending and a frame blending using motion vectors.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 952793e298fc73447af1c50dbaaeae35, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

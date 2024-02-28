@@ -6,11 +6,8 @@ VisualEffectImporter:
   template:
     name: Rotation & Angular Velocity
     category: Learning Templates
-    description: "Particle\u2019s rotation can be controlled by setting the angle
-      attribute. To get more realistic behavior, you can also, like in this example,
-      use the angular velocity. This attribute is usually set in the Initialize Context,
-      and then, the Update Context is responsible to integrate this angular velocity
-      to update the Rotation. "
+    description: This VFX explains the usage of the Angular velocity attribute that
+      can be used to control particles rotation.
     icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
     thumbnail: {fileID: 2800000, guid: 711415350ba8e734199e4d3ef52f18c6, type: 3}
   userData: 
