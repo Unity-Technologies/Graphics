@@ -32,7 +32,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int m_MainLightShadowmapID;
         internal RTHandle m_MainLightShadowmapTexture;
-        internal RTHandle m_EmptyLightShadowmapTexture;
+        private RTHandle m_EmptyLightShadowmapTexture;
+        private const int k_EmptyShadowMapDimensions = 1;
+        private const string k_EmptyShadowMapName = "_EmptyLightShadowmapTexture";
+        private static readonly Vector4 s_EmptyShadowParams = new Vector4(1, 0, 1, 0);
+        private static readonly Vector4 s_EmptyShadowmapSize = s_EmptyShadowmapSize = new Vector4(k_EmptyShadowMapDimensions, 1f / k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions);
 
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
@@ -74,7 +78,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MainLightShadowmapID = Shader.PropertyToID("_MainLightShadowmapTexture");
 
-            m_EmptyLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyLightShadowmapTexture");
+            m_EmptyLightShadowmapTexture = ShadowUtils.AllocShadowRT(k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, 1, 0, name: k_EmptyShadowMapName);
             m_EmptyShadowmapNeedsClear = true;
         }
 
@@ -158,7 +162,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             useNativeRenderPass = false;
 
             // Required for scene view camera(URP renderer not initialized)
-            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyLightShadowmapTexture"))
+            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyShadowMapName))
                 m_EmptyShadowmapNeedsClear = true;
 
             return true;
@@ -218,10 +222,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         void SetEmptyMainLightCascadeShadowmap(RasterCommandBuffer cmd)
         {
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
-                new Vector4(1, 0, 1, 0));
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize,
-                new Vector4(1f / m_EmptyLightShadowmapTexture.rt.width, 1f / m_EmptyLightShadowmapTexture.rt.height, m_EmptyLightShadowmapTexture.rt.width, m_EmptyLightShadowmapTexture.rt.height));
+            SetEmptyMainLightShadowParams(cmd);
+        }
+
+        internal static void SetEmptyMainLightShadowParams(RasterCommandBuffer cmd)
+        {
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize, s_EmptyShadowmapSize);
         }
 
         void RenderMainLightCascadeShadowmap(RasterCommandBuffer cmd, ref PassData data, ref RenderingData renderingData, bool isRenderGraph)
