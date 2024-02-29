@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering
         /// <param name="debugOverlay"></param>
         public void RenderFragmentationOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, DebugOverlay debugOverlay)
         {
-            if (!probeVolumeDebug.displayIndexFragmentation)
+            if (!m_ProbeReferenceVolumeInit || !probeVolumeDebug.displayIndexFragmentation)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderFragmentationOverlayPassData>("APVFragmentationOverlay", out var passData))
