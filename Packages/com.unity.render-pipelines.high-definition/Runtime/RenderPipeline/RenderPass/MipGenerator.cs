@@ -24,8 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public MipGenerator(HDRenderPipeline renderPipeline)
         {
-            m_TempColorTargets = new RTHandle[xrSliceCount];
-            m_TempDownsamplePyramid = new RTHandle[xrSliceCount];
+            m_TempColorTargets = new RTHandle[xrMaxSliceCount];
+            m_TempDownsamplePyramid = new RTHandle[xrMaxSliceCount];
             m_DepthPyramidCS = renderPipeline.runtimeShaders.depthPyramidCS;
             m_ColorPyramidCS = renderPipeline.runtimeShaders.colorPyramidCS;
 
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release()
         {
-            for (int i = 0; i < xrSliceCount; ++i)
+            for (int i = 0; i < xrMaxSliceCount; ++i)
             {
                 RTHandles.Release(m_TempColorTargets[i]);
                 m_TempColorTargets[i] = null;
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ColorPyramidPSMat);
         }
 
-        int xrSliceCount
+        int xrMaxSliceCount
         {
             get
             {
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorDownsampleKernel, HDShaderIDs._Destination,
                         m_TempDownsamplePyramid[rtIndex]);
                     cmd.DispatchCompute(m_ColorPyramidCS, m_ColorDownsampleKernel, (dstMipWidth + 7) / 8,
-                        (dstMipHeight + 7) / 8, xrSliceCount);
+                        (dstMipHeight + 7) / 8, TextureXR.slices);
 
                     // Single pass blur
                     cmd.SetComputeVectorParam(m_ColorPyramidCS, HDShaderIDs._Size,
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_ColorPyramidCS, m_ColorGaussianKernel, HDShaderIDs._Destination,
                         destination, srcMipLevel + 1);
                     cmd.DispatchCompute(m_ColorPyramidCS, m_ColorGaussianKernel, (dstMipWidth + 7) / 8,
-                        (dstMipHeight + 7) / 8, xrSliceCount);
+                        (dstMipHeight + 7) / 8, TextureXR.slices);
                 }
 
                 srcMipLevel++;
