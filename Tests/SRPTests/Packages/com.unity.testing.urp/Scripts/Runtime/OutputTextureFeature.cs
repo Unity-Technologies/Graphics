@@ -10,6 +10,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
     public ScriptableRenderPassInput inputRequirement;
     public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRendering;
     public int renderPassEventAdjustment = 0;
+    public Vector4 outputAdjustParams = new Vector4(0, 0, 1, 1);
 
     private Material m_Material;
     private OutputTexturePass m_OutputTexturePassPass;
@@ -35,7 +36,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_Material = new Material(shader);
         }
         m_OutputTexturePassPass.renderPassEvent = renderPassEvent + renderPassEventAdjustment;
-        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement);
+        m_OutputTexturePassPass.Setup(renderer, m_Material, inputRequirement, outputAdjustParams);
         renderer.EnqueuePass(m_OutputTexturePassPass);
     }
 
@@ -50,6 +51,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
         private ScriptableRenderer m_Renderer;
         private ProfilingSampler m_ProfilingSampler;
         private PassData m_PassData;
+        public Vector4 m_OutputAdjustParams;
 
         public OutputTexturePass(string profilerTag)
         {
@@ -57,10 +59,11 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_PassData = new PassData();
         }
 
-        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement)
+        public void Setup(ScriptableRenderer renderer, Material material, ScriptableRenderPassInput inputRequirement, Vector4 outputAdjustParams)
         {
             m_Material = material;
             m_Renderer = renderer;
+            m_OutputAdjustParams = outputAdjustParams;
             ConfigureInput(inputRequirement);
         }
 
@@ -86,6 +89,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             CoreUtils.SetRenderTarget(cmd, m_Renderer.cameraColorTargetHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             m_PassData.profilingSampler = m_ProfilingSampler;
             m_PassData.material = m_Material;
+            m_PassData.outputAdjust = m_OutputAdjustParams;
             ExecutePass(m_PassData, CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
             context.ExecuteCommandBuffer(cmd);
@@ -96,12 +100,15 @@ public class OutputTextureFeature : ScriptableRendererFeature
         {
             internal ProfilingSampler profilingSampler;
             internal Material material;
+            internal Vector4 outputAdjust;
         }
 
+        static readonly int s_OutputAdjustParamsID = Shader.PropertyToID("_OutputAdjustParams");
         private static void ExecutePass(PassData passData, RasterCommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, passData.profilingSampler))
             {
+                passData.material.SetVector(s_OutputAdjustParamsID, passData.outputAdjust);
                 Blitter.BlitTexture(cmd, Vector2.one, passData.material, 0);
             }
         }
@@ -119,6 +126,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
+                passData.outputAdjust = m_OutputAdjustParams;
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

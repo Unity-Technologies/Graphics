@@ -282,8 +282,20 @@ EditorBuildSettings:
     path: Assets/Scenes/200_DepthDeferred.unity
     guid: 3bbe19bef8dcc4e65b7aaa710c4114c6
   - enabled: 1
+    path: Assets/Scenes/200_DepthDeferred_Ortho.unity
+    guid: 6f0ae03f005e7034b973f0c9295f087b
+  - enabled: 1
+    path: Assets/Scenes/200_DepthDeferred_Transparent.unity
+    guid: a54620350c24c924d8f2b759fb0f0360
+  - enabled: 1
     path: Assets/Scenes/200_DepthForward.unity
     guid: 95be3ed4f14c543b389e8e5a2e3d5187
+  - enabled: 1
+    path: Assets/Scenes/200_DepthForward_Ortho.unity
+    guid: 2d9ce8a2c71401846872b3602af59188
+  - enabled: 1
+    path: Assets/Scenes/200_DepthForward_Transparent.unity
+    guid: 2264d90ae85a5ef43accb0d852d84a0a
   - enabled: 1
     path: Assets/Scenes/201_DepthNormalsDeferred.unity
     guid: dafa2658c5a644673a2697d24ad96ffe
@@ -291,8 +303,20 @@ EditorBuildSettings:
     path: Assets/Scenes/201_DepthNormalsDeferred_AccurateGBuffer.unity
     guid: ef6895fb19f2e42639db3e3a801fa76f
   - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsDeferred_Ortho.unity
+    guid: c54e708c61e97dd4cb70ba11db09cc02
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsDeferred_Transparent.unity
+    guid: 31be351fc6598b5458a6c0cf078592e6
+  - enabled: 1
     path: Assets/Scenes/201_DepthNormalsForward.unity
     guid: 50a55af44edbd47579041b1556ed9a58
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsForward_Ortho.unity
+    guid: 35232f69229c420409b5bda6b7aa6f6a
+  - enabled: 1
+    path: Assets/Scenes/201_DepthNormalsForwardTransparent.unity
+    guid: 316ed58f955effc4c9c6cf0beb8f8ab9
   - enabled: 1
     path: Assets/Scenes/202_SSAO_Depth.unity
     guid: 2696010bf40d644cc8abc0b1304c59db
@@ -300,17 +324,41 @@ EditorBuildSettings:
     path: Assets/Scenes/202_SSAO_Depth_DownSample.unity
     guid: 07434decccca04d53bb951a513c06901
   - enabled: 1
+    path: Assets/Scenes/202_SSAO_Depth_Interleaved.unity
+    guid: e8707169c386da547a96bc1a5ece3cc4
+  - enabled: 1
+    path: Assets/Scenes/202_SSAO_Depth_Ortho.unity
+    guid: e26ff54ac02c9fb4c9b6ac99fae32663
+  - enabled: 1
+    path: Assets/Scenes/202_SSAO_Depth_Transparent.unity
+    guid: f87f664d3b30c4c4391dd6da4a15a939
+  - enabled: 1
     path: Assets/Scenes/203_SSAO_DepthNormal.unity
     guid: c207f769f3e194ebc8cbd51e788ac65d
+  - enabled: 1
+    path: Assets/Scenes/203_SSAO_DepthNormal_Interleaved.unity
+    guid: d1e7c7d4a54c8ef4da954eae48e25b56
+  - enabled: 1
+    path: Assets/Scenes/203_SSAO_DepthNormal_Ortho.unity
+    guid: 129665aed8cd30b4a9b14eff6a098aac
+  - enabled: 1
+    path: Assets/Scenes/203_SSAO_DepthNormal_Transparent.unity
+    guid: 20d989297abfb4d418ea23580197fe24
   - enabled: 1
     path: Assets/Scenes/204_SSAO_Deferred.unity
     guid: 9033695b731a14fe79156b3c4c827aa0
   - enabled: 1
-    path: Assets/Scenes/204_SSAO_Deferred_No_DirLight.unity
+    path: Assets/Scenes/204_SSAO_Deferred_AfterOpaque.unity
     guid: 6af2d4855bc732f4e8a31d30c7497443
+  - enabled: 1
+    path: Assets/Scenes/204_SSAO_Deferred_Ortho.unity
+    guid: 344b79050ac6a794caaa31172951f6f8
   - enabled: 1
     path: Assets/Scenes/204_SSAO_Deferred_RenderPass.unity
     guid: 0f9d67b5613ce4515969b745f7c08c5f
+  - enabled: 1
+    path: Assets/Scenes/204_SSAO_Deferred_Transparent.unity
+    guid: fb387644a13c2e24fa78a278d02aaad2
   - enabled: 1
     path: Assets/Scenes/205_SSAO_BackBuffer.unity
     guid: 72491ed40bf654eec9fef43f455e3916
@@ -408,13 +456,13 @@ EditorBuildSettings:
     path: Assets/Scenes/270_ScreenSpace_UI_Overlay.unity
     guid: bb5aa41014ad2014eb5b3dbd7d7e6463
   - enabled: 1
-    path: Assets/Scenes/280_HistoryFinalColorDepth_InternalColor.unity
+    path: Assets/Scenes/280_HistoryRawColorDepth_InternalColor.unity
     guid: e527e828cc3ce4ce59a81ee85b749324
   - enabled: 1
-    path: Assets/Scenes/280_HistoryFinalColorDepth_InternalDepth.unity
+    path: Assets/Scenes/280_HistoryRawColorDepth_InternalDepth.unity
     guid: bd68475ed4c0e4de3b933af285be496d
   - enabled: 1
-    path: Assets/Scenes/280_HistoryFinalColorDepth_ExternalColor.unity
+    path: Assets/Scenes/280_HistoryRawColorDepth_ExternalColor.unity
     guid: f0bc0b58fd157401e8ce7dfa0eca3084
   - enabled: 1
     path: Assets/Scenes/290_DebugViews_MipMapMode_MipCount.unity
