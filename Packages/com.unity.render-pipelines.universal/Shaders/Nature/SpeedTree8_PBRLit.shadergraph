@@ -2014,7 +2014,7 @@
     "m_KeywordType": 1,
     "m_KeywordDefinition": 0,
     "m_KeywordScope": 0,
-    "m_KeywordStages": 63,
+    "m_KeywordStages": 2,
     "m_Entries": [
         {
             "id": 3,
@@ -2208,6 +2208,7 @@
     "m_AlphaClip": true,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 2,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": true,
@@ -9210,7 +9211,7 @@
     "m_KeywordType": 1,
     "m_KeywordDefinition": 0,
     "m_KeywordScope": 0,
-    "m_KeywordStages": 63,
+    "m_KeywordStages": 1,
     "m_Entries": [
         {
             "id": 1,
