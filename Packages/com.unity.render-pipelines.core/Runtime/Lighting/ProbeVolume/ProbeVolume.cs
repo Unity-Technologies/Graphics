@@ -88,6 +88,11 @@ namespace UnityEngine.Rendering
             return size;
         }
 
+        public Matrix4x4 GetVolume()
+        {
+            return Matrix4x4.TRS(transform.position, transform.rotation, GetExtents());
+        }
+
         internal Bounds ComputeBounds(GIContributors.ContributorFilter filter, Scene? scene = null)
         {
             Bounds bounds = new Bounds();
@@ -159,16 +164,14 @@ namespace UnityEngine.Rendering
             return hash;
         }
 
-        internal float GetMinSubdivMultiplier()
+        internal float GetMinSubdivMultiplier(int maxSubdivision)
         {
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            return overridesSubdivLevels ? Mathf.Clamp(lowestSubdivLevelOverride / maxSubdiv, 0.0f, 1.0f) : 0.0f;
+            return overridesSubdivLevels ? Mathf.Clamp(lowestSubdivLevelOverride / (float)(maxSubdivision - 1), 0.0f, 1.0f) : 0.0f;
         }
 
-        internal float GetMaxSubdivMultiplier()
+        internal float GetMaxSubdivMultiplier(int maxSubdivision)
         {
-            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            return overridesSubdivLevels ? Mathf.Clamp(highestSubdivLevelOverride / maxSubdiv, 0.0f, 1.0f) : 1.0f;
+            return overridesSubdivLevels ? Mathf.Clamp(highestSubdivLevelOverride / (float)(maxSubdivision - 1), 0.0f, 1.0f) : 1.0f;
         }
 
         // Momentarily moving the gizmo rendering for bricks and cells to Probe Volume itself,

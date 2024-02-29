@@ -356,7 +356,8 @@ namespace UnityEngine.Rendering
             VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx);
 
             // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
-            int startSubdivisionLevel = Mathf.Max(0, ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.GetMaxSubdivMultiplier())));
+            int globalMaxSubdiv = ProbeVolumeBakingSet.GetMaxSubdivision(ctx.maxSubdivisionLevel);
+            int startSubdivisionLevel = Mathf.Max(0, ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.GetMaxSubdivMultiplier(globalMaxSubdiv))));
             for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevelInSubCell; subdivisionLevel++)
             {
                 // Add the bricks from the probe volume min subdivision level:
@@ -585,8 +586,9 @@ namespace UnityEngine.Rendering
                 // Prepare list of GPU probe volumes
                 foreach (var kp in probeVolumes)
                 {
-                    int minSubdiv = GetMaxSubdivision(ctx, kp.component.GetMinSubdivMultiplier());
-                    int maxSubdiv = GetMaxSubdivision(ctx, kp.component.GetMaxSubdivMultiplier());
+                    int globalMaxSubdiv = ProbeVolumeBakingSet.GetMaxSubdivision(ctx.maxSubdivisionLevel);
+                    int minSubdiv = GetMaxSubdivision(ctx, kp.component.GetMinSubdivMultiplier(globalMaxSubdiv));
+                    int maxSubdiv = GetMaxSubdivision(ctx, kp.component.GetMaxSubdivMultiplier(globalMaxSubdiv));
 
                     // Constrain the probe volume AABB inside the cell
                     var pvAABB = kp.bounds;

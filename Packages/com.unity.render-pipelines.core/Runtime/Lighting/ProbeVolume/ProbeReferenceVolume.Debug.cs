@@ -812,7 +812,7 @@ namespace UnityEngine.Rendering
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
-        static Vector4[] s_BoundsArray = new Vector4[16];
+        static Vector4[] s_BoundsArray = new Vector4[16 * 3];
 
         static void UpdateDebugFromSelection(ref Vector4[] _AdjustmentVolumeBounds, ref int _AdjustmentVolumeCount)
         {

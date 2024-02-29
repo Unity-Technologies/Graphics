@@ -2072,6 +2072,11 @@ namespace UnityEngine.Rendering
                     m_CurrentBakingSet.Cleanup();
                 m_CurrentBakingSet = null;
             }
+            else
+            {
+                m_CellIndices?.Cleanup();
+                m_DefragCellIndices?.Cleanup();
+            }
 
             ClearDebugData();
 

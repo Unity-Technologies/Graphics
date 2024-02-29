@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering
         internal SerializedProperty overriddenDilationThreshold;
         internal SerializedProperty virtualOffsetRotation;
         internal SerializedProperty virtualOffsetDistance;
+        internal SerializedProperty virtualOffsetThreshold;
         internal SerializedProperty geometryBias;
         internal SerializedProperty rayOriginBias;
         internal SerializedProperty skyDirection;
@@ -38,6 +39,7 @@ namespace UnityEditor.Rendering
             overriddenDilationThreshold = o.Find(x => x.overriddenDilationThreshold);
             virtualOffsetRotation = o.Find(x => x.virtualOffsetRotation);
             virtualOffsetDistance = o.Find(x => x.virtualOffsetDistance);
+            virtualOffsetThreshold = o.Find(x => x.virtualOffsetThreshold);
             geometryBias = o.Find(x => x.geometryBias);
             rayOriginBias = o.Find(x => x.rayOriginBias);
             skyDirection = o.Find(x => x.skyDirection);

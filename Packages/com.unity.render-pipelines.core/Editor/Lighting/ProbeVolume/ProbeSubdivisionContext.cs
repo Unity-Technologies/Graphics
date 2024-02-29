@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering
                 if (!pv.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.GetMaxSubdivMultiplier(), pv.GetMinSubdivMultiplier());
+                var volume = new ProbeReferenceVolume.Volume(pv.GetVolume(), pv.GetMaxSubdivMultiplier(profileInfo.maxSubdivision), pv.GetMinSubdivMultiplier(profileInfo.maxSubdivision));
                 probeVolumes.Add((pv, volume, volume.CalculateAABB()));
             }
 

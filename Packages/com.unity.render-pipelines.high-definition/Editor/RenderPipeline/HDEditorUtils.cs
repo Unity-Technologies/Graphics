@@ -417,6 +417,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static bool EnsureVolumeAndFrameSetting<T>(Func<T, string> volumeValidator, FrameSettingsField field, string displayName) where T : UnityEngine.Rendering.VolumeComponent
         {
+            // Wait for volume system to be initialized
+            if (VolumeManager.instance.baseComponentTypeArray == null)
+                return true;
+
             var cameras = GetDisplayedCameras();
 
             foreach (var camera in cameras)

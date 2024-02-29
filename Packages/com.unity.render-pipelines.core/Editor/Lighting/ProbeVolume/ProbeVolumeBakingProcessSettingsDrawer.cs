@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering
             public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iterations", "The number of times Unity repeats the Dilation calculation. This will cause the area of dilation to grow.");
             public static readonly GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "During dilation, weight the contribution of neighbouring probes by squared distance, rather than linear distance.");
             public static readonly GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Virtual Offset", "Push invalid probes outside of geometry to prevent backface hits. Produces better visual results than Dilation, but increases baking times.");
+            public static readonly GUIContent virtualOffsetThreshold = EditorGUIUtility.TrTextContent("Validity Threshold", "The threshold of backfaces or sky seen by probes before virtual offset is applied. Higher values mean probes are more likely to be offseted.");
             public static readonly GUIContent virtualOffsetSearchMultiplier = EditorGUIUtility.TrTextContent("Search Distance Multiplier", "Determines the length of the sampling ray Unity uses to search for valid probe positions.");
             public static readonly GUIContent virtualOffsetBiasOutGeometry = EditorGUIUtility.TrTextContent("Geometry Bias", "Determines how far Unity pushes a probe out of geometry after a ray hit.");
             public static readonly GUIContent virtualOffsetRayOriginBias = EditorGUIUtility.TrTextContent("Ray Origin Bias", "Distance from the probe position used to determine the origin of the sampling ray.");
@@ -93,11 +94,13 @@ namespace UnityEngine.Rendering
 
             using (new EditorGUI.IndentLevelScope())
             {
+                var validity = virtualOffsetSettings.FindPropertyRelative("validityThreshold");
                 var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
                 var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
                 var virtualOffsetRayOriginBias = virtualOffsetSettings.FindPropertyRelative("rayOriginBias");
                 var virtualOffsetCollisionMask = virtualOffsetSettings.FindPropertyRelative("collisionMask");
 
+                validity.floatValue = 1.0f - EditorGUILayout.Slider(Styles.virtualOffsetThreshold, 1.0f - validity.floatValue, 0f, 0.95f);
                 EditorGUILayout.PropertyField(virtualOffsetGeometrySearchMultiplier, Styles.virtualOffsetSearchMultiplier);
                 EditorGUILayout.PropertyField(virtualOffsetBiasOutOfGeometry, Styles.virtualOffsetBiasOutGeometry);
                 EditorGUILayout.PropertyField(virtualOffsetRayOriginBias, Styles.virtualOffsetRayOriginBias);

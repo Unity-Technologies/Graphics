@@ -490,8 +490,7 @@ namespace UnityEngine.Rendering
                 if (volume.mode != ProbeVolume.Mode.Local)
                     volume.UpdateGlobalVolume(volume.mode == ProbeVolume.Mode.Global ? GIContributors.ContributorFilter.All : GIContributors.ContributorFilter.Scene);
 
-                var transform = volume.gameObject.transform;
-                var obb = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, volume.GetExtents()), 0, 0);
+                var obb = new ProbeReferenceVolume.Volume(volume.GetVolume(), 0, 0);
                 Bounds localBounds = obb.CalculateAABB();
 
                 InflateBound(ref localBounds, volume);

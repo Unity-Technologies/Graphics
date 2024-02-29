@@ -311,6 +311,9 @@ namespace UnityEngine.Rendering
 
             if (sharedValidityMaskChunkSize == 0)
                 sharedValidityMaskChunkSize = sizeof(byte) * ProbeBrickPool.GetChunkSizeInProbeCount();
+
+            if (settings.virtualOffsetSettings.validityThreshold == 0.0f)
+                settings.virtualOffsetSettings.validityThreshold = 0.25f;
         }
 
         // For functions below:
@@ -911,7 +914,7 @@ namespace UnityEngine.Rendering
 
                 cellState.shL0L1RxData = m_UseStreamingAsset ? new NativeArray<ushort>(sourceShL0L1RxDataSource, Allocator.Persistent) : sourceShL0L1RxDataSource;
                 cellState.shL1GL1RyData = m_UseStreamingAsset ?new NativeArray<byte>(sourceShL1GL1RyDataSource, Allocator.Persistent) : sourceShL1GL1RyDataSource;
-                cellState.shL1BL1RzData = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL1BL1RzDataSource, Allocator.Persistent) : sourceShL1BL1RzDataSource; 
+                cellState.shL1BL1RzData = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL1BL1RzDataSource, Allocator.Persistent) : sourceShL1BL1RzDataSource;
 
                 if (hasOptionalData)
                 {

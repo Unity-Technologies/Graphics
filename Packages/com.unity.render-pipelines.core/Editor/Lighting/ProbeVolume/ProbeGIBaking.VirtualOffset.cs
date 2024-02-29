@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
                 public float tMax;
                 public float geometryBias;
                 public int probeIndex;
-                internal float _;
+                public float validityThreshold;
             };
 
             int batchPosIdx;
@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
             float scaleForSearchDist;
             float rayOriginBias;
             float geometryBias;
+            float validityThreshold;
 
             // Output buffer
             public Vector3[] offsets;
@@ -57,6 +58,7 @@ namespace UnityEngine.Rendering
                 scaleForSearchDist = voSettings.searchMultiplier;
                 rayOriginBias = voSettings.rayOriginBias;
                 geometryBias = voSettings.outOfGeoOffset;
+                validityThreshold = voSettings.validityThreshold;
 
                 offsets = new Vector3[probePositions.Length];
                 cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
@@ -157,7 +159,6 @@ namespace UnityEngine.Rendering
                         {
                             if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
                             {
-                                positions[batchPosIdx] += offset;
                                 offsets[batchPosIdx] = offset;
                                 adjusted = true;
                                 break;
@@ -173,6 +174,7 @@ namespace UnityEngine.Rendering
                             {
                                 rayOriginBias = touchup.rayOriginBias;
                                 geometryBias = touchup.geometryBias;
+                                validityThreshold = 1.0f - touchup.virtualOffsetThreshold;
                                 break;
                             }
                         }
@@ -184,6 +186,7 @@ namespace UnityEngine.Rendering
                         originBias = rayOriginBias,
                         tMax = distanceSearch,
                         geometryBias = geometryBias,
+                        validityThreshold = validityThreshold,
                         probeIndex = batchPosIdx,
                     };
                 }
@@ -396,7 +399,6 @@ namespace UnityEngine.Rendering
                     {
                         if (touchup.ContainsPoint(obb, center, positions[i]))
                         {
-                            positions[i] += offset;
                             offsets[i] = offset;
                             break;
                         }

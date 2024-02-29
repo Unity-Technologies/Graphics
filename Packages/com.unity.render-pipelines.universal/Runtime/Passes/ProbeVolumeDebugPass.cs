@@ -41,7 +41,14 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             if (ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(cameraData.camera, out var resultBuffer, out Vector2 coords))
             {
-                OutputPositionAndNormal(renderingData.commandBuffer, m_ComputeShader, resultBuffer, coords, m_DepthTexture, m_NormalTexture);
+                var cmd = renderingData.commandBuffer;
+                int kernel = m_ComputeShader.FindKernel("ComputePositionNormal");
+
+                cmd.SetComputeTextureParam(m_ComputeShader, kernel, "_CameraDepthTexture", m_DepthTexture);
+                cmd.SetComputeTextureParam(m_ComputeShader, kernel, "_NormalBufferTexture", m_NormalTexture);
+                cmd.SetComputeVectorParam(m_ComputeShader, "_positionSS", new Vector4(coords.x, coords.y, 0.0f, 0.0f));
+                cmd.SetComputeBufferParam(m_ComputeShader, kernel, "_ResultBuffer", resultBuffer);
+                cmd.DispatchCompute(m_ComputeShader, kernel, 1, 1, 1);
             }
         }
 
@@ -71,31 +78,29 @@ namespace UnityEngine.Rendering.Universal
 
             if (ProbeReferenceVolume.instance.GetProbeSamplingDebugResources(cameraData.camera, out var resultBuffer, out Vector2 coords))
             {
-                using (var builder = renderGraph.AddRenderPass<WriteApvData>("Debug", out var passData, base.profilingSampler))
+                using (var builder = renderGraph.AddComputePass<WriteApvData>("APV Debug", out var passData, base.profilingSampler))
                 {
                     passData.resultBuffer = renderGraph.ImportBuffer(resultBuffer);
                     passData.clickCoordinates = coords;
-                    passData.depthBuffer = builder.ReadTexture(depthPyramidBuffer);
-                    passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                    passData.depthBuffer = depthPyramidBuffer;
+                    passData.normalBuffer = normalBuffer;
                     passData.computeShader = m_ComputeShader;
 
-                    builder.SetRenderFunc((WriteApvData data, RenderGraphContext ctx) =>
-                        {
-                            OutputPositionAndNormal(ctx.cmd, data.computeShader, data.resultBuffer, data.clickCoordinates, data.depthBuffer, data.normalBuffer);
-                        });
+                    builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
+                    builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
+
+                    builder.SetRenderFunc((WriteApvData data, ComputeGraphContext ctx) =>
+                    {
+                        int kernel = data.computeShader.FindKernel("ComputePositionNormal");
+
+                        ctx.cmd.SetComputeTextureParam(data.computeShader, kernel, "_CameraDepthTexture", data.depthBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.computeShader, kernel, "_NormalBufferTexture", data.normalBuffer);
+                        ctx.cmd.SetComputeVectorParam(data.computeShader, "_positionSS", new Vector4(data.clickCoordinates.x, data.clickCoordinates.y, 0.0f, 0.0f));
+                        ctx.cmd.SetComputeBufferParam(data.computeShader, kernel, "_ResultBuffer", data.resultBuffer);
+                        ctx.cmd.DispatchCompute(data.computeShader, kernel, 1, 1, 1);
+                    });
                 }
             }
-        }
-
-        static void OutputPositionAndNormal(CommandBuffer cmd, ComputeShader compute, GraphicsBuffer resultBuffer, Vector2 clickCoordinates, RenderTargetIdentifier depthBuffer, RenderTargetIdentifier normalBuffer)
-        {
-            int kernel = compute.FindKernel("ComputePositionNormal");
-
-            cmd.SetComputeTextureParam(compute, kernel, "_CameraDepthTexture", depthBuffer);
-            cmd.SetComputeTextureParam(compute, kernel, "_NormalBufferTexture", normalBuffer);
-            cmd.SetComputeVectorParam(compute, "_positionSS", new Vector4(clickCoordinates.x, clickCoordinates.y, 0.0f, 0.0f));
-            cmd.SetComputeBufferParam(compute, kernel, "_ResultBuffer", resultBuffer);
-            cmd.DispatchCompute(compute, kernel, 1, 1, 1);
         }
     }
 }
