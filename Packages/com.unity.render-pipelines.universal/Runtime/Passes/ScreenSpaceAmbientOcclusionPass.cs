@@ -476,9 +476,9 @@ namespace UnityEngine.Rendering.Universal
             m_AOPassDescriptor.colorFormat = useRedComponentOnly ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
             // Allocate textures for the AO and blur
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[0], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture0");
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[1], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[2], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[0], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture0");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[1], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[2], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
 
             // Upsample setup
             m_AOPassDescriptor.width *= downsampleDivider;
@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.Universal
             m_AOPassDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
             // Allocate texture for the final SSAO results
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
             PostProcessUtils.SetSourceSize(cmd, m_SSAOTextures[3]);
 
             // Disable obsolete warning for internal usage

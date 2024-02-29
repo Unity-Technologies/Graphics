@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -24,6 +26,8 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent DepthPrimingModeLabel = EditorGUIUtility.TrTextContent("Depth Priming Mode", "With depth priming enabled, Unity uses the depth buffer generated in the depth prepass to determine if a fragment should be rendered or skipped during the Base Camera opaque pass. Disabled: Unity does not perform depth priming. Auto: If there is a Render Pass that requires a depth prepass, Unity performs the depth prepass and depth priming. Forced: Unity performs the depth prepass and depth priming.");
             public static readonly GUIContent DepthPrimingModeInfo = EditorGUIUtility.TrTextContent("On Android, iOS, and Apple TV, Unity performs depth priming only in the Forced mode. On tiled GPUs, which are common to those platforms, depth priming might reduce performance when combined with MSAA.");
             public static readonly GUIContent CopyDepthModeLabel = EditorGUIUtility.TrTextContent("Depth Texture Mode", "Controls after which pass URP copies the scene depth. It has a significant impact on mobile devices bandwidth usage. It also allows to force a depth prepass to generate it.");
+            public static readonly GUIContent DepthAttachmentFormat = EditorGUIUtility.TrTextContent("Depth Attachment Format", "Which format to use (if it is supported) when creating _CameraDepthAttachment.");
+            public static readonly GUIContent DepthTextureFormat = EditorGUIUtility.TrTextContent("Depth Texture Format", "Which format to use (if it is supported) when creating _CameraDepthTexture.");
             public static readonly GUIContent RenderPassLabel = EditorGUIUtility.TrTextContent("Native RenderPass", "Enables URP to use RenderPass API.");
 
             public static readonly GUIContent RenderPassSectionLabel = EditorGUIUtility.TrTextContent("RenderPass", "This section contains properties related to render passes.");
@@ -44,6 +48,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RenderingMode;
         SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_CopyDepthMode;
+        SerializedProperty m_DepthAttachmentFormat;
+        SerializedProperty m_DepthTextureFormat;
         SerializedProperty m_AccurateGbufferNormals;
         SerializedProperty m_UseNativeRenderPass;
         SerializedProperty m_DefaultStencilState;
@@ -52,6 +58,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowTransparentReceiveProp;
         SerializedProperty m_IntermediateTextureMode;
 
+        List<string> m_DepthFormatStrings = new List<string>();
+
         private void OnEnable()
         {
             m_OpaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
@@ -59,6 +67,8 @@ namespace UnityEditor.Rendering.Universal
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
             m_CopyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
+            m_DepthAttachmentFormat = serializedObject.FindProperty("m_DepthAttachmentFormat");
+            m_DepthTextureFormat = serializedObject.FindProperty("m_DepthTextureFormat");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
@@ -66,6 +76,74 @@ namespace UnityEditor.Rendering.Universal
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
             m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
+        }
+
+        private void PopulateCompatibleDepthFormats(int renderingMode)
+        {
+            RenderPathCompatibility renderPathCompatibility = RenderPathCompatibility.All;
+            switch (renderingMode)
+            {
+                case (int)RenderingMode.Forward:
+                    renderPathCompatibility = RenderPathCompatibility.Forward;
+                    break;
+                case (int)RenderingMode.Deferred:
+                    renderPathCompatibility = RenderPathCompatibility.Deferred;
+                    break;
+                case (int)RenderingMode.ForwardPlus:
+                    renderPathCompatibility = RenderPathCompatibility.ForwardPlus;
+                    break;
+            }
+
+            m_DepthFormatStrings.Clear();
+            foreach (DepthFormat format in Enum.GetValues(typeof(DepthFormat)))
+            {
+                var field = typeof(DepthFormat).GetField(format.ToString());
+
+                if (field.GetCustomAttributes(typeof(RenderPathCompatibleAttribute), false).Length > 0)
+                {
+                    var attribute = (RenderPathCompatibleAttribute)field.GetCustomAttributes(typeof(RenderPathCompatibleAttribute), false)[0];
+                    if (attribute.renderPath.HasFlag(renderPathCompatibility))
+                        m_DepthFormatStrings.Add(format.ToString());
+                }
+            }
+        }
+
+        private string[] GetCompatibleDepthFormats(int renderingMode)
+        {
+            if (m_DepthFormatStrings.Count == 0)
+                PopulateCompatibleDepthFormats(renderingMode);
+            return m_DepthFormatStrings.ToArray();
+        }
+
+        private DepthFormat GetDepthFormatAt(int index, int renderingMode)
+        {
+            if (m_DepthFormatStrings.Count == 0)
+                PopulateCompatibleDepthFormats(renderingMode);
+
+            if (index < 0 || index >= m_DepthFormatStrings.Count)
+                return DepthFormat.Default;
+
+            foreach (DepthFormat format in Enum.GetValues(typeof(DepthFormat)))
+            {
+                if (format.ToString() == m_DepthFormatStrings[index])
+                    return format;
+            }
+
+            return DepthFormat.Default;
+        }
+
+        private int GetDepthFormatIndex(DepthFormat format, int renderingMode)
+        {
+            if (m_DepthFormatStrings.Count == 0)
+                PopulateCompatibleDepthFormats(renderingMode);
+
+            for (int i = 0; i < m_DepthFormatStrings.Count; i++)
+            {
+                if (m_DepthFormatStrings[i] == format.ToString())
+                    return i;
+            }
+
+            return 0;
         }
 
         /// <inheritdoc/>
@@ -84,7 +162,18 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField(Styles.RenderingSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+
+            int depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_RenderingMode, Styles.RenderingModeLabel);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                PopulateCompatibleDepthFormats(m_RenderingMode.intValue);
+                depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
+            }
+
             if (m_RenderingMode.intValue == (int)RenderingMode.Deferred)
             {
                 EditorGUI.indentLevel++;
@@ -106,6 +195,11 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUILayout.PropertyField(m_CopyDepthMode, Styles.CopyDepthModeLabel);
+
+            depthFormatIndex = EditorGUILayout.Popup(Styles.DepthAttachmentFormat, depthFormatIndex, GetCompatibleDepthFormats(m_RenderingMode.intValue));
+            m_DepthAttachmentFormat.intValue = (int)GetDepthFormatAt(depthFormatIndex, m_RenderingMode.intValue);
+
+            EditorGUILayout.PropertyField(m_DepthTextureFormat, Styles.DepthTextureFormat);
 
 
             EditorGUI.indentLevel--;

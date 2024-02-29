@@ -577,8 +577,8 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.autoGenerateMips = false;
                 cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
-                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandles[0], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentAName);
-                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandles[1], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentBName);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraColorHandles[0], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentAName);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraColorHandles[1], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentBName);
 
                 // Make sure that the base camera always starts rendering to the ColorAttachmentA for deterministic frame results.
                 // Not doing so makes the targets look different every frame, causing the frame debugger to flash, and making debugging harder.
@@ -603,8 +603,8 @@ namespace UnityEngine.Rendering.Universal
                     upscaledTargetDesc.width = cameraData.pixelWidth;
                     upscaledTargetDesc.height = cameraData.pixelHeight;
 
-                    RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphUpscaledCameraColorHandles[0], upscaledTargetDesc, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraUpscaledTargetAttachmentAName);
-                    RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphUpscaledCameraColorHandles[1], upscaledTargetDesc, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraUpscaledTargetAttachmentBName);
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphUpscaledCameraColorHandles[0], upscaledTargetDesc, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraUpscaledTargetAttachmentAName);
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphUpscaledCameraColorHandles[1], upscaledTargetDesc, FilterMode.Point, TextureWrapMode.Clamp, name: _CameraUpscaledTargetAttachmentBName);
                 }
             }
             else
@@ -644,7 +644,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
 
-                RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
 
                 importDepthParams.discardOnLastUse = lastCameraInTheStack;
                 resourceData.cameraDepth = renderGraph.ImportTexture(m_RenderGraphCameraDepthHandle, importDepthParams);

@@ -151,6 +151,8 @@ namespace UnityEngine.Rendering.Universal
         RenderingMode m_RenderingMode;
         DepthPrimingMode m_DepthPrimingMode;
         CopyDepthMode m_CopyDepthMode;
+        DepthFormat m_CameraDepthAttachmentFormat;
+        DepthFormat m_CameraDepthTextureFormat;
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
@@ -246,6 +248,8 @@ namespace UnityEngine.Rendering.Universal
             this.m_RenderingMode = data.renderingMode;
             this.m_DepthPrimingMode = data.depthPrimingMode;
             this.m_CopyDepthMode = data.copyDepthMode;
+            this.m_CameraDepthAttachmentFormat = data.depthAttachmentFormat;
+            this.m_CameraDepthTextureFormat = data.depthTextureFormat;
             useRenderPassEnabled = data.useNativeRenderPass;
 
 #if UNITY_ANDROID || UNITY_IOS || UNITY_TVOS || UNITY_EMBEDDED_LINUX
@@ -618,11 +622,11 @@ namespace UnityEngine.Rendering.Universal
                     {
                         RenderTextureDescriptor colorDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureColorDescriptorForDebugScreen(ref colorDesc, cameraData.pixelWidth, cameraData.pixelHeight);
-                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenColorHandle, colorDesc, name: "_DebugScreenColor");
+                        RenderingUtils.ReAllocateHandleIfNeeded(ref DebugHandler.DebugScreenColorHandle, colorDesc, name: "_DebugScreenColor");
 
                         RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
                         DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
-                        RenderingUtils.ReAllocateIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
+                        RenderingUtils.ReAllocateHandleIfNeeded(ref DebugHandler.DebugScreenDepthHandle, depthDesc, name: "_DebugScreenDepth");
                     }
 
                     if (DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget))
@@ -980,18 +984,16 @@ namespace UnityEngine.Rendering.Universal
                 if (requiresDepthPrepass && this.renderingModeActual != RenderingMode.Deferred)
                 {
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                    depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                    depthDescriptor.depthStencilFormat = (m_CameraDepthTextureFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthTextureFormat : k_DepthStencilFormat;
                 }
                 else
                 {
                     depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
                     depthDescriptor.depthStencilFormat = GraphicsFormat.None;
-                    depthDescriptor.depthBufferBits = 0;
                 }
 
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
 
                 cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
@@ -1028,7 +1030,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    RenderingUtils.ReAllocateIfNeeded(ref renderingLayersTexture, renderingLayersDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: renderingLayersTextureName);
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref renderingLayersTexture, renderingLayersDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: renderingLayersTextureName);
                 }
 
                 cmd.SetGlobalTexture(renderingLayersTexture.name, renderingLayersTexture.nameID);
@@ -1069,7 +1071,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
                 }
 
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
@@ -1134,7 +1136,7 @@ namespace UnityEngine.Rendering.Universal
             if (generateColorGradingLUT)
             {
                 colorGradingLutPass.ConfigureDescriptor(in postProcessingData, out var desc, out var filterMode);
-                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, anisoLevel: 0, name: "_InternalGradingLut");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_ColorGradingLut, desc, filterMode, TextureWrapMode.Clamp, anisoLevel: 0, name: "_InternalGradingLut");
                 colorGradingLutPass.Setup(colorGradingLut);
                 EnqueuePass(colorGradingLutPass);
             }
@@ -1252,7 +1254,7 @@ namespace UnityEngine.Rendering.Universal
                 var descriptor = cameraTargetDescriptor;
                 CopyColorPass.ConfigureDescriptor(downsamplingMethod, ref descriptor, out var filterMode);
 
-                RenderingUtils.ReAllocateIfNeeded(ref m_OpaqueColor, descriptor, filterMode, TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_OpaqueColor, descriptor, filterMode, TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
@@ -1264,13 +1266,13 @@ namespace UnityEngine.Rendering.Universal
                 colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
                 colorDesc.depthBufferBits = (int)DepthBits.None;
                 colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorTextureName);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorTextureName);
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
                 depthDescriptor.depthBufferBits = cameraTargetDescriptor.depthBufferBits;
                 depthDescriptor.msaaSamples = 1;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
 
                 MotionVectorRenderPass.SetMotionVectorGlobalMatrices(cmd, cameraData);
 
@@ -1355,7 +1357,7 @@ namespace UnityEngine.Rendering.Universal
             if (applyPostProcessing)
             {
                 var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
-                RenderingUtils.ReAllocateIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
 
             if (lastCameraInTheStack)
@@ -1744,8 +1746,8 @@ namespace UnityEngine.Rendering.Universal
                         depthDescriptor.bindMS = false;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                    RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                    depthDescriptor.depthStencilFormat = (m_CameraDepthAttachmentFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthAttachmentFormat : k_DepthStencilFormat;
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
 
                     // update the descriptor to match the depth attachment

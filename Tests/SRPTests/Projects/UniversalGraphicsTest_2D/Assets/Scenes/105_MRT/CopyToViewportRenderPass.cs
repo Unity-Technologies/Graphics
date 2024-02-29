@@ -31,7 +31,7 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        RenderingUtils.ReAllocateIfNeeded(ref m_Destination, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: m_Destination.name);
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_Destination, cameraTextureDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: m_Destination.name);
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

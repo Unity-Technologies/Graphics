@@ -157,11 +157,11 @@ namespace UnityEngine.Rendering.Universal
 
             RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
             DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
-            RenderingUtils.ReAllocateIfNeeded(ref m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
 
             RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
             HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
-            RenderingUtils.ReAllocateIfNeeded(ref m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
         }
 
         /// <inheritdoc/>

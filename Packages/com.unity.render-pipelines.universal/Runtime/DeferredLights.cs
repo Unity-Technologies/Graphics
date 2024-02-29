@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                 gbufferSlice.stencilFormat = GraphicsFormat.None;
                 gbufferSlice.graphicsFormat = GetGBufferFormat(gbufferIndex);
-                RenderingUtils.ReAllocateIfNeeded(ref GbufferRTHandles[gbufferIndex], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: k_GBufferNames[gbufferIndex]);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref GbufferRTHandles[gbufferIndex], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: k_GBufferNames[gbufferIndex]);
                 GbufferAttachments[gbufferIndex] = GbufferRTHandles[gbufferIndex];
             }
         }

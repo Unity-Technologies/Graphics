@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
             desc.width = width;
             desc.height = height;
             desc.depthBufferBits = 0;
-            RenderingUtils.ReAllocateIfNeeded(ref destination, desc, mode, TextureWrapMode.Clamp, name: "_UpscaleTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref destination, desc, mode, TextureWrapMode.Clamp, name: "_UpscaleTexture");
 
             upscaleHandle = destination;
         }

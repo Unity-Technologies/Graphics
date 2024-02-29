@@ -298,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
                 var descriptor = cameraTargetDescriptor;
                 descriptor.msaaSamples = 1;
                 CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref descriptor, out var filterMode);
-                RenderingUtils.ReAllocateIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
                 universal2DResourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
             }
 
@@ -321,7 +321,7 @@ namespace UnityEngine.Rendering.Universal
                     cameraTargetDescriptor.autoGenerateMips = false;
                     cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
 
-                    RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraColorHandle, cameraTargetDescriptor, cameraTargetFilterMode, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraColorHandle, cameraTargetDescriptor, cameraTargetFilterMode, TextureWrapMode.Clamp, name: "_CameraTargetAttachment");
                     commonResourceData.activeColorID = ActiveID.Camera;
                 }
                 else
@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
 
-                    RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                    RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     commonResourceData.activeDepthID = ActiveID.Camera;
                 }
                 else
@@ -438,7 +438,7 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRenderingPostProcessing);
             OnAfterRendering(renderGraph);
-            
+
         }
 
         public override void OnEndRenderGraphFrame()
@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
-         
+
             // Main render passes
 
             // Normal Pass

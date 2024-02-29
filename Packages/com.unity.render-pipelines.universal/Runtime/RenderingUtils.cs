@@ -582,7 +582,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="descriptor">Descriptor for the RTHandle to match</param>
         /// <param name="filterMode">Filtering mode of the RTHandle.</param>
         /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
-        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
@@ -601,7 +600,7 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             return
                 (DepthBits)handle.rt.descriptor.depthBufferBits != descriptor.depthBufferBits ||
-                (handle.rt.descriptor.depthBufferBits == (int)DepthBits.None && !descriptor.isShadowMap && handle.rt.descriptor.graphicsFormat != descriptor.colorFormat) ||
+                (handle.rt.descriptor.depthBufferBits == (int)DepthBits.None && handle.rt.descriptor.graphicsFormat != descriptor.colorFormat) ||
                 handle.rt.descriptor.dimension != descriptor.dimension ||
                 handle.rt.descriptor.enableRandomWrite != descriptor.enableRandomWrite ||
                 handle.rt.descriptor.useMipMap != descriptor.useMipMap ||
@@ -658,7 +657,8 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="anisoLevel">Anisotropic filtering level.</param>
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
-        /// <returns></returns>
+        /// <returns>If an allocation was done.</returns>
+        [Obsolete("This method will be removed in a future release. Please use ReAllocateHandleIfNeeded instead. #from(2023.3)")]
         public static bool ReAllocateIfNeeded(
             ref RTHandle handle,
             in RenderTextureDescriptor descriptor,
@@ -704,6 +704,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>If the RTHandle should be re-allocated</returns>
+        [Obsolete("This method will be removed in a future release. Please use ReAllocateHandleIfNeeded instead. #from(2023.3)")]
         public static bool ReAllocateIfNeeded(
             ref RTHandle handle,
             Vector2 scaleFactor,
@@ -751,6 +752,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
         /// <param name="name">Name of the RTHandle.</param>
         /// <returns>If an allocation was done</returns>
+        [Obsolete("This method will be removed in a future release. Please use ReAllocateHandleIfNeeded instead. #from(2023.3)")]
         public static bool ReAllocateIfNeeded(
             ref RTHandle handle,
             ScaleFunc scaleFunc,
@@ -781,6 +783,198 @@ namespace UnityEngine.Rendering.Universal
                     handle = RTHandles.Alloc(scaleFunc, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
                     return true;
                 }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate fixed-size RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If an allocation was done.</returns>
+        public static bool ReAllocateHandleIfNeeded(
+            ref RTHandle handle,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            TextureDesc requestRTDesc = RTHandleResourcePool.CreateTextureDesc(descriptor, TextureSizeMode.Explicit, anisoLevel, 0, filterMode, wrapMode, name);
+            if (RTHandleNeedsReAlloc(handle, requestRTDesc, false))
+            {
+                if (handle != null && handle.rt != null)
+                {
+                    TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Explicit, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode, handle.name);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
+                }
+
+                if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
+                {
+                    return true;
+                }
+
+                var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
+
+                RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
+                allocInfo.slices = descriptor.volumeDepth;
+                allocInfo.format = actualFormat;
+                allocInfo.filterMode = filterMode;
+                allocInfo.wrapModeU = wrapMode;
+                allocInfo.wrapModeV = wrapMode;
+                allocInfo.wrapModeW = wrapMode;
+                allocInfo.dimension = descriptor.dimension;
+                allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
+                allocInfo.useMipMap = descriptor.useMipMap;
+                allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
+                allocInfo.anisoLevel = anisoLevel;
+                allocInfo.mipMapBias = mipMapBias;
+                allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
+                allocInfo.bindTextureMS = descriptor.bindMS;
+                allocInfo.useDynamicScale = descriptor.useDynamicScale;
+                allocInfo.memoryless = descriptor.memoryless;
+                allocInfo.vrUsage = descriptor.vrUsage;
+                allocInfo.name = name;
+
+                handle = RTHandles.Alloc(descriptor.width, descriptor.height, allocInfo);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If an allocation was done.</returns>
+        public static bool ReAllocateHandleIfNeeded(
+            ref RTHandle handle,
+            Vector2 scaleFactor,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            var usingConstantScale = handle != null && handle.useScaling && handle.scaleFactor == scaleFactor;
+            TextureDesc requestRTDesc = RTHandleResourcePool.CreateTextureDesc(descriptor, TextureSizeMode.Scale, anisoLevel, 0, filterMode, wrapMode);
+            if (!usingConstantScale || RTHandleNeedsReAlloc(handle, requestRTDesc, true))
+            {
+                if (handle != null && handle.rt != null)
+                {
+                    TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Scale, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
+                }
+
+                if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
+                {
+                    return true;
+                }
+
+                var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
+
+                RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
+                allocInfo.slices = descriptor.volumeDepth;
+                allocInfo.format = actualFormat;
+                allocInfo.filterMode = filterMode;
+                allocInfo.wrapModeU = wrapMode;
+                allocInfo.wrapModeV = wrapMode;
+                allocInfo.wrapModeW = wrapMode;
+                allocInfo.dimension = descriptor.dimension;
+                allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
+                allocInfo.useMipMap = descriptor.useMipMap;
+                allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
+                allocInfo.anisoLevel = anisoLevel;
+                allocInfo.mipMapBias = mipMapBias;
+                allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
+                allocInfo.bindTextureMS = descriptor.bindMS;
+                allocInfo.useDynamicScale = descriptor.useDynamicScale;
+                allocInfo.memoryless = descriptor.memoryless;
+                allocInfo.vrUsage = descriptor.vrUsage;
+                allocInfo.name = name;
+
+                handle = RTHandles.Alloc(scaleFactor, allocInfo);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If an allocation was done.</returns>
+        public static bool ReAllocateHandleIfNeeded(
+            ref RTHandle handle,
+            ScaleFunc scaleFunc,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            var usingScaleFunction = handle != null && handle.useScaling && handle.scaleFactor == Vector2.zero;
+            TextureDesc requestRTDesc = RTHandleResourcePool.CreateTextureDesc(descriptor, TextureSizeMode.Functor, anisoLevel, 0, filterMode, wrapMode);
+            if (!usingScaleFunction || RTHandleNeedsReAlloc(handle, requestRTDesc, true))
+            {
+                if (handle != null && handle.rt != null)
+                {
+                    TextureDesc currentRTDesc = RTHandleResourcePool.CreateTextureDesc(handle.rt.descriptor, TextureSizeMode.Functor, handle.rt.anisoLevel, handle.rt.mipMapBias, handle.rt.filterMode, handle.rt.wrapMode);
+                    AddStaleResourceToPoolOrRelease(currentRTDesc, handle);
+                }
+
+                if (UniversalRenderPipeline.s_RTHandlePool.TryGetResource(requestRTDesc, out handle))
+                {
+                    return true;
+                }
+
+                var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
+
+                RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
+                allocInfo.slices = descriptor.volumeDepth;
+                allocInfo.format = actualFormat;
+                allocInfo.filterMode = filterMode;
+                allocInfo.wrapModeU = wrapMode;
+                allocInfo.wrapModeV = wrapMode;
+                allocInfo.wrapModeW = wrapMode;
+                allocInfo.dimension = descriptor.dimension;
+                allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
+                allocInfo.useMipMap = descriptor.useMipMap;
+                allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
+                allocInfo.anisoLevel = anisoLevel;
+                allocInfo.mipMapBias = mipMapBias;
+                allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
+                allocInfo.bindTextureMS = descriptor.bindMS;
+                allocInfo.useDynamicScale = descriptor.useDynamicScale;
+                allocInfo.memoryless = descriptor.memoryless;
+                allocInfo.vrUsage = descriptor.vrUsage;
+                allocInfo.name = name;
+
+                handle = RTHandles.Alloc(scaleFunc, allocInfo);
+                return true;
             }
             return false;
         }

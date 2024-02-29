@@ -10,7 +10,8 @@ public class AllocRTHandleInCreate_ScriptableRendererFeature : ScriptableRendere
 
         public AllocRTHandleInCreate_ScriptableRenderPass()
         {
-            m_RTHandle = RTHandles.Alloc(Vector2.one, name: "DummyScriptableRendererPass RTHandle");
+            RTHandleAllocInfo allocInfo = new RTHandleAllocInfo("DummyScriptableRendererPass RTHandle");
+            m_RTHandle = RTHandles.Alloc(Vector2.one, allocInfo);
         }
 
         public void Dispose()

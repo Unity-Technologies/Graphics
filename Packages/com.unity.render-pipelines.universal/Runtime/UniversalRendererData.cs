@@ -6,6 +6,7 @@ using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -20,6 +21,82 @@ namespace UnityEngine.Rendering.Universal
         AfterTransparents,
         /// <summary>Depth will be written by a depth prepass</summary>
         ForcePrepass
+    }
+
+    /// <summary>
+    /// Render path exposed as flags to allow compatibility to be expressed with multiple options.
+    /// </summary>
+    [Flags]
+    public enum RenderPathCompatibility
+    {
+        /// <summary>Forward Rendering Path</summary>
+        Forward     = 1 << 0,
+        /// <summary>Deferred Rendering Path</summary>
+        Deferred    = 1 << 1,
+        /// <summary>Forward+ Rendering Path</summary>
+        ForwardPlus = 1 << 2,
+        /// <summary>All Rendering Paths</summary>
+        All         = Forward | Deferred | ForwardPlus
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    sealed class RenderPathCompatibleAttribute : Attribute
+    {
+        public RenderPathCompatibility renderPath;
+
+        public RenderPathCompatibleAttribute(RenderPathCompatibility renderPath)
+        {
+            this.renderPath = renderPath;
+        }
+    }
+
+    /// <summary>
+    /// Dept format options for the depth texture and depth attachment.
+    /// Each option is marked with all the render paths its compatible with.
+    /// </summary>
+    public enum DepthFormat
+    {
+        /// <summary>
+        /// Default format for Android and Switch platforms is <see cref="GraphicsFormat.D24_UNorm_S8_UInt"/> and <see cref="GraphicsFormat.D32_SFloat_S8_UInt"/> for other platforms
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.All)]
+        Default,
+
+        /// <summary>
+        /// Format containing 16 unsigned normalized bits in depth component. Corresponds to <see cref="GraphicsFormat.D16_UNorm"/>.
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.Forward | RenderPathCompatibility.ForwardPlus)]
+        Depth_16 = GraphicsFormat.D16_UNorm,
+
+        /// <summary>
+        /// Format containing 24 unsigned normalized bits in depth component. Corresponds to <see cref="GraphicsFormat.D24_UNorm"/>.
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.Forward | RenderPathCompatibility.ForwardPlus)]
+        Depth_24 = GraphicsFormat.D24_UNorm,
+
+        /// <summary>
+        /// Format containing 32 signed float bits in depth component. Corresponds to <see cref="GraphicsFormat.D32_SFloat"/>.
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.Forward | RenderPathCompatibility.ForwardPlus)]
+        Depth_32 = GraphicsFormat.D32_SFloat,
+
+        /// <summary>
+        /// Format containing 16 unsigned normalized bits in depth component and 8 unsigned integer bits in stencil. Corresponds to <see cref="GraphicsFormat.D16_UNorm_S8_UInt"/>.
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.All)]
+        Depth_16_Stencil_8 = GraphicsFormat.D16_UNorm_S8_UInt,
+
+        /// <summary>
+        /// Format containing 24 unsigned normalized bits in depth component and 8 unsigned integer bits in stencil. Corresponds to <see cref="GraphicsFormat.D24_UNorm_S8_UInt"/>.
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.All)]
+        Depth_24_Stencil_8 = GraphicsFormat.D24_UNorm_S8_UInt,
+
+        /// <summary>
+        /// Format containing 32 signed float bits in depth component and 8 unsigned integer bits in stencil. Corresponds to <see cref="GraphicsFormat.D32_SFloat_S8_UInt"/>.
+        /// </summary>
+        [RenderPathCompatible(RenderPathCompatibility.All)]
+        Depth_32_Stencil_8 = GraphicsFormat.D32_SFloat_S8_UInt,
     }
 
     /// <summary>
@@ -62,6 +139,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
+        [SerializeField] DepthFormat m_DepthAttachmentFormat = DepthFormat.Default;
+        [SerializeField] DepthFormat m_DepthTextureFormat = DepthFormat.Default;
 #if UNITY_EDITOR
         // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
         [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.Vulkan)]
@@ -168,6 +247,56 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_CopyDepthMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Depth format used for CameraDepthAttachment
+        /// </summary>
+        public DepthFormat depthAttachmentFormat
+        {
+            get
+            {
+                if (m_DepthAttachmentFormat != DepthFormat.Default && !SystemInfo.IsFormatSupported((GraphicsFormat)m_DepthAttachmentFormat, GraphicsFormatUsage.Render))
+                {
+                    Debug.LogWarning("Selected Depth Attachment Format is not supported on this platform, falling back to Default");
+                    return DepthFormat.Default;
+                }
+                return m_DepthAttachmentFormat;
+            }
+            set
+            {
+                SetDirty();
+                if (renderingMode == RenderingMode.Deferred && !GraphicsFormatUtility.IsStencilFormat((GraphicsFormat)value))
+                {
+                    Debug.LogWarning("Depth format without stencil is not supported on Deferred renderer, falling back to Default");
+                    m_DepthAttachmentFormat = DepthFormat.Default;
+                }
+                else
+                {
+                    m_DepthAttachmentFormat = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Depth format used for CameraDepthTexture
+        /// </summary>
+        public DepthFormat depthTextureFormat
+        {
+            get
+            {
+                if (m_DepthTextureFormat != DepthFormat.Default && !SystemInfo.IsFormatSupported((GraphicsFormat) m_DepthTextureFormat, GraphicsFormatUsage.Render))
+                {
+                    Debug.LogWarning($"Selected Depth Texture Format {m_DepthTextureFormat.ToString()} is not supported on this platform, falling back to Default");
+                    return DepthFormat.Default;
+                }
+                return m_DepthTextureFormat;
+            }
+            set
+            {
+                SetDirty();
+                m_DepthTextureFormat = value;
             }
         }
 
