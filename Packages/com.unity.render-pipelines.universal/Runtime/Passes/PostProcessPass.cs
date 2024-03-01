@@ -1025,7 +1025,7 @@ namespace UnityEngine.Rendering.Universal
                 camera.transform.position,
                 nonJitteredViewProjMatrix0,
                 cmd,
-                false, false, null, null, null);
+                false, false, null, null);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
@@ -1044,7 +1044,7 @@ namespace UnityEngine.Rendering.Universal
                         camera.transform.position,
                         gpuVPXR,
                         cmd,
-                        false, false, null, null, null);
+                        false, false, null, null);
                 }
             }
 #endif

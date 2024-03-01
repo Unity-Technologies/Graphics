@@ -66,10 +66,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the denoising technique to use for the volumetric effect.")]
         public FogDenoisingModeParameter denoisingMode = new FogDenoisingModeParameter(FogDenoisingMode.Gaussian);
 
-        // Advanced parameters
         /// <summary>Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.</summary>
         [AdditionalProperty]
+        [Tooltip("Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.")]
         public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+
         /// <summary>Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.</summary>
         [AdditionalProperty]
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
@@ -212,7 +213,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
 
+            // Those values are also used when fog is disabled
             cb._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
+            cb._MaxFogDistance = fogSettings.maxFogDistance.value;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) || !fogSettings.enabled.value)
             {
@@ -230,7 +233,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._FogEnabled = 1;
             cb._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
-            cb._MaxFogDistance = maxFogDistance.value;
 
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
             cb._FogColorMode = (float)colorMode.value;

@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display the volumetric clouds shadow at ground level.</summary>
         VolumetricCloudsShadow,
 
-        /// <summary>Display the volumetric fog applied on to of opaque geometry.</summary>
+        /// <summary>Display atmospheric scattering applied on opaque geometry.</summary>
         VolumetricFog,
 
         /// <summary>Display the ray tracing acceleration structure</summary>

@@ -81,6 +81,7 @@ public class FitToWaterSurface_Burst : MonoBehaviour
     NativeArray<float> errorBuffer;
     NativeArray<float3> candidatePositionBuffer;
     NativeArray<float3> projectedPositionWSBuffer;
+    NativeArray<float3> normalWSBuffer;
     NativeArray<float3> directionBuffer;
     NativeArray<int> stepCountBuffer;
 
@@ -92,6 +93,7 @@ public class FitToWaterSurface_Burst : MonoBehaviour
         errorBuffer = new NativeArray<float>(resolution * resolution, Allocator.Persistent);
         candidatePositionBuffer = new NativeArray<float3>(resolution * resolution, Allocator.Persistent);
         projectedPositionWSBuffer = new NativeArray<float3>(resolution * resolution, Allocator.Persistent);
+        normalWSBuffer = new NativeArray<float3>(resolution * resolution, Allocator.Persistent);
         directionBuffer = new NativeArray<float3>(resolution * resolution, Allocator.Persistent);
         stepCountBuffer = new NativeArray<int>(resolution * resolution, Allocator.Persistent);
 
@@ -139,6 +141,7 @@ public class FitToWaterSurface_Burst : MonoBehaviour
         searchJob.errorBuffer = errorBuffer;
         searchJob.candidateLocationWSBuffer = candidatePositionBuffer;
         searchJob.projectedPositionWSBuffer = projectedPositionWSBuffer;
+        searchJob.normalWSBuffer = normalWSBuffer;
         searchJob.directionBuffer = directionBuffer;
         searchJob.stepCountBuffer = stepCountBuffer;
 
@@ -157,6 +160,7 @@ public class FitToWaterSurface_Burst : MonoBehaviour
         errorBuffer.Dispose();
         candidatePositionBuffer.Dispose();
         projectedPositionWSBuffer.Dispose();
+        normalWSBuffer.Dispose();
         directionBuffer.Dispose();
         stepCountBuffer.Dispose();
     }

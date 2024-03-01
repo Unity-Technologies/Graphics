@@ -87,7 +87,7 @@
     },
     {
       "displayName": "Water Samples",
-      "description": "Add a set of examples using the Environment features, such as Water System, Physically Based Sky or Clouds.",
+      "description": "Add a set of examples using the Water System, showcasing various environements using all the features of the system.",
       "path": "Samples~/WaterSamples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",

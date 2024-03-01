@@ -121,9 +121,11 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
 void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3 V,
     float3 waterNormal, float3 lowFrequencyNormals, bool aboveWater,
     bool disableUnderWaterIOR, float3 upVector, float maxRefractionDistance,
-    float3 transparencyColor, float outScatteringCoeff,
+    float3 extinctionCoeff,
     out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float3 absorptionTint)
 {
+    absorptionTint = 0.0f;
+
     // Compute the position of the surface behind the water surface
     float  directWaterDepth = SampleCameraDepth(positionNDC);
     float3 directWaterPosRWS = ComputeWorldSpacePosition(positionNDC, directWaterDepth, UNITY_MATRIX_I_VP);
@@ -152,9 +154,8 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
     if (!aboveWater)
     {
         float3 refractedView = refract(-V, waterNormal, WATER_IOR);
-
-        bool totalInternalReflection = all(refractedView == 0.0f);
-        absorptionTint = totalInternalReflection ? 0.0f : 1.0f;
+        if (any(refractedView != 0.0f)) // not TIR
+            absorptionTint = 1.0f;
 
         if (disableUnderWaterIOR)
         {
@@ -176,8 +177,6 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
             distortedWaterWS = waterPosRWS + refractedView * UNDER_WATER_REFRACTION_DISTANCE;
         }
     }
-    else
-        absorptionTint = outScatteringCoeff * (1.f - transparencyColor); // this is weird but compiler complains otherwise
 
     // Project the point on screen
     distortedWaterNDC = saturate(ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP));
@@ -199,9 +198,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
 
     // Evaluate the absorption tint
     if (aboveWater)
-    {
-        absorptionTint = exp(-refractedWaterDistance * absorptionTint);
-    }
+        absorptionTint = exp(-refractedWaterDistance * extinctionCoeff);
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)
@@ -229,9 +226,8 @@ float3 EvaluateScatteringColor(float3 positionOS, float lowFrequencyHeight, floa
     float displacementScattering = EvaluateDisplacementScattering(horizontalDisplacement);
     float ambientScattering = AMBIENT_SCATTERING_INTENSITY * _AmbientScattering;
 
-    // Stum the scattering terms
+    // Sum the scattering terms
     float scatteringTerms = saturate(ambientScattering + heightBasedScattering + displacementScattering);
-    float3 scatteringTint = _ScatteringColorTips.xyz * scatteringTerms;
-    return scatteringTint * (1.f - absorptionTint) * (1.0 + deepFoam);
+    return _WaterAlbedo.xyz * scatteringTerms * (1.f - absorptionTint) * (1.0 + deepFoam);
 }
 #endif // WATER_UTILITIES_H

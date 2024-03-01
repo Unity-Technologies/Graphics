@@ -12,6 +12,7 @@
 #pragma multi_compile _ ENABLE_ANISOTROPY
 #pragma multi_compile _ VL_PRESET_OPTIMAL
 #pragma multi_compile _ SUPPORT_LOCAL_LIGHTS
+#pragma multi_compile _ SUPPORT_WATER_ABSORPTION
 #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
 // Don't want contact shadows
@@ -68,6 +69,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -153,7 +155,7 @@ float ComputeHistoryWeight()
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
-                                               JitteredRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy)
+                                               JitteredRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy, bool underWater)
 {
     VoxelLighting lighting;
     ZERO_INITIALIZE(VoxelLighting, lighting);
@@ -196,7 +198,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
             context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                   posInput.positionSS, posInput.positionWS, shadowN,
                                                                   light.shadowIndex, L);
-                                                                  
+
             // Apply the volumetric cloud shadow if relevant
             if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
                 context.shadowValue *= EvaluateVolumetricCloudsShadows(light, posInput.positionWS);
@@ -222,6 +224,28 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         if (light.volumetricLightDimmer > 0)
         {
             float4 lightColor = EvaluateLight_Directional(context, posInput, light);
+
+            #if SUPPORT_WATER_ABSORPTION
+            // Evaluate caustics for underwater
+            if (underWater)
+            {
+                // Project caustics as a cookie, taking account refraction otherwise it doesn't look right when sun is low
+                WaterSurfaceProfile prof = _WaterSurfaceProfiles[_UnderWaterSurfaceIndex];
+                float3 fwd = refract(light.forward, prof.upDirection, 1.0 / 1.333);
+                float3 tangent = normalize(cross(fwd, float3(0.0, 1.0, 0.0)));
+                float3 bitangent = cross(tangent, fwd);
+                float3 posWS = GetAbsolutePositionWS(posInput.positionWS) * _UnderWaterCausticsTilingFactor;
+                float2 positionNDC = float2(dot(posWS, tangent), dot(posWS, bitangent)) * 0.5 + 0.5;
+                float caustic = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, positionNDC, 0).r;
+
+                lightColor.a *= 1.0 + caustic * _UnderWaterCausticsIntensity;
+
+                // Simulate light absorption from depth
+                float distanceToSurface = max(-dot(posInput.positionWS, prof.upDirection) - GetWaterCameraHeight(), 0);
+                lightColor.a *= exp(-distanceToSurface * _UnderWaterScatteringExtinction.w);
+            }
+            #endif
+
             // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
             lightColor.a *= light.volumetricLightDimmer;
             lightColor.rgb *= lightColor.a; // Composite
@@ -529,6 +553,19 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // Note: anisotropic, no jittering.
     float3 probeInScatteredRadiance = EvaluateVolumetricAmbientProbe(ray.centerDirWS);
 
+    float waterDistance = FLT_MIN;
+    #if SUPPORT_WATER_ABSORPTION
+    float2 posSS = posInput.positionNDC.xy * _ScreenSize.xy;
+    bool underWater = posInput.positionWS.y < _UnderWaterUpHeight.w || IsUnderWater(posSS.xy);
+    if (underWater && (GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, posInput.positionSS.xy)) & STENCILUSAGE_WATER_SURFACE) != 0)
+    {
+        waterDistance = LinearEyeDepth(LOAD_TEXTURE2D_X(_RefractiveDepthBuffer, posSS).r, _ZBufferParams);
+        waterDistance = waterDistance * rcp(dot(ray.centerDirWS, GetViewForwardDir()));
+    }
+    else
+        waterDistance = underWater ? FLT_MAX : 0.0f;
+    #endif
+
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
     uint slice = 0;
@@ -600,7 +637,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         {
             VoxelLighting lighting = EvaluateVoxelLightingDirectional(context, featureFlags, posInput,
                                                                       centerWS, ray, t0, t1, dt, rndVal,
-                                                                      extinction, anisotropy);
+                                                                      extinction, anisotropy, t < waterDistance);
 
             aggregateLighting.radianceNoPhase  += lighting.radianceNoPhase;
             aggregateLighting.radianceComplete += lighting.radianceComplete;

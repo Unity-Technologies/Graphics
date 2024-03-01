@@ -4,21 +4,18 @@ using UnityEngine.Rendering.LookDev;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// CloudBackground
-    /// Interface, Implementation for CloudBackground on each SRP
+    /// Interface defining if an SRP supports environment effects for lens flare occlusion
     /// </summary>
     public partial class HDRenderPipeline : ICloudBackground
     {
         /// <summary>
-        /// Check is the current HDRP had CloudBackground
+        /// Check is the current Render Pipeline supports environement effects for lens flare occlusion.
+        /// HDRP supports lens flare occlusion from volumetric clouds, background clouds, fog, volumetric fog and water
         /// </summary>
-        /// <returns>true if the CloudBackground is usable on HDRP</returns>
+        /// <returns>true</returns>
         public bool IsCloudBackgroundUsable()
         {
-            if (currentAsset != null)
-                return true;
-            else
-                return false;
+            return GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
         }
     }
 }

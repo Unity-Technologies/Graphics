@@ -234,8 +234,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.
         /// </summary>
-        [Range(0.0f, 100.0f), Tooltip("Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.")]
+        [Range(0.001f, 100.0f), Tooltip("Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.")]
         public float absorptionDistance = 5.0f;
+
+        internal Vector3 extinction => (-Mathf.Log(0.02f) / absorptionDistance) * new Vector3(Mathf.Max(1.0f - refractionColor.r, 0.01f), Mathf.Max(1.0f - refractionColor.g, 0.01f), Mathf.Max(1.0f - refractionColor.b, 0.01f));
+        internal Vector3 underWaterExtinction => extinction / absorptionDistanceMultiplier;
         #endregion
 
         #region Water Scattering
@@ -399,7 +402,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.
         /// </summary>
-        [Tooltip("When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.")]
         public bool underWater = false;
 
         /// <summary>
@@ -429,18 +431,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the multiplier for the Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.
         /// </summary>
-        [Min(0.0f), Tooltip("Sets the multiplier for the  Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.")]
+        [Min(0.001f), Tooltip("Sets the multiplier for the  Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.")]
         public float absorptionDistanceMultiplier = 1.0f;
-
+        
         /// <summary>
         /// Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.
         /// </summary>
-        [Range(0.0f, 1.0f)]
+        [Obsolete("Will be removed in the next version.")]
         public float underWaterAmbientProbeContribution = 1.0f;
 
         /// <summary>
         /// Controls how the scattering color is evaluated for the underwater scenario.
         /// </summary>
+        [Obsolete("Will be removed in the next version.")]
         public enum UnderWaterScatteringColorMode
         {
             /// <summary>
@@ -457,14 +460,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets how the underwater scattering color is specified.
         /// </summary>
-        [Tooltip("Sets how the underwater scattering color is specified.")]
+        [Obsolete("Will be removed in the next version.")]
         public UnderWaterScatteringColorMode underWaterScatteringColorMode = UnderWaterScatteringColorMode.ScatteringColor;
 
         /// <summary>
         /// Sets the color that is used to simulate the scattering when the camera is under-water.
         /// </summary>
-        [Tooltip("Sets the color that is used to simulate the scattering when the camera is under-water.")]
         [ColorUsage(false)]
+        [Obsolete("Will be removed in the next version.")]
         public Color underWaterScatteringColor = new Color(0.0f, 0.27f, 0.23f);
 
         /// <summary>
@@ -475,24 +478,22 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Constant Buffers
-        internal ShaderVariablesWaterPerSurface[] constantBufferData = new ShaderVariablesWaterPerSurface[1]; // API requires an array
-        internal GraphicsBuffer constantBuffer;
         internal MaterialPropertyBlock mpb;
+        internal int surfaceIndex;
 
-        internal void CreateConstantBuffers()
+        internal void CreatePropertyBlock()
         {
-            if (constantBuffer == null)
-                constantBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, 1, UnsafeUtility.SizeOf<ShaderVariablesWaterPerSurface>());
-
             // Prepare the material property block for the rendering
             mpb = new MaterialPropertyBlock();
             mpb.SetTexture(HDShaderIDs._WaterDisplacementBuffer, simulation.gpuBuffers.displacementBuffer);
             mpb.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, simulation.gpuBuffers.additionalDataBuffer);
-            mpb.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
         }
 
         internal void FillMaterialPropertyBlock(bool supportFoam, bool supportDeformation)
         {
+            var constantBuffer = HDRenderPipeline.currentPipeline.m_ShaderVariablesWaterPerSurface[surfaceIndex];
+            mpb.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
+
             // Textures
             mpb.SetTexture(HDShaderIDs._SimulationFoamMask, simulationFoamMask != null ? simulationFoamMask : Texture2D.whiteTexture);
             mpb.SetTexture(HDShaderIDs._WaterMask, waterMask != null ? waterMask : Texture2D.whiteTexture);
@@ -524,6 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (simulation == null)
                 return;
 
+            var constantBuffer = HDRenderPipeline.currentPipeline.m_ShaderVariablesWaterPerSurface[surfaceIndex];
             Shader.SetGlobalTexture(HDShaderIDs._WaterDisplacementBuffer, simulation.gpuBuffers.displacementBuffer);
             Shader.SetGlobalTexture(HDShaderIDs._WaterAdditionalDataBuffer, simulation.gpuBuffers.additionalDataBuffer);
             Shader.SetGlobalConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
@@ -739,12 +741,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseResources()
         {
-            if (constantBuffer != null)
-            {
-                constantBuffer.Dispose();
-                constantBuffer = null;
-            }
-
             ReleaseSimulationResources();
             ReleaseCurrentMapResources();
             ReleaseDeformationResources();

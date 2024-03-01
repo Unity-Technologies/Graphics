@@ -34,9 +34,8 @@ public class SpawnRandomBeachBall : MonoBehaviour
                         beachBall.SetActive(true);
                         beachBall.GetComponent<Rigidbody>().AddForce(randomForce, ForceMode.Impulse);
                     }
-                }else{
-                    Debug.Log("Cul");
                 }
+                
             }
         }
         

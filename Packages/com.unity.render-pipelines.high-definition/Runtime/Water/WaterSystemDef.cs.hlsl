@@ -98,12 +98,12 @@ CBUFFER_START(ShaderVariablesWaterPerSurface)
     float2 _FoamRegionScale;
     float2 _FoamRegionOffset;
     float4 _WaterUpDirection;
-    float4 _TransparencyColor;
+    float4 _WaterExtinction;
     float _MaxRefractionDistance;
-    float _OutScatteringCoefficient;
     float _CausticsRegionSize;
     int _CausticsBandIndex;
-    float4 _ScatteringColorTips;
+    float _PaddingW2;
+    float4 _WaterAlbedo;
     float _AmbientScattering;
     float _HeightBasedScattering;
     float _DisplacementScattering;
@@ -190,22 +190,20 @@ struct WaterSurfaceProfile
     float maxRefractionDistance;
     uint renderingLayers;
     int cameraUnderWater;
-    float3 transparencyColor;
-    float outScatteringCoefficient;
-    float3 scatteringColor;
+    float3 extinction;
+    float extinctionMultiplier;
+    float3 albedo;
     float envPerceptualRoughness;
-    float smoothnessFadeStart;
-    float smoothnessFadeDistance;
-    float roughnessEndValue;
-    float padding1;
     float3 foamColor;
+    float padding1;
+    float3 underwaterColor;
     float padding2;
     float3 upDirection;
-    float padding3;
+    float roughnessEndValue;
+    float smoothnessFadeStart;
+    float smoothnessFadeDistance;
     int disableIOR;
     float tipScatteringHeight;
-    float underWaterAmbientProbeContribution;
-    float absorptionDistanceMultiplier;
 };
 
 

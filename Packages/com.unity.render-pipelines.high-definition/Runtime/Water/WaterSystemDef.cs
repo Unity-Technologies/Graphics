@@ -345,32 +345,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint renderingLayers;
         public int cameraUnderWater;
 
-        // Refraction data Data
-        public Vector3 transparencyColor;
-        public float outScatteringCoefficient;
+        // Extinction coefficient
+        public Vector3 extinction;
+        // Extinction coefficient multiplier for underwater
+        public float extinctionMultiplier;
 
-        // Scattering color
-        public Vector3 scatteringColor;
+        // Albedo
+        public Vector3 albedo;
         // Roughness used for environment lighting
         public float envPerceptualRoughness;
 
-        // Smoothness fade transition values
-        public float smoothnessFadeStart;
-        public float smoothnessFadeDistance;
-        public float roughnessEndValue;
+        public Vector3 foamColor;
         public float padding1;
 
-        public Vector3 foamColor;
+        public Vector3 underwaterColor;
         public float padding2;
 
         // Vertical direction of the water surface (used for SSR, Env Lighting, etc)
         public Vector3 upDirection;
-        public float padding3;
+        public float roughnessEndValue;
 
+        public float smoothnessFadeStart;
+        public float smoothnessFadeDistance;
         public int disableIOR;
         public float tipScatteringHeight;
-        public float underWaterAmbientProbeContribution;
-        public float absorptionDistanceMultiplier;
     }
 
     // This buffer contains surface data that mostly don't change
@@ -434,19 +432,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Up direction of the water surface
         public float4 _WaterUpDirection;
-        // Color applied to the surfaces that are through the refraction
-        public Vector4 _TransparencyColor;
+
+        // Extinction coefficient
+        public float4 _WaterExtinction;
 
         // Maximum refraction distance
         public float _MaxRefractionDistance;
-        // Absorption distance
-        public float _OutScatteringCoefficient;
         // Caustics data
         public float _CausticsRegionSize;
+        // Caustic band index
         public int _CausticsBandIndex;
+        public float _PaddingW2;
 
         // Base color data
-        public Vector4 _ScatteringColorTips;
+        public Vector4 _WaterAlbedo;
+
         public float _AmbientScattering;
         public float _HeightBasedScattering;
         public float _DisplacementScattering;

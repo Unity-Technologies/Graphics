@@ -2,16 +2,38 @@
     "introduction": 
 	"""Welcome to the Water System Samples.
 	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html">Water System</a> allows you to add water to your scenes.
+
 	This scene showcases the use of Before Post Process Custom Pass that allows you to further customize the water rendering, in this case blurring the hard waterline.
 	
 	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
 	
-	<h1>Custom Pass</h1>
+<h1>Waterline</h1>
 	
-		• The default Water line is a hard line separating Over and Under-water rendering. 
-		• This scene uses a <link="Waterline Custom Pass Post Process">Custom Pass</link> with a Full Screen Shader Graph injected Before Post Processing.
-		• The Full Screen Shader Graph samples the underwater buffer by using the HD Sample Buffer node with 'isUnderwater' selected.
-		• The shader creates a blur effect around the line by sampling the HD Scene Color node.
-		• A small distortion is added by stretching the UVs above the water line to create a meniscus like effect. """,
+• The default Water line is a hard line separating over and under-water rendering. 
+• This scene uses a <link="Waterline Custom Pass Post Process">Custom Pass</link> with a Full Screen Shader Graph injected Before Transparent. Water is a special kind of transparent so it still appears in the color buffer at that state.
+• The Full Screen Shader Graph samples the underwater buffer by using the HD Sample Buffer node with 'isUnderwater' selected.
+• The shader creates a blur effect around the line by sampling the HD Scene Color node.
+• A small distortion is added by stretching the UVs above the water line to create a meniscus like effect.
+• To prevent the effect from appearing when the camera is too far from the surface, the Camera Height From Water node is used. 
+
+
+<h1>Drips and Droplets</h1>
+
+• In addition to the waterline, the same <link="Waterline Custom Pass Post Process">Custom Pass</link> is also used to add some droplets to further distort the screen UV before sampling the HD Scene Color node.
+• A double buffered <link="CustomRT.asset">Custom Render Texture</link> is sampled and offset at each frame to make the dripping effect. More information on the <link="CustomRT.shadergraph">Shader Graph</link>.
+• Moreover, in this graph, the rotation of the camera is used to modulate the gravity parameter for dripping water. 
+        
+<h1>VFX</h1>
+    
+Multiple VFX are used in this scene: 
+• For plants, a simple animation using vertex color from a mesh animates the branches separately with sin waves. <i>Open the <link="VFXG_FakeBoids_Fish.vfx">VFX Graph</link> for more information.</i>
+• The school of fish is attracted by a sphere moving in the scene and constrained by box and sphere to stay underwater. <i>Open the <link="VFXG_Alga.vfx">VFX Graph</link> for more information.</i>
+• The bubbles use the Sample Water Surface node in the VFX graph to prevent the bubble to appear above the water surface. <i>Open the <link="VFX_BubblesStream.vfx">VFX Graph</link> for more information.</i>
+• Lastly, there are lots of floating particles in the water to simulate dirtiness. <i>Open the <link="VFXG_Grain.vfx">VFX Graph</link> for more information.</i>
+
+<h1>Volumetric Fog</h1>
+        
+• To make underwater rendering more realistic, Volumetric Fog has been added with an anisotropy of 0.5
+• When enabled, Volumetric fog uses automatically the caustics texture from the water surface to generate rays penetrating from the surface.""",
     "samples": []	
 }

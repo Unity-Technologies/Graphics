@@ -316,16 +316,28 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        // This is used through reflection by inspector in srp core
+        static bool DataDrivenLensFlareHelpBox()
+        {
+            if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportDataDrivenLensFlare ?? false)
+            {
+                EditorGUILayout.Space();
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Data Driven Lens Flare.", MessageType.Error,
+                    HDRenderPipelineUI.ExpandableGroup.PostProcess, HDRenderPipelineUI.ExpandablePostProcess.LensFlare, "m_RenderPipelineSettings.supportDataDrivenLensFlare");
+                return false;
+            }
+            
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.LensFlareDataDriven, "Lens Flare Data Driven");
+            return true;
+        }
+
         static void OpenRenderingDebugger(string panelName)
         {
-            var k_DebugWindowType = Type.GetType("UnityEditor.Rendering.DebugWindow,Unity.RenderPipelines.Core.Editor");
-            var window = EditorWindow.GetWindow(k_DebugWindowType);
-            window.titleContent = new GUIContent("Rendering Debugger");
-            window.Show();
+            EditorApplication.ExecuteMenuItem("Window/Analysis/Rendering Debugger");
 
             if (panelName != null)
             {
-                var manager = UnityEngine.Rendering.DebugManager.instance;
+                var manager = DebugManager.instance;
                 manager.RequestEditorWindowPanelIndex(manager.FindPanelIndex(panelName));
             }
         }

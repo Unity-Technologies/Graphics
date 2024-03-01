@@ -108,6 +108,14 @@ Additionally foam is now animated to follow the current direction.
 
 ![](Images/water-decal.png)
 
+Underwater rendering now supports using the volumetric fog to rendering god rays and light shafts.
+
+![](Images/volumetric-underwater.png)
+
+Finally, a node has been added to the shadergraph to sample the height of the camera relative to the water surface. It can be used to create water drips and droplets on the camera. Refer to the underwater scene from the water samples in the package manager to see it in action.
+
+![](Images/Waterline.png)
+
 #### Volumetric Fog
 
 The performance of the volumetric lighting has been improved.
@@ -155,7 +163,7 @@ The screen coverage LOD mode allows an artist to define an animation curve, wher
 
 Area light now used a "pillow" windowing function that is used for range attenuation of both rectangular and line lights. Both area (with cookie) and line lights now works correctly with every material type including Water, Hair, Fabric shaders, dual lobe SSS. In addition this version reduce the amount of CPU memory used to store LTC tables.
 
-![](Images/2407_Area_Materials.png)
+![](Images/Area_Materials.png)
 
 ### Path Tracing
 

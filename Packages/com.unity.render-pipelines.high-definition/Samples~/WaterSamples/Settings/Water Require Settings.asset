@@ -70,8 +70,16 @@ MonoBehaviour:
     uiSectionInt: 32
     uiSubSectionInt: 8
   - m_name: Volumetric Clouds
-    m_description: Enable volumetric clouds.
+    m_description: Enable Volumetric Clouds.
     propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 32
+    uiSubSectionInt: 1
+  - m_name: Volumetric Fog
+    m_description: Enable Volumetric Fog.
+    propertyPath: m_RenderPipelineSettings.supportVolumetrics
     valueType: 0
     targetValue: 1
     validationType: 0

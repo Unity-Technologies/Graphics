@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
+        protected ShaderKeyword m_WaterAbsorption = new ShaderKeyword("SUPPORT_WATER_ABSORPTION");
 
         protected HDRenderPipelineRuntimeShaders m_Shaders;
 
@@ -49,6 +50,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     shader == m_Shaders.waterLineCS ||
                     shader == m_Shaders.waterDeformationCS ||
                     shader == m_Shaders.waterFoamCS)
+                    return true;
+                
+                if (inputData.shaderKeywordSet.IsEnabled(m_WaterAbsorption))
                     return true;
             }
 

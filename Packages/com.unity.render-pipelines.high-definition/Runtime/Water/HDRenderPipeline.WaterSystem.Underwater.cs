@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Flag that allows us to track in which current under water volume we are.
         internal int m_UnderWaterSurfaceIndex;
+        internal Vector4 m_UnderWaterUpHeight;
 
         // Water line data
         int m_WaterLineBufferSize;
@@ -43,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
 
             // Grab the camera's world space position
-            Vector3 cameraWSPos = hdCamera.camera.transform.position;
+            Vector3 cameraWSPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
             // First we need to define in which volume the camera is.
             // We consider that the camera can only be in one volume at a time and it is the first one
@@ -58,20 +59,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!currentWater.underWater || currentWater.debugMode != WaterDebugMode.None)
                     continue;
 
+                var upDirection = currentWater.UpVector();
+
                 // If the surface is infinite, we need to check if the camera is between the top plane + max displacement  and the top plane - volume depth
                 if (currentWater.IsInfinite())
                 {
                     // Maximal possible wave height of the current setup
                     float maxWaveHeight = HDRenderPipeline.EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, currentWater.simulation.spectrum.patchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
+                    float maxDeformation = Mathf.Max(Mathf.Max(maxWaveHeight * 2.0f, 0.1f), currentWater.volumeHeight);
 
                     // Evaluate the vertical boundaries of the volume
-                    float topPlane = currentWater.transform.position.y + Mathf.Max(Mathf.Max(maxWaveHeight * 2.0f, 0.1f), currentWater.volumeHeight);
-                    float bottomPlane = currentWater.transform.position.y - currentWater.volumeDepth;
+                    float surfaceHeight = math.dot(currentWater.transform.position, upDirection);
+                    float cameraHeight = math.dot(cameraWSPos, upDirection);
+                    float topPlane = surfaceHeight + maxDeformation;
+                    float bottomPlane = surfaceHeight - currentWater.volumeDepth;
 
                     // If both conditions are true, the camera is inside this volume
-                    bool isBetweenPlanes = cameraWSPos.y > bottomPlane && cameraWSPos.y < topPlane;
+                    bool isBetweenPlanes = cameraHeight > bottomPlane && cameraHeight < topPlane;
                     if (isBetweenPlanes && currentPriority < currentWater.volumePrority)
                     {
+                        float heightRWS = (surfaceHeight - cameraHeight) - maxDeformation;
+                        m_UnderWaterUpHeight = new Vector4(upDirection.x, upDirection.y, upDirection.z, heightRWS);
                         m_UnderWaterSurfaceIndex = surfaceIdx;
                         currentPriority = currentWater.volumePrority;
                     }
@@ -83,6 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // If the specified bounds contains the camera, we found a match
                         if (currentWater.volumeBounds.bounds.Contains(cameraWSPos) && currentPriority < currentWater.volumePrority)
                         {
+                            m_UnderWaterUpHeight = new Vector4(upDirection.x, upDirection.y, upDirection.z, float.MinValue);
                             m_UnderWaterSurfaceIndex = surfaceIdx;
                             currentPriority = currentWater.volumePrority;
                         }
@@ -119,6 +128,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableWater = 0;
             cb._UnderWaterSurfaceIndex = -1;
 
+            // Put some parameters that will fill waterline with constant value
+            cb._BoundsSS = new float4(0, 0, -1, 1);
+            cb._UpDirectionX = 0;
+            cb._UpDirectionY = 1;
+            cb._BufferStride = 0;
+
             if (!ShouldRenderWater(hdCamera))
                 return;
 
@@ -130,21 +145,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EvaluateUnderWaterSurface(hdCamera);
             if (m_UnderWaterSurfaceIndex == -1)
-            {
-                // Put some parameters that will fill waterline with constant value
-                cb._BoundsSS = new float4(0, 0, -1, 1);
-                cb._UpDirectionX = 0;
-                cb._UpDirectionY = 1;
-                cb._BufferStride = 0;
-
                 return;
-            }
 
             WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
 
             int maxPixelCount = 2 + Mathf.CeilToInt(Mathf.Sqrt(hdCamera.actualWidth * hdCamera.actualWidth + hdCamera.actualHeight * hdCamera.actualHeight));
 
             var upDirection = hdCamera.mainViewConstants.viewProjMatrix.MultiplyVector(waterSurface.UpVector());
+            if (upDirection.sqrMagnitude < 0.001f)
+                upDirection.y = -1.0f;
             var upVector = new Vector2(upDirection.x, -upDirection.y).normalized;
             var rightVector = new Vector2(upVector.y, -upVector.x);
 
@@ -171,9 +180,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int causticsBandIndex = SanitizeCausticsBand(waterSurface.causticsBand, waterSurface.simulation.numActiveBands);
 
+            var albedo = new Vector3(waterSurface.scatteringColor.r, waterSurface.scatteringColor.g, waterSurface.scatteringColor.b);
+            var extinction = waterSurface.underWaterExtinction;
+
+            cb._UnderWaterScatteringExtinction = new Vector4(albedo.x*extinction.x, albedo.y*extinction.y, albedo.z*extinction.z, (extinction.x+extinction.y+extinction.z) / 3.0f);
             cb._UnderWaterSurfaceIndex = m_UnderWaterSurfaceIndex;
+            cb._UnderWaterUpHeight = m_UnderWaterUpHeight;
             cb._UnderWaterSurfaceTransform_Inverse = waterSurface.simulation.rendering.worldToWaterMatrix;
-            cb._UnderWaterCausticsIntensity = waterSurface.caustics ? waterSurface.causticsIntensity : 0.0f; ;
+            cb._UnderWaterCausticsIntensity = waterSurface.caustics ? waterSurface.causticsIntensity : 0.0f;
             cb._UnderWaterCausticsPlaneBlendDistance = waterSurface.causticsPlaneBlendDistance;
             cb._UnderWaterCausticsTilingFactor = 1.0f / waterSurface.causticsTilingFactor;
             cb._UnderWaterCausticsMaxLOD = EvaluateCausticsMaxLOD(waterSurface.causticsResolution);
@@ -210,6 +224,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 || !ShouldRenderWater(hdCamera)
                 || !refractionOutput.waterGBuffer.valid)
                 return;
+
+            // TODO: depending on m_UnderWaterUpHeight.w and near clip plane value, we can skip this pass entirely
+            // cause we can be sure camera is underwater. However we need to make sure GetUnderWaterDistance() still returns sensible values on GPU
+            // either init the waterline buffer with good values (that requires a compute dispatch)
+            // or find values for _BoundsSS & co to make sure the function always returns a negative value
 
             // Execute the unique lighting pass
             using (var builder = renderGraph.AddRenderPass<WaterLineRenderingData>("Render Water Line", out var passData, ProfilingSampler.Get(HDProfileId.WaterLineRendering)))

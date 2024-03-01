@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DrawInstancedQuads(CommandBuffer cmd, WaterRenderingData parameters, ref WaterSurfaceGBufferData surfaceData, int passIndex, int lowResPassIndex)
         {
-            var cb = surfaceData.sharedPerCameraDataArray[surfaceData.surfaceIndex];
+            var cb = parameters.sharedPerCameraDataArray[surfaceData.surfaceIndex];
 
             bool drawCentralPatch = true;
             bool drawInfinitePatch = surfaceData.drawInfiniteMesh;
@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int patchEvaluation = surfaceData.infinite ? parameters.patchEvaluationInfinite : parameters.patchEvaluation;
 
                 // Make sure both constant buffers are properly injected
-                BindPerSurfaceConstantBuffer(cmd, parameters.waterSimulation, surfaceData.perSurfaceCB);
+                BindPerSurfaceConstantBuffer(cmd, parameters.waterSimulation, parameters.perSurfaceCB[surfaceData.surfaceIndex]);
 
                 // Prepare the indirect parameters
                 cmd.SetComputeConstantBufferParam(parameters.waterSimulation, HDShaderIDs._ShaderVariablesWaterPerCamera, parameters.perCameraCB, 0, parameters.perCameraCB.stride);

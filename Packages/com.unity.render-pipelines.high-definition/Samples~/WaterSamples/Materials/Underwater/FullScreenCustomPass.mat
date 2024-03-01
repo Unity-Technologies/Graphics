@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FullScreenCustomPass
+  m_Shader: {fileID: -6465566751694194690, guid: 37350a2b48e9cc04892c9129e948a51d,
+    type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Custom_Render_Texture:
+        m_Texture: {fileID: 8600000, guid: 9961944ef3ba41e42aada19a6a466f6d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DLOD_9749742780194056bb665ca7e312f562_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9961944ef3ba41e42aada19a6a466f6d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_07e7bc8bbe2e4c2f9a218bd8fca41c39_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9961944ef3ba41e42aada19a6a466f6d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_81082dcea493472ebdec90933efa527c_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9961944ef3ba41e42aada19a6a466f6d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f9604b5d4b52447bb963a45d0fe995fb_Texture_1_Texture2D:
+        m_Texture: {fileID: 8600000, guid: 9961944ef3ba41e42aada19a6a466f6d, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ADD_CLOUDY_NOISE: 0
+    - _Blur: 4
+    - _Height_Fade_Range: 0.05
+    - _Height_Fade_Start: 0.25
+    - _Meniscus_Distortion: 0.02
+    - _Meniscus_Height: 0.4
+    - _Refraction_Strength: 1.5
+    - _Static_Droplets: 1
+    - _Static_Droplets_Intensity: 0.025
+    - _Tiling: 0.5
+    - _Waterline_Height: 0.1
+    m_Colors: []
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

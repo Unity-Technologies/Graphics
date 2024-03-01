@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_ActiveWaterDeformers > 0)
                 {
                     // Bind the constant buffers
-                    BindPerSurfaceConstantBuffer(cmd, m_WaterDeformationCS, currentWater.constantBuffer);
+                    BindPerSurfaceConstantBuffer(cmd, m_WaterDeformationCS, m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex]);
 
                     // Disable wireframe for next drawcall
                     bool wireframe = GL.wireframe;

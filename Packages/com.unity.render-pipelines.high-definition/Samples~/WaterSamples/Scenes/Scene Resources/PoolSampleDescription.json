@@ -8,35 +8,36 @@
 	
 	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
 	
-	<h1>General</h1>
+<h1>General</h1>
 	
-		• Screen Space Reflection on Transparent is enabled in the HDRP Asset, it allows us to see various reflections on the water surface.
+• Screen Space Reflection on Transparent is enabled in the HDRP Asset, it allows us to see various reflections on the water surface.
 	
-	<h1>Buoyancy</h1>
+<h1>Buoyancy</h1>
 	
-		• Each <link="BeachBall">Beach Ball</link> has a <b>Rigibody</b> and a custom <b>Buoyancy</b> component
-		• This <b>Buoyancy</b> script simulates real buoyancy by using Rigibody's mass and <code>AddForce</code> functions
-		• It approximates the object volume by using a sphere radius.
-		• It also computes a normal by sampling 3 points around the object to make the object move with waves or ripple deformations.
-		• Finally, each <link="BeachBall">Beach Ball</link> also has a <b>Sphere Collider</b> preventing it from going outside the pool thanks to the pool <link="Colliders">colliders</link>.
+• Each <link="BeachBall">Beach Ball</link> has a <b>Rigibody</b> and a custom <b>Buoyancy</b> component
+• This <b>Buoyancy</b> script simulates real buoyancy by using Rigibody's mass and <code>AddForce</code> functions
+• It approximates the object volume by using a sphere radius.
+• It also computes a normal by sampling 3 points around the object to make the object move with waves or ripple deformations.
+• Finally, each <link="BeachBall">Beach Ball</link> also has a <b>Sphere Collider</b> preventing it from going outside the pool thanks to the pool <link="Colliders">colliders</link>.
 		
-	<h1>Deformation & Splash</h1>
+<h1>Deformation & Splash</h1>
 	
-		• Each <link="BeachBall">Beach Ball</link> has a <b>Spawn Deformation</b> and a <b>Trigger Splash</b> component.
-		• The gameObject <link="DeformerPool">Deformer Pool</link> holds a list of deformers to use as children for deformations.
-		• When the <link="BeachBall">Beach Ball</link> crosses the water surface, one of the deformers is enabled in the <link="DeformerPool">Deformer Pool</link> child list. This deformer is then animated according to the speed and mass of the Rigidbody component. 
-		• Additionally, the <b>Trigger Splash</b> plays a <link="WaterSplash.prefab">VFX splash effect</link> and animates it according to the speed and mass of the Rigidbody component as well.
-		• You can press the "Space" key to throw a random beach ball at the pool to trigger the effect.     
+• Each <link="BeachBall">Beach Ball</link> has a <b>Spawn Deformation</b> and a <b>Trigger Splash</b> component.
+• The gameObject <link="DeformerPool">Deformer Pool</link> holds a list of deformers to use as children for deformations.
+• When the <link="BeachBall">Beach Ball</link> crosses the water surface, one of the deformers is enabled in the <link="DeformerPool">Deformer Pool</link> child list. This deformer is then animated according to the speed and mass of the Rigidbody component. 
+• Additionally, the <b>Trigger Splash</b> plays a <link="WaterSplash.prefab">VFX splash effect</link> and animates it according to the speed and mass of the Rigidbody component as well.
+• You can press the "Space" key to throw a random beach ball at the pool to trigger the effect.     
 	
-	<h1>Water Surface</h1>
+<h1>Water Surface</h1>
 	
-		• To define the pool's shape and position, we are using a Custom Geometry Type. Linked objects are disabled but can be inspected under the Geometry group.
-		• Enabling Directional Shadow in the Caustics section allows you to dim the caustics effect in the directional shadow areas.
-		• There's also an underwater effect. To define what’s considered underwater, we placed a BoxCollider on each Water object.
-		• The <link="BeachBall">beach ball</link> sticks to the kidney pool Water Surface using the FitToWaterSurface script.
+• To define the hot tub's shape and position, we are using a Custom Geometry Type. Linked object is disabled but can be inspected under the Geometry group.
+• Enabling Directional Shadow in the Caustics section allows you to dim the caustics effect in the directional shadow areas.
+• There's also an underwater effect. To define what’s considered underwater, we placed a BoxCollider on each Water object.
+• The <link="BeachBall">beach ball</link> sticks to the kidney pool Water Surface using the FitToWaterSurface script.
         
-   	<h1>VFX</h1>
+<h1>VFX</h1>
     
-		• The <link="HotTubWS">HotTubWS</link> hierarchy contains a <link="Bubbles">Bubbles</link> GameObject with an attached VFX. Inside this <link="VFX_Bubbles.vfx">VFX Graph</link>, the water surface is sampled using the Sample Water Surface node. In this example, among other things, the size of the bubble are reduced when they are outside the water. To learn more, see the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water-vfx-interaction.html#interaction-between-the-water-system-and-the-vfx-graph">documentation</a>.""",
+• The <link="HotTubWS">HotTubWS</link> hierarchy contains a <link="Bubbles">Bubbles</link> GameObject with an attached VFX. Inside this <link="VFX_Bubbles.vfx">VFX Graph</link>, the water surface is sampled using the Sample Water Surface node. In this example, among other things, the size of the bubble are reduced when they are outside the water. To learn more, see the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water-vfx-interaction.html#interaction-between-the-water-system-and-the-vfx-graph">documentation</a>.
+• In addition, to be sure the water buffers are properly initialized, we wait a few frames before enabling the <link="Bubbles">VFX Bubbles</link> in Play Mode.""",
     "samples": []	
 }

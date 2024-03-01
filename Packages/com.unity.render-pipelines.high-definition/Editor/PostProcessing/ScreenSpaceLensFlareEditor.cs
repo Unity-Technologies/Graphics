@@ -77,7 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportScreenSpaceLensFlare ?? false)
             {
                 EditorGUILayout.Space();

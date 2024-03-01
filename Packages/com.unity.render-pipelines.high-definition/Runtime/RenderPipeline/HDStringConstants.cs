@@ -496,7 +496,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlipY = Shader.PropertyToID("_FlipY");
 
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
-        public static readonly int _DepthWithWaterTexture = Shader.PropertyToID("_DepthWithWaterTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
         public static readonly int _RenderingLayerMaskTexture = Shader.PropertyToID("_RenderingLayerMaskTexture");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
@@ -628,6 +627,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _StencilWriteMaskStencilTag = Shader.PropertyToID("_StencilWriteMaskStencilTag");
         public static readonly int _StencilRefMaskStencilTag = Shader.PropertyToID("_StencilRefMaskStencilTag");
         public static readonly int _WaterDecalTimeParameters = Shader.PropertyToID("_WaterDecalTimeParameters");
+        public static readonly int _TransmittanceBufferRW = Shader.PropertyToID("_TransmittanceBufferRW");
 
         // Water Deferred Lighting
         public static readonly int _WaterDispatchIndirectBuffer = Shader.PropertyToID("_WaterDispatchIndirectBuffer");

@@ -122,14 +122,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_WindFoamCurve = EditorGUIUtility.TrTextContent("Wind Speed Dimmer", "Controls the foam intensity depending on the normalized Distant Wind Speed. The X axis refers to the normalized Distant Wind Speed, the Y axis refers to the dimmer value.");
 
         // Underwater
-        public static readonly GUIContent k_UnderWater = EditorGUIUtility.TrTextContent("Underwater", "When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface.This feature has a cost even when the camera is above the water surface.");
+        public static readonly GUIContent k_UnderWater = EditorGUIUtility.TrTextContent("Underwater", "When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.");
         public static readonly string k_AddColliderMessage = "The water surface does not support an underwater scenario if the box collider is not set.";
         public static readonly GUIContent k_AddBoxColliderPopup = EditorGUIUtility.TrTextContent("Add a Box Collider");
         public static readonly GUIContent k_UseBoxColliderPopup = EditorGUIUtility.TrTextContent("Use an existing Box Collider");
-        public static readonly GUIContent k_UnderWaterScatteringColorMode = EditorGUIUtility.TrTextContent("Scattering Color Mode", "Sets how the underwater scattering color is specified.");
-        public static readonly GUIContent k_UnderWaterScatteringColor = EditorGUIUtility.TrTextContent("Scattering Color", "Sets the color that is used to simulate the scattering when the camera is underwater.");
         public static readonly GUIContent k_UnderWaterRefraction = EditorGUIUtility.TrTextContent("Screen Space Refraction", "When enabled, the water surface will refract light when looking at objects from underwater. Distant and Local Wind will still have an effect on refraction.\nThis setting only affects screen space refraction when sampling the color pyramid from underwater.");
-        public static readonly GUIContent k_UnderWaterAmbientProbeContribution = EditorGUIUtility.TrTextContent("Ambient Probe Contribution", "Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.");
 
         // Foam
         static public readonly GUIContent k_FoamMaskExtent = EditorGUIUtility.TrTextContent("Extent", "Sets the extent of the foam mask in meters.");

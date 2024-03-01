@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 3792.5552, g: 6201.5166, b: 7737.9854, a: 1}
+  m_IndirectSpecularColor: {r: 3729.938, g: 5864.9536, b: 6702.954, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -119,38 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &96575297
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 96575298}
-  m_Layer: 0
-  m_Name: Water Surfaces
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &96575298
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 96575297}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 833608556}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &137834543
 GameObject:
   m_ObjectHideFlags: 0
@@ -228,8 +196,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 7.1e-44, z: 2.7105054e-20, w: 1.377593e-39}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 2
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!4 &137834545
 Transform:
   m_ObjectHideFlags: 0
@@ -260,14 +232,14 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 40000
   m_EnableSpotReflector: 1
+  m_LightUnit: 2
   m_LuxAtDistance: 1
+  m_Intensity: 40000
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
   m_VolumetricDimmer: 1
-  m_LightUnit: 2
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
   m_AffectDiffuse: 1
@@ -287,23 +259,27 @@ MonoBehaviour:
   m_IESPoint: {fileID: 0}
   m_IESSpot: {fileID: 0}
   m_IncludeForRayTracing: 1
+  m_IncludeForPathTracing: 1
   m_AreaLightShadowCone: 120
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.5
-  m_DiameterMultiplerMode: 1
-  m_DiameterMultiplier: 1
-  m_DiameterOverride: 0.5
-  m_EmissiveLightSource: 1
-  m_FlareSize: 2
-  m_FlareTint: {r: 1, g: 1, b: 1, a: 1}
-  m_FlareFalloff: 4
-  m_AutomaticMoonPhase: 1
-  m_MoonPhase: 0.2
-  m_MoonPhaseRotation: 0
-  m_Earthshine: 1
-  m_SurfaceTexture: {fileID: 0}
-  m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
+  diameterMultiplerMode: 1
+  diameterMultiplier: 1
+  diameterOverride: 0.5
+  celestialBodyShadingSource: 1
+  sunLightOverride: {fileID: 0}
+  sunColor: {r: 1, g: 1, b: 1, a: 1}
+  sunIntensity: 130000
+  moonPhase: 0.2
+  moonPhaseRotation: 0
+  earthshine: 1
+  flareSize: 2
+  flareTint: {r: 1, g: 1, b: 1, a: 1}
+  flareFalloff: 4
+  flareMultiplier: 1
+  surfaceTexture: {fileID: 0}
+  surfaceTint: {r: 1, g: 1, b: 1, a: 1}
   m_Distance: 1.5e+11
   m_UseRayTracedShadows: 0
   m_NumRayTracingSamples: 4
@@ -326,7 +302,7 @@ MonoBehaviour:
   m_MinFilterSize: 0.1
   m_DirLightPCSSBlockerSampleCount: 24
   m_DirLightPCSSFilterSampleCount: 16
-  m_DirLightPCSSMaxBlockerDistance: 64
+  m_DirLightPCSSMaxPenumbraSize: 0.56
   m_DirLightPCSSMaxSamplingDistance: 0.5
   m_DirLightPCSSMinFilterSizeTexels: 1.5
   m_DirLightPCSSMinFilterMaxAngularDiameter: 10
@@ -378,7 +354,7 @@ MonoBehaviour:
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
-  m_Version: 12
+  m_Version: 13
   m_ObsoleteShadowResolutionTier: 1
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
@@ -586,6 +562,13 @@ MonoBehaviour:
   deepLearningSuperSamplingUseCustomAttributes: 0
   deepLearningSuperSamplingUseOptimalSettings: 1
   deepLearningSuperSamplingSharpening: 0
+  allowFidelityFX2SuperResolution: 1
+  fidelityFX2SuperResolutionUseCustomQualitySettings: 0
+  fidelityFX2SuperResolutionQuality: 0
+  fidelityFX2SuperResolutionUseCustomAttributes: 0
+  fidelityFX2SuperResolutionUseOptimalSettings: 1
+  fidelityFX2SuperResolutionEnableSharpening: 0
+  fidelityFX2SuperResolutionSharpening: 0
   fsrOverrideSharpness: 0
   fsrSharpness: 0.92
   exposureTarget: {fileID: 0}
@@ -699,7 +682,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8f6fd535518f5540b4bcc3099582f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 2
+  m_Version: 3
   decalLayerMask: 1
   lightLayerMask: 1
   largeBand0FadeToggle: 1
@@ -709,8 +692,7 @@ MonoBehaviour:
   geometryType: 3
   meshRenderers: []
   timeMultiplier: 0.5
-  cpuSimulation: 1
-  cpuFullResolution: 0
+  scriptInteractions: 1
   cpuEvaluateRipples: 0
   customMaterial: {fileID: 2100000, guid: 07bcfc2657b343d4a9fdbb0cf0eb25e4, type: 2}
   startSmoothness: 0.95
@@ -752,8 +734,6 @@ MonoBehaviour:
   volumeHeight: 0
   volumePrority: 0
   absorptionDistanceMultiplier: 1000
-  colorPyramidOffset: 1
-  underWaterAmbientProbeContribution: 1
   underWaterScatteringColorMode: 0
   underWaterScatteringColor: {r: 0, g: 0.27, b: 0.23, a: 1}
   underWaterRefraction: 0
@@ -775,7 +755,9 @@ MonoBehaviour:
   foamResolution: 512
   foamAreaSize: {x: 200, y: 200}
   foamAreaOffset: {x: 0, y: 0}
-  foamPersistenceMultiplier: 0.5
+  foamPersistenceMultiplier: 1
+  foamCurrentInfluence: 0.6
+  foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.15
   foamSmoothness: 1
   simulationFoam: 1
@@ -862,7 +844,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 96575298}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1053179243
 GameObject:
@@ -957,21 +939,6 @@ MonoBehaviour:
   currentIndex: 0
   currentPrefab: {fileID: 0}
   requiredSettingsSO: {fileID: 11400000, guid: 633cf8ce1756ef641a560e1512b73e4f, type: 2}
-  SanitizedIntroduction: "Welcome to the Water System Samples.\nThe Water System
-    allows you to add water to your scenes.\nThis scene showcases the use of Before
-    Post Process Custom Pass that allows you to further customize the water rendering,
-    in this case blurring the hard waterline.\n\n<i>To make sure the project is set
-    up properly, use the HDRP Asset Settings Helper buttons at the bottom of this
-    component, otherwise some features might not be visible.</i>\n\n<h1>Custom Render
-    Texture</h1>\n\n\u2022 This effect uses a double buffered Custom Render Texture
-    to generate rain drop ripples. The double buffered texture means we can read
-    and write at the same time.  \n\u2022 This texture is updated in realtime with
-    the droplets shader graph.\n\u2022 The generated texture .\n\n<h1>Ocean Shader
-    Graph</h1>\n\n\u2022 The Ocean shader graph uses this texture as an input and
-    uses the B and A channel to alter the world space normal of the water surface.
-    \n\u2022 To reduce aliasing at a distance, the graph fades the intensity of the
-    normal by using mips from the input texture and a mulitplier to attenuate the
-    effect. \n\n"
   gameobjectSamplesName: {fileID: 0}
   gameobjectSamplesDescription: {fileID: 0}
   gameViewCamera: {fileID: 0}
@@ -982,5 +949,5 @@ SceneRoots:
   - {fileID: 1181935497}
   - {fileID: 729886573}
   - {fileID: 668297703}
+  - {fileID: 833608556}
   - {fileID: 1053179244}
-  - {fileID: 96575298}

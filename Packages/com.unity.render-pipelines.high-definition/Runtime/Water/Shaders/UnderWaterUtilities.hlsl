@@ -5,9 +5,15 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG_ON_TRANSPARENT)
+#define SUPPORT_WATER_ABSORPTION
+#endif
+
 // Buffers used for refraction sorting
+#if defined(SUPPORT_WATER_ABSORPTION) || defined (_TRANSPARENT_REFRACTIVE_SORT)
 TEXTURE2D_X_UINT2(_StencilTexture);
 TEXTURE2D_X(_RefractiveDepthBuffer);
+#endif
 
 StructuredBuffer<float> _WaterCameraHeightBuffer;
 
@@ -125,24 +131,28 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
     return 1.0 + caustics;
 }
 
-#if defined(_ENABLE_FOG_ON_TRANSPARENT) || defined(SUPPORT_WATER_ABSORPTION)
-// This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog (which
-// includes volumetric clouds combine pass)
-bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor, out float3 color, out float3 opacity)
+#ifdef SUPPORT_WATER_ABSORPTION
+bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out bool underWater, inout float3 opacity)
 {
-    color = opacity = 0;
+    #ifdef _ENABLE_FOG_ON_TRANSPARENT
+    // Disable underwater on low res transparents
+    if (_OffScreenRendering == 1)
+    {
+        underWater = false;
+        return false;
+    }
+    #endif
 
     uint surfaceIndex = -1;
     bool hasWater = false, hasExcluder = false;
     float waterDepth = UNITY_RAW_FAR_CLIP_VALUE;
-    bool underWater = IsUnderWater(posInput.positionSS.xy);
+    underWater = IsUnderWater(posInput.positionSS.xy);
+    bool skipFog = false;
 
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG_ON_TRANSPARENT)
+    #ifdef _ENABLE_FOG_ON_TRANSPARENT
     [branch]
     if (_PreRefractionPass != 0)
-#else
-    if (true)
-#endif
+    #endif
     {
         waterDepth = LOAD_TEXTURE2D_X(_RefractiveDepthBuffer, posInput.positionSS.xy).r;
         uint stencil = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, posInput.positionSS.xy));
@@ -159,92 +169,21 @@ bool EvaluateUnderwaterAbsorption(PositionInputs posInput, inout float4 outColor
         if (hasExcluder)
             surfaceIndex = -1;
         #endif
-    }
-    else if (underWater)
-        surfaceIndex = _UnderWaterSurfaceIndex;
 
-    if (surfaceIndex != -1)
-    {
-        WaterSurfaceProfile prof = _WaterSurfaceProfiles[surfaceIndex];
-        float absorptionDistance;
-        float caustics = 1.0f;
-        float3 farColor = 0.0f;
-
-        if (underWater)
+        if (surfaceIndex == -1)
+            underWater = false;
+        // Don't apply volumetric fog when viewing surface from above
+        else if (!underWater)
         {
-            // Approximate the pixel depth based on the distance from camera to surface
-            float distanceToSurface = max(-dot(posInput.positionWS, prof.upDirection) - GetWaterCameraHeight(), 0);
-            absorptionDistance = length(posInput.positionWS) + distanceToSurface;
-
-            // Apply underwater post process modifiers
-            absorptionDistance *= prof.absorptionDistanceMultiplier;
-
-            if (!hasWater) // caustics on pixels with water are applied during gbuffer pass
-            {
-                #ifdef SUPPORT_WATER_CAUSTICS
-                caustics = EvaluateSimulationCaustics(posInput.positionWS, distanceToSurface, posInput.positionNDC.xy);
-                #endif
-
-                #ifdef SUPPORT_WATER_CAUSTICS_SHADOW
-                if (_DirectionalShadowIndex >= 0) // In case the user asked for shadow to explicitly be affected by shadows
-                {
-                    DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
-                    if ((light.lightDimmer > 0) && (light.shadowDimmer > 0))
-                    {
-                        float3 L = -light.forward;
-                        HDShadowContext ctx = InitShadowContext();
-                        float sunShadow = GetDirectionalShadowAttenuation(ctx, posInput.positionSS, posInput.positionWS, L, light.shadowIndex, L);
-                        caustics = 1 + (caustics - 1) * lerp(_UnderWaterCausticsShadowIntensity, 1.0, sunShadow);
-                    }
-                }
-                #endif
-            }
-
-            float ambient = _WaterAmbientProbe.w * GetCurrentExposureMultiplier();
-            farColor = prof.scatteringColor * lerp(1.0, ambient, prof.underWaterAmbientProbeContribution);
-        }
-        else
-        {
-            // Approximate the pixel depth using distance from camera to object (light travels back and forth)
+            WaterSurfaceProfile prof = _WaterSurfaceProfiles[surfaceIndex];
             PositionInputs waterPosInput = GetPositionInput(posInput.positionSS.xy, _ScreenSize.zw, waterDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-            absorptionDistance = 2 * length(posInput.positionWS - waterPosInput.positionWS);
+            float3 opticalDepth = 2 * length(posInput.positionWS - waterPosInput.positionWS) * prof.extinction;
+            opacity = 1 - TransmittanceFromOpticalDepth(opticalDepth);
+            skipFog = true;
         }
-
-        float3 absorptionTint = exp(-absorptionDistance * prof.outScatteringCoefficient * (1.f - prof.transparencyColor));
-
-        color = farColor * (1 - absorptionTint);
-        opacity = 1 - caustics * absorptionTint;
-
-        #ifdef _ENABLE_FOG_ON_TRANSPARENT
-        if (_PreRefractionPass != 0 && hasExcluder)
-        {
-            // If we are here, this means we are seing a transparent that is in front of an opaque with an excluder
-            // Use case is a looking through a boat window from the exterior. We need to opacify the object to make underwater
-            // visible between the glass and the camera
-            // We use only the x channel as we can't do chromatic alpha blend
-            outColor.a = lerp(outColor.a, 1, opacity.x);
-        }
-        #endif
     }
 
-    return surfaceIndex != -1;
-}
-bool EvaluateUnderwaterAbsorption(PositionInputs posInput, out float3 color, out float3 opacity)
-{
-    float4 dummy = 0;
-    return EvaluateUnderwaterAbsorption(posInput, dummy, color, opacity);
-}
-#endif
-
-#ifdef _ENABLE_FOG_ON_TRANSPARENT
-float4 ComputeFog(PositionInputs posInput, float3 V, float4 outColor)
-{
-    // Evaluate water absorption or atmospheric scattering
-    // Check _OffScreenRendering to disable underwater on low res transparents
-    float3 volColor, volOpacity;
-    if (_EnableWater == 0 || _OffScreenRendering == 1 || !EvaluateUnderwaterAbsorption(posInput, outColor, volColor, volOpacity))
-        EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
-    return ApplyFogOnTransparent(outColor, volColor, volOpacity);
+    return skipFog;
 }
 #endif
 

@@ -173,15 +173,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _EnableWater;
 
         public Vector4 _WaterAmbientProbe;
+        public Vector4 _UnderWaterScatteringExtinction;
+        public Vector4 _UnderWaterUpHeight;
         public int _UnderWaterSurfaceIndex;
         public float _UnderWaterCausticsIntensity;
         public float _UnderWaterCausticsPlaneBlendDistance;
-        public float _PaddingG1;
-        public Matrix4x4 _UnderWaterSurfaceTransform_Inverse;
         public float _UnderWaterCausticsTilingFactor;
+        public Matrix4x4 _UnderWaterSurfaceTransform_Inverse;
         public float _UnderWaterCausticsMaxLOD;
         public float _UnderWaterCausticsShadowIntensity;
         public float _UnderWaterCausticsRegionSize;
+        public float _PaddingG1;
 
         public int _PreRefractionPass;
         public int _SpecularFade;

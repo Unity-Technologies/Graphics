@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering
 
         private static int frameIdx = 0;
 
+        internal static readonly int _FlareOcclusionPermutation = Shader.PropertyToID("_FlareOcclusionPermutation");
         internal static readonly int _FlareOcclusionRemapTex = Shader.PropertyToID("_FlareOcclusionRemapTex");
         internal static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
         internal static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
@@ -84,8 +85,6 @@ namespace UnityEngine.Rendering
         internal static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
         internal static readonly int _FlareRadialTint = Shader.PropertyToID("_FlareRadialTint");
 
-        internal static readonly int _FlareWaterGBuffer3Thickness = Shader.PropertyToID("_FlareWaterGBuffer3Thickness");
-        internal static readonly int _FlareOcclusionPermutation = Shader.PropertyToID("_FlareOcclusionPermutation");
         internal static readonly int _ViewId = Shader.PropertyToID("_ViewId");
 
         internal static readonly int _LensFlareScreenSpaceBloomMipTexture = Shader.PropertyToID("_LensFlareScreenSpaceBloomMipTexture");
@@ -520,10 +519,10 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Check if at least one LensFlareComponentSRP request CloudLayer opacity
+        /// Check if at least one LensFlareComponentSRP request occlusion from background clouds
         /// </summary>
         /// <param name="cam">Camera</param>
-        /// <returns>true if a cloudLayerOpacity is requested</returns>
+        /// <returns>true if cloud occlusion is requested</returns>
         static public bool IsCloudLayerOpacityNeeded(Camera cam)
         {
             if (Instance.IsEmpty())
@@ -557,16 +556,14 @@ namespace UnityEngine.Rendering
                     (comp.useOcclusion && comp.sampleCount == 0))
                     continue;
 
-                if (comp.useFogOpacityOcclusion)
+                if (comp.environmentOcclusion)
                     return true;
             }
 
             return false;
         }
 
-        static void SetOcclusionPermutation(CommandBuffer cmd,
-            bool useFogOpacityOcclusion, bool waterOcclusion, int _FlareSunOcclusionTex,
-            Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
+        static void SetOcclusionPermutation(CommandBuffer cmd, bool useFogOpacityOcclusion, int _FlareSunOcclusionTex, Texture sunOcclusionTexture)
         {
             uint occlusionPermutation = (uint)(LensFlareOcclusionPermutation.Depth);
 
@@ -574,12 +571,6 @@ namespace UnityEngine.Rendering
             {
                 occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.FogOpacity);
                 cmd.SetGlobalTexture(_FlareSunOcclusionTex, sunOcclusionTexture);
-            }
-
-            if (waterOcclusion && waterGBuffer3Thickness != null)
-            {
-                occlusionPermutation |= (uint)(LensFlareOcclusionPermutation.Water);
-                cmd.SetGlobalTexture(_FlareWaterGBuffer3Thickness, waterGBuffer3Thickness);
             }
 
             int convInt = unchecked((int)occlusionPermutation);
@@ -626,10 +617,9 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
-        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
@@ -648,7 +638,7 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             UnsafeCommandBuffer cmd,
-            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             ComputeOcclusion(
@@ -658,7 +648,7 @@ namespace UnityEngine.Rendering
                 cameraPositionWS,
                 viewProjMatrix,
                 cmd.m_WrappedCommandBuffer,
-                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness,
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture,
                 _FlareOcclusionTex, _FlareCloudOpacity, _FlareOcclusionIndex, _FlareTex, _FlareColorValue, _FlareSunOcclusionTex, _FlareData0, _FlareData1, _FlareData2, _FlareData3, _FlareData4);
         }
 
@@ -679,17 +669,16 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
-        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             UnsafeCommandBuffer cmd,
-            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture)
         {
             ComputeOcclusion(
                 lensFlareShader, cam, xr, xrIndex,
@@ -698,7 +687,7 @@ namespace UnityEngine.Rendering
                 cameraPositionWS,
                 viewProjMatrix,
                 cmd.m_WrappedCommandBuffer,
-                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture);
         }
 
         /// <summary>
@@ -718,10 +707,9 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
-        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         /// <param name="_FlareOcclusionTex">ShaderID for the FlareOcclusionTex</param>
         /// <param name="_FlareCloudOpacity">ShaderID for the FlareCloudOpacity</param>
         /// <param name="_FlareOcclusionIndex">ShaderID for the FlareOcclusionIndex</param>
@@ -740,7 +728,7 @@ namespace UnityEngine.Rendering
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness,
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture,
             int _FlareOcclusionTex, int _FlareCloudOpacity, int _FlareOcclusionIndex, int _FlareTex, int _FlareColorValue, int _FlareSunOcclusionTex, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4)
         {
             ComputeOcclusion(lensFlareShader, cam, xr, xrIndex,
@@ -749,7 +737,7 @@ namespace UnityEngine.Rendering
                 cameraPositionWS,
                 viewProjMatrix,
                 cmd,
-                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture, waterGBuffer3Thickness);
+                taaEnabled, hasCloudLayer, cloudOpacityTexture, sunOcclusionTexture);
         }
 
         static bool ForceSingleElement(LensFlareDataElementSRP element)
@@ -776,17 +764,16 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
-        /// <param name="waterGBuffer3Thickness">Water Occlusion (using optical thickness) from WaterRenderer on HDRP or null</param>
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
             Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
-            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture, Texture waterGBuffer3Thickness)
+            bool taaEnabled, bool hasCloudLayer, Texture cloudOpacityTexture, Texture sunOcclusionTexture)
         {
             if (!IsOcclusionRTCompatible())
                 return;
@@ -941,8 +928,7 @@ namespace UnityEngine.Rendering
 
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 
-                SetOcclusionPermutation(cmd, comp.useFogOpacityOcclusion, comp.useWaterOcclusion,
-                    _FlareSunOcclusionTex, sunOcclusionTexture, waterGBuffer3Thickness);
+                SetOcclusionPermutation(cmd, comp.environmentOcclusion, _FlareSunOcclusionTex, sunOcclusionTexture);
                 cmd.EnableShaderKeyword("FLARE_COMPUTE_OCCLUSION");
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, -(2.0f * viewportPos.y - 1.0f));
@@ -1360,8 +1346,8 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
@@ -1425,8 +1411,8 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
@@ -1474,8 +1460,8 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
@@ -1539,8 +1525,8 @@ namespace UnityEngine.Rendering
         /// <param name="viewProjMatrix">View Projection Matrix of the current camera</param>
         /// <param name="cmd">Command Buffer</param>
         /// <param name="taaEnabled">Set if TAA is enabled</param>
-        /// <param name="hasCloudLayer">Set if cloudLayerTexture is used</param>
-        /// <param name="cloudOpacityTexture">cloudOpacityTexture used for sky visibility fullscreen</param>
+        /// <param name="hasCloudLayer">Unused</param>
+        /// <param name="cloudOpacityTexture">Unused</param>
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>

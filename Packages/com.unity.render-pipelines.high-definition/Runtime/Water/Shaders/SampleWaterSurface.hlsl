@@ -138,7 +138,7 @@ struct WaterSimCoord
 float2 TransformWaterUV(float2 uv, int bandIdx)
 {
     float3 scaleOffset = GetBandPatchData(bandIdx).xyz;
-    return uv * scaleOffset.x + scaleOffset.yz;
+    return uv * scaleOffset.x - scaleOffset.yz;
 }
 
 void ComputeWaterUVs(float2 uv, out WaterSimCoord simC)

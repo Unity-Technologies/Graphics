@@ -29,6 +29,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
     NativeArray<float> errorBuffer;
     NativeArray<float3> candidatePositionBuffer;
     NativeArray<float3> projectedPositionWSBuffer;
+    NativeArray<float3> normalWSBuffer;
     NativeArray<float3> directionBuffer;
     NativeArray<int> stepCountBuffer;
 
@@ -49,6 +50,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         errorBuffer = new NativeArray<float>(count, Allocator.Persistent);
         candidatePositionBuffer = new NativeArray<float3>(count, Allocator.Persistent);
         projectedPositionWSBuffer = new NativeArray<float3>(count, Allocator.Persistent);
+        normalWSBuffer = new NativeArray<float3>(count, Allocator.Persistent);
         stepCountBuffer = new NativeArray<int>(count, Allocator.Persistent);
         directionBuffer = new NativeArray<float3>(count, Allocator.Persistent);
 		
@@ -104,6 +106,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         searchJob.excludeSimulation = false;
 
         searchJob.projectedPositionWSBuffer = projectedPositionWSBuffer;
+        searchJob.normalWSBuffer = normalWSBuffer;
         searchJob.errorBuffer = errorBuffer;
         searchJob.candidateLocationWSBuffer = candidatePositionBuffer;
         searchJob.directionBuffer = directionBuffer;
@@ -135,6 +138,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         if(errorBuffer.IsCreated)               	errorBuffer.Dispose();
         if(candidatePositionBuffer.IsCreated)   	candidatePositionBuffer.Dispose();
         if(projectedPositionWSBuffer.IsCreated)   	projectedPositionWSBuffer.Dispose();
+        if(normalWSBuffer.IsCreated)                normalWSBuffer.Dispose();
         if(stepCountBuffer.IsCreated)           	stepCountBuffer.Dispose();
         if(directionBuffer.IsCreated)           	directionBuffer.Dispose();
     }
