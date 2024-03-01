@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering
             if(remainder > 0)
             {
                 long lastChunkMask = (1L << remainder) - 1;
-                m_Bits[chunkIndex + 1] &= ~lastChunkMask;
+                m_Bits[chunkIndex] &= ~lastChunkMask;
             }
         }
     }

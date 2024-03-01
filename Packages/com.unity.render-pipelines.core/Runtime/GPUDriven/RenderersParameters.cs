@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering
             public static readonly int _BaseColor = Shader.PropertyToID("_BaseColor");
             public static readonly int unity_SpecCube0_HDR = Shader.PropertyToID("unity_SpecCube0_HDR");
             public static readonly int unity_SHCoefficients = Shader.PropertyToID("unity_SHCoefficients");
-            public static readonly int unity_LightmapIndex = Shader.PropertyToID("unity_LightmapIndex");
             public static readonly int unity_LightmapST = Shader.PropertyToID("unity_LightmapST");
             public static readonly int unity_ObjectToWorld = Shader.PropertyToID("unity_ObjectToWorld");
             public static readonly int unity_WorldToObject = Shader.PropertyToID("unity_WorldToObject");
@@ -66,7 +65,6 @@ namespace UnityEngine.Rendering
                 builder.AddComponent<Vector4>(ParamNames._BaseColor, isOverriden: false, isPerInstance: false, InstanceType.MeshRenderer);
                 builder.AddComponent<Vector4>(ParamNames.unity_SpecCube0_HDR, isOverriden: false, isPerInstance: false, InstanceType.MeshRenderer);
                 builder.AddComponent<SHCoefficients>(ParamNames.unity_SHCoefficients, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer, InstanceComponentGroup.LightProbe);
-                builder.AddComponent<Vector4>(ParamNames.unity_LightmapIndex, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer, InstanceComponentGroup.Lightmap);
                 builder.AddComponent<Vector4>(ParamNames.unity_LightmapST, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer, InstanceComponentGroup.Lightmap);
                 builder.AddComponent<PackedMatrix>(ParamNames.unity_ObjectToWorld, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
                 builder.AddComponent<PackedMatrix>(ParamNames.unity_WorldToObject, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
@@ -95,7 +93,6 @@ namespace UnityEngine.Rendering
             public bool valid => index != 0;
         }
 
-        public ParamInfo lightmapIndex;
         public ParamInfo lightmapScale;
         public ParamInfo localToWorld;
         public ParamInfo worldToLocal;
@@ -121,7 +118,6 @@ namespace UnityEngine.Rendering
                 };
             }
 
-            lightmapIndex = GetParamInfo(instanceDataBuffer, ParamNames.unity_LightmapIndex);
             lightmapScale = GetParamInfo(instanceDataBuffer, ParamNames.unity_LightmapST);
             localToWorld = GetParamInfo(instanceDataBuffer, ParamNames.unity_ObjectToWorld);
             worldToLocal = GetParamInfo(instanceDataBuffer, ParamNames.unity_WorldToObject);

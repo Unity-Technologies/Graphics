@@ -6,10 +6,6 @@ using Unity.Mathematics;
 using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 
-#if UNITY_EDITOR
-using UnityEditor.Sprites;
-#endif
-
 namespace UnityEngine.Rendering
 {
     internal partial class InstanceDataSystem : IDisposable
@@ -777,6 +773,19 @@ namespace UnityEngine.Rendering
 
             updateCompactedInstanceVisibilityJob.ScheduleBatch(m_InstanceData.instancesLength, UpdateCompactedInstanceVisibilityJob.k_BatchSize).Complete();
         }
+
+#if UNITY_EDITOR
+        public void UpdateSelectedInstances(NativeArray<InstanceHandle> instances)
+        {
+            m_InstanceData.editorData.selectedBits.FillZeroes(m_InstanceData.instancesLength);
+
+            new UpdateSelectedInstancesJob
+            {
+                instances = instances,
+                instanceData = m_InstanceData
+            }.Schedule(instances.Length, UpdateSelectedInstancesJob.k_BatchSize).Complete();
+        }
+#endif
 
         private static class InstanceTransformUpdateIDs
         {

@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering
         public ParallelBitArray movedInCurrentFrameBits;
         public ParallelBitArray movedInPreviousFrameBits;
         public ParallelBitArray visibleInPreviousFrameBits;
+        public EditorInstanceDataArrays editorData;
 
         public int instancesLength { get => m_StructData[0]; set => m_StructData[0] = value; }
         public int instancesCapacity { get => m_StructData[1]; set => m_StructData[1] = value; }
@@ -46,6 +47,7 @@ namespace UnityEngine.Rendering
             movedInCurrentFrameBits = new ParallelBitArray(instancesCapacity, Allocator.Persistent);
             movedInPreviousFrameBits = new ParallelBitArray(instancesCapacity, Allocator.Persistent);
             visibleInPreviousFrameBits = new ParallelBitArray(instancesCapacity, Allocator.Persistent);
+            editorData.Initialize(initCapacity);
         }
 
         public void Dispose()
@@ -60,6 +62,7 @@ namespace UnityEngine.Rendering
             movedInCurrentFrameBits.Dispose();
             movedInPreviousFrameBits.Dispose();
             visibleInPreviousFrameBits.Dispose();
+            editorData.Dispose();
         }
 
         private void Grow(int newCapacity)
@@ -77,8 +80,26 @@ namespace UnityEngine.Rendering
             movedInCurrentFrameBits.Resize(newCapacity);
             movedInPreviousFrameBits.Resize(newCapacity);
             visibleInPreviousFrameBits.Resize(newCapacity);
+            editorData.Grow(newCapacity);
 
             instancesCapacity = newCapacity;
+        }
+
+        private void AddUnsafe(InstanceHandle instance)
+        {
+            if (instance.index >= m_InstanceIndices.Length)
+            {
+                int prevLength = m_InstanceIndices.Length;
+                m_InstanceIndices.ResizeUninitialized(instance.index + 1);
+
+                for (int i = prevLength; i < m_InstanceIndices.Length - 1; ++i)
+                    m_InstanceIndices[i] = k_InvalidIndex;
+            }
+
+            m_InstanceIndices[instance.index] = instancesLength;
+            instances[instancesLength] = instance;
+
+            ++instancesLength;
         }
 
         public int InstanceToIndex(InstanceHandle instance)
@@ -132,23 +153,6 @@ namespace UnityEngine.Rendering
                 Grow(instancesCapacity + needInstances + 256);
         }
 
-        public void AddUnsafe(InstanceHandle instance)
-        {
-            if (instance.index >= m_InstanceIndices.Length)
-            {
-                int prevLength = m_InstanceIndices.Length;
-                m_InstanceIndices.ResizeUninitialized(instance.index + 1);
-
-                for (int i = prevLength; i < m_InstanceIndices.Length - 1; ++i)
-                    m_InstanceIndices[i] = k_InvalidIndex;
-            }
-
-            m_InstanceIndices[instance.index] = instancesLength;
-            instances[instancesLength] = instance;
-
-            ++instancesLength;
-        }
-
         public void AddNoGrow(InstanceHandle instance)
         {
             Assert.IsTrue(instance.valid);
@@ -156,18 +160,13 @@ namespace UnityEngine.Rendering
             Assert.IsTrue(GetFreeInstancesCount() > 0);
 
             AddUnsafe(instance);
+            SetDefault(instance);
         }
 
         public void Add(InstanceHandle instance)
         {
             EnsureFreeInstances(1);
             AddNoGrow(instance);
-        }
-
-        public void AddDefault(InstanceHandle instance)
-        {
-            Add(instance);
-            SetDefault(instance);
         }
 
         public void Remove(InstanceHandle instance)
@@ -185,29 +184,25 @@ namespace UnityEngine.Rendering
             movedInCurrentFrameBits.Set(index, movedInCurrentFrameBits.Get(lastIndex));
             movedInPreviousFrameBits.Set(index, movedInPreviousFrameBits.Get(lastIndex));
             visibleInPreviousFrameBits.Set(index, visibleInPreviousFrameBits.Get(lastIndex));
+            editorData.Remove(index, lastIndex);
 
             m_InstanceIndices[instances[lastIndex].index] = index;
             m_InstanceIndices[instance.index] = k_InvalidIndex;
             instancesLength -= 1;
         }
 
-        public void Set(InstanceHandle instance, bool localToWorldIsFlipped, in AABB worldAABB, int tetrahedronCacheIndex)
-        {
-            int index = InstanceToIndex(instance);
-            localToWorldIsFlippedBits.Set(index, localToWorldIsFlipped);
-            worldAABBs[index] = worldAABB;
-            tetrahedronCacheIndices[index] = tetrahedronCacheIndex;
-        }
-
         public void Set(InstanceHandle instance, SharedInstanceHandle sharedInstance, bool localToWorldIsFlipped, in AABB worldAABB, int tetrahedronCacheIndex,
             bool movedInCurrentFrame, bool movedInPreviousFrame, bool visibleInPreviousFrame)
         {
-            Set(instance, localToWorldIsFlipped, worldAABB, tetrahedronCacheIndex);
             int index = InstanceToIndex(instance);
             sharedInstances[index] = sharedInstance;
-            visibleInPreviousFrameBits.Set(index, visibleInPreviousFrame);
+            localToWorldIsFlippedBits.Set(index, localToWorldIsFlipped);
+            worldAABBs[index] = worldAABB;
+            tetrahedronCacheIndices[index] = tetrahedronCacheIndex;
             movedInCurrentFrameBits.Set(index, movedInCurrentFrame);
             movedInPreviousFrameBits.Set(index, movedInPreviousFrame);
+            visibleInPreviousFrameBits.Set(index, visibleInPreviousFrame);
+            editorData.SetDefault(index);
         }
 
         public void SetDefault(InstanceHandle instance)
@@ -250,6 +245,7 @@ namespace UnityEngine.Rendering
             public readonly ParallelBitArray movedInCurrentFrameBits;
             public readonly ParallelBitArray movedInPreviousFrameBits;
             public readonly ParallelBitArray visibleInPreviousFrameBits;
+            public readonly EditorInstanceDataArrays.ReadOnly editorData;
             public readonly int handlesLength => instanceIndices.Length;
             public readonly int instancesLength => instances.Length;
 
@@ -264,6 +260,7 @@ namespace UnityEngine.Rendering
                 movedInCurrentFrameBits = instanceData.movedInCurrentFrameBits.GetSubArray(instanceData.instancesLength);//.AsReadOnly(); // Implement later.
                 movedInPreviousFrameBits = instanceData.movedInPreviousFrameBits.GetSubArray(instanceData.instancesLength);//.AsReadOnly(); // Implement later.
                 visibleInPreviousFrameBits = instanceData.visibleInPreviousFrameBits.GetSubArray(instanceData.instancesLength);//.AsReadOnly(); // Implement later.
+                editorData = new EditorInstanceDataArrays.ReadOnly(instanceData);
             }
 
             public int InstanceToIndex(InstanceHandle instance)
@@ -353,7 +350,7 @@ namespace UnityEngine.Rendering
             refCounts.Dispose();
         }
 
-        public void Grow(int newCapacity)
+        private void Grow(int newCapacity)
         {
             Assert.IsTrue(newCapacity > instancesCapacity);
 
@@ -369,6 +366,23 @@ namespace UnityEngine.Rendering
             refCounts.ResizeArray(newCapacity);
 
             instancesCapacity = newCapacity;
+        }
+
+        private void AddUnsafe(SharedInstanceHandle instance)
+        {
+            if (instance.index >= m_InstanceIndices.Length)
+            {
+                int prevLength = m_InstanceIndices.Length;
+                m_InstanceIndices.ResizeUninitialized(instance.index + 1);
+
+                for (int i = prevLength; i < m_InstanceIndices.Length - 1; ++i)
+                    m_InstanceIndices[i] = k_InvalidIndex;
+            }
+
+            m_InstanceIndices[instance.index] = instancesLength;
+            instances[instancesLength] = instance;
+
+            ++instancesLength;
         }
 
         public int SharedInstanceToIndex(SharedInstanceHandle instance)
@@ -430,23 +444,6 @@ namespace UnityEngine.Rendering
                 Grow(instancesCapacity + needInstances + 256);
         }
 
-        public void AddUnsafe(SharedInstanceHandle instance)
-        {
-            if (instance.index >= m_InstanceIndices.Length)
-            {
-                int prevLength = m_InstanceIndices.Length;
-                m_InstanceIndices.ResizeUninitialized(instance.index + 1);
-
-                for (int i = prevLength; i < m_InstanceIndices.Length - 1; ++i)
-                    m_InstanceIndices[i] = k_InvalidIndex;
-            }
-
-            m_InstanceIndices[instance.index] = instancesLength;
-            instances[instancesLength] = instance;
-
-            ++instancesLength;
-        }
-
         public void AddNoGrow(SharedInstanceHandle instance)
         {
             Assert.IsTrue(instance.valid);
@@ -454,18 +451,13 @@ namespace UnityEngine.Rendering
             Assert.IsTrue(GetFreeInstancesCount() > 0);
 
             AddUnsafe(instance);
+            SetDefault(instance);
         }
 
         public void Add(SharedInstanceHandle instance)
         {
             EnsureFreeInstances(1);
             AddNoGrow(instance);
-        }
-
-        public void AddDefault(SharedInstanceHandle instance)
-        {
-            Add(instance);
-            SetDefault(instance);
         }
 
         public void Remove(SharedInstanceHandle instance)
@@ -597,6 +589,73 @@ namespace UnityEngine.Rendering
                 return sharedInstanceIndex;
             }
         }
+    }
+
+    internal interface IDataArrays
+    {
+        void Initialize(int initCapacity);
+        void Dispose();
+        void Grow(int newCapacity);
+        void Remove(int index, int lastIndex);
+        void SetDefault(int index);
+    }
+
+    internal struct EditorInstanceDataArrays : IDataArrays
+    {
+#if UNITY_EDITOR
+        public NativeArray<ulong> sceneCullingMasks;
+        public ParallelBitArray selectedBits;
+
+        public void Initialize(int initCapacity)
+        {
+            sceneCullingMasks = new NativeArray<ulong>(initCapacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            sceneCullingMasks.FillArray(ulong.MaxValue);
+            selectedBits = new ParallelBitArray(initCapacity, Allocator.Persistent);
+        }
+
+        public void Dispose()
+        {
+            sceneCullingMasks.Dispose();
+            selectedBits.Dispose();
+        }
+
+        public void Grow(int newCapacity)
+        {
+            sceneCullingMasks.ResizeArray(newCapacity);
+            selectedBits.Resize(newCapacity);
+        }
+
+        public void Remove(int index, int lastIndex)
+        {
+            sceneCullingMasks[index] = sceneCullingMasks[lastIndex];
+            selectedBits.Set(index, selectedBits.Get(lastIndex));
+        }
+
+        public void SetDefault(int index)
+        {
+            sceneCullingMasks[index] = ulong.MaxValue;
+            selectedBits.Set(index, false);
+        }
+
+        internal readonly struct ReadOnly
+        {
+            public readonly NativeArray<ulong>.ReadOnly sceneCullingMasks;
+            public readonly ParallelBitArray selectedBits;
+
+            public ReadOnly(in CPUInstanceData instanceData)
+            {
+                sceneCullingMasks = instanceData.editorData.sceneCullingMasks.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
+                selectedBits = instanceData.editorData.selectedBits.GetSubArray(instanceData.instancesLength);
+            }
+        }
+#else
+        public void Initialize(int initCapacity) { }
+        public void Dispose() { }
+        public void Grow(int newCapacity) { }
+        public void Remove(int index, int lastIndex) { }
+        public void SetDefault(int index) { }
+        internal readonly struct ReadOnly { public ReadOnly(in CPUInstanceData instanceData) { } }
+#endif
     }
 
     [Flags]

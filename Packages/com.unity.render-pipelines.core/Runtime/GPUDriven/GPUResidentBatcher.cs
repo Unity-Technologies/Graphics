@@ -21,8 +21,6 @@ namespace UnityEngine.Rendering
 
         private InstanceCullingBatcher m_InstanceCullingBatcher = null;
 
-        private ParallelBitArray m_ProcessedThisFrameTreeBits;
-
         public GPUResidentBatcher(
             RenderersBatchersContext batcherContext,
             InstanceCullingBatcherDesc instanceCullerBatcherDesc,
@@ -112,6 +110,16 @@ namespace UnityEngine.Rendering
             m_GPUDrivenProcessor.enablePartialRendering = false;
         }
 
+#if UNITY_EDITOR
+        public void UpdateSelectedRenderers(NativeArray<int> renderersID)
+        {
+            var instances = new NativeArray<InstanceHandle>(renderersID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(renderersID, instances).Complete();
+            m_BatchersContext.UpdateSelectedInstances(instances);
+            instances.Dispose();
+        }
+#endif
+
         public void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
         {
             RenderSettings.ambientProbe = context.ambientProbe;
@@ -126,9 +134,6 @@ namespace UnityEngine.Rendering
 
             Profiler.BeginSample("GPUResidentInstanceBatcher.UpdateRendererData");
             {
-                var usedMaterialIDs = new NativeList<int>(Allocator.TempJob);
-                usedMaterialIDs.AddRange(rendererData.materialID);
-
                 // --------------------------------------------------------------------------------------------------------------------------------------
                 // Allocate and Update CPU instance data
                 // --------------------------------------------------------------------------------------------------------------------------------------
@@ -166,7 +171,7 @@ namespace UnityEngine.Rendering
                 {
                     m_InstanceCullingBatcher.BuildBatch(
                         instances,
-                        usedMaterialIDs.AsArray(),
+                        rendererData.materialID,
                         rendererData.meshID,
                         rendererData);
 
@@ -174,7 +179,6 @@ namespace UnityEngine.Rendering
                 Profiler.EndSample();
 
                 instances.Dispose();
-                usedMaterialIDs.Dispose();
             }
             Profiler.EndSample();
         }

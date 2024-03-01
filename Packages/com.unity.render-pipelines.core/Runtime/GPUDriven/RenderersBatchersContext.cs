@@ -385,5 +385,12 @@ namespace UnityEngine.Rendering
             if (m_DebugStats != null)
                 m_OcclusionCullingCommon.UpdateOccluderStats(m_DebugStats);
         }
+
+#if UNITY_EDITOR
+        public void UpdateSelectedInstances(NativeArray<InstanceHandle> instances)
+        {
+            m_InstanceDataSystem.UpdateSelectedInstances(instances);
+        }
+#endif
     }
 }

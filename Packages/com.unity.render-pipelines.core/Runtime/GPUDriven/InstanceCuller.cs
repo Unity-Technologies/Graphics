@@ -14,6 +14,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering;
+using UnityEditor.SceneManagement;
 #endif
 
 namespace UnityEngine.Rendering
@@ -162,6 +163,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public bool cullLightmappedShadowCasters;
         [ReadOnly] public int maxLOD;
         [ReadOnly] public uint cullingLayerMask;
+        [ReadOnly] public ulong sceneCullingMask;
 
         [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlaneCuller.PlanePacket4> frustumPlanePackets;
         [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlaneCuller.SplitInfo> frustumSplitInfos;
@@ -317,6 +319,14 @@ namespace UnityEngine.Rendering
 
             if (cullLightmappedShadowCasters && (instanceFlags & InstanceFlags.AffectsLightmaps) != 0)
                 return 0;
+
+#if UNITY_EDITOR
+            if ((sceneCullingMask & instanceData.editorData.sceneCullingMasks[instanceIndex]) == 0)
+                return 0;
+
+            if(viewType == BatchCullingViewType.SelectionOutline && !instanceData.editorData.selectedBits.Get(instanceIndex))
+                return 0;
+#endif
 
             // cull early for camera and shadow views based on the shadow culling mode
             if (viewType == BatchCullingViewType.Camera && (instanceFlags & InstanceFlags.IsShadowsOnly) != 0)
@@ -705,8 +715,8 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeArray<int> drawInstanceIndices;
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
 
-        [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererVisibilityMasks;
-        [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererCrossFadeValues;
+        [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [ReadOnly] public NativeArray<byte> rendererCrossFadeValues;
 
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<int> batchBinAllocOffsets;
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<int> batchBinCounts;
@@ -1019,7 +1029,7 @@ namespace UnityEngine.Rendering
     internal enum FilteringJobMode
     {
         Filtering,
-        PickingSelection
+        Picking
     }
 
     [BurstCompile]
@@ -1030,8 +1040,8 @@ namespace UnityEngine.Rendering
 
         [ReadOnly] public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer;
 
-        [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererVisibilityMasks;
-        [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<byte> rendererCrossFadeValues;
+        [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [ReadOnly] public NativeArray<byte> rendererCrossFadeValues;
 
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
         [ReadOnly] public CPUSharedInstanceData.ReadOnly sharedInstanceData;
@@ -1044,8 +1054,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeArray<bool> filteringResults;
         [ReadOnly] public NativeArray<int> excludedRenderers;
 
-        [ReadOnly]
-        public FilteringJobMode mode;
+        [ReadOnly] public FilteringJobMode mode;
 
         [NativeDisableUnsafePtrRestriction] public NativeArray<BatchCullingOutputDrawCommands> cullingOutput;
 
@@ -1068,8 +1077,7 @@ namespace UnityEngine.Rendering
 
             output.drawCommandCount = output.visibleInstanceCount; // for picking/filtering, 1 draw command per instance!
             output.drawCommands = MemoryUtilities.Malloc<BatchDrawCommand>(output.drawCommandCount, Allocator.TempJob);
-            if(mode == FilteringJobMode.PickingSelection)
-                output.drawCommandPickingInstanceIDs = MemoryUtilities.Malloc<int>(output.drawCommandCount, Allocator.TempJob);
+            output.drawCommandPickingInstanceIDs = MemoryUtilities.Malloc<int>(output.drawCommandCount, Allocator.TempJob);
 
             int outRangeIndex = 0;
             int outCommandIndex = 0;
@@ -1091,7 +1099,7 @@ namespace UnityEngine.Rendering
                     for (int i = 0; i < instanceCount; ++i)
                     {
                         var rendererIndex = drawInstanceIndices[instanceOffset + i];
-                        int visibilityMask = (int)rendererVisibilityMasks[rendererIndex];
+                        var visibilityMask = rendererVisibilityMasks[rendererIndex];
                         if (visibilityMask == 0)
                             continue;
 
@@ -1102,7 +1110,7 @@ namespace UnityEngine.Rendering
                             continue;
 
                         var rendererID = sharedInstanceData.rendererGroupIDs[sharedInstanceIndex];
-                        if (mode == FilteringJobMode.PickingSelection && excludedRenderers.IsCreated && excludedRenderers.Contains(rendererID))
+                        if (mode == FilteringJobMode.Picking && excludedRenderers.IsCreated && excludedRenderers.Contains(rendererID))
                             continue;
 
 #if DEBUG
@@ -1116,6 +1124,7 @@ namespace UnityEngine.Rendering
                             throw new Exception("Draw command created with an invalid BatchID");
 #endif
                         output.visibleInstances[outVisibleInstanceIndex] = instanceDataBuffer.CPUInstanceToGPUInstance(instance).index;
+                        output.drawCommandPickingInstanceIDs[outCommandIndex] = rendererID;
                         output.drawCommands[outCommandIndex] = new BatchDrawCommand
                         {
                             flags = BatchDrawCommandFlags.None,
@@ -1129,8 +1138,6 @@ namespace UnityEngine.Rendering
                             meshID = drawBatch.key.meshID,
                             submeshIndex = (ushort)drawBatch.key.submeshIndex,
                         };
-                        if(mode == FilteringJobMode.PickingSelection)
-                            output.drawCommandPickingInstanceIDs[outCommandIndex] = rendererID;
 
                         outVisibleInstanceIndex++;
                         outCommandIndex++;
@@ -1455,6 +1462,7 @@ namespace UnityEngine.Rendering
     [BurstCompile]
     internal struct InstanceCuller : IDisposable
     {
+        //@ Move this in CPUInstanceData.
         private ParallelBitArray m_CompactedVisibilityMasks;
         private JobHandle m_CompactedVisibilityMasksJobsHandle;
 
@@ -1477,7 +1485,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
         private bool m_IsSceneViewCamera;
-        private bool m_IsAnyObjectHiddenInSceneView;
+        private ParallelBitArray m_SceneViewHiddenBits;
 #endif
 
         private static class ShaderIDs
@@ -1519,15 +1527,15 @@ namespace UnityEngine.Rendering
         }
 
         private JobHandle CreateFrustumCullingJob(
-            BatchCullingContext cc,
+            in BatchCullingContext cc,
             in CPUInstanceData.ReadOnly instanceData,
             in CPUSharedInstanceData.ReadOnly sharedInstanceData,
             NativeList<LODGroupCullingData> lodGroupCullingData,
             in BinningConfig binningConfig,
             float smallMeshScreenPercentage,
             OcclusionCullingCommon occlusionCullingCommon,
-            out NativeArray<byte> rendererVisibilityMasks,
-            out NativeArray<byte> rendererCrossFadeValues)
+            NativeArray<byte> rendererVisibilityMasks,
+            NativeArray<byte> rendererCrossFadeValues)
         {
             Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCullingBatcher supports up to 6 culling splits.");
 
@@ -1538,10 +1546,6 @@ namespace UnityEngine.Rendering
             if (occlusionCullingCommon != null)
                 occlusionCullingCommon.UpdateSilhouettePlanes(cc.viewID.GetInstanceID(), receiverPlanes.SilhouettePlaneSubArray());
             receiverPlanes.planes.Dispose();
-
-            var visibilityLength = instanceData.handlesLength;
-            rendererVisibilityMasks = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            rendererCrossFadeValues = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             float screenRelativeMetric = LODGroupRenderingUtils.CalculateScreenRelativeMetric(cc.lodParameters);
 
@@ -1567,13 +1571,14 @@ namespace UnityEngine.Rendering
                 rendererCrossFadeValues = rendererCrossFadeValues,
                 maxLOD = QualitySettings.maximumLODLevel,
                 cullingLayerMask = cc.cullingLayerMask,
+                sceneCullingMask = cc.sceneCullingMask,
             };
 
             return cullingJob.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize);
         }
 
         private int ComputeWorstCaseDrawCommandCount(
-            BatchCullingContext cc,
+            in BatchCullingContext cc,
             BinningConfig binningConfig,
             CPUDrawInstanceData drawInstanceData,
             int crossFadedRendererCount)
@@ -1605,8 +1610,8 @@ namespace UnityEngine.Rendering
             return drawCommandCount;
         }
 
-        public JobHandle CreateCullJobTree(
-            BatchCullingContext cc,
+        public unsafe JobHandle CreateCullJobTree(
+            in BatchCullingContext cc,
             BatchCullingOutput cullingOutput,
             in CPUInstanceData.ReadOnly instanceData,
             in CPUSharedInstanceData.ReadOnly sharedInstanceData,
@@ -1618,6 +1623,15 @@ namespace UnityEngine.Rendering
             float smallMeshScreenPercentage,
             OcclusionCullingCommon occlusionCullingCommon)
         {
+            // allocate for worst case number of draw ranges (all other arrays allocated after size is known)
+            var drawCommands = new BatchCullingOutputDrawCommands();
+            drawCommands.drawRangeCount = drawInstanceData.drawRanges.Length;
+            drawCommands.drawRanges = MemoryUtilities.Malloc<BatchDrawRange>(drawCommands.drawRangeCount, Allocator.TempJob);
+            for (int i = 0; i < drawCommands.drawRangeCount; ++i)
+                drawCommands.drawRanges[i].drawCommandsCount = 0;
+            cullingOutput.drawCommands[0] = drawCommands;
+            cullingOutput.customCullingResult[0] = IntPtr.Zero;
+
             var binningConfig = new BinningConfig
             {
                 viewCount = cc.cullingSplits.Length,
@@ -1625,117 +1639,41 @@ namespace UnityEngine.Rendering
                 supportsMotionCheck = (cc.viewType == BatchCullingViewType.Camera), // TODO: could disable here if RP never needs object motion vectors, for now always batch on it
             };
 
-            var cullingJobHandle = CreateFrustumCullingJob(
-                cc,
-                instanceData,
-                sharedInstanceData,
-                lodGroupCullingData,
-                binningConfig,
-                smallMeshScreenPercentage,
-                occlusionCullingCommon,
-                out var rendererVisibilityMasks,
-                out var rendererCrossFadeValues);
+            var visibilityLength = instanceData.handlesLength;
+            var rendererVisibilityMasks = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var rendererCrossFadeValues = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-            // allocate for worst case number of draw ranges (all other arrays allocated after size is known)
-            var drawCommands = new BatchCullingOutputDrawCommands();
-            drawCommands.drawRangeCount = drawInstanceData.drawRanges.Length;
-            unsafe
-            {
-                drawCommands.drawRanges = MemoryUtilities.Malloc<BatchDrawRange>(drawCommands.drawRangeCount, Allocator.TempJob);
-            }
-            cullingOutput.drawCommands[0] = drawCommands;
-            cullingOutput.customCullingResult[0] = IntPtr.Zero;
-
-            if (!m_CompactedVisibilityMasks.IsCreated)
-            {
-                Assert.IsTrue(m_CompactedVisibilityMasksJobsHandle.IsCompleted);
-                m_CompactedVisibilityMasks = new ParallelBitArray(instanceData.handlesLength, Allocator.TempJob);
-            }
-
-            var compactVisibilityMasksJob = new CompactVisibilityMasksJob
-            {
-                rendererVisibilityMasks = rendererVisibilityMasks,
-                compactedVisibilityMasks = m_CompactedVisibilityMasks
-            };
-
-            var compactVisibilityMasksJobHandle = compactVisibilityMasksJob.ScheduleBatch(rendererVisibilityMasks.Length, CompactVisibilityMasksJob.k_BatchSize, cullingJobHandle);
-            cullingJobHandle = JobHandle.CombineDependencies(cullingJobHandle, compactVisibilityMasksJobHandle);
-            // Accumulate all per frame compact job handles.
-            m_CompactedVisibilityMasksJobsHandle = JobHandle.CombineDependencies(m_CompactedVisibilityMasksJobsHandle, compactVisibilityMasksJobHandle);
+            var cullingJobHandle = CreateFrustumCullingJob(cc, instanceData, sharedInstanceData, lodGroupCullingData, binningConfig,
+                smallMeshScreenPercentage, occlusionCullingCommon, rendererVisibilityMasks, rendererCrossFadeValues);
 
 #if UNITY_EDITOR
-            cullingJobHandle = ScheduleSceneViewHiddenObjectsCullingJob(cc.viewType, instanceData, sharedInstanceData, rendererVisibilityMasks, cullingJobHandle);
+            // Unfortunately BatchCullingContext doesn't provide full visibility and picking context.
+            // Including which object is hidden in the hierarchy panel or not pickable in the scene view for tooling purposes.
+            // So we have to manually handle bold editor logic here inside the culler.
+            // This should be redesigned in the future. Culler should not be responsible for custom editor handling logic or even know that the editor exist.
 
-            if (cc.viewType == BatchCullingViewType.Picking || cc.viewType == BatchCullingViewType.SelectionOutline)
+            // This additionally culls game objects hidden in the hierarchy panel or the scene view or in context editing.
+            cullingJobHandle = CreateSceneViewHiddenObjectsCullingJob_EditorOnly(cc, instanceData, sharedInstanceData, rendererVisibilityMasks,
+                cullingJobHandle);
+
+            if (cc.viewType == BatchCullingViewType.Picking)
             {
-                var pickingIDs = HandleUtility.GetPickingIncludeExcludeList(Allocator.TempJob);
-                var excludedRenderers = pickingIDs.ExcludeRenderers.IsCreated ? pickingIDs.ExcludeRenderers : new NativeArray<int>(0, Allocator.TempJob);
-                var dummyFilteringResults = new NativeArray<bool>(0, Allocator.TempJob);
-                var drawOutputJob = new DrawCommandOutputFiltering
-                {
-                    viewID = cc.viewID.GetInstanceID(),
-                    batchIDs = batchIDs,
-                    instanceDataBuffer = instanceDataBuffer,
-                    rendererVisibilityMasks = rendererVisibilityMasks,
-                    rendererCrossFadeValues = rendererCrossFadeValues,
-                    instanceData = instanceData,
-                    sharedInstanceData = sharedInstanceData,
-                    drawInstanceIndices = drawInstanceData.drawInstanceIndices,
-                    drawBatches = drawInstanceData.drawBatches,
-                    drawRanges = drawInstanceData.drawRanges,
-                    drawBatchIndices = drawInstanceData.drawBatchIndices,
-                    filteringResults = dummyFilteringResults,
-                    excludedRenderers = excludedRenderers,
-                    cullingOutput = cullingOutput.drawCommands,
-                    mode = FilteringJobMode.PickingSelection
-
-                };
-                var drawOutputHandle = drawOutputJob.Schedule(cullingJobHandle);
-                drawOutputHandle.Complete();
-                dummyFilteringResults.Dispose();
-                if (!pickingIDs.ExcludeRenderers.IsCreated)
-                    excludedRenderers.Dispose();
-                pickingIDs.Dispose();
-                return drawOutputHandle;
+                // This outputs picking draw commands for the objects that can be picked.
+                cullingJobHandle = CreatePickingCullingOutputJob_EditorOnly(cc, cullingOutput, instanceData, sharedInstanceData, instanceDataBuffer,
+                    drawInstanceData, batchIDs, rendererVisibilityMasks, rendererCrossFadeValues, cullingJobHandle);
             }
-            else if(cc.viewType == BatchCullingViewType.Filtering)
+            else if (cc.viewType == BatchCullingViewType.Filtering)
             {
-                NativeArray<bool> filteredRenderers = new NativeArray<bool>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob);
-                NativeArray<int> rendererIdCopy = new NativeArray<int>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                sharedInstanceData.rendererGroupIDs.CopyTo(rendererIdCopy);
-
-                EditorCameraUtils.GetRenderersFilteringResults(rendererIdCopy, filteredRenderers);
-                var dummyExcludedRenderers = new NativeArray<int>(0, Allocator.TempJob);
-                var drawOutputJob = new DrawCommandOutputFiltering
-                {
-                    viewID = cc.viewID.GetInstanceID(),
-                    batchIDs = batchIDs,
-                    instanceDataBuffer = instanceDataBuffer,
-                    rendererVisibilityMasks = rendererVisibilityMasks,
-                    rendererCrossFadeValues = rendererCrossFadeValues,
-                    instanceData = instanceData,
-                    sharedInstanceData = sharedInstanceData,
-                    drawInstanceIndices = drawInstanceData.drawInstanceIndices,
-                    drawBatches = drawInstanceData.drawBatches,
-                    drawRanges = drawInstanceData.drawRanges,
-                    drawBatchIndices = drawInstanceData.drawBatchIndices,
-                    filteringResults = filteredRenderers,
-                    excludedRenderers = dummyExcludedRenderers,
-                    cullingOutput = cullingOutput.drawCommands,
-                    mode = FilteringJobMode.Filtering
-                };
-
-                var drawOutputHandle = drawOutputJob.Schedule(cullingJobHandle);
-                drawOutputHandle.Complete();
-                filteredRenderers.Dispose();
-                rendererIdCopy.Dispose();
-                dummyExcludedRenderers.Dispose();
-
-                return drawOutputHandle;
+                // This outputs draw commands for the objects filtered by search input in the hierarchy on in the scene view.
+                cullingJobHandle = CreateFilteringCullingOutputJob_EditorOnly(cc, cullingOutput, instanceData, sharedInstanceData, instanceDataBuffer, drawInstanceData,
+                    batchIDs, rendererVisibilityMasks, rendererCrossFadeValues, cullingJobHandle);
             }
-            else
 #endif
+            // This outputs regular draw commands.
+            if (cc.viewType == BatchCullingViewType.Camera || cc.viewType == BatchCullingViewType.Light || cc.viewType == BatchCullingViewType.SelectionOutline)
             {
+                cullingJobHandle = CreateCompactedVisibilityMaskJob(instanceData, rendererVisibilityMasks, cullingJobHandle);
+
                 int debugCounterBaseIndex = -1;
                 if (m_DebugStats?.enabled ?? false)
                 {
@@ -1780,6 +1718,7 @@ namespace UnityEngine.Rendering
                     splitDebugCounters = m_SplitDebugArray.Counters,
                     debugCounterIndexBase = debugCounterBaseIndex,
                 };
+
                 var allocateBinsHandle = allocateBinsJob.Schedule(batchCount, 1, cullingJobHandle);
 
                 m_SplitDebugArray.AddSync(debugCounterBaseIndex, allocateBinsHandle);
@@ -1798,6 +1737,7 @@ namespace UnityEngine.Rendering
                     indirectBufferAllocInfo = indirectBufferAllocInfo,
                     indirectAllocationCounters = m_IndirectStorage.allocationCounters,
                 };
+
                 var prefixSumHandle = prefixSumJob.Schedule(allocateBinsHandle);
 
                 var drawCommandOutputJob = new DrawCommandOutputPerBatch
@@ -1824,40 +1764,168 @@ namespace UnityEngine.Rendering
                     indirectInstanceInfoGlobalArray = m_IndirectStorage.instanceInfoGlobalArray,
                     indirectDrawInfoGlobalArray = m_IndirectStorage.drawInfoGlobalArray,
                 };
+
                 var drawCommandOutputHandle = drawCommandOutputJob.Schedule(batchCount, 1, prefixSumHandle);
 
                 if (useOcclusionCulling)
                     m_IndirectStorage.SetBufferContext(indirectContextIndex, new IndirectBufferContext(drawCommandOutputHandle));
 
-                return drawCommandOutputHandle;
+                cullingJobHandle = drawCommandOutputHandle;
             }
+
+            rendererVisibilityMasks.Dispose(cullingJobHandle);
+            rendererCrossFadeValues.Dispose(cullingJobHandle);
+
+            return cullingJobHandle;
+        }
+
+        private JobHandle CreateCompactedVisibilityMaskJob(in CPUInstanceData.ReadOnly instanceData, NativeArray<byte> rendererVisibilityMasks, JobHandle cullingJobHandle)
+        {
+            if (!m_CompactedVisibilityMasks.IsCreated)
+            {
+                Assert.IsTrue(m_CompactedVisibilityMasksJobsHandle.IsCompleted);
+                m_CompactedVisibilityMasks = new ParallelBitArray(instanceData.handlesLength, Allocator.TempJob);
+            }
+
+            var compactVisibilityMasksJob = new CompactVisibilityMasksJob
+            {
+                rendererVisibilityMasks = rendererVisibilityMasks,
+                compactedVisibilityMasks = m_CompactedVisibilityMasks
+            };
+
+            var compactVisibilityMasksJobHandle = compactVisibilityMasksJob.ScheduleBatch(rendererVisibilityMasks.Length, CompactVisibilityMasksJob.k_BatchSize, cullingJobHandle);
+            m_CompactedVisibilityMasksJobsHandle = JobHandle.CombineDependencies(m_CompactedVisibilityMasksJobsHandle, compactVisibilityMasksJobHandle);
+
+            return compactVisibilityMasksJobHandle;
         }
 
 #if UNITY_EDITOR
-        private JobHandle ScheduleSceneViewHiddenObjectsCullingJob(BatchCullingViewType viewType, in CPUInstanceData.ReadOnly instanceData, in CPUSharedInstanceData.ReadOnly sharedInstanceData,
-            NativeArray<byte> rendererVisibilityMasks, JobHandle inputDeps)
+
+        private JobHandle CreateSceneViewHiddenObjectsCullingJob_EditorOnly(in BatchCullingContext cc, in CPUInstanceData.ReadOnly instanceData,
+            in CPUSharedInstanceData.ReadOnly sharedInstanceData, NativeArray<byte> rendererVisibilityMasks, JobHandle cullingJobHandle)
         {
-            if (!m_IsSceneViewCamera || !m_IsAnyObjectHiddenInSceneView)
-                return inputDeps;
+            bool isSceneViewCamera = m_IsSceneViewCamera && (cc.viewType == BatchCullingViewType.Camera || cc.viewType == BatchCullingViewType.Light);
+            bool isEditorCullingViewType = cc.viewType == BatchCullingViewType.Picking || cc.viewType == BatchCullingViewType.SelectionOutline
+                || cc.viewType == BatchCullingViewType.Filtering;
 
-            if (viewType != BatchCullingViewType.Camera && viewType != BatchCullingViewType.Light)
-                return inputDeps;
+            if (!isSceneViewCamera && !isEditorCullingViewType)
+                return cullingJobHandle;
 
-            var hiddenBits = new ParallelBitArray(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            EditorCameraUtils.GetRenderersHiddenResultBits(sharedInstanceData.rendererGroupIDs, hiddenBits.GetBitsArray().Reinterpret<ulong>());
+            bool isEditingPrefab = PrefabStageUtility.GetCurrentPrefabStage() != null;
+            bool isAnyObjectHidden = false;
+
+            for (int i = 0; i < SceneManager.sceneCount; ++i)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (SceneVisibilityManager.instance.AreAnyDescendantsHidden(scene))
+                {
+                    isAnyObjectHidden = true;
+                    break;
+                }
+            }
+
+            if (!isAnyObjectHidden && !isEditingPrefab)
+                return cullingJobHandle;
+
+            int renderersLength = sharedInstanceData.rendererGroupIDs.Length;
+
+            if (!m_SceneViewHiddenBits.IsCreated)
+            {
+                m_SceneViewHiddenBits = new ParallelBitArray(renderersLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                EditorCameraUtils.GetRenderersHiddenResultBits(sharedInstanceData.rendererGroupIDs, m_SceneViewHiddenBits.GetBitsArray().Reinterpret<ulong>());
+            }
 
             var jobHandle = new CullSceneViewHiddenRenderersJob
             {
                 instanceData = instanceData,
                 sharedInstanceData = sharedInstanceData,
-                hiddenBits = hiddenBits,
                 rendererVisibilityMasks = rendererVisibilityMasks,
-            }.Schedule(instanceData.instancesLength, CullSceneViewHiddenRenderersJob.k_BatchSize, inputDeps);
-
-            hiddenBits.Dispose(jobHandle);
+                hiddenBits = m_SceneViewHiddenBits,
+            }.Schedule(instanceData.instancesLength, CullSceneViewHiddenRenderersJob.k_BatchSize, cullingJobHandle);
 
             return jobHandle;
         }
+
+        private JobHandle CreateFilteringCullingOutputJob_EditorOnly(in BatchCullingContext cc, BatchCullingOutput cullingOutput,
+            in CPUInstanceData.ReadOnly instanceData, in CPUSharedInstanceData.ReadOnly sharedInstanceData, in GPUInstanceDataBuffer.ReadOnly instanceDataBuffer,
+            in CPUDrawInstanceData drawInstanceData, NativeParallelHashMap<uint, BatchID> batchIDs, NativeArray<byte> rendererVisibilityMasks,
+            NativeArray<byte> rendererCrossFadeValues, JobHandle cullingJobHandle)
+        {
+            NativeArray<bool> filteredRenderers = new NativeArray<bool>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob);
+            EditorCameraUtils.GetRenderersFilteringResults(sharedInstanceData.rendererGroupIDs, filteredRenderers);
+            var dummyExcludedRenderers = new NativeArray<int>(0, Allocator.TempJob);
+
+            var drawOutputJob = new DrawCommandOutputFiltering
+            {
+                viewID = cc.viewID.GetInstanceID(),
+                batchIDs = batchIDs,
+                instanceDataBuffer = instanceDataBuffer,
+                rendererVisibilityMasks = rendererVisibilityMasks,
+                rendererCrossFadeValues = rendererCrossFadeValues,
+                instanceData = instanceData,
+                sharedInstanceData = sharedInstanceData,
+                drawInstanceIndices = drawInstanceData.drawInstanceIndices,
+                drawBatches = drawInstanceData.drawBatches,
+                drawRanges = drawInstanceData.drawRanges,
+                drawBatchIndices = drawInstanceData.drawBatchIndices,
+                filteringResults = filteredRenderers,
+                excludedRenderers = dummyExcludedRenderers,
+                cullingOutput = cullingOutput.drawCommands,
+                mode = FilteringJobMode.Filtering
+            };
+
+            var drawOutputHandle = drawOutputJob.Schedule(cullingJobHandle);
+
+            filteredRenderers.Dispose(drawOutputHandle);
+            dummyExcludedRenderers.Dispose(drawOutputHandle);
+
+            return drawOutputHandle;
+        }
+
+        private JobHandle CreatePickingCullingOutputJob_EditorOnly(in BatchCullingContext cc, BatchCullingOutput cullingOutput,
+            in CPUInstanceData.ReadOnly instanceData, in CPUSharedInstanceData.ReadOnly sharedInstanceData, in GPUInstanceDataBuffer.ReadOnly instanceDataBuffer,
+            in CPUDrawInstanceData drawInstanceData, NativeParallelHashMap<uint, BatchID> batchIDs, NativeArray<byte> rendererVisibilityMasks,
+            NativeArray<byte> rendererCrossFadeValues, JobHandle cullingJobHandle)
+        {
+            // GPUResindetDrawer doesn't handle rendering of persistent game objects like prefabs. They are rendered by SRP.
+            // When we are in prefab editing mode all the objects that are not part of the prefab should not be pickable.
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                return cullingJobHandle;
+
+            var pickingIDs = HandleUtility.GetPickingIncludeExcludeList(Allocator.TempJob);
+            var excludedRenderers = pickingIDs.ExcludeRenderers.IsCreated ? pickingIDs.ExcludeRenderers : new NativeArray<int>(0, Allocator.TempJob);
+            var dummyFilteringResults = new NativeArray<bool>(0, Allocator.TempJob);
+
+            var drawOutputJob = new DrawCommandOutputFiltering
+            {
+                viewID = cc.viewID.GetInstanceID(),
+                batchIDs = batchIDs,
+                instanceDataBuffer = instanceDataBuffer,
+                rendererVisibilityMasks = rendererVisibilityMasks,
+                rendererCrossFadeValues = rendererCrossFadeValues,
+                instanceData = instanceData,
+                sharedInstanceData = sharedInstanceData,
+                drawInstanceIndices = drawInstanceData.drawInstanceIndices,
+                drawBatches = drawInstanceData.drawBatches,
+                drawRanges = drawInstanceData.drawRanges,
+                drawBatchIndices = drawInstanceData.drawBatchIndices,
+                filteringResults = dummyFilteringResults,
+                excludedRenderers = excludedRenderers,
+                cullingOutput = cullingOutput.drawCommands,
+                mode = FilteringJobMode.Picking
+            };
+
+            var drawOutputHandle = drawOutputJob.Schedule(cullingJobHandle);
+            drawOutputHandle.Complete();
+
+            dummyFilteringResults.Dispose();
+            if (!pickingIDs.ExcludeRenderers.IsCreated)
+                excludedRenderers.Dispose();
+            pickingIDs.Dispose();
+
+            return drawOutputHandle;
+        }
+
 #endif
 
         public void InstanceOccludersUpdated(int viewInstanceID, RenderersBatchersContext batchersContext)
@@ -1884,6 +1952,14 @@ namespace UnityEngine.Rendering
                 Assert.IsTrue(m_CompactedVisibilityMasksJobsHandle.IsCompleted);
                 m_CompactedVisibilityMasks.Dispose();
             }
+        }
+
+        private void DisposeSceneViewHiddenBits()
+        {
+#if UNITY_EDITOR
+            if (m_SceneViewHiddenBits.IsCreated)
+                m_SceneViewHiddenBits.Dispose();
+#endif
         }
 
         public ParallelBitArray GetCompactedVisibilityMasks(bool syncCullingJobs)
@@ -2182,18 +2258,6 @@ namespace UnityEngine.Rendering
         {
 #if UNITY_EDITOR
             m_IsSceneViewCamera = true;
-            m_IsAnyObjectHiddenInSceneView = false;
-
-            for (int i = 0; i < SceneManager.sceneCount; ++i)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-
-                if (SceneVisibilityManager.instance.AreAnyDescendantsHidden(scene))
-                {
-                    m_IsAnyObjectHiddenInSceneView = true;
-                    break;
-                }
-            }
 #endif
         }
 
@@ -2206,6 +2270,7 @@ namespace UnityEngine.Rendering
 
         public void UpdateFrame()
         {
+            DisposeSceneViewHiddenBits();
             DisposeCompactVisibilityMasks();
             FlushDebugCounters();
             m_IndirectStorage.ClearContextsAndGrowBuffers();
@@ -2225,6 +2290,7 @@ namespace UnityEngine.Rendering
 
         public void Dispose()
         {
+            DisposeSceneViewHiddenBits();
             DisposeCompactVisibilityMasks();
             m_IndirectStorage.Dispose();
             m_DebugStats = null;
