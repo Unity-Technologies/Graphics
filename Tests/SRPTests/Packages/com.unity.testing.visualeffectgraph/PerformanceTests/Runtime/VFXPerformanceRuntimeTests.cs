@@ -91,6 +91,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFX.ParticleSystem.BatchUpdate";
                 yield return "VFX.ParticleSystem.BatchUpdateStrip";
                 yield return "VFX.ParticleSystem.BatchUploadStepData";
+                yield return "VFX.ParticleSystem.BatchUploadVisibleIndirectionBuffer";
                 yield return "VFX.ParticleSystem.BatchCopyDeadListCount";
                 yield return "VFX.ParticleSystem.PerStripUpdate";
                 yield return "VFX.ParticleSystem.RenderPoint";
@@ -110,6 +111,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFX.Update";
                 yield return "VFX.PrepareCamera";
                 yield return "VFX.ProcessCamera";
+                yield return "VFX.ProcessCommandList";
                 yield return "VFX.FillIndirectRenderArgs";
                 yield return "VFX.CopyBuffer";
                 yield return "VFX.InitializeDeadListBuffer";
@@ -117,7 +119,6 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFX.SortBuffer";
                 yield return "VFX.NotifyModifiedAsset";
                 yield return "VFX.NotifyDeletedAsset";
-                yield return "VFX.DefaultCommandBuffer";
                 yield return "VFX.RegisterGizmos";
                 yield return "VFX.CullJob";
                 yield return "VFXEditor.VisualEffectImporter.GenerateAssetData";

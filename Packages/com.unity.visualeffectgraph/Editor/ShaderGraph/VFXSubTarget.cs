@@ -158,6 +158,7 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor,
             out AdditionalCommandDescriptor setInstancingIndicesDescriptor,
             out AdditionalCommandDescriptor fillGraphValuesDescriptor,
+            out AdditionalCommandDescriptor loadContextDataDescriptor,
             out AdditionalCommandDescriptor additionalFragInputs)
         {
             // TODO: Clean all of this up. Currently just an adapter between VFX Code Gen + SG Code Gen and *everything* has been stuffed here.
@@ -201,6 +202,9 @@ namespace UnityEditor.VFX
 
             VFXCodeGenerator.BuildFillGraphValues(taskData, graphValuesLayout, systemUniformMapper, out var fillGraphValues);
             fillGraphValuesDescriptor = new AdditionalCommandDescriptor("VFXLoadGraphValues", fillGraphValues);
+
+            VFXCodeGenerator.BuildLoadContextData(graphValuesLayout, out var loadContextData);
+            loadContextDataDescriptor = new AdditionalCommandDescriptor("VFXLoadContextData", loadContextData);
 
             // Define coordinate space
             var defineSpaceDescriptorContent = string.Empty;
@@ -466,6 +470,7 @@ namespace UnityEditor.VFX
                 out var vertexPropertiesGenerationDescriptor,
                 out var setInstancingIndicesDescriptor,
                 out var fillGraphValuesDescriptor,
+                out var loadContextDataDescriptor,
                 out var fragInputsDescriptor
             );
 
@@ -525,6 +530,7 @@ namespace UnityEditor.VFX
                     vertexPropertiesGenerationDescriptor,
                     setInstancingIndicesDescriptor,
                     fillGraphValuesDescriptor,
+                    loadContextDataDescriptor,
                     fragInputsDescriptor
                 };
 

@@ -36,7 +36,7 @@ StructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if USE_DEAD_LIST_COUNT
-StructuredBuffer<uint> deadListCount;
+StructuredBuffer<uint> deadList;
 #endif
 
 #if HAS_STRIPS

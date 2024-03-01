@@ -140,12 +140,12 @@ ${VFXEnd}
 ${VFXBegin:VFXLoadAttributesOrCull}
 #if HAS_STRIPS && !VFX_HAS_INDIRECT_DRAW
 	// We render one particle less for each strip in this case
-	nbMax -= STRIP_COUNT; 
+	nbMax -= STRIP_COUNT;
 #endif
 
 uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-deadCount = deadListCount[instanceIndex];
+deadCount = deadList[instanceIndex];
 #endif
 #if VFX_USE_INSTANCING
 if (index >= nbMax - deadCount)
@@ -439,6 +439,7 @@ ${VFXEnd}
 
 ${VFXBegin:VFXInstancingConstants}
 float4 instancingConstants;
+uint2 instancingBufferOffsets;
 ${VFXEnd}
 
 ${VFXBegin:VFXFeedSortingKeys}

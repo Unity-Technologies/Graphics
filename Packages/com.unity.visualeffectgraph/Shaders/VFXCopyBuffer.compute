@@ -5,6 +5,7 @@
 #pragma kernel CSVFXBatchCopyCountUint
 #pragma kernel CSVFXBatchCopyCountKvp
 #pragma kernel CSVFXInitBoundsBuffer
+#pragma kernel CSVFXCopyStructBufferSelf
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3 webgpu
 
@@ -16,6 +17,7 @@ CBUFFER_START(Uniform)
     uint srcStride;
     uint size;
     uint dispatchWidth;
+    uint instanceIndex;
 CBUFFER_END
 
 struct Kvp
@@ -29,6 +31,7 @@ StructuredBuffer<Kvp> srcStructBufferKvp;
 ByteAddressBuffer srcBuffer;
 RWByteAddressBuffer dstBuffer;
 RWStructuredBuffer<uint> dstStructBuffer;
+
 
 #define NB_THREADS_PER_GROUP 64
 
@@ -61,6 +64,8 @@ void CSVFXInitDeadListBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_Dis
     uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
     if (index < size)
         dstStructBuffer[dstOffset + index] = size - index - 1u;
+    if(index == 0)
+        dstStructBuffer[instanceIndex] = size;
 }
 
 [numthreads(NB_THREADS_PER_GROUP, 1, 1)]
@@ -90,6 +95,16 @@ void CSVFXBatchCopyCountKvp(uint3 id : SV_DispatchThreadID)
     }
 }
 
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXCopyStructBufferSelf(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < size) /* One dword is copied by thread */
+    {
+        uint srcIndex = id.x + srcOffset ;
+        uint dstIndex = id.x + dstOffset ;
+        dstStructBuffer[dstIndex] = dstStructBuffer[srcIndex];
+    }
+}
 
 [numthreads(NB_THREADS_PER_GROUP, 1, 1)]
 void CSVFXInitBoundsBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
@@ -98,3 +113,4 @@ void CSVFXInitBoundsBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_Dispa
     if (index < size)
         dstStructBuffer[index] = index % 6 < 3 ? 0xffffffff : 0u;
 }
+

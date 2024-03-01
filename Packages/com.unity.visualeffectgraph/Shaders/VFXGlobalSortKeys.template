@@ -32,11 +32,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	uint index = id;
     ${VFXInitInstancing}
 
-
-
-	ContextData contextData = instancingContextData[instanceActiveIndex];
 	uint threshold = inputBuffer[instanceActiveIndex];
-
     if(index == 0)
         outputBuffer[instanceActiveIndex].index = threshold; //Store the count here
 

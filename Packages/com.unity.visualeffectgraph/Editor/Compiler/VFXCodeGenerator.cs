@@ -603,6 +603,13 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             fillGraphValues = fillGraphValuesShaderWriter.ToString();
         }
 
+        internal static void BuildLoadContextData(VFXDataParticle.GraphValuesLayout graphValuesLayout, out string loadContextData)
+        {
+            var loadContextDataShaderWriter = new VFXShaderWriter();
+            loadContextDataShaderWriter.GenerateLoadContextData(graphValuesLayout);
+            loadContextData = loadContextDataShaderWriter.ToString();
+        }
+
         static private StringBuilder Build(
             VFXContext context,
             VFXTask task,
@@ -672,7 +679,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteLine();
 
             globalDeclaration.WriteEventBuffers(eventListOutName, taskData.linkedEventOut.Length);
-            
+
             var expressionToName = BuildExpressionToName(context, taskData);
             BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction);
 
@@ -763,6 +770,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             VFXShaderWriter fillGraphValueStruct = new VFXShaderWriter();
             fillGraphValueStruct.GenerateFillGraphValuesStruct(taskData.uniformMapper, particleData.graphValuesLayout);
             ReplaceMultiline(stringBuilder, "${VFXLoadGraphValues}", fillGraphValueStruct.builder);
+
+            VFXShaderWriter loadContextData = new VFXShaderWriter();
+            loadContextData.GenerateLoadContextData(particleData.graphValuesLayout);
+            ReplaceMultiline(stringBuilder, "${VFXLoadContextData}", loadContextData.builder);
 
             var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
             foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))
@@ -1049,12 +1060,12 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 }
             }
 
-            bool hasActiveIndirection = context.contextType == VFXContextType.Filter || context.contextType == VFXContextType.Output;
-            hasActiveIndirection = true; // TODO: how can we know if there are variable expressions with textures/buffers?
+            bool hasActiveIndirection = context.contextType != VFXContextType.Output;
+            // TODO: how can we know if there are variable expressions with textures/buffers?
             if (hasActiveIndirection)
                 yield return "#define VFX_INSTANCING_ACTIVE_INDIRECTION 1";
 
-            bool hasBatchIndirection = true;
+            bool hasBatchIndirection = context.contextType != VFXContextType.Output;
             if (hasBatchIndirection)
                 yield return "#define VFX_INSTANCING_BATCH_INDIRECTION 1";
         }

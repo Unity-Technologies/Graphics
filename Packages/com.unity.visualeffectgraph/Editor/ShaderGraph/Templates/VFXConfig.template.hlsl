@@ -26,7 +26,7 @@ StructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if USE_DEAD_LIST_COUNT
-StructuredBuffer<uint> deadListCount;
+StructuredBuffer<uint> deadList;
 #endif
 
 #if HAS_STRIPS
@@ -89,7 +89,7 @@ bool ShouldCullElement(uint index, uint vfxInstanceIndex, uint nbMax)
 {
     uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-    deadCount = deadListCount[vfxInstanceIndex];
+    deadCount = deadList[vfxInstanceIndex];
 #endif
 
 #if HAS_STRIPS && !VFX_HAS_INDIRECT_DRAW

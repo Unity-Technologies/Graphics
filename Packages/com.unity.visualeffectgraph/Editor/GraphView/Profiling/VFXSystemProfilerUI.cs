@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            m_CanReadbackAliveCount = !receivesGPUEvent;
+            m_CanReadbackAliveCount = !receivesGPUEvent || vfxData.IsAttributeStored(VFXAttribute.Alive) ;
 
             title = "Particle System Info";
             AddToClassList("VFXSystemProfiler");

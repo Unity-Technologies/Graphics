@@ -355,7 +355,7 @@ namespace UnityEditor.VFX
                     baseName = VFXDataParticle.k_SortedIndirectBufferName,
                     isPerCamera = IsPerCamera(features),
                     stride = 4u,
-                    bufferType = ComputeBufferType.Structured,
+                    bufferTarget = GraphicsBuffer.Target.Structured,
                     bufferCount = bufferCount
                 });
             }
