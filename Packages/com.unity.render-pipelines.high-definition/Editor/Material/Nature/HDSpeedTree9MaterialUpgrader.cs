@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly int CullModeID = Shader.PropertyToID("_CullMode");
             internal static readonly int CullModeForwardID = Shader.PropertyToID("_CullModeForward");
             internal static readonly int DiffusionProfileAssetID = Shader.PropertyToID("_Diffusion_Profile_Asset");
-            internal static readonly int DiffusionProfileID = Shader.PropertyToID("_DiffusionProfile");
+            internal static readonly int DiffusionProfileID = Shader.PropertyToID("_Diffusion_Profile");
 
             internal static readonly string WindShared = "_WIND_SHARED";
             internal static readonly string WindBranch2 = "_WIND_BRANCH2";
@@ -78,11 +78,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void SetDefaultDiffusionProfileIfNecessary(Material mat)
         {
-            if (!mat.HasVector(HDProperties.DiffusionProfileAssetID) || !mat.HasFloat(HDProperties.DiffusionProfileID))
+            bool hasDiffusionProfile = mat.HasVector(HDProperties.DiffusionProfileAssetID);
+            bool hasDiffusionProfileID = mat.HasFloat(HDProperties.DiffusionProfileID);
+
+            if (!hasDiffusionProfile || !hasDiffusionProfileID)
                 return;
 
-            var profAsset = mat.GetVector(HDProperties.DiffusionProfileAssetID);
-            var profHash = mat.GetFloat(HDProperties.DiffusionProfileID);
+            Vector4 profAsset = mat.GetVector(HDProperties.DiffusionProfileAssetID);
+            float profHash = mat.GetFloat(HDProperties.DiffusionProfileID);
 
             // User already set values from the inspector.
             if (profAsset != null && profAsset != Vector4.zero && profHash != 0)
