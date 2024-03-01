@@ -10,24 +10,24 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Unpack variables
-#define _PoolDim _PoolDim_CellInMeters.xyz
-#define _CellInMeters _PoolDim_CellInMeters.w
+#define _WorldOffset _Offset_IndirectionEntryDim.xyz
+#define _GlobalIndirectionEntryDim _Offset_IndirectionEntryDim.w
+#define _MinBrickSize _PoolDim_MinBrickSize.w
+#define _PoolDim _PoolDim_MinBrickSize.xyz
 #define _RcpPoolDim _RcpPoolDim_XY.xyz
 #define _RcpPoolDimXY _RcpPoolDim_XY.w
 #define _MinEntryPosition _MinEntryPos_Noise.xyz
 #define _PVSamplingNoise _MinEntryPos_Noise.w
 #define _GlobalIndirectionDimension _IndicesDim_IndexChunkSize.xyz
 #define _IndexChunkSize _IndicesDim_IndexChunkSize.w
-#define _NormalBias _Biases_MinBrickSize_Padding.x
-#define _ViewBias _Biases_MinBrickSize_Padding.y
-#define _MinBrickSize _Biases_MinBrickSize_Padding.z
+#define _NormalBias _Biases_NormalizationClamp.x
+#define _ViewBias _Biases_NormalizationClamp.y
 #define _Weight _Weight_MinLoadedCellInEntries.x
 #define _MinLoadedCellInEntries _Weight_MinLoadedCellInEntries.yzw
 #define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_FrameIndex.xyz
 #define _NoiseFrameIndex _MaxLoadedCellInEntries_FrameIndex.w
-#define _MinReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.x
-#define _MaxReflProbeNormalizationFactor _NormalizationClamp_IndirectionEntryDim_Padding.y
-#define _GlobalIndirectionEntryDim _NormalizationClamp_IndirectionEntryDim_Padding.z
+#define _MinReflProbeNormalizationFactor _Biases_NormalizationClamp.z
+#define _MaxReflProbeNormalizationFactor _Biases_NormalizationClamp.w
 #define _LeakReductionMode _LeakReduction_SkyOcclusion.x
 #define _MinValidNormalWeight _LeakReduction_SkyOcclusion.y
 #define _SkyOcclusionIntensity _LeakReduction_SkyOcclusion.z
@@ -625,6 +625,8 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
 {
     APVSample outSample;
 
+    posWS -= _WorldOffset;
+
     float3 pool_uvw;
     uint subdiv;
     float3 biasedPosWS;
@@ -857,6 +859,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
     APVResources apvRes = FillAPVResources();
 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, 1);
+    posWS -= _WorldOffset;
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))

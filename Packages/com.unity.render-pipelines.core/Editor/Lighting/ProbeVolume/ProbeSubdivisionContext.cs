@@ -159,24 +159,23 @@ namespace UnityEngine.Rendering
             foreach (var pv in probeVolumes)
             {
                 // This method generates many cells outside of the probe volumes but it's ok because next step will do obb collision tests between each cell and each probe volumes so we will eliminate them.
-                var minCellPosition = pv.bounds.min / cellSize;
-                var maxCellPosition = pv.bounds.max / cellSize;
+                var min = profileInfo.PositionToCell(pv.bounds.min);
+                var max = profileInfo.PositionToCell(pv.bounds.max);
 
-                Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
-                Vector3Int max = new Vector3Int(Mathf.CeilToInt(maxCellPosition.x), Mathf.CeilToInt(maxCellPosition.y), Mathf.CeilToInt(maxCellPosition.z));
-
-                for (int x = min.x; x < max.x; x++)
+                for (int x = min.x; x <= max.x; x++)
                 {
-                    for (int y = min.y; y < max.y; y++)
-                        for (int z = min.z; z < max.z; z++)
+                    for (int y = min.y; y <= max.y; y++)
+                    {
+                        for (int z = min.z; z <= max.z; z++)
                         {
                             var cellPos = new Vector3Int(x, y, z);
                             if (cellPositions.Add(cellPos))
                             {
-                                var center = new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, (cellPos.z + 0.5f) * cellSize);
+                                var center = profileInfo.probeOffset + new Vector3((cellPos.x + 0.5f) * cellSize, (cellPos.y + 0.5f) * cellSize, (cellPos.z + 0.5f) * cellSize);
                                 cells.Add((cellPos, new Bounds(center, cellDimensions)));
                             }
                         }
+                    }
                 }
             }
 

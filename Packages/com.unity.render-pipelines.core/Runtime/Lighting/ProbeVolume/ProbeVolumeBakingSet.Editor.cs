@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.SceneManagement;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering
 {
@@ -431,14 +432,11 @@ namespace UnityEngine.Rendering
             Bounds originalBounds = bounds;
             // Round the probe volume bounds to cell size
             float cellSize = ProbeReferenceVolume.instance.MaxBrickSize();
+            Vector3 cellOffset = ProbeReferenceVolume.instance.ProbeOffset();
 
             // Expand the probe volume bounds to snap on the cell size grid
-            bounds.Encapsulate(new Vector3(cellSize * Mathf.Floor(bounds.min.x / cellSize),
-                cellSize * Mathf.Floor(bounds.min.y / cellSize),
-                cellSize * Mathf.Floor(bounds.min.z / cellSize)));
-            bounds.Encapsulate(new Vector3(cellSize * Mathf.Ceil(bounds.max.x / cellSize),
-                cellSize * Mathf.Ceil(bounds.max.y / cellSize),
-                cellSize * Mathf.Ceil(bounds.max.z / cellSize)));
+            bounds.Encapsulate((Vector3)math.floor((bounds.min - cellOffset) / cellSize) * cellSize + cellOffset);
+            bounds.Encapsulate((Vector3)math.ceil((bounds.max - cellOffset) / cellSize) * cellSize + cellOffset);
 
             // calculate how much padding we need to remove according to the brick generation in ProbePlacement.cs:
             var cellSizeVector = new Vector3(cellSize, cellSize, cellSize);
@@ -455,6 +453,7 @@ namespace UnityEngine.Rendering
             float bottomPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, minPadding.y, originalBounds.size.z), maxSubdiv));
             float forwardPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, originalBounds.size.y, maxPadding.z), maxSubdiv));
             float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z), maxSubdiv));
+
             // Remove the extra padding caused by cell rounding
             bounds.min = bounds.min + new Vector3(
                 leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel),
@@ -470,14 +469,15 @@ namespace UnityEngine.Rendering
 
         internal void UpdateSceneBounds(Scene scene, string sceneGUID, bool onSceneSave)
         {
-            var volumes = Object.FindObjectsByType<ProbeVolume>(FindObjectsSortMode.InstanceID);
+            var volumes = FindObjectsByType<ProbeVolume>(FindObjectsSortMode.None);
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             int prevMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
+            Vector3 prevOffset = ProbeReferenceVolume.instance.ProbeOffset();
 
-            if (onSceneSave)
-                ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(minBrickSize, maxSubdivision);
-            else
-                ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(ProbeVolumeBakingSet.GetMinBrickSize(minDistanceBetweenProbes), ProbeVolumeBakingSet.GetMaxSubdivision(simplificationLevels));
+            if (onSceneSave) // Use baked values
+                ProbeReferenceVolume.instance.SetSubdivisionDimensions(minBrickSize, maxSubdivision, bakedProbeOffset);
+            else // Use displayed values
+                ProbeReferenceVolume.instance.SetSubdivisionDimensions(GetMinBrickSize(minDistanceBetweenProbes), GetMaxSubdivision(simplificationLevels), probeOffset);
 
             bool boundFound = false;
             Bounds newBound = new Bounds();
@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering
             if (boundFound)
                 bakeData.bounds = newBound;
 
-            ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(prevBrickSize, prevMaxSubdiv);
+            ProbeReferenceVolume.instance.SetSubdivisionDimensions(prevBrickSize, prevMaxSubdiv, prevOffset);
             EditorUtility.SetDirty(this);
         }
 

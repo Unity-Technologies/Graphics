@@ -38,6 +38,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_MinRendererVolumeSize;
         SerializedProperty m_RenderersLayerMask;
         SerializedProperty m_FreezePlacement;
+        SerializedProperty m_ProbeOffset;
         SerializedProperty m_ProbeVolumeBakingSettings;
         SerializedProperty m_LightingScenarios;
         SerializedProperty m_SkyOcclusion;
@@ -63,6 +64,7 @@ namespace UnityEditor.Rendering
 
             // Probe Placement section
             public static readonly string msgProbeFreeze = "Some scene(s) in this Baking Set are not currently loaded in the Hierarchy. Set Probe Positions to Don't Recalculate to not break compatibility with already baked scenarios.";
+            public static readonly GUIContent probeOffset = new GUIContent("Probe Offset", "Offset on world origin used during baking. Can be used to have cells on positions that are not multiples of the probe spacing.");
             public static readonly GUIContent maxDistanceBetweenProbes = new GUIContent("Max Probe Spacing", "Maximum distance between probes, in meters. Determines the number of Bricks in a streamable unit.");
             public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Probe Spacing", "Minimum distance between probes, in meters.");
             public static readonly string simplificationLevelsHighWarning = " Using this many brick sizes will result in high memory usage and can cause instabilities.";
@@ -94,6 +96,7 @@ namespace UnityEditor.Rendering
             m_MinRendererVolumeSize = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.minRendererVolumeSize));
             m_RenderersLayerMask = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.renderersLayerMask));
             m_FreezePlacement = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.freezePlacement));
+            m_ProbeOffset = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.probeOffset));
             m_ProbeVolumeBakingSettings = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.settings));
             m_LightingScenarios = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.m_LightingScenarios));
 			m_SkyOcclusion = serializedObject.FindProperty(nameof(ProbeVolumeBakingSet.skyOcclusion));
@@ -178,6 +181,22 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(Lightmapping.isRunning || (canFreezePlacement && ProbeGIBaking.isFreezingPlacement)))
             {
+                // Display vector3 ourselves otherwise display is messed up
+                {
+                    var rect = EditorGUILayout.GetControlRect();
+                    EditorGUI.BeginProperty(rect, Styles.probeOffset, m_ProbeOffset);
+
+                    rect = EditorGUI.PrefixLabel(rect, Styles.probeOffset);
+                    rect.xMin -= 10 * EditorGUIUtility.pixelsPerPoint;
+
+                    EditorGUI.BeginChangeCheck();
+                    var value = EditorGUI.Vector3Field(rect, GUIContent.none, m_ProbeOffset.vector3Value);
+                    if (EditorGUI.EndChangeCheck())
+                        m_ProbeOffset.vector3Value = value;
+
+                    EditorGUI.EndProperty();
+                }
+
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, Styles.minDistanceBetweenProbes);
                 if (EditorGUI.EndChangeCheck())

@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4881f9a2c4d568047b316028d20a8dca, type: 3}
-  m_Name: Default
+  m_Name: 2120_APV_Baking
   m_EditorClassIdentifier: 
-  singleSceneMode: 0
+  singleSceneMode: 1
   dialogNoProbeVolumeInSetShown: 0
   settings:
     m_Version: 1
@@ -72,12 +72,13 @@ MonoBehaviour:
   maxCellPosition: {x: 0, y: 0, z: 0}
   minCellPosition: {x: -1, y: -1, z: -1}
   globalBounds:
-    m_Center: {x: 0, y: 0, z: 0}
+    m_Center: {x: 23.5, y: 0, z: 1.5}
     m_Extent: {x: 20.25, y: 20.25, z: 20.25}
   bakedSimplificationLevels: 3
   bakedMinDistanceBetweenProbes: 0.25
   bakedSkyOcclusionValue: 0
   bakedSkyShadingDirectionValue: 0
+  bakedProbeOffset: {x: 23.5, y: 0, z: 1.5}
   maxSHChunkCount: 4
   L0ChunkSize: 65536
   L1ChunkSize: 32768
@@ -94,6 +95,7 @@ MonoBehaviour:
   lightingScenario: Default
   version: 1
   freezePlacement: 0
+  probeOffset: {x: 23.5, y: 0, z: 1.5}
   simplificationLevels: 3
   minDistanceBetweenProbes: 0.25
   renderersLayerMask:
@@ -113,5 +115,5 @@ MonoBehaviour:
     - hasProbeVolume: 1
       bakeScene: 1
       bounds:
-        m_Center: {x: 0, y: 0, z: 0}
+        m_Center: {x: 23.5, y: 0, z: 1.5}
         m_Extent: {x: 20.25, y: 20.25, z: 20.25}

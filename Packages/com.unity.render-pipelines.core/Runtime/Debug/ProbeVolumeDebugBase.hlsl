@@ -111,6 +111,8 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
         posWS = AddNoiseToSamplingPosition(posWS, posSS, viewDir_WS);
     }
 
+    posWS -= _WorldOffset;
+
     APVResources apvRes = FillAPVResources();
     float3 uvw;
     uint subdiv;
@@ -119,9 +121,12 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
 
     probeDistance = ProbeDistance(subdiv);
     snappedProbePosition_WS = GetSnappedProbePosition(biasedPosWS, subdiv);
-    samplingPositionNoAntiLeak_WS = biasedPosWS;
 
     WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
+
+    biasedPosWS += _WorldOffset;
+    snappedProbePosition_WS += _WorldOffset;
+    samplingPositionNoAntiLeak_WS = biasedPosWS;
 
     if (_LeakReductionMode != 0)
     {
@@ -283,7 +288,7 @@ float3 CalculateDiffuseLighting(v2f i)
 
     float3 skyShadingDirection = normal;
     if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
-    {   
+    {
         if (_EnableSkyOcclusionShadingDirection > 0)
         {
             float value = 1.0f / GetCurrentExposureMultiplier();

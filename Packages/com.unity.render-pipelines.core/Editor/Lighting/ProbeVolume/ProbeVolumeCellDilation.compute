@@ -103,7 +103,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
 
         if (_NeedDilating[probeIdx] > 0)
         {
-            float3 centralPosition = _ProbePositionsBuffer[probeIdx];
+            float3 centralPosition = _ProbePositionsBuffer[probeIdx] - _WorldOffset;
             DilatedProbe probe = (DilatedProbe)0;
 
             float3 uvw;

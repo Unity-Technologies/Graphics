@@ -331,6 +331,7 @@ namespace UnityEngine.Rendering
             }
             
             float minBrickSize = subdivisionCtx.profile.minBrickSize;
+            var cellOffset = subdivisionCtx.profile.probeOffset;
 
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {cellAABB.center}");
 
@@ -373,7 +374,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Generate the list of bricks on the GPU
-                SubdivideFromDistanceField(cmd, cellAABB, ctx, probeSubdivisionData, bricksBuffer, brickCountPerAxis, subdivisionLevel, minBrickSize);
+                SubdivideFromDistanceField(cmd, cellAABB, ctx, probeSubdivisionData, bricksBuffer, brickCountPerAxis, subdivisionLevel, minBrickSize, cellOffset);
 
                 cmd.CopyCounterValue(bricksBuffer, brickCountReadbackBuffer, 0);
                 // Capture locally the subdivision level to use it inside the lambda
@@ -632,13 +633,13 @@ namespace UnityEngine.Rendering
 
         static void SubdivideFromDistanceField(
             CommandBuffer cmd, Bounds volume, GPUSubdivisionContext ctx, RenderTexture probeVolumeData,
-            ComputeBuffer buffer, int brickCount, int subdivisionLevel, float minBrickSize)
+            ComputeBuffer buffer, int brickCount, int subdivisionLevel, float minBrickSize, Vector3 cellOffset)
         {
             using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Bricks at level {Mathf.Log(brickCount, 3)}")))
             {
                 // We convert the world space volume position (of a corner) in bricks.
                 // This is necessary to have correct brick position (the position calculated in the compute shader needs to be in number of bricks from the reference volume (origin)).
-                Vector3 volumeBrickPosition = (volume.center - volume.extents) / minBrickSize;
+                Vector3 volumeBrickPosition = (volume.center - volume.extents - cellOffset) / minBrickSize;
                 cmd.SetComputeVectorParam(subdivideSceneCS, _VolumeOffsetInBricks, volumeBrickPosition);
                 cmd.SetComputeBufferParam(subdivideSceneCS, s_SubdivideKernel, _Bricks, buffer);
                 cmd.SetComputeVectorParam(subdivideSceneCS, _MaxBrickSize, Vector3.one * brickCount);

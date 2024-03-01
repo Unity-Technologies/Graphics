@@ -130,6 +130,8 @@ namespace UnityEngine.Rendering
         [SerializeField] internal float bakedMinDistanceBetweenProbes = -1.0f;
         [SerializeField] internal int bakedSkyOcclusionValue = -1;
         [SerializeField] internal int bakedSkyShadingDirectionValue = -1;
+        [SerializeField] internal Vector3 bakedProbeOffset = Vector3.zero;
+
         internal bool bakedSkyOcclusion
         {
             get => bakedSkyOcclusionValue <= 0 ? false : true;
@@ -174,9 +176,14 @@ namespace UnityEngine.Rendering
         [SerializeField]
         Version version = CoreUtils.GetLastEnumValue<Version>();
 
-        // TODO: This is here just to find a place where to serialize it. It might not be the best spot.
         [SerializeField]
         internal bool freezePlacement = false;
+
+        /// <summary>
+        /// Offset on world origin used during baking. Can be used to have cells on positions that are not multiples of the probe spacing.
+        /// </summary>
+        [SerializeField]
+        public Vector3 probeOffset = Vector3.zero;
 
         /// <summary>
         /// How many levels contains the probes hierarchical structure.

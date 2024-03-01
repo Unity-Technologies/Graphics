@@ -209,6 +209,7 @@ namespace UnityEngine.Rendering
         internal bool ShouldCullCell(Vector3 cellPosition)
         {
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            var probeOffset = ProbeReferenceVolume.instance.ProbeOffset();
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
@@ -217,6 +218,7 @@ namespace UnityEngine.Rendering
 
                 // Use the non-backed data to display real-time info
                 cellSizeInMeters = ProbeVolumeBakingSet.GetMinBrickSize(bakingSet.minDistanceBetweenProbes) * ProbeVolumeBakingSet.GetCellSizeInBricks(bakingSet.simplificationLevels);
+                probeOffset = bakingSet.probeOffset;
             }
             Camera activeCamera = Camera.current;
 #if UNITY_EDITOR
@@ -229,7 +231,7 @@ namespace UnityEngine.Rendering
 
             var cameraTransform = activeCamera.transform;
 
-            Vector3 cellCenterWS = cellPosition * cellSizeInMeters + Vector3.one * (cellSizeInMeters / 2.0f);
+            Vector3 cellCenterWS = probeOffset + cellPosition * cellSizeInMeters + Vector3.one * (cellSizeInMeters / 2.0f);
 
             // Round down to cell size distance
             float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / cellSizeInMeters) * cellSizeInMeters;
@@ -265,6 +267,7 @@ namespace UnityEngine.Rendering
 
             float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
+            var probeOffset = ProbeReferenceVolume.instance.ProbeOffset();
             if (debugDisplay.realtimeSubdivision)
             {
                 if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
@@ -273,6 +276,7 @@ namespace UnityEngine.Rendering
                 // Overwrite settings with data from profile
                 minBrickSize = ProbeVolumeBakingSet.GetMinBrickSize(bakingSet.minDistanceBetweenProbes);
                 cellSizeInMeters = ProbeVolumeBakingSet.GetCellSizeInBricks(bakingSet.simplificationLevels) * minBrickSize;
+                probeOffset = bakingSet.probeOffset;
             }
 
             if (debugDisplay.drawBricks)
@@ -324,7 +328,7 @@ namespace UnityEngine.Rendering
 
                     float brickSize = minBrickSize * ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Vector3 scaledSize = new Vector3(brickSize, brickSize, brickSize);
-                    Vector3 scaledPos = new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
+                    Vector3 scaledPos = probeOffset + new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
                     brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
                 }
 
@@ -363,7 +367,7 @@ namespace UnityEngine.Rendering
 
                             var positionF = new Vector4(cell.desc.position.x, cell.desc.position.y, cell.desc.position.z, 0.0f);
                             var output = new CellDebugData();
-                            output.center = positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
+                            output.center = (Vector4)probeOffset + positionF * cellSizeInMeters + cellSizeInMeters * 0.5f * Vector4.one;
                             if (debugDisplay.displayCellStreamingScore)
                             {
                                 float lerpFactor = (cell.streamingInfo.streamingScore - minStreamingScore) / streamingScoreRange;
