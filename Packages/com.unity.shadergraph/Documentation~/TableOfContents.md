@@ -16,6 +16,7 @@
     * [Preview Mode Control](Preview-Mode-Control)
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
+    * [Shader Graph Project Settings](Shader-Graph-Project-Settings.md)
     * [Shader Graph Keyboard Shortcuts](Keyboard-shortcuts)
     * [Samples](ShaderGraph-Samples.md)
         * [Feature Examples](Shader-Graph-Sample-Feature-Examples.md)
