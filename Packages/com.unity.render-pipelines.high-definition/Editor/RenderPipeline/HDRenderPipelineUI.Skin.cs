@@ -90,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTRMinSmoothness = EditorGUIUtility.TrTextContent("Minimum Smoothness");
             public static readonly GUIContent RTRSmoothnessFadeStart = EditorGUIUtility.TrTextContent("Smoothness Fade Start");
             public static readonly GUIContent RTRRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
-            public static readonly GUIContent RTRClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTRFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
             public static readonly GUIContent RTRRayMaxIterations = EditorGUIUtility.TrTextContent("Ray Max Iterations");
             public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
@@ -100,7 +99,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // RTGI
             public static readonly GUIContent RTGISettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Global Illumination (Performance)");
             public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
-            public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
             public static readonly GUIContent RTGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");

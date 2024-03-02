@@ -1026,7 +1026,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         bsdfData.ambientOcclusion = 1.0;
 
         // For SSGI/RTGI/Mixed and APV not using lightmap we load the content of gbuffer3 in emissive, otherwise it is lightmap/lightprobe + emissive
-        if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
+        if ((_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF && _IndirectDiffuseMode != INDIRECTDIFFUSEMODE_MIXED)
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
             || !builtinData.isLightmap
 #endif

@@ -198,16 +198,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!UsesQualitySettings() || UsesQualityMode())
-                    return m_ClampValue.value;
-                else
-                    return GetLightingQualitySettings().RTGIClampValue[(int)quality.value];
+                return m_ClampValue.value;
             }
             set { m_ClampValue.value = value; }
         }
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]
-        private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
+        private MinFloatParameter m_ClampValue = new MinFloatParameter(100.0f, 0.001f);
 
         /// <summary>
         /// Controls which version of the effect should be used.

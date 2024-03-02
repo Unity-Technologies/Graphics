@@ -437,6 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
             deferredParameters.raytracingCB._RayTracingAPVRayMiss = 0;
             deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
+            deferredParameters.raytracingCB._RayTracingRayMissUseAmbientProbeAsSky = 0;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
             deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
 

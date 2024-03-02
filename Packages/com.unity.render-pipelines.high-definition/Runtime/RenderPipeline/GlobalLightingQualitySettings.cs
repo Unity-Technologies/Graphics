@@ -90,10 +90,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 2.0f;
-            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 3.0f;
-            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 5.0f;
-
             RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
             RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
             RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
@@ -126,10 +122,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRRayLength[(int)ScalableSettingLevelParameter.Level.Low] = 50.0f;
             RTRRayLength[(int)ScalableSettingLevelParameter.Level.Medium] = 50.0f;
             RTRRayLength[(int)ScalableSettingLevelParameter.Level.High] = 50.0f;
-
-            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.8f;
-            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
-            RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.2f;
 
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
@@ -225,9 +217,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTGIRayLength = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution. The array must have one entry per scalable setting level.</summary>
         public bool[] RTGIFullResolution = new bool[s_QualitySettingCount];
-        /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be between 0.001 and 10.</summary>
-        [Range(0.001f, 10.0f)]
-        public float[] RTGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls the number of ray steps for hybrid tracing. The array must have one entry per scalable setting level, and elements must above 0.</summary>
         [Min(0)]
         public int[] RTGIRaySteps = new int[s_QualitySettingCount];
@@ -251,9 +240,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Controls the length of ray traced reflection rays. The array must have one entry per scalable setting level, and elements must above 0.01.</summary>
         [Min(0.01f)]
         public float[] RTRRayLength = new float[s_QualitySettingCount];
-        /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be between 0.001 and 10.</summary>
-        [Range(0.001f, 10.0f)]
-        public float[] RTRClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution. The array must have one entry per scalable setting level.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution. The array must have one entry per scalable setting level, and elements must above 0.</summary>

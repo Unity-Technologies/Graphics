@@ -149,7 +149,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
                 PropertyField(m_RayLength, k_RayLengthText);
-                PropertyField(m_ClampValue, k_ClampValueText);
                 PropertyField(m_SampleCount, k_SampleCountText);
                 PropertyField(m_BounceCount, k_BounceCountText);
                 PropertyField(m_Denoise, k_DenoiseText);
@@ -172,7 +171,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
                 PropertyField(m_RayLength, k_RayLengthText);
-                PropertyField(m_ClampValue, k_ClampValueText);
                 PropertyField(m_FullResolution, k_FullResolutionText);
                 if (mixed)
                     PropertyField(m_RayMaxIterationsRT, k_MaxMixedRaySteps);
@@ -205,6 +203,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_LayerMask, k_LayerMaskText);
             PropertyField(m_TextureLodBias, k_TextureLodBiasText);
+
+            PropertyField(m_ClampValue, k_ClampValueText);
 
             if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
             {
@@ -393,7 +393,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
                 CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
-                CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
                 CopySetting(ref m_RayMaxIterationsRT, settings.lightingQualitySettings.RTRRayMaxIterations[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
