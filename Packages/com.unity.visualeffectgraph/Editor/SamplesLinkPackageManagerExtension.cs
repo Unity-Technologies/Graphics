@@ -31,6 +31,9 @@ internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
 
     void IPackageManagerExtension.OnPackageSelectionChange(PackageInfo packageInfo)
     {
+        if (samplesButton == null)
+            return;
+
         // Prevent the button from rendering on other packages
         if (samplesButton.parent != null)
             parent = samplesButton.parent;

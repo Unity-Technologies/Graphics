@@ -23,7 +23,7 @@ namespace UnityEngine.VFX.Utility
             if (TryGetComponent<Rigidbody>(out m_RigidBody))
             {
                 m_RigidBody.WakeUp();
-                m_RigidBody.velocity = velocity;
+                m_RigidBody.linearVelocity = velocity;
             }
         }
     }
