@@ -103,7 +103,7 @@ Overlay cameras expose the following properties:
 
 A camera stack allows to composite results of several cameras together. The camera stack consists of a Base camera and any number of additional Overlay cameras.
 
-You can use the stack property add Overlay cameras to the stack and they will render in the order as defined in the stack. For more information on configuring and using Camera Stacks, refer to [Camera Stacking](camera-stacking.md).
+You can use the stack property add Overlay cameras to the stack and they will render in the order as defined in the stack. For more information on configuring and using camera stacks, refer to [Set up a camera stack](camera-stacking.md).
 
 <a name="Environment"></a>
 
