@@ -1,4 +1,4 @@
-# What's new in URP 16 (Unity 2023.1)
+# What's new in URP 16 (Unity 2023.2)
 
 This section contains information about new features, improvements, and issues fixed in URP 16.
 
