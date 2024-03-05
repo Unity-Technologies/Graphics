@@ -93,14 +93,17 @@ These settings control the draw distance and resolution of the decals atlas that
 ### Light Probe Lighting
 Use these settings in the **Quality** > **HDRP** menu to configure [Probe Volumes](probevolumes.md).
 
-| **Property**                        | **Description**                                                     |
-|---------------------------------|-----------------------------------------------------------------|
-| **Light Probe System**              | &#8226; **Light Probe Groups (Legacy)**: Use the same [Light Probe Group system](https://docs.unity3d.com/Manual/class-LightProbeGroup.html) as the Built-In Render Pipeline. <br/>  &#8226; **Probe Volumes**: Use [Probe Volumes](probevolumes.md).                            |
-| **Memory Budget**                   | Limits the width and height of the textures that store baked Global Illumination data, which determines the amount of memory Unity sets aside to store baked Probe Volume data. These textures have a fixed depth.<br/>Options: <br/>&#8226; **Memory Budget Low**<br/>&#8226; **Memory Budget Medium**<br/>&#8226; **Memory Budget High** |
-| **Scenario Blending Memory Budget** | Limits the width and height of the textures that Unity uses to blend between Lighting Scenarios. This determines the amount of memory Unity sets aside to store Lighting Scenario blending data, and store data while doing the blending operation. These textures have a fixed depth. <br/>Options: <br/> &#8226; **Memory Budget Low**<br/> &#8226; **Memory Budget Medium**<br/> &#8226; **Memory Budget High** |                                                 |
-| **SH Bands**                        | Determines the [spherical harmonics (SH) bands](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) Unity uses to store probe data. L2 provides more precise results, but uses more system resources.<br/>Options: <br/>&#8226; **Spherical Harmonics L1** (default)<br/> &#8226; **Spherical Harmonics L2**               |
-| **Enable Streaming**                | Enable to use [streaming](probevolumes-streaming.md).  |
-| **Estimated GPU Memory Cost**      | Indicates the amount of Global Illumination and scenario blending texture data associated with Probe Volumes in your project.|
+| **Property** | **Sub-property** | **Description** |
+|-|-|-|
+| **Light Probe System** || &#8226; **Light Probe Groups (Legacy)**: Use the same [Light Probe Group system](https://docs.unity3d.com/Manual/class-LightProbeGroup.html) as the Built-In Render Pipeline. <br/>  &#8226; **Probe Volumes**: Use [Probe Volumes](probevolumes.md). |
+| **Memory Budget** || Limits the width and height of the textures that store baked Global Illumination data, which determines the amount of memory Unity sets aside to store baked Probe Volume data. These textures have a fixed depth.<br/>Options: <br/>&#8226; **Memory Budget Low**<br/>&#8226; **Memory Budget Medium**<br/>&#8226; **Memory Budget High** |
+| **SH Bands** || Determines the [spherical harmonics (SH) bands](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) Unity uses to store probe data. L2 provides more precise results, but uses more system resources.<br/>Options: <br/>&#8226; **Spherical Harmonics L1** (default)<br/> &#8226; **Spherical Harmonics L2** |
+| **Lighting Scenarios** || Enable to use Lighting Scenarios. Refer to [Bake different lighting setups using Lighting Scenarios](probevolumes-bakedifferentlightingsetups.md) for more information. |
+|| **Scenario Blending** | Enable blending between different Lighting Scenarios. This uses more memory and makes rendering slower. |
+|| **Scenario Blending Memory Budget** | Limits the width and height of the textures that Unity uses to blend between Lighting Scenarios. This determines the amount of memory Unity sets aside to store Lighting Scenario blending data, and store data while doing the blending operation. These textures have a fixed depth. <br/>Options: <br/> &#8226; **Memory Budget Low**<br/> &#8226; **Memory Budget Medium**<br/> &#8226; **Memory Budget High** |
+| **Enable GPU Streaming** || Enable to stream Probe Volume data from CPU memory to GPU memory at runtime. Refer to [Streaming Probe Volumes](probevolumes-streaming.md) for more information. |
+| **Enable Disk Streaming** || Enable to stream Probe Volume data from disk to CPU memory at runtime. [Streaming Probe Volumes](probevolumes-streaming.md) for more information. |
+| **Estimated GPU Memory Cost** || Indicates the amount of texture data used by Probe Volumes in your project. This includes textures used both for Global Illumination and Lighting Scenario blending. |
 
 ### Cookies
 
