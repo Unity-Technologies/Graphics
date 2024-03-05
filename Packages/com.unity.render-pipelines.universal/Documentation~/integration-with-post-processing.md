@@ -23,7 +23,10 @@ To add post-processing to a new scene:
 3. Select the GameObject, then in the **Volume** component select **New** to create a new [Volume Profile](Volume-Profile.md).
 4. Select **Add Override**, then select a post-processing effect [Volume Override](VolumeOverrides.md), for example **Bloom**.
 
-Now you can use the Volume Override to enable and adjust the settings for the post-processing effect. 
+Now you can use the Volume Override to enable and adjust the settings for the post-processing effect.
+
+> [!NOTE]
+> The GameObject which contains the volume and the camera you wish to apply post-processing to must be on the same Layer.
 
 Refer to [Understand Volumes](Volumes.md) for more information.
 
