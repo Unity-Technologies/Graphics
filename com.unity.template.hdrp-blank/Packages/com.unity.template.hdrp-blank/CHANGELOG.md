@@ -4,6 +4,14 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+
+## [17.0.2] - 2024-03-05
+
+### Changed
+
+- Add Input System version 1.7.0 to manifest
+
 ## [17.0.1] - 2024-01-31
 
 ### Changed
