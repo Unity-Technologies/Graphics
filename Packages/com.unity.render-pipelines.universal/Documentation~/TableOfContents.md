@@ -6,7 +6,7 @@
   * [Feature list](urp-feature-list.md)
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)
-  * [Create a Project from a Template](creating-a-new-project-with-urp.md)
+  * [Create a Project with 3D Sample Scenes](creating-a-new-project-with-urp.md)
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [Package samples](package-samples.md)
     * [URP Package Samples](package-sample-urp-package-samples.md)

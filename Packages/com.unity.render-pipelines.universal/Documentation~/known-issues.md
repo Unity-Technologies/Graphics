@@ -2,6 +2,18 @@
 
 This page contains information on known issues you may encounter when using URP.
 
+## Long build times when using the Forward+ Rendering Path
+
+Due to the wide variety of use cases, target platforms, renderers, and features used in projects, certain URP configurations can result in a large number of shader variants. That can lead to long compilation times.
+
+Long shader compilation time affects both player build time and the time for a scene to render in the Editor.
+
+The per-camera visible light limit value affects the compilation time for each **Lit** and **Complex Lit** shader variant. In the Forward+ Rendering Path, on desktop platforms, that limit is 256.
+
+Refer to the following page to learn how to reduce the build time in the Forward+ Rendering Path by reducing the maximum number of visible lights:
+
+* [Reduce build time in Forward+ Rendering Path](rendering/forward-plus-rendering-path.md#reduce-build-time)
+
 ## When importing the URP package samples, Unity does not set the necessary URP asset in Quality > Render Pipeline Asset<a name="urp-samples-known-issue-1"></a>
 
 When importing the URP package samples, Unity does not set the necessary URP asset in **Quality** > **Render Pipeline Asset**, and certain sample rendering effects do not work.
