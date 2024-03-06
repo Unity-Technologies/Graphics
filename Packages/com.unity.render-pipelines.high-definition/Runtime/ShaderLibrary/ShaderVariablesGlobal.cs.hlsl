@@ -179,6 +179,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableComputeThickness;
     float _VolumetricCloudsFallBackValue;
     float4 _VolumetricCloudsShadowOriginToggle;
+    float4 _ColorPyramidUvScaleAndLimitCurrentFrame;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
 CBUFFER_END
 
