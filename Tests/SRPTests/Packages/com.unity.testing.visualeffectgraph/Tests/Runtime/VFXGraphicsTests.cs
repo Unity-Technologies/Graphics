@@ -19,6 +19,14 @@ using UnityEngine.VFX.Utility;
 
 namespace UnityEngine.VFX.Test
 {
+#if UNITY_WEBGL || UNITY_ANDROID
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            yield return RuntimeGraphicsTestCaseProvider.EnsureGetReferenceImageBundlesAsync();
+        }
+#endif
+
     public class VFXGraphicsTests
     {
         int m_previousCaptureFrameRate;
@@ -45,6 +53,11 @@ namespace UnityEngine.VFX.Test
         [Timeout(450 * 1000)] // Increase timeout to handle complex scenes with many shaders and XR variants
         public IEnumerator Run(GraphicsTestCase testCase)
         {
+            Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+#if UNITY_WEBGL || UNITY_ANDROID
+            RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
+#endif
+
 #if UNITY_EDITOR
             while (SceneView.sceneViews.Count > 0)
             {
