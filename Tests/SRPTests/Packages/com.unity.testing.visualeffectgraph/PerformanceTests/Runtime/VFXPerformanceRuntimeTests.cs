@@ -134,7 +134,10 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return new WaitForEndOfFrame();
         }
 
-        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, Performance]
+#if UNITY_EDITOR
+        [PrebuildSetup("SetupGraphicsTestCases")]
+#endif
         public IEnumerator Counters(GraphicsTestCase testCase)
         {
             yield return Load_And_Prepare(testCase);
@@ -209,7 +212,10 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return new WaitForEndOfFrame();
         }
 
-        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, PrebuildSetup("SetupGraphicsTestCases"), Performance]
+        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, Performance]
+#if UNITY_EDITOR
+        [PrebuildSetup("SetupGraphicsTestCases")]
+#endif
         public IEnumerator Memory(GraphicsTestCase testCase)
         {
             yield return FreeMemory();
