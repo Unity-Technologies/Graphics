@@ -521,6 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ComputeThicknessScale = Shader.PropertyToID("_ComputeThicknessScale");
         public static readonly int _ComputeThicknessShowOverlapCount = Shader.PropertyToID("_ComputeThicknessShowOverlapCount");
         public static readonly int _VolumetricCloudsDebugMode = Shader.PropertyToID("_VolumetricCloudsDebugMode");
+        public static readonly int _SourceDownsampleDepth = Shader.PropertyToID("_SourceDownsampleDepth");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");

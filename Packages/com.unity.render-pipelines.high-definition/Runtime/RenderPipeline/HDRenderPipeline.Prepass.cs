@@ -1456,6 +1456,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float downsampleScale;
             public Material downsampleDepthMaterial;
             public TextureHandle depthTexture;
+            public TextureHandle depthPyramidTexture;
             public TextureHandle downsampledDepthBuffer;
             public Rect viewport;
 
@@ -1499,11 +1500,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.computesMip1OfAtlas = computeMip1OfPyramid;
                 passData.downsampleScale = hdCamera.lowResScale;
                 passData.viewport = hdCamera.lowResViewport;
-                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
+                passData.depthTexture = builder.ReadTexture(output.resolvedDepthBuffer);
                 if (computeMip1OfPyramid)
-                {
-                    passData.depthTexture = builder.WriteTexture(passData.depthTexture);
-                }
+                    passData.depthPyramidTexture = builder.WriteTexture(output.depthPyramidTexture);
 
                 passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
@@ -1514,7 +1513,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.computesMip1OfAtlas)
                         {
                             data.downsampleDepthMaterial.SetVector(HDShaderIDs._DstOffset, new Vector4(data.mip0Offset.x, data.mip0Offset.y, 0.0f, 0.0f));
-                            context.cmd.SetRandomWriteTarget(1, data.depthTexture);
+                            context.cmd.SetRandomWriteTarget(1, data.depthPyramidTexture);
                         }
 
                         if (data.useGatherDownsample)
@@ -1522,12 +1521,19 @@ namespace UnityEngine.Rendering.HighDefinition
                             float downsampleScaleInv = 1.0f / data.downsampleScale;
                             RenderTexture srcTexture = data.depthTexture;
                             RenderTexture destTexture = data.downsampledDepthBuffer;
-                            float uvScaleX = ((float)destTexture.width / (float)srcTexture.width) * downsampleScaleInv;
-                            float uvScaleY = ((float)destTexture.height / (float)srcTexture.height) * downsampleScaleInv;
+                            float uvScaleX = 1.0f;
+                            float uvScaleY = 1.0f;
+                            if (!DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                            {
+                                uvScaleX = ((float)destTexture.width / (float)srcTexture.width) * downsampleScaleInv;
+                                uvScaleY = ((float)destTexture.height / (float)srcTexture.height) * downsampleScaleInv;
+                            }
+
                             data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
                         }
 
                         context.cmd.SetViewport(data.viewport);
+                        context.cmd.SetGlobalTexture(HDShaderIDs._SourceDownsampleDepth, data.depthTexture);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
 
                         if (data.computesMip1OfAtlas)
