@@ -69,7 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
             public bool exposureControl;
-            public bool fullResolution;
+            public float resolutionMultiplier;
+            public float historyResolutionMultiplier;
         }
 
         class HistoryValidityPassData
@@ -194,7 +195,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
             public int exposureControl;
-            public bool fullResolution;
+            public float resolutionMultiplier;
+            public float historyResolutionMultiplier;
 
             // Kernels
             public int temporalAccKernel;
@@ -225,16 +227,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
 
                 // Camera parameters
-                if (filterParams.fullResolution)
-                {
-                    passData.texWidth = hdCamera.actualWidth;
-                    passData.texHeight = hdCamera.actualHeight;
-                }
-                else
-                {
-                    passData.texWidth = hdCamera.actualWidth / 2;
-                    passData.texHeight = hdCamera.actualHeight / 2;
-                }
+                passData.texWidth = (int)Mathf.Floor((float)hdCamera.actualWidth * filterParams.resolutionMultiplier);
+                passData.texHeight = (int)Mathf.Floor((float)hdCamera.actualHeight * filterParams.resolutionMultiplier);
                 passData.viewCount = hdCamera.viewCount;
 
                 // Denoising parameters
@@ -243,7 +237,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.receiverMotionRejection = filterParams.receiverMotionRejection;
                 passData.occluderMotionRejection = filterParams.occluderMotionRejection;
                 passData.exposureControl = filterParams.exposureControl ? 1 : 0;
-                passData.fullResolution = filterParams.fullResolution;
+                passData.resolutionMultiplier = filterParams.resolutionMultiplier;
+                passData.historyResolutionMultiplier = filterParams.historyResolutionMultiplier;
 
                 // Kernels
                 passData.temporalAccKernel = filterParams.singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
@@ -289,20 +284,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ReceiverMotionRejection, data.receiverMotionRejection ? 1 : 0);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, data.occluderMotionRejection ? 1 : 0);
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, data.pixelSpreadTangent);
+                        ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoiserResolutionMultiplierVals, new Vector4(data.resolutionMultiplier, 1.0f / data.resolutionMultiplier, data.historyResolutionMultiplier, 1.0f / data.historyResolutionMultiplier));
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._EnableExposureControl, data.exposureControl);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputBuffer);
 
                         // Combine signal with history
-                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", data.fullResolution);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
 
                         // Make sure to copy the new-accumulated signal in our history buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.historyBuffer);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
-                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", true);
                     });
                 return passData.outputBuffer;
             }
@@ -440,9 +434,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         int numTilesX = (data.texWidth + (tfTileSize - 1)) / tfTileSize;
                         int numTilesY = (data.texHeight + (tfTileSize - 1)) / tfTileSize;
 
-                        // This variant of the function only supports full resolution
-                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", true);
-
                         // Now that we have validated our history, let's accumulate
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseInputTexture, data.noisyBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._HistoryBuffer, data.inputHistoryBuffer);
@@ -458,6 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._HistoryValidity, data.historyValidity);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._ReceiverMotionRejection, 1);
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, 1);
+                        ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoiserResolutionMultiplierVals, Vector4.one);
 
                         // Bind the output buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputBuffer);

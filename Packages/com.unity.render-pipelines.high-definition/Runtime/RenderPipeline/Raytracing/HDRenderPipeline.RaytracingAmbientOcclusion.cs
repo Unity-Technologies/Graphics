@@ -178,7 +178,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.occluderMotionRejection = aoSettings.occluderMotionRejection.value;
                 filterParams.receiverMotionRejection = aoSettings.receiverMotionRejection.value;
                 filterParams.exposureControl = false;
-                filterParams.fullResolution = true;
+                filterParams.resolutionMultiplier = 1.0f;
+                filterParams.historyResolutionMultiplier = 1.0f;
 
                 TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
                     traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer,
@@ -191,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ddParams.kernelSize = aoSettings.denoiserRadius;
                 ddParams.halfResolutionFilter = false;
                 ddParams.jitterFilter = false;
-                ddParams.fullResolutionInput = true;
+                ddParams.resolutionMultiplier = 1.0f;
                 TextureHandle result = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
                 PropagateRayTracedAmbientOcclusionHistoryValidity(hdCamera);
                 return result;

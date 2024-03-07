@@ -650,6 +650,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues;
+                    float lowResSSGIMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    lowResSSGIMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResSSGIMinimumThreshold, lowResSSGIMinimumThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.floatValue = Mathf.Clamp(lowResSSGIMinimumThreshold, 0.0f, 50.0f);
+                }
+
+                {
                     float rayTracingHalfResThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold.floatValue;
                     EditorGUI.BeginChangeCheck();
                     rayTracingHalfResThreshold = EditorGUILayout.DelayedFloatField(Styles.rayTracingHalfResThreshold, rayTracingHalfResThreshold);
