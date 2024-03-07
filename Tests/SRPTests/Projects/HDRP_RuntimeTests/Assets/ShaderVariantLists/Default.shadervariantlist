@@ -1,5 +1,5 @@
 {"targetPlatform":4,"xr":false,"enabled":true}
-(null)Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords FULL_RESOLUTION_FILTER
+(null)Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords  <no keywords>
 (null)Compiled shader: HDRP/Nature/SpeedTree8, pass: DepthOnly, stage: vertex, keywords INSTANCING_ON WRITE_NORMAL_BUFFER _ALPHATEST_ON _DOUBLESIDED_ON _WINDQUALITY_BETTER
 Compiled compute shader: _FunctionTestsGroup, kernel: kAllEqual, keywords GROUP_SIZE_1
 Compiled compute shader: _FunctionTestsGroup, kernel: kAllEqual, keywords GROUP_SIZE_1024
@@ -788,7 +788,6 @@ Compiled compute shader: DepthOfFieldPrefilter, kernel: KMain, keywords FAR HIGH
 Compiled compute shader: DepthOfFieldTileMax, kernel: KMain, keywords FAR NEAR
 Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords <no keywords>
-Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords FULL_RESOLUTION_INPUT
 Compiled compute shader: DiffuseDenoiser, kernel: GatherColor, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: GeneratePointDistribution, keywords <no keywords>
 Compiled compute shader: DiffuseShadowDenoiser, kernel: BilateralFilterHColorDirectional, keywords DISTANCE_BASED_DENOISER
@@ -894,16 +893,14 @@ Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuild, keywords <no ke
 Compiled compute shader: StageWorkQueue, kernel: WorkQueueBuildArgs, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords <no keywords>
 Compiled compute shader: SubsurfaceScattering, kernel: SubsurfaceScattering, keywords ENABLE_MSAA
-Compiled compute shader: TemporalFilter, kernel: BlendHistoryColorArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: BlendHistorySingleArrayNoValidity, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: BlendHistoryColorArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: BlendHistorySingleArrayNoValidity, keywords <no keywords>
 Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords <no keywords>
-Compiled compute shader: TemporalFilter, kernel: CopyHistory, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: OutputHistoryArray, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: OutputHistoryArray, keywords <no keywords>
 Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColor, keywords <no keywords>
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColor, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColorArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationSingleArray, keywords FULL_RESOLUTION_FILTER
-Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords FULL_RESOLUTION_FILTER
+Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationColorArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: TemporalAccumulationSingleArray, keywords <no keywords>
+Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords <no keywords>
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION ENABLE_ALPHA LENS_DISTORTION VIGNETTE
 Compiled compute shader: UberPost, kernel: Uber, keywords CHROMATIC_ABERRATION GAMMA2_OUTPUT LENS_DISTORTION VIGNETTE
