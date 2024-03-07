@@ -41,8 +41,8 @@ HDRP uses bricks with different sizes to match the amount of geometry in differe
 
 The default Light Probe spacing is 1, 3, 9, or 27 m.
 
-![](Images/probevolumes-debug-displayprobebricks2.PNG)<br/>
-In this screenshot from the Rendering Debugger, the small red bricks contain Light Probes spaced 0.3 m apart, to capture data from high-geometry areas. The large blue bricks contain Light Probes spaced 3 m apart, to capture data from areas with less geometry. This image uses the ArchVizPRO Interior Vol.8 HDRP asset from the Unity Asset Store.
+![](Images/probevolumes-debug-displayprobebricks1.PNG)<br/>
+In this screenshot from the Rendering Debugger, the small purple bricks contain Light Probes spaced 1 meter apart, to capture data from high-geometry areas. The large blue bricks contain Light Probes spaced 3 meters apart, to capture data from areas with less geometry.
 
 Each pixel of a GameObject samples lighting data from the eight closest Light Probes around it.
 
