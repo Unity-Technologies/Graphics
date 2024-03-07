@@ -1559,7 +1559,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int j = 0; j < cameraSettings.Count; ++j)
             {
                 CubemapFace face = cameraCubemapFaces[j];
-                var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, face), Time.frameCount, CameraType.Reflection);
+                var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, face), Time.frameCount);
 
                 var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 settingsCopy.forcedPercentage = 100.0f;
@@ -1572,13 +1572,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                 {
                     additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                    additionalCameraData.hasPersistentHistory = true;
+                    additionalCameraData.clearDepth = true;
                 }
-                additionalCameraData.hasPersistentHistory = true;
 
                 // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
                 camera.targetTexture = visibleProbe.realtimeTexture;
-                camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
-                camera.gameObject.SetActive(false);
 
                 // Warning: accessing Object.name generate 48B of garbage at each frame here
                 // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
@@ -1587,9 +1586,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 camera.ApplySettings(cameraSettings[j]);
                 camera.ApplySettings(cameraPositionSettings[j]);
-                camera.cameraType = CameraType.Reflection;
                 camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
-                additionalCameraData.clearDepth = true;
 
                 var _cullingResults = m_CullingResultsPool.Get();
                 _cullingResults.Reset();
