@@ -434,7 +434,9 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     // reflection lights are kept in separate regions.
 
     {
-        for (uint it = 0; it < ((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS; ++it)
+        #define MAX_FINE_PRUNE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
+        [unroll(MAX_FINE_PRUNE_LOOP_CNT)]
+        for (uint it = 0; it < MAX_FINE_PRUNE_LOOP_CNT; ++it)
         {
             uint i = t + it * NR_THREADS;
             if (i < (uint)iNrCoarseLights)
@@ -567,7 +569,9 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 
         if (t == 0) ldsNrLightsFinal = localCount;
 
-        for (uint it = 0; it < ((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS; ++it)
+        #define MAX_LIGHT_WRITE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
+        [unroll(MAX_LIGHT_WRITE_LOOP_CNT)]
+        for (uint it = 0; it < MAX_LIGHT_WRITE_LOOP_CNT; ++it)
         {
             uint i = t + it * NR_THREADS;
             uint lightsMask = ldsDoesLightIntersect[i >> 5];
