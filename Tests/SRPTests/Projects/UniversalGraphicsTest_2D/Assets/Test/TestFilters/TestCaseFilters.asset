@@ -58,3 +58,21 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Post Process needs fixing
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 606833216bc06f442aeede4ae93a98be, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PLATGRAPH-3026
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 606833216bc06f442aeede4ae93a98be, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PLATGRAPH-3026
