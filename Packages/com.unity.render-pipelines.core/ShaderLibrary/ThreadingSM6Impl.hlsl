@@ -1,12 +1,6 @@
 #ifndef THREADING_SM6_IMPL
 #define THREADING_SM6_IMPL
 
-// If a special definition for WaveReadLaneShuffle is not provided, we assume that the WaveReadLaneAt function is capable
-// of handling a lane index value that varies per lane.
-#if !defined(WaveReadLaneShuffle)
-    #define WaveReadLaneShuffle WaveReadLaneAt
-#endif
-
 namespace Threading
 {
     // Currently we only cover scalar types as at the time of writing this utility library we only needed emulation for those.
@@ -34,7 +28,6 @@ namespace Threading
         TYPE Wave::PrefixProduct(TYPE v)            { return WavePrefixProduct(v);      } \
         TYPE Wave::ReadLaneAt(TYPE v, uint i)       { return WaveReadLaneAt(v, i);      } \
         TYPE Wave::ReadLaneFirst(TYPE v)            { return WaveReadLaneFirst(v);      } \
-        TYPE Wave::ReadLaneShuffle(TYPE v, uint i)  { return WaveReadLaneShuffle(v, i); } \
 
     // Currently just support scalars.
     DEFINE_API_FOR_TYPE(uint)

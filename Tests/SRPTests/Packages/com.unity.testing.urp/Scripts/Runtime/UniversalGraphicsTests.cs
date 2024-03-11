@@ -19,11 +19,26 @@ public class UniversalGraphicsTests
 
     public const string universalPackagePath = "Assets/ReferenceImages";
 
+#if UNITY_WEBGL || UNITY_ANDROID
+    [UnitySetUp]
+    public IEnumerator SetUp()
+    {
+        yield return RuntimeGraphicsTestCaseProvider.EnsureGetReferenceImageBundlesAsync();
+    }
+#endif
+
     [UnityTest, Category("UniversalRP")]
+#if UNITY_EDITOR
     [PrebuildSetup("SetupGraphicsTestCases")]
+#endif
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+#if UNITY_WEBGL || UNITY_ANDROID
+        RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
+#endif
+
         GlobalResolutionSetter.SetResolution(RuntimePlatform.Android, width: 1920, height: 1080);
         GlobalResolutionSetter.SetResolution(RuntimePlatform.EmbeddedLinuxArm64, width: 1920, height: 1080);
 

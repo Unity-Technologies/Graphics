@@ -416,7 +416,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Camera parentCamera { get { return m_parentCamera; } }
 
         internal float lowResScale = 0.5f;
+        internal float historyLowResScale = 0.5f;
         internal bool isLowResScaleHalf { get { return lowResScale == 0.5f; } }
+		
+        internal float lowResScaleForScreenSpaceLighting = 0.5f;
+        internal float historyLowResScaleForScreenSpaceLighting = 0.5f;		
 
         //Setting a parent camera also tries to use the parent's camera exposure textures.
         //One example is planar reflection probe volume being pre exposed.
@@ -1136,7 +1140,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
 
+            historyLowResScale = resetPostProcessingHistory ? 0.5f : lowResScale;
+            historyLowResScaleForScreenSpaceLighting = resetPostProcessingHistory ? 0.5f : lowResScaleForScreenSpaceLighting;
             lowResScale = 0.5f;
+			lowResScaleForScreenSpaceLighting = 0.5f;
             if (canDoDynamicResolution)
             {
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
@@ -1144,6 +1151,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 actualHeight = scaledSize.y;
                 globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleSyncPoint() <= DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField);
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
+
+                lowResScaleForScreenSpaceLighting =  DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScaleForScreenSpaceLighting, hdrp.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold);
             }
 
             var screenWidth = actualWidth;

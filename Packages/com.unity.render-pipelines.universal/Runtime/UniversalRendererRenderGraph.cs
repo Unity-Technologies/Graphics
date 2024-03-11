@@ -849,7 +849,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle mainShadowsTexture = resources.GetTexture(UniversalResource.MainShadowsTexture);
                 TextureHandle additionalShadowsTexture = resources.GetTexture(UniversalResource.AdditionalShadowsTexture);
-                m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = !m_TransparentSettingsPass.Setup(ref renderingData);
+                m_RenderTransparentForwardPass.m_ShouldTransparentsReceiveShadows = !m_TransparentSettingsPass.Setup();
                 m_RenderTransparentForwardPass.Render(renderGraph, activeColorTexture, activeDepthTexture, mainShadowsTexture, additionalShadowsTexture, ref renderingData);
             }
 

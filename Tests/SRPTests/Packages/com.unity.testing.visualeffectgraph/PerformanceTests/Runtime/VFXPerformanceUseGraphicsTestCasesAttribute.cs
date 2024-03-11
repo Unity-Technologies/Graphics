@@ -11,6 +11,7 @@ using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Linq;
+using UnityEditor.TestTools.Graphics;
 #endif
 
 namespace UnityEngine.VFX.PerformanceTest
@@ -36,18 +37,9 @@ namespace UnityEngine.VFX.PerformanceTest
         {
             var results = new List<TestMethod>();
 #if UNITY_EDITOR
-            var scenePaths = EditorBuildSettings.scenes
-                .Where(s => s.enabled)
-                .Select(s => s.path)
-                .Where(s =>
-                {
-                    var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(s);
-                    var labels = AssetDatabase.GetLabels(asset);
-                    return !labels.Contains("ExcludeGfxTests");
-                }).ToArray();
-
+            var scenePaths = EditorGraphicsTestCaseProvider.GetTestScenePaths().ToArray();
 #else
-            var scenePaths = File.ReadAllLines(Application.streamingAssetsPath + "/SceneList.txt");
+            var scenePaths = RuntimeGraphicsTestCaseProvider.GetScenePaths();
 #endif
             foreach (var scenePath in scenePaths)
             {

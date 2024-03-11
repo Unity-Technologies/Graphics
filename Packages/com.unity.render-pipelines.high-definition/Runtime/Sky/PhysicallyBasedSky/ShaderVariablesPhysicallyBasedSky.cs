@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _AtmosphericRadius;
         public float _AerosolAnisotropy;
         public float _AerosolPhasePartConstant;
-        public float _CelestialLightCount;
+        public uint _CelestialLightCount;
 
         public float _AirDensityFalloff;
         public float _AirScaleHeight;

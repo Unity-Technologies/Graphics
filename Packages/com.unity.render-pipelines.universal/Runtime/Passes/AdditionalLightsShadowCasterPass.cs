@@ -34,7 +34,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         const int k_ShadowmapBufferBits = 16;
         private int m_AdditionalLightsShadowmapID;
         internal RTHandle m_AdditionalLightsShadowmapHandle;
-        internal RTHandle m_EmptyAdditionalLightShadowmapTexture;
+
+        private bool m_CreateEmptyShadowmap;
+        private bool m_EmptyShadowmapNeedsClear = false;
+        private RTHandle m_EmptyAdditionalLightShadowmapTexture;
+        private const int k_EmptyShadowMapDimensions = 1;
+        private const string k_EmptyShadowMapName = "_EmptyAdditionalLightShadowmapTexture";
+        internal static Vector4[] s_EmptyAdditionalLightIndexToShadowParams = null;
 
         float m_MaxShadowDistanceSq;
         float m_CascadeBorder;
@@ -48,9 +54,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Vector4[] m_AdditionalLightIndexToShadowParams = null;                          // per-additional-light shadow info passed to the lighting shader (x: shadowStrength, y: softShadows, z: light type, w: perLightFirstShadowSliceIndex)
         Matrix4x4[] m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = null;       // per-shadow-slice info passed to the lighting shader
-
-        bool m_CreateEmptyShadowmap;
-        bool m_EmptyShadowmapNeedsClear = false;
 
         int renderTargetWidth;
         int renderTargetHeight;
@@ -95,13 +98,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
             m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
 
+            s_EmptyAdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
+            for (int i = 0; i < s_EmptyAdditionalLightIndexToShadowParams.Length; i++)
+                s_EmptyAdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
+
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxVisibleAdditionalLights];
             }
 
-            m_EmptyAdditionalLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyAdditionalLightShadowmapTexture");
+            m_EmptyAdditionalLightShadowmapTexture = ShadowUtils.AllocShadowRT(k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, 1, 0, name: k_EmptyShadowMapName);
             m_EmptyShadowmapNeedsClear = true;
         }
 
@@ -581,7 +588,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             useNativeRenderPass = false;
 
             // Required for scene view camera(URP renderer not initialized)
-            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyAdditionalLightShadowmapTexture"))
+            if (ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyShadowMapName))
                 m_EmptyShadowmapNeedsClear = true;
 
             // initialize _AdditionalShadowParams
@@ -655,15 +662,20 @@ namespace UnityEngine.Rendering.Universal.Internal
         void SetEmptyAdditionalShadowmapAtlas(RasterCommandBuffer cmd)
         {
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);
+            SetEmptyAdditionalLightShadowParams(cmd, m_AdditionalLightIndexToShadowParams);
+        }
+
+        internal static void SetEmptyAdditionalLightShadowParams(RasterCommandBuffer cmd, Vector4[] lightIndexToShadowParams)
+        {
             if (RenderingUtils.useStructuredBuffer)
             {
-                var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);
-                shadowParamsBuffer.SetData(m_AdditionalLightIndexToShadowParams);
+                ComputeBuffer shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(lightIndexToShadowParams.Length);
+                shadowParamsBuffer.SetData(lightIndexToShadowParams);
                 cmd.SetGlobalBuffer(m_AdditionalShadowParams_SSBO, shadowParamsBuffer);
             }
             else
             {
-                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);
+                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, lightIndexToShadowParams);
             }
         }
 
