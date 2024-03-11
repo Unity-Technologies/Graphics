@@ -1,5 +1,7 @@
 # Underwater view
 
+Underwater is rendered as a fullscreen postprocess effect. It uses either a simple analytic formula to estimate light absorption by the water volume, or if volumetric fog is enabled, it will be included in the vbuffer and rendered using volumetric lighting, supporting god rays and light shafts from shadows.
+
 To view non-infinite water surfaces from underwater, you have to specify a [collider](https://docs.unity3d.com/Manual/Glossary.html#Collider). You can either use the box collider HDRP automatically provides or select a box collider in the scene to use for this purpose.
 
 To view infinite water surfaces from underwater, you have to specify a **Volume Depth**.
@@ -19,7 +21,7 @@ See the Waterline scene in the [HDRP Water samples](HDRP-Sample-Content.md#water
 ## Limitations
 
 * When using a custom mesh, underwater will not behave as expected if mesh is not at 0, or if the mesh isn't flat.
-* Fog and Volumetric Fog is not evaluated when the camera is underwater. A simpler attenuation is used when underwater: to control it, use **Absorption Distance Multiplier**. Additionnally, the **Receive Fog** option on materials also affects this simpler attenuation. This can be useful to disable absorption on objects when using excluder underwater (like a porthole in the hold of a boat).
+* The **Receive Fog** option on transparent materials will also disable underwater. This can be useful to disable absorption on objects when using excluder underwater (like a porthole in the hold of a boat), or simply as an optimization when it is known that fog will not affect the object color.
 
 # Additional resources
 * [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md)

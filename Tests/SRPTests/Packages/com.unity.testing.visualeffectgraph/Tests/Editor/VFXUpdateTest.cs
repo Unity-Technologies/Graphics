@@ -6,6 +6,9 @@ using UnityEngine.TestTools;
 using System.Collections;
 using System.IO;
 using Object = UnityEngine.Object;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.UI;
+using UnityEditor.Compilation;
 
 //Not strictly test, these helpers are used to upgrade project
 namespace UnityEditor.VFX.Update
@@ -74,15 +77,104 @@ namespace UnityEditor.VFX.Update
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 exportedPackageAssetList.Add(path);
             }
-            AssetDatabase.ExportPackage(exportedPackageAssetList.ToArray(), absolutePath, ExportPackageOptions.Recurse | ExportPackageOptions.IncludeDependencies);
+            AssetDatabase.ExportPackage(exportedPackageAssetList.ToArray(), absolutePath, ExportPackageOptions.Recurse);
             yield return null;
-            Directory.Delete(expectedDirectory, true);
-            File.Delete(expectedDirectory + ".meta");
+
+            AssetDatabase.DeleteAsset(expectedDirectory);
             yield return null;
             Debug.unityLogger.logHandler = quietLog.m_ForwardLog;
 
             Assert.IsFalse(Directory.Exists(expectedDirectory));
         }
+
+        private static void CopyFiles(string sourcePath, string targetPath)
+        {
+            foreach (var dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+            }
+
+            foreach (var newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            {
+                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+            }
+        }
+
+
+        [SerializeField] private string m_Version;
+        private static readonly string kSampleExpectedBasePath = "Assets/Samples";
+
+        [UnityTest, Timeout(6000 * 1000)]
+        public IEnumerator Upgrade_Additional_Sample()
+        {
+            var searchRequest = Client.Search("com.unity.visualeffectgraph", true);
+            while (!searchRequest.IsCompleted)
+            {
+                yield return null;
+            }
+
+            Assert.AreEqual(StatusCode.Success, searchRequest.Status);
+            Assert.AreEqual(1, searchRequest.Result.Length);
+            m_Version = searchRequest.Result[0].version;
+
+            var addRequest = Client.Add(@"file:../../../../../Packages/com.unity.render-pipelines.universal");
+            while (!addRequest.IsCompleted)
+                yield return null;
+            Assert.AreEqual(StatusCode.Success, addRequest.Status);
+
+            //Workaround for UUM-63664
+            {
+                var tempSamples = Sample.FindByPackage("com.unity.visualeffectgraph", m_Version);
+                foreach (var extension in PackageManagerExtensions.Extensions)
+                    extension.OnPackageSelectionChange(searchRequest.Result[0]);
+                foreach (var sample in tempSamples)
+                {
+                    //Force import of dependencies before importing anything else
+                    var samplePath = Path.Combine(kSampleExpectedBasePath, "Visual Effect Graph", m_Version, sample.displayName);
+                    Directory.CreateDirectory(samplePath);
+                    var dummy = samplePath + "/dummy.txt";
+                    File.WriteAllText(dummy, "UUM-63664 workaround for test.");
+                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                    AssetDatabase.DeleteAsset(dummy);
+                }
+            }
+
+            CompilationPipeline.RequestScriptCompilation();
+            yield return new WaitForDomainReload();
+
+            var samples = Sample.FindByPackage("com.unity.visualeffectgraph", m_Version);
+            foreach (var sample in samples)
+            {
+                var result = sample.Import(Sample.ImportOptions.HideImportWindow | Sample.ImportOptions.OverridePreviousImports);
+                Assert.IsTrue(result);
+            }
+
+            //VFXAssetManager.Build(true); //Shouldn't be needed to upgrade dirty imported asset
+            AssetDatabase.SaveAssets();
+
+            var baseTarget = @"../../../../Packages/com.unity.visualeffectgraph";
+            Directory.Delete(baseTarget + "/Samples~", true);
+
+            var commonAssetPath = Path.Combine(kSampleExpectedBasePath, "Visual Effect Graph", "Common");
+            var commonTargetPath = Path.Combine(baseTarget, "Samples~", "Common");
+            CopyFiles(commonAssetPath, commonTargetPath);
+
+            samples = Sample.FindByPackage("com.unity.visualeffectgraph", m_Version);
+            foreach (var sample in samples)
+            {
+                var assetPath = Path.Combine(kSampleExpectedBasePath, "Visual Effect Graph", m_Version, sample.displayName);
+                var targetPath = sample.resolvedPath;
+                CopyFiles(assetPath, targetPath);
+            }
+            AssetDatabase.DeleteAsset(kSampleExpectedBasePath);
+
+            var removeRequest = Client.Remove("com.unity.render-pipelines.universal");
+            while (!removeRequest.IsCompleted)
+                yield return null;
+            Assert.AreEqual(StatusCode.Success, removeRequest.Status);
+            yield return new WaitForDomainReload();
+        }
+
 #endif
     }
 }

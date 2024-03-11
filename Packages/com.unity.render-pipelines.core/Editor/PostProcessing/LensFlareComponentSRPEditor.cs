@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -22,8 +24,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_AttenuationByLightShape;
         SerializedProperty m_RadialScreenAttenuationCurve;
         SerializedProperty m_UseOcclusion;
-        SerializedProperty m_fogOcclusion;
-        SerializedProperty m_WaterOcclusion;
+        SerializedProperty m_EnvironementOcclusion;
         SerializedProperty m_OcclusionRadius;
         SerializedProperty m_SamplesCount;
         SerializedProperty m_OcclusionOffset;
@@ -57,8 +58,7 @@ namespace UnityEditor.Rendering
             m_AttenuationByLightShape = entryPoint.Find(x => x.attenuationByLightShape);
             m_RadialScreenAttenuationCurve = entryPoint.Find(x => x.radialScreenAttenuationCurve);
             m_UseOcclusion = entryPoint.Find(x => x.useOcclusion);
-            m_fogOcclusion = entryPoint.Find(x => x.useFogOpacityOcclusion);
-            m_WaterOcclusion = entryPoint.Find(x => x.useWaterOcclusion);
+            m_EnvironementOcclusion = entryPoint.Find(x => x.environmentOcclusion);
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
             m_SamplesCount = entryPoint.Find(x => x.sampleCount);
             m_OcclusionOffset = entryPoint.Find(x => x.occlusionOffset);
@@ -80,6 +80,15 @@ namespace UnityEditor.Rendering
         /// </summary>
         public override void OnInspectorGUI()
         {
+            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
+            {
+                if (!(bool)Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
+                    .GetMethod("DataDrivenLensFlareHelpBox", BindingFlags.Static | BindingFlags.NonPublic)
+                    .Invoke(null, null))
+                    return;
+            }
+
             LensFlareComponentSRP lensFlareData = m_Intensity.serializedObject.targetObject as LensFlareComponentSRP;
             bool attachedToLight = false;
             bool lightIsDirLight = false;
@@ -155,7 +164,7 @@ namespace UnityEditor.Rendering
                 }
                 EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
             }
-            EditorGUILayout.LabelField(Styles.occlusionData.text, EditorStyles.boldLabel);
+
             EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
             if (m_UseOcclusion.boolValue)
             {
@@ -163,10 +172,7 @@ namespace UnityEditor.Rendering
                 EditorGUI.BeginDisabledGroup(m_AttachedLight != null && m_AttachedLight.type != LightType.Directional);
                 {
                     if (RenderPipelineManager.currentPipeline is ICloudBackground)
-                        EditorGUILayout.PropertyField(m_fogOcclusion, Styles.fogAndCloudOpacityOcclusion);
-                    if (RenderPipelineManager.currentPipeline is IWaterRendering waterRendering &&
-                        waterRendering.IsWaterRenderingUsable())
-                        EditorGUILayout.PropertyField(m_WaterOcclusion, Styles.waterOcclusion);
+                        EditorGUILayout.PropertyField(m_EnvironementOcclusion, Styles.environmentOcclusion);
                 }
                 EditorGUI.EndDisabledGroup();
 
@@ -193,7 +199,6 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             static public readonly GUIContent generalData = EditorGUIUtility.TrTextContent("General");
-            static public readonly GUIContent occlusionData = EditorGUIUtility.TrTextContent("Screen Space Occlusion");
 
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Specifies the SRP Lens Flare Data asset this component uses.");
             static public readonly GUIContent newButton = EditorGUIUtility.TrTextContent("New", "Create a new SRP Lens Flare Data asset.");
@@ -206,8 +211,8 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent scaleByDistanceCurve = EditorGUIUtility.TrTextContent("Scale Distance Curve", "Specifies the curve used to calculate the size of the lens flare based on the distance between the GameObject this asset is attached to, and the Camera.");
             static public readonly GUIContent attenuationByLightShape = EditorGUIUtility.TrTextContent("Attenuation By Light Shape", "When enabled, if the component is attached to a light, automatically reduces the effect of the lens flare based on the type and shape of the light.");
             static public readonly GUIContent radialScreenAttenuationCurve = EditorGUIUtility.TrTextContent("Screen Attenuation Curve", "Specifies the curve that modifies the intensity of the lens flare based on its distance from the edge of the screen.");
-            static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Enable", "When enabled, the renderer uses the depth buffer to occlude (partially or completely) the lens flare. Partial occlusion also occurs when the lens flare is partially offscreen.");
-            static public readonly GUIContent fogAndCloudOpacityOcclusion = EditorGUIUtility.TrTextContent("Fog And Cloud Opacity", "When enabled, the occlusion is attenuated by the Background Clouds, Volumetric Clouds and the Fog.");
+            static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Screen Space Occlusion", "When enabled, the renderer uses the depth buffer to occlude (partially or completely) the lens flare. Partial occlusion also occurs when the lens flare is partially offscreen.");
+            static public readonly GUIContent environmentOcclusion = EditorGUIUtility.TrTextContent("Environment Occlusion", "When enabled, environment effects supported by the render pipeline can be used to occlude lens flares.\nThis may include opacity from volumetric clouds, background clouds, fog and water.");
             static public readonly GUIContent occlusionRadius = EditorGUIUtility.TrTextContent("Occlusion Radius", "Sets the radius, in meters, around the light used to compute the occlusion of the lens flare. If this area is half occluded by geometry (or half off-screen), the intensity of the lens flare is cut by half.");
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Sets the number of random samples used inside the Occlusion Radius area. A higher sample count gives a smoother attenuation when occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Sets the offset of the occlusion area in meters between the GameObject this asset is attached to, and the Camera. A positive value moves the occlusion area closer to the Camera.");
@@ -215,7 +220,6 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow OffScreen", "When enabled, allows the lens flare to affect the scene even when it is outside the Camera's field of view.");
             static public readonly GUIContent volumetricCloudOcclusion = EditorGUIUtility.TrTextContent("Volumetric Clouds", "When enabled, HDRP uses the volumetric clouds texture (in screen space) for the occlusion.");
             static public readonly GUIContent lightOverride = EditorGUIUtility.TrTextContent("Light Override", "Specifies the light component where the color and shape values are fetched from when using \"Modulate By Light Color\" or \"Attenuation By Light Shape\" properties on a Lens Flare Element. If nothing is specified, the light component from this gameobject is used.");
-            static public readonly GUIContent waterOcclusion = EditorGUIUtility.TrTextContent("Water", "When enabled, HDRP uses the Water Rendering (in screen space) for the occlusion.");
         }
     }
 }

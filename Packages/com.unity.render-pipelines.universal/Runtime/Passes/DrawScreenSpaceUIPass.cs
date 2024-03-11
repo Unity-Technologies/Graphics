@@ -94,11 +94,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTextureDescriptor colorDescriptor = cameraData.cameraTargetDescriptor;
                 ConfigureColorDescriptor(ref colorDescriptor, cameraData.pixelWidth, cameraData.pixelHeight);
-                RenderingUtils.ReAllocateIfNeeded(ref m_ColorTarget, colorDescriptor, name: "_OverlayUITexture");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_ColorTarget, colorDescriptor, name: "_OverlayUITexture");
 
                 RenderTextureDescriptor depthDescriptor = cameraData.cameraTargetDescriptor;
                 ConfigureDepthDescriptor(ref depthDescriptor, depthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
-                RenderingUtils.ReAllocateIfNeeded(ref m_DepthTarget, depthDescriptor, name: "_OverlayUITexture_Depth");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTarget, depthDescriptor, name: "_OverlayUITexture_Depth");
             }
         }
 

@@ -145,7 +145,6 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new QualityScope(this))
             {
                 PropertyField(m_RayLength, k_RayLengthText);
-                PropertyField(m_ClampValue);
                 PropertyField(m_FullResolution);
                 if (mixed)
                     PropertyField(m_MaxMixedRaySteps, k_MaxMixedRaySteps);
@@ -158,7 +157,6 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new QualityScope(this))
             {
                 PropertyField(m_RayLength, k_RayLengthText);
-                PropertyField(m_ClampValue);
                 PropertyField(m_SampleCount);
                 PropertyField(m_BounceCount);
                 DenoiserGUI();
@@ -211,6 +209,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             PropertyField(m_AmbientProbeDimmer);
                         }
                     }
+
+                    PropertyField(m_ClampValue);
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
@@ -328,7 +328,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // RTGI
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
-                CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
                 CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);

@@ -6,6 +6,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
+#define DISTANCE_THRESHOLD 5e-5f
+#define DOT_THRESHOLD 1e-2f
+
 #define SAMPLE_COUNT (3*3*3 - 1)
 
 static const float k0 = 0, k1 = 1, k2 = 0.70710678118654752440084436210485f, k3 = 0.57735026918962576450914878050196f;
@@ -49,8 +52,8 @@ struct ProbeData
     float originBias;
     float tMax;
     float geometryBias;
-    float padding2;
-    float padding3;
+    int probeIndex;
+    float validityThreshold;
 };
 
 StructuredBuffer<ProbeData> _Probes;
@@ -69,6 +72,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     UnifiedRT::RayTracingAccelStruct accelStruct = UNITY_GET_RT_ACCEL_STRUCT(_AccelStruct);
 
+    uint validHits = 0;
     for (uint i = 0; i < SAMPLE_COUNT; ++i)
     {
         ray.direction = k_RayDirections[i];
@@ -76,27 +80,23 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
         UnifiedRT::Hit hit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, 0);
 
-        float kDistanceThreshold = 5e-5f;
-        float kDotThreshold = 1e-2f;
+        // If any of the closest hit is the sky or a front face, skip it
+        if (!hit.IsValid() || hit.isFrontFace)
+        {
+            validHits++;
+            continue;
+        }
 
         float distanceDiff = hit.hitDistance - minDist;
-        if (hit.IsValid() && distanceDiff < kDistanceThreshold)
+        if (distanceDiff < DISTANCE_THRESHOLD)
         {
             //accelStruct.instanceList[hit.instanceIndex].userMaterialID;
-
-            // If any of the closest hit is outside, we are not inside geometry so we don't want to virtual offset.
-            // TO VERIFY: Is this too harsh? Should we allow some level of hit of a front face?
-            if (hit.isFrontFace)
-            {
-                outDirection = 0.0f;
-                break;
-            }
 
             UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(accelStruct, hit, UnifiedRT::kGeomAttribFaceNormal);
             float dotSurface = dot(ray.direction, attributes.faceNormal);
 
-            // If new distance is smaller by at least kDistanceThreshold, or if ray is at least kDotThreshold more colinear with normal
-            if (distanceDiff < -kDistanceThreshold || dotSurface - maxDotSurface > kDotThreshold)
+            // If new distance is smaller by at least kDistanceThreshold, or if ray is at least DOT_THRESHOLD more colinear with normal
+            if (distanceDiff < -DISTANCE_THRESHOLD || dotSurface - maxDotSurface > DOT_THRESHOLD)
             {
                 outDirection = ray.direction;
                 maxDotSurface = dotSurface;
@@ -104,6 +104,12 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
             }
         }
     }
+
+    // Disable VO for probes that don't see enough backface
+    // validity = percentage of backfaces seen
+    float validity = 1.0f - validHits / (float)(SAMPLE_COUNT - 1.0f);
+    if (validity <= probe.validityThreshold)
+        outDirection = 0.0f;
 
     if (minDist == FLT_MAX)
         minDist = 0.0f;

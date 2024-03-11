@@ -33,6 +33,26 @@ void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
     outBuffer = float4(velocity.xy, 0, 0);
 }
 
+float4x4 VFXGetObjectToWorldMatrix()
+{
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+    #if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
+    return GetSGVFXUnityObjectToWorld();
+    #else
+    return GetObjectToWorldMatrix();
+    #endif
+}
+
+float4x4 VFXGetWorldToObjectMatrix()
+{
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+    #if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
+    return GetSGVFXUnityWorldToObject();
+    #else
+    return GetWorldToObjectMatrix();
+    #endif
+}
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
     return TransformWorldToHClip(posWS);
@@ -50,13 +70,13 @@ float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
-    float3 posWS = TransformObjectToWorld(posOS);
+    float3 posWS = mul(VFXGetObjectToWorldMatrix(), float4(posOS,1)).xyz;
     return VFXTransformPositionWorldToClip(posWS);
 }
 
 float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 {
-    float3 posWS = TransformObjectToWorld(posOS);
+    float3 posWS = mul(VFXGetObjectToWorldMatrix(), float4(posOS,1)).xyz;
     return VFXTransformPositionWorldToNonJitteredClip(posWS);
 }
 
@@ -94,26 +114,6 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
     return inverseModelMatrix;
 }
 //End of compatibility functions
-
-float4x4 VFXGetObjectToWorldMatrix()
-{
-    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
-#if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
-    return GetSGVFXUnityObjectToWorld();
-#else
-    return GetObjectToWorldMatrix();
-#endif
-}
-
-float4x4 VFXGetWorldToObjectMatrix()
-{
-    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
-#if defined(HAVE_VFX_MODIFICATION) && !defined(SHADER_STAGE_COMPUTE)
-    return GetSGVFXUnityWorldToObject();
-#else
-    return GetWorldToObjectMatrix();
-#endif
-}
 
 float3x3 VFXGetWorldToViewRotMatrix()
 {

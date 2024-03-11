@@ -36,7 +36,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float m_Turbo = 10.0f;
 
-#if ENABLE_LEGACY_INPUT_MANAGER
+#if ENABLE_INPUT_SYSTEM
+        InputAction lookAction;
+        InputAction moveAction;
+        InputAction speedAction;
+        InputAction yMoveAction;
+#elif ENABLE_LEGACY_INPUT_MANAGER
         private static string kMouseX = "Mouse X";
         private static string kMouseY = "Mouse Y";
         private static string kRightStickX = "Controller Right Stick X";
@@ -46,13 +51,6 @@ namespace UnityEngine.Rendering
 
         private static string kYAxis = "YAxis";
         private static string kSpeedAxis = "Speed Axis";
-#endif
-
-#if ENABLE_INPUT_SYSTEM
-        InputAction lookAction;
-        InputAction moveAction;
-        InputAction speedAction;
-        InputAction yMoveAction;
 #endif
 
         void OnEnable()
@@ -95,9 +93,7 @@ namespace UnityEngine.Rendering
             lookAction.Enable();
             speedAction.Enable();
             yMoveAction.Enable();
-#endif
-
-#if UNITY_EDITOR && ENABLE_LEGACY_INPUT_MANAGER
+#elif UNITY_EDITOR && ENABLE_LEGACY_INPUT_MANAGER
             List<InputManagerEntry> inputEntries = new List<InputManagerEntry>();
 
             // Add new bindings
@@ -140,7 +136,7 @@ namespace UnityEngine.Rendering
             inputVertical = moveDelta.y;
             inputHorizontal = moveDelta.x;
             inputYAxis = yMoveAction.ReadValue<Vector2>().y;
-#else
+#elif ENABLE_LEGACY_INPUT_MANAGER
             if (Input.GetMouseButton(1))
             {
                 leftShiftBoost = true;

@@ -5,6 +5,5 @@ namespace UnityEngine.Rendering
     {
         Depth = (1 << 0),
         FogOpacity = (1 << 2),
-        Water = (1 << 3)
     }
 }

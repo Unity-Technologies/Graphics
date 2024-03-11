@@ -534,6 +534,8 @@ namespace UnityEngine.VFX.Test
             return str.ToString();
         }
 
+//See UUM-6235
+#if !(VFX_TESTS_HAS_URP && UNITY_STANDALONE_OSX)
         //@gabriel: See VFXG-414, the following test is inspecting the instancing status of the test 025_ShaderKeywords.
         [UnityTest]
         public IEnumerator Load_Keyword_Scene_With_Instancing()
@@ -571,6 +573,7 @@ namespace UnityEngine.VFX.Test
             var actualBatchInfosDump = DumpBatchInfo(batchInfos);
             Assert.AreEqual(expectedBatchInfosDump, actualBatchInfosDump, $"{actualBatchInfosDump}\nvs.\n\n{expectedBatchInfosDump}");
         }
+#endif
 
         private static Vector4[] s_SampleGradient_Branch_Instancing_Readback = null;
 

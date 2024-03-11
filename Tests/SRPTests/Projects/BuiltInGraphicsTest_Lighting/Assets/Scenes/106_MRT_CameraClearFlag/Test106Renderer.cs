@@ -47,8 +47,8 @@ namespace UnityEngine.Rendering.Universal
 
             var colorDescriptor = new RenderTextureDescriptor(width, height);
             var depthDescriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.Depth, 16);
-            RenderingUtils.ReAllocateIfNeeded(ref m_CameraColor, colorDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraColor");
-            RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepth");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraColor, colorDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraColor");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepth");
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

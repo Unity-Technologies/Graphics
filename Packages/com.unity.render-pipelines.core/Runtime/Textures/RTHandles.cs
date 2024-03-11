@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
@@ -22,6 +23,26 @@ namespace UnityEngine.Rendering
         /// Current properties of the default RTHandle System
         /// </summary>
         public static RTHandleProperties rtHandleProperties { get { return s_DefaultInstance.rtHandleProperties; } }
+
+        /// <summary>
+        /// Calculate the dimensions (in pixels) of the RTHandles given the scale factor.
+        /// </summary>
+        /// <param name="scaleFactor">The scale factor to use when calculating the dimensions. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.</param>
+        /// <returns>The calculated dimensions.</returns>
+        public static Vector2Int CalculateDimensions(Vector2 scaleFactor)
+        {
+            return s_DefaultInstance.CalculateDimensions(scaleFactor);
+        }
+
+        /// <summary>
+        /// Calculate the dimensions (in pixels) of the RTHandles given the scale function. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.
+        /// </summary>
+        /// <param name="scaleFunc">The scale function to use when calculating the dimensions.</param>
+        /// <returns>The calculated dimensions.</returns>
+        public static Vector2Int CalculateDimensions(ScaleFunc scaleFunc)
+        {
+            return s_DefaultInstance.CalculateDimensions(scaleFunc);
+        }
 
         /// <summary>
         /// Allocate a new fixed sized RTHandle with the default RTHandle System.
@@ -180,6 +201,18 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Allocate a new fixed sized RTHandle with the default RTHandle System.
         /// </summary>
+        /// <param name="width">With of the RTHandle.</param>
+        /// <param name="height">Height of the RTHandle.</param>
+        /// <param name="info">Struct containing details of allocation</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(int width, int height, RTHandleAllocInfo info)
+        {
+            return s_DefaultInstance.Alloc(width, height, info);
+        }
+
+        /// <summary>
+        /// Allocate a new fixed sized RTHandle with the default RTHandle System.
+        /// </summary>
         /// <param name="descriptor">RenderTexture descriptor of the RTHandle.</param>
         /// <param name="filterMode">Filtering mode of the RTHandle.</param>
         /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
@@ -225,16 +258,6 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Calculate the dimensions (in pixels) of the RTHandles given the scale factor.
-        /// </summary>
-        /// <param name="scaleFactor">The scale factor to use when calculating the dimensions. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.</param>
-        /// <returns>The calculated dimensions.</returns>
-        public static Vector2Int CalculateDimensions(Vector2 scaleFactor)
-        {
-            return s_DefaultInstance.CalculateDimensions(scaleFactor);
-        }
-
-        /// <summary>
         /// Allocate a new automatically sized RTHandle for the default RTHandle System.
         /// </summary>
         /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
@@ -353,13 +376,14 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Calculate the dimensions (in pixels) of the RTHandles given the scale function. The base unscaled size used, is the sizes passed to the last ResetReferenceSize call.
+        /// Allocate a new automatically sized RTHandle for the default RTHandle System.
         /// </summary>
-        /// <param name="scaleFunc">The scale function to use when calculating the dimensions.</param>
-        /// <returns>The calculated dimensions.</returns>
-        public static Vector2Int CalculateDimensions(ScaleFunc scaleFunc)
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="info">Struct containing details of allocation</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(Vector2 scaleFactor, RTHandleAllocInfo info)
         {
-            return s_DefaultInstance.CalculateDimensions(scaleFunc);
+            return s_DefaultInstance.Alloc(scaleFactor, info);
         }
 
         /// <summary>
@@ -456,11 +480,15 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
+            Assert.IsFalse(descriptor.graphicsFormat != GraphicsFormat.None && descriptor.depthStencilFormat != GraphicsFormat.None,
+                "The RenderTextureDescriptor used to create RTHandle " + name + " contains both graphicsFormat and depthStencilFormat which is not allowed.");
+
+            var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
             return s_DefaultInstance.Alloc(
                 scaleFunc,
                 descriptor.volumeDepth,
                 (DepthBits)descriptor.depthBufferBits,
-                descriptor.graphicsFormat,
+                actualFormat,
                 filterMode,
                 wrapMode,
                 descriptor.dimension,
@@ -478,6 +506,17 @@ namespace UnityEngine.Rendering
                 descriptor.vrUsage,
                 name
             );
+        }
+
+        /// <summary>
+        /// Allocate a new automatically sized RTHandle for the default RTHandle System.
+        /// </summary>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="info">Struct containing details of allocation</param>
+        /// <returns>A new RTHandle.</returns>
+        public static RTHandle Alloc(ScaleFunc scaleFunc, RTHandleAllocInfo info)
+        {
+            return s_DefaultInstance.Alloc(scaleFunc, info);
         }
 
         /// <summary>

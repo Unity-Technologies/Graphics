@@ -95,13 +95,14 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         float weight = 0.0;
         rayIsSky = true;
 
+        // Read the pixel normal
+        NormalData normalData;
+        DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
         #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
         // Try the APV if enabled
         if(_EnableProbeVolumes && _RayTracingAPVRayMiss)
         {
-            // Read the pixel normal
-            NormalData normalData;
-            DecodeFromNormalBuffer(currentCoord.xy, normalData);
 
             BuiltinData apvBuiltinData;
             ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
@@ -125,7 +126,10 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
         if((RAYTRACINGFALLBACKHIERACHY_SKY & _RayTracingRayMissFallbackHierarchy) && weight == 0.0f)
         {
-            finalColor = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz * (1.0 - weight);
+            if(_RayTracingRayMissUseAmbientProbeAsSky)
+                finalColor = EvaluateAmbientProbe(normalData.normalWS) * (1.0 - weight);
+            else
+                finalColor = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0, 0).xyz * (1.0 - weight);
             weight = 1.0;
         }
 

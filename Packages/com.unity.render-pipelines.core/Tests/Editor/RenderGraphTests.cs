@@ -1,23 +1,132 @@
 using NUnit.Framework;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using System;
+using System.Collections.Generic;
 
+#if UNITY_EDITOR
+using UnityEditor.Rendering;
+#endif
 namespace UnityEngine.Rendering.Tests
 {
     class RenderGraphTests
     {
-        RenderGraph m_RenderGraph = new RenderGraph();
+        // For RG Record/Hash/Compile testing, use m_RenderGraph
+        RenderGraph m_RenderGraph; 
+        RenderPipelineAsset m_OldDefaultRenderPipeline;
+
+        // For RG Execute/Submit testing with rendering, use m_RenderGraphTestPipeline and its recordRenderGraphBody
+        RenderGraphTestPipelineAsset m_RenderGraphTestPipeline;
+        RenderGraphTestGlobalSettings m_RenderGraphTestGlobalSettings;
+
+        // For the testing of the following RG steps: Execute and Submit (native) with camera rendering, use this custom RenderGraph render pipeline
+        // through a camera render call to test the RG with a real ScriptableRenderContext
+        class RenderGraphTestPipelineAsset : RenderPipelineAsset<RenderGraphTestPipelineInstance>
+        {
+            public Action<ScriptableRenderContext, Camera, CommandBuffer> recordRenderGraphBody;
+            public RenderGraph renderGraph;
+            protected override RenderPipeline CreatePipeline()
+            {
+                return new RenderGraphTestPipelineInstance(this);
+            }
+
+            // Called only once per UTR
+            void OnEnable()
+            {
+                renderGraph = new();
+            }
+        }
+
+        class RenderGraphTestPipelineInstance : RenderPipeline
+        {
+            RenderGraphTestPipelineAsset asset;
+
+            // Having the RG at this level allows us to handle RG framework within Render() for easier testing
+            RenderGraph m_RenderGraph;
+
+            public RenderGraphTestPipelineInstance(RenderGraphTestPipelineAsset asset)
+            {
+                this.asset = asset;
+                this.m_RenderGraph = asset.renderGraph;
+            }
+
+            protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+            {
+                foreach (var camera in cameras)
+                {
+                    if (!camera.enabled)
+                        continue;
+
+                    var cmd = new CommandBuffer { name = "Rendering command buffer" };
+
+                    RenderGraphParameters rgParams = new()
+                    {
+                        commandBuffer = cmd,
+                        scriptableRenderContext = renderContext,
+                        currentFrameIndex = Time.frameCount,
+                        invalidContextForTesting = false
+                    };
+
+                    m_RenderGraph.BeginRecording(rgParams);
+
+                    asset.recordRenderGraphBody?.Invoke(renderContext, camera, cmd);
+                
+                    m_RenderGraph.EndRecordingAndExecute();
+
+                    renderContext.ExecuteCommandBuffer(cmd);
+                }
+                renderContext.Submit();
+            }
+        }
+
+        [SupportedOnRenderPipeline(typeof(RenderGraphTestPipelineAsset))]
+        [System.ComponentModel.DisplayName("RenderGraphTest")]
+        class RenderGraphTestGlobalSettings : RenderPipelineGlobalSettings<RenderGraphTestGlobalSettings, RenderGraphTestPipelineInstance>
+        {
+            [SerializeField] RenderPipelineGraphicsSettingsContainer m_Settings = new();
+            protected override List<IRenderPipelineGraphicsSettings> settingsList => m_Settings.settingsList;
+        }
+
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            // Setting default global settings to the custom RG render pipeline type, no quality settings so we can rely on the default RP
+            m_RenderGraphTestGlobalSettings = ScriptableObject.CreateInstance<RenderGraphTestGlobalSettings>();
+#if UNITY_EDITOR
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderGraphTestPipelineInstance>(m_RenderGraphTestGlobalSettings);
+#endif
+            // Saving old render pipeline to set it back after testing
+            m_OldDefaultRenderPipeline = GraphicsSettings.defaultRenderPipeline;
+
+            // Setting the custom RG render pipeline
+            m_RenderGraphTestPipeline = ScriptableObject.CreateInstance<RenderGraphTestPipelineAsset>();
+            GraphicsSettings.defaultRenderPipeline = m_RenderGraphTestPipeline;
+
+            // Getting the RG from the custom asset pipeline
+            m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
+        }
+
+        [OneTimeTearDown]
+        public void Cleanup()
+        {
+            GraphicsSettings.defaultRenderPipeline = m_OldDefaultRenderPipeline;
+            m_OldDefaultRenderPipeline = null;
+
+            m_RenderGraph.Cleanup();    
+
+            Object.DestroyImmediate(m_RenderGraphTestPipeline);
+
+#if UNITY_EDITOR
+            EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderGraphTestPipelineInstance>(null);
+#endif
+            Object.DestroyImmediate(m_RenderGraphTestGlobalSettings);
+        }
 
         [SetUp]
         public void SetupRenderGraph()
         {
             m_RenderGraph.ClearCompiledGraph();
-        }
-
-        [OneTimeTearDown]
-        public void CleanUp()
-        {
-            m_RenderGraph.Cleanup();
         }
 
         class RenderGraphTestPassData
@@ -757,6 +866,46 @@ namespace UnityEngine.Rendering.Tests
             m_RenderGraph.ClearCompiledGraph();
 
             Assert.AreEqual(hash0, hash1);
+        }
+
+
+        [Test]
+        public void CreateLegacyRendererLists()
+        {
+            // We need a real ScriptableRenderContext and a camera to call correctly the legacy RendererLists API
+
+            // add the default camera
+            var gameObject = new GameObject("testGameObject")
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            gameObject.tag = "MainCamera";
+            var camera = gameObject.AddComponent<Camera>();
+
+            // record and execute render graph calls
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var rendererListHandle = m_RenderGraph.CreateUIOverlayRendererList(camera);
+                Assert.IsTrue(rendererListHandle.IsValid());
+
+                rendererListHandle = m_RenderGraph.CreateWireOverlayRendererList(camera);
+                Assert.IsTrue(rendererListHandle.IsValid());
+
+                rendererListHandle = m_RenderGraph.CreateGizmoRendererList(camera, GizmoSubset.PostImageEffects);
+                Assert.IsTrue(rendererListHandle.IsValid());
+
+                rendererListHandle = m_RenderGraph.CreateSkyboxRendererList(camera);
+                Assert.IsTrue(rendererListHandle.IsValid());
+
+                rendererListHandle = m_RenderGraph.CreateSkyboxRendererList(camera, Matrix4x4.identity, Matrix4x4.identity);
+                Assert.IsTrue(rendererListHandle.IsValid());
+
+                rendererListHandle = m_RenderGraph.CreateSkyboxRendererList(camera, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity);
+                Assert.IsTrue(rendererListHandle.IsValid());
+            };
+            camera.Render();
+
+            GameObject.DestroyImmediate(gameObject);
         }
 
         /*

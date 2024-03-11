@@ -845,6 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorFormat = format,
                 clearBuffer = true,
                 clearColor = Color.white,
+                enableRandomWrite = true,
             };
         }
 
@@ -1017,6 +1018,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle densityBuffer;
             public GraphicsBuffer volumetricAmbientProbeBuffer;
+            
+            // Underwater fog
+            public bool water;
+            public BufferHandle waterLine;
+            public BufferHandle waterCameraHeight;
+            public TextureHandle waterStencil;
         }
 
         class VolumetricFogVoxelizationPassData
@@ -1039,12 +1046,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public GraphicsBuffer globalIndirectionBuffer;
             public GraphicsBuffer materialDataBuffer;
             public GraphicsBuffer visibleVolumeGlobalIndices;
-            public List<OrientedBBox> visibleVolumeBounds;
             public int computeRenderingParametersKernel;
             public ComputeBuffer visibleVolumeBoundsBuffer;
         }
 
-        unsafe TextureHandle ClearAndHeightFogVoxelizationPass(RenderGraph renderGraph, HDCamera hdCamera)
+        unsafe TextureHandle ClearAndHeightFogVoxelizationPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, in TransparentPrepassOutput transparentPrepass)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1058,8 +1064,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<HeightFogVoxelizationPassData>("Clear and Height Fog Voxelization", out var passData))
                 {
-                    builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
-
                     passData.viewCount = hdCamera.viewCount;
 
                     passData.voxelizationCS = m_VolumeVoxelizationCS;
@@ -1076,12 +1080,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
+                    
+                    passData.water = transparentPrepass.waterGBuffer.valid && transparentPrepass.underWaterSurface != null;
+                    if (passData.water)
+                    {
+                        passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
+                        passData.waterCameraHeight = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
+                        passData.waterStencil = builder.ReadTexture(depthBuffer);
+                    }
 
+                    CoreUtils.SetKeyword(passData.voxelizationCS, "SUPPORT_WATER_ABSORPTION", passData.water);
+                    builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync() && !passData.water);
+                    
                     builder.SetRenderFunc(
                         (HeightFogVoxelizationPassData data, RenderGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);
                             ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
+                            
+                            // Underwater fog
+                            if (data.water)
+                            {
+                                ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                                ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._WaterCameraHeightBuffer, data.waterCameraHeight);
+                                ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._RefractiveDepthBuffer, data.waterStencil, 0, RenderTextureSubElement.Depth);
+                                ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._StencilTexture, data.waterStencil, 0, RenderTextureSubElement.Stencil);
+                            }
 
                             ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.voxelizationCS, HDShaderIDs._ShaderVariablesVolumetric);
 
@@ -1277,9 +1301,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle feedbackBuffer;
             public BufferHandle bigTileVolumetricLightListBuffer;
             public GraphicsBuffer volumetricAmbientProbeBuffer;
+            
+            // Underwater
+            public bool water;
+            public BufferHandle waterLine;
+            public BufferHandle waterCameraHeight;
+            public TextureHandle waterStencil;
+            public RenderTargetIdentifier causticsBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, BufferHandle bigTileVolumetricLightListBuffer, ShadowResult shadowResult)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer,
+            TextureHandle maxZBuffer, in TransparentPrepassOutput transparentPrepass, TextureHandle depthBuffer, BufferHandle bigTileVolumetricLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1306,11 +1338,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.volumetricLightingCS.shaderKeywords = null;
                     passData.volumetricLightingFilteringCS.shaderKeywords = null;
 
+                    passData.water = transparentPrepass.waterGBuffer.valid && transparentPrepass.underWaterSurface != null && transparentPrepass.underWaterSurface.caustics;
+
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", !passData.tiledLighting);
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "ENABLE_REPROJECTION", passData.enableReprojection);
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "ENABLE_ANISOTROPY", enableAnisotropy);
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "VL_PRESET_OPTIMAL", optimal);
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "SUPPORT_LOCAL_LIGHTS", !fog.directionalLightsOnly.value);
+                    CoreUtils.SetKeyword(passData.volumetricLightingCS, "SUPPORT_WATER_ABSORPTION", passData.water);
 
                     passData.volumetricLightingKernel = passData.volumetricLightingCS.FindKernel("VolumetricLighting");
 
@@ -1352,6 +1387,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
+                    
+                    // Water stuff
+                    if (passData.water)
+                    {
+                        passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
+                        passData.waterCameraHeight = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
+                        passData.waterStencil = builder.ReadTexture(depthBuffer);
+                        if (transparentPrepass.underWaterSurface.caustics)
+                            passData.causticsBuffer = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex].simulation.gpuBuffers.causticsBuffer.rt;
+                    }
 
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
 
@@ -1367,6 +1412,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);  // Read
                             ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._VBufferLighting, data.lightingBuffer); // Write
                             ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
+                            
+                            // Underwater
+                            if (data.water)
+                            {
+                                ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._WaterCausticsDataBuffer, data.causticsBuffer);
+                                ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                                ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._WaterCameraHeightBuffer, data.waterCameraHeight);
+                                ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._RefractiveDepthBuffer, data.waterStencil, 0, RenderTextureSubElement.Depth);
+                                ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._StencilTexture, data.waterStencil, 0, RenderTextureSubElement.Stencil);
+                            }
 
                             if (data.enableReprojection)
                             {

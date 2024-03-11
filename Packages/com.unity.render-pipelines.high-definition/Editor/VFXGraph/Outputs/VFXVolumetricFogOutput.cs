@@ -320,7 +320,7 @@ namespace UnityEditor.VFX.HDRP
                 baseName = "maxSliceCount",
                 size = 1,
                 bufferSizeMode = VFXContextBufferSizeMode.FixedSize,
-                bufferType = ComputeBufferType.Structured,
+                bufferTarget = GraphicsBuffer.Target.Structured,
                 stride = sizeof(uint),
                 bufferCount = 1,
             });

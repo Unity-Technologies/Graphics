@@ -63,6 +63,7 @@
 .pass-block.pass-block-script-link {
     background-image: url("../Icons/RenderGraphViewer/d_ScriptLink@2x.png");
     background-color: #C4C4C4;
+    border-color: #C4C4C4;
 }
 
 .custom-foldout-arrow #unity-checkmark {

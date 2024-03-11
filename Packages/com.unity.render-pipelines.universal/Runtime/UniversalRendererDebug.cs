@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             debugTexDescriptor.bindMS = false;
             debugTexDescriptor.depthBufferBits = 0;
 
-            RenderingUtils.ReAllocateIfNeeded(ref m_RenderGraphDebugTextureHandle, debugTexDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_RenderingDebuggerTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphDebugTextureHandle, debugTexDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_RenderingDebuggerTexture");
         }
 
         private Rect CalculateUVRect(UniversalCameraData cameraData, float width, float height)
@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 CopyToDebugTexture(renderGraph, resourceData.cameraDepthTexture, debugDepthTexture);
                                 supportsStereo = true;
-                                
+
                                 break;
                             }
                             case DebugFullScreenMode.AdditionalLightsShadowMap:

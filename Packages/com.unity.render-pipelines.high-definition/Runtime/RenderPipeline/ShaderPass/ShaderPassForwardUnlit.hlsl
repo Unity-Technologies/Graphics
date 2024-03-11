@@ -170,7 +170,7 @@ void Frag(PackedVaryingsToPS packedInput,
     float4 outResult = ApplyBlendMode(bsdfData.color * GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
 
     #ifdef _ENABLE_FOG_ON_TRANSPARENT
-    outResult = ComputeFog(posInput, V, outResult);
+    outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
     #endif
 
     #ifdef _TRANSPARENT_REFRACTIVE_SORT

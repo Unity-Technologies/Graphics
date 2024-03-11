@@ -70,6 +70,7 @@ The Base Camera in a Camera Stack determines most of the properties of the Camer
 
 Unity hides all of the other unused properties in the Inspector. You can access unused properties using a script, but any changes you make to these unused properties will not affect the visual output of any Camera Stacks that use the Overlay Camera.
 
-You cannot apply post-processing to an individual Overlay Camera. You can apply post-processing to an individual Base Camera, or to a Camera Stack.
+> [!NOTE]
+> While you can apply post-processing to an individual Overlay Camera within a camera stack, the effects also apply to all the outputs the camera stack renders before the Overlay Camera. This is different to how you can apply post-processing to an individual Base Camera where the effects on only apply to the Base Camera.
 
 For information on the properties that Unity exposes in the Inspector of an Overlay Camera, refer to the [Camera component reference](camera-component-reference.md).

@@ -47,10 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_VolumeHeight;
         SerializedProperty m_VolumePriority;
         SerializedProperty m_AbsorptionDistanceMultiplier;
-        SerializedProperty m_UnderWaterScatteringColorMode;
-        SerializedProperty m_UnderWaterScatteringColor;
         SerializedProperty m_UnderWaterRefraction;
-        SerializedProperty m_UnderWaterAmbientProbeContribution;
 
         void OnEnableAppearance(PropertyFetcher<WaterSurface> o)
         {
@@ -93,10 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_VolumeHeight = o.Find(x => x.volumeHeight);
             m_VolumePriority = o.Find(x => x.volumePrority);
             m_AbsorptionDistanceMultiplier = o.Find(x => x.absorptionDistanceMultiplier);
-            m_UnderWaterScatteringColorMode = o.Find(x => x.underWaterScatteringColorMode);
-            m_UnderWaterScatteringColor = o.Find(x => x.underWaterScatteringColor);
             m_UnderWaterRefraction = o.Find(x => x.underWaterRefraction);
-            m_UnderWaterAmbientProbeContribution = o.Find(x => x.underWaterAmbientProbeContribution);
         }
 
         static internal bool WaterBandHasAgitation(WaterSurfaceEditor serialized, Editor owner, int bandIndex)
@@ -342,19 +336,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     // View distance
                     EditorGUILayout.PropertyField(serialized.m_AbsorptionDistanceMultiplier);
 
-                    // Scattering color for underwater
-                    EditorGUILayout.PropertyField(serialized.m_UnderWaterScatteringColorMode, k_UnderWaterScatteringColorMode);
-                    if ((WaterSurface.UnderWaterScatteringColorMode)serialized.m_UnderWaterScatteringColorMode.enumValueIndex == WaterSurface.UnderWaterScatteringColorMode.Custom)
-                    {
-                        using (new IndentLevelScope())
-                            CoreEditorUtils.ColorFieldLinear(serialized.m_UnderWaterScatteringColor, k_UnderWaterScatteringColor);
-                    }
-
                     // Refraction fallback
                     EditorGUILayout.PropertyField(serialized.m_UnderWaterRefraction, k_UnderWaterRefraction);
-
-                    // Ambient probe contribution
-                    EditorGUILayout.PropertyField(serialized.m_UnderWaterAmbientProbeContribution, k_UnderWaterAmbientProbeContribution);
                 }
             }
         }

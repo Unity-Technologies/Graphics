@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (surfaceData.renderDebug)
                             {
-                                ctx.cmd.SetBufferData(data.perCameraCB, surfaceData.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
+                                ctx.cmd.SetBufferData(data.perCameraCB, data.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
                                 ConstantBuffer.Push(ctx.cmd, data.waterDebugCBs[surfaceIdx], surfaceData.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
                                 SetupWaterShaderKeyword(ctx.cmd, surfaceData.numActiveBands, surfaceData.activeCurrent);

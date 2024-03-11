@@ -605,9 +605,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (passData.needOpticalFogTransmittance)
                 {
                     if (!opticalFogTransmittance.IsValid())
-                        opticalFogTransmittance = builder.UseColorBuffer(renderGraph.CreateTexture(GetOpticalFogTransmittanceDesc(hdCamera)), opticalFogBufferIndex);
-                    else
-                        builder.UseColorBuffer(opticalFogTransmittance, opticalFogBufferIndex);
+                        opticalFogTransmittance = renderGraph.CreateTexture(GetOpticalFogTransmittanceDesc(hdCamera));
+                    builder.UseColorBuffer(opticalFogTransmittance, opticalFogBufferIndex);
                 }
 
                 builder.SetRenderFunc(

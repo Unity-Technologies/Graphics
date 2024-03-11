@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
 
             if (target == VFXDeviceTarget.GPU)
             {
-                var expressionMapper = m_Output.GetExpressionMapper(target);
+                var expressionMapper = VFXExpressionMapper.FromBlocks(m_Output.activeFlattenedChildrenWithImplicit);
 
                 var exp = GetExpressionsFromSlots(m_Output);
 
@@ -126,9 +126,7 @@ namespace UnityEditor.VFX
 
                 if (HasFeature(Features.MotionVector))
                 {
-                    var currentFrameIndex = expressionMapper.FromNameAndId("currentFrameIndex", -1);
-                    if (currentFrameIndex == null)
-                        Debug.LogError("CurrentFrameIndex isn't reachable in encapsulatedOutput for motionVector");
+                    expressionMapper.AddExpression(VFXBuiltInExpression.FrameIndex, "currentFrameIndex", -1);
                 }
 
                 var localSpace = ((VFXDataParticle)GetData()).space == VFXSpace.Local;
@@ -355,7 +353,7 @@ namespace UnityEditor.VFX
                     baseName = VFXDataParticle.k_SortedIndirectBufferName,
                     isPerCamera = IsPerCamera(features),
                     stride = 4u,
-                    bufferType = ComputeBufferType.Structured,
+                    bufferTarget = GraphicsBuffer.Target.Structured,
                     bufferCount = bufferCount
                 });
             }

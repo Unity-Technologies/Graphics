@@ -42,7 +42,7 @@ void MipGeneration(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThre
     int2 upperDepthPyraOffset = _DepthPyramidMipLevelOffsets[_TargetMipLevel];
 
     float4 lightingDistance = 0;
-    float4 weightSum = 0;
+    float weightSum = 0;
 
     // Read the data for each upper res pixel
     float4 s0 = LOAD_TEXTURE2D_X_LOD(_LightingDistanceTexture, currentCoord * 2, _TargetMipLevel);

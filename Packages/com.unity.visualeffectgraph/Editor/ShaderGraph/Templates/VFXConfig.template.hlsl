@@ -26,7 +26,7 @@ StructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if USE_DEAD_LIST_COUNT
-StructuredBuffer<uint> deadListCount;
+StructuredBuffer<uint> deadList;
 #endif
 
 #if HAS_STRIPS
@@ -89,7 +89,7 @@ bool ShouldCullElement(uint index, uint vfxInstanceIndex, uint nbMax)
 {
     uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
-    deadCount = deadListCount[vfxInstanceIndex];
+    deadCount = deadList[vfxInstanceIndex];
 #endif
 
 #if HAS_STRIPS && !VFX_HAS_INDIRECT_DRAW
@@ -221,7 +221,7 @@ $OutputType.PlanarPrimitive: $include("VFXConfigPlanarPrimitive.template.hlsl")
 #if !defined(SHADER_STAGE_RAY_TRACING)
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
-bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout AttributesElement element)
+bool GetInterpolatorAndElementData(inout VFX_SRP_ATTRIBUTES input, inout VFX_SRP_VARYINGS output, inout AttributesElement element)
 {
     GetElementData(element);
     #if VFX_USE_GRAPH_VALUES
@@ -234,7 +234,11 @@ bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout Attribut
     if (!attributes.alive)
         return false;
     #endif
-
+    #ifdef ATTRIBUTES_NEED_NORMAL
+    float3 size3 = GetElementSize(element.attributes);
+    float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
+    input.normalOS *= normalFlip;
+    #endif
     $splice(VFXInterpolantsGeneration)
 
     return true;
@@ -280,7 +284,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 
 #if VFX_LOCAL_SPACE
     elementToWorld = mul(GetSGVFXUnityObjectToWorld(), elementToWorld);
-#else
+#elif !defined(VFX_HAS_PICKING_MATRIX_CORRECTION)
     elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
 #endif
 
@@ -297,16 +301,8 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 
 #if VFX_LOCAL_SPACE
     worldToElement = mul(worldToElement,GetSGVFXUnityWorldToObject());
-#else
+#elif !defined(VFX_HAS_PICKING_MATRIX_CORRECTION)
     worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
-#endif
-
-#if VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX
-    //Specific to PickingSpaceTransforms.hlsl (in HDRP so far)
-    //SHADEROPTIONS_CAMERA_RELATIVE_RENDERING has been undef at this stage
-    //Avoid removing twice _WorldSpaceCameraPos
-    elementToWorld = RevertCameraTranslationFromMatrix(elementToWorld);
-    worldToElement = RevertCameraTranslationFromInverseMatrix(worldToElement);
 #endif
 
     // Pack matrices into interpolator if requested by any node.

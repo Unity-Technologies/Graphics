@@ -156,13 +156,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, bool activeFoam, bool gpuReadback, out bool gpuSpectrumValid, out bool cpuSpectrumValid)
+        internal void CheckResources(int bandResolution, bool activeFoam, bool gpuReadback)
         {
             int bandCount = numActiveBands;
-
-            // By default we shouldn't need an update
-            gpuSpectrumValid = true;
-            cpuSpectrumValid = true;
 
             // If the previously existing resources are not valid, just release them
             if (simulation != null && !simulation.ValidResources(bandResolution, bandCount))
@@ -177,10 +173,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the resources have not been allocated for this water surface, allocate them
             if (simulation == null)
             {
-                // In this case the CPU buffers are invalid and we need to rebuild them
-                gpuSpectrumValid = false;
-                cpuSpectrumValid = false;
-
                 // Create the simulation resources
                 simulation = new WaterSimulationResources();
 
@@ -194,21 +186,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cpuSimulationActive)
                     simulation.AllocateSimulationBuffersCPU();
 
-                CreateConstantBuffers();
+                CreatePropertyBlock();
             }
 
             // If the resources are no longer used, release them
             if (!cpuSimulationActive && simulation.cpuBuffers != null)
             {
                 simulation.ReleaseSimulationBuffersCPU();
-                cpuSpectrumValid = false;
+                simulation.cpuSpectrumValid = false;
             }
 
             // One more case that we need check here is that if the CPU became required
             if (cpuSimulationActive && simulation.cpuBuffers == null)
             {
                 simulation.AllocateSimulationBuffersCPU();
-                cpuSpectrumValid = false;
+                simulation.cpuSpectrumValid = false;
             }
 
             // Evaluate the spectrum parameters
@@ -218,13 +210,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (simulation.spectrum != spectrum)
             {
                 // Mark the spectrums as invalid and assign the new one
-                gpuSpectrumValid = false;
-                cpuSpectrumValid = false;
+                simulation.gpuSpectrumValid = false;
+                simulation.cpuSpectrumValid = false;
                 simulation.spectrum = spectrum;
             }
 
             // TODO: Handle properly the change of resolution to be able to not do this every frame.
-            cpuSpectrumValid = false;
+            simulation.cpuSpectrumValid = false;
 
             // Re-evaluate the simulation data
             simulation.rendering = EvaluateRenderingParams(surfaceType);

@@ -604,7 +604,7 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.Space(4);
             var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-            EditorGUI.LabelField(rect, content, EditorStyles.miniBoldLabel);
+            EditorGUI.LabelField(rect, content, EditorStyles.boldLabel);
         }
 
         /// <summary>

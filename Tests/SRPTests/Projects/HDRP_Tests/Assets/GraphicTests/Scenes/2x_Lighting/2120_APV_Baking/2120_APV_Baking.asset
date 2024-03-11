@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4881f9a2c4d568047b316028d20a8dca, type: 3}
+  m_Name: 2120_APV_Baking
+  m_EditorClassIdentifier: 
+  singleSceneMode: 1
+  dialogNoProbeVolumeInSetShown: 0
+  settings:
+    m_Version: 1
+    dilationSettings:
+      enableDilation: 1
+      dilationDistance: 1
+      dilationValidityThreshold: 0.25
+      dilationIterations: 1
+      squaredDistWeighting: 1
+    virtualOffsetSettings:
+      useVirtualOffset: 1
+      outOfGeoOffset: 0.01
+      searchMultiplier: 0.3
+      rayOriginBias: -0.001
+      collisionMask:
+        serializedVersion: 2
+        m_Bits: 4294967291
+  m_SceneGUIDs:
+  - fc784678bf952de4482e78aea61ccdc8
+  obsoleteScenesToNotBake: []
+  m_LightingScenarios:
+  - Default
+  cellDescs:
+    m_Keys: 
+    m_Values: []
+  m_SerializedPerSceneCellList:
+  - sceneGUID: fc784678bf952de4482e78aea61ccdc8
+    cellList: 
+  cellSharedDataAsset:
+    m_AssetGUID: 
+    m_StreamableAssetPath: 
+    m_ElementSize: 0
+    m_StreamableCellDescs:
+      m_Keys: 
+      m_Values: []
+    m_Asset: {fileID: 0}
+  scenarios:
+    m_Keys: []
+    m_Values: []
+  cellBricksDataAsset:
+    m_AssetGUID: 
+    m_StreamableAssetPath: 
+    m_ElementSize: 0
+    m_StreamableCellDescs:
+      m_Keys: 
+      m_Values: []
+    m_Asset: {fileID: 0}
+  cellSupportDataAsset:
+    m_AssetGUID: 
+    m_StreamableAssetPath: 
+    m_ElementSize: 0
+    m_StreamableCellDescs:
+      m_Keys: 
+      m_Values: []
+    m_Asset: {fileID: 0}
+  chunkSizeInBricks: 128
+  maxCellPosition: {x: 0, y: 0, z: 0}
+  minCellPosition: {x: -1, y: -1, z: -1}
+  globalBounds:
+    m_Center: {x: 23.5, y: 0, z: 1.5}
+    m_Extent: {x: 20.25, y: 20.25, z: 20.25}
+  bakedSimplificationLevels: 3
+  bakedMinDistanceBetweenProbes: 0.25
+  bakedSkyOcclusionValue: 0
+  bakedSkyShadingDirectionValue: 0
+  bakedProbeOffset: {x: 23.5, y: 0, z: 1.5}
+  maxSHChunkCount: 4
+  L0ChunkSize: 65536
+  L1ChunkSize: 32768
+  L2TextureChunkSize: 32768
+  sharedValidityMaskChunkSize: 8192
+  sharedSkyOcclusionL0L1ChunkSize: 0
+  sharedSkyShadingDirectionIndicesChunkSize: 0
+  sharedDataChunkSize: 8192
+  supportPositionChunkSize: 98304
+  supportValidityChunkSize: 32768
+  supportTouchupChunkSize: 32768
+  supportOffsetsChunkSize: 98304
+  supportDataChunkSize: 262144
+  lightingScenario: Default
+  version: 1
+  freezePlacement: 0
+  probeOffset: {x: 23.5, y: 0, z: 1.5}
+  simplificationLevels: 3
+  minDistanceBetweenProbes: 0.25
+  renderersLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  minRendererVolumeSize: 0.1
+  skyOcclusion: 0
+  skyOcclusionBakingSamples: 2048
+  skyOcclusionBakingBounces: 2
+  skyOcclusionAverageAlbedo: 0.6
+  skyOcclusionBackFaceCulling: 0
+  skyOcclusionShadingDirection: 0
+  m_SceneBakeData:
+    m_Keys:
+    - fc784678bf952de4482e78aea61ccdc8
+    m_Values:
+    - hasProbeVolume: 1
+      bakeScene: 1
+      bounds:
+        m_Center: {x: 23.5, y: 0, z: 1.5}
+        m_Extent: {x: 20.25, y: 20.25, z: 20.25}

@@ -9,8 +9,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialBlendModeEnum.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
@@ -80,11 +80,17 @@ float4 ApplyBlendMode(float3 color, float opacity)
 // Fog sampling function for materials
 //-----------------------------------------------------------------------------
 
-float4 ApplyFogOnTransparent(float4 inputColor, float3 volColor, float3 volOpacity)
+// Used for transparent object. input color is color + alpha of the original transparent pixel.
+// This must be call after ApplyBlendMode to work correctly
+// Caution: Must stay in sync with VFXApplyFog in VFXCommon.hlsl
+float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 inputColor)
 {
     float4 result = inputColor;
 
 #ifdef _ENABLE_FOG_ON_TRANSPARENT
+    float3 volColor, volOpacity;
+    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
+
     if (_BlendMode == BLENDINGMODE_ALPHA)
     {
         // Regular alpha blend need to multiply fog color by opacity (as we do src * src_a inside the shader)
@@ -113,16 +119,6 @@ float4 ApplyFogOnTransparent(float4 inputColor, float3 volColor, float3 volOpaci
 #endif
 
     return result;
-}
-
-// Used for transparent object. input color is color + alpha of the original transparent pixel.
-// This must be call after ApplyBlendMode to work correctly
-// Caution: Must stay in sync with VFXApplyFog in VFXCommon.hlsl
-float4 EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, float4 inputColor)
-{
-    float3 volColor, volOpacity;
-    EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
-    return ApplyFogOnTransparent(inputColor, volColor, volOpacity);
 }
 
 // Used for sky reflection. The sky reflection cubemap doesn't contain fog.

@@ -72,6 +72,19 @@
     background-color: var(--main-background-color);
 }
 
+#current-graph-dropdown {
+    max-width: 200px;
+}
+
+#current-execution-dropdown {
+    max-width: 300px;
+}
+
+#header-container DropdownField .unity-base-popup-field__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Passes */
 
 #pass-list-scroll-view {
@@ -168,20 +181,19 @@
     transition-timing-function: ease-in-out;
 }
 
-/* this needs to be declared after other pass block USS classes because they have equal selector precedence and
-   we want this to have the highest priority */
-.pass-block.pass-block-script-link {
-    -unity-background-scale-mode:scale-to-fit;
-    border-width: 0;
-    transition-duration: 0s; /* block the compatibility highlight animation */
-}
-
 .pass-block.pass-compatibility-message-indicator--compatible {
     background-color: var(--native-pass-accent-compatible-color);
 }
 
 .pass-block.pass-synchronization-message-indicator {
     background-color: var(--pass-block-color--async);
+}
+
+.pass-block.pass-block-script-link {
+    /*-unity-background-scale-mode:scale-to-fit;*/
+    border-width: 2px;
+    margin: -1px;
+    padding: 0;
 }
 
 #pass-list-corner-occluder {
@@ -384,20 +396,27 @@
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 18px;
+    background-color: var(--side-panel-background-color);
+}
+
+#panel-resource-list-scroll-view {
+    min-height: 30px;
 }
 
 #panel-pass-list {
     flex-grow: 0;
     flex-shrink: 1;
     min-height: 18px;
+    border-bottom-width: 0;
+    background-color: var(--side-panel-background-color);
+}
+
+#panel-pass-list-scroll-view {
+    min-height: 30px;
 }
 
 #panel-container .header-foldout {
     margin: 0; /* Counteract built-in margins inside HeaderFoldout */
-}
-
-#panel-pass-list {
-    border-bottom-width: 0;
 }
 
 #panel-container .header-foldout > Toggle {

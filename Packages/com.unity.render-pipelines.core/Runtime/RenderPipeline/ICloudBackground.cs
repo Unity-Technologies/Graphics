@@ -2,15 +2,14 @@
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Volumetric Cloud
-    /// Interface for CloudBackground on each SRP
+    /// Interface defining if an SRP supports environment effects for lens flare occlusion
     /// </summary>
     public interface ICloudBackground
     {
         /// <summary>
-        /// Check is the current Render Pipeline had CloudBackground
+        /// Check is the current Render Pipeline supports environement effects for lens flare occlusion.
         /// </summary>
-        /// <returns>true if the CloudBackground is usable on the current pipeline</returns>
+        /// <returns>true if environement effects may occlude lens flares.</returns>
         public bool IsCloudBackgroundUsable();
     }
 }

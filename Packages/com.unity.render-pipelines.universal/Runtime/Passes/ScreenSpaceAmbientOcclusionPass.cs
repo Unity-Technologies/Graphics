@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         // Properties
         private bool isRendererDeferred => m_Renderer != null
                                            && m_Renderer is UniversalRenderer
-                                           && ((UniversalRenderer)m_Renderer).renderingModeRequested == RenderingMode.Deferred;
+                                           && ((UniversalRenderer)m_Renderer).renderingModeActual == RenderingMode.Deferred;
 
         // Private Variables
         private readonly bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
         private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
 
         private static readonly int[] m_BilateralTexturesIndices            = { 0, 1, 2, 3 };
         private static readonly ShaderPasses[] m_BilateralPasses            = { ShaderPasses.BilateralBlurHorizontal, ShaderPasses.BilateralBlurVertical, ShaderPasses.BilateralBlurFinal };
@@ -253,21 +254,30 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_BlueNoiseTextureIndex = (m_BlueNoiseTextureIndex + 1) % m_BlueNoiseTextures.Length;
                 Texture2D noiseTexture = m_BlueNoiseTextures[m_BlueNoiseTextureIndex];
-
-                m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
-                m_Material.SetVector(s_SSAOBlueNoiseParamsID, new Vector4(
-                    cameraData.pixelWidth / (float)noiseTexture.width, // X Scale
-                    cameraData.pixelHeight / (float)noiseTexture.height, // Y Scale
+                Vector4 blueNoiseParams = new Vector4(
+                    cameraData.pixelWidth / (float)m_BlueNoiseTextures[m_BlueNoiseTextureIndex].width, // X Scale
+                    cameraData.pixelHeight / (float)m_BlueNoiseTextures[m_BlueNoiseTextureIndex].height, // Y Scale
                     Random.value, // X Offset
                     Random.value // Y Offset
-                ));
+                );
+
+                // For testing we use a single blue noise texture and a single set of blue noise params.
+                #if UNITY_INCLUDE_TESTS
+                    noiseTexture = m_BlueNoiseTextures[0];
+                    blueNoiseParams.z = 1;
+                    blueNoiseParams.w = 1;
+                #endif
+
+                m_Material.SetTexture(s_BlueNoiseTextureID, noiseTexture);
+                m_Material.SetVector(s_SSAOBlueNoiseParamsID, blueNoiseParams);
             }
 
             // Setting keywords can be somewhat expensive on low-end platforms.
             // Previous params are cached to avoid setting the same keywords every frame.
             SSAOMaterialParams matParams = new SSAOMaterialParams(ref settings, cameraData.camera.orthographic);
-            bool ssaoParamsDirty = !m_SSAOParamsPrev.Equals(ref matParams);
-            if (!ssaoParamsDirty)
+            bool ssaoParamsDirty = !m_SSAOParamsPrev.Equals(ref matParams);    // Checks if the parameters have changed.
+            bool isParamsPropertySet = m_Material.HasProperty(s_SSAOParamsID); // Checks if the parameters have been set on the material.
+            if (!ssaoParamsDirty && isParamsPropertySet)
                 return;
 
             m_SSAOParamsPrev = matParams;
@@ -299,6 +309,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle finalTexture;
             internal TextureHandle blurTexture;
             internal TextureHandle cameraDepthTexture;
+            internal TextureHandle cameraNormalsTexture;
         }
 
         private void InitSSAOPassData(ref SSAOPassData data)
@@ -355,7 +366,10 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
 
                 if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals && cameraNormalsTexture.IsValid())
+                {
                     builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
+                    passData.cameraNormalsTexture = cameraNormalsTexture;
+                }
 
                 // The global SSAO texture only needs to be set if After Opaque is disabled...
                 if (!passData.afterOpaque && finalTexture.IsValid())
@@ -375,6 +389,12 @@ namespace UnityEngine.Rendering.Universal
                     // Setup
                     if (data.cameraColor.IsValid())
                         PostProcessUtils.SetSourceSize(cmd, data.cameraColor);
+
+                    if (data.cameraDepthTexture.IsValid())
+                        data.material.SetTexture(s_CameraDepthTextureID, data.cameraDepthTexture);
+
+                    if (data.cameraNormalsTexture.IsValid())
+                        data.material.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);
 
                     // AO Pass
                     Blitter.BlitCameraTexture(cmd, data.AOTexture, data.AOTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, data.material,  (int) ShaderPasses.AmbientOcclusion);
@@ -476,9 +496,9 @@ namespace UnityEngine.Rendering.Universal
             m_AOPassDescriptor.colorFormat = useRedComponentOnly ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
             // Allocate textures for the AO and blur
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[0], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture0");
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[1], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[2], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[0], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture0");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[1], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture1");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[2], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture2");
 
             // Upsample setup
             m_AOPassDescriptor.width *= downsampleDivider;
@@ -486,7 +506,7 @@ namespace UnityEngine.Rendering.Universal
             m_AOPassDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
             // Allocate texture for the final SSAO results
-            RenderingUtils.ReAllocateIfNeeded(ref m_SSAOTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_SSAOTextures[3], m_AOPassDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_SSAO_OcclusionTexture");
             PostProcessUtils.SetSourceSize(cmd, m_SSAOTextures[3]);
 
             // Disable obsolete warning for internal usage

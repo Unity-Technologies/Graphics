@@ -88,15 +88,17 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _BufferStride;
     int _EnableWater;
     float4 _WaterAmbientProbe;
+    float4 _UnderWaterScatteringExtinction;
+    float4 _UnderWaterUpHeight;
     int _UnderWaterSurfaceIndex;
     float _UnderWaterCausticsIntensity;
     float _UnderWaterCausticsPlaneBlendDistance;
-    float _PaddingG1;
-    float4x4 _UnderWaterSurfaceTransform_Inverse;
     float _UnderWaterCausticsTilingFactor;
+    float4x4 _UnderWaterSurfaceTransform_Inverse;
     float _UnderWaterCausticsMaxLOD;
     float _UnderWaterCausticsShadowIntensity;
     float _UnderWaterCausticsRegionSize;
+    float _PaddingG1;
     int _PreRefractionPass;
     int _SpecularFade;
     uint _EnableRenderingLayers;
@@ -177,6 +179,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableComputeThickness;
     float _VolumetricCloudsFallBackValue;
     float4 _VolumetricCloudsShadowOriginToggle;
+    float4 _ColorPyramidUvScaleAndLimitCurrentFrame;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
 CBUFFER_END
 

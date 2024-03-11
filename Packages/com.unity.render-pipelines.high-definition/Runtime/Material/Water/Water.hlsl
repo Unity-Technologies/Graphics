@@ -202,9 +202,6 @@ float4 CompressGBuffer3(float tipThickness, float caustics, uint surfaceIndex, b
     uint cmpSurfaceIndex = surfaceIndex & 0xf;
     uint lower16Bits = ((cmpCausticsFrontFace & 0xfff) << 4) | surfaceIndex & 0xf;
 
-    // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
-    // If change the packing or unpacking change it on LensFlareCommon.hlsl
-    //
     // We compress the tip thickness into the upper 16 bits
     uint upper16Bits = f32tof16(tipThickness);
 
@@ -219,8 +216,6 @@ void DecompressGBuffer3(float4 gbuffer3, inout BSDFData bsdfData)
     uint upper16Bits = ((uint)(gbuffer3.x * 255.0f)) << 8 | ((uint)(gbuffer3.y * 255.0f));
     uint lower16Bits = ((uint)(gbuffer3.z * 255.0f)) << 8 | ((uint)(gbuffer3.w * 255.0f));
 
-    // Used on Core, to compute occlusion with LensFlareDataDriven Occlusion.
-    // If change the packing or unpacking change it on LensFlareCommon.hlsl
     bsdfData.tipThickness = f16tof32(upper16Bits);
     bsdfData.frontFace = ((lower16Bits >> 4) & 0xfff) != 0xfff;
     bsdfData.caustics = bsdfData.frontFace ? ((lower16Bits >> 4) / 4096.0) : 0;
@@ -349,16 +344,13 @@ void DecompressWaterSSRData(uint2 positionSS, out uint surfaceIndex, out bool fr
 struct PreLightData
 {
     // Scattering
+    float3 albedo;
     float tipScatteringHeight;
     float bodyScatteringHeight;
     float maxRefractionDistance;
-    float3 scatteringColor;
     float envRoughness;
     float3 upDirection;
-
-    // Refraction
-    float3 transparencyColor;
-    float outScatteringCoefficient;
+    float3 extinction;
     int disableIOR;
 
     float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
@@ -430,12 +422,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.tipScatteringHeight = profile.tipScatteringHeight;
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
     preLightData.maxRefractionDistance = profile.maxRefractionDistance;
-    preLightData.transparencyColor = profile.transparencyColor;
-    preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
     preLightData.upDirection = profile.upDirection;
     preLightData.disableIOR = profile.disableIOR;
-    // Evaluate the scattering color and take into account the under water ambient probe contribution as this value is only used for under-water scenarios
-    preLightData.scatteringColor = profile.scatteringColor * lerp(1.0, _WaterAmbientProbe.w * GetCurrentExposureMultiplier(), profile.underWaterAmbientProbeContribution);
+    preLightData.albedo = profile.albedo;
+    preLightData.extinction = profile.extinction;
 
     bsdfData.foamColor = bsdfData.foam * profile.foamColor;
 
@@ -741,7 +731,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // If we are underwater, we don't want to use the fallback hierarchy
     if (!bsdfData.frontFace)
     {
-        float3 fallbackReflectionSignal = (1.0 - ssrLighting.a) * preLightData.scatteringColor * GetInverseCurrentExposureMultiplier();
+        float3 fallbackReflectionSignal = (1.0 - ssrLighting.a) * preLightData.albedo * GetInverseCurrentExposureMultiplier();
         lighting.specularReflected += fallbackReflectionSignal * preLightData.specularFGD;
         reflectionHierarchyWeight = 1.0f;
     }
@@ -768,11 +758,11 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     // Re-evaluate the refraction
     float3 refractedWaterPosRWS;
     float2 distortedWaterNDC;
-    float3 absorptionTint; // not used - applied during opaque atmospheric scattering
+    float3 absorptionTint;
     ComputeWaterRefractionParams(positionWS, posInput.positionNDC, V,
         bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, bsdfData.frontFace,
         preLightData.disableIOR, preLightData.upDirection, preLightData.maxRefractionDistance,
-        preLightData.transparencyColor, preLightData.outScatteringCoefficient,
+        preLightData.extinction,
         refractedWaterPosRWS, distortedWaterNDC, absorptionTint);
 
     // Read the camera color for the refracted ray
@@ -781,19 +771,18 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
 
     if (bsdfData.frontFace)
     {
-        lighting.specularTransmitted = cameraColor * bsdfData.caustics * (1 - saturate(bsdfData.foam));
+        #if SHADERPASS == SHADERPASS_DEFERRED_LIGHTING
+        // Camera color may not have underwater because refraction can make us sample a pixel not covered by water
+        // (this can happen when looking at a wave from the sky, refraction can go sample the sky)
         uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, distortedWaterNDC * _ScreenSize.xy));
         if ((stencilValue & STENCILUSAGE_WATER_SURFACE) == 0)
-            lighting.specularTransmitted *= absorptionTint * absorptionTint;
+            cameraColor *= absorptionTint * absorptionTint;
+        #endif
+
+        lighting.specularTransmitted = (cameraColor * bsdfData.caustics) * (1 - saturate(bsdfData.foam));
     }
     else
-    {
-        // Horizontal normal perturbation for total internal refraction to avoid having a flat scattering color.
-        float3 N_horiz = bsdfData.normalWS - dot(bsdfData.normalWS, preLightData.upDirection) * preLightData.upDirection;
-        float Nh = 1 + dot(N_horiz, 1.5f); // This 1.5 is arbitrary, controls the intensity of the effect
-
-        lighting.specularTransmitted = lerp(preLightData.scatteringColor * Nh, cameraColor, absorptionTint.x);
-    }
+        lighting.specularTransmitted = cameraColor * absorptionTint.x; // absorption is 0 or 1 depending on TIR
 
     // Apply the additional attenuation, the fresnel and the exposure
     lighting.specularTransmitted *= (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();

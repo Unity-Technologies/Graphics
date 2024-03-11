@@ -84,15 +84,17 @@ namespace UnityEngine.Rendering
         /// Enable Occlusion using Background Cloud (for instance: CloudLayer)
         /// Please use useFogOpacityOcclusion instead.
         /// </summary>
-        [Obsolete("Replaced by useFogOpacityOcclusion.")]
+        [Obsolete("Replaced by environmentOcclusion.")]
         public bool useBackgroundCloudOcclusion = false;
 
-        /// <summary>Enable Occlusion using fog opacity from volumetric clouds, cloud layers and fog.</summary>
+        /// <summary>Enable occlusion from environment effects supported by the render pipeline. This may include opacity from volumetric clouds, background clouds, fog and water.</summary>
         [FormerlySerializedAs("volumetricCloudOcclusion")]
-        public bool useFogOpacityOcclusion = false;
+        [FormerlySerializedAs("useFogOpacityOcclusion")]
+        public bool environmentOcclusion = false;
         /// <summary>
         /// Enable Occlusion with Water
         /// </summary>
+        [Obsolete("Replaced by environmentOcclusion.")]
         public bool useWaterOcclusion = false;
         /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
@@ -122,7 +124,7 @@ namespace UnityEngine.Rendering
         /// If volumetricCloudOcclusion is true then use the volumetric cloud (on HDRP only) for the occlusion
         /// Please use useFogOpacityOcclusion instead.
         /// </summary>
-        [Obsolete("Please use useFogOpacityOcclusion instead.")]
+        [Obsolete("Please use environmentOcclusion instead.")]
         public bool volumetricCloudOcclusion = false;
 
         /// Our default celestial body will have an angular radius of 3.3 degrees. This is an arbitrary number, but must be kept constant

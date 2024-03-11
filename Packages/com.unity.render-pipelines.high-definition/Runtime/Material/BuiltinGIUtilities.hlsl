@@ -149,7 +149,7 @@ void SampleBakedGI(
     // We prevent to read GI only if we are not raytrace pass that are used to fill the RTGI/Mixed buffer need to be executed normaly
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
     if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
-#if (SHADERPASS == SHADERPASS_GBUFER)
+#if (SHADERPASS == SHADERPASS_GBUFFER)
         && _IndirectDiffuseMode != INDIRECTDIFFUSEMODE_MIXED && _ReflectionsMode != REFLECTIONSMODE_MIXED
 #endif
         )

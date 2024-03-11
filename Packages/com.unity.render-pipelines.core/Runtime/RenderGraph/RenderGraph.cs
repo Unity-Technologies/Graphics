@@ -1,13 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
-
-// Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
-using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
+// Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
+using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -210,107 +207,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         ///This allows you to run tests that rely on code execution the way to the pass render functions
         ///This also changes some behaviours with exception handling and error logging so the test framework can act on exceptions to validate behaviour better.</summary>
         internal bool invalidContextForTesting;
-    }
-
-    class RenderGraphDebugParams : IDebugDisplaySettingsQuery
-    {
-        DebugUI.Widget[] m_DebugItems;
-        DebugUI.Panel m_DebugPanel;
-
-        public bool clearRenderTargetsAtCreation;
-        public bool clearRenderTargetsAtRelease;
-        public bool disablePassCulling;
-        public bool immediateMode;
-        public bool enableLogging;
-        public bool logFrameInformation;
-        public bool logResources;
-
-        private static class Strings
-        {
-            public static readonly NameAndTooltip ClearRenderTargetsAtCreation = new() { name = "Clear Render Targets At Creation", tooltip = "Enable to clear all render textures before any rendergraph passes to check if some clears are missing." };
-            public static readonly NameAndTooltip ClearRenderTargetsAtFree = new() { name = "Clear Render Targets When Freed", tooltip = "Enable to clear all render textures when textures are freed by the graph to detect use after free of textures." };
-            public static readonly NameAndTooltip DisablePassCulling = new() { name = "Disable Pass Culling", tooltip = "Enable to temporarily disable culling to asses if a pass is culled." };
-            public static readonly NameAndTooltip ImmediateMode = new() { name = "Immediate Mode", tooltip = "Enable to force render graph to execute all passes in the order you registered them." };
-            public static readonly NameAndTooltip EnableLogging = new() { name = "Enable Logging", tooltip = "Enable to allow HDRP to capture information in the log." };
-            public static readonly NameAndTooltip LogFrameInformation = new() { name = "Log Frame Information", tooltip = "Enable to log information output from each frame." };
-            public static readonly NameAndTooltip LogResources = new() { name = "Log Resources", tooltip = "Enable to log the current render graph's global resource usage." };
-            public static readonly NameAndTooltip EnableNativeCompiler = new() { name = "Enable Native Pass Compiler", tooltip = "Enable the new native pass compiler." };
-        }
-
-        internal List<DebugUI.Widget> GetWidgetList(string name)
-        {
-            var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.Container
-            {
-                displayName = $"{name} Render Graph",
-                children =
-                {
-                    new DebugUI.BoolField { nameAndTooltip = Strings.ClearRenderTargetsAtCreation, getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value },
-                    new DebugUI.BoolField { nameAndTooltip = Strings.ClearRenderTargetsAtFree, getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value },
-                    // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
-                    //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-                    new DebugUI.BoolField { nameAndTooltip = Strings.DisablePassCulling, getter = () => disablePassCulling, setter = value => disablePassCulling = value },
-                    new DebugUI.BoolField { nameAndTooltip = Strings.ImmediateMode, getter = () => immediateMode, setter = value => immediateMode = value },
-                    new DebugUI.BoolField { nameAndTooltip = Strings.EnableLogging, getter = () => enableLogging, setter = value => enableLogging = value },
-                    new DebugUI.Button
-                    {
-                        nameAndTooltip = Strings.LogFrameInformation,
-                        action = () =>
-                        {
-                            if (!enableLogging)
-                                Debug.Log("You must first enable logging before this logging frame information.");
-                            logFrameInformation = true;
-            #if UNITY_EDITOR
-                            UnityEditor.SceneView.RepaintAll();
-            #endif
-                        }
-                    },
-                    new DebugUI.Button
-                    {
-                        nameAndTooltip = Strings.LogResources,
-                        action = () =>
-                        {
-                            if (!enableLogging)
-                                Debug.Log("You must first enable logging before this logging resources.");
-                            logResources = true;
-
-            #if UNITY_EDITOR
-                            UnityEditor.SceneView.RepaintAll();
-            #endif
-                        }
-                    }
-                }
-            });
-            return list;
-        }
-
-        public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
-        {
-            var list = GetWidgetList(name);
-            m_DebugItems = list.ToArray();
-            m_DebugPanel = debugPanel != null ? debugPanel : DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
-            m_DebugPanel.children.Add(m_DebugItems);
-        }
-
-        public void UnRegisterDebug(string name)
-        {
-            //DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
-            if ( m_DebugPanel != null ) m_DebugPanel.children.Remove(m_DebugItems);
-            m_DebugPanel = null;
-            m_DebugItems = null;
-        }
-
-        public bool AreAnySettingsActive
-        {
-            get
-            {
-                return clearRenderTargetsAtCreation ||
-                       clearRenderTargetsAtRelease ||
-                       disablePassCulling ||
-                       immediateMode ||
-                       enableLogging;
-            }
-        }
     }
 
     /// <summary>
@@ -618,6 +514,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_CompilationCache?.Clear();
         }
 
+        internal RenderGraphDebugParams debugParams => m_DebugParameters;
+
         internal List<DebugUI.Widget> GetWidgetList()
         {
             return m_DebugParameters.GetWidgetList(name);
@@ -912,6 +810,42 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public RendererListHandle CreateWireOverlayRendererList(in Camera camera)
         {
             return m_Resources.CreateWireOverlayRendererList(m_RenderGraphContext.renderContext, camera);
+        }
+
+        /// <summary>
+        /// Creates a new Skybox Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Skybox.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateSkyboxRendererList(in Camera camera)
+        {
+            return m_Resources.CreateSkyboxRendererList(m_RenderGraphContext.renderContext, camera);
+        }
+
+        /// <summary>
+        /// Creates a new Skybox Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Skybox.</param>
+        /// <param name="projectionMatrix">The projection matrix used during XR rendering of the skybox.</param>
+        /// <param name="viewMatrix">The view matrix used during XR rendering of the skybox.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateSkyboxRendererList(in Camera camera, Matrix4x4 projectionMatrix, Matrix4x4 viewMatrix)
+        {
+            return m_Resources.CreateSkyboxRendererList(m_RenderGraphContext.renderContext, camera, projectionMatrix, viewMatrix);
+        }
+
+        /// <summary>
+        /// Creates a new Skybox Renderer List Render Graph resource.
+        /// </summary>
+        /// <param name="camera">The camera that is used for rendering the Skybox.</param>
+        /// <param name="projectionMatrixL">The left eye projection matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <param name="viewMatrixL">The left eye view matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <param name="projectionMatrixR">The right eye projection matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <param name="viewMatrixR">The right eye view matrix used during Legacy single pass XR rendering of the skybox.</param>
+        /// <returns>A new RendererListHandle.</returns>
+        public RendererListHandle CreateSkyboxRendererList(in Camera camera, Matrix4x4 projectionMatrixL, Matrix4x4 viewMatrixL, Matrix4x4 projectionMatrixR, Matrix4x4 viewMatrixR)
+        {
+            return m_Resources.CreateSkyboxRendererList(m_RenderGraphContext.renderContext, camera, projectionMatrixL, viewMatrixL, projectionMatrixR, viewMatrixR);
         }
 
         /// <summary>

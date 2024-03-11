@@ -82,6 +82,10 @@ namespace UnityEngine.Rendering
         [Range(0f, 1f), Tooltip("Determines how far Unity pushes a probe out of geometry after a ray hit.")]
         public float geometryBias = 0.01f;
 
+        /// <summary>Virtual Offset validity threshold.</summary>
+        [Range(0f, 0.95f)]
+        public float virtualOffsetThreshold = 0.75f;
+
         /// <summary>Distance from the probe position used to determine the origin of the sampling ray.</summary>
         [Range(-0.05f, 0f), Tooltip("Distance from the probe position used to determine the origin of the sampling ray.")]
         public float rayOriginBias = -0.001f;

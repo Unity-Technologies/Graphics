@@ -8,7 +8,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     #ifdef UNITY_INSTANCING_ENABLED
     input.instanceID = unity_InstanceID;
     #endif
-    ContextData contextData = instancingContextData[instanceActiveIndex];
+    $splice(VFXLoadContextData)
     uint systemSeed = contextData.systemSeed;
     uint nbMax = contextData.maxParticleCount;
     if (ShouldCullElement(index, instanceIndex, nbMax))

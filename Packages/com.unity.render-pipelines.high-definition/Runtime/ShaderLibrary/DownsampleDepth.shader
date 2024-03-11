@@ -52,6 +52,8 @@ Shader "Hidden/HDRP/DownsampleDepth"
 #endif
         }
 
+        TEXTURE2D_X(_SourceDownsampleDepth);
+
 #ifdef OUTPUT_FIRST_MIP_OF_MIPCHAIN
     #ifdef SHADER_API_PSSL
         RW_TEXTURE2D_X(float, _OutputTexture) : register(u0);
@@ -67,15 +69,15 @@ Shader "Hidden/HDRP/DownsampleDepth"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 #ifdef GATHER_DOWNSAMPLE
-            float4 depths = GATHER_RED_TEXTURE2D_X(_CameraDepthTexture, s_linear_clamp_sampler, input.texcoord * _ScaleBias.xy + _ScaleBias.zw);
+            float4 depths = GATHER_RED_TEXTURE2D_X(_SourceDownsampleDepth, s_linear_clamp_sampler, input.texcoord * _ScaleBias.xy + _ScaleBias.zw);
             outputDepth = MinDepth(depths);
 #else
             uint2 fullResUpperCorner = uint2((((float2)input.positionCS.xy - 0.5f) * 2.0) + 0.5f);
             float4 depths;
-            depths.x = LoadCameraDepth(fullResUpperCorner);
-            depths.y = LoadCameraDepth(fullResUpperCorner + uint2(0, 1));
-            depths.z = LoadCameraDepth(fullResUpperCorner + uint2(1, 0));
-            depths.w = LoadCameraDepth(fullResUpperCorner + uint2(1, 1));
+            depths.x = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner, 0);
+            depths.y = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(0, 1), 0);
+            depths.z = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(1, 0), 0);
+            depths.w = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(1, 1), 0);
 
             float minDepth = MinDepth(depths);
         #if MIN_DOWNSAMPLE

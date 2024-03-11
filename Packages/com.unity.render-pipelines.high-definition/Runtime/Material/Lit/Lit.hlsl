@@ -1026,7 +1026,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         bsdfData.ambientOcclusion = 1.0;
 
         // For SSGI/RTGI/Mixed and APV not using lightmap we load the content of gbuffer3 in emissive, otherwise it is lightmap/lightprobe + emissive
-        if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
+        if ((_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF && _IndirectDiffuseMode != INDIRECTDIFFUSEMODE_MIXED)
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
             || !builtinData.isLightmap
 #endif
@@ -1887,9 +1887,9 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float mipLevel = preLightData.transparentSSMipLevel;
     
     // Clamp to avoid potential leaks around the edges when the dynamic resolution is set to low and the smoothness too.
-    float2 diffLimit = _ColorPyramidUvScaleAndLimitPrevFrame.xy - _ColorPyramidUvScaleAndLimitPrevFrame.zw;
+    float2 diffLimit = _ColorPyramidUvScaleAndLimitCurrentFrame.xy - _ColorPyramidUvScaleAndLimitCurrentFrame.zw;
     float2 diffLimitMipAdjusted = diffLimit * pow(2.0,2.0 + ceil(abs(mipLevel)));
-    float2 limit = _ColorPyramidUvScaleAndLimitPrevFrame.xy - diffLimitMipAdjusted;
+    float2 limit = _ColorPyramidUvScaleAndLimitCurrentFrame.xy - diffLimitMipAdjusted;
     
     samplingUV.xy = min(samplingUV.xy, limit);
 

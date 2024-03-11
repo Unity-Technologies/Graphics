@@ -607,7 +607,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
-                var cameraPositionCellSpace = m_FrozenCameraPosition / MaxBrickSize() - Vector3.one * 0.5f;
+                var cameraPositionCellSpace = (m_FrozenCameraPosition - ProbeOffset()) / MaxBrickSize() - Vector3.one * 0.5f;
 
                 DynamicArray<Cell> bestUnloadedCells;
                 DynamicArray<Cell> worseLoadedCells;

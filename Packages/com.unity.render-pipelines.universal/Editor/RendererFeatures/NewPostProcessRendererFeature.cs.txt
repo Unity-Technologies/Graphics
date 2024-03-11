@@ -207,7 +207,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
 
             // This allocates our intermediate texture for the non-RG path and makes sure it's reallocated if some settings on the camera target change (e.g. resolution)
             if (kCopyActiveColor)
-                RenderingUtils.ReAllocateIfNeeded(ref m_CopiedColor, GetCopyPassTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor), name: "_CustomPostPassCopyColor");
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_CopiedColor, GetCopyPassTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor), name: "_CustomPostPassCopyColor");
         }
 
         // Here you can implement the rendering logic (non-render graph path only).

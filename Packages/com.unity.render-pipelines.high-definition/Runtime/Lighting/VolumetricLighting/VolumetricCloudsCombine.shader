@@ -13,19 +13,13 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         #pragma fragment Frag
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsDef.cs.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
-        // For refraction sorting, clouds are considered pre-refraction transparents
-        // Atmospheric scattering is computed while tracing
-        #define _TRANSPARENT_REFRACTIVE_SORT
-        #define _ENABLE_FOG_ON_TRANSPARENT
-        #define _BlendMode BLENDINGMODE_ALPHA
+        // Aerial perspective is already applied during cloud tracing
         #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
         TEXTURE2D_X(_CameraColorTexture);
         TEXTURE2D_X(_VolumetricCloudsLightingTexture);
@@ -70,19 +64,23 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
 
             HLSLPROGRAM
 
-            void Frag(Varyings input
-                , out float4 color : SV_Target0
-#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
-                , out float2 fogTranmittance : SV_Target3
-#endif
+            #pragma multi_compile_fragment _ OUTPUT_TRANSMITTANCE_BUFFER
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+
+            void Frag(Varyings input, out float4 color : SV_Target0
+                #if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                , out float2 fogTransmittance : SV_Target3
+                #endif
                 )
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
-                float4 outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
-                float transmittance = outColor.a;
-                outColor.a = 1.0f - outColor.a;
+                color = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                color.a = 1.0f - color.a;
+
+                float transmittance = 1.0f - color.a;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
                 float linearDepth = DecodeInfiniteDepth(deviceDepth, _CloudNearPlane);
@@ -97,14 +95,13 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 // Apply fog
                 float3 volColor, volOpacity;
                 EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+                color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 
-                // Composite the result via hardware blending.
-                color = ApplyFogOnTransparent(outColor, volColor, volOpacity);
-
-#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                // Output transmittance for lens flares
+                #if defined(OUTPUT_TRANSMITTANCE_BUFFER)
                 // channel 1 is used when fog multiple scattering is enabled and we don't want clouds in this opacity (it doesn't work well with water and transparent sorting)
-                fogTranmittance = float2(transmittance, 1);
-#endif
+                fogTransmittance = float2(transmittance, 1);
+                #endif
             }
             ENDHLSL
         }
@@ -255,23 +252,33 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
 
             #pragma multi_compile_fragment _ OUTPUT_TRANSMITTANCE_BUFFER
 
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialBlendModeEnum.cs.hlsl"
+            #define _BlendMode BLENDINGMODE_ALPHA
+
+            // For refraction sorting, clouds are considered pre-refraction transparents
+            #define SUPPORT_WATER_ABSORPTION
+            #define _TRANSPARENT_REFRACTIVE_SORT
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
 
             void Frag(Varyings input
-                , out float4 outColor : SV_Target0
+                , out float4 color : SV_Target0
                 , out float4 outBeforeRefractionColor : SV_Target1
                 , out float4 outBeforeRefractionAlpha : SV_Target2
-#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
-                , out float2 fogTranmittance : SV_Target3
-#endif
+                #if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                , out float2 fogTransmittance : SV_Target3
+                #endif
             )
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
-                outColor = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
-                float transmittance = outColor.a;
-                outColor.a = 1.0f - outColor.a;
+                color = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                color.a = 1.0f - color.a;
+
+                float transmittance = 1.0f - color.a;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
                 float linearDepth = min(DecodeInfiniteDepth(deviceDepth, _CloudNearPlane), _ProjectionParams.z);
@@ -284,15 +291,19 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 posInput.linearDepth = linearDepth;
                 posInput.deviceDepth = saturate(ConvertCloudDepth(positionWS));
 
-                outColor = ComputeFog(posInput, V, outColor);
+                // Apply fog
+                float3 volColor, volOpacity;
+                EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
+                color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 
                 // Sort clouds with refractive objects
-                ComputeRefractionSplitColor(posInput, outColor, outBeforeRefractionColor, outBeforeRefractionAlpha);
+                ComputeRefractionSplitColor(posInput, color, outBeforeRefractionColor, outBeforeRefractionAlpha);
 
-#if defined(OUTPUT_TRANSMITTANCE_BUFFER)
+                // Output transmittance for lens flares
+                #if defined(OUTPUT_TRANSMITTANCE_BUFFER)
                 // channel 1 is used when fog multiple scattering is enabled and we don't want clouds in this opacity (it doesn't work well with water and transparent sorting)
-                fogTranmittance = float2(transmittance, 1);
-#endif
+                fogTransmittance = float2(transmittance, 1);
+                #endif
             }
             ENDHLSL
         }

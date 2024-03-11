@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            RenderingUtils.ReAllocateIfNeeded(ref pass.rendererData.normalsRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_NormalMap");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref pass.rendererData.normalsRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_NormalMap");
             cmd.SetGlobalTexture(pass.rendererData.normalsRenderTarget.name, pass.rendererData.normalsRenderTarget.nameID);
         }
 
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
             descriptor.dimension = TextureDimension.Tex2D;
 
-            RenderingUtils.ReAllocateIfNeeded(ref pass.rendererData.cameraSortingLayerRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraSortingLayerTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref pass.rendererData.cameraSortingLayerRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraSortingLayerTexture");
             cmd.SetGlobalTexture(pass.rendererData.cameraSortingLayerRenderTarget.name, pass.rendererData.cameraSortingLayerRenderTarget.nameID);
         }
 

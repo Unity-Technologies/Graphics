@@ -672,6 +672,7 @@ namespace UnityEngine.Rendering
         bool m_UseStreamingAssets = true;
         float m_MinBrickSize;
         int m_MaxSubdivision;
+        Vector3 m_ProbeOffset;
         ProbeBrickPool m_Pool;
         ProbeBrickIndex m_Index;
         ProbeGlobalIndirection m_CellIndices;
@@ -876,7 +877,7 @@ namespace UnityEngine.Rendering
 
                 m_CurrentBakingSet.Initialize(m_UseStreamingAssets);
                 m_CurrGlobalBounds = m_CurrentBakingSet.globalBounds;
-                SetMinBrickAndMaxSubdiv(bakingSet.minBrickSize, bakingSet.maxSubdivision);
+                SetSubdivisionDimensions(bakingSet.minBrickSize, bakingSet.maxSubdivision, bakingSet.bakedProbeOffset);
 
                 m_NeedsIndexRebuild = true;
             }
@@ -1392,10 +1393,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void SetMinBrickAndMaxSubdiv(float minBrickSize, int maxSubdiv)
+        internal void SetSubdivisionDimensions(float minBrickSize, int maxSubdiv, Vector3 offset)
         {
             m_MinBrickSize = minBrickSize;
             SetMaxSubdivision(maxSubdiv);
+            m_ProbeOffset = offset;
         }
 
         bool LoadCells(List<int> cellIndices)
@@ -1474,7 +1476,7 @@ namespace UnityEngine.Rendering
             Vector3Int sizeOfValidIndicesAtMaxRes = Vector3Int.one;
 
             float entrySize = GetEntrySize();
-            var posWS =  new Vector3(entryInfo.positionInBricks.x , entryInfo.positionInBricks.y, entryInfo.positionInBricks.z) * MinBrickSize();
+            var posWS =  ProbeOffset() + new Vector3(entryInfo.positionInBricks.x , entryInfo.positionInBricks.y, entryInfo.positionInBricks.z) * MinBrickSize();
             Bounds entryBounds = new Bounds();
             entryBounds.min = posWS;
             entryBounds.max = posWS + (Vector3.one * entrySize);
@@ -1640,6 +1642,7 @@ namespace UnityEngine.Rendering
         internal float BrickSize(int subdivisionLevel) => m_MinBrickSize * CellSize(subdivisionLevel);
         internal float MinBrickSize() => m_MinBrickSize;
         internal float MaxBrickSize() => BrickSize(m_MaxSubdivision - 1);
+        internal Vector3 ProbeOffset() => m_ProbeOffset;
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
         internal float GetDistanceBetweenProbes(int subdivisionLevel) => BrickSize(subdivisionLevel) / 3.0f;
@@ -2024,19 +2027,18 @@ namespace UnityEngine.Rendering
             m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int maxEntry);
             var entriesPerCell = m_CellIndices.entriesPerCellDimension;
             var enableSkyOccShadingDir = parameters.skyOcclusionShadingDirection ? 1.0f : 0.0f;
+            var probeOffset = ProbeOffset();
 
             ShaderVariablesProbeVolumes shaderVars;
-            shaderVars._Biases_MinBrickSize_Padding = new Vector4(normalBias, viewBias, MinBrickSize(), 0.0f);
-            shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
-            shaderVars._MinEntryPos_Noise = new Vector4(minEntry.x, minEntry.y, minEntry.z, parameters.samplingNoise); // TODO_FCC! IMPORTANT! RENAME!
-            shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
-            shaderVars._RcpPoolDim_XY = new Vector4(1.0f / poolDim.x, 1.0f / poolDim.y, 1.0f / poolDim.z, 1.0f / (poolDim.x * poolDim.y));
+            shaderVars._Offset_IndirectionEntryDim = new Vector4(probeOffset.x, probeOffset.y, probeOffset.z, GetEntrySize());
             shaderVars._Weight_MinLoadedCellInEntries = new Vector4(parameters.weight, minLoadedCellPos.x * entriesPerCell, minLoadedCellPos.y * entriesPerCell, minLoadedCellPos.z * entriesPerCell);
-            shaderVars._MaxLoadedCellInEntries_FrameIndex = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.frameIndexForNoise);
+            shaderVars._PoolDim_MinBrickSize = new Vector4(poolDim.x, poolDim.y, poolDim.z, MinBrickSize());
+            shaderVars._RcpPoolDim_XY = new Vector4(1.0f / poolDim.x, 1.0f / poolDim.y, 1.0f / poolDim.z, 1.0f / (poolDim.x * poolDim.y));
+            shaderVars._MinEntryPos_Noise = new Vector4(minEntry.x, minEntry.y, minEntry.z, parameters.samplingNoise);
+            shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
+            shaderVars._Biases_NormalizationClamp = new Vector4(normalBias, viewBias, parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp);
             shaderVars._LeakReduction_SkyOcclusion = new Vector4((int)parameters.leakReductionMode, parameters.minValidNormalWeight, parameters.skyOcclusionIntensity, enableSkyOccShadingDir);
-
-            // TODO: Expose this somewhere UX visible? To discuss.
-            shaderVars._NormalizationClamp_IndirectionEntryDim_Padding = new Vector4(parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp, GetEntrySize(), 0.0f);
+            shaderVars._MaxLoadedCellInEntries_FrameIndex = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.frameIndexForNoise);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
@@ -2071,6 +2073,11 @@ namespace UnityEngine.Rendering
                 if (m_CurrentBakingSet != null)
                     m_CurrentBakingSet.Cleanup();
                 m_CurrentBakingSet = null;
+            }
+            else
+            {
+                m_CellIndices?.Cleanup();
+                m_DefragCellIndices?.Cleanup();
             }
 
             ClearDebugData();

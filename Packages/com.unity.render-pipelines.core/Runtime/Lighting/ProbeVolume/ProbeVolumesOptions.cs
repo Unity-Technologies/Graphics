@@ -17,12 +17,18 @@ namespace UnityEngine.Rendering
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public APVLeakReductionModeParameter(APVLeakReductionMode value, bool overrideState = false) : base(value, overrideState) { }
     }
+
     /// <summary>
     /// A volume component that holds settings for the Adaptive Probe Volumes System per-camera options.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Adaptive Probe Volumes Options"), SupportedOnRenderPipeline]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
+        ProbeVolumesOptions()
+        {
+            displayName = "Adaptive Probe Volumes Options";
+        }
+
         /// <summary>
         /// The overridden normal bias to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.
         /// </summary>

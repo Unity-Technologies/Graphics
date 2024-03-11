@@ -86,8 +86,8 @@ internal class ThreeCopyDepths : ScriptableRenderPass
         depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
         depthDesc.depthStencilFormat = cameraTextureDescriptor.depthStencilFormat;
         depthDesc.msaaSamples = 1;
-        RenderingUtils.ReAllocateIfNeeded(ref m_Depth1, depthDesc, name: "CopiedDepth1");
-        RenderingUtils.ReAllocateIfNeeded(ref m_Depth2, depthDesc, name: "CopiedDepth2");
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_Depth1, depthDesc, name: "CopiedDepth1");
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_Depth2, depthDesc, name: "CopiedDepth2");
 
         #pragma warning disable CS0618 // Type or member is obsolete
         m_CopyDepthPass1.Setup(renderer.cameraDepthTargetHandle, m_Depth1);

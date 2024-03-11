@@ -234,6 +234,7 @@ namespace UnityEngine.Rendering
         // Utilities to compute unique probe position hash
         Vector3Int maxBrickCount;
         float inverseScale;
+        Vector3 offset;
 
         public Dictionary<(int, int), float> customDilationThresh = new Dictionary<(int, int), float>();
         public Dictionary<Vector3, Bounds> forceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
@@ -255,11 +256,12 @@ namespace UnityEngine.Rendering
         {
             maxBrickCount = cellCount * ProbeReferenceVolume.CellSize(ProbeReferenceVolume.instance.GetMaxSubdivision());
             inverseScale = ProbeBrickPool.kBrickCellCount / ProbeReferenceVolume.instance.MinBrickSize();
+            offset = ProbeReferenceVolume.instance.ProbeOffset();
         }
 
         public int GetProbePositionHash(Vector3 position)
         {
-            var brickPosition = Vector3Int.RoundToInt(position * inverseScale);
+            var brickPosition = Vector3Int.RoundToInt((position - offset) * inverseScale); // Inverse of op in ConvertBricksToPositions()
             return brickPosition.x + brickPosition.y * maxBrickCount.x + brickPosition.z * maxBrickCount.x * maxBrickCount.y;
         }
 
@@ -270,11 +272,14 @@ namespace UnityEngine.Rendering
     {
         public int simplificationLevels;
         public float minDistanceBetweenProbes;
+        public Vector3 probeOffset;
 
         public int maxSubdivision => ProbeVolumeBakingSet.GetMaxSubdivision(simplificationLevels);
         public float minBrickSize => ProbeVolumeBakingSet.GetMinBrickSize(minDistanceBetweenProbes);
         public int cellSizeInBricks => ProbeVolumeBakingSet.GetCellSizeInBricks(simplificationLevels);
         public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
+
+        public Vector3Int PositionToCell(Vector3 position) => Vector3Int.FloorToInt((position - probeOffset) / cellSizeInMeters);
     }
 
     /// <summary>
@@ -712,6 +717,7 @@ namespace UnityEngine.Rendering
             var result = new ProbeVolumeProfileInfo();
             result.minDistanceBetweenProbes = set.minDistanceBetweenProbes;
             result.simplificationLevels = set.simplificationLevels;
+            result.probeOffset = set.probeOffset;
             return result;
         }
 
@@ -756,7 +762,7 @@ namespace UnityEngine.Rendering
             }
 
             // Get min/max
-            CellCountInDirections(out minCellPosition, out maxCellPosition, m_ProfileInfo.cellSizeInMeters);
+            CellCountInDirections(out minCellPosition, out maxCellPosition, m_ProfileInfo.cellSizeInMeters, m_ProfileInfo.probeOffset);
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
             ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet);
@@ -789,14 +795,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters)
+        static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters, Vector3 worldOffset)
         {
             minCellPositionXYZ = Vector3Int.zero;
             maxCellPositionXYZ = Vector3Int.zero;
 
-            Vector3 center = Vector3.zero;
-            var centeredMin = globalBounds.min - center;
-            var centeredMax = globalBounds.max - center;
+            var centeredMin = globalBounds.min - worldOffset;
+            var centeredMax = globalBounds.max - worldOffset;
 
             minCellPositionXYZ.x = Mathf.FloorToInt(centeredMin.x / cellSizeInMeters);
             minCellPositionXYZ.y = Mathf.FloorToInt(centeredMin.y / cellSizeInMeters);
@@ -1209,7 +1214,7 @@ namespace UnityEngine.Rendering
 
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
             probeRefVolume.PerformPendingOperations();
-            probeRefVolume.SetMinBrickAndMaxSubdiv(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision);
+            probeRefVolume.SetSubdivisionDimensions(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision, m_ProfileInfo.probeOffset);
 
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
@@ -1702,6 +1707,7 @@ namespace UnityEngine.Rendering
             m_BakingSet.cellDescs = new SerializedDictionary<int, CellDesc>();
             m_BakingSet.bakedMinDistanceBetweenProbes = m_ProfileInfo.minDistanceBetweenProbes;
             m_BakingSet.bakedSimplificationLevels = m_ProfileInfo.simplificationLevels;
+            m_BakingSet.bakedProbeOffset = m_ProfileInfo.probeOffset;
             m_BakingSet.bakedSkyOcclusion = m_BakingSet.skyOcclusion;
             m_BakingSet.bakedSkyShadingDirection = m_BakingSet.bakedSkyOcclusion && m_BakingSet.skyOcclusionShadingDirection;
 
@@ -2133,7 +2139,8 @@ namespace UnityEngine.Rendering
             // Overwrite loaded settings with data from profile. Note that the m_BakingSet.profile is already patched up if isFreezingPlacement
             float prevBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
             int prevMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
-            ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision);
+            Vector3 prevOffset = ProbeReferenceVolume.instance.ProbeOffset();
+            ProbeReferenceVolume.instance.SetSubdivisionDimensions(m_ProfileInfo.minBrickSize, m_ProfileInfo.maxSubdivision, m_ProfileInfo.probeOffset);
 
             // All probes need to be baked only once for the whole batch and not once per cell
             // The reason is that the baker is not deterministic so the same probe position baked in two different cells may have different values causing seams artefacts.
@@ -2150,7 +2157,7 @@ namespace UnityEngine.Rendering
                 positions = ApplySubdivisionResults(result, jobs);
 
             // Restore loaded asset settings
-            ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(prevBrickSize, prevMaxSubdiv);
+            ProbeReferenceVolume.instance.SetSubdivisionDimensions(prevBrickSize, prevMaxSubdiv, prevOffset);
 
             return positions;
         }
@@ -2271,6 +2278,7 @@ namespace UnityEngine.Rendering
         {
             m_ProfileInfo.simplificationLevels = bakingSet.bakedSimplificationLevels;
             m_ProfileInfo.minDistanceBetweenProbes = bakingSet.bakedMinDistanceBetweenProbes;
+            m_ProfileInfo.probeOffset = bakingSet.bakedProbeOffset;
             globalBounds = bakingSet.globalBounds;
         }
 
@@ -2279,6 +2287,7 @@ namespace UnityEngine.Rendering
         {
             int posIdx = 0;
             float scale = ProbeReferenceVolume.instance.MinBrickSize() / ProbeBrickPool.kBrickCellCount;
+            Vector3 offset = ProbeReferenceVolume.instance.ProbeOffset();
 
             outProbePositions = new Vector3[bricks.Length * ProbeBrickPool.kBrickProbeCountTotal];
             outBrickSubdiv = new int[bricks.Length * ProbeBrickPool.kBrickProbeCountTotal];
@@ -2296,7 +2305,7 @@ namespace UnityEngine.Rendering
                         {
                             var probeOffset = brickOffset + new Vector3Int(x, y, z) * brickSize;
 
-                            outProbePositions[posIdx] = (Vector3)probeOffset * scale;
+                            outProbePositions[posIdx] = offset + (Vector3)probeOffset * scale;
                             outBrickSubdiv[posIdx] = b.subdivisionLevel;
 
                             posIdx++;

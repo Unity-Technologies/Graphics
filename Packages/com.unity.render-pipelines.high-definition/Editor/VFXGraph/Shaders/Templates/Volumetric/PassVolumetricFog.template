@@ -76,7 +76,7 @@ VertexToFragment Vert(vs_input i)
 
     ${VFXInitInstancing}
 
-    ContextData contextData = instancingContextData[instanceActiveIndex];
+	${VFXLoadContextData}
     uint systemSeed = contextData.systemSeed;
     uint nbMax = contextData.maxParticleCount;
 

@@ -813,14 +813,10 @@ namespace UnityEngine.Rendering.Tests
                 var renderersParameters = new RenderersParameters(instanceBuffer);
 
                 var instances = new NativeArray<GPUInstanceIndex>(meshInstancesCount, Allocator.TempJob);
-                var lightmapTextureIndices = new NativeArray<Vector4>(meshInstancesCount, Allocator.TempJob);
                 var lightmapScaleOffsets = new NativeArray<Vector4>(meshInstancesCount, Allocator.TempJob);
 
                 for (int i = 0; i < meshInstancesCount; ++i)
                     instances[i] = new GPUInstanceIndex { index = i };
-
-                for (int i = 0; i < meshInstancesCount; ++i)
-                    lightmapTextureIndices[i] = new Vector4(16 + i, 0.0f, 0.0f, 0.0f);
 
                 for (int i = 0; i < meshInstancesCount; ++i)
                     lightmapScaleOffsets[i] = Vector4.one * i;
@@ -828,8 +824,6 @@ namespace UnityEngine.Rendering.Tests
                 using (var instanceUploader0 = new GPUInstanceDataBufferUploader(instanceBuffer.descriptions, meshInstancesCount, InstanceType.MeshRenderer))
                 {
                     instanceUploader0.AllocateUploadHandles(instances.Length);
-
-                    instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapIndex.index, lightmapTextureIndices).Complete();
                     instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapScale.index, lightmapScaleOffsets).Complete();
                     instanceUploader0.SubmitToGpu(instanceBuffer, instances, ref gpuResources, submitOnlyWrittenParams: false);
                 }
@@ -840,17 +834,13 @@ namespace UnityEngine.Rendering.Tests
                     {
                         for (int i = 0; i < meshInstancesCount; ++i)
                         {
-                            var lightmapIndex = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapIndex);
                             var lightmapScaleOffset = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapST);
-
-                            Assert.AreEqual(lightmapIndex, lightmapTextureIndices[i]);
                             Assert.AreEqual(lightmapScaleOffset, lightmapScaleOffsets[i]);
                         }
                     }
                 }
 
                 instances.Dispose();
-                lightmapTextureIndices.Dispose();
                 lightmapScaleOffsets.Dispose();
             }
             gpuResources.Dispose();
@@ -879,16 +869,11 @@ namespace UnityEngine.Rendering.Tests
                     instances[i] = new GPUInstanceIndex {  index = i };
 
                 for (int i = 0; i < meshInstancesCount; ++i)
-                    lightmapTextureIndices[i] = new Vector4(16 + i, 0.0f, 0.0f, 0.0f);
-
-                for (int i = 0; i < meshInstancesCount; ++i)
                     lightmapScaleOffsets[i] = Vector4.one * i;
 
                 using (var instanceUploader0 = new GPUInstanceDataBufferUploader(instanceBuffer.descriptions, meshInstancesCount, InstanceType.MeshRenderer))
                 {
                     instanceUploader0.AllocateUploadHandles(instances.Length);
-
-                    instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapIndex.index, lightmapTextureIndices).Complete();
                     instanceUploader0.WriteInstanceDataJob(renderersParameters.lightmapScale.index, lightmapScaleOffsets).Complete();
                     instanceUploader0.SubmitToGpu(instanceBuffer, instances, ref uploadResources, submitOnlyWrittenParams: false);
                 }
@@ -903,10 +888,7 @@ namespace UnityEngine.Rendering.Tests
                     {
                         for (int i = 0; i < meshInstancesCount; ++i)
                         {
-                            var lightmapIndex = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapIndex);
                             var lightmapScaleOffset = readbackData.LoadData<Vector4>(instances[i], RenderersParameters.ParamNames.unity_LightmapST);
-
-                            Assert.AreEqual(lightmapIndex, lightmapTextureIndices[i]);
                             Assert.AreEqual(lightmapScaleOffset, lightmapScaleOffsets[i]);
                         }
                     }

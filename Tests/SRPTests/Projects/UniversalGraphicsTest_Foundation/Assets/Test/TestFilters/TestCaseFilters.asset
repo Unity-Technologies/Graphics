@@ -1135,3 +1135,17 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: UUM-63904
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 6af2d4855bc732f4e8a31d30c7497443, type: 3}
+    - {fileID: 102900000, guid: 344b79050ac6a794caaa31172951f6f8, type: 3}
+    - {fileID: 102900000, guid: 0f9d67b5613ce4515969b745f7c08c5f, type: 3}
+    - {fileID: 102900000, guid: fb387644a13c2e24fa78a278d02aaad2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: 

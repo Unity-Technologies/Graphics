@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 string viewWS = $"IN.{CoordinateSpace.World.ToVariableName(InterpolatorType.ViewDirection)}";
                 string faceSign = $"IN.{StructFields.SurfaceDescriptionInputs.FaceSign.name}";
 
-                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}.xy, {2}, {3}, {4}, {5}, false, _WaterUpDirection.xyz, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, absorptionTint);",
+                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}.xy, {2}, {3}, {4}, {5}, false, _WaterUpDirection.xyz, _MaxRefractionDistance, _WaterExtinction.xyz, refractedPos, distordedNDC, absorptionTint);",
                     positionWS,
                     screenPos,
                     viewWS,

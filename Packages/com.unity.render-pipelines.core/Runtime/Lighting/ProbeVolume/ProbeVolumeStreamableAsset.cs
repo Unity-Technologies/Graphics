@@ -45,17 +45,20 @@ namespace UnityEngine.Rendering
             m_StreamableAssetPath = Path.Combine(Path.Combine(apvStreamingAssetsPath, bakingSetGUID), m_AssetGUID + ".bytes");
         }
 
+        internal void RefreshAssetPath()
+        {
+#if UNITY_EDITOR
+            m_FinalAssetPath = AssetDatabase.GUIDToAssetPath(m_AssetGUID);
+#else
+            m_FinalAssetPath = Path.Combine(Application.streamingAssetsPath, m_StreamableAssetPath);
+#endif
+        }
+
         public string GetAssetPath()
         {
             // Avoid GCAlloc every frame this is called.
             if (string.IsNullOrEmpty(m_FinalAssetPath))
-            {
-#if UNITY_EDITOR
-                m_FinalAssetPath = AssetDatabase.GUIDToAssetPath(m_AssetGUID);
-#else
-                m_FinalAssetPath = Path.Combine(Application.streamingAssetsPath, m_StreamableAssetPath);
-#endif
-            }
+                RefreshAssetPath();
 
             return m_FinalAssetPath;
         }
@@ -63,6 +66,10 @@ namespace UnityEngine.Rendering
         unsafe public bool FileExists()
         {
 #if UNITY_EDITOR
+            if (File.Exists(GetAssetPath()))
+                return true;
+            // File may not exist if it was moved, refresh path in this case
+            RefreshAssetPath();
             return File.Exists(GetAssetPath());
 #else
             // When not using streaming assets, this reference should always be valid.

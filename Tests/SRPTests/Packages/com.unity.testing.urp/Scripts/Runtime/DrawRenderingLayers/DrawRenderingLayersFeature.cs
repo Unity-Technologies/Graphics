@@ -199,7 +199,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         desc.msaaSamples = 1;
         desc.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB;
         desc.depthBufferBits = 0;
-        RenderingUtils.ReAllocateIfNeeded(ref m_ColoredRenderingLayersTextureHandle, desc, name: "_ColoredRenderingLayersTexture");
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_ColoredRenderingLayersTextureHandle, desc, name: "_ColoredRenderingLayersTexture");
 
         m_DrawRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle, m_Material);
         renderer.EnqueuePass(m_DrawRenderingLayerPass);

@@ -211,15 +211,28 @@ namespace UnityEditor.ShaderAnalysis
 
                             if (!unit.compiledFile.Exists)
                             {
+                                int start = 0, end = 0;
+                                var log = job.Key.errors;
+                                while (end != -1 && end < log.Length)
+                                {
+                                    end = log.IndexOf("^~", start);
+                                    if (end == -1) break;
+                                    end = log.IndexOf('\n', end);
+
+                                    var entry = (end == -1 ? log.Substring(start) : log.Substring(start, end - start)).Trim();
+                                    start = end;
+
+                                    Debug.LogFormat(entry.Contains("warning") ? LogType.Warning : LogType.Error, LogOption.NoStacktrace, null, "{0}", entry);
+                                }
+
                                 if (throwOnError)
                                 {
                                     progress.Fail();
-                                    throw new Exception(
-                                        $"Failed to compile {unit.sourceCodeFile}, relaunching compile job, reason: {job.Key.errors}");
+                                    throw new Exception($"Failed to compile {unit.sourceCodeFile}, aborting");
                                 }
 
                                 if (unit.sourceCodeFile != null && job.Key.errors != null)
-                                    Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);
+                                    Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job", unit.sourceCodeFile);
                                 var retryJob = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                                 m_CompileJobMap[retryJob] = job.Value;
                                 compiled = false;

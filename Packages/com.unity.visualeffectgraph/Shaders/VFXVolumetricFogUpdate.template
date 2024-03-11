@@ -71,7 +71,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
     ${VFXInitInstancingCompute}
 
-    ContextData contextData = instancingContextData[instanceActiveIndex];
+    ${VFXLoadContextData}
     uint systemSeed = contextData.systemSeed;
     uint maxParticleCount = contextData.maxParticleCount;
     uint threadIdInGroup = groupThreadId.x;

@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering
 
         static partial class Names
         {
+            public const string kPanelContainer = "panel-container";
             public const string kResourceListFoldout = "panel-resource-list";
             public const string kPassListFoldout = "panel-pass-list";
             public const string kResourceSearchField = "resource-search-field";
@@ -40,18 +41,31 @@ namespace UnityEditor.Rendering
         const string k_SelectionColorBeginTag = "<mark=#3169ACAB>";
         const string k_SelectionColorEndTag = "</mark>";
 
+        TwoPaneSplitView m_SidePanelSplitView;
         bool m_ResourceListExpanded = true;
         bool m_PassListExpanded = true;
+        float m_SidePanelVerticalAspectRatio = 0.5f;
+        float m_SidePanelFixedPaneHeight = 0;
 
         Dictionary<VisualElement, List<TextElement>> m_ResourceDescendantCache = new ();
         Dictionary<VisualElement, List<TextElement>> m_PassDescendantCache = new ();
 
         void InitializeSidePanel()
         {
+            m_SidePanelSplitView = rootVisualElement.Q<TwoPaneSplitView>(Names.kPanelContainer);
+            rootVisualElement.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                SaveSplitViewFixedPaneHeight(); // Window resized - save the current pane height
+                UpdatePanelHeights();
+            });
+
             // Callbacks for dynamic height allocation between resource & pass lists
             HeaderFoldout resourceListFoldout = rootVisualElement.Q<HeaderFoldout>(Names.kResourceListFoldout);
             resourceListFoldout.RegisterValueChangedCallback(evt =>
             {
+                if (m_ResourceListExpanded)
+                    SaveSplitViewFixedPaneHeight(); // Closing the foldout - save the current pane height
+
                 m_ResourceListExpanded = resourceListFoldout.value;
                 UpdatePanelHeights();
             });
@@ -61,6 +75,9 @@ namespace UnityEditor.Rendering
             HeaderFoldout passListFoldout = rootVisualElement.Q<HeaderFoldout>(Names.kPassListFoldout);
             passListFoldout.RegisterValueChangedCallback(evt =>
             {
+                if (m_PassListExpanded)
+                    SaveSplitViewFixedPaneHeight(); // Closing the foldout - save the current pane height
+
                 m_PassListExpanded = passListFoldout.value;
                 UpdatePanelHeights();
             });
@@ -247,8 +264,9 @@ namespace UnityEditor.Rendering
                 }
 
                 var passItem = new Foldout();
-                passItem.text = string.Join(", ", passNames);
-                passItem.Q<Toggle>().tooltip = passItem.text;
+                var passesText = string.Join(", ", passNames);
+                passItem.text = $"<b>{passesText}</b>";
+                passItem.Q<Toggle>().tooltip = passesText;
                 passItem.value = false;
                 passItem.userData = m_PassIdToVisiblePassIndex[visiblePassElement.passId];
                 passItem.AddToClassList(Classes.kPanelListItem);
@@ -270,71 +288,75 @@ namespace UnityEditor.Rendering
                 }
                 else
                 {
+                    CreateTextElement(passItem, "Pass break reasoning", Classes.kSubHeaderText);
                     var msg = $"This is a {k_PassTypeNames[(int) firstPassData.type]}. Only Raster Render Passes can be merged.";
                     msg = msg.Replace("a Unsafe", "an Unsafe");
                     CreateTextElement(passItem, msg);
                 }
 
-                CreateTextElement(passItem, "Render Graph Pass Info", Classes.kSubHeaderText);
-                foreach (int passId in groupedPassIds)
+                if (nativePassInfo != null)
                 {
-                    var pass = m_CurrentDebugData.passList[passId];
-                    Debug.Assert(pass.nrpInfo != null); // This overlay currently assumes NRP compiler
-                    var passFoldout = new Foldout();
-                    passFoldout.text = $"{pass.name} ({k_PassTypeNames[(int) pass.type]})";
-                    passFoldout.AddToClassList(Classes.kAttachmentInfoItem);
-                    passFoldout.AddToClassList(Classes.kCustomFoldoutArrow);
-                    passFoldout.Q<Toggle>().tooltip = passFoldout.text;
-
-                    var foldoutCheckmark = passFoldout.Q("unity-checkmark");
-                    foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
-
-                    var lineBreak = new VisualElement();
-                    lineBreak.AddToClassList(Classes.kPanelListLineBreak);
-                    passFoldout.Add(lineBreak);
-
-                    CreateTextElement(passFoldout,
-                        $"Attachment dimensions: {pass.nrpInfo.width}x{pass.nrpInfo.height}x{pass.nrpInfo.volumeDepth}");
-                    CreateTextElement(passFoldout, $"Has depth attachment: {pass.nrpInfo.hasDepth}");
-                    CreateTextElement(passFoldout, $"MSAA samples: {pass.nrpInfo.samples}");
-                    CreateTextElement(passFoldout, $"Async compute: {pass.async}");
-
-                    passItem.Add(passFoldout);
-                }
-
-                CreateTextElement(passItem, "Attachment Load/Store Actions", Classes.kSubHeaderText);
-                if (nativePassInfo != null && nativePassInfo.attachmentInfos.Count > 0)
-                {
-                    foreach (var attachmentInfo in nativePassInfo.attachmentInfos)
+                    CreateTextElement(passItem, "Render Graph Pass Info", Classes.kSubHeaderText);
+                    foreach (int passId in groupedPassIds)
                     {
-                        var attachmentFoldout = new Foldout();
-                        attachmentFoldout.text = attachmentInfo.resourceName;
-                        attachmentFoldout.AddToClassList(Classes.kAttachmentInfoItem);
-                        attachmentFoldout.AddToClassList(Classes.kCustomFoldoutArrow);
-                        attachmentFoldout.Q<Toggle>().tooltip = attachmentFoldout.text;
+                        var pass = m_CurrentDebugData.passList[passId];
+                        Debug.Assert(pass.nrpInfo != null); // This overlay currently assumes NRP compiler
+                        var passFoldout = new Foldout();
+                        passFoldout.text = $"{pass.name} ({k_PassTypeNames[(int) pass.type]})";
+                        passFoldout.AddToClassList(Classes.kAttachmentInfoItem);
+                        passFoldout.AddToClassList(Classes.kCustomFoldoutArrow);
+                        passFoldout.Q<Toggle>().tooltip = passFoldout.text;
 
-                        var foldoutCheckmark = attachmentFoldout.Q("unity-checkmark");
+                        var foldoutCheckmark = passFoldout.Q("unity-checkmark");
                         foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
 
                         var lineBreak = new VisualElement();
                         lineBreak.AddToClassList(Classes.kPanelListLineBreak);
-                        attachmentFoldout.Add(lineBreak);
+                        passFoldout.Add(lineBreak);
 
-                        attachmentFoldout.Add(new TextElement
-                        {
-                            text = $"<b>Load action:</b> {attachmentInfo.loadAction} ({attachmentInfo.loadReason})"
-                        });
-                        attachmentFoldout.Add(new TextElement
-                        {
-                            text = $"<b>Store action:</b> {attachmentInfo.storeAction} ({attachmentInfo.storeReason})"
-                        });
+                        CreateTextElement(passFoldout,
+                            $"Attachment dimensions: {pass.nrpInfo.width}x{pass.nrpInfo.height}x{pass.nrpInfo.volumeDepth}");
+                        CreateTextElement(passFoldout, $"Has depth attachment: {pass.nrpInfo.hasDepth}");
+                        CreateTextElement(passFoldout, $"MSAA samples: {pass.nrpInfo.samples}");
+                        CreateTextElement(passFoldout, $"Async compute: {pass.async}");
 
-                        passItem.Add(attachmentFoldout);
+                        passItem.Add(passFoldout);
                     }
-                }
-                else
-                {
-                    CreateTextElement(passItem, "No attachments.");
+
+                    CreateTextElement(passItem, "Attachment Load/Store Actions", Classes.kSubHeaderText);
+                    if (nativePassInfo != null && nativePassInfo.attachmentInfos.Count > 0)
+                    {
+                        foreach (var attachmentInfo in nativePassInfo.attachmentInfos)
+                        {
+                            var attachmentFoldout = new Foldout();
+                            attachmentFoldout.text = attachmentInfo.resourceName;
+                            attachmentFoldout.AddToClassList(Classes.kAttachmentInfoItem);
+                            attachmentFoldout.AddToClassList(Classes.kCustomFoldoutArrow);
+                            attachmentFoldout.Q<Toggle>().tooltip = attachmentFoldout.text;
+
+                            var foldoutCheckmark = attachmentFoldout.Q("unity-checkmark");
+                            foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
+
+                            var lineBreak = new VisualElement();
+                            lineBreak.AddToClassList(Classes.kPanelListLineBreak);
+                            attachmentFoldout.Add(lineBreak);
+
+                            attachmentFoldout.Add(new TextElement
+                            {
+                                text = $"<b>Load action:</b> {attachmentInfo.loadAction} ({attachmentInfo.loadReason})"
+                            });
+                            attachmentFoldout.Add(new TextElement
+                            {
+                                text = $"<b>Store action:</b> {attachmentInfo.storeAction} ({attachmentInfo.storeReason})"
+                            });
+
+                            passItem.Add(attachmentFoldout);
+                        }
+                    }
+                    else
+                    {
+                        CreateTextElement(passItem, "No attachments.");
+                    }
                 }
 
                 content.Add(passItem);
@@ -343,32 +365,48 @@ namespace UnityEditor.Rendering
             }
         }
 
+        void SaveSplitViewFixedPaneHeight()
+        {
+            m_SidePanelFixedPaneHeight = m_SidePanelSplitView.fixedPane?.resolvedStyle?.height ?? 0;
+        }
+
         void UpdatePanelHeights()
         {
-            HeaderFoldout resourceListFoldout = rootVisualElement.Q<HeaderFoldout>(Names.kResourceListFoldout);
-            HeaderFoldout passListFoldout = rootVisualElement.Q<HeaderFoldout>(Names.kPassListFoldout);
-
             bool passListExpanded = m_PassListExpanded && (m_CurrentDebugData != null && m_CurrentDebugData.isNRPCompiler);
             const int kFoldoutHeaderHeightPx = 18;
-            if (m_ResourceListExpanded && !passListExpanded)
+            const int kWindowExtraMarginPx = 6;
+
+            float panelHeightPx = focusedWindow.position.height - kHeaderContainerHeightPx - kWindowExtraMarginPx;
+            if (!m_ResourceListExpanded)
             {
-                resourceListFoldout.style.maxHeight = Length.Percent(100);
-                passListFoldout.style.maxHeight = kFoldoutHeaderHeightPx;
+                m_SidePanelSplitView.fixedPaneInitialDimension = kFoldoutHeaderHeightPx;
             }
-            else if (!m_ResourceListExpanded && passListExpanded)
+            else if (!passListExpanded)
             {
-                resourceListFoldout.style.maxHeight = kFoldoutHeaderHeightPx;
-                passListFoldout.style.maxHeight = Length.Percent(100);
-            }
-            else if (m_ResourceListExpanded && passListExpanded)
-            {
-                resourceListFoldout.style.maxHeight = Length.Percent(50);
-                passListFoldout.style.maxHeight = Length.Percent(50);
+                m_SidePanelSplitView.fixedPaneInitialDimension = panelHeightPx - kFoldoutHeaderHeightPx;
             }
             else
             {
-                resourceListFoldout.style.maxHeight = kFoldoutHeaderHeightPx;
-                passListFoldout.style.maxHeight = kFoldoutHeaderHeightPx;
+                // Update aspect ratio in case user has dragged the split view
+                if (m_SidePanelFixedPaneHeight > kFoldoutHeaderHeightPx && m_SidePanelFixedPaneHeight < panelHeightPx - kFoldoutHeaderHeightPx)
+                {
+                    m_SidePanelVerticalAspectRatio = m_SidePanelFixedPaneHeight / panelHeightPx;
+                }
+                m_SidePanelSplitView.fixedPaneInitialDimension = panelHeightPx * m_SidePanelVerticalAspectRatio;
+            }
+
+            // Disable drag line when one of the foldouts is collapsed
+            var dragLine = m_SidePanelSplitView.Q("unity-dragline");
+            var dragLineAnchor = m_SidePanelSplitView.Q("unity-dragline-anchor");
+            if (!m_ResourceListExpanded || !passListExpanded)
+            {
+                dragLine.pickingMode = PickingMode.Ignore;
+                dragLineAnchor.pickingMode = PickingMode.Ignore;
+            }
+            else
+            {
+                dragLine.pickingMode = PickingMode.Position;
+                dragLineAnchor.pickingMode = PickingMode.Position;
             }
         }
 

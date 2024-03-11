@@ -23,7 +23,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         var target = renderingData.cameraData.renderer.cameraColorTargetHandle;
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
         descriptor.depthBufferBits = 0;
-        RenderingUtils.ReAllocateIfNeeded(ref m_TempTex, descriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_TempTex");
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_TempTex, descriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_TempTex");
 
         var cmd = CommandBufferPool.Get(k_CommandBufferName);
 

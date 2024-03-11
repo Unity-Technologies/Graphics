@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering
 
             internal static readonly GUIContent s_Mode = new GUIContent("Mode", "Choose which type of adjustment to apply to probes covered by this volume.");
             internal static readonly GUIContent s_DilationThreshold = new GUIContent("Dilation Validity Threshold", "Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
+            internal static readonly GUIContent virtualOffsetThreshold = new GUIContent("Validity Threshold", "Override the Virtual Offset Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
             internal static readonly GUIContent s_VODirection = new GUIContent("Direction", "Rotate the axis along which probes will be pushed when applying Virtual Offset.");
             internal static readonly GUIContent s_VODistance = new GUIContent("Distance", "Determines how far probes are pushed in the direction of the Virtual Offset.");
             internal static readonly GUIContent s_PreviewLighting = new GUIContent("Preview Probe Adjustments", "Quickly preview the effect of adjustments on probes covered by this volume.");
@@ -175,6 +176,7 @@ namespace UnityEditor.Rendering
                 else if (serialized.mode.intValue == (int)ProbeAdjustmentVolume.Mode.OverrideVirtualOffsetSettings)
                 {
                     EditorGUI.BeginDisabledGroup(!useVirtualOffset);
+                    EditorGUILayout.PropertyField(serialized.virtualOffsetThreshold, Styles.virtualOffsetThreshold);
                     EditorGUILayout.PropertyField(serialized.geometryBias);
                     EditorGUILayout.PropertyField(serialized.rayOriginBias);
                     EditorGUI.EndDisabledGroup();

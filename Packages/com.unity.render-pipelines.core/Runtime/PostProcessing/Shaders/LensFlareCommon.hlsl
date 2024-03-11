@@ -42,22 +42,8 @@ SAMPLER(sampler_FlareOcclusionTex);
 #ifdef HDRP_FLARE
 uint _FlareOcclusionPermutation;
 
-TEXTURE2D_X_UINT2(_StencilTexture);
-SAMPLER(sampler_StencilTexture);
-
-TEXTURE2D_X(_DepthWithWaterTexture);
-SAMPLER(sampler_DepthWithWaterTexture);
-
 TEXTURE2D_X(_FlareSunOcclusionTex);
 SAMPLER(sampler_FlareSunOcclusionTex);
-
-// Copy-paste from:
-//  Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs
-//  Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl
-#define STENCILUSAGE_WATER_SURFACE (32)
-
-TEXTURE2D_X(_FlareWaterGBuffer3Thickness);
-SAMPLER(sampler_FlareWaterGBuffer3Thickness);
 #endif
 
 float4 _FlareColorValue;
@@ -144,17 +130,11 @@ float GetLinearDepthValue(float2 uv)
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
     if (_ViewId >= 0)
     {
-        if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
-            depth = LOAD_TEXTURE2D_ARRAY_LOD(_DepthWithWaterTexture, uint2(uv * _ScreenSize.xy), _ViewId, 0).x;
-        else
-            depth = LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), _ViewId, 0).x;
+        depth = LOAD_TEXTURE2D_ARRAY_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), _ViewId, 0).x;
     }
     else
     {
-        if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
-            depth = LOAD_TEXTURE2D_X_LOD(_DepthWithWaterTexture, uint2(uv * _ScreenSize.xy), 0).x;
-        else
-            depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
+        depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).x;
     }
 
 #else
@@ -218,26 +198,6 @@ float GetOcclusion(float ratio)
                     else
                         fogOcclusion = SAMPLE_TEXTURE2D_X_LOD(_FlareSunOcclusionTex, sampler_FlareSunOcclusionTex, pos * _RTHandleScale.xy, 0).x;
                     occlusionValue *= saturate(fogOcclusion);
-                }
-
-                if ((_FlareOcclusionPermutation & LENSFLAREOCCLUSIONPERMUTATION_WATER) != 0)
-                {
-                    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, uint2(pos * _ScreenParams.xy)));
-                    if ((stencilValue & STENCILUSAGE_WATER_SURFACE) != 0)
-                    {
-                        float2 waterGBufferData;
-                        if (_ViewId >= 0)
-                            waterGBufferData = LOAD_TEXTURE2D_ARRAY(_FlareWaterGBuffer3Thickness, uint2(pos.xy * _ScreenParams.xy), _ViewId).xy;
-                        else
-                            waterGBufferData = LOAD_TEXTURE2D_X(_FlareWaterGBuffer3Thickness, uint2(pos.xy * _ScreenParams.xy)).xy;
-
-                        // Copy pasted from HDRP, cf. Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Water/Water.hlsl
-                        uint upper16Bits = ((uint)(waterGBufferData.x * 255.0f)) << 8 | ((uint)(waterGBufferData.y * 255.0f));
-                        float opticalThickness = f16tof32(upper16Bits);
-                        //
-
-                        occlusionValue *= saturate(opticalThickness);
-                    }
                 }
 #endif
 

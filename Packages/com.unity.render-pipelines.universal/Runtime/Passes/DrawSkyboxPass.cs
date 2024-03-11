@@ -12,9 +12,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class DrawSkyboxPass : ScriptableRenderPass
     {
-        private PassData m_PassData;
-        private RendererList m_SkyRendererList;
-
         static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
 
         /// <summary>
@@ -27,7 +24,6 @@ namespace UnityEngine.Rendering.Universal
             base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
 
             renderPassEvent = evt;
-            m_PassData = new PassData();
         }
 
         /// <inheritdoc/>
@@ -46,9 +42,66 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            InitSkyboxRendererList(context, cameraData);
-            InitPassData(ref m_PassData, cameraData.xr);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData.xr, m_PassData.skyRendererList);
+            var skyRendererList = CreateSkyboxRendererList(context, cameraData);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData.xr, skyRendererList);
+        }
+
+        // For non-RG path
+        private RendererList CreateSkyboxRendererList(ScriptableRenderContext context, UniversalCameraData cameraData)
+        {
+            var skyRendererList = new RendererList();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                // Setup Legacy XR buffer states
+                if (cameraData.xr.singlePassEnabled)
+                {
+                    skyRendererList = context.CreateSkyboxRendererList(cameraData.camera,
+                        cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0),
+                        cameraData.GetProjectionMatrix(1), cameraData.GetViewMatrix(1));
+                }
+                else
+                {
+                    skyRendererList = context.CreateSkyboxRendererList(cameraData.camera, cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0));
+                }
+            }
+            else
+#endif
+            {
+                skyRendererList = context.CreateSkyboxRendererList(cameraData.camera);
+            }
+
+            return skyRendererList;
+        }
+
+        // For RG path
+        private RendererListHandle CreateSkyBoxRendererList(RenderGraph renderGraph, UniversalCameraData cameraData)
+        {
+            var skyRendererListHandle = new RendererListHandle();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                // Setup Legacy XR buffer states
+                if (cameraData.xr.singlePassEnabled)
+                {
+                    skyRendererListHandle = renderGraph.CreateSkyboxRendererList(cameraData.camera,
+                        cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0),
+                        cameraData.GetProjectionMatrix(1), cameraData.GetViewMatrix(1));
+                }
+                else
+                {
+                    skyRendererListHandle = renderGraph.CreateSkyboxRendererList(cameraData.camera, cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0));
+                }
+            }
+            else
+#endif
+            {
+                skyRendererListHandle = renderGraph.CreateSkyboxRendererList(cameraData.camera);
+            }
+
+            return skyRendererListHandle;
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, XRPass xr, RendererList rendererList)
@@ -65,40 +118,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        // All the rest below is Render Graph specific
         private class PassData
         {
             internal XRPass xr;
-            internal RendererList skyRendererList;
+            internal RendererListHandle skyRendererListHandle;
         }
 
-        private void InitPassData(ref PassData passData, XRPass xr)
+        private void InitPassData(ref PassData passData, in XRPass xr, in RendererListHandle handle)
         {
             passData.xr = xr;
-            passData.skyRendererList = m_SkyRendererList;
-        }
-
-        private void InitSkyboxRendererList(ScriptableRenderContext context, UniversalCameraData cameraData)
-        {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-            {
-                // Setup Legacy XR buffer states
-                if (cameraData.xr.singlePassEnabled)
-                {
-                    m_SkyRendererList = context.CreateSkyboxRendererList(cameraData.camera,
-                        cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0),
-                        cameraData.GetProjectionMatrix(1), cameraData.GetViewMatrix(1));
-                }
-                else
-                {
-                    m_SkyRendererList = context.CreateSkyboxRendererList(cameraData.camera, cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0));
-                }
-            }
-            else
-#endif
-            {
-                m_SkyRendererList = context.CreateSkyboxRendererList(cameraData.camera);
-            }
+            passData.skyRendererListHandle = handle;
         }
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, bool hasDepthCopy = false)
@@ -120,8 +150,9 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Skybox Pass", out var passData,
                 base.profilingSampler))
             {
-                InitSkyboxRendererList(context, cameraData);
-                InitPassData(ref passData, cameraData.xr);
+                var skyRendererListHandle = CreateSkyBoxRendererList(renderGraph, cameraData);
+                InitPassData(ref passData, cameraData.xr, skyRendererListHandle);
+                builder.UseRendererList(skyRendererListHandle);
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
 
@@ -139,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data.xr, data.skyRendererList);
+                    ExecutePass(context.cmd, data.xr, data.skyRendererListHandle);
                 });
             }
         }

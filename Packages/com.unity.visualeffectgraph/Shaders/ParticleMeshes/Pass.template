@@ -41,7 +41,7 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	${VFXInitInstancing}
 	${VFXLoadGraphValues}
 
-	ContextData contextData = instancingContextData[instanceActiveIndex];
+	${VFXLoadContextData}
 	uint systemSeed = contextData.systemSeed;
 	uint nbMax = contextData.maxParticleCount;
 
@@ -93,7 +93,8 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 
 	float3 normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));
 	#ifdef VFX_VARYING_NORMAL
-	o.VFX_VARYING_NORMAL = normalWS;
+	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
+	o.VFX_VARYING_NORMAL = normalFlip * normalWS;
 	#endif
 	#ifdef VFX_VARYING_TANGENT
 	o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);

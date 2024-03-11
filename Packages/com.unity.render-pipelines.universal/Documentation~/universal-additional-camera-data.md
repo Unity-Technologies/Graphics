@@ -9,11 +9,15 @@ If you don't use scripts to control and customise URP, you do not need to do any
 If you do use scripts to control and customise URP, you can access a Camera's Universal Additional Camera Data component in a script like this:
 
 ```c#
-var cameraData = camera.GetUniversalAdditionalCameraData();
+UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
 ```
+
+> [!NOTE]
+> To use the `GetUniversalAdditionalCameraData()` method you must use the `UnityEngine.Rendering.Universal` namespace. To do this, add the following statement at the top of your script: `using UnityEngine.Rendering.Universal;`.
 
 For more information, refer to the [UniversalAdditionalCameraData API](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData).
 
 If you need to access the Universal Additional Camera Data component frequently in a script, you should cache the reference to it to avoid unnecessary CPU work.
 
-> **Note**: When a Camera uses a Preset, only a subset of properties are supported. Unsupported properties are hidden.
+> [!NOTE]
+> When a Camera uses a Preset, only a subset of properties are supported. Unsupported properties are hidden.

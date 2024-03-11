@@ -10,10 +10,6 @@ using Unity.Profiling;
 using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 
-#if UNITY_EDITOR
-using UnityEditor.Sprites;
-#endif
-
 namespace UnityEngine.Rendering
 {
     internal partial class InstanceDataSystem : IDisposable
@@ -799,18 +795,25 @@ namespace UnityEngine.Rendering
 
                     for (int i = 0; i < instancesCount; ++i)
                     {
-                        int instanceIndex = instancesOffset + i;
+                        int inputIndex = instancesOffset + i;
 
-                        ref Matrix4x4 l2w = ref UnsafeUtility.ArrayElementAsRef<Matrix4x4>(rendererData.localToWorldMatrix.GetUnsafeReadOnlyPtr(), instanceIndex);
+                        ref Matrix4x4 l2w = ref UnsafeUtility.ArrayElementAsRef<Matrix4x4>(rendererData.localToWorldMatrix.GetUnsafeReadOnlyPtr(), inputIndex);
                         var worldAABB = AABB.Transform(l2w, localAABB);
 
-                        instance = instances[instanceIndex];
+                        instance = instances[inputIndex];
                         Assert.IsTrue(instance.valid);
 
                         float det = math.determinant((float3x3)(float4x4)l2w);
                         bool isFlipped = (det < 0.0f);
 
-                        instanceData.Set(instance, isFlipped, worldAABB, -1);
+                        int instanceIndex = instanceData.InstanceToIndex(instance);
+                        instanceData.localToWorldIsFlippedBits.Set(instanceIndex, isFlipped);
+                        instanceData.worldAABBs[instanceIndex] = worldAABB;
+                        instanceData.tetrahedronCacheIndices[instanceIndex] = -1;
+#if UNITY_EDITOR
+                        instanceData.editorData.sceneCullingMasks[instanceIndex] = rendererData.editorData[index].sceneCullingMask;
+                        // Store more editor instance data here if needed.
+#endif
                     }
                 }
             }
@@ -943,5 +946,27 @@ namespace UnityEngine.Rendering
                 instanceData.visibleInPreviousFrameBits.SetChunk(startIndex / 64, visibleBits);
             }
         }
+
+#if UNITY_EDITOR
+
+        [BurstCompile]
+        private struct UpdateSelectedInstancesJob : IJobParallelFor
+        {
+            public const int k_BatchSize = 64;
+
+            [ReadOnly] public NativeArray<InstanceHandle> instances;
+
+            [NativeDisableParallelForRestriction] public CPUInstanceData instanceData;
+
+            public void Execute(int index)
+            {
+                InstanceHandle instance = instances[index];
+
+                if (instance.valid)
+                    instanceData.editorData.selectedBits.Set(instanceData.InstanceToIndex(instance), true);
+            }
+        }
+        
+#endif
     }
 }

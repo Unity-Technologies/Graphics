@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // What are the type of foam injectors?
-            ref var cb = ref currentWater.constantBufferData[0];
+            ref var cb = ref m_ShaderVariablesPerSurfaceArray[currentWater.surfaceIndex];
             bool foamGenerators = m_ActiveWaterFoamGenerators > 0;
             bool waterDeformers = WaterHasDeformation(currentWater);
             if (!foamGenerators && !waterDeformers)
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceFoam)))
             {
-                BindPerSurfaceConstantBuffer(cmd, m_WaterFoamCS, currentWater.constantBuffer);
+                BindPerSurfaceConstantBuffer(cmd, m_WaterFoamCS, m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex]);
 
                 // Reproject the previous frame's foam buffer
                 int tileC = HDUtils.DivRoundUp((int)currentWater.foamResolution, 8);

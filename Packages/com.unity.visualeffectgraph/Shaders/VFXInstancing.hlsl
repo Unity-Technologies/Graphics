@@ -14,14 +14,11 @@
 // Current instance offset for rendering
 #define instancingCurrentOffset   asuint(instancingConstants.w)
 
-// Data shared for all contexts (init, update, output)
-// Contains one entry for each ACTIVE instance
-struct ContextData
-{
-    uint maxParticleCount;
-    uint systemSeed;
-};
-StructuredBuffer<ContextData> instancingContextData;
+#define instancingActiveIndirectOffset instancingBufferOffsets.x
+
+#ifndef instancingPrefixSumOffset // Already defined in VFXInit.template because it is always 0 for Init.
+#define instancingPrefixSumOffset instancingBufferOffsets.y
+#endif
 
 #if VFX_INSTANCING_VARIABLE_SIZE
 // Prefix sum with particle counts for each active instance
@@ -29,22 +26,21 @@ StructuredBuffer<uint> instancingPrefixSum;
 #endif
 
 #if VFX_INSTANCING_BATCH_INDIRECTION
-// Indirection buffer, contains one entry for each active instance, holding the instance index in the batch
-StructuredBuffer<uint> instancingIndirect;
+// Indirection buffer, the first section contains the active -> batch index indirection. One entry for each active instance, holding the instance index in the batch
+// The next sections contains current -> active index indirection, for each split. One entry for each instance in current drawcall/dispatch, holding the index in the active instances
+StructuredBuffer<uint> instancingIndirectAndActiveIndirect;
 #endif
 
-#if VFX_INSTANCING_ACTIVE_INDIRECTION
-// Indirection buffer, contains one entry for each instance in current drawcall/dispatch, holding the index in the active instances
-StructuredBuffer<uint> instancingActiveIndirect;
-#endif
+#define DEAD_LIST_COUNT_COPY_OFFSET instancingBatchSize
+#define DEAD_LIST_OFFSET (2 * instancingBatchSize)
 
 #if defined(VFX_INSTANCING_VARIABLE_SIZE)
 // Get instance index in current drawcall/dispatch, for variable size instances
 uint VFXGetVariableSizeInstanceIndex(inout uint index)
 {
-    uint startIndex = instancingCurrentOffset;
-    uint endIndex = instancingCurrentCount + instancingCurrentOffset;
-    return BinarySearchPrefixSum(index, instancingPrefixSum, startIndex, endIndex, index);
+    uint startIndex = instancingCurrentOffset + instancingPrefixSumOffset;
+    uint endIndex = instancingCurrentCount + instancingCurrentOffset + instancingPrefixSumOffset;
+    return BinarySearchPrefixSum(index, instancingPrefixSum, startIndex, endIndex, index) - instancingPrefixSumOffset;
 }
 #elif defined(VFX_INSTANCING_FIXED_SIZE)
 // Get instance index in current drawcall/dispatch, for fixed size instances
@@ -76,7 +72,7 @@ uint VFXGetInstanceActiveIndex(uint instanceCurrentIndex)
 #if VFX_INSTANCING_ACTIVE_INDIRECTION
     if (instancingCurrentCount < instancingActiveCount)
     {
-        instanceActiveIndex = instancingActiveIndirect[instanceActiveIndex];
+        instanceActiveIndex = instancingIndirectAndActiveIndirect[instancingActiveIndirectOffset + instanceActiveIndex];
     }
 #endif
     return instanceActiveIndex;
@@ -89,7 +85,7 @@ uint VFXGetInstanceBatchIndex(uint instanceActiveIndex)
 #if VFX_INSTANCING_BATCH_INDIRECTION
     if (instancingActiveCount < instancingBatchSize)
     {
-        instanceBatchIndex = instancingIndirect[instanceBatchIndex];
+        instanceBatchIndex = instancingIndirectAndActiveIndirect[instanceBatchIndex];
     }
 #endif
     return instanceBatchIndex;

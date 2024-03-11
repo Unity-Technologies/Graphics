@@ -116,7 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Volume components
                 PathTracing pathTracing = hdCamera.volumeStack.GetComponent<PathTracing>();
 
-                WaterGBuffer waterGBuffer = new WaterGBuffer();
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
                     // Stop Single Pass is after post process.
@@ -178,7 +177,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, hdCamera.depthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
                     lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1].y);
 
-                    var volumetricDensityBuffer = ClearAndHeightFogVoxelizationPass(m_RenderGraph, hdCamera);
+                    TransparentPrepassOutput transparentPrepass = default;
+                    var volumetricDensityBuffer = TextureHandle.nullHandle;
+                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
+                        volumetricDensityBuffer = ClearAndHeightFogVoxelizationPass(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, transparentPrepass);
 
                     RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
@@ -198,10 +200,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, historyValidationTexture, rayCountTexture);
 
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
-
-                    volumetricDensityBuffer = FogVolumeAndVFXVoxelizationPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_VisibleVolumeBoundsBuffer, cullingResults);
-
-                    var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileVolumetricLightList, shadowResult);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
@@ -236,8 +234,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
                     // Render transparent prepass for refractive object sorting
-                    var transparentPrepass = RenderTransparentPrepass(m_RenderGraph, cullingResults, hdCamera, currentColorPyramid, gpuLightListOutput, ref prepassOutput);
-                    waterGBuffer = transparentPrepass.waterGBuffer;
+                    transparentPrepass = RenderTransparentPrepass(m_RenderGraph, cullingResults, hdCamera, currentColorPyramid, gpuLightListOutput, ref prepassOutput);
+
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
+                        volumetricDensityBuffer = ClearAndHeightFogVoxelizationPass(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, transparentPrepass);
+
+                    volumetricDensityBuffer = FogVolumeAndVFXVoxelizationPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_VisibleVolumeBoundsBuffer, cullingResults);
+                    var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, transparentPrepass, prepassOutput.depthBuffer, gpuLightListOutput.bigTileVolumetricLightList, shadowResult);
 
                     colorBuffer = RenderOpaqueFog(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, msaa, in prepassOutput, in transparentPrepass, ref opticalFogTransmittance);
 
@@ -333,7 +336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera, aovRequest);
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, pathTracing, cullingResults, prepassOutput);
                 var postProcessTargetFace = postProcessIsFinalPass ? target.face : CubemapFace.Unknown;
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, waterGBuffer, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
@@ -1707,17 +1710,18 @@ namespace UnityEngine.Rendering.HighDefinition
             ResetCameraMipBias(hdCamera);
 
             // Render the deferred water lighting
-            RenderWaterLighting(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, transparentPrepass, lightLists);
+            RenderWaterLighting(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, transparentPrepass, lightLists, ref opticalFogTransmittance);
 
             // If required, render the water mask debug views
             RenderWaterMask(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
 
             bool ssmsEnabled = Fog.IsMultipleScatteringEnabled(hdCamera, out float fogMultipleScatteringIntensity);
-            // Generate color pyramid for refraction and transparent SSR next frame
-            // - after water lighting to ensure it's present in transparent ssr
-            // - before render refractive transparents
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled() || ssmsEnabled)
             {
+                // Generate color pyramid
+                // - after water lighting to ensure it's present in transparent ssr
+                // - before render refractive transparents
+                // - will also be used by opaque ssr next frame
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
             }

@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SectorData.Dispose();
         }
 
-        void UpdateCPUWaterSimulation(WaterSurface waterSurface, bool evaluateSpetrum)
+        void UpdateCPUWaterSimulation(WaterSurface waterSurface)
         {
             // If the asset doesn't support the CPU simulation or the surface doesn't, we don't have to do anything
             if (!waterSurface.scriptInteractions || m_GPUReadbackMode)
@@ -456,7 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int waterSampleOffset = EvaluateWaterNoiseSampleOffset(cpuSimResolution);
 
             // Re-evaluate the spectrum if needed.
-            if (evaluateSpetrum)
+            if (!waterSurface.simulation.cpuSpectrumValid)
             {
                 // To avoid re-evaluating
                 // If we get here, it means the spectrum is invalid and we need to go re-evaluate it
@@ -478,6 +478,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     JobHandle handle = spectrumInit.Schedule((int)numPixels, 1);
                     handle.Complete();
                 }
+
+                waterSurface.simulation.cpuSpectrumValid = true;
             }
 
             // For each band, we evaluate the dispersion then the two inverse fft passes

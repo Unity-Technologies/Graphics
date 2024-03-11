@@ -222,7 +222,7 @@ This section demonstrates how to implement the settings for the custom blur rend
         blurTextureDescriptor.height = cameraTextureDescriptor.height;
 
         //Check if the descriptor has changed, and reallocate the RTHandle if necessary.
-        RenderingUtils.ReAllocateIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
+        RenderingUtils.ReAllocateHandleIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
     }
     ```
 
@@ -534,7 +534,7 @@ public class BlurRenderPass : ScriptableRenderPass
         blurTextureDescriptor.height = cameraTextureDescriptor.height;
 
         // Check if the descriptor has changed, and reallocate the RTHandle if necessary
-        RenderingUtils.ReAllocateIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
+        RenderingUtils.ReAllocateHandleIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
     }
 
     private void UpdateBlurSettings()

@@ -90,6 +90,7 @@ namespace UnityEditor.Rendering
         const int kDependencyBlockHeightPx = 26;
         const int kDependencyBlockWidthPx = kPassWidthPx;
         const int kPassTitleAllowanceMargin = 120;
+        const int kHeaderContainerHeightPx = 24;
 
         static readonly Color kReadWriteBlockFillColorDark = new Color32(0xA9, 0xD1, 0x36, 255);
         static readonly Color kReadWriteBlockFillColorLight = new Color32(0x67, 0x9C, 0x33, 255);
@@ -136,7 +137,7 @@ namespace UnityEditor.Rendering
         static readonly string[] kEmptyStateMessages =
         {
             "",
-            L10n.Tr("No Render Graph execution has been registered. Activate a viewport to trigger camera rendering."),
+            L10n.Tr("The selected camera is not active. Activate the selected camera to display data in the Render Graph viewer."),
             L10n.Tr("No data to display. Click refresh to capture data."),
             L10n.Tr("Waiting for the selected camera to render. Depending on the camera, you may need to trigger rendering by selecting the Scene or Game view."),
             L10n.Tr("No passes to display. Select a different Pass Filter to display contents."),
@@ -799,11 +800,17 @@ namespace UnityEditor.Rendering
                 }
             }
             selectedRenderGraph = null;
+
+            if (m_CurrentDebugData != null)
+                RequestCaptureSelectedExecution();
         }
 
         void SelectedExecutionChanged(string newExecutionName)
         {
             selectedExecutionName = newExecutionName;
+
+            if (m_CurrentDebugData != null)
+                RequestCaptureSelectedExecution();
         }
 
         void ClearEmptyStateMessage()
@@ -1122,12 +1129,22 @@ namespace UnityEditor.Rendering
 
             var passBlock = new VisualElement();
             passBlock.AddToClassList(Classes.kPassBlock);
-            passBlock.RegisterCallback<MouseOverEvent>(_ => passBlock.AddToClassList(Classes.kPassBlockScriptLink));
-            passBlock.RegisterCallback<MouseOutEvent>(_ => passBlock.RemoveFromClassList(Classes.kPassBlockScriptLink));
+            passBlock.RegisterCallback<MouseEnterEvent>(_ =>
+            {
+                var scriptLinkBlock = new VisualElement();
+                scriptLinkBlock.pickingMode = PickingMode.Ignore;
+                scriptLinkBlock.AddToClassList(Classes.kPassBlock);
+                scriptLinkBlock.AddToClassList(Classes.kPassBlockScriptLink);
+                passBlock.Add(scriptLinkBlock);
+            });
+            passBlock.RegisterCallback<MouseLeaveEvent>(_ => passBlock.Clear());
             passBlock.RegisterCallback<MouseUpEvent>(evt =>
             {
-                var scriptAsset = FindScriptAssetByAbsolutePath(pass.scriptInfo.filePath);
-                AssetDatabase.OpenAsset(scriptAsset, pass.scriptInfo.line);
+                if (evt.button == 0)
+                {
+                    var scriptAsset = FindScriptAssetByAbsolutePath(pass.scriptInfo.filePath);
+                    AssetDatabase.OpenAsset(scriptAsset, pass.scriptInfo.line);
+                }
                 evt.StopImmediatePropagation();
             });
 

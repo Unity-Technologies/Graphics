@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
             depthDesc.depthStencilFormat = cameraData.cameraTargetDescriptor.depthStencilFormat;
             depthDesc.msaaSamples = 1;
 
-            RenderingUtils.ReAllocateIfNeeded(ref m_DBufferDepth, depthDesc, name: s_DBufferDepthName);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_DBufferDepth, depthDesc, name: s_DBufferDepthName);
 
             Setup(cameraData, m_DBufferDepth);
         }
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
 
-                RenderingUtils.ReAllocateIfNeeded(ref dBufferColorHandles[0], desc, name: s_DBufferNames[0]);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref dBufferColorHandles[0], desc, name: s_DBufferNames[0]);
             }
 
             if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
 
-                RenderingUtils.ReAllocateIfNeeded(ref dBufferColorHandles[1], desc, name: s_DBufferNames[1]);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref dBufferColorHandles[1], desc, name: s_DBufferNames[1]);
             }
 
             if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS)
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 0;
                 desc.msaaSamples = 1;
 
-                RenderingUtils.ReAllocateIfNeeded(ref dBufferColorHandles[2], desc, name: s_DBufferNames[2]);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref dBufferColorHandles[2], desc, name: s_DBufferNames[2]);
             }
 
             // depth

@@ -18,13 +18,13 @@ MonoBehaviour:
     m_Value: 1
   threshold:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 2.5
   intensity:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 0.6
   scatter:
     m_OverrideState: 1
-    m_Value: 0.481
+    m_Value: 0.7
   clamp:
     m_OverrideState: 0
     m_Value: 65472
@@ -142,6 +142,12 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.1
   occlusionOnlyReflectionNormalization:
+    m_OverrideState: 0
+    m_Value: 1
+  intensityMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  skyOcclusionIntensityMultiplier:
     m_OverrideState: 0
     m_Value: 1
 --- !u!114 &2812485304752352828

@@ -496,7 +496,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle RenderPostProcess(RenderGraph renderGraph,
             in PrepassOutput prepassOutput,
-            WaterGBuffer waterGBuffer,
             TextureHandle inputColor,
             TextureHandle backBuffer,
             TextureHandle uiBuffer,
@@ -609,7 +608,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
                 bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
-                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, stencilBuffer, opticalFogTransmittance, waterGBuffer, taaEnabled);
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, stencilBuffer, opticalFogTransmittance, taaEnabled);
                 if (taaEnabled)
                 {
                     LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
@@ -3367,16 +3366,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public TextureHandle stencilBuffer;
             public TextureHandle occlusion;
-            public TextureHandle cloudOpacityTexture;
             public TextureHandle sunOcclusion;
-            public TextureHandle waterGBuffer3Thickness;
             public HDCamera hdCamera;
             public Vector2Int viewport;
             public bool taaEnabled;
-            public bool hasCloudLayer;
         }
 
-        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle opticalFogTransmittance, WaterGBuffer waterGBuffer, bool taaEnabled)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle opticalFogTransmittance, bool taaEnabled)
         {
             if (!LensFlareCommonSRP.IsOcclusionRTCompatible())
                 return;
@@ -3396,15 +3392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.sunOcclusion = builder.ReadTexture(opticalFogTransmittance);
                     else
                         passData.sunOcclusion = TextureHandle.nullHandle;
-                    if (waterGBuffer.valid && waterGBuffer.waterGBuffer3.IsValid())
-                        passData.waterGBuffer3Thickness = builder.ReadTexture(waterGBuffer.waterGBuffer3);
-                    else
-                        passData.waterGBuffer3Thickness = TextureHandle.nullHandle;
                     passData.taaEnabled = taaEnabled;
-
-                    passData.hasCloudLayer = skyManager.cloudOpacity.IsValid();
-                    if (passData.hasCloudLayer)
-                        passData.cloudOpacityTexture = builder.ReadTexture(skyManager.cloudOpacity);
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
@@ -3412,8 +3400,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
 
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._DepthWithWaterTexture, data.depthBuffer);
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.stencilBuffer, RenderTextureSubElement.Stencil);
                             Matrix4x4 nonJitteredViewProjMatrix0;
                             int xrId0;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -3449,7 +3435,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 nonJitteredViewProjMatrix0,
                                 ctx.cmd,
-                                data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness);
+                                data.taaEnabled, false, null, data.sunOcclusion);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                             if (data.hdCamera.xr.enabled && data.hdCamera.xr.singlePassEnabled)
@@ -3465,7 +3451,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                         nonJitteredViewProjMatrix_k,
                                         ctx.cmd,
-                                        data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion, data.waterGBuffer3Thickness);
+                                        data.taaEnabled, false, null, data.sunOcclusion);
                                 }
                             }
 #endif
@@ -3546,7 +3532,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                         data.hdCamera.m_XRViewConstants[xrIdx].nonJitteredViewProjMatrix,
                                         ctx.cmd,
-                                        data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
+                                        data.taaEnabled, false, null, data.sunOcclusion,
                                         data.source,
                                         (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
                                         data.parameters.skipCopy);
@@ -3563,7 +3549,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                     data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
                                     ctx.cmd,
-                                    data.taaEnabled, data.hasCloudLayer, data.cloudOpacityTexture, data.sunOcclusion,
+                                    data.taaEnabled, false, null, data.sunOcclusion,
                                     data.source,
                                     (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
                                     data.parameters.skipCopy);

@@ -29,7 +29,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	${VFXLoadGraphValues}
 
-	ContextData contextData = instancingContextData[instanceActiveIndex];
+	${VFXLoadContextData}
 	uint systemSeed = contextData.systemSeed;
 	uint nbMax = contextData.maxParticleCount;
 

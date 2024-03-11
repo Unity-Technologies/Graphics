@@ -383,6 +383,8 @@ namespace UnityEngine.Rendering
         private NativeList<int> m_FrameCameraIDs;
         private bool m_FrameUpdateNeeded = false;
 
+        private bool m_SelectionChanged;
+
         static GPUResidentDrawer()
         {
 			Lightmapping.bakeCompleted += Reinitialize;
@@ -437,7 +439,6 @@ namespace UnityEngine.Rendering
 
             m_Dispatcher = new ObjectDispatcher();
             m_Dispatcher.EnableTypeTracking<LODGroup>(TypeTrackingFlags.SceneObjects);
-            m_Dispatcher.EnableTypeTracking<LightmapSettings>();
             m_Dispatcher.EnableTypeTracking<Mesh>();
             m_Dispatcher.EnableTypeTracking<Material>();
             m_Dispatcher.EnableTransformTracking<LODGroup>(TransformTrackingType.GlobalTRS);
@@ -454,6 +455,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering += OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+#if UNITY_EDITOR
+            Selection.selectionChanged += OnSelectionChanged;
+#endif
 
             // GPU Resident Drawer only supports legacy lightmap binding.
             // Accordingly, we set the keyword globally across all shaders.
@@ -478,6 +482,9 @@ namespace UnityEngine.Rendering
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+#if UNITY_EDITOR
+            Selection.selectionChanged -= OnSelectionChanged;
+#endif
 
             RemoveFromPlayerLoop();
 
@@ -513,6 +520,7 @@ namespace UnityEngine.Rendering
         {
             if (s_Instance is null)
                 return;
+
 #if UNITY_EDITOR
             EditorFrameUpdate(cameras);
 #endif
@@ -545,8 +553,35 @@ namespace UnityEngine.Rendering
                 else
                     m_FrameUpdateNeeded = true;
             }
+
+            ProcessSelection();
+        }
+
+        private void OnSelectionChanged()
+        {
+            m_SelectionChanged = true;
+        }
+
+        private void ProcessSelection()
+        {
+            if(!m_SelectionChanged)
+                return;
+
+            m_SelectionChanged = false;
+
+            Object[] renderers = Selection.GetFiltered(typeof(MeshRenderer), SelectionMode.Deep);
+
+            var rendererIDs = new NativeArray<int>(renderers.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+            for (int i = 0; i < renderers.Length; ++i)
+                rendererIDs[i] = renderers[i] ? renderers[i].GetInstanceID() : 0;
+
+            m_Batcher.UpdateSelectedRenderers(rendererIDs);
+
+            rendererIDs.Dispose();
         }
 #endif
+
         private void OnEndContextRendering(ScriptableRenderContext context, List<Camera> cameras)
         {
             if (s_Instance is null)

@@ -30,7 +30,12 @@ public class GraphicsTests
 #endif
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)
-    {		
+    {
+        if (testCase.ScenePath.Contains("ErrorMaterial"))
+        {
+            LogAssert.ignoreFailingMessages = true;
+        }
+
 #if UNITY_WEBGL || UNITY_ANDROID
         // Do this near the beginning of the test case method before you test or assert
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);

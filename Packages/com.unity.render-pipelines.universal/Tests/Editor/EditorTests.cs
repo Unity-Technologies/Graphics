@@ -152,7 +152,7 @@ class EditorTests
         for (int i = 0; i < 100; i++)
         {
             RenderTextureDescriptor rtd = new RenderTextureDescriptor(1,  1 + i, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.None);
-            RenderingUtils.ReAllocateIfNeeded(ref myHandle, rtd, FilterMode.Point, TextureWrapMode.Clamp);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref myHandle, rtd, FilterMode.Point, TextureWrapMode.Clamp);
         }
         UniversalRenderPipeline.s_RTHandlePool.Cleanup();
         RTHandles.Release(myHandle);

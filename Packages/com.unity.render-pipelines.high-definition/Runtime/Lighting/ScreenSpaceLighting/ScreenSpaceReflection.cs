@@ -253,16 +253,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
-                    return m_ClampValue.value;
-                else
-                    return GetLightingQualitySettings().RTRClampValue[(int)quality.value];
+                return m_ClampValue.value;
             }
             set { m_ClampValue.value = value; }
         }
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Clamps the exposed intensity, this only affects reflections on opaque objects.")]
-        private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
+        private MinFloatParameter m_ClampValue = new MinFloatParameter(100.0f, 0.001f);
 
         /// <summary>
         /// Enable denoising on the ray traced reflections.

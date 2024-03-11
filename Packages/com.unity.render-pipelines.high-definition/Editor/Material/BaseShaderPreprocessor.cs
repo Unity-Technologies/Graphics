@@ -90,6 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_SupportWater;
         protected ShaderKeyword m_SupportWaterCaustics;
         protected ShaderKeyword m_SupportWaterCausticsShadow;
+        protected ShaderKeyword m_SupportWaterAbsorption;
 
         protected ShadowKeywords m_ShadowKeywords;
 
@@ -134,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SupportWater = new ShaderKeyword("SUPPORT_WATER");
             m_SupportWaterCaustics = new ShaderKeyword("SUPPORT_WATER_CAUSTICS");
             m_SupportWaterCausticsShadow = new ShaderKeyword("SUPPORT_WATER_CAUSTICS_SHADOW");
+            m_SupportWaterAbsorption = new ShaderKeyword("SUPPORT_WATER_ABSORPTION");
             m_ShadowKeywords = new ShadowKeywords();
 
 #if !ENABLE_SENSOR_SDK

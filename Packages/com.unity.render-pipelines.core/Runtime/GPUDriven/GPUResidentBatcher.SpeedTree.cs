@@ -12,11 +12,18 @@ namespace UnityEngine.Rendering
 {
     internal partial class GPUResidentBatcher : IDisposable
     {
+        private ParallelBitArray m_ProcessedThisFrameTreeBits;
+
         private void ProcessTrees()
         {
             int treeInstancesCount = m_BatchersContext.GetAliveInstancesOfType(InstanceType.SpeedTree);
 
             if (treeInstancesCount == 0)
+                return;
+
+            ParallelBitArray compactedVisibilityMasks = m_InstanceCullingBatcher.GetCompactedVisibilityMasks(syncCullingJobs: false);
+
+            if (!compactedVisibilityMasks.IsCreated)
                 return;
 
             Profiler.BeginSample("GPUResidentInstanceBatcher.ProcessTrees");
@@ -31,9 +38,6 @@ namespace UnityEngine.Rendering
             bool becomeVisibleOnly = !Application.isPlaying;
             var visibleTreeRendererIDs = new NativeList<int>(Allocator.TempJob);
             var visibleTreeInstances = new NativeList<InstanceHandle>(Allocator.TempJob);
-
-            ParallelBitArray compactedVisibilityMasks = m_InstanceCullingBatcher.GetCompactedVisibilityMasks(syncCullingJobs: false);
-            Assert.IsTrue(compactedVisibilityMasks.IsCreated);
 
             m_BatchersContext.GetVisibleTreeInstances(compactedVisibilityMasks, m_ProcessedThisFrameTreeBits, visibleTreeRendererIDs, visibleTreeInstances,
                 becomeVisibleOnly, out var becomeVisibleTreeInstancesCount);

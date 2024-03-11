@@ -58,6 +58,11 @@
     <td>Defines the layers that HDRP processes this ray-traced effect for.</td>
   </tr>
   <tr>
+    <td><strong>Clamp Value</strong></td>
+    <td></td>
+    <td>Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality.</td>
+  </tr>
+  <tr>
     <td><strong>Mode</strong></td>
     <td></td>
     <td>Defines if HDRP should evaluate the effect in <strong>Performance</strong> or <strong>Quality</strong> mode.<br>This property only appears if you select set <strong>Supported Ray Tracing Mode</strong> in your HDRP Asset to <strong>Both</strong>.</td>
@@ -81,11 +86,6 @@
     <td><strong>Max Ray Length</strong></td>
     <td></td>
     <td>Controls the maximum length of reflection rays. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection.</td>
-  </tr>
-  <tr>
-    <td><strong>Clamp Value</strong></td>
-    <td></td>
-    <td>Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality.</td>
   </tr>
   <tr>
     <td><strong>Full Resolution</strong></td>

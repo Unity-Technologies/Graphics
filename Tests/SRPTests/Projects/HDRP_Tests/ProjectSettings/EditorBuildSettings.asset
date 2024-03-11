@@ -684,9 +684,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4105_LensFlareScreenSpace.unity
     guid: d3f6736899b85bd47a2163d3af81ac0b
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4106_LensFlareDataDriven_Water_Occlusion.unity
-    guid: e6d0c14426cac7d428a86998b3610c1c
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1
@@ -800,9 +797,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_InstancingAPIs.unity
     guid: 301d73c05bd921a4da24eb950ef1ec00
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_InstanceIDWithKeywords.unity
-    guid: 595c23bc5cc0b4620b698d14bbd4b0ec
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8207_InstancingMaterials.unity
     guid: f2f6703023f374c6ca863b96155a3bcb

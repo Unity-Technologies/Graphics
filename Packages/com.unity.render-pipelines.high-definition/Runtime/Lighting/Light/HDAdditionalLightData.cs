@@ -2064,6 +2064,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool hasShadowCache { get { return lightIdxForCachedShadows != -1; } }
+
         unsafe Vector3* m_CachedViewPositions
         {
             get
@@ -2096,11 +2098,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [System.NonSerialized, ExcludeCopy]
         internal bool fallbackToCachedShadows = false;
-
-        // Track if light is registered in the cached shadow map
-        [System.NonSerialized, ExcludeCopy]
-        internal bool hasShadowCache = false;
-
 
         // Runtime datas used to compute light intensity
         [ExcludeCopy]
@@ -2317,7 +2314,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
-            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
+            if (!preserveCachedShadow && hasShadowCache)
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
             }
@@ -2352,7 +2349,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
             {
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this);
-                hasShadowCache = true;
             }
         }
 
@@ -2367,7 +2363,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowUpdateMode == ShadowUpdateMode.OnDemand)
             {
                 HDShadowManager.cachedShadowManager.ScheduleShadowUpdate(this, shadowIndex);
-                hasShadowCache = true;
             }
         }
 
@@ -2393,7 +2388,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!wantsShadowCache && hasShadowCache && !preserveCachedShadow)
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this, this.legacyLight.type);
-                hasShadowCache = false;
             }
 
             bool onDemand = shadowUpdateMode == ShadowUpdateMode.OnDemand && !onDemandShadowRenderOnPlacement;
@@ -2401,7 +2395,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (wantsShadowCache && !hasShadowCache && !onDemand && lightEntity.valid)
             {
                 HDShadowManager.cachedShadowManager.RegisterLight(this);
-                hasShadowCache = true;
             }
         }
 
@@ -2691,7 +2684,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (lightData.m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame && lightData.cachedLightType.HasValue)
                     {
                         HDShadowManager.cachedShadowManager.EvictLight(lightData, lightData.cachedLightType.Value);
-                        lightData.hasShadowCache = false;
                     }
 
                     var directionalLights = HDLightRenderDatabase.instance.directionalLights;

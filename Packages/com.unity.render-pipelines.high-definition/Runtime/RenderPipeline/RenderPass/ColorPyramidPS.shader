@@ -8,6 +8,7 @@ Shader "Hidden/ColorPyramidPS"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            ColorMask RGB
 
             HLSLPROGRAM
                 #pragma editor_sync_compilation
@@ -24,6 +25,7 @@ Shader "Hidden/ColorPyramidPS"
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
+            ColorMask RGB
 
             HLSLPROGRAM
                 #pragma editor_sync_compilation

@@ -182,6 +182,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The spectrum parameters
         public WaterSpectrumParameters spectrum = new WaterSpectrumParameters();
+        public bool gpuSpectrumValid;
+        public bool cpuSpectrumValid;
 
         // The rendering parameters
         public WaterRenderingParameters rendering = new WaterRenderingParameters();
@@ -416,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_HtRs);
         }
 
-        void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater, bool gpuResourcesInvalid)
+        void UpdateGPUWaterSimulation(CommandBuffer cmd, WaterSurface currentWater)
         {
             // Evaluate the band count
             int bandCount = currentWater.simulation.numActiveBands;
@@ -424,8 +426,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceSimulation)))
             {
                 // Bind the constant buffers
-                BindPerSurfaceConstantBuffer(cmd, m_WaterSimulationCS, currentWater.constantBuffer);
-                BindPerSurfaceConstantBuffer(cmd, m_FourierTransformCS, currentWater.constantBuffer);
+                BindPerSurfaceConstantBuffer(cmd, m_WaterSimulationCS, m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex]);
+                BindPerSurfaceConstantBuffer(cmd, m_FourierTransformCS, m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex]);
 
                 // Raise the keyword if it should be raised
                 SetupWaterShaderKeyword(cmd, bandCount, false);
@@ -434,11 +436,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 int tileCount = (int)m_WaterBandResolution / 8;
 
                 // Do we need to re-evaluate the Phillips spectrum?
-                if (gpuResourcesInvalid)
+                if (!currentWater.simulation.gpuSpectrumValid)
                 {
                     // Convert the noise to the Phillips spectrum
                     cmd.SetComputeTextureParam(m_WaterSimulationCS, m_InitializePhillipsSpectrumKernel, HDShaderIDs._H0BufferRW, currentWater.simulation.gpuBuffers.phillipsSpectrumBuffer);
                     cmd.DispatchCompute(m_WaterSimulationCS, m_InitializePhillipsSpectrumKernel, tileCount, tileCount, bandCount);
+                    currentWater.simulation.gpuSpectrumValid = true;
                 }
 
                 // Execute the dispersion
@@ -496,7 +499,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentWater.simulation.CheckCausticsResources(true, causticsResolution);
 
                 // Setup properties
-                m_WaterMaterialPropertyBlock.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, currentWater.constantBuffer, 0, currentWater.constantBuffer.stride);
+                var perSurfaceCB = m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex];
+                m_WaterMaterialPropertyBlock.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, perSurfaceCB, 0, perSurfaceCB.stride);
                 m_WaterMaterialPropertyBlock.SetTexture(HDShaderIDs._WaterAdditionalDataBuffer, currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 m_WaterMaterialPropertyBlock.SetFloat(HDShaderIDs._CausticsVirtualPlane, currentWater.virtualPlaneDistance);
                 m_WaterMaterialPropertyBlock.SetInt(HDShaderIDs._CausticsNormalsMipOffset, EvaluateNormalMipOffset(m_WaterBandResolution));

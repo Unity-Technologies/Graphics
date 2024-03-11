@@ -18,8 +18,7 @@ ${VFXInclude("Shaders/VFXParticleCommon.template")}
 RWByteAddressBuffer attributeBuffer;
 
 #if USE_DEAD_LIST
-RWStructuredBuffer<uint> deadListOut;
-RWStructuredBuffer<uint> deadListCount;
+RWStructuredBuffer<uint> deadList;
 #endif
 
 #if VFX_HAS_INDIRECT_DRAW
@@ -58,7 +57,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 	${VFXInitInstancingCompute}
 
-	ContextData contextData = instancingContextData[instanceActiveIndex];
+	${VFXLoadContextData}
 	uint systemSeed = contextData.systemSeed;
 	uint nbMax = contextData.maxParticleCount;
 
@@ -104,7 +103,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 			${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 			if (attributes.alive)
 			{
-				
+
 #if VFX_HAS_INDIRECT_DRAW
                 AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 #endif
@@ -121,9 +120,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				${VFXStoreAttributes:{alive}}
 #if USE_DEAD_LIST && !VFX_USE_STRIPALIVE_CURRENT
 	            uint deadIndex;
-		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
-				deadIndex += instanceIndex * RAW_CAPACITY;
-				deadListOut[deadIndex] = index;
+		        InterlockedAdd(deadList[instanceIndex], 1, deadIndex);
+				deadIndex += DEAD_LIST_OFFSET + instanceIndex * RAW_CAPACITY;
+				deadList[deadIndex] = index;
 #endif
 			}
 		}
@@ -133,9 +132,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
             if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
 	            uint deadIndex;
-		        InterlockedAdd(deadListCount[instanceIndex], 1, deadIndex);
-				deadIndex += instanceIndex * RAW_CAPACITY;
-				deadListOut[deadIndex] = index;
+		        InterlockedAdd(deadList[instanceIndex], 1, deadIndex);
+				deadIndex += DEAD_LIST_OFFSET + instanceIndex * RAW_CAPACITY;
+				deadList[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
             }

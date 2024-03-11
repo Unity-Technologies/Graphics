@@ -27,7 +27,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     input.instanceID = unity_InstanceID;
     #endif
 
-    ContextData contextData = instancingContextData[instanceActiveIndex];
+    $splice(VFXLoadContextData)
     uint systemSeed = contextData.systemSeed;
     uint nbMax = contextData.maxParticleCount;
 

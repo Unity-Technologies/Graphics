@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
                 public float tMax;
                 public float geometryBias;
                 public int probeIndex;
-                internal float _;
+                public float validityThreshold;
             };
 
             int batchPosIdx;
@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
             float scaleForSearchDist;
             float rayOriginBias;
             float geometryBias;
+            float validityThreshold;
 
             // Output buffer
             public Vector3[] offsets;
@@ -57,6 +58,7 @@ namespace UnityEngine.Rendering
                 scaleForSearchDist = voSettings.searchMultiplier;
                 rayOriginBias = voSettings.rayOriginBias;
                 geometryBias = voSettings.outOfGeoOffset;
+                validityThreshold = voSettings.validityThreshold;
 
                 offsets = new Vector3[probePositions.Length];
                 cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
@@ -137,7 +139,6 @@ namespace UnityEngine.Rendering
                 if (currentStep >= stepCount)
                     return true;
 
-                float cellSize = m_ProfileInfo.cellSizeInMeters;
                 float minBrickSize = m_ProfileInfo.minBrickSize;
 
                 // Prepare batch
@@ -149,7 +150,7 @@ namespace UnityEngine.Rendering
                     var searchDistance = (brickSize * minBrickSize) / ProbeBrickPool.kBrickCellCount;
                     var distanceSearch = scaleForSearchDist * searchDistance;
 
-                    int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[batchPosIdx] / cellSize));
+                    int cellIndex = PosToIndex(m_ProfileInfo.PositionToCell(positions[batchPosIdx]));
                     if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
                     {
                         bool adjusted = false;
@@ -157,7 +158,6 @@ namespace UnityEngine.Rendering
                         {
                             if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
                             {
-                                positions[batchPosIdx] += offset;
                                 offsets[batchPosIdx] = offset;
                                 adjusted = true;
                                 break;
@@ -173,6 +173,7 @@ namespace UnityEngine.Rendering
                             {
                                 rayOriginBias = touchup.rayOriginBias;
                                 geometryBias = touchup.geometryBias;
+                                validityThreshold = 1.0f - touchup.virtualOffsetThreshold;
                                 break;
                             }
                         }
@@ -184,6 +185,7 @@ namespace UnityEngine.Rendering
                         originBias = rayOriginBias,
                         tMax = distanceSearch,
                         geometryBias = geometryBias,
+                        validityThreshold = validityThreshold,
                         probeIndex = batchPosIdx,
                     };
                 }
@@ -240,7 +242,7 @@ namespace UnityEngine.Rendering
                 return;
 
             globalBounds = prv.globalBounds;
-            CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize());
+            CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize(), prv.ProbeOffset());
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
             m_BakingBatch = new BakingBatch(cellCount);
@@ -343,9 +345,7 @@ namespace UnityEngine.Rendering
 
         static Dictionary<int, TouchupsPerCell> GetTouchupsPerCell(out bool hasAppliers)
         {
-            float cellSize = m_ProfileInfo.cellSizeInMeters;
             hasAppliers = false;
-
             var adjustmentVolumes = s_AdjustmentVolumes != null ? s_AdjustmentVolumes : GetAdjustementVolumes();
 
             Dictionary<int, TouchupsPerCell> cellToVolumes = new();
@@ -358,8 +358,8 @@ namespace UnityEngine.Rendering
 
                 hasAppliers |= mode == ProbeAdjustmentVolume.Mode.ApplyVirtualOffset;
 
-                Vector3Int min = Vector3Int.FloorToInt(adjustment.aabb.min / cellSize);
-                Vector3Int max = Vector3Int.FloorToInt(adjustment.aabb.max / cellSize);
+                Vector3Int min = m_ProfileInfo.PositionToCell(adjustment.aabb.min);
+                Vector3Int max = m_ProfileInfo.PositionToCell(adjustment.aabb.max);
 
                 for (int x = min.x; x <= max.x; x++)
                 {
@@ -386,17 +386,15 @@ namespace UnityEngine.Rendering
 
         static Vector3[] DoApplyVirtualOffsetsFromAdjustmentVolumes(NativeList<Vector3> positions, Vector3[] offsets, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
-            float cellSize = m_ProfileInfo.cellSizeInMeters;
             for (int i = 0; i < positions.Length; i++)
             {
-                int cellIndex = PosToIndex(Vector3Int.FloorToInt(positions[i] / cellSize));
+                int cellIndex = PosToIndex(m_ProfileInfo.PositionToCell(positions[i]));
                 if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
                 {
                     foreach (var (touchup, obb, center, offset) in volumes.appliers)
                     {
                         if (touchup.ContainsPoint(obb, center, positions[i]))
                         {
-                            positions[i] += offset;
                             offsets[i] = offset;
                             break;
                         }

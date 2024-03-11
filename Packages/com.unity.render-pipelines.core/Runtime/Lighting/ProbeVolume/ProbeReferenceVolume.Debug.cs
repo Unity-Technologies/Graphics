@@ -799,20 +799,19 @@ namespace UnityEngine.Rendering
 
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
         {
+            var volumeAABB = GetCellBounds(cellPosition);
             var cellSize = MaxBrickSize();
-            Vector3 cellCenterWS = cellPosition * cellSize + Vector3.one * (cellSize / 2.0f);
 
             // We do coarse culling with cell, finer culling later.
             float distanceRoundedUpWithCellSize = Mathf.CeilToInt(probeVolumeDebug.probeCullingDistance / cellSize) * cellSize;
 
-            if (Vector3.Distance(cameraTransform.position, cellCenterWS) > distanceRoundedUpWithCellSize)
+            if (Vector3.Distance(cameraTransform.position, volumeAABB.center) > distanceRoundedUpWithCellSize)
                 return true;
 
-            var volumeAABB = new Bounds(cellCenterWS, cellSize * Vector3.one);
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
-        static Vector4[] s_BoundsArray = new Vector4[16];
+        static Vector4[] s_BoundsArray = new Vector4[16 * 3];
 
         static void UpdateDebugFromSelection(ref Vector4[] _AdjustmentVolumeBounds, ref int _AdjustmentVolumeCount)
         {
@@ -849,11 +848,18 @@ namespace UnityEngine.Rendering
             #endif
         }
 
-        bool ShouldCullCell(Vector3 cellPosition, Vector4[] adjustmentVolumeBounds, int adjustmentVolumeCount)
+        Bounds GetCellBounds(Vector3 cellPosition)
         {
             var cellSize = MaxBrickSize();
-            Vector3 cellCenterWS = cellPosition * cellSize + Vector3.one * (cellSize / 2.0f);
-            var cellAABB = new Bounds(cellCenterWS, cellSize * Vector3.one);
+            var cellOffset = ProbeOffset();
+            Vector3 cellCenterWS = cellOffset + cellPosition * cellSize + Vector3.one * (cellSize / 2.0f);
+
+            return new Bounds(cellCenterWS, cellSize * Vector3.one);
+        }
+
+        bool ShouldCullCell(Vector3 cellPosition, Vector4[] adjustmentVolumeBounds, int adjustmentVolumeCount)
+        {
+            var cellAABB = GetCellBounds(cellPosition);
 
             for (int touchup = 0; touchup < adjustmentVolumeCount; touchup++)
             {

@@ -190,6 +190,7 @@ Compiled compute shader: TemporalFilter, kernel: ValidateHistory, keywords <no k
 Compiled compute shader: UberPost, kernel: Uber, keywords <no keywords>
 Compiled compute shader: VFXCopyBuffer, kernel: CSVFXBatchCopyCountKvp, keywords <no keywords>
 Compiled compute shader: VFXCopyBuffer, kernel: CSVFXCopyStructBuffer, keywords <no keywords>
+Compiled compute shader: VFXCopyBuffer, kernel: CSVFXCopyStructBufferSelf, keywords <no keywords>
 Compiled compute shader: VFXCopyBuffer, kernel: CSVFXInitDeadListBuffer, keywords <no keywords>
 Compiled compute shader: VFXCopyBuffer, kernel: CSVFXZeroInitBuffer, keywords <no keywords>
 Compiled compute shader: VFXFillIndirectArgs, kernel: CSVFXIndirectArgs, keywords <no keywords>

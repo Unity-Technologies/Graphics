@@ -381,7 +381,6 @@ namespace UnityEditor.VFX
         {
             bool needsGraphValueStruct = false;
             var contextUniforms = contextUniformMapper.uniforms;
-
             if (contextUniforms.Any())
             {
                 needsGraphValueStruct = true;
@@ -399,13 +398,26 @@ namespace UnityEditor.VFX
                 Deindent();
                 WriteLine("};");
             }
-
-            if (needsGraphValueStruct)
-            {
-                WriteLine("ByteAddressBuffer graphValuesBuffer;");
-                WriteLine();
-            }
+            WriteLine("ByteAddressBuffer graphValuesBuffer;");
+            WriteLine();
             return needsGraphValueStruct;
+        }
+
+        public void GenerateLoadContextData(VFXDataParticle.GraphValuesLayout graphValuesLayout)
+        {
+            uint structSize = graphValuesLayout.paddedSizeInBytes;
+            WriteLine("struct ContextData");
+            WriteLine("{");
+            WriteLine("    uint maxParticleCount;");
+            WriteLine("    uint systemSeed;");
+            WriteLine("    uint initSpawnIndex;");
+            WriteLine("};");
+
+            WriteLine("ContextData contextData;");
+            WriteLine($"uint4 rawContextData = graphValuesBuffer.Load4(instanceActiveIndex * {structSize});");
+            WriteLine($"contextData.maxParticleCount = rawContextData.x;");
+            WriteLine($"contextData.systemSeed = rawContextData.y;");
+            WriteLine($"contextData.initSpawnIndex = rawContextData.z;");
         }
 
         public void GenerateFillGraphValuesStruct(VFXUniformMapper contextUniformMapper, VFXDataParticle.GraphValuesLayout graphValuesLayout)
@@ -416,10 +428,8 @@ namespace UnityEditor.VFX
             if (contextUniforms.Any())
             {
                 contextUniforms = contextUniforms.OrderBy(o => nameToOffset[contextUniformMapper.GetName(o)]);
-
                 WriteLine("GraphValues graphValues;");
                 WriteLine();
-
                 foreach (var value in contextUniforms)
                 {
                     string name = contextUniformMapper.GetName(value);

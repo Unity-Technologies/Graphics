@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
         public string baseName;
         public VFXContextBufferSizeMode bufferSizeMode;
         public uint size;
-        public ComputeBufferType bufferType;
+        public GraphicsBuffer.Target bufferTarget;
         public bool includeInSystemMappings;
         public float capacityScaleMultiplier;
     }
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
                 isPerCamera = isPerCamera,
                 stride = stride,
                 bufferCount = bufferCount,
-                bufferType = ComputeBufferType.Structured,
+                bufferTarget = GraphicsBuffer.Target.Structured,
                 includeInSystemMappings = true,
             });
 
@@ -971,8 +971,7 @@ namespace UnityEditor.VFX
                 {
                     stripBufferIndex = bufferDescs.Count;
                     uint stripCapacity = (uint)data.GetSettingValue("stripCapacity");
-                    // 5 elements per strip + 1 for the total particle count
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 5 + 1, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = stripCapacity * 5 + 1, stride = 4});
                 }
                 buffers.stripBuffers.Add(data, stripBufferIndex);
 
@@ -980,7 +979,7 @@ namespace UnityEditor.VFX
                 if (data.NeedsComputeBounds())
                 {
                     boundsBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 6, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = 6, stride = 4});
                 }
                 buffers.boundsBuffers.Add(data, boundsBufferIndex);
             }
@@ -993,7 +992,7 @@ namespace UnityEditor.VFX
                 if (capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Structured, size = capacity + 2, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = capacity + 2, stride = 4 });
                 }
                 buffers.eventBuffers.Add(data, eventBufferIndex);
             }

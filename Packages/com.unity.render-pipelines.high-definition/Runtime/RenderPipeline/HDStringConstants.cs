@@ -470,7 +470,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RenderingLayersTexture = Shader.PropertyToID("_RenderingLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
-        public static readonly int _ColorPyramidUvScaleAndLimitPrevFrame = Shader.PropertyToID("_ColorPyramidUvScaleAndLimitPrevFrame");
         public static readonly int _RoughDistortion = Shader.PropertyToID("_RoughDistortion");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
@@ -496,7 +495,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlipY = Shader.PropertyToID("_FlipY");
 
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
-        public static readonly int _DepthWithWaterTexture = Shader.PropertyToID("_DepthWithWaterTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
         public static readonly int _RenderingLayerMaskTexture = Shader.PropertyToID("_RenderingLayerMaskTexture");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
@@ -522,6 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ComputeThicknessScale = Shader.PropertyToID("_ComputeThicknessScale");
         public static readonly int _ComputeThicknessShowOverlapCount = Shader.PropertyToID("_ComputeThicknessShowOverlapCount");
         public static readonly int _VolumetricCloudsDebugMode = Shader.PropertyToID("_VolumetricCloudsDebugMode");
+        public static readonly int _SourceDownsampleDepth = Shader.PropertyToID("_SourceDownsampleDepth");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
@@ -628,6 +627,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _StencilWriteMaskStencilTag = Shader.PropertyToID("_StencilWriteMaskStencilTag");
         public static readonly int _StencilRefMaskStencilTag = Shader.PropertyToID("_StencilRefMaskStencilTag");
         public static readonly int _WaterDecalTimeParameters = Shader.PropertyToID("_WaterDecalTimeParameters");
+        public static readonly int _TransmittanceBufferRW = Shader.PropertyToID("_TransmittanceBufferRW");
 
         // Water Deferred Lighting
         public static readonly int _WaterDispatchIndirectBuffer = Shader.PropertyToID("_WaterDispatchIndirectBuffer");
