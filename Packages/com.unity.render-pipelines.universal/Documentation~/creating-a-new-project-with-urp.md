@@ -1,13 +1,21 @@
-# Using the Universal Render Pipeline in a new Project
+# Create a project with URP
 
-![URP Template](Images/AssetShots/Beauty/Template.png)
+![URP 3D Sample](Images/AssetShots/Beauty/Template.png)
 
-If you want to use the Universal Render Pipeline (URP) in a new Project, you can create a new Project using a Template.
+The Unity Hub contains the following templates that let you create a pre-configured Universal Render Pipeline (URP) project.
 
-To create a URP Project using a Template:
+| **Template** | **Description** |
+|---|---|
+| 2D URP | This is an empty project for 2D applications. URP is pre-configured with 2D renderer. |
+| 3D (URP) | This is an empty project for 3D applications. URP is pre-configured with 3D renderer. |
+| 3D&#160;Sample&#160;Scenes (URP) | This sample contains four environments that showcase the versatility, scalability, and customizability of URP. The project demonstrates different art styles, rendering paths, and scene complexities. Each scene shows you how to tailor a project to different platforms, from mobile and untethered devices to high-end PCs and consoles. |
+
+To create a new project using a URP template:
 
 1. Open the Unity Hub.
-2. On the Home page, click __New__ to start a new Project. The Templates popup appears.
-3. Select the Universal Render Pipeline Template.
-4. Click __Create__. Unity creates a new Project for you. The new Project has URP installed and configured, and includes some example content that demonstrates URP's functionality.
-5. In the Project window, navigate to the _Assets_ folder, and select the __Readme__ Asset. Unity will show information about the Project in the Inspector window.
+
+2. Select the **Projects** tab, then select **New project**.
+
+3. Select one of the URP templates.
+
+4. Fill in the **Project settings** fields and select **Create project**. Unity creates a new pre-configured URP project.
