@@ -3,33 +3,21 @@
 
 #if !defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_OSX) || defined(UNITY_PLATFORM_IOS))
 
-    // These are tokens that hlslcc is looking for in order
-    // to inject variable rasterization rate MSL code.
-    // DO NOT RENAME unless you also change logic in translation
-    float3 _UV_HlslccVRRDistort0 = float3(0.0, 0.0, 0.0);
-    float3 _UV_HlslccVRRDistort1 = float3(0.0, 0.0, 0.0);
-    float3 _UV_HlslccVRRResolve0 = float3(0.0, 0.0, 0.0);
-    float3 _UV_HlslccVRRResolve1 = float3(0.0, 0.0, 0.0);
+    // These are tokens that hlslcc is looking for in order to inject Variable Rasterization Rate MSL code.
+    // DO NOT RENAME unless you also change logic in translation.
+    // They should be used in conjunction with a 'mad' instruction where the order of parameters must be:
+    // Param 1 - uv to be remapped
+    // Param 2 - token
+    // Param 3 - stereo eye index
+    float2 _UV_HlslccVRRDistort;
+    float2 _UV_HlslccVRRResolve;
 
     float2 RemapFoveatedRenderingLinearToNonUniform(float2 uv, bool yFlip = false)
     {
         if (yFlip)
             uv.y = 1.0 - uv.y;
 
-        // TODO: This is not ideal looking code, but our hlsl to msl translation
-        // layer can rearrange instructions while doing optimizations.
-        // That can easily break things because we expect certain tokens and swizzles.
-        // When changing this make sure to check the compiled msl code for foveation.
-        if (unity_StereoEyeIndex == 1)
-        {
-            uv += _UV_HlslccVRRResolve0.yz;
-            uv = uv * _UV_HlslccVRRResolve1.xy;
-        }
-        else
-        {
-            uv += _UV_HlslccVRRResolve1.yz;
-            uv = uv * _UV_HlslccVRRResolve0.xy;
-        }
+        uv = mad(uv, _UV_HlslccVRRResolve, unity_StereoEyeIndex);
 
         if (yFlip)
             uv.y = 1.0 - uv.y;
@@ -60,17 +48,7 @@
         if (yFlip)
             uv.y = 1.0 - uv.y;
 
-        // NOTE: Check comment for similar code in RemapFoveatedRenderingLinearToNonUniform
-        if (unity_StereoEyeIndex == 1)
-        {
-            uv += _UV_HlslccVRRDistort0.yz;
-            uv = uv * _UV_HlslccVRRDistort1.xy;
-        }
-        else
-        {
-            uv += _UV_HlslccVRRDistort1.yz;
-            uv = uv * _UV_HlslccVRRDistort0.xy;
-        }
+        uv = mad(uv, _UV_HlslccVRRDistort, unity_StereoEyeIndex);
 
         if (yFlip)
             uv.y = 1.0 - uv.y;
@@ -91,17 +69,7 @@
         if (yFlip)
             uv.y = 1.0 - uv.y;
 
-        // NOTE: Check comment for similar code in RemapFoveatedRenderingLinearToNonUniform
-        if (unity_StereoEyeIndex == 1)
-        {
-            uv += _UV_HlslccVRRDistort0.yz;
-            uv = uv * _UV_HlslccVRRDistort1.xy;
-        }
-        else
-        {
-            uv += _UV_HlslccVRRDistort1.yz;
-            uv = uv * _UV_HlslccVRRDistort0.xy;
-        }
+        uv = mad(uv, _UV_HlslccVRRDistort, unity_StereoEyeIndex);
 
         if (yFlip)
             uv.y = 1.0 - uv.y;
