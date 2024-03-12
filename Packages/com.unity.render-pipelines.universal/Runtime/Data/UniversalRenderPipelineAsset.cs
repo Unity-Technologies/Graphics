@@ -890,6 +890,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     DestroyRenderer(ref m_Renderers[m_DefaultRendererIndex]);
                     m_Renderers[m_DefaultRendererIndex] = scriptableRendererData.InternalCreateRenderer();
+
+                    // GPU Resident Drawer may need to be reinitialized if renderer data has become incompatible/compatible
+                    if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+                    {
+                        IGPUResidentRenderPipeline.ReinitializeGPUResidentDrawer();
+                    }
                 }
 
                 return m_Renderers[m_DefaultRendererIndex];
@@ -927,6 +933,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 DestroyRenderer(ref m_Renderers[index]);
                 m_Renderers[index] = m_RendererDataList[index].InternalCreateRenderer();
+
+                // GPU Resident Drawer may need to be reinitialized if renderer data has become incompatible/compatible
+                if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+                {
+                    IGPUResidentRenderPipeline.ReinitializeGPUResidentDrawer();
+                }
             }
 
             return m_Renderers[index];
