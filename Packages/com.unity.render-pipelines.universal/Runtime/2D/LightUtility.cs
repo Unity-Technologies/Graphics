@@ -236,6 +236,8 @@ namespace UnityEngine.Rendering.Universal
         public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance)
         {
             const float kClipperScale = 10000.0f;
+
+            var restoreState = Random.state;
             Random.InitState(123456); // for deterministic output
 
             // todo Revisit this while we do Batching.
@@ -391,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
                 TransferToMesh(outVertices, vcount, outIndices, icount, light);
             }
 
+            Random.state = restoreState;
             return light.lightMesh.GetSubMesh(0).bounds;
         }
 
