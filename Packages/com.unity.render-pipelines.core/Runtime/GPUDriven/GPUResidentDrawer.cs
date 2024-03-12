@@ -74,9 +74,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
         /// <param name="settings">The view to update and occlusion test to use.</param>
-        public static void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings)
+        /// <param name="subviewOcclusionTests">Specifies the occluder subviews to use with each culling split index.</param>
+        public static void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, ReadOnlySpan<SubviewOcclusionTest> subviewOcclusionTests)
         {
-            s_Instance?.batcher.InstanceOcclusionTest(renderGraph, settings);
+            s_Instance?.batcher.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests);
         }
 
         /// <summary>
@@ -88,9 +89,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="renderGraph">Render graph that will have a compute pass added.</param>
         /// <param name="occluderParameters">Parameter to specify the view and depth buffer to read.</param>
-        public static void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParameters)
+        /// <param name="occluderSubviewUpdates">Specifies which occluder subviews to update from slices of the input depth buffer.</param>
+        public static void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParameters, ReadOnlySpan<OccluderSubviewUpdate> occluderSubviewUpdates)
         {
-            s_Instance?.batcher.UpdateInstanceOccluders(renderGraph, occluderParameters);
+            s_Instance?.batcher.UpdateInstanceOccluders(renderGraph, occluderParameters, occluderSubviewUpdates);
         }
 
         /// <summary>

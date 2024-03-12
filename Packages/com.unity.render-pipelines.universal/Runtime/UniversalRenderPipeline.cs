@@ -1458,7 +1458,6 @@ namespace UnityEngine.Rendering.Universal
             // enable GPU occlusion culling in game and scene views only
             cameraData.useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
                 && renderer.supportsGPUOcclusion
-                && !XRSRPSettings.enabled
                 && camera.cameraType is CameraType.SceneView or CameraType.Game or CameraType.Preview;
             cameraData.requiresDepthTexture |= cameraData.useGPUOcclusionCulling;
 

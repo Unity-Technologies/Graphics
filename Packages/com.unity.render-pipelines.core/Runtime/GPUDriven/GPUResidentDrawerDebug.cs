@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering
         public int viewInstanceID;
         public InstanceOcclusionEventType eventType;
         public int occluderVersion;
+        public int subviewMask;
         public OcclusionTest occlusionTest;
         public int visibleInstances;
         public int culledInstances;
@@ -33,7 +34,8 @@ namespace UnityEngine.Rendering
     internal struct DebugOccluderStats
     {
         public int viewInstanceID;
-        public Vector2Int occluderTextureSize;
+        public int subviewCount;
+        public Vector2Int occluderMipLayoutSize;
     }
 
     internal class DebugRendererBatcherStats : IDisposable
@@ -66,8 +68,8 @@ namespace UnityEngine.Rendering
 
     internal struct OcclusionCullingDebugOutput
     {
-        public RTHandle occluderTexture;
-        public GraphicsBuffer debugPyramid;
+        public RTHandle occluderDepthPyramid;
+        public GraphicsBuffer occlusionDebugOverlay;
         public OcclusionCullingDebugShaderVariables cb;
     }
 }

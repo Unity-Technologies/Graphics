@@ -8,8 +8,11 @@
 // PackingRules = Exact
 CBUFFER_START(OcclusionCullingDebugShaderVariables)
     float4 _DepthSizeInOccluderPixels;
-    float4 _DebugPyramidSize;
     uint4 _OccluderMipBounds[8];
+    uint _OccluderMipLayoutSizeX;
+    uint _OccluderMipLayoutSizeY;
+    uint _OcclusionCullingDebugPad0;
+    uint _OcclusionCullingDebugPad1;
 CBUFFER_END
 
 

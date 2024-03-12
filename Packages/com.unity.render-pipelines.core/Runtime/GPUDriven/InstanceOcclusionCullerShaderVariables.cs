@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
         public uint _InstanceInfoCount;
         public int _BoundingSphereInstanceDataAddress;
         public int _DebugCounterIndex;
+        public int _InstanceMultiplierShift;
         public int _InstanceOcclusionCullerPad0;
-        public int _InstanceOcclusionCullerPad1;
     }
 }

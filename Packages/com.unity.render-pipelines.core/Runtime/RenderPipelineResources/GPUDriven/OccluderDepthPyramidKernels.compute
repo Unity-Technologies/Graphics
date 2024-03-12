@@ -7,45 +7,47 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionTestCommon.hlsl"
 
 #pragma multi_compile _ USE_SRC
-#pragma multi_compile _ USE_ARRAY
-#pragma multi_compile _ USE_MSAA_SRC
+#pragma multi_compile _ SRC_IS_ARRAY
+#pragma multi_compile _ SRC_IS_MSAA
 
-#ifdef USE_ARRAY
-#if defined(USE_SRC) && defined(USE_MSAA_SRC)
-#define TEXTURE2D_A(T) Texture2DMSArray<float> T
-#else
-#define TEXTURE2D_A TEXTURE2D_ARRAY
-#endif
-#define RW_TEXTURE2D_A RW_TEXTURE2D_ARRAY
-static int g_slice_index = 0;
-#define SET_SLICE_INDEX(N) g_slice_index = N
-#define ARRAY_COORD(C) int3((C), g_slice_index)
-#define LOAD_MSAA(coord, sampleIndex) LOAD_TEXTURE2D_ARRAY_MSAA(_SrcDepth, coord.xy, g_slice_index, sampleIndex)
-#else
-#if defined(USE_SRC) && defined(USE_MSAA_SRC)
-#define TEXTURE2D_A(T) Texture2DMS<float> T
-#else
-#define TEXTURE2D_A TEXTURE2D
-#endif
-#define RW_TEXTURE2D_A RW_TEXTURE2D
-#define SET_SLICE_INDEX(N)
-#define ARRAY_COORD(C) C
-#define LOAD_MSAA(coord, sampleIndex) LOAD_TEXTURE2D_MSAA(_SrcDepth, coord, sampleIndex)
-#endif
-
-#if defined(USE_SRC) && defined(USE_MSAA_SRC)
-#define LOAD_TEXTURE(C) LOAD_MSAA(C, 0) // Always read sample 0, alternatively the depth could be resolved similar to CopyDepthPass.hlsl
-#else
-#define LOAD_TEXTURE(C) _SrcDepth[C]
-#endif
-
-RW_TEXTURE2D_A(float, _DstDepth);
+RW_TEXTURE2D(float, _DstDepth);
 
 #ifdef USE_SRC
-TEXTURE2D_A(_SrcDepth);
-#else
-#define _SrcDepth _DstDepth
+    #ifdef SRC_IS_MSAA
+        #ifdef SRC_IS_ARRAY
+            Texture2DMSArray<float> _SrcDepth;
+        #else
+            Texture2DMS<float> _SrcDepth;
+        #endif
+    #else
+        #ifdef SRC_IS_ARRAY
+            TEXTURE2D_ARRAY(_SrcDepth);
+        #else
+            TEXTURE2D(_SrcDepth);
+        #endif
+    #endif
 #endif
+
+float LoadDepth(int2 coord, int srcSliceIndex)
+{
+#ifdef USE_SRC
+    #ifdef SRC_IS_MSAA
+        #ifdef SRC_IS_ARRAY
+            return LOAD_TEXTURE2D_ARRAY_MSAA(_SrcDepth, coord, srcSliceIndex, 0).x;
+        #else
+            return LOAD_TEXTURE2D_MSAA(_SrcDepth, coord, 0).x;
+        #endif
+    #else
+        #ifdef SRC_IS_ARRAY
+            return _SrcDepth[int3(coord, srcSliceIndex)].x;
+        #else
+            return _SrcDepth[coord].x;
+        #endif
+    #endif
+#else
+    return _DstDepth[coord].x;
+#endif
+}
 
 uint2 CoordInTileByIndex(uint i)
 {
@@ -71,16 +73,25 @@ void SubgroupMergeDepths(uint threadID : SV_GroupThreadID, uint bitIndex, inout 
     GroupMemoryBarrierWithGroupSync();
 }
 
-#define _MipOffset(N) int2(_MipOffsetAndSize[N].xy)
-#define _MipSize(N) int2(_MipOffsetAndSize[N].zw)
-
-bool IsSilhouetteCulled(int2 coord)
+int2 DestMipOffset(int mipIndex, int dstSubviewIndex)
 {
-    int2 srcSize = _MipSize(0);
+    uint2 mipOffset = _MipOffsetAndSize[mipIndex].xy;
+    mipOffset.y += dstSubviewIndex * _OccluderMipLayoutSizeY;
+    return int2(mipOffset);
+}
+
+int2 DestMipSize(int mipIndex)
+{
+    return int2(_MipOffsetAndSize[mipIndex].zw);
+}
+
+bool IsSilhouetteCulled(int2 coord, int updateIndex)
+{
+    int2 srcSize = DestMipSize(0);
     float2 posNDC = float2(
         (coord.x + 0.5f) / (float)srcSize.x,
         (coord.y + 0.5f) / (float)srcSize.y);
-    float3 posWS = ComputeWorldSpacePosition(posNDC, 0.2f, _InvViewProjMatrix);
+    float3 posWS = ComputeWorldSpacePosition(posNDC, 0.2f, _InvViewProjMatrix[updateIndex]);
 
     for (uint i = 0; i < _SilhouettePlaneCount; ++i)
     {
@@ -95,35 +106,42 @@ bool IsSilhouetteCulled(int2 coord)
 [numthreads(64, 1, 1)]
 void OccluderDepthDownscale(uint threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    SET_SLICE_INDEX(groupID.z);
-
     // assign threads to pixels in a swizzle-like pattern
     int2 dstCoord1 = (groupID.xy << 3) | CoordInTileByIndex(threadID);
+    int updateIndex = groupID.z;
 
+    int srcSliceIndex = (_SrcSliceIndices >> (4*updateIndex)) & 0xf;
+    int dstSubviewIndex = (_DstSubviewIndices >> (4*updateIndex)) & 0xf;
+
+#if USE_SRC
+    int2 loadOffset = int2(_SrcOffset[updateIndex].xy);
+#else
+    int2 loadOffset = DestMipOffset(0, dstSubviewIndex);
+#endif
     int2 srcCoord = dstCoord1 << 1;
-    int2 srcLimit = _MipSize(0) - 1;
+    int2 srcLimit = DestMipSize(0) - 1;
 
-    float p00 = LOAD_TEXTURE(ARRAY_COORD(_MipOffset(0) + min(srcCoord + int2(0, 0), srcLimit))).x;
-    float p10 = LOAD_TEXTURE(ARRAY_COORD(_MipOffset(0) + min(srcCoord + int2(1, 0), srcLimit))).x;
-    float p01 = LOAD_TEXTURE(ARRAY_COORD(_MipOffset(0) + min(srcCoord + int2(0, 1), srcLimit))).x;
-    float p11 = LOAD_TEXTURE(ARRAY_COORD(_MipOffset(0) + min(srcCoord + int2(1, 1), srcLimit))).x;
+    float p00 = LoadDepth(loadOffset + min(srcCoord + int2(0, 0), srcLimit), srcSliceIndex);
+    float p10 = LoadDepth(loadOffset + min(srcCoord + int2(1, 0), srcLimit), srcSliceIndex);
+    float p01 = LoadDepth(loadOffset + min(srcCoord + int2(0, 1), srcLimit), srcSliceIndex);
+    float p11 = LoadDepth(loadOffset + min(srcCoord + int2(1, 1), srcLimit), srcSliceIndex);
 
 #ifdef USE_SRC
-    if (IsSilhouetteCulled(srcCoord + int2(0, 0)))
+    if (IsSilhouetteCulled(srcCoord + int2(0, 0), updateIndex))
         p00 = 1.f - UNITY_RAW_FAR_CLIP_VALUE;
-    if (IsSilhouetteCulled(srcCoord + int2(1, 0)))
+    if (IsSilhouetteCulled(srcCoord + int2(1, 0), updateIndex))
         p10 = 1.f - UNITY_RAW_FAR_CLIP_VALUE;
-    if (IsSilhouetteCulled(srcCoord + int2(0, 1)))
+    if (IsSilhouetteCulled(srcCoord + int2(0, 1), updateIndex))
         p01 = 1.f - UNITY_RAW_FAR_CLIP_VALUE;
-    if (IsSilhouetteCulled(srcCoord + int2(1, 1)))
+    if (IsSilhouetteCulled(srcCoord + int2(1, 1), updateIndex))
         p11 = 1.f - UNITY_RAW_FAR_CLIP_VALUE;
 #endif
 
     float farDepth = FarthestDepth(float4(p00, p10, p01, p11));
 
     // write dst0
-    if (all(dstCoord1 < _MipSize(1)))
-        _DstDepth[ARRAY_COORD(_MipOffset(1) + dstCoord1)] = farDepth;
+    if (all(dstCoord1 < DestMipSize(1)))
+        _DstDepth[DestMipOffset(1, dstSubviewIndex) + dstCoord1] = farDepth;
 
     // merge towards thread 0 in subgroup size 4
     if (2 <= _MipCount)
@@ -133,8 +151,8 @@ void OccluderDepthDownscale(uint threadID : SV_GroupThreadID, uint3 groupID : SV
         if ((threadID & 0x3) == 0)
         {
             int2 dstCoord2 = dstCoord1 >> 1;
-            if (all(dstCoord2 < _MipSize(2)))
-                _DstDepth[ARRAY_COORD(_MipOffset(2) + dstCoord2)] = farDepth;
+            if (all(dstCoord2 < DestMipSize(2)))
+                _DstDepth[DestMipOffset(2, dstSubviewIndex) + dstCoord2] = farDepth;
         }
     }
 
@@ -146,8 +164,8 @@ void OccluderDepthDownscale(uint threadID : SV_GroupThreadID, uint3 groupID : SV
         if ((threadID & 0xf) == 0)
         {
             int2 dstCoord3 = dstCoord1 >> 2;
-            if (all(dstCoord3 < _MipSize(3)))
-                _DstDepth[ARRAY_COORD(_MipOffset(3) + dstCoord3)] = farDepth;
+            if (all(dstCoord3 < DestMipSize(3)))
+                _DstDepth[DestMipOffset(3, dstSubviewIndex) + dstCoord3] = farDepth;
         }
     }
 
@@ -159,8 +177,8 @@ void OccluderDepthDownscale(uint threadID : SV_GroupThreadID, uint3 groupID : SV
         if ((threadID & 0x3f) == 0)
         {
             int2 dstCoord4 = dstCoord1 >> 3;
-            if (all(dstCoord4 < _MipSize(4)))
-                _DstDepth[ARRAY_COORD(_MipOffset(4) + dstCoord4)] = farDepth;
+            if (all(dstCoord4 < DestMipSize(4)))
+                _DstDepth[DestMipOffset(4, dstSubviewIndex) + dstCoord4] = farDepth;
         }
     }
 }

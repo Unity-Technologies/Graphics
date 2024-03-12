@@ -20,13 +20,13 @@ Shader "Hidden/Core/DebugOcclusionTest"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/InstanceOcclusionCuller.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingDebugShaderVariables.cs.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingDefine.hlsl"
             #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OcclusionCullingCommon.cs.hlsl"
 
-            StructuredBuffer<uint> _OcclusionDebugPyramidOverlay;
+            StructuredBuffer<uint> _OcclusionDebugOverlay;
 
             struct Attributes
             {
@@ -65,27 +65,35 @@ Shader "Hidden/Core/DebugOcclusionTest"
                 return color;
             }
 
-            uint toDebugPyramidCoord(uint2 coord)
+            uint OcclusionDebugOverlayOffset(uint2 coord)
             {
-                return OCCLUSIONCULLINGCOMMONCONFIG_DEBUG_PYRAMID_OFFSET + coord.x + _DebugPyramidSize.x * (coord.y + g_slice_index * _DebugPyramidSize.y);
+                return OCCLUSIONCULLINGCOMMONCONFIG_DEBUG_PYRAMID_OFFSET + coord.x + _OccluderMipLayoutSizeX * coord.y;
             }
 
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                SET_SLICE_INDEX(0);
 
                 uint2 coord = uint2(input.uv);
+                uint subviewIndex = unity_StereoEyeIndex;
+
                 uint total = 0;
                 for (int i = 0; i < OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS; ++i)
-                    total += _OcclusionDebugPyramidOverlay[toDebugPyramidCoord(_OccluderMipBounds[i].xy + (coord >> i))];
+                {
+                    int4 mipBounds = _OccluderMipBounds[i];
+                    mipBounds.y += subviewIndex * _OccluderMipLayoutSizeY;
+
+                    uint2 debugCoord = mipBounds.xy + uint2(min(int2(coord >> i), mipBounds.zw - 1));
+
+                    total += _OcclusionDebugOverlay[OcclusionDebugOverlayOffset(debugCoord)];
+                }
 
                 if(total == 0)
                     return float4(0, 0, 0, 0);
  
                 float cost = log2((float)total);
 
-                uint screenTotal = _OcclusionDebugPyramidOverlay[0]; // This should be always >= 1, because total >= 1 at this point.
+                uint screenTotal = _OcclusionDebugOverlay[0]; // This should be always >= 1, because total >= 1 at this point.
 
                 float costScreenTotal = log2((float)screenTotal);
                 return OverlayHeapMapColor(cost, costScreenTotal, 0.4);

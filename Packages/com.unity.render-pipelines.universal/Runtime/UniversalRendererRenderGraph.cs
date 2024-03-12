@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -886,26 +887,51 @@ namespace UnityEngine.Rendering.Universal
 
         private void UpdateInstanceOccluders(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle depthTexture)
         {
-            var viewMatrix = cameraData.GetViewMatrix();
-            var projMatrix = cameraData.GetProjectionMatrix();
             int scaledWidth = (int)(cameraData.pixelWidth * cameraData.renderScale);
             int scaledHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
+            bool isSinglePassXR = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
             var occluderParams = new OccluderParameters(cameraData.camera.GetInstanceID())
             {
-                viewMatrix = viewMatrix,
-                invViewMatrix = viewMatrix.inverse,
-                gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
-                viewOffsetWorldSpace = Vector3.zero,
+                subviewCount = isSinglePassXR ? 2 : 1,
                 depthTexture = depthTexture,
                 depthSize = new Vector2Int(scaledWidth, scaledHeight),
+                depthIsArray = isSinglePassXR,
             };
-            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams);
+            Span<OccluderSubviewUpdate> occluderSubviewUpdates = stackalloc OccluderSubviewUpdate[occluderParams.subviewCount];
+            for (int subviewIndex = 0; subviewIndex < occluderParams.subviewCount; ++subviewIndex)
+            {
+                var viewMatrix = cameraData.GetViewMatrix(subviewIndex);
+                var projMatrix = cameraData.GetProjectionMatrix(subviewIndex);
+                occluderSubviewUpdates[subviewIndex] = new OccluderSubviewUpdate(subviewIndex)
+                {
+                    depthSliceIndex = subviewIndex,
+                    viewMatrix = viewMatrix,
+                    invViewMatrix = viewMatrix.inverse,
+                    gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
+                    viewOffsetWorldSpace = Vector3.zero,
+                };
+            }
+            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams, occluderSubviewUpdates);
         }
 
         private void InstanceOcclusionTest(RenderGraph renderGraph, UniversalCameraData cameraData, OcclusionTest occlusionTest)
         {
-            var settings = new OcclusionCullingSettings(cameraData.camera.GetInstanceID(), occlusionTest);
-            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings);
+            bool isSinglePassXR = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
+            int subviewCount = isSinglePassXR ? 2 : 1;
+            var settings = new OcclusionCullingSettings(cameraData.camera.GetInstanceID(), occlusionTest)
+            {
+                instanceMultiplier = (isSinglePassXR && !SystemInfo.supportsMultiview) ? 2 : 1,
+            };
+            Span<SubviewOcclusionTest> subviewOcclusionTests = stackalloc SubviewOcclusionTest[subviewCount];
+            for (int subviewIndex = 0; subviewIndex < subviewCount; ++subviewIndex)
+            {
+                subviewOcclusionTests[subviewIndex] = new SubviewOcclusionTest()
+                {
+                    cullingSplitIndex = 0,
+                    occluderSubviewIndex = subviewIndex,
+                };
+            }
+            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests);
         }
 
         private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context)

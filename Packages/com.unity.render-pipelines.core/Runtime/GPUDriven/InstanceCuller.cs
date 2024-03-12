@@ -1311,6 +1311,7 @@ namespace UnityEngine.Rendering
             public int viewInstanceID;
             public InstanceOcclusionEventType eventType;
             public int occluderVersion;
+            public int subviewMask;
             public OcclusionTest occlusionTest;
 
             public bool HasVersion()
@@ -1361,7 +1362,7 @@ namespace UnityEngine.Rendering
             m_CounterBuffer.Dispose();
         }
 
-        public int TryAdd(int viewInstanceID, InstanceOcclusionEventType eventType, int occluderVersion, OcclusionTest occlusionTest)
+        public int TryAdd(int viewInstanceID, InstanceOcclusionEventType eventType, int occluderVersion, int subviewMask, OcclusionTest occlusionTest)
         {
             int passIndex = m_PendingInfo.Length;
             if (passIndex + 1 > MaxPassCount)
@@ -1372,6 +1373,7 @@ namespace UnityEngine.Rendering
                 viewInstanceID = viewInstanceID,
                 eventType = eventType,
                 occluderVersion = occluderVersion,
+                subviewMask = subviewMask,
                 occlusionTest = occlusionTest,
             });
             return passIndex;
@@ -1445,6 +1447,7 @@ namespace UnityEngine.Rendering
                         viewInstanceID = info.viewInstanceID,
                         eventType = info.eventType,
                         occluderVersion = occluderVersion,
+                        subviewMask = info.subviewMask,
                         occlusionTest = info.occlusionTest,
                         visibleInstances = notOccludedCounter,
                         culledInstances = occludedCounter,
@@ -1928,7 +1931,7 @@ namespace UnityEngine.Rendering
 
 #endif
 
-        public void InstanceOccludersUpdated(int viewInstanceID, RenderersBatchersContext batchersContext)
+        public void InstanceOccludersUpdated(int viewInstanceID, int subviewMask, RenderersBatchersContext batchersContext)
         {
             if (m_DebugStats?.enabled ?? false)
             {
@@ -1940,6 +1943,7 @@ namespace UnityEngine.Rendering
                         viewInstanceID,
                         InstanceOcclusionEventType.OccluderUpdate,
                         occluderCtx.version,
+                        subviewMask,
                         OcclusionTest.None);
                 }
             }
@@ -1973,11 +1977,12 @@ namespace UnityEngine.Rendering
         private class InstanceOcclusionTestPassData
         {
             public OcclusionCullingSettings settings;
+            public InstanceOcclusionTestSubviewSettings subviewSettings;
             public OccluderHandles occluderHandles;
             public IndirectBufferContextHandles bufferHandles;
         }
 
-        public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, RenderersBatchersContext batchersContext)
+        public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, ReadOnlySpan<SubviewOcclusionTest> subviewOcclusionTests, RenderersBatchersContext batchersContext)
         {
             if (!batchersContext.occlusionCullingCommon.GetOccluderContext(settings.viewInstanceID, out OccluderContext occluderCtx))
                 return;
@@ -1991,6 +1996,7 @@ namespace UnityEngine.Rendering
                 builder.AllowGlobalStateModification(true);
 
                 passData.settings = settings;
+                passData.subviewSettings = InstanceOcclusionTestSubviewSettings.FromSpan(subviewOcclusionTests);
                 passData.bufferHandles = m_IndirectStorage.ImportBuffers(renderGraph);
                 passData.occluderHandles = occluderHandles;
 
@@ -2003,6 +2009,7 @@ namespace UnityEngine.Rendering
                     batcher.instanceCullingBatcher.culler.AddOcclusionCullingDispatch(
                         context.cmd,
                         data.settings,
+                        data.subviewSettings,
                         data.bufferHandles,
                         data.occluderHandles,
                         batcher.batchersContext);
@@ -2039,6 +2046,7 @@ namespace UnityEngine.Rendering
                         _InstanceInfoCount = (uint)allocInfo.instanceCount,
                         _BoundingSphereInstanceDataAddress = 0,
                         _DebugCounterIndex = -1,
+                        _InstanceMultiplierShift = 0,
                     };
                     cmd.SetBufferData(m_ConstantBuffer, m_ShaderVariables);
                     cmd.SetComputeConstantBufferParam(cs, ShaderIDs.InstanceOcclusionCullerShaderVariables, m_ConstantBuffer, 0, m_ConstantBuffer.stride);
@@ -2060,11 +2068,11 @@ namespace UnityEngine.Rendering
         private void AddOcclusionCullingDispatch(
             ComputeCommandBuffer cmd,
             in OcclusionCullingSettings settings,
+            in InstanceOcclusionTestSubviewSettings subviewSettings,
             in IndirectBufferContextHandles bufferHandles,
             in OccluderHandles occluderHandles,
             RenderersBatchersContext batchersContext)
         {
-            int settingsCullingSplitIndex = 0; // TODO: rework to split mask for shadow caster culling
             var occlusionCullingCommon = batchersContext.occlusionCullingCommon;
             int indirectContextIndex = m_IndirectStorage.TryGetContextIndex(settings.viewInstanceID);
             if (indirectContextIndex >= 0)
@@ -2074,8 +2082,12 @@ namespace UnityEngine.Rendering
                 // check what compute we need to do (if any)
                 bool hasOccluders = occlusionCullingCommon.GetOccluderContext(settings.viewInstanceID, out OccluderContext occluderCtx);
 
+                // check we have occluders for all the required subviews, disable the occlusion test if not
+                hasOccluders = hasOccluders && ((subviewSettings.occluderSubviewMask & occluderCtx.subviewValidMask) == subviewSettings.occluderSubviewMask);
+
                 IndirectBufferContext.BufferState newBufferState = IndirectBufferContext.BufferState.Zeroed;
-                OccluderState newOccluderState = new OccluderState();
+                int newOccluderVersion = 0;
+                int newSubviewMask = 0;
                 switch (settings.occlusionTest)
                 {
                     case OcclusionTest.None:
@@ -2085,11 +2097,8 @@ namespace UnityEngine.Rendering
                         if (hasOccluders)
                         {
                             newBufferState = IndirectBufferContext.BufferState.AllInstancesOcclusionTested;
-                            newOccluderState = new OccluderState
-                            {
-                                version = occluderCtx.version,
-                                cullingSplitIndex = settingsCullingSplitIndex,
-                            };
+                            newOccluderVersion = occluderCtx.version;
+                            newSubviewMask = subviewSettings.occluderSubviewMask;
                         }
                         else
                         {
@@ -2105,9 +2114,9 @@ namespace UnityEngine.Rendering
                                 case IndirectBufferContext.BufferState.AllInstancesOcclusionTested:
                                 case IndirectBufferContext.BufferState.OccludedInstancesReTested:
                                     // valid or already done
-                                    if (bufferCtx.occluderState.cullingSplitIndex != settingsCullingSplitIndex)
+                                    if (bufferCtx.subviewMask != subviewSettings.occluderSubviewMask)
                                     {
-                                        Debug.Log("Expected the previous occlusion test to be from the same split index");
+                                        Debug.Log("Expected an occlusion test of TestCulled to use the same subview mask as the previous occlusion test");
                                         hasMatchingCullingOutput = false;
                                     }
                                     break;
@@ -2127,18 +2136,15 @@ namespace UnityEngine.Rendering
                             if (hasMatchingCullingOutput)
                             {
                                 newBufferState = IndirectBufferContext.BufferState.OccludedInstancesReTested;
-                                newOccluderState = new OccluderState
-                                {
-                                    version = occluderCtx.version,
-                                    cullingSplitIndex = settingsCullingSplitIndex,
-                                };
+                                newOccluderVersion = occluderCtx.version;
+                                newSubviewMask = subviewSettings.occluderSubviewMask;
                             }
                         }
                         break;
                 }
 
                 // issue the work (if any)
-                if ((bufferCtx.bufferState != newBufferState || !bufferCtx.occluderState.Matches(newOccluderState)))
+                if (!bufferCtx.Matches(newBufferState, newOccluderVersion, newSubviewMask))
                 {
                     bool isFirstPass = (newBufferState == IndirectBufferContext.BufferState.AllInstancesOcclusionTested);
                     bool isSecondPass = (newBufferState == IndirectBufferContext.BufferState.OccludedInstancesReTested);
@@ -2155,7 +2161,8 @@ namespace UnityEngine.Rendering
                     IndirectBufferAllocInfo allocInfo = m_IndirectStorage.GetAllocInfo(indirectContextIndex);
 
                     bufferCtx.bufferState = newBufferState;
-                    bufferCtx.occluderState = newOccluderState;
+                    bufferCtx.occluderVersion = newOccluderVersion;
+                    bufferCtx.subviewMask = newSubviewMask;
 
                     if (!allocInfo.IsEmpty())
                     {
@@ -2165,17 +2172,16 @@ namespace UnityEngine.Rendering
                             debugCounterIndex = m_OcclusionEventDebugArray.TryAdd(
                                 settings.viewInstanceID,
                                 InstanceOcclusionEventType.OcclusionTest,
-                                newOccluderState.version,
+                                newOccluderVersion,
+                                newSubviewMask,
                                 isFirstPass ? OcclusionTest.TestAll : isSecondPass ? OcclusionTest.TestCulled : OcclusionTest.None);
                         }
 
                         // set up keywords
-                        bool useArray = false;
                         bool occlusionDebug = false;
                         if (isFirstPass || isSecondPass)
                         {
-                            useArray = OcclusionCullingCommon.UseArray(in occluderCtx);
-                            occlusionDebug = OcclusionCullingCommon.UseOcclusionDebug(in occluderCtx) && occluderHandles.debugPyramid.IsValid();
+                            occlusionDebug = OcclusionCullingCommon.UseOcclusionDebug(in occluderCtx) && occluderHandles.occlusionDebugOverlay.IsValid();
                         }
                         var cs = m_OcclusionTestShader.cs;
                         var firstPassKeyword = new LocalKeyword(cs, "OCCLUSION_FIRST_PASS");
@@ -2191,11 +2197,12 @@ namespace UnityEngine.Rendering
                             _InstanceInfoCount = (uint)allocInfo.instanceCount,
                             _BoundingSphereInstanceDataAddress = batchersContext.renderersParameters.boundingSphere.gpuAddress,
                             _DebugCounterIndex = debugCounterIndex,
+                            _InstanceMultiplierShift = (settings.instanceMultiplier == 2) ? 1 : 0,
                         };
                         cmd.SetBufferData(m_ConstantBuffer, m_ShaderVariables);
                         cmd.SetComputeConstantBufferParam(cs, ShaderIDs.InstanceOcclusionCullerShaderVariables, m_ConstantBuffer, 0, m_ConstantBuffer.stride);
 
-                        occlusionCullingCommon.PrepareCulling(cmd, in occluderCtx, settings.viewInstanceID, settingsCullingSplitIndex, m_OcclusionTestShader, useArray, occlusionDebug);
+                        occlusionCullingCommon.PrepareCulling(cmd, in occluderCtx, settings, subviewSettings, m_OcclusionTestShader, occlusionDebug);
 
                         if (doCopyInstances)
                         {

@@ -6,9 +6,13 @@ namespace UnityEngine.Rendering
     internal unsafe struct OcclusionCullingDebugShaderVariables
     {
         public Vector4 _DepthSizeInOccluderPixels;
-        public Vector4 _DebugPyramidSize;
 
         [HLSLArray(OccluderContext.k_MaxOccluderMips, typeof(ShaderGenUInt4))]
         public fixed uint _OccluderMipBounds[OccluderContext.k_MaxOccluderMips * 4];
+
+        public uint _OccluderMipLayoutSizeX;
+        public uint _OccluderMipLayoutSizeY;
+        public uint _OcclusionCullingDebugPad0;
+        public uint _OcclusionCullingDebugPad1;
     }
 }

@@ -7,38 +7,72 @@ namespace UnityEngine.Rendering
         [HLSLArray(OccluderContext.k_MaxOccluderMips, typeof(ShaderGenUInt4))]
         public fixed uint _OccluderMipBounds[OccluderContext.k_MaxOccluderMips * 4];
 
-        public Matrix4x4 _ViewProjMatrix;   // from view-centered world space
+        [HLSLArray(OccluderContext.k_MaxSubviewsPerView, typeof(Matrix4x4))]
+        public fixed float _ViewProjMatrix[OccluderContext.k_MaxSubviewsPerView * 16]; // from view-centered world space
 
-        public Vector4 _ViewOriginWorldSpace;
-        public Vector4 _FacingDirWorldSpace;
-        public Vector4 _RadialDirWorldSpace;
+        [HLSLArray(OccluderContext.k_MaxSubviewsPerView, typeof(Vector4))]
+        public fixed float _ViewOriginWorldSpace[OccluderContext.k_MaxSubviewsPerView * 4];
+
+        [HLSLArray(OccluderContext.k_MaxSubviewsPerView, typeof(Vector4))]
+        public fixed float _FacingDirWorldSpace[OccluderContext.k_MaxSubviewsPerView * 4];
+
+        [HLSLArray(OccluderContext.k_MaxSubviewsPerView, typeof(Vector4))]
+        public fixed float _RadialDirWorldSpace[OccluderContext.k_MaxSubviewsPerView * 4];
+
         public Vector4 _DepthSizeInOccluderPixels;
-        public Vector4 _OccluderTextureSize;
-        public Vector4 _DebugPyramidSize;
+        public Vector4 _OccluderDepthPyramidSize;
 
-        public int _RendererListSplitMask;
-        public int _DebugAlwaysPassOcclusionTest;
-        public int _DebugOverlayCountOccluded;
-        public int _Padding0;
+        public uint _OccluderMipLayoutSizeX;
+        public uint _OccluderMipLayoutSizeY;
+        public uint _OcclusionTestDebugFlags;
+        public uint _OcclusionCullingCommonPad0;
+
+        public int _OcclusionTestCount;
+        public int _OccluderSubviewIndices; // packed 4 bits each
+        public int _CullingSplitIndices; // packed 4 bits each
+        public int _CullingSplitMask; // only used for early out
 
         internal OcclusionCullingCommonShaderVariables(
             in OccluderContext occluderCtx,
-            int cullingSplitIndex,
+            in InstanceOcclusionTestSubviewSettings subviewSettings,
             bool occlusionOverlayCountVisible,
             bool overrideOcclusionTestToAlwaysPass)
         {
-            _ViewProjMatrix = occluderCtx.cameraData.viewProjMatrix;
-            _ViewOriginWorldSpace = occluderCtx.cameraData.viewOriginWorldSpace;
-            _DebugAlwaysPassOcclusionTest = overrideOcclusionTestToAlwaysPass ? 1 : 0;
-            _FacingDirWorldSpace = occluderCtx.cameraData.facingDirWorldSpace;
-            _RadialDirWorldSpace = occluderCtx.cameraData.radialDirWorldSpace;
-            _DebugOverlayCountOccluded = occlusionOverlayCountVisible ? 0 : 1;
-            _Padding0 = 0;
-            _DebugPyramidSize = new Vector4(occluderCtx.debugTextureSize.x, occluderCtx.debugTextureSize.y, 0.0f, 0.0f);
-            _RendererListSplitMask = 1 << cullingSplitIndex;
+            for (int i = 0; i < occluderCtx.subviewCount; ++i)
+            { 
+                if (occluderCtx.IsSubviewValid(i))
+                {
+                    unsafe
+                    {
+                        for (int j = 0; j < 16; ++j)
+                            _ViewProjMatrix[16 * i + j] = occluderCtx.subviewData[i].viewProjMatrix[j];
+
+                        for (int j = 0; j < 4; ++j)
+                        {
+                            _ViewOriginWorldSpace[4 * i + j] = occluderCtx.subviewData[i].viewOriginWorldSpace[j];
+                            _FacingDirWorldSpace[4 * i + j] = occluderCtx.subviewData[i].facingDirWorldSpace[j];
+                            _RadialDirWorldSpace[4 * i + j] = occluderCtx.subviewData[i].radialDirWorldSpace[j];
+                        }
+                    }
+                }
+            }
+            _OccluderMipLayoutSizeX = (uint)occluderCtx.occluderMipLayoutSize.x;
+            _OccluderMipLayoutSizeY = (uint)occluderCtx.occluderMipLayoutSize.y;
+            _OcclusionTestDebugFlags
+                = (overrideOcclusionTestToAlwaysPass ? (uint)OcclusionTestDebugFlag.AlwaysPass : 0)
+                | (occlusionOverlayCountVisible ? (uint)OcclusionTestDebugFlag.CountVisible : 0);
+            _OcclusionCullingCommonPad0 = 0;
+
+            _OcclusionTestCount = subviewSettings.testCount;
+            _OccluderSubviewIndices = subviewSettings.occluderSubviewIndices;
+            _CullingSplitIndices = subviewSettings.cullingSplitIndices;
+            _CullingSplitMask = subviewSettings.cullingSplitMask;
+
             _DepthSizeInOccluderPixels = occluderCtx.depthBufferSizeInOccluderPixels;
-            Vector2Int textureSize = occluderCtx.occluderTextureSize;
-            _OccluderTextureSize = new Vector4(textureSize.x, textureSize.y, 1.0f / textureSize.x, 1.0f / textureSize.y);
+
+            Vector2Int textureSize = occluderCtx.occluderDepthPyramidSize;
+            _OccluderDepthPyramidSize = new Vector4(textureSize.x, textureSize.y, 1.0f / textureSize.x, 1.0f / textureSize.y);
+
             for (int i = 0; i < occluderCtx.occluderMipBounds.Length; ++i)
             {
                 var mipBounds = occluderCtx.occluderMipBounds[i];
