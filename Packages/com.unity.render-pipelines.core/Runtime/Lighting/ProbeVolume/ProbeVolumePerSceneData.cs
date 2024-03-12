@@ -15,6 +15,10 @@ namespace UnityEngine.Rendering
     [AddComponentMenu("")] // Hide.
     public class ProbeVolumePerSceneData : MonoBehaviour
     {
+        /// <summary>The baking set this scene is part of.</summary>
+        /// <returns>The baking set this scene is part of.</returns>
+        ProbeVolumeBakingSet GetBakingSet() => bakingSet;
+
         [SerializeField] internal ProbeVolumeBakingSet bakingSet;
         [SerializeField] internal string sceneGUID = "";
 

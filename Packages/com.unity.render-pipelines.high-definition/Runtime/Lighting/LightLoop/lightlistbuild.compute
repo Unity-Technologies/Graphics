@@ -150,6 +150,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     uint t=threadID;
     int i;
 
+    UNITY_UNROLLX(LIGHT_LIST_MAX_COARSE_ENTRIES)
     for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS)
         if(i<LIGHT_LIST_MAX_COARSE_ENTRIES)
             prunedList[i]=0;
