@@ -71,14 +71,26 @@ float4 _FsrEasuConstants3;
 #if FSR_EASU_H
 AH4 FsrEasuRH(AF2 p)
 {
+    #ifdef FSR_CLAMP_COORD
+        p = FSR_CLAMP_COORD(p);
+    #endif
+
     return (AH4)GATHER_RED_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
 AH4 FsrEasuGH(AF2 p)
 {
+    #ifdef FSR_CLAMP_COORD
+        p = FSR_CLAMP_COORD(p);
+    #endif
+
     return (AH4)GATHER_GREEN_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
 AH4 FsrEasuBH(AF2 p)
 {
+    #ifdef FSR_CLAMP_COORD
+        p = FSR_CLAMP_COORD(p);
+    #endif
+
     return (AH4)GATHER_BLUE_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
 
@@ -99,14 +111,26 @@ void FsrEasuProcessInput(inout AH4 r, inout AH4 g, inout AH4 b)
 #else
 AF4 FsrEasuRF(AF2 p)
 {
+    #ifdef FSR_CLAMP_COORD
+        p = FSR_CLAMP_COORD(p);
+    #endif
+
     return GATHER_RED_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
 AF4 FsrEasuGF(AF2 p)
 {
+    #ifdef FSR_CLAMP_COORD
+        p = FSR_CLAMP_COORD(p);
+    #endif
+
     return GATHER_GREEN_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
 AF4 FsrEasuBF(AF2 p)
 {
+    #ifdef FSR_CLAMP_COORD
+        p = FSR_CLAMP_COORD(p);
+    #endif
+
     return GATHER_BLUE_TEXTURE2D_X(FSR_INPUT_TEXTURE, FSR_INPUT_SAMPLER, p);
 }
 
