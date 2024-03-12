@@ -25,7 +25,7 @@ HDRP uses only the [specular color hierarchy](#specular) if the following happen
 
 HDRP works down the following hierarchy to find the diffuse color.
 
-1. If you have a Probe Volume in your Scene, HDRP uses the lighting data from the Probe Volume.
+1. If you have an Adaptive Probe Volume in your Scene, HDRP uses the lighting data from the Adaptive Probe Volume.
 2. If there's a baked lightmap for this position, HDRP uses the lightmap texture.
 3. If you have a baked [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) and the object is in the probe's Influence Volume, HDRP uses the lighting data from the Light Probe.
 4. If you set a static sky texture in **Lighting** > **Environment** > **Static Lighting Sky**, HDRP uses the cubemap texture of the sky in the ambient probe.
