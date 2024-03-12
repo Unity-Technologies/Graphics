@@ -36,6 +36,7 @@ namespace ShaderStrippingAndPrefiltering
             public PassType passType { get; set; }
             public PassIdentifier passIdentifier { get; set; }
 
+            public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get; set; }
 
 

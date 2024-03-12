@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine.Rendering.Universal;
 
-class FoundationEditorTests
+class PostProEditorTests
 {
     const string kProjectName = "PostPro";
 

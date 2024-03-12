@@ -28,6 +28,7 @@ namespace ShaderStrippingAndPrefiltering
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
+            public bool IsHDRDisplaySupportEnabled { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get; set; }
@@ -445,11 +446,49 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper helper;
 
             helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.IsHDRDisplaySupportEnabled = false;
+            helper.data.IsHDRShaderVariantValid = false;
+            helper.IsTrue(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
+            helper.IsTrue(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.IsHDRDisplaySupportEnabled = false;
+            helper.data.IsHDRShaderVariantValid = true;
+            helper.IsFalse(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.IsHDRDisplaySupportEnabled = true;
+            helper.data.IsHDRShaderVariantValid = false;
+            helper.IsFalse(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.IsHDRDisplaySupportEnabled = true;
+            helper.data.IsHDRShaderVariantValid = true;
+            helper.IsFalse(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.DecalGBuffer);
+            helper.data.IsHDRDisplaySupportEnabled = false;
             helper.data.IsHDRShaderVariantValid = false;
             helper.IsTrue(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
             helper.IsTrue(helper.stripper.StripInvalidVariants(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.DecalGBuffer);
+            helper.data.IsHDRDisplaySupportEnabled = false;
+            helper.data.IsHDRShaderVariantValid = true;
+            helper.IsFalse(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.DecalGBuffer);
+            helper.data.IsHDRDisplaySupportEnabled = true;
+            helper.data.IsHDRShaderVariantValid = false;
+            helper.IsFalse(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
+            helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.DecalGBuffer);
+            helper.data.IsHDRDisplaySupportEnabled = true;
             helper.data.IsHDRShaderVariantValid = true;
             helper.IsFalse(helper.stripper.StripInvalidVariants_HDR(ref helper.data));
             helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));

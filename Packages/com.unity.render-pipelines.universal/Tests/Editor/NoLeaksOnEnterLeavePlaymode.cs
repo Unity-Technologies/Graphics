@@ -69,6 +69,11 @@ class NoLeaksOnEnterLeavePlaymode
     [UnityTest]
     public IEnumerator NoResourceLeaks()
     {
+        // Ignoring OpenGL as it has now been deprecated and this test is unstable on that platform.
+        GraphicsDeviceType gfxAPI = SystemInfo.graphicsDeviceType;
+        if (gfxAPI == GraphicsDeviceType.OpenGLCore)
+            yield break;
+
         // give it a chance to warm-up by entering play mode once
         // in theory this shouldn't be needed but I hope this avoids the worst instabilities.
         yield return new EnterPlayMode();

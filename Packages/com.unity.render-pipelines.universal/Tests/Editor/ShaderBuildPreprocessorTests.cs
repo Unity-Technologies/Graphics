@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Rendering.Universal;
 using UnityEditorInternal;
 using UnityEngine;
@@ -27,16 +28,28 @@ namespace ShaderStrippingAndPrefiltering
             internal bool stripUnusedVariants;
             internal bool containsForwardRenderer;
             internal bool everyRendererHasSSAO;
-            internal ShaderFeatures defaultURPAssetFeatures =
-                  ShaderFeatures.MainLight
-                | ShaderFeatures.MixedLighting
-                | ShaderFeatures.TerrainHoles
-                | ShaderFeatures.DrawProcedural
-                | ShaderFeatures.LightCookies
-                | ShaderFeatures.LODCrossFade
-                | ShaderFeatures.AutoSHMode
-                | ShaderFeatures.DataDrivenLensFlare
-                | ShaderFeatures.ScreenSpaceLensFlare;
+
+            internal ShaderFeatures defaultURPAssetFeatures
+            {
+                get
+                {
+                    ShaderFeatures defaultFeatures =
+                              ShaderFeatures.MainLight
+                            | ShaderFeatures.MixedLighting
+                            | ShaderFeatures.TerrainHoles
+                            | ShaderFeatures.DrawProcedural
+                            | ShaderFeatures.LightCookies
+                            | ShaderFeatures.LODCrossFade
+                            | ShaderFeatures.AutoSHMode
+                            | ShaderFeatures.DataDrivenLensFlare
+                            | ShaderFeatures.ScreenSpaceLensFlare;
+
+                    if (PlayerSettings.allowHDRDisplaySupport)
+                        defaultFeatures |= ShaderFeatures.HdrGrading;
+
+                    return defaultFeatures;
+                }
+            }
 
             internal RendererRequirements defaultRendererRequirements = new()
             {
