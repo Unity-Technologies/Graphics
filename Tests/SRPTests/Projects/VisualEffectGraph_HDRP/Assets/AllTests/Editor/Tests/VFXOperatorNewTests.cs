@@ -309,7 +309,7 @@ namespace UnityEditor.VFX.Test
         public void BranchOperator_With_Sphere()
         {
             var branch = ScriptableObject.CreateInstance<Operator.Branch>();
-            branch.SetOperandType(typeof(Sphere));
+            branch.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
 
             var sphereA = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
             var sphereB = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };

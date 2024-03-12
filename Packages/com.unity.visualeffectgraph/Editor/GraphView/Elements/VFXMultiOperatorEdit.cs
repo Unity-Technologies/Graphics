@@ -18,7 +18,18 @@ namespace UnityEditor.VFX.UI
             m_PopupField.formatListItemCallback += x => x.UserFriendlyName();
             m_PopupField.formatSelectedValueCallback += x => x.UserFriendlyName();
             m_PopupField.RegisterValueChangedCallback(OnChangeType);
+            m_PopupField.RegisterCallback<MouseDownEvent>(e =>
+            {
+                if (e.button == 0)
+                    OnUpdateChoices();
+            });
+
             Add(m_PopupField);
+        }
+
+        void OnUpdateChoices()
+        {
+            m_PopupField.choices = controller.model.validTypes.ToList();
         }
 
         void OnChangeType(ChangeEvent<Type> evt)
@@ -44,7 +55,6 @@ namespace UnityEditor.VFX.UI
                     if (m_Controller != null)
                     {
                         m_Controller.RegisterHandler(this);
-                        m_PopupField.choices = controller.model.validTypes.ToList();
                     }
                 }
             }

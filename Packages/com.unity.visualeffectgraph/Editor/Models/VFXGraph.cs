@@ -487,7 +487,8 @@ namespace UnityEditor.VFX
         // 15: New ShaderGraph integration uses independent output
         // 16: Add a collection of custom attributes (to be listed in blackboard)
         // 17: New Flipbook player and split the different Flipbook modes in UVMode into separate variables
-        public static readonly int CurrentVersion = 17;
+        // 18: Change ProbabilitySampling m_IntegratedRandomDeprecated changed to m_Mode
+        public static readonly int CurrentVersion = 18;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;

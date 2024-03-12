@@ -585,7 +585,7 @@ namespace UnityEditor.VFX
         static public VFXExpression FixedRandom(VFXExpression hash, VFXSeedMode mode)
         {
             VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
-            if (mode != VFXSeedMode.PerComponent)
+            if (mode != VFXSeedMode.PerVFXComponent)
                 seed = new VFXExpressionBitwiseXor(new VFXAttributeExpression(mode == VFXSeedMode.PerParticle ? VFXAttribute.ParticleId : VFXAttribute.StripIndex), seed);
             return new VFXExpressionFixedRandom(seed);
         }
