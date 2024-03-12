@@ -2,10 +2,10 @@
 
 This page describes when a Universal Render Pipeline (URP) camera performs the following operations:
 
-* [Clearing the color and depth buffers](#clearing)
+* [Clearing the color and depth buffers](#clearing-the-color-and-depth-buffers)
   * [Base Camera](#base-camera)
   * [Overlay Camera](#overlay-camera)
-* [Culling and rendering](#camera-culling-and-rendering-order)
+* [Culling and rendering](#culling-and-rendering)
 * [Rendering order optimizations.](#rendering-order-optimizations)
 * [Render requests](#render-requests)
 
