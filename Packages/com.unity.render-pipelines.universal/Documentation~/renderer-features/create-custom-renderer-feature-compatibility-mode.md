@@ -1,6 +1,8 @@
-# Example of a complete Scriptable Renderer Feature
+# Example of a complete Scriptable Renderer Feature in Compatibility Mode
 
-This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.
+This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer, if you enable **Compatibility Mode (Render Graph Disabled)** in [URP graphics settings](../urp-global-settings.md).
+
+> **Note**: Unity no longer develops or improves the rendering path that doesn't use the render graph API. Use the render graph API instead when developing new graphics features.
 
 This walkthrough contains the following sections:
 
@@ -10,7 +12,6 @@ This walkthrough contains the following sections:
     * [Add the Renderer Feature to the the Universal Renderer asset](#add-renderer-feature-to-asset)
 * [Create the scriptable Render Pass](#scriptable-render-pass)
 * [Implement the settings for the custom render pass](#implement-the-settings-for-the-custom-render-pass)
-* [Implement the render passes](#implement-the-render-passes)
 * [Enqueue the render pass in the custom renderer feature](#enqueue-the-render-pass-in-the-custom-renderer-feature)
 * [Implement the volume component](#volume-component)
 * [All complete code for the scripts in this example](#all-complete-code-for-the-scripts-in-this-example)
@@ -31,7 +32,7 @@ The implementation consists of the following parts:
 
     * Creates a temporary render texture using the `RenderTextureDescriptor` API.
 
-    * Applies two passes of the [custom shader](#example-shader) to the camera output using the `TextureHandle` and the `Blitter` API.
+    * Applies two passes of the [custom shader](#example-shader) to the camera output using the `RTHandle` and the `Blit` API.
 
 ## <a name="example-scene"></a>Create example Scene and GameObjects
 
@@ -46,8 +47,6 @@ To set your project up for this example workflow:
 3. Assign the `Red` Material to the cube and the `Blue` Material to the sphere.
 
 3. Position the camera so that it has the cube and the sphere in its view.
-
-4. In the URP Asset, set the property **Quality** > **Anti Aliasing (MSAA)** to **Disabled**. The purpose of this step is to simplify the example implementation.
 
 The sample scene should look like the following image:
 
@@ -122,7 +121,6 @@ This section demonstrates how to create a scriptable Render Pass and enqueue its
 
     ```C#
     using UnityEngine.Rendering;
-    using UnityEngine.Rendering.RenderGraphModule;
     using UnityEngine.Rendering.Universal;
     ```
 
@@ -132,24 +130,23 @@ This section demonstrates how to create a scriptable Render Pass and enqueue its
     public class BlurRenderPass : ScriptableRenderPass
     ```
 
-4. Add the `RecordRenderGraph` method to the class. This method adds and configures render passes in the render graph. This process includes declaring render pass inputs and outputs, but does not include adding commands to command buffers. Unity calls this method every frame, once for each camera.
+4. Add the `Execute` method to the class. Unity calls this method every frame, once for each camera. This method lets you implement the rendering logic of the scriptable Render Pass.
 
     ```C#
-    public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+    public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     { }
     ```
 
-Below is the complete code for the `BlurRenderPass.cs` file from this section.
+Below is the complete code for the BlurRenderPass.cs file from this section.
 
 ```C#
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
 public class BlurRenderPass : ScriptableRenderPass
 {
-    public override void RecordRenderGraph(RenderGraph renderGraph,
-    ContextContainer frameData)
+    public override void Execute(ScriptableRenderContext context,
+        ref RenderingData renderingData)
     {
         
     }
@@ -189,11 +186,11 @@ This section demonstrates how to implement the settings for the custom blur rend
     public BlurRenderPass(Material material, BlurSettings defaultSettings)
     {
         this.material = material;
-        this.defaultSettings = defaultSettings;
+        this.defaultSettings = defaultSettings;        
     }
     ```
 
-4. In the `BlurRenderPass` class, add the `RenderTextureDescriptor` field and initialize it in the constructor. The `RenderTextureDescriptor` class lets you specify the properties of a render texture, such as the width, height, and format.
+4. In the `BlurRenderPass` class, add the `RenderTextureDescriptor` field and initialize it in the constructor:
 
     ```C#
     using UnityEngine;
@@ -205,149 +202,99 @@ This section demonstrates how to implement the settings for the custom blur rend
         this.material = material;
         this.defaultSettings = defaultSettings;
 
-        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width, Screen.height,
-        RenderTextureFormat.Default, 0);
+        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width,
+            Screen.height, RenderTextureFormat.Default, 0);
     }
     ```
 
-5. In the `BlurRenderPass` class, declare the `PassData` class for storing the render pass input data. The `RecordRenderGraph` method populates the data and the render graph passes it as a parameter to the rendering function. The `TextureHandle` field stores the reference to the temporary input texture.
+5. In the `BlurRenderPass` class, declare the `RTHandle` field to store the reference to the temporary blur texture. 
 
     ```C#
-    private class PassData
+    private RTHandle blurTextureHandle;
+    ```
+
+6. In the `BlurRenderPass` class, implement the `Configure` method. Unity calls this method before executing the render pass.
+
+    ```C#
+    public override void Configure(CommandBuffer cmd,
+        RenderTextureDescriptor cameraTextureDescriptor)
     {
-        internal TextureHandle src;
-        internal Material material;
+        //Set the blur texture size to be the same as the camera target size.
+        blurTextureDescriptor.width = cameraTextureDescriptor.width;
+        blurTextureDescriptor.height = cameraTextureDescriptor.height;
+
+        //Check if the descriptor has changed, and reallocate the RTHandle if necessary.
+        RenderingUtils.ReAllocateHandleIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
     }
-    ```
-
-5. In the `RecordRenderGraph` method, create the variable for storing the `UniversalResourceData` instance from the `frameData` parameter. `UniversalResourceData` contains all the texture references used by URP, including the active color and depth textures of the camera.
-
-    ```C#
-    UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-    ```
-
-6. Declare the variables for interacting with the shader properties.
-
-    ```C#
-    private static readonly int horizontalBlurId = Shader.PropertyToID("_HorizontalBlur");
-    private static readonly int verticalBlurId = Shader.PropertyToID("_VerticalBlur");
-    private const string k_BlurTextureName = "_BlurTexture";
-    private const string k_VerticalPassName = "VerticalBlurRenderPass";
-    private const string k_HorizontalPassName = "HorizontalBlurRenderPass";
-    ```
-
-6. In the `RecordRenderGraph` method, declare the `TextureHandle` fields to store the references to the input and the output textures. `CreateRenderGraphTexture` is a helper method that calls the `RenderGraph.CreateTexture` method.
-
-    ```C#
-    TextureHandle srcCamColor = resourceData.activeColorTexture;
-    TextureHandle dst = UniversalRenderer.CreateRenderGraphTexture(renderGraph, blurTextureDescriptor, k_BlurTextureName, false);
     ```
 
 7. In the `BlurRenderPass` class, implement the `UpdateBlurSettings` method that updates the shader values.
 
+    Use the `Blit` method to apply the two passes from the custom shader to the camera output.
+
     ```C#
+    private static readonly int horizontalBlurId =
+        Shader.PropertyToID("_HorizontalBlur");
+    private static readonly int verticalBlurId =
+        Shader.PropertyToID("_VerticalBlur");
+
+    ...
+
     private void UpdateBlurSettings()
     {
         if (material == null) return;
-
-        // Use the Volume settings or the default settings if no Volume is set.
-        var volumeComponent =
-            VolumeManager.instance.stack.GetComponent<CustomVolumeComponent>();
-        float horizontalBlur = volumeComponent.horizontalBlur.overrideState ?
-            volumeComponent.horizontalBlur.value : defaultSettings.horizontalBlur;
-        float verticalBlur = volumeComponent.verticalBlur.overrideState ?
-            volumeComponent.verticalBlur.value : defaultSettings.verticalBlur;
-        material.SetFloat(horizontalBlurId, horizontalBlur);
-        material.SetFloat(verticalBlurId, verticalBlur);
+                
+        material.SetFloat(horizontalBlurId, defaultSettings.horizontalBlur);
+        material.SetFloat(verticalBlurId, defaultSettings.verticalBlur);
     }
     ```
 
-8. In the `RecordRenderGraph` method, add the variable for storing the `UniversalCameraData` data, and set the `RenderTextureDescriptor` values using that data.
+8. Call the `UpdateBlurSettings` method in the `Execute` method.
 
     ```C#
-    UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
-    // The following line ensures that the render pass doesn't blit
-    // from the back buffer.
-    if (resourceData.isActiveTargetBackBuffer)
-        return;
-
-    // Set the blur texture size to be the same as the camera target size.
-    blurTextureDescriptor.width = cameraData.cameraTargetDescriptor.width;
-    blurTextureDescriptor.height = cameraData.cameraTargetDescriptor.height;
-    blurTextureDescriptor.depthBufferBits = 0;
-    ```
-
-8. In the `RecordRenderGraph` method, add the function to continuously update the blur settings in the material.
-
-    ```C#
-    // Update the blur settings in the material
-    UpdateBlurSettings();
-
-    // This check is to avoid an error from the material preview in the scene
-    if (!srcCamColor.IsValid() || !dst.IsValid())
-        return;
-    ```
-
-## Implement the render passes
-
-1. In the `RecordRenderGraph` method, using the `builder` variable, add the render pass for the vertical blur. The `SetRenderFunc` method sets the rendering function for the render pass. In this example, the function blits the camera color to the render graph texture, using the first shader pass.
-
-    ```C#
-    // Vertical blur pass
-    using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_VerticalPassName,
-            out var passData))
+    public override void Execute(ScriptableRenderContext context,
+        ref RenderingData renderingData)
     {
-        // Configure pass data
-        passData.src = srcCamColor;
-        passData.material = material;
+        //Get a CommandBuffer from pool.
+        CommandBuffer cmd = CommandBufferPool.Get();
 
-        // Configure render graph input and output
-        builder.UseTexture(passData.src);
-        builder.SetRenderAttachment(dst, 0);
+        RTHandle cameraTargetHandle =
+            renderingData.cameraData.renderer.cameraColorTargetHandle;
 
-        // Blit from the camera color to the render graph texture,
+        UpdateBlurSettings();
+
+        // Blit from the camera target to the temporary render texture,
         // using the first shader pass.
-        builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-        {
-            Blitter.BlitTexture(context.cmd, data.src, m_ScaleBias, data.material, 0);
-        });
+        Blit(cmd, cameraTargetHandle, blurTextureHandle, material, 0);
+        // Blit from the temporary render texture to the camera target,
+        // using the second shader pass.
+        Blit(cmd, blurTextureHandle, cameraTargetHandle, material, 1);
+
+        //Execute the command buffer and release it back to the pool.
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
     }
     ```
 
-    The `BlitTexture` method uses the `m_ScaleBias` argument. add it in the `BlurRenderPass` class.
+9. Implement the `Dispose` method that destroys the Material and the temporary render texture after the render pass execution.
 
     ```C#
-    private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
-    ```
-
-2. In the `RecordRenderGraph` method, using the `builder` variable, add the render pass for the horizontal blur. This pass uses the output of the previous pass as its input, it does that using the `FrameBufferFetch` method. In this example, using this method lets URP merge two blur passes into a single render pass. Refer to the complete shader code for the implementation details.
-
-    ```C#
-    // Horizontal blur pass
-    using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_HorizontalPassName,
-            out var passData))
+    public void Dispose()
     {
-        // Reset unused passData fields
-        passData.src = TextureHandle.nullHandle;
-
-        // Use the same material as the previous pass
-        passData.material = material;
-
-        // Use the output of the previous pass as the input,
-        // and bind it as FrameBufferFetch input
-        builder.SetInputAttachment(dst, 0);
-
-        // Use the input texture of the previous pass as the output
-        builder.SetRenderAttachment(srcCamColor, 0);
-
-        // Blit from the render graph texture to the camera color,
-        // using the second shader pass,
-        // which reads the input texture using the FrameBufferFetch method.
-        builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-        {
-            Blitter.BlitTexture(context.cmd, m_ScaleBias, data.material, 1);
-        });
+        #if UNITY_EDITOR
+                if (EditorApplication.isPlaying)
+                {
+                    Object.Destroy(material);
+                }
+                else
+                {
+                    Object.DestroyImmediate(material);
+                }
+        #else
+                Object.Destroy(material);
+        #endif
+        
+        if (blurTextureHandle != null) blurTextureHandle.Release();
     }
     ```
 
@@ -371,7 +318,7 @@ In this section, you instantiate the render pass in the `Create` method of the `
         material = new Material(shader);
         blurRenderPass = new BlurRenderPass(material, settings);
 
-        blurRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+        renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
     }
     ```
 
@@ -387,11 +334,12 @@ In this section, you instantiate the render pass in the `Create` method of the `
     }
     ```
 
-3. Implement the `Dispose` method that destroys the material instance that the Renderer Feature creates.
+3. Implement the `Dispose` method that destroys the material instance that the Renderer Feature creates. The method also calls the `Dispose` method from the render pass class.
 
     ```C#
     protected override void Dispose(bool disposing)
     {
+        blurRenderPass.Dispose();
         #if UNITY_EDITOR
             if (EditorApplication.isPlaying)
             {
@@ -524,6 +472,7 @@ public class BlurRendererFeature : ScriptableRendererFeature
 
     protected override void Dispose(bool disposing)
     {
+        blurRenderPass.Dispose();
         #if UNITY_EDITOR
             if (EditorApplication.isPlaying)
             {
@@ -555,31 +504,39 @@ Below is the complete code for the custom Render Pass script.
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
 public class BlurRenderPass : ScriptableRenderPass
 {
-    private static readonly int horizontalBlurId = Shader.PropertyToID("_HorizontalBlur");
-    private static readonly int verticalBlurId = Shader.PropertyToID("_VerticalBlur");
-    private const string k_BlurTextureName = "_BlurTexture";
-    private const string k_VerticalPassName = "VerticalBlurRenderPass";
-    private const string k_HorizontalPassName = "HorizontalBlurRenderPass";
-
-    private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
+    private static readonly int horizontalBlurId =
+        Shader.PropertyToID("_HorizontalBlur");
+    private static readonly int verticalBlurId =
+        Shader.PropertyToID("_VerticalBlur");
 
     private BlurSettings defaultSettings;
     private Material material;
 
     private RenderTextureDescriptor blurTextureDescriptor;
+    private RTHandle blurTextureHandle;
 
     public BlurRenderPass(Material material, BlurSettings defaultSettings)
     {
         this.material = material;
         this.defaultSettings = defaultSettings;
 
-        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width, Screen.height,
-            RenderTextureFormat.Default, 0);
+        blurTextureDescriptor = new RenderTextureDescriptor(Screen.width,
+            Screen.height, RenderTextureFormat.Default, 0);
+    }
+
+    public override void Configure(CommandBuffer cmd,
+        RenderTextureDescriptor cameraTextureDescriptor)
+    {
+        // Set the blur texture size to be the same as the camera target size.
+        blurTextureDescriptor.width = cameraTextureDescriptor.width;
+        blurTextureDescriptor.height = cameraTextureDescriptor.height;
+
+        // Check if the descriptor has changed, and reallocate the RTHandle if necessary
+        RenderingUtils.ReAllocateHandleIfNeeded(ref blurTextureHandle, blurTextureDescriptor);
     }
 
     private void UpdateBlurSettings()
@@ -597,85 +554,45 @@ public class BlurRenderPass : ScriptableRenderPass
         material.SetFloat(verticalBlurId, verticalBlur);
     }
 
-    private class PassData
+    public override void Execute(ScriptableRenderContext context,
+        ref RenderingData renderingData)
     {
-        internal TextureHandle src;
-        internal Material material;
-    }
+        //Get a CommandBuffer from pool.
+        CommandBuffer cmd = CommandBufferPool.Get();
 
-    public override void RecordRenderGraph(RenderGraph renderGraph,
-    ContextContainer frameData)
-    {
-        UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+        RTHandle cameraTargetHandle =
+            renderingData.cameraData.renderer.cameraColorTargetHandle;
 
-        UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
-        // The following line ensures that the render pass doesn't blit
-        // from the back buffer.
-        if (resourceData.isActiveTargetBackBuffer)
-            return;
-
-        // Set the blur texture size to be the same as the camera target size.
-        blurTextureDescriptor.width = cameraData.cameraTargetDescriptor.width;
-        blurTextureDescriptor.height = cameraData.cameraTargetDescriptor.height;
-        blurTextureDescriptor.depthBufferBits = 0;
-
-        TextureHandle srcCamColor = resourceData.activeColorTexture;
-        TextureHandle dst = UniversalRenderer.CreateRenderGraphTexture(renderGraph,
-            blurTextureDescriptor, k_BlurTextureName, false);
-
-        // Update the blur settings in the material
         UpdateBlurSettings();
 
-        // This check is to avoid an error from the material preview in the scene
-        if (!srcCamColor.IsValid() || !dst.IsValid())
-            return;
+        // Blit from the camera target to the temporary render texture,
+        // using the first shader pass.
+        Blit(cmd, cameraTargetHandle, blurTextureHandle, material, 0);
+        // Blit from the temporary render texture to the camera target,
+        // using the second shader pass.
+        Blit(cmd, blurTextureHandle, cameraTargetHandle, material, 1);
 
-        // Vertical blur pass
-        using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_VerticalPassName,
-            out var passData))
+        //Execute the command buffer and release it back to the pool.
+        context.ExecuteCommandBuffer(cmd);
+        CommandBufferPool.Release(cmd);
+    }
+
+    public void Dispose()
+    {
+    #if UNITY_EDITOR
+        if (EditorApplication.isPlaying)
         {
-            // Configure pass data
-            passData.src = srcCamColor;
-            passData.material = material;
-
-            // Configure render graph input and output
-            builder.UseTexture(passData.src);
-            builder.SetRenderAttachment(dst, 0);
-
-            // Blit from the camera color to the render graph texture,
-            // using the first shader pass.
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-            {
-                Blitter.BlitTexture(context.cmd, data.src, m_ScaleBias, data.material, 0);
-            });
+            Object.Destroy(material);
         }
-
-        // Horizontal blur pass
-        using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_HorizontalPassName,
-            out var passData))
+        else
         {
-            // Reset unused passData fields
-            passData.src = TextureHandle.nullHandle;
-
-            // Use the same material as the previous pass
-            passData.material = material;
-
-            // Use the output of the previous pass as the input,
-            // and bind it as FrameBufferFetch input
-            builder.SetInputAttachment(dst, 0);
-
-            // Use the input texture of the previous pass as the output
-            builder.SetRenderAttachment(srcCamColor, 0);
-
-            // Blit from the render graph texture to the camera color,
-            // using the second shader pass,
-            // which reads the input texture using the FrameBufferFetch method.
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-            {
-                Blitter.BlitTexture(context.cmd, m_ScaleBias, data.material, 1);
-            });
+            Object.DestroyImmediate(material);
         }
+    #else
+                Object.Destroy(material);
+    #endif
+
+        if (blurTextureHandle != null) blurTextureHandle.Release();
     }
 }
 ```
@@ -716,6 +633,8 @@ Shader "CustomEffects/Blur"
         float _VerticalBlur;
         float _HorizontalBlur;
     
+        float4 _BlitTexture_TexelSize;
+    
         float4 BlurVertical (Varyings input) : SV_Target
         {
             const float BLUR_SAMPLES = 64;
@@ -726,11 +645,35 @@ Shader "CustomEffects/Blur"
             
             for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
             {
-                float2 sampleOffset = float2 (0, (blurPixels / _BlitTexture_TexelSize.w) * (i / BLUR_SAMPLES_RANGE));
-                color += SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, input.texcoord + sampleOffset).rgb;
+                float2 sampleOffset =
+                    float2 (0, (blurPixels / _BlitTexture_TexelSize.w) *
+                        (i / BLUR_SAMPLES_RANGE));
+                color +=
+                    SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp,
+                        input.texcoord + sampleOffset).rgb;
             }
             
             return float4(color.rgb / (BLUR_SAMPLES + 1), 1);
+        }
+
+        float4 BlurHorizontal (Varyings input) : SV_Target
+        {
+            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
+            
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float3 color = 0;
+            float blurPixels = _HorizontalBlur * _ScreenParams.x;
+            for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
+            {
+                float2 sampleOffset =
+                    float2 ((blurPixels / _BlitTexture_TexelSize.z) *
+                        (i / BLUR_SAMPLES_RANGE), 0);
+                color +=
+                    SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp,
+                        input.texcoord + sampleOffset).rgb;
+            }
+            return float4(color / (BLUR_SAMPLES + 1), 1);
         }
     
     ENDHLSL
@@ -754,30 +697,12 @@ Shader "CustomEffects/Blur"
         
         Pass
         {
-            Name "BlurPassHorizontal_FrameBufferFetch"
+            Name "BlurPassHorizontal"
 
             HLSLPROGRAM
             
             #pragma vertex Vert
-            #pragma fragment Frag
-
-           FRAMEBUFFER_INPUT_X_HALF(0);
-
-           float4 Frag(Varyings input) : SV_Target
-           {
-                const float BLUR_SAMPLES = 64;
-                const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
-                
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float3 color = 0;
-                float blurPixels = _HorizontalBlur * _ScreenParams.x;
-                for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
-                {
-                    float2 sampleOffset = float2 ((blurPixels / 1) * (i / BLUR_SAMPLES_RANGE), 0);
-                    color += LOAD_FRAMEBUFFER_X_INPUT(0, input.positionCS.xy + sampleOffset).rgb;
-                }
-                return float4(color / (BLUR_SAMPLES + 1), 1);
-           }
+            #pragma fragment BlurHorizontal
             
             ENDHLSL
         }
