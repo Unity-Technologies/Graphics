@@ -203,15 +203,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
-                    ApplyCameraMipBias(hdCamera);
-
                     RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput, vtFeedbackBuffer, shadowResult, cullingResults);
 
                     if (IsComputeThicknessNeeded(hdCamera))
                         // Compute the thickness for All Transparent which can be occluded by opaque written on the DepthBuffer (which includes the Forward Opaques).
                         RenderThickness(m_RenderGraph, cullingResults, thicknessTexture, prepassOutput.depthPyramidTexture, hdCamera, HDRenderQueue.k_RenderQueue_AllTransparent, true);
-
-                    ResetCameraMipBias(hdCamera);
 
                     if (aovRequest.isValid)
                         aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
@@ -353,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.VolumetricFog, hdCamera, colorBuffer, aovBuffers);
                 }
 
-                ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
+                ResetCameraDataAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
 
                 RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
 
@@ -601,50 +597,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void ApplyCameraMipBias(HDCamera hdCamera)
+        float GetGlobalMipBias(HDCamera hdCamera)
         {
-            float globalMaterialMipBias = 0.0f;
+            float globalMaterialMipBias;
             if (m_CurrentDebugDisplaySettings != null && m_CurrentDebugDisplaySettings.data.UseDebugGlobalMipBiasOverride())
-            {
                 globalMaterialMipBias = m_CurrentDebugDisplaySettings.data.GetDebugGlobalMipBiasOverride();
-            }
             else
-            {
                 globalMaterialMipBias = hdCamera.globalMipBias;
-            }
-            PushCameraGlobalMipBiasPass(m_RenderGraph, hdCamera, globalMaterialMipBias);
-        }
 
-        void ResetCameraMipBias(HDCamera hdCamera) => PushCameraGlobalMipBiasPass(m_RenderGraph, hdCamera, 0.0f);
-
-        class PushCameraGlobalMipBiasData
-        {
-            public HDCamera hdCamera;
-            public float mipBias;
-            public ShaderVariablesGlobal globalCB;
-            public ShaderVariablesXR xrCB;
-        }
-
-        void PushCameraGlobalMipBiasPass(RenderGraph renderGraph, HDCamera hdCamera, float mipBias)
-        {
-            if (!ShaderConfig.s_GlobalMipBias)
-                return;
-
-            using (var builder = renderGraph.AddRenderPass<PushCameraGlobalMipBiasData>("Push Global Camera Mip Bias", out var passData))
-            {
-                passData.hdCamera = hdCamera;
-                passData.mipBias = mipBias;
-                passData.globalCB = m_ShaderVariablesGlobalCB;
-                passData.xrCB = m_ShaderVariablesXRCB;
-
-                builder.SetRenderFunc(
-                    (PushCameraGlobalMipBiasData data, RenderGraphContext context) =>
-                    {
-                        data.hdCamera.globalMipBias = data.mipBias;
-                        data.hdCamera.UpdateGlobalMipBiasCB(ref data.globalCB);
-                        ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
-                    });
-            }
+            return globalMaterialMipBias;
         }
 
         class SetFinalTargetPassData
@@ -1696,9 +1657,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovCustomPassBuffers);
             SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
-            // Render pre-refraction objects
-            ApplyCameraMipBias(hdCamera);
-
             // Combine volumetric clouds with prerefraction transparents
             CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass, ref opticalFogTransmittance);
 
@@ -1706,8 +1664,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var refractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, false));
 
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, transparentPrepass, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true, preRefractionList);
-
-            ResetCameraMipBias(hdCamera);
 
             // Render the deferred water lighting
             RenderWaterLighting(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, transparentPrepass, lightLists, ref opticalFogTransmittance);
@@ -1734,9 +1690,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
 
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
-            ApplyCameraMipBias(hdCamera);
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, transparentPrepass, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false, refractionList);
-            ResetCameraMipBias(hdCamera);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
@@ -1748,9 +1702,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
                 var lowResTranspRendererList = renderGraph.CreateRendererList(
                     CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_LowTransparent));
-                ApplyCameraMipBias(hdCamera);
                 var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, prepassOutput.downsampledDepthBuffer, cullingResults, lowResTranspRendererList);
-                ResetCameraMipBias(hdCamera);
 
                 CombineAndUpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, prepassOutput.downsampledDepthBuffer, transparentPrepass, preRefractionList, lowResTranspRendererList);
             }
@@ -2364,7 +2316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesGlobal shaderVariablesGlobal;
         }
 
-        void ResetCameraSizeForAfterPostProcess(RenderGraph renderGraph, HDCamera hdCamera, CommandBuffer commandBuffer)
+        void ResetCameraDataAfterPostProcess(RenderGraph renderGraph, HDCamera hdCamera, CommandBuffer commandBuffer)
         {
             if (DynamicResolutionHandler.instance.DynamicResolutionEnabled())
             {
@@ -2379,6 +2331,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             data.shaderVariablesGlobal._ScreenSize = new Vector4(data.hdCamera.finalViewport.width, data.hdCamera.finalViewport.height, 1.0f / data.hdCamera.finalViewport.width, 1.0f / data.hdCamera.finalViewport.height);
                             data.shaderVariablesGlobal._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
+                            data.hdCamera.UpdateGlobalMipBiasCB(ref data.shaderVariablesGlobal, 0);
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesGlobal, HDShaderIDs._ShaderVariablesGlobal);
                             RTHandles.SetReferenceSize((int)data.hdCamera.finalViewport.width, (int)data.hdCamera.finalViewport.height);
                         });

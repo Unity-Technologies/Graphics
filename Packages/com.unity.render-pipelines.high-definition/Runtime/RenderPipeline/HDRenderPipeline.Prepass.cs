@@ -312,8 +312,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderRayTracingDepthPrepass(renderGraph, cullingResults, hdCamera, result.depthBuffer);
 
-                ApplyCameraMipBias(hdCamera);
-
                 OccluderPass occluderPass = GetOccluderPass(hdCamera);
 
                 bool shouldRenderMotionVectorAfterGBuffer = false;
@@ -348,8 +346,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                ResetCameraMipBias(hdCamera);
-
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
                 bool needCameraMVBeforeResolve = msaa;
@@ -364,8 +360,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
-
-                ApplyCameraMipBias(hdCamera);
 
                 if (IsComputeThicknessNeeded(hdCamera))
                     // Compute thicknes for AllOpaque before the GBuffer without reading DepthBuffer
@@ -426,8 +420,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
                 mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && hdCamera.isLowResScaleHalf;
-
-                ResetCameraMipBias(hdCamera);
 
                 DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
 
@@ -1179,7 +1171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // In vulkan, dx12 and consoles the first read of a texture always triggers a depth decompression
                     // (in vulkan is seen as a vk event, in dx12 as a barrier, and in gnm as a straight up depth decompress compute job).
                     // Unfortunately, the current render graph implementation only see's the current texture as a read since the abstraction doesnt go too low.
-                    // The GfxDevice has no context of passes so it can't put the barrier in the right spot... so for now hacking this by *assuming* this is the first read. :( 
+                    // The GfxDevice has no context of passes so it can't put the barrier in the right spot... so for now hacking this by *assuming* this is the first read. :(
                     passData.inputDepth = builder.ReadWriteTexture(output.resolvedDepthBuffer);
                     //passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
 

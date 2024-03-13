@@ -175,7 +175,7 @@ TEXTURE2D(unity_MipmapStreaming_DebugTex);
 // In HDRP, all material samplers have the possibility of having a mip bias.
 // This mip bias is necessary for temporal upsamplers, since they render to a lower
 // resolution into a higher resolution target.
-#if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0
+#if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0 && defined(SUPPORT_GLOBAL_MIP_BIAS)
 
     //simple 2d textures bias manipulation
     #ifdef PLATFORM_SAMPLE_TEXTURE2D_BIAS

@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Unfortunately changing this would cause quite a bit of unknowns all over since its a change required on RTHandle scaling.
             // Its safer to fix it case by case for now, and this problem has only been seen on xb1 HW drs on low res transparent.
             // In this case we compute the error between both computations, and plumb it as the DRS percentate. This ultimately means that low res transparency.
-            // 
+            //
             Vector2Int originalLowResHWViewport = new Vector2Int(Mathf.RoundToInt((float)RTHandles.maxWidth * lowResFactor), Mathf.RoundToInt((float)RTHandles.maxHeight * lowResFactor));
             Vector2Int lowResHWViewport = resolutionHandler.GetScaledSize(originalLowResHWViewport);
             Vector2 lowResViewport = new Vector2(Mathf.RoundToInt((float)scaledSize.x * lowResFactor), Mathf.RoundToInt((float)scaledSize.y * lowResFactor));
@@ -1520,10 +1520,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DynamicResolutionFullscreenScale = new Vector4(actualWidth / finalViewport.width, actualHeight / finalViewport.height, 0, 0);
         }
 
-        internal void UpdateGlobalMipBiasCB(ref ShaderVariablesGlobal cb)
+        internal void UpdateGlobalMipBiasCB(ref ShaderVariablesGlobal cb, float mipBias)
         {
-            cb._GlobalMipBias = globalMipBias;
-            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
+            if (!ShaderConfig.s_GlobalMipBias)
+                return;
+            
+            cb._GlobalMipBias = mipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, mipBias);
         }
 
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
@@ -1563,7 +1566,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaFrameInfo = new Vector4(taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.LowQuality ? taaSharpenStrength : 0, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
-            UpdateGlobalMipBiasCB(ref cb);
 
             float ct = time;
             float pt = lastTime;

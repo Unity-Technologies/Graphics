@@ -66,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
             $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
         };
+        protected virtual bool supportGlobalMipBias => true;
 
         public virtual string identifier => GetType().Name;
 
@@ -208,6 +209,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     };
                 }
 
+                if (supportGlobalMipBias)
+                {
+                    if (passDescriptor.defines == null)
+                        passDescriptor.defines = new();
+                    passDescriptor.defines.Add(CoreDefines.SupportGlobalMipBias);
+                }
+
                 CollectPassKeywords(ref passDescriptor);
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -274,6 +282,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Overwrite the pass pragmas with just the kernel pragma for now.
             passDescriptor.pragmas = new PragmaCollection { Pragma.Kernel(kernel.name) };
+
+            if (supportGlobalMipBias)
+            {
+                if (passDescriptor.defines == null)
+                    passDescriptor.defines = new();
+                passDescriptor.defines.Add(CoreDefines.SupportGlobalMipBias);
+            }
 
             CollectPassKeywords(ref passDescriptor);
 

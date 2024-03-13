@@ -550,6 +550,10 @@ Shader "HDRP/LayeredLit"
     // Define
     //-------------------------------------------------------------------------------------
 
+    // Enable the support of global mip bias in the shader.
+    // Only has effect if the global mip bias is enabled in shader config and DRS is enabled.
+    #define SUPPORT_GLOBAL_MIP_BIAS
+
     // This shader support recursive rendering for raytracing
     #define HAVE_RECURSIVE_RENDERING
 

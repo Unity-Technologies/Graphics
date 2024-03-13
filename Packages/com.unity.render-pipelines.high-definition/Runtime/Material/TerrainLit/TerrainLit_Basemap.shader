@@ -49,6 +49,10 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
     #pragma multi_compile _ _ALPHATEST_ON
 
+    // Enable the support of global mip bias in the shader.
+    // Only has effect if the global mip bias is enabled in shader config and DRS is enabled.
+    #define SUPPORT_GLOBAL_MIP_BIAS
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Basemap_Includes.hlsl"
 
     ENDHLSL

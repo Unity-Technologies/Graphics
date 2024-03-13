@@ -79,6 +79,10 @@ Shader "HDRP/TerrainLit"
     // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
     #define _DEFERRED_CAPABLE_MATERIAL
 
+    // Enable the support of global mip bias in the shader.
+    // Only has effect if the global mip bias is enabled in shader config and DRS is enabled.
+    #define SUPPORT_GLOBAL_MIP_BIAS
+
     #ifdef DEBUG_DISPLAY
         // Mipmap debug views can inspect all 8 layers: this ensures that, even if
         // layers 4 / 5 / 6 / 7 aren't set up, we can display something reasonable.
