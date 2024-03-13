@@ -619,6 +619,11 @@ namespace UnityEngine.Rendering.Universal
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming);
+                m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                m_XROcclusionMeshPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+#endif
+
             }
             else
             {

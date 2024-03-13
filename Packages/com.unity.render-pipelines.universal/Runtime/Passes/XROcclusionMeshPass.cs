@@ -7,10 +7,16 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class XROcclusionMeshPass : ScriptableRenderPass
     {
+        /// <summary>
+        /// Used to indicate if the active target of the pass is the back buffer
+        /// </summary>
+        public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+
         public XROcclusionMeshPass(RenderPassEvent evt)
         {
             base.profilingSampler = new ProfilingSampler(nameof(XROcclusionMeshPass));
             renderPassEvent = evt;
+            m_IsActiveTargetBackBuffer = false;
         }
 
         /// <inheritdoc/>
@@ -20,6 +26,9 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            if (m_IsActiveTargetBackBuffer)
+                cmd.SetViewport(renderingData.cameraData.xr.GetViewport());
 
             renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
 
