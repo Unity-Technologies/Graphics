@@ -13,8 +13,6 @@
 
 #pragma kernel OutputHistoryArray                               OUTPUT_IS_ARRAY
 
-#pragma multi_compile _ FULL_RESOLUTION_FILTER
-
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // Common includes
@@ -61,6 +59,8 @@ int _OccluderMotionRejection;
 int _EnableExposureControl;
 // Contains history buffer size in xy and the uv scale in zw
 float4 _HistorySizeAndScale;
+// Contains resolution multiplier in x, inverse in y, unused on zw
+float4 _DenoiserResolutionMultiplierVals;
 
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
@@ -172,11 +172,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // Fetch the current pixel coordinate
     uint2 currentCoord = groupId * TEMPORAL_FILTER_TILE_SIZE + groupThreadId;
-    #ifdef FULL_RESOLUTION_FILTER
-    uint2 sourceCoord = currentCoord;
-    #else
-    uint2 sourceCoord = currentCoord * 2;
-    #endif
+    uint2 sourceCoord = uint2(((float2)currentCoord) * _DenoiserResolutionMultiplierVals.yy);
 
     // If the depth of this pixel is the depth of the background, we can end the process right away
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
@@ -194,15 +190,8 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)sourceCoord), velocity);
 
     // Compute the pixel coordinate for the history tapping
-    float2 historyUVUnscaled = posInputs.positionNDC - velocity;
-    #ifdef FULL_RESOLUTION_FILTER
-    float2 historyTapCoord = (float2)(historyUVUnscaled * _HistorySizeAndScale.xy);
-    float2 historyUV = historyUVUnscaled * _HistorySizeAndScale.zw;
-    #else
-    // Remap the history tap coord into half res space and compensate for the half resolution half pixel shift
-    float2 historyTapCoord = (float2)((historyUVUnscaled * _HistorySizeAndScale.xy + 0.5) * 0.5);
-    float2 historyUV = historyTapCoord / _HistorySizeAndScale.xy * _HistorySizeAndScale.zw;
-    #endif
+    float2 historyUVUnscaled = ((currentCoord + 0.5)/(_ScreenSize.xy * _DenoiserResolutionMultiplierVals.xx)) - velocity;
+    float2 historyUV = historyUVUnscaled * _DenoiserResolutionMultiplierVals.zz *_HistorySizeAndScale.zw;
 
     // Fetch the current value, history value and current sample count
 #if HISTORY_IS_ARRAY
@@ -291,11 +280,7 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    #ifdef FULL_RESOLUTION_FILTER
-    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
-    #else
-    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy / 2)))
-    #endif
+    if (any(dispatchThreadId.xy > (uint2)round((float2)_ScreenSize.xy * _DenoiserResolutionMultiplierVals.xx)))
         return;  // Out of bounds, discard
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);

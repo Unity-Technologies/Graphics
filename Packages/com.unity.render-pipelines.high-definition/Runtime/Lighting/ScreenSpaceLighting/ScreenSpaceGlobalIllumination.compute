@@ -52,13 +52,16 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     float _RayMarchingThicknessScale;
     float _RayMarchingThicknessBias;
     int _RayMarchingReflectsSky;
-    int _RayMarchingFallbackHierarchy;
 
+    int _RayMarchingFallbackHierarchy;
     int _IndirectDiffuseProbeFallbackFlag;
     int _IndirectDiffuseProbeFallbackBias;
     int _SsrStencilBit;
+
     int _IndirectDiffuseFrameIndex;
     int _ObjectMotionStencilBit;
+    float _RayMarchingLowResPercentageInv;
+    int _SSGIUnused0;
 CBUFFER_END
 
 // Must be included after the declaration of variables
@@ -66,6 +69,11 @@ CBUFFER_END
 
 // Output texture that holds the hit point NDC coordinates
 RW_TEXTURE2D_X(float2, _IndirectDiffuseHitPointTextureRW);
+
+uint2 GetLowResCoord(uint2 inputCoord)
+{
+    return min((uint2)round((float2)(inputCoord + 0.5f) * _RayMarchingLowResPercentageInv), (int2)_ScreenSize.xy - 1u);
+}
 
 [numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -78,7 +86,7 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
 #if HALF_RES
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    inputCoord = inputCoord * 2;
+    inputCoord = GetLowResCoord(inputCoord);
 #endif
 
     // Read the depth value as early as possible
@@ -211,7 +219,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 currentCoord = dispatchThreadId.xy;
 #if HALF_RES
     // Compute the full resolution pixel for the inputs that do not have a pyramid
-    inputCoord = inputCoord * 2;
+    inputCoord = GetLowResCoord(inputCoord);
 #endif
 
     // Read the depth and compute the position
@@ -273,7 +281,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (!invalid)
     {
         // The intersection was considered valid, we can read from the color pyramid
-        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier();
+        color = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_linear_clamp_sampler, prevFrameUV * _RayMarchingLowResPercentageInv / _RayMarchingLowResPercentageInv, SSGI_MIP_OFFSET).rgb * GetInversePreviousExposureMultiplier();
     }
     #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     else if(_EnableProbeVolumes)

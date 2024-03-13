@@ -733,6 +733,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AffectSmoothSurfaces = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit = Shader.PropertyToID("_ObjectMotionStencilBit");
         public static readonly int _PointDistribution = Shader.PropertyToID("_PointDistribution");
+        public static readonly int _DenoiserResolutionMultiplierVals = Shader.PropertyToID("_DenoiserResolutionMultiplierVals");
 
         public static readonly int _DenoiseInputArrayTexture = Shader.PropertyToID("_DenoiseInputArrayTexture");
         public static readonly int _ValidityInputArrayTexture = Shader.PropertyToID("_ValidityInputArrayTexture");
@@ -832,6 +833,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayMarchingSteps = Shader.PropertyToID("_RayMarchingSteps");
         public static readonly int _RayMarchingReflectSky = Shader.PropertyToID("_RayMarchingReflectSky");
         public static readonly int _RayMarchingFallbackHierarchy = Shader.PropertyToID("_RayMarchingFallbackHierarchy");
+        public static readonly int _RayMarchingLowResPercentageInv = Shader.PropertyToID("_RayMarchingLowResPercentageInv");
+        public static readonly int _RayMarchingLowResPercentage = Shader.PropertyToID("_RayMarchingLowResPercentage");
 
         // Ray binning
         public static readonly int _RayBinResult = Shader.PropertyToID("_RayBinResult");

@@ -2,12 +2,11 @@
     "name": "HDRP.StaticAnalysis.Xbox.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:91836b14885b8a34196f4aa8303d7793",
-        "GUID:27619889b8ba8c24980f49ee34dbb44a",
-        "GUID:0acc523941302664db1f4e527237feb3",
-        "GUID:28e5f1c81336e0a45b3a1bf37e997b43",
-        "GUID:c8ae5dd6a09ec7449b58a77c5361f6e0",
-        "GUID:c0dd0d10738d4ad4a9de57c559d0ca1b"
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.ShaderAnalysis.Editor",
+        "Unity.RenderPipelines.HighDefinition-PerformanceTests.StaticAnalysis.Editor",
+        "Unity.PerformanceTesting"
     ],
     "includePlatforms": [
         "Editor"

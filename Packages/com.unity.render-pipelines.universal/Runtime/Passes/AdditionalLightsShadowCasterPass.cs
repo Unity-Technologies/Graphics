@@ -61,6 +61,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int m_AdditionalLightsShadowmapID;
         internal RTHandle m_AdditionalLightsShadowmapHandle;
 
+        private bool m_CreateEmptyShadowmap;
+        private RTHandle m_EmptyAdditionalLightShadowmapTexture;
+        private const int k_EmptyShadowMapDimensions = 1;
+        private const string k_EmptyShadowMapName = "_EmptyAdditionalLightShadowmapTexture";
+        internal static Vector4[] s_EmptyAdditionalLightIndexToShadowParams = null;
 
         float m_MaxShadowDistanceSq;
         float m_CascadeBorder;
@@ -80,8 +85,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         ShadowResolutionRequest[] m_SortedShadowResolutionRequests = null;
         int[] m_VisibleLightIndexToSortedShadowResolutionRequestsFirstSliceIndex = null;                 // for each visible light, store the index of its first shadow slice in m_SortedShadowResolutionRequests (for quicker access)
         List<RectInt> m_UnusedAtlasSquareAreas = new List<RectInt>();                                    // this list tracks space available in the atlas
-
-        bool m_CreateEmptyShadowmap;
 
         int renderTargetWidth;
         int renderTargetHeight;
@@ -126,6 +129,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
             m_VisibleLightIndexToCameraSquareDistance = new float[maxVisibleLights];
 
+            s_EmptyAdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
+            for (int i = 0; i < s_EmptyAdditionalLightIndexToShadowParams.Length; i++)
+                s_EmptyAdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
+
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
@@ -133,6 +140,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_UnusedAtlasSquareAreas.Capacity = maxVisibleAdditionalLights;
                 m_ShadowResolutionRequests.Capacity = maxVisibleAdditionalLights;
             }
+
+            m_EmptyAdditionalLightShadowmapTexture = ShadowUtils.AllocShadowRT(k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, 1, 0, name: k_EmptyShadowMapName);
         }
 
         /// <summary>
@@ -836,7 +845,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
 
             renderingData.shadowData.isKeywordAdditionalLightShadowsEnabled = true;
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, 1, 1, k_ShadowmapBufferBits, name: "_AdditionalLightsShadowmapTexture");
+            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyShadowMapName);
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
 
@@ -850,7 +859,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_AdditionalLightsShadowmapHandle);
+            if (m_CreateEmptyShadowmap)
+                ConfigureTarget(m_EmptyAdditionalLightShadowmapTexture);
+            else
+                ConfigureTarget(m_AdditionalLightsShadowmapHandle);
+
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -860,7 +873,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_CreateEmptyShadowmap)
             {
                 SetEmptyAdditionalShadowmapAtlas(ref context, ref renderingData);
-                renderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
+                renderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_EmptyAdditionalLightShadowmapTexture);
 
                 return;
             }
@@ -894,20 +907,25 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetEmptyAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = renderingData.commandBuffer;
+            CommandBuffer cmd = renderingData.commandBuffer;
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, true);
+            SetEmptyAdditionalLightShadowParams(cmd, m_AdditionalLightIndexToShadowParams);
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+        }
+
+        internal static void SetEmptyAdditionalLightShadowParams(CommandBuffer cmd, Vector4[] lightIndexToShadowParams)
+        {
             if (RenderingUtils.useStructuredBuffer)
             {
-                var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);
-                shadowParamsBuffer.SetData(m_AdditionalLightIndexToShadowParams);
+                ComputeBuffer shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(lightIndexToShadowParams.Length);
+                shadowParamsBuffer.SetData(lightIndexToShadowParams);
                 cmd.SetGlobalBuffer(m_AdditionalShadowParams_SSBO, shadowParamsBuffer);
             }
             else
             {
-                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);
+                cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, lightIndexToShadowParams);
             }
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
 
         void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref RenderingData renderingData)

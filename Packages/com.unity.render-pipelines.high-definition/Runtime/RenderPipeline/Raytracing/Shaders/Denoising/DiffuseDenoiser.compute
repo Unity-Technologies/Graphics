@@ -6,8 +6,6 @@
 #pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
-#pragma multi_compile _ FULL_RESOLUTION_INPUT
-
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 // We need the stencil flag of this.
@@ -50,6 +48,7 @@ RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 #endif
 
 // Radius of the filter (world space)
+float4 _DenoiserResolutionMultiplierVals;
 float _DenoiserFilterRadius;
 float _PixelSpreadAngleTangent;
 int _JitterFramePeriod;
@@ -83,11 +82,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
 
     // Fetch the current pixel coordinate
     uint2 currentCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
-    #if FULL_RESOLUTION_INPUT
-    uint2 sourceCoord = currentCoord;
-    #else
-    uint2 sourceCoord = currentCoord * 2;
-    #endif
+    uint2 sourceCoord = (uint2)(currentCoord * _DenoiserResolutionMultiplierVals.y);
 
     // Read the central position
     const BilateralData center = TapBilateralData(sourceCoord);
@@ -153,13 +148,9 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
         // Tap the data for this pixel
-    #if FULL_RESOLUTION_INPUT
-        uint2 tapCoord = nDC * _ScreenSize.xy;
-    #else
         // Not all pixels can be fetched (only the 2x2 representative)
-        uint2 halfResTapCoord = (nDC * _ScreenSize.xy) / 2;
-        uint2 tapCoord = halfResTapCoord * 2;
-    #endif
+        uint2 tapCoord = (nDC * _ScreenSize.xy);
+        uint2 lowResTapCoord = (tapCoord) * _DenoiserResolutionMultiplierVals.x;
 
         // Fetch the corresponding data
         const BilateralData tapData = TapBilateralData(tapCoord);
@@ -175,18 +166,10 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         const float w = r > 0.001f ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
 
         // Accumulate the new sample
-    #if FULL_RESOLUTION_INPUT
-        #if SINGLE_CHANNEL
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
-        #else
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
-        #endif
+    #if SINGLE_CHANNEL
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, lowResTapCoord).x * w;
     #else
-        #if SINGLE_CHANNEL
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, halfResTapCoord).x * w;
-        #else
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, halfResTapCoord).xyz * w;
-        #endif
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, lowResTapCoord).xyz * w;
     #endif
         wSum += w;
     }
@@ -225,11 +208,8 @@ void FillGatherDataLDS(uint groupIndex, uint2 pixelCoord)
     float3 lighting = LOAD_TEXTURE2D_X(_DenoiseInputTexture, sampleCoord).xyz;
     gs_cacheLighting[groupIndex] = PackToR11G11B10f(lighting);
     #endif
-    #if FULL_RESOLUTION_INPUT
-    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord).x;
-    #else
-    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord * 2).x;
-    #endif
+
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sampleCoord * _DenoiserResolutionMultiplierVals.y).x;
     gs_cacheDepth[groupIndex] = depthValue;
 }
 

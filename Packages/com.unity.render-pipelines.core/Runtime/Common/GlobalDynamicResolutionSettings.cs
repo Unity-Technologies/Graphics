@@ -131,5 +131,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
         public float rayTracingHalfResThreshold;
+
+        /// <summary>The minimum percentage threshold allowed to clamp low resolution for SSGI (Screen Space Global Illumination). When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
+        public float lowResSSGIMinimumThreshold;
     }
 }
