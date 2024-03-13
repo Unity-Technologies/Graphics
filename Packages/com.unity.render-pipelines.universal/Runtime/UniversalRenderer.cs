@@ -545,8 +545,10 @@ namespace UnityEngine.Rendering.Universal
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
             // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
             bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
+            // Depth is not rendered in a depth-only camera setup with depth priming (UUM-38158)
+            bool isNotOffscreenDepthTexture = !IsOffscreenDepthTexture(cameraData);
 
-            return  depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotWebGL;
+            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotOffscreenDepthTexture && isNotWebGL;
         }
 
         bool IsWebGL()
@@ -639,6 +641,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
+
+            // Because of the shortcutting done by depth only offscreen cameras, useDepthPriming must be computed early
+            useDepthPriming = IsDepthPrimingEnabled(cameraData);
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             if (IsOffscreenDepthTexture(cameraData))
@@ -741,7 +746,6 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.isPreviewCamera;
-            useDepthPriming = IsDepthPrimingEnabled(cameraData);
             // This indicates whether the renderer will output a depth texture.
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || useDepthPriming;
 

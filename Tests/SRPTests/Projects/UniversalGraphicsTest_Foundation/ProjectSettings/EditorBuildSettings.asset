@@ -36,6 +36,9 @@ EditorBuildSettings:
     path: Assets/Scenes/004_Camera_TargetTexture_DepthOnly.unity
     guid: f542939af2a7f44d2bcbca8cd5ec5875
   - enabled: 1
+    path: Assets/Scenes/004_Camera_TargetTexture_DepthOnly_Primed.unity
+    guid: b6130b70bb7037e478edf4e51b1b56a9
+  - enabled: 1
     path: Assets/Scenes/007_LitShaderMaps.unity
     guid: 7f2ec65906a47474383300df9c0aad69
   - enabled: 1
