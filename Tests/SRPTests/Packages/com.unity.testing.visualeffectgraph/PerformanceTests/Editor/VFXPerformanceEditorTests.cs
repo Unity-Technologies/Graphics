@@ -5,6 +5,8 @@ using System.Collections;
 using NUnit.Framework;
 
 using Unity.PerformanceTesting;
+using UnityEngine.TestTools.Graphics.Performance;
+using UnityEngine.TestTools.Graphics.Performance.Editor;
 using UnityEngine.VFX;
 using UnityEditor.VFX.UI;
 using UnityEngine.TestTools;
@@ -63,7 +65,7 @@ namespace UnityEditor.VFX.PerformanceTest
                     yield return mode.ToString();
             }
         }
-        
+
         private static void LoadVFXGraph(string vfxAssetName, out string fullPath, out VFXGraph graph)
         {
             using (Measure.Scope("VFXGraphLoad.FindAsset"))

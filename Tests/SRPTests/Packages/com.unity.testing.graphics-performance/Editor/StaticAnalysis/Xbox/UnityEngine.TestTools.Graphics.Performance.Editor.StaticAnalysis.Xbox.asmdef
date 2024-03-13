@@ -1,5 +1,5 @@
 {
-    "name": "HDRP.StaticAnalysis.PlayStation.Editor",
+    "name": "UnityEngine.TestTools.Graphics.Performance.Editor.StaticAnalysis.Xbox",
     "rootNamespace": "",
     "references": [
         "GUID:91836b14885b8a34196f4aa8303d7793",
@@ -13,17 +13,21 @@
         "Editor"
     ],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS",
-        "SHADERANALYSIS_SUPPORT"
+        "UNITY_TESTS_FRAMEWORK"
     ],
     "versionDefines": [
+        {
+            "name": "com.unity.testing.graphics-performance",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        },
         {
             "name": "com.unity.shaderanalysis",
             "expression": "0.0",

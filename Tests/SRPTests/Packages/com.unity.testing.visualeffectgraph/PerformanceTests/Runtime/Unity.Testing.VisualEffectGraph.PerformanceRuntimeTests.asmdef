@@ -6,7 +6,7 @@
         "Unity.Testing.VisualEffectGraph.Tests",
         "Unity.Testing.VisualEffectGraph",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.GraphicTests.Performance.Runtime",
+        "UnityEngine.TestTools.Graphics.Performance",
         "UnityEngine.TestTools.Graphics"
     ],
     "includePlatforms": [],

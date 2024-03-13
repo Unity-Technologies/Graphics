@@ -1,5 +1,5 @@
 {
-    "name": "Unity.GraphicTests.Performance.Runtime",
+    "name": "UnityEngine.TestTools.Graphics.Performance",
     "rootNamespace": "",
     "references": [
         "GUID:91836b14885b8a34196f4aa8303d7793",
@@ -9,15 +9,21 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
+        "UNITY_TESTS_FRAMEWORK"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.testing.graphics-performance",
+            "expression": "",
+            "define": "UNITY_TESTS_FRAMEWORK"
+        }
+    ],
     "noEngineReferences": false
 }

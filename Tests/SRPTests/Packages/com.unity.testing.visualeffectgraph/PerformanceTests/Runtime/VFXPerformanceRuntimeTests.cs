@@ -12,10 +12,12 @@ using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
 using UnityEngine.Profiling;
 using UnityEngine.VFX.PerformanceTest;
-using static PerformanceTestUtils;
-using static PerformanceMetricNames;
 using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
+using UnityEngine.TestTools.Graphics.Performance;
+
+using static UnityEngine.TestTools.Graphics.Performance.PerformanceTestUtils;
+using static UnityEngine.TestTools.Graphics.Performance.PerformanceMetricNames;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -135,7 +137,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
         public static IEnumerator Load_And_Prepare(GraphicsTestCase testCase)
         {
-			Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
+            Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
             UnityEngine.SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
             yield return new WaitForEndOfFrame();
 

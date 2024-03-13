@@ -7,80 +7,84 @@ using UnityEngine.UIElements;
 using System;
 using System.Text.RegularExpressions;
 using Object = UnityEngine.Object;
+using UnityEngine.TestTools.Graphics.Performance.Editor.StaticAnalysis;
 
-static class PerformanceSettingsProviderGUI
+namespace UnityEngine.TestTools.Graphics.Performance.Editor
 {
-    [SettingsProvider]
-    public static SettingsProvider CreatePerformanceTestsProvider()
+    static class PerformanceSettingsProviderGUI
     {
-        var provider = new SettingsProvider("Project/Performance Tests", SettingsScope.Project)
+        [SettingsProvider]
+        public static SettingsProvider CreatePerformanceTestsProvider()
         {
-            // By default the last token of the path is used as display name if no label is provided.
-            label = "Performance Tests",
-            // Create the SettingsProvider and initialize its drawing (IMGUI) function in place:
-            guiHandler = (searchContext) =>
+            var provider = new SettingsProvider("Project/Performance Tests", SettingsScope.Project)
             {
-                var settings = PerformanceTestSettings.GetSerializedSettings();
+                // By default the last token of the path is used as display name if no label is provided.
+                label = "Performance Tests",
+                // Create the SettingsProvider and initialize its drawing (IMGUI) function in place:
+                guiHandler = (searchContext) =>
+                {
+                    var settings = PerformanceTestSettings.GetSerializedSettings();
 
-                EditorGUI.BeginChangeCheck();
-                ShowObjectField(settings.FindProperty("testDescriptionAsset"), typeof(TestSceneAsset), new GUIContent("Test Description Asset"));
-#if SHADERANALYSIS_SUPPORT
-                ShowObjectField(settings.FindProperty("staticAnalysisAsset"), typeof(EditorShaderStaticAnalysisAsset), new GUIContent("Static Analysis Asset"));
-#endif
-                if (EditorGUI.EndChangeCheck())
-                    settings.ApplyModifiedProperties();
-            },
+                    EditorGUI.BeginChangeCheck();
+                    ShowObjectField(settings.FindProperty("testDescriptionAsset"), typeof(TestSceneAsset), new GUIContent("Test Description Asset"));
+    #if SHADERANALYSIS_SUPPORT
+                    ShowObjectField(settings.FindProperty("staticAnalysisAsset"), typeof(EditorShaderStaticAnalysisAsset), new GUIContent("Static Analysis Asset"));
+    #endif
+                    if (EditorGUI.EndChangeCheck())
+                        settings.ApplyModifiedProperties();
+                },
 
-            // Populate the search keywords to enable smart search filtering and label highlighting:
-            keywords = new HashSet<string>(new[] { "Performance" })
-        };
+                // Populate the search keywords to enable smart search filtering and label highlighting:
+                keywords = new HashSet<string>(new[] { "Performance" })
+            };
 
-        return provider;
-    }
+            return provider;
+        }
 
-    static void ShowObjectField(SerializedProperty resourcePathProperty, Type objectType, GUIContent content)
-    {
-        Object res = Resources.Load(resourcePathProperty.stringValue, objectType);
-        res = EditorGUILayout.ObjectField(content, res, objectType, false);
-
-        // Find the resource path of the object:
-        resourcePathProperty.stringValue = null;
-        if (res != null)
+        static void ShowObjectField(SerializedProperty resourcePathProperty, Type objectType, GUIContent content)
         {
-            var path = AssetDatabase.GetAssetPath(res);
-            if (path.Contains("Resources"))
+            Object res = Resources.Load(resourcePathProperty.stringValue, objectType);
+            res = EditorGUILayout.ObjectField(content, res, objectType, false);
+
+            // Find the resource path of the object:
+            resourcePathProperty.stringValue = null;
+            if (res != null)
             {
-                var resourcePath = path.Substring(path.LastIndexOf("Resources/") + "Resources/".Length);
-                resourcePath = Path.ChangeExtension(resourcePath, null);
-                resourcePathProperty.stringValue = resourcePath;
-            }
-            else
-            {
-                Debug.LogError("You must choose an asset within a Resources folder");
+                var path = AssetDatabase.GetAssetPath(res);
+                if (path.Contains("Resources"))
+                {
+                    var resourcePath = path.Substring(path.LastIndexOf("Resources/") + "Resources/".Length);
+                    resourcePath = Path.ChangeExtension(resourcePath, null);
+                    resourcePathProperty.stringValue = resourcePath;
+                }
+                else
+                {
+                    Debug.LogError("You must choose an asset within a Resources folder");
+                }
             }
         }
     }
-}
 
-// Create PerformanceTestsProvider by deriving from SettingsProvider:
-class PerformanceTestsProvider : SettingsProvider
-{
-    private SerializedObject m_CustomSettings;
-
-    const string k_PerformanceTestsPath = "ProjectSettings/PerformanceTestsSettings.asset";
-    public PerformanceTestsProvider(string path, SettingsScope scope = SettingsScope.User)
-        : base(path, scope) {}
-
-    public static bool IsSettingsAvailable() => File.Exists(k_PerformanceTestsPath);
-
-    // Register the SettingsProvider
-    [SettingsProvider]
-    public static SettingsProvider CreatePerformanceTestsProvider()
+    // Create PerformanceTestsProvider by deriving from SettingsProvider:
+    class PerformanceTestsProvider : SettingsProvider
     {
-        if (IsSettingsAvailable())
-            return new PerformanceTestsProvider("Project/PerformanceTestsProvider", SettingsScope.Project);
+        private SerializedObject m_CustomSettings;
 
-        // Settings Asset doesn't exist yet; no need to display anything in the Settings window.
-        return null;
+        const string k_PerformanceTestsPath = "ProjectSettings/PerformanceTestsSettings.asset";
+        public PerformanceTestsProvider(string path, SettingsScope scope = SettingsScope.User)
+            : base(path, scope) {}
+
+        public static bool IsSettingsAvailable() => File.Exists(k_PerformanceTestsPath);
+
+        // Register the SettingsProvider
+        [SettingsProvider]
+        public static SettingsProvider CreatePerformanceTestsProvider()
+        {
+            if (IsSettingsAvailable())
+                return new PerformanceTestsProvider("Project/PerformanceTestsProvider", SettingsScope.Project);
+
+            // Settings Asset doesn't exist yet; no need to display anything in the Settings window.
+            return null;
+        }
     }
 }

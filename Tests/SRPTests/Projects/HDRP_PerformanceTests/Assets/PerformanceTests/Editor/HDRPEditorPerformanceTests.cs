@@ -8,8 +8,11 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using Unity.PerformanceTesting;
 using UnityEditor.Rendering.HighDefinition;
-using static PerformanceTestUtils;
-using static PerformanceMetricNames;
+using UnityEngine.TestTools.Graphics.Performance;
+using UnityEngine.TestTools.Graphics.Performance.Editor;
+
+using static UnityEngine.TestTools.Graphics.Performance.PerformanceTestUtils;
+using static UnityEngine.TestTools.Graphics.Performance.PerformanceMetricNames;
 
 public class HDRPEditorPerformanceTests : EditorPerformanceTests
 {
