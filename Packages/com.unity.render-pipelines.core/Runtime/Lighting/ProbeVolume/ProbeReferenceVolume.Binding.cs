@@ -57,8 +57,8 @@ namespace UnityEngine.Rendering
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResValidity, rr.Validity);
 
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, rr.SkyOcclusionL0L1 ?? (RenderTargetIdentifier)TextureXR.GetBlackTexture3D());
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, rr.SkyShadingDirectionIndices ?? (RenderTargetIdentifier)TextureXR.GetBlackTexture3D());
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, rr.SkyOcclusionL0L1 ?? (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, rr.SkyShadingDirectionIndices ?? (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
                     cmdBuffer.SetGlobalBuffer(ShaderIDs._SkyPrecomputedDirections, rr.SkyPrecomputedDirections);
 
                     if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
@@ -88,22 +88,22 @@ namespace UnityEngine.Rendering
                 cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResIndex, m_EmptyIndexBuffer);
                 cmdBuffer.SetGlobalBuffer(ShaderIDs._APVResCellIndices, m_EmptyIndexBuffer);
 
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0_L1Rx, TextureXR.GetBlackTexture3D());
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL0_L1Rx, CoreUtils.blackVolumeTexture);
 
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1G_L1Ry, TextureXR.GetBlackTexture3D());
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1B_L1Rz, TextureXR.GetBlackTexture3D());
-                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResValidity, TextureXR.GetBlackTexture3D());
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1G_L1Ry, CoreUtils.blackVolumeTexture);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL1B_L1Rz, CoreUtils.blackVolumeTexture);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVResValidity, CoreUtils.blackVolumeTexture);
 
-                cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, TextureXR.GetBlackTexture3D());
-                cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, TextureXR.GetBlackTexture3D());
+                cmdBuffer.SetGlobalTexture(ShaderIDs._SkyOcclusionTexL0L1, CoreUtils.blackVolumeTexture);
+                cmdBuffer.SetGlobalTexture(ShaderIDs._SkyShadingDirectionIndicesTex, CoreUtils.blackVolumeTexture);
                 cmdBuffer.SetGlobalBuffer(ShaderIDs._SkyPrecomputedDirections, m_EmptyDirectionsBuffer);
 
                 if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_0, TextureXR.GetBlackTexture3D());
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_1, TextureXR.GetBlackTexture3D());
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_2, TextureXR.GetBlackTexture3D());
-                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_3, TextureXR.GetBlackTexture3D());
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_0, CoreUtils.blackVolumeTexture);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_1, CoreUtils.blackVolumeTexture);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_2, CoreUtils.blackVolumeTexture);
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_3, CoreUtils.blackVolumeTexture);
                 }
             }
         }
