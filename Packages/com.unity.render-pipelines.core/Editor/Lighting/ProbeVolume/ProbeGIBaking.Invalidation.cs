@@ -1,13 +1,10 @@
-using System.Collections.Generic;
-using UnityEditor;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
 using System;
+using System.Collections.Generic;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering
 {
-    partial class ProbeGIBaking
+    partial class AdaptiveProbeVolumes
     {
         // We use this scratch memory as a way of spoofing the texture.
         static DynamicArray<float> s_Validity_locData = new DynamicArray<float>();

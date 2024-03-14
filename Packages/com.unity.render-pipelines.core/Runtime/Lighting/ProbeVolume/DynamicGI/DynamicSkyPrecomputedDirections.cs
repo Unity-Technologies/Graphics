@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices; 
 using RuntimeResources = UnityEngine.Rendering.ProbeReferenceVolume.RuntimeResources;
 
 namespace UnityEngine.Rendering
@@ -9,11 +10,13 @@ namespace UnityEngine.Rendering
         static ComputeBuffer m_DirectionsBuffer = null;
         static Vector3[] m_Directions = null;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void GetRuntimeResources(ref RuntimeResources rr)
         {
             rr.SkyPrecomputedDirections = m_DirectionsBuffer;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector3[] GetPrecomputedDirections()
         {
             return m_Directions;

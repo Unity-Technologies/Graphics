@@ -432,7 +432,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // APV Normalization (Execute baking)
             {
-                ProbeGIBaking.BakeAdditionalRequests(probeInstanceIDs.ToArray());
+                AdaptiveProbeVolumes.BakeAdditionalRequests(probeInstanceIDs.ToArray());
             }
 
             // Render and write the result to disk

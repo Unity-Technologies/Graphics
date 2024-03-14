@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            buildPlayerContext.AddAdditionalPathToStreamingAssets(tempStreamingAssetsPath, ProbeGIBaking.kAPVStreamingAssetsPath);
+            buildPlayerContext.AddAdditionalPathToStreamingAssets(tempStreamingAssetsPath, AdaptiveProbeVolumes.kAPVStreamingAssetsPath);
         }
     }
 }

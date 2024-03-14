@@ -261,7 +261,7 @@ namespace UnityEditor.Rendering
                     using (new EditorGUI.DisabledScope(bakingSet == null))
                     {
                         if (GUILayout.Button(Styles.s_PreviewLighting))
-                            ProbeGIBaking.BakeAdjustmentVolume(bakingSet, ptv);
+                            AdaptiveProbeVolumes.BakeAdjustmentVolume(bakingSet, ptv);
 
                         ProbeVolumeLightingTab.BakeAPVButton();
                     }

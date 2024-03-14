@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Unity.Collections;
@@ -6,9 +7,41 @@ using UnityEngine.Rendering.UnifiedRayTracing;
 
 namespace UnityEngine.Rendering
 {
-    partial class ProbeGIBaking
+    partial class AdaptiveProbeVolumes
     {
-        struct VirtualOffsetBaking
+        /// <summary>
+        /// Virtual offset baker
+        /// </summary>
+        public abstract class VirtualOffsetBaker : IDisposable
+        {
+            /// <summary>The current baking step.</summary>
+            public abstract ulong currentStep { get; }
+            /// <summary>The total amount of step.</summary>
+            public abstract ulong stepCount { get; }
+
+            /// <summary>Array storing the resulting virtual offsets to be applied to probe positions.</summary>
+            public abstract NativeArray<Vector3> offsets { get; }
+
+            /// <summary>
+            /// This is called before the start of baking to allow allocating necessary resources.
+            /// </summary>
+            /// <param name="bakingSet">The baking set that is currently baked.</param>
+            /// <param name="probePositions">The probe positions.</param>
+            public abstract void Initialize(ProbeVolumeBakingSet bakingSet, NativeArray<Vector3> probePositions);
+
+            /// <summary>
+            /// Run a step of virtual offset baking. Baking is considered done when currentStep property equals stepCount.
+            /// </summary>
+            /// <returns>Return false if bake failed and should be stopped.</returns>
+            public abstract bool Step();
+
+            /// <summary>
+            /// Performs necessary tasks to free allocated resources.
+            /// </summary>
+            public abstract void Dispose();
+        }
+
+        class DefaultVirtualOffset : VirtualOffsetBaker
         {
             static int k_MaxProbeCountPerBatch = 65535;
 
@@ -27,7 +60,8 @@ namespace UnityEngine.Rendering
             };
 
             int batchPosIdx;
-            NativeList<Vector3> positions;
+            NativeArray<Vector3> positions;
+            NativeArray<Vector3> results;
             Dictionary<int, TouchupsPerCell> cellToVolumes;
             ProbeData[] probeData;
             Vector3[] batchResult;
@@ -38,17 +72,17 @@ namespace UnityEngine.Rendering
             float validityThreshold;
 
             // Output buffer
-            public Vector3[] offsets;
+            public override NativeArray<Vector3> offsets => results;
 
             private IRayTracingAccelStruct m_AccelerationStructure;
             private GraphicsBuffer probeBuffer;
             private GraphicsBuffer offsetBuffer;
             private GraphicsBuffer scratchBuffer;
 
-            public ulong currentStep => (ulong)batchPosIdx;
-            public ulong stepCount => batchResult == null ? 0 : (ulong)positions.Length;
+            public override ulong currentStep => (ulong)batchPosIdx;
+            public override ulong stepCount => batchResult == null ? 0 : (ulong)positions.Length;
 
-            public void Initialize(ProbeVolumeBakingSet bakingSet, NativeList<Vector3> probePositions)
+            public override void Initialize(ProbeVolumeBakingSet bakingSet, NativeArray<Vector3> probePositions)
             {
                 var voSettings = bakingSet.settings.virtualOffsetSettings;
                 if (!voSettings.useVirtualOffset)
@@ -60,13 +94,13 @@ namespace UnityEngine.Rendering
                 geometryBias = voSettings.outOfGeoOffset;
                 validityThreshold = voSettings.validityThreshold;
 
-                offsets = new Vector3[probePositions.Length];
+                results = new NativeArray<Vector3>(probePositions.Length, Allocator.Persistent);
                 cellToVolumes = GetTouchupsPerCell(out bool hasAppliers);
 
                 if (scaleForSearchDist == 0.0f)
                 {
                     if (hasAppliers)
-                        DoApplyVirtualOffsetsFromAdjustmentVolumes(probePositions, offsets, cellToVolumes);
+                        DoApplyVirtualOffsetsFromAdjustmentVolumes(probePositions, results, cellToVolumes);
                     return;
                 }
 
@@ -134,7 +168,7 @@ namespace UnityEngine.Rendering
                 return accelStruct;
             }
 
-            public bool RunVirtualOffsetStep()
+            public override bool Step()
             {
                 if (currentStep >= stepCount)
                     return true;
@@ -158,7 +192,7 @@ namespace UnityEngine.Rendering
                         {
                             if (touchup.ContainsPoint(obb, center, positions[batchPosIdx]))
                             {
-                                offsets[batchPosIdx] = offset;
+                                results[batchPosIdx] = offset;
                                 adjusted = true;
                                 break;
                             }
@@ -209,15 +243,17 @@ namespace UnityEngine.Rendering
 
                 offsetBuffer.GetData(batchResult);
                 for (int i = 0; i < probeCountInBatch; i++)
-                    offsets[probeData[i].probeIndex] = batchResult[i];
+                    results[probeData[i].probeIndex] = batchResult[i];
 
                 cmd.Dispose();
-
-                return false;
+                return true;
             }
 
-            public void Dispose()
+            public override void Dispose()
             {
+                if (results.IsCreated)
+                    results.Dispose();
+
                 if (batchResult == null)
                     return;
 
@@ -225,8 +261,6 @@ namespace UnityEngine.Rendering
                 probeBuffer.Dispose();
                 offsetBuffer.Dispose();
                 scratchBuffer?.Dispose();
-
-                this = default;
             }
         }
 
@@ -290,11 +324,11 @@ namespace UnityEngine.Rendering
                 cell.debugProbes = null;
             }
 
-            VirtualOffsetBaking job = new();
-            job.Initialize(m_BakingSet, positionList);
+            VirtualOffsetBaker job = virtualOffsetOverride ?? new DefaultVirtualOffset();
+            job.Initialize(m_BakingSet, positionList.AsArray());
 
             while (job.currentStep < job.stepCount)
-                job.RunVirtualOffsetStep();
+                job.Step();
 
             foreach (var cell in m_BakingBatch.cells)
             {
@@ -335,7 +369,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    partial class ProbeGIBaking
+    partial class AdaptiveProbeVolumes
     {
         struct TouchupsPerCell
         {
@@ -358,8 +392,8 @@ namespace UnityEngine.Rendering
 
                 hasAppliers |= mode == ProbeAdjustmentVolume.Mode.ApplyVirtualOffset;
 
-                Vector3Int min = m_ProfileInfo.PositionToCell(adjustment.aabb.min);
-                Vector3Int max = m_ProfileInfo.PositionToCell(adjustment.aabb.max);
+                Vector3Int min = Vector3Int.Max(m_ProfileInfo.PositionToCell(adjustment.aabb.min), minCellPosition);
+                Vector3Int max = Vector3Int.Min(m_ProfileInfo.PositionToCell(adjustment.aabb.max), maxCellPosition);
 
                 for (int x = min.x; x <= max.x; x++)
                 {
@@ -384,11 +418,13 @@ namespace UnityEngine.Rendering
             return cellToVolumes;
         }
 
-        static Vector3[] DoApplyVirtualOffsetsFromAdjustmentVolumes(NativeList<Vector3> positions, Vector3[] offsets, Dictionary<int, TouchupsPerCell> cellToVolumes)
+        static void DoApplyVirtualOffsetsFromAdjustmentVolumes(NativeArray<Vector3> positions, NativeArray<Vector3> offsets, Dictionary<int, TouchupsPerCell> cellToVolumes)
         {
             for (int i = 0; i < positions.Length; i++)
             {
-                int cellIndex = PosToIndex(m_ProfileInfo.PositionToCell(positions[i]));
+                var cellPos = m_ProfileInfo.PositionToCell(positions[i]);
+                cellPos.Clamp(minCellPosition, maxCellPosition);
+                int cellIndex = PosToIndex(cellPos);
                 if (cellToVolumes.TryGetValue(cellIndex, out var volumes))
                 {
                     foreach (var (touchup, obb, center, offset) in volumes.appliers)
@@ -401,7 +437,6 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-            return offsets;
         }
 
         enum InstanceFlags

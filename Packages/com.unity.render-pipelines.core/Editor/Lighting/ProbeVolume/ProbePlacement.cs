@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering
 
                 return;
             }
-            
+
             float minBrickSize = subdivisionCtx.profile.minBrickSize;
             var cellOffset = subdivisionCtx.profile.probeOffset;
 

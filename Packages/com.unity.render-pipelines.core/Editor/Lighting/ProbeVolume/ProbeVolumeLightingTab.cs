@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering
 
             EditorSceneManager.sceneOpened -= OnSceneOpened;
 
-            ProbeGIBaking.Dispose();
+            AdaptiveProbeVolumes.Dispose();
         }
 
         #region On GUI
@@ -305,17 +305,17 @@ namespace UnityEngine.Rendering
                 int option = (int)data;
                 switch (option)
                 {
-                    case 0: ProbeGIBaking.BakeGI(); break;
+                    case 0: AdaptiveProbeVolumes.BakeAsync(); break;
                     case 1: BakeAllReflectionProbes(); break;
                     case 2: ClearBakedData(); break;
                     default: Debug.Log("invalid option in BakeButtonCallback"); break;
                 }
             }
 
-            if (ProbeGIBaking.HasAsyncBakeInProgress())
+            if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake, Styles.buttonStyle))
-                    ProbeGIBaking.CancelAsyncBake();
+                    AdaptiveProbeVolumes.Cancel();
                 return;
             }
 
@@ -851,15 +851,15 @@ namespace UnityEngine.Rendering
         #region Async Bake
         internal static void BakeAPVButton()
         {
-            if (ProbeGIBaking.HasAsyncBakeInProgress())
+            if (AdaptiveProbeVolumes.isRunning)
             {
                 if (GUILayout.Button(Styles.cancelBake))
-                    ProbeGIBaking.CancelAsyncBake();
+                    AdaptiveProbeVolumes.Cancel();
             }
             else
             {
                 if (GUILayout.Button(Styles.generateAPV))
-                    ProbeGIBaking.BakeGI();
+                    AdaptiveProbeVolumes.BakeAsync();
             }
         }
         #endregion
@@ -982,7 +982,7 @@ namespace UnityEngine.Rendering
                 return false;
 
             // Exclude scenes unchecked from the UI and scenes from other baking sets
-            ProbeGIBaking.partialBakeSceneList = new();
+            AdaptiveProbeVolumes.partialBakeSceneList = new();
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 var scene = SceneManager.GetSceneAt(i);
@@ -992,13 +992,13 @@ namespace UnityEngine.Rendering
                 var sceneBakeData = sceneBakingSet.GetSceneBakeData(guid);
                 if (sceneBakeData.hasProbeVolume && !sceneBakeData.bakeScene) continue;
 
-                ProbeGIBaking.partialBakeSceneList.Add(guid);
+                AdaptiveProbeVolumes.partialBakeSceneList.Add(guid);
             }
 
-            if (ProbeGIBaking.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
-                ProbeGIBaking.partialBakeSceneList = null;
+            if (AdaptiveProbeVolumes.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
+                AdaptiveProbeVolumes.partialBakeSceneList = null;
 
-            if (ProbeGIBaking.partialBakeSceneList != null)
+            if (AdaptiveProbeVolumes.partialBakeSceneList != null)
             {
                 // Layout has changed and is incompatible.
                 if (!activeSet.freezePlacement &&

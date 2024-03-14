@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Subdivision Override", EditorStyles.boldLabel);
-            bool isFreezingPlacement = bakingSet != null && bakingSet.freezePlacement && ProbeGIBaking.CanFreezePlacement();
+            bool isFreezingPlacement = bakingSet != null && bakingSet.freezePlacement && AdaptiveProbeVolumes.CanFreezePlacement();
             using (new EditorGUI.DisabledScope(isFreezingPlacement))
             {
                 // Get settings from scene profile if available

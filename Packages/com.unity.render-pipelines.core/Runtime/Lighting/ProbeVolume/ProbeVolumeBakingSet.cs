@@ -777,7 +777,7 @@ namespace UnityEngine.Rendering
                 cellData.bricks = m_UseStreamingAsset ? new NativeArray<ProbeBrickIndex.Brick>(sourceBricks, Allocator.Persistent) : sourceBricks;
                 cellData.validityNeighMaskData = m_UseStreamingAsset ? new NativeArray<byte>(sourceValidityNeightMaskData, Allocator.Persistent) : sourceValidityNeightMaskData;
 
-                // TODO save sky occlusion in a separate asset (see ProbeGIBaking WriteBakingCells)
+                // TODO save sky occlusion in a separate asset (see AdaptiveProbeVolumes WriteBakingCells)
                 // And load it depending on ProbeReferenceVolume.instance.skyOcclusion
                 if (bakedSkyOcclusion)
                 {
