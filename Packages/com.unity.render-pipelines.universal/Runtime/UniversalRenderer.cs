@@ -467,6 +467,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns if the camera renders to a offscreen depth texture.
+        /// </summary>
+        /// <param name="cameraData">The camera data for the camera being rendered.</param>
+        /// <returns>Returns true if the camera renders to depth without any color buffer. It will return false otherwise.</returns>
+        public static bool IsOffscreenDepthTexture(in CameraData cameraData) => cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+
         bool IsDepthPrimingEnabled(ref CameraData cameraData)
         {
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
@@ -542,15 +549,12 @@ namespace UnityEngine.Rendering.Universal
                 useRenderPassEnabled = false;
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
+            if (IsOffscreenDepthTexture(in cameraData))
             {
                 ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
                 SetupRenderPasses(in renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
-                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
-                EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
@@ -1334,9 +1338,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 // We don't add one to the maximum light because mainlight is treated as any other light.
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
-                // Sort the reflection probes on trunk.
-                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.ImportanceThenSize;
-            }    
+                // Do not sort reflection probe from engine it will come in reverse order from what we need.
+                cullingParameters.reflectionProbeSortingCriteria = ReflectionProbeSortingCriteria.None;
+            }
             else
             {
                 // We set the number of maximum visible lights allowed and we add one for the mainlight...

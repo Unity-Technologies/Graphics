@@ -462,7 +462,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Includes

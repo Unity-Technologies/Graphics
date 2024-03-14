@@ -83,7 +83,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
     /// <inheritdoc/>
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Preview || renderingData.cameraData.cameraType == CameraType.Reflection)
+        if (UniversalRenderer.IsOffscreenDepthTexture(in renderingData.cameraData) || renderingData.cameraData.cameraType == CameraType.Preview || renderingData.cameraData.cameraType == CameraType.Reflection)
             return;
 
         if (passMaterial == null)

@@ -300,6 +300,9 @@ EditorBuildSettings:
     path: Assets/Scenes/204_SSAO_Deferred.unity
     guid: 9033695b731a14fe79156b3c4c827aa0
   - enabled: 1
+    path: Assets/Scenes/204_SSAO_Deferred_NoDirLight.unity
+    guid: c059443ed426dee43b379cd206d80a32
+  - enabled: 1
     path: Assets/Scenes/204_SSAO_Deferred_RenderPass.unity
     guid: 0f9d67b5613ce4515969b745f7c08c5f
   - enabled: 1

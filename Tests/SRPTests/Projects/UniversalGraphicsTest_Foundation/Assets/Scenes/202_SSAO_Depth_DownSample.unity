@@ -175,7 +175,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 602204260, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: m_RendererIndex
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 602204264, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: m_NormalizedViewPortRect.x
@@ -187,7 +187,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1102861100, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: m_RendererIndex
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1102861104, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: m_Enabled
