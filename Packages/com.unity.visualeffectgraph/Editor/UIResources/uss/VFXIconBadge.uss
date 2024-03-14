@@ -1,7 +1,7 @@
 ﻿#BadgesHolder
 {
-    top: 10px;
-    right: -20px;
+    top: -3px;
+    right: -30px;
     flex-direction: column;
     position: absolute;
 }
@@ -22,18 +22,18 @@ VFXBlockUI.collapsed > #BadgesHolder > VFXIconBadge {
 
 VFXIconBadge {
     margin-bottom: 0px;
-    width: 17px;
-    height: 17px;
+    width: 24px;
+    height: 24px;
     flex-direction: row;
 }
 
 VFXIconBadge #tip {
     align-self: center;
     scale: 1 -1;
-    width: 7px;
-    height: 4px;
+    width: 9px;
+    height: 7px;
     rotate: 90deg;
-    margin-left: -6px;
+    margin-left: -9px;
     background-image : resource("GraphView/Badge/CommentTip.png");
 }
 

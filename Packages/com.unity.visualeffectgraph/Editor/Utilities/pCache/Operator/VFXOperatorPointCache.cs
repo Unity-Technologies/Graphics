@@ -30,16 +30,16 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var asset = GetOrRefreshPointCacheAsset(false);
             if (m_IsPointCacheAssetMissing)
             {
                 var missingPointCachePath = AssetDatabase.GetAssetPath(asset.GetInstanceID());
                 var message = $"The VFX Graph cannot be compiled because a PointCacheAsset located here '{missingPointCachePath}' is missing.";
-                manager.RegisterError("ErrorMissingPointCache", VFXErrorType.Error, message);
+                report.RegisterError("ErrorMissingPointCache", VFXErrorType.Error, message, this);
             }
         }
 

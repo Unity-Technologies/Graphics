@@ -198,14 +198,14 @@ namespace UnityEditor.VFX.Operator
         public static readonly string kMixingSMRWorldAndLocalPostTransformMsg = @"Mixing World Root Bone transform with an input transform in Local space can yield unexpected results.
 To avoid this, change the input Transform space from Local to World or None.";
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var transformSlot = inputSlots.Last();
             if (actualSkinnedTransform == SkinnedRootTransform.ApplyWorldRootTransform && transformSlot.space == VFXSpace.Local)
             {
-                manager.RegisterError("MixingSMRWorldAndLocalPostTransformOperator", VFXErrorType.Warning, kMixingSMRWorldAndLocalPostTransformMsg);
+                report.RegisterError("MixingSMRWorldAndLocalPostTransformOperator", VFXErrorType.Warning, kMixingSMRWorldAndLocalPostTransformMsg, this);
             }
 
             var previousFlag = VertexAttributeFlag.PreviousNormal
@@ -217,7 +217,7 @@ To avoid this, change the input Transform space from Local to World or None.";
 
             if (source == SourceType.Mesh && (output & previousFlag) != 0)
             {
-                manager.RegisterError("PreviousOutputUsageOnMesh", VFXErrorType.Warning, "Sampling previous data is only available with SkinnedMeshRenderer sources.\nWhen using a Mesh source, previous outputs return the same values as current ones.");
+                report.RegisterError("PreviousOutputUsageOnMesh", VFXErrorType.Warning, "Sampling previous data is only available with SkinnedMeshRenderer sources.\nWhen using a Mesh source, previous outputs return the same values as current ones.", this);
             }
         }
 

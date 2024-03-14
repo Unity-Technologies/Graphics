@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
 
         public virtual void RefreshErrors()
         {
-            VFXViewWindow.RefreshErrors(this);
+            GetGraph()?.errorManager.RefreshInvalidateReport(this);
         }
 
         protected virtual void OnAdded() { }
@@ -382,7 +382,7 @@ namespace UnityEditor.VFX
             return m_UIIgnoredErrors.Any();
         }
 
-        internal virtual void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal virtual void GenerateErrors(VFXErrorReporter report)
         {
         }
 
@@ -391,7 +391,7 @@ namespace UnityEditor.VFX
             OnInvalidate(model, cause);
             if (m_Parent != null)
                 m_Parent.Invalidate(model, cause);
-            if (cause is InvalidationCause.kParamChanged or InvalidationCause.kExpressionValueInvalidated)
+            if (cause is InvalidationCause.kParamChanged or InvalidationCause.kExpressionValueInvalidated or InvalidationCause.kExpressionInvalidated or InvalidationCause.kSettingChanged)
                 RefreshErrors();
         }
 

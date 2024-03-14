@@ -212,27 +212,27 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var currentShaderGraph = GetOrRefreshShaderGraphObject(false);
             if (m_IsShaderGraphMissing)
             {
                 var message = VFXShaderGraphHelpers.GetMissingShaderGraphErrorMessage(currentShaderGraph);
-                manager.RegisterError("ErrorMissingShaderGraph", VFXErrorType.Error, "The VFX Graph" + message);
+                report.RegisterError("ErrorMissingShaderGraph", VFXErrorType.Error, "The VFX Graph" + message, this);
             }
 
             if (currentShaderGraph != null)
             {
                 if (!currentShaderGraph.generatesWithShaderGraph)
                 {
-                    manager.RegisterError("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG);
+                    report.RegisterError("DeprecatedOldShaderGraph", VFXErrorType.Error, ParticleShadingShaderGraph.kErrorOldSG, this);
                 }
                 else
                 {
                     //There isn't automatic sanitize if the SG change its status from old to new SG integration
-                    manager.RegisterError("WrongOutputShaderGraph", VFXErrorType.Error, "Please convert this context to dedicated ShaderGraph Output.");
+                    report.RegisterError("WrongOutputShaderGraph", VFXErrorType.Error, "Please convert this context to dedicated ShaderGraph Output.", this);
                 }
             }
         }

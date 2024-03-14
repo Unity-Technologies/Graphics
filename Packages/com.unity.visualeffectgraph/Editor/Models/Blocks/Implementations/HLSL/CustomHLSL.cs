@@ -271,21 +271,21 @@ namespace UnityEditor.VFX.Block
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLBlockFunctionValidator();
             ParseCodeIfNeeded();
             foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function))
             {
-                manager.RegisterError(string.Empty, error.type, error.message);
+                report.RegisterError(string.Empty, error.type, error.message, this);
             }
 
             if (m_Function?.errorList != null)
             {
                 foreach (var error in m_Function.errorList)
                 {
-                    manager.RegisterError(string.Empty, error.type, error.message);
+                    report.RegisterError(string.Empty, error.type, error.message, this);
                 }
             }
         }

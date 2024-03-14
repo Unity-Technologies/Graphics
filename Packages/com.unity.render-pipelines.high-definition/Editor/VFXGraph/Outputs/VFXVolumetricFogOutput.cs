@@ -281,12 +281,12 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportVolumetrics ?? false)
             {
-                manager.RegisterError("VolumetricFogDisabled", VFXErrorType.Warning,
-                    $"The current HDRP Asset does not support volumetric fog. To fix this error, go to the Lighting section of your HDRP asset and enable 'Volumetric Fog'.");
+                report.RegisterError("VolumetricFogDisabled", VFXErrorType.Warning,
+                    $"The current HDRP Asset does not support volumetric fog. To fix this error, go to the Lighting section of your HDRP asset and enable 'Volumetric Fog'.", this);
             }
 
             var data = GetData();
@@ -294,13 +294,13 @@ namespace UnityEditor.VFX.HDRP
             {
                 if (!data.IsCurrentAttributeWritten(VFXAttribute.Size) && !data.IsCurrentAttributeWritten(VFXAttribute.ScaleX))
                 {
-                    manager.RegisterError("SizeTooSmall", VFXErrorType.Warning,
-                        $"The size of the fog particle is not modified. This can make the volumetric fog effect invisible because the default size is too small. To fix this, add a size block in your system and increase it's value.");
+                    report.RegisterError("SizeTooSmall", VFXErrorType.Warning,
+                        $"The size of the fog particle is not modified. This can make the volumetric fog effect invisible because the default size is too small. To fix this, add a size block in your system and increase it's value.", this);
                 }
                 if (data.IsCurrentAttributeWritten(VFXAttribute.ScaleY) || data.IsCurrentAttributeWritten(VFXAttribute.ScaleZ))
                 {
-                    manager.RegisterError("ScaleYZIgnored", VFXErrorType.Warning,
-                        $"The scale on Y and Z axis are ignored by the volumetric fog. Configure your scale component to X only to remove this message.");
+                    report.RegisterError("ScaleYZIgnored", VFXErrorType.Warning,
+                        $"The scale on Y and Z axis are ignored by the volumetric fog. Configure your scale component to X only to remove this message.", this);
                 }
             }
         }

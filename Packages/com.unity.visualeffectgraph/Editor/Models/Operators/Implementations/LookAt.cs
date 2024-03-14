@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.Operator
             return new[] { matrix };
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
             var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
             var fromExpr = GetInputSlot(0).GetExpression();
@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.Operator
 
                 if ((from.Get<Vector3>() - to.Get<Vector3>()).sqrMagnitude < Mathf.Epsilon)
                 {
-                    manager.RegisterError("LookAtFromEqualTo", VFXErrorType.Error, "From and To positions cannot be equal");
+                    report.RegisterError("LookAtFromEqualTo", VFXErrorType.Error, "From and To positions cannot be equal", this);
                 }
             }
 
@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.Operator
                 var sqrLength = up.Get<Vector3>().sqrMagnitude;
                 if (sqrLength is 0 or float.NaN)
                 {
-                    manager.RegisterError("LookAtUpIsZeroLength", VFXErrorType.Error, "Up vector cannot be zero length");
+                    report.RegisterError("LookAtUpIsZeroLength", VFXErrorType.Error, "Up vector cannot be zero length", this);
                 }
             }
         }

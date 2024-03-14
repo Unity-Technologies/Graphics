@@ -41,13 +41,13 @@ namespace UnityEditor.VFX
             VFXSlot.CopyLinksAndValue(vfxAttributeParameter.outputSlots[0], outputSlots[0]);
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             if (!CustomAttributeUtility.IsShaderCompilableName(attribute))
             {
-                manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n\t- The name must not contain spaces or any special character\n\t- The name must not start with a digit character");
+                report.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n\t- The name must not contain spaces or any special character\n\t- The name must not start with a digit character", this);
             }
         }
 

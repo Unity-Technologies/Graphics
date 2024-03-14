@@ -6,7 +6,8 @@ using System.Linq;
 using System.Reflection;
 
 using NUnit.Framework;
-
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.UI.Internal;
 using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
@@ -226,24 +227,17 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                "HLSL function 'TestFunction' must return a 'void' type",
-                VFXErrorType.Error,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual("HLSL function 'TestFunction' must return a 'void' type", report.description);
         }
 
         public enum Check_CustomHLSL_Block_Works_In_Context_Case
@@ -320,24 +314,17 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", "toto");
 
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                "No valid HLSL function has been provided. You should write at least one function that returns a value",
-                VFXErrorType.Error,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual("No valid HLSL function has been provided. You should write at least one function that returns a value", report.description);
         }
 
         [UnityTest]
@@ -357,24 +344,17 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                $"Multiple functions with same name '{functionName}' are declared, only the first one can be selected",
-                VFXErrorType.Warning,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Warning, report.type);
+            Assert.AreEqual($"Multiple functions with same name '{functionName}' are declared, only the first one can be selected", report.description);
         }
 
         [UnityTest]
@@ -389,24 +369,17 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                $"Unknown parameter type '{parameterType}'",
-                VFXErrorType.Error,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual($"Unknown parameter type '{parameterType}'", report.description);
         }
 
         [UnityTest]
@@ -421,24 +394,17 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                $"The function parameter '{paramName}' is of type Texture2D.\nPlease use VFXSampler2D type instead (see documentation)",
-                VFXErrorType.Error,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual($"The function parameter '{paramName}' is of type Texture2D.\nPlease use VFXSampler2D type instead (see documentation)", report.description);
         }
 
         [UnityTest]
@@ -448,29 +414,21 @@ namespace UnityEditor.VFX.Test
             var hlslCode =
                 "void TestFunction(in float param)\n" +
                 "{\n" +
-                "    attributes.position = float3(param, param, param);\n" +
+                "    float3 p = float3(param, param, param);\n" +
                 "}";
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
-
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                "Missing `VFXAttributes attributes` as function's parameter.\nNeeded because your code access (read or write) to at least one attribute.\nIt has been automatically fixed for you",
-                VFXErrorType.Warning,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Warning, report.type);
+            Assert.AreEqual("Missing `VFXAttributes attributes` as function's parameter.\nNeeded because your code access (read or write) to at least one attribute.\nIt has been automatically fixed for you", report.description);
         }
 
         [UnityTest]
@@ -485,24 +443,17 @@ namespace UnityEditor.VFX.Test
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
-            var hasRegisteredError = false;
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
-            view.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) => CheckErrorFeedback(
-                model,
-                errorType,
-                description,
-                hlslBlock,
-                "Missing `inout` access modifier before the VFXAttributes type.\nNeeded because your code writes to at least one attribute.",
-                VFXErrorType.Error,
-                ref hasRegisteredError);
-
             yield return null;
 
             // Act
-            VFXViewWindow.RefreshErrors(hlslBlock);
+            graph.errorManager.GenerateErrors();
 
             // Assert
-            Assert.IsTrue(hasRegisteredError);
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual("Missing `inout` access modifier before the VFXAttributes type.\nNeeded because your code writes to at least one attribute.", report.description);
         }
 
         [Test]
@@ -616,16 +567,6 @@ namespace UnityEditor.VFX.Test
             var shaderInclude = (ShaderInclude)AssetDatabase.LoadAssetAtPath(destinationPath, typeof(ShaderInclude));
 
             return shaderInclude;
-        }
-
-        internal static void CheckErrorFeedback(VFXModel model, VFXErrorType errorType, string description, VFXModel expectedModel, string expectedError, VFXErrorType expectedErrorType, ref bool hasRegisteredError)
-        {
-            if (hasRegisteredError)
-                return;
-            // Assert
-            hasRegisteredError = expectedModel == model
-                                 && expectedError == description
-                                 && expectedErrorType == errorType;
         }
 
         internal static HLSLFunction GetFunction(VFXModel hlslOperator)

@@ -106,14 +106,14 @@ namespace UnityEditor.VFX.Block
             VFXBlock.CopyInputLinks(setAttribute, this);
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var attributeName = currentAttribute.name;
             if (!CustomAttributeUtility.IsShaderCompilableName(attributeName))
             {
-                manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attributeName}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character");
+                report.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attributeName}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character", this);
             }
         }
 

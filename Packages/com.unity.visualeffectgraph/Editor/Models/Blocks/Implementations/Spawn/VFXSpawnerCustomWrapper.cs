@@ -100,29 +100,29 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             //Type isn't reachable ... but we already stored a type, log an error.
             if (m_customType == null)
             {
                 if (!object.ReferenceEquals(m_customType, null) && !string.IsNullOrEmpty(m_customType.text))
-                    manager.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "The serialized reference to a VFXSpawnerCallbacks script is missing : " + m_customType.text);
+                    report.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "The serialized reference to a VFXSpawnerCallbacks script is missing : " + m_customType.text, this);
                 else
-                    manager.RegisterError("CustomSpawnerIDNull", VFXErrorType.Error, "The serialized reference to a VFXSpawnerCallbacks script is missing.");
+                    report.RegisterError("CustomSpawnerIDNull", VFXErrorType.Error, "The serialized reference to a VFXSpawnerCallbacks script is missing.", this);
             }
             else if ((Type)m_customType == typeof(LoopAndDelay))
             {
-                manager.RegisterError("CustomSpawnerLoopAndDelay", VFXErrorType.Warning, "The block Loop And Delay is now deprecated in favor of the spawn context settings in inspector.");
+                report.RegisterError("CustomSpawnerLoopAndDelay", VFXErrorType.Warning, "The block Loop And Delay is now deprecated in favor of the spawn context settings in inspector.", this);
             }
 
             if (customBehavior == null && m_customType != null)
             {
                 if (m_customScript != null && m_customScript.GetClass() != null)
-                    manager.RegisterError("CustomSpawnerIDNotVFXSpawnerCallbacks", VFXErrorType.Error, string.Format("{0} isn't a VFXSpawnerCallbacks", m_customScript.GetClass()));
+                    report.RegisterError("CustomSpawnerIDNotVFXSpawnerCallbacks", VFXErrorType.Error, string.Format("{0} isn't a VFXSpawnerCallbacks", m_customScript.GetClass()), this);
                 else
-                    manager.RegisterError("CustomSpawnerIDInvalid", VFXErrorType.Error, "Invalid ScriptableObject : " + (Type)m_customType);
+                    report.RegisterError("CustomSpawnerIDInvalid", VFXErrorType.Error, "Invalid ScriptableObject : " + (Type)m_customType, this);
             }
         }
 

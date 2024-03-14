@@ -198,7 +198,6 @@ namespace UnityEditor.VFX.UI
         };
 
         public readonly HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
-        public readonly VFXErrorManager errorManager;
 
         public bool locked => m_VFXSettings.AttachedLocked;
 
@@ -545,19 +544,6 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        public void RefreshErrors(VFXModel model)
-        {
-            try
-            {
-                using var reporter = StartInvalidateErrorReport(model);
-                model.GenerateErrors(reporter);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-        }
-
         readonly VisualElement m_Toolbar;
         readonly ToolbarToggle m_LockToggle;
         readonly EditorToolbarDropdown m_AttachDropDownButton;
@@ -599,10 +585,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXView()
         {
-            errorManager = new VFXErrorManager();
-            errorManager.onRegisterError += RegisterError;
-            errorManager.onClearAllErrors += ClearAllErrors;
-
             m_UseInternalClipboard = false;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             SetupZoom(0.125f, 8);
@@ -806,10 +788,29 @@ namespace UnityEditor.VFX.UI
 
         [NonSerialized]
         List<VFXIconBadge> m_CompileBadges = new();
+        [NonSerialized]
+        List<VFXModel> m_ModelsWithHiddenBadges = new();
 
         private void SetToolbarEnabled(bool enabled)
         {
             ToolbarElementsToDisableWhenNoAsset.ForEach(x => m_Toolbar.Q<VisualElement>(x).SetEnabled(enabled));
+        }
+
+        public void UpdateBadges(IVFXErrorReporter report)
+        {
+            if (report == null)
+            {
+                return;
+            }
+            foreach (var model in report.dirtyModels)
+            {
+                ClearAllErrors(model, report.origin);
+                foreach (var reportError in report.GetDirtyModelErrors(model))
+                {
+                    RegisterError(model, report.origin, reportError.error, reportError.type, reportError.description);
+                }
+            }
+            report.ClearDirtyModels();
         }
 
         private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin, string error, VFXErrorType type, string description)
@@ -880,10 +881,18 @@ namespace UnityEditor.VFX.UI
                     }
                     badges.Add(badge);
                 }
-                badge.AddManipulator(new Clickable(() => badge.RemoveFromHierarchy()));
+                badge.AddManipulator(new Clickable(() =>
+                {
+                    m_ModelsWithHiddenBadges.Add(model);
+                    badge.RemoveFromHierarchy();
+                }));
                 badge.AddManipulator(new ContextualMenuManipulator(e =>
                 {
-                    e.menu.AppendAction("Hide", _ => { badge.RemoveFromHierarchy(); });
+                    e.menu.AppendAction("Hide", _ =>
+                    {
+                        m_ModelsWithHiddenBadges.Add(model);
+                        badge.RemoveFromHierarchy();
+                    });
 
                     if (type != VFXErrorType.Error)
                     {
@@ -1481,7 +1490,7 @@ namespace UnityEditor.VFX.UI
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
-                    RefreshErrors(newElement.controller.model);
+                    newElement.controller.model.RefreshErrors();
                     if (m_UpdateSelectionWithNewNode)
                     {
                         if (!selectionCleared)
@@ -1793,6 +1802,11 @@ namespace UnityEditor.VFX.UI
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
                 VFXGraph.explicitCompile = false;
             }
+            foreach (var model in m_ModelsWithHiddenBadges)
+            {
+                model.RefreshErrors();
+            }
+            m_ModelsWithHiddenBadges.Clear();
         }
 
         internal void OnSave()
@@ -3471,21 +3485,6 @@ namespace UnityEditor.VFX.UI
             {
                 Debug.LogException(e);
             }
-        }
-
-        public VFXCompileErrorReporter StartCompilationErrorReport(VFXGraph graph)
-        {
-            if (graph.compileReporter is VFXCompileErrorReporter compileReporter)
-                return null; // Return null so the the current reporter is not disposed too early
-
-            errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
-            return new VFXCompileErrorReporter(graph, errorManager);
-        }
-
-        public VFXInvalidateErrorReporter StartInvalidateErrorReport(VFXModel model)
-        {
-            errorManager.ClearAllErrors(model, VFXErrorOrigin.Invalidate);
-            return new VFXInvalidateErrorReporter(errorManager, model);
         }
     }
 }

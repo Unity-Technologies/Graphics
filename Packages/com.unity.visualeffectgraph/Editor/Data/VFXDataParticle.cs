@@ -1707,15 +1707,15 @@ namespace UnityEditor.VFX
             m_GraphValuesLayout.GenerateOffsetMap(m_SystemUniformMapper);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             if (boundsMode == BoundsSettingMode.Automatic)
             {
                 if (CanBeCompiled())
-                    manager.RegisterError("WarningAutomaticBoundsFlagChange", VFXErrorType.Warning,
-                        $"Changing the bounds mode to Automatic modifies the Culling Flags on the Visual Effect Asset to Always recompute bounds and simulate.");
+                    report.RegisterError("WarningAutomaticBoundsFlagChange", VFXErrorType.Warning,
+                        $"Changing the bounds mode to Automatic modifies the Culling Flags on the Visual Effect Asset to Always recompute bounds and simulate.", this);
             }
         }
     }

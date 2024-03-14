@@ -59,14 +59,14 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
             if (m_targetSpace == inputSlots[0].space)
             {
-                manager.RegisterError("ChangeSpace_Input_Target_Are_Equals", VFXErrorType.Warning, "The input space and target space are identical. This operator won't do anything.");
+                report.RegisterError("ChangeSpace_Input_Target_Are_Equals", VFXErrorType.Warning, "The input space and target space are identical. This operator won't do anything.", this);
             }
 
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
         }
 
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)

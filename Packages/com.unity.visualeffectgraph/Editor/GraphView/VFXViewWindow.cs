@@ -4,12 +4,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using UnityEditor.Experimental.GraphView;
 
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.VFX;
-using UnityEngine.UIElements;
 
 
 namespace UnityEditor.VFX.UI
@@ -88,26 +85,6 @@ namespace UnityEditor.VFX.UI
                 x => x.graphView?.controller?.parameterControllers.Any(y => y.model == vfxParameter) == true,
                 createIfNeeded,
                 true);
-        }
-
-        public static void RefreshErrors(VFXModel model)
-        {
-            Profiler.BeginSample("VFXViewWindow.RefreshErrors");
-            try
-            {
-                if (model != null &&
-                    model.GetGraph() is { } graph &&
-                    GetWindow(graph, false, false) is { } window &&
-                    window.graphView != null &&
-                    window.graphView.controller != null)
-                {
-                    window.graphView.RefreshErrors(model);
-                }
-            }
-            finally
-            {
-                Profiler.EndSample();
-            }
         }
 
         static VFXViewWindow GetWindowLambda(Func<VFXViewWindow, bool> func, bool createIfNeeded, bool show)
@@ -395,14 +372,12 @@ namespace UnityEditor.VFX.UI
 
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
+                            graph.errorManager.RefreshCompilationReport();
                             VFXGraph.explicitCompile = true;
-                            using (graphView.StartCompilationErrorReport(graph))
-                            {
-                                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
-                            }
-                            VFXGraph.explicitCompile = false;
+                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
                             // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
                             graph.SetExpressionGraphDirty(false);
+                            VFXGraph.explicitCompile = false;
                         }
                         else
                             graph.RecompileIfNeeded(true, true);
@@ -424,6 +399,9 @@ namespace UnityEditor.VFX.UI
                                 "Expression graph was marked as dirty after compiling context for UI. Discard to avoid infinite compilation loop.");
                             graph.SetExpressionGraphDirty(false);
                         }
+
+                        graphView.UpdateBadges(graph.errorManager.errorReporter);
+                        graphView.UpdateBadges(graph.errorManager.compileReporter);
                     }
                 }
                 else

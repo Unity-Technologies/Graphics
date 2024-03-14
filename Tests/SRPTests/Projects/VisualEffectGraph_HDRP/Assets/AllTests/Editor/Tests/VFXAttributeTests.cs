@@ -227,15 +227,6 @@ namespace UnityEditor.VFX.Test
             var graph = VFXTestCommon.MakeTemporaryGraph();
             var window = VFXViewWindow.GetWindow(graph, true);
             window.LoadResource(graph.visualEffectResource);
-            VFXModel modelWithError = null;
-            window.graphView.errorManager.onRegisterError += (model, origin, error, errorType, description) =>
-            {
-                Assert.IsNull(modelWithError, "The error seems to have been raise more than once");
-                if (errorType == VFXErrorType.Error)
-                {
-                    modelWithError = model;
-                }
-            };
 
             graph.TryAddCustomAttribute(name, VFXValueType.Boolean, string.Empty, false, out var attribute);
             var customAttributeNode = ScriptableObject.CreateInstance<T>();

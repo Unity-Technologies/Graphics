@@ -219,14 +219,14 @@ namespace UnityEditor.VFX.Operator
                 ResyncSlots(true);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLOperatorFunctionValidator();
             ParseCodeIfNeeded();
             foreach(var error in hlslValidator.Validate(m_AvailableFunctions.values, m_Function))
             {
-                manager.RegisterError(string.Empty, error.type, error.message);
+                report.RegisterError(string.Empty, error.type, error.message, this);
             }
         }
 

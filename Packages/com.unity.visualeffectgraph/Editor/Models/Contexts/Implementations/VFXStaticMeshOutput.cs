@@ -273,14 +273,14 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kUIChangedTransient);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             GetOrRefreshShaderGraphObject(false);
             if (m_IsShaderGraphMissing)
             {
-                manager.RegisterError("ErrorMissingShaderGraph", VFXErrorType.Error, "The VFX Graph cannot be compiled because the Shader Graph asset is missing.");
+                report.RegisterError("ErrorMissingShaderGraph", VFXErrorType.Error, "The VFX Graph cannot be compiled because the Shader Graph asset is missing.", this);
             }
         }
     }

@@ -381,17 +381,17 @@ namespace UnityEditor.VFX
             return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var type = this.type;
             if (Deprecated.s_Types.Contains(type))
             {
-                manager.RegisterError(
+                report.RegisterError(
                     "DeprecatedTypeParameter",
                     VFXErrorType.Warning,
-                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name));
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name), this);
             }
         }
 

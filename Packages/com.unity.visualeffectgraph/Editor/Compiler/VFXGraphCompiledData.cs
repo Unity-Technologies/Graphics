@@ -864,7 +864,7 @@ namespace UnityEditor.VFX
                                 errors.ForEach(x =>
                                 {
                                     errorMessage.AppendLine($"\t{x}");
-                                    m_Graph.RegisterCompileError(context, x);
+                                    m_Graph.RegisterCompileError("CompileError", x, context);
                                 });
                             }
                         }
@@ -1272,7 +1272,7 @@ namespace UnityEditor.VFX
                         dataToSystemIndex.Add(data, (uint)systemDescs.Count);
                     }
 
-                    data.FillDescs(m_Graph.compileReporter,
+                    data.FillDescs(m_Graph.errorManager.compileReporter,
                         compilationMode,
                         bufferDescs,
                         temporaryBufferDescs,
