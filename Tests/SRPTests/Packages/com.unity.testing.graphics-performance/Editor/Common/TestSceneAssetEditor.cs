@@ -124,7 +124,7 @@ namespace UnityEngine.TestTools.Graphics.Performance.Editor
 
                 EditorGUI.PropertyField(rect, srpAsset, new GUIContent("SRP Asset"));
                 assetLabels.stringValue = GetLabelForAsset(srpAsset.objectReferenceValue);
-                alias.stringValue = PerformanceTestUtils.testScenesAsset.GetSRPAssetAlias(srpAsset.objectReferenceValue as RenderPipelineAsset);
+                alias.stringValue = srpAsset?.objectReferenceValue == null ? "Empty" : PerformanceTestUtils.testScenesAsset?.GetSRPAssetAlias(srpAsset.objectReferenceValue as RenderPipelineAsset);
 
                 if (EditorGUI.EndChangeCheck())
                     serializedObject.ApplyModifiedProperties();
