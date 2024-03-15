@@ -1,4 +1,8 @@
-#if ENABLE_INPUT_SYSTEM 
+#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
+#define USE_INPUT_SYSTEM
+#endif
+
+#if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -36,7 +40,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float m_Turbo = 10.0f;
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
         InputAction lookAction;
         InputAction moveAction;
         InputAction speedAction;
@@ -60,7 +64,7 @@ namespace UnityEngine.Rendering
 
         void RegisterInputs()
         {
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
             var map = new InputActionMap("Free Camera");
 
             lookAction = map.AddAction("look", binding: "<Mouse>/delta");
@@ -122,7 +126,7 @@ namespace UnityEngine.Rendering
             leftShiftBoost = false;
             fire1 = false;
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
             var lookDelta = lookAction.ReadValue<Vector2>();
             inputRotateAxisX = lookDelta.x * m_LookSpeedMouse * k_MouseSensitivityMultiplier;
             inputRotateAxisY = lookDelta.y * m_LookSpeedMouse * k_MouseSensitivityMultiplier;

@@ -1,3 +1,7 @@
+#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
+#define USE_INPUT_SYSTEM
+#endif
+
 using System.Collections.Generic;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,7 +13,7 @@ using TMPro;
 using System.Collections;
 using UnityEngine.Rendering;
 using System.Text.RegularExpressions;
-#if ENABLE_INPUT_SYSTEM 
+#if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -124,8 +128,8 @@ public class SamplesShowcase : MonoBehaviour
                 }
 #endif
 
-#if ENABLE_INPUT_SYSTEM
-                if(Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
+#if USE_INPUT_SYSTEM
+                if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
                 {
                     SwitchEffect(currentIndex+1);
                 } 

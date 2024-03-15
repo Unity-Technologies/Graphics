@@ -1,3 +1,7 @@
+#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
+#define USE_INPUT_SYSTEM
+#endif
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +9,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UI;
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -141,7 +145,7 @@ public class FullscreenSamplesEffectSelection : MonoBehaviour
         if (Application.isFocused)
         {
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
 
             if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame)
             {
