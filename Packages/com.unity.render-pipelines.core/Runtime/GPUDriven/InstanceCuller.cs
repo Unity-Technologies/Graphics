@@ -1776,8 +1776,8 @@ namespace UnityEngine.Rendering
                 cullingJobHandle = drawCommandOutputHandle;
             }
 
-            rendererVisibilityMasks.Dispose(cullingJobHandle);
-            rendererCrossFadeValues.Dispose(cullingJobHandle);
+            cullingJobHandle = rendererVisibilityMasks.Dispose(cullingJobHandle);
+            cullingJobHandle = rendererCrossFadeValues.Dispose(cullingJobHandle);
 
             return cullingJobHandle;
         }
