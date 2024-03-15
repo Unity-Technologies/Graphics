@@ -8,8 +8,13 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CameraCaptureBridge
     {
-        private static Dictionary<Camera, HashSet<Action<RenderTargetIdentifier, CommandBuffer>>> actionDict =
-            new Dictionary<Camera, HashSet<Action<RenderTargetIdentifier, CommandBuffer>>>();
+        private class CameraEntry
+        {
+            internal HashSet<Action<RenderTargetIdentifier, CommandBuffer>> actions;
+            internal IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> cachedEnumerator;
+        }
+
+        private static Dictionary<Camera, CameraEntry> actionDict = new();
 
         private static bool _enabled;
 
@@ -35,10 +40,20 @@ namespace UnityEngine.Rendering
         /// <returns>Enumeration of actions</returns>
         public static IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> GetCaptureActions(Camera camera)
         {
-            if (!actionDict.TryGetValue(camera, out var actions) || actions.Count == 0)
+            if (!actionDict.TryGetValue(camera, out var entry) || entry.actions.Count == 0)
                 return null;
 
-            return actions.GetEnumerator();
+            return entry.actions.GetEnumerator();
+        }
+
+        internal static IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> GetCachedCaptureActionsEnumerator(Camera camera)
+        {
+            if (!actionDict.TryGetValue(camera, out var entry) || entry.actions.Count == 0)
+                return null;
+
+            // internal use only
+            entry.cachedEnumerator.Reset();
+            return entry.cachedEnumerator;
         }
 
         /// <summary>
@@ -48,14 +63,15 @@ namespace UnityEngine.Rendering
         /// <param name="action">The action to add</param>
         public static void AddCaptureAction(Camera camera, Action<RenderTargetIdentifier, CommandBuffer> action)
         {
-            actionDict.TryGetValue(camera, out var actions);
-            if (actions == null)
+            actionDict.TryGetValue(camera, out var entry);
+            if (entry == null)
             {
-                actions = new HashSet<Action<RenderTargetIdentifier, CommandBuffer>>();
-                actionDict.Add(camera, actions);
+                entry = new CameraEntry {actions = new HashSet<Action<RenderTargetIdentifier, CommandBuffer>>()};
+                actionDict.Add(camera, entry);
             }
 
-            actions.Add(action);
+            entry.actions.Add(action);
+            entry.cachedEnumerator = entry.actions.GetEnumerator();
         }
 
         /// <summary>
@@ -68,8 +84,11 @@ namespace UnityEngine.Rendering
             if (camera == null)
                 return;
 
-            if (actionDict.TryGetValue(camera, out var actions))
-                actions.Remove(action);
+            if (actionDict.TryGetValue(camera, out var entry))
+            {
+                entry.actions.Remove(action);
+                entry.cachedEnumerator = entry.actions.GetEnumerator();
+            }
         }
     }
 }

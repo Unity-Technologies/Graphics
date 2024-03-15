@@ -497,5 +497,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/310_Swapbuffer_Depth.unity
     guid: aec68106d2ff047868f32b8853c6abf0
+  - enabled: 1
+    path: Assets/Scenes/320_CameraCaptureBridge.unity
+    guid: fc0920afa6040434f8002c78a6fe3c5f
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

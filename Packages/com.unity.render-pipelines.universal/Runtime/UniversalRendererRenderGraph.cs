@@ -1364,6 +1364,11 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
             }
 
+            if (cameraData.captureActions != null)
+            {
+                m_CapturePass.RecordRenderGraph(renderGraph, frameData);
+            }
+
             cameraTargetResolved =
                 // final PP always blit to camera target
                 applyFinalPostProcessing ||
