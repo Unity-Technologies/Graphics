@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Failing on Apple Silicon
@@ -28,6 +29,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Failing on Apple Silicon
@@ -37,6 +39,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Failing on Apple Silicon
@@ -46,6 +49,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Failing on Apple Silicon
@@ -55,6 +59,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Failing on Apple Silicon
@@ -64,6 +69,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -73,6 +79,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 5
     GraphicsDevice: 18
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -82,6 +89,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 19
     GraphicsDevice: 2
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -91,6 +99,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 19
     GraphicsDevice: 18
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -100,6 +109,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 33
     GraphicsDevice: 14
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -109,6 +119,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 42
     GraphicsDevice: 25
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -118,6 +129,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: 43
     GraphicsDevice: 24
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Need to update scene
@@ -126,7 +138,8 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
     ColorSpace: 1
     BuildPlatform: 44
-    GraphicsDevice: 26
+    GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Failing on PS5
