@@ -97,6 +97,16 @@ namespace UnityEngine.Rendering.Universal
             get => m_DefaultSpeedTree8Shader;
             set => this.SetValueAndNotify(ref m_DefaultSpeedTree8Shader, value);
         }
+
+        [SerializeField]
+        [ResourcePath("Shaders/Nature/SpeedTree9_URP.shadergraph")]
+        private Shader m_DefaultSpeedTree9Shader;
+
+        public Shader defaultSpeedTree9Shader
+        {
+            get => m_DefaultSpeedTree9Shader;
+            set => this.SetValueAndNotify(ref m_DefaultSpeedTree9Shader, value);
+        }
         #endregion
     }
 }

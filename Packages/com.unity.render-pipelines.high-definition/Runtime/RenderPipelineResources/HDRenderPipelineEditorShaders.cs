@@ -67,6 +67,16 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_DefaultSpeedTree8Shader;
             set => this.SetValueAndNotify(ref m_DefaultSpeedTree8Shader, value, nameof(m_DefaultSpeedTree8Shader));
         }
+
+        [SerializeField]
+        [ResourcePath("Runtime/Material/Nature/SpeedTree9_HDRP.shadergraph")]
+        private Shader m_DefaultSpeedTree9Shader;
+
+        public Shader defaultSpeedTree9Shader
+        {
+            get => m_DefaultSpeedTree9Shader;
+            set => this.SetValueAndNotify(ref m_DefaultSpeedTree9Shader, value, nameof(m_DefaultSpeedTree9Shader));
+        }
         #endregion
     }
 }
