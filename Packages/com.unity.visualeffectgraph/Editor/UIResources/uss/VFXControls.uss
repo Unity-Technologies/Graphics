@@ -29,31 +29,26 @@ VFXColorField #indeterminate
     color:#000;
 }
 
-.unity-curve-field
-{
-    height: 16px;
-    background-color:rgb(86, 86, 86);
-    border-left-width: 1px;
-    border-right-width: 1px;
-    border-top-width: 1px;
-    border-bottom-width: 1px;
-    border-color:#000;
-}
-
 .sliderField
 {
     flex-direction:row;
 }
 .sliderField .unity-slider
 {
-    flex:1 0 auto;
+    flex:1 1 auto;
+    margin-right: 4px;
 }
 .sliderField #Field
 {
     min-width: 40px;
-    max-width: 80px;
-    flex:0 0 auto;
+    flex:1 0 auto;
+    overflow: visible;
 }
+.sliderField #Field > .unity-base-field__input {
+    min-width: 40px;
+    flex:0 1 auto;
+}
+
 .sliderField #indeterminate
 {
     width: 40px;
@@ -104,9 +99,20 @@ VFXStringFieldPushButton
     height: 16px;
 }
 
+VFXStringFieldPushButton TextField
+{
+    width: 140px;
+}
+
 VFXStringFieldPushButton .unity-button
 {
-    height: 16px;
+    flex-grow: 1;
+    padding: 0 16px;
+    margin: 0 3px;
+}
+
+VFXStringFieldPushButton > Label {
+    min-width: 148px;
 }
 
 .unity-button.MiniDropDown
@@ -114,46 +120,74 @@ VFXStringFieldPushButton .unity-button
     -unity-slice-right: 12;
 }
 
-VFX32BitField
-{
-    --bit-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/bitfield-bit.png");
-    --bit-bkgnd-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/bitfield-bkgnd.png");
+VFX32BitField {
+    margin-left: 2px;
 }
 
-VFX32BitField > *
-{
-    position:absolute;
-    left:0px;
-    width:191px;
-    top:0px;
-    bottom:0px;
-    flex-direction:row;
-    align-items:stretch;
+VFX32BitField.fieldContainer #bit-button {
+    align-self: center;
+    flex-grow: 1;
+    height: 16px;
+    margin-right: 1px;
+    background-color: #514d4d;
+}
+
+VFX32BitField.fieldContainer #bit-button.first {
+    border-radius: 2px 0 0 2px;
+}
+
+VFX32BitField.fieldContainer #bit-button.last {
+    border-radius: 0 2px 2px 0;
+}
+
+VFX32BitField.fieldContainer #bit-button.bit-set {
+    background-color: var(--unity-colors-highlight-background);
+}
+
+VFX32BitField.fieldContainer #bit-button:hover {
+    background-color: var(--unity-colors-highlight-background-hover);
 }
 
 VFX32BitField > #tip
 {
-    right:0px;
-    width:auto;
-
-    -unity-text-align: middle-right;
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    -unity-text-align: middle-center;
+    text-shadow: 1px 1px 2px #252525;
 }
 
 GradientField
 {
-    margin-left:0px;
-    margin-right:0px;
+    flex: 1 1 auto;
+    flex-direction: row;
+    margin-left:0;
+    margin-right:0;
+    border-width: 0;
+}
+
+GradientField * {
+    border-width: 0;
+    margin: 0;
+}
+
+GradientField .unity-gradient-field__input {
+    border-width: 1px;
+    border-radius: 3px;
+    border-color: #212121;
+    border-top-color: #0d0d0d;
+}
+
+GradientField:focus .unity-gradient-field__input {
+    border-color: var(--unity-colors-input_field-border-focus);
+}
+
+GradientField .unity-gradient-field__background {
+    margin: -1px;
 }
 
 ObjectField
 {
     flex-grow: 1;
     flex-shrink: 1;
-    margin-left:0px;
-    margin-right:0px;
-}
-
-CurveField > *
-{
-    margin-top:0px;
 }

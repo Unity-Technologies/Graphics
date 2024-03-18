@@ -17,9 +17,9 @@ namespace UnityEditor.VFX.UI
     {
         private readonly VFXModel m_Model;
 
-        public VFXTextEditorField(VFXModel vfxModel) : base((Label)null)
+        public VFXTextEditorField(IPropertyRMProvider provider) : base(ObjectNames.NicifyVariableName(provider.name))
         {
-            m_Model = vfxModel;
+            m_Model = provider is VFXSettingController { owner: VFXModel m } ? m : null;
             var editButton = new Button(OnEditText);
             editButton.AddToClassList("propertyrm-button");
             editButton.text = "Edit";

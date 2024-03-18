@@ -1,14 +1,7 @@
-using System;
 using System.IO;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
-using Object = UnityEngine.Object;
-using System.Reflection;
-using System.Linq;
-
-using MyCurveField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.CurveField, UnityEngine.AnimationCurve>;
 
 namespace UnityEditor.VFX.UI
 {
@@ -18,16 +11,10 @@ namespace UnityEditor.VFX.UI
 
         public CurvePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_CurveField = new MyCurveField(m_Label);
-            m_CurveField.control.renderMode = CurveField.RenderMode.Mesh;
+            m_CurveField = new CurveField(ObjectNames.NicifyVariableName(controller.name));
+            m_CurveField.Q<VisualElement>("unity-border").RemoveFromHierarchy();
             m_CurveField.RegisterCallback<ChangeEvent<AnimationCurve>>(OnValueChanged);
-
-            m_CurveField.control.onShowPresets += OnShowCurvePreset;
-
-            m_CurveField.style.flexDirection = FlexDirection.Column;
-            m_CurveField.style.alignItems = Align.Stretch;
-            m_CurveField.style.flexGrow = 1f;
-            m_CurveField.style.flexShrink = 1f;
+            m_CurveField.onShowPresets += OnShowCurvePreset;
 
             Add(m_CurveField);
         }
@@ -76,7 +63,7 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
-        MyCurveField m_CurveField;
+        CurveField m_CurveField;
 
         protected override void UpdateEnabled()
         {

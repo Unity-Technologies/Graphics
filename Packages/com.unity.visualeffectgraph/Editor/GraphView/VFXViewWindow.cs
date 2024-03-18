@@ -48,6 +48,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
+                UnityEditor.UIElements.AssetMonitoringUtilities.SetResetPanelRenderingOnAssetChange(this, false);
                 s_VFXWindows.Add(this);
                 DisableViewDataPersistence();
             }

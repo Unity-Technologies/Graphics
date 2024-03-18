@@ -6,29 +6,22 @@ namespace UnityEditor.VFX.UI
 {
     class VFXOperatorUI : VFXNodeUI
     {
+        private const float defaultOperatorLabelWidth = 30f;
+
         VisualElement m_EditButton;
         VisualElement m_EditContainer;
         float m_LastExpendedWidth;
 
         public VFXOperatorUI()
         {
+            defaultLabelWidth = defaultOperatorLabelWidth;
             this.AddStyleSheetPath("VFXOperator");
 
-            m_EditButton = new VisualElement() { name = "edit" };
-            m_EditButton.Add(new VisualElement() { name = "icon" });
-            m_EditButton.AddManipulator(new Clickable(OnEdit));
             this.AddManipulator(new SuperCollapser());
 
-            RegisterCallback<GeometryChangedEvent>(OnPostLayout);
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
-
-            VisualElement borderContainer = this.Q(name: "node-border");
-            if (borderContainer != null)
-            {
-                borderContainer.style.overflow = Overflow.Visible;
-            }
         }
 
         void OnEdit()
@@ -49,53 +42,36 @@ namespace UnityEditor.VFX.UI
 
                 UpdateCollapse();
             }
+
+            RefreshLayout();
         }
 
-        public new VFXOperatorController controller
+        public new VFXOperatorController controller => base.controller as VFXOperatorController;
+
+        protected override void OnNewController()
         {
-            get { return base.controller as VFXOperatorController; }
-        }
-
-
-        public override void GetPreferedWidths(ref float labelWidth, ref float controlWidth)
-        {
-            base.GetPreferedWidths(ref labelWidth, ref controlWidth);
-
-            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            base.OnNewController();
+            if (isEditable)
             {
-                float portLabelWidth = port.GetPreferredLabelWidth() + 1;
-                float portControlWidth = port.GetPreferredControlWidth();
+                m_EditButton = new Button(OnEdit) { name = "edit" };
+                titleContainer.Insert(1, m_EditButton);
 
-                if (labelWidth < portLabelWidth)
-                {
-                    labelWidth = portLabelWidth;
-                }
-                if (controlWidth < portControlWidth)
-                {
-                    controlWidth = portControlWidth;
-                }
+                m_EditContainer = GetControllerEditor();
+                if (m_EditContainer != null)
+                    m_EditContainer.name = "edit-container";
             }
+
         }
 
-        public override void ApplyWidths(float labelWidth, float controlWidth)
+        protected override void ApplyWidths(float labelWidth, float controlWidth)
         {
             base.ApplyWidths(labelWidth, controlWidth);
-            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
-            {
-                port.SetLabelWidth(labelWidth);
-            }
             inputContainer.style.width = labelWidth + controlWidth + 20;
         }
 
-        public bool isEditable
-        {
-            get
-            {
-                return controller != null && controller.isEditable;
-            }
-        }
+        private bool isEditable => controller != null && controller.isEditable;
 
-        protected VisualElement GetControllerEditor()
+        private VisualElement GetControllerEditor()
         {
             if (controller is VFXCascadedOperatorController)
             {
@@ -148,74 +124,28 @@ namespace UnityEditor.VFX.UI
             get { return base.superCollapsed && (m_EditContainer == null || m_EditContainer.parent == null); }
         }
 
-        protected override void SelfChange()
-        {
-            base.SelfChange();
-
-            if (isEditable)
-            {
-                if (m_EditButton.parent == null)
-                    titleContainer.Insert(1, m_EditButton);
-
-                if (m_EditContainer == null)
-                {
-                    m_EditContainer = GetControllerEditor();
-                    if (m_EditContainer != null)
-                        m_EditContainer.name = "edit-container";
-                }
-            }
-            else
-            {
-                if (m_EditContainer != null && m_EditContainer.parent != null)
-                    m_EditContainer.RemoveFromHierarchy();
-
-                m_EditContainer = null;
-                if (m_EditButton.parent != null)
-                    m_EditButton.RemoveFromHierarchy();
-            }
-
-            if (!expanded && m_EditContainer != null && m_EditContainer.parent != null)
-                m_EditContainer.RemoveFromHierarchy();
-        }
-
-        void OnPostLayout(GeometryChangedEvent e)
+        protected override void OnPostLayout(GeometryChangedEvent e)
         {
             if (expanded)
             {
                 m_LastExpendedWidth = layout.width;
             }
-            RefreshLayout();
+            base.OnPostLayout(e);
         }
 
-        public override void RefreshLayout()
+        protected override void RefreshLayout()
         {
             base.RefreshLayout();
-            if (!superCollapsed)
+            // To prevent width to change between expanded and collapsed state
+            // we set the minwidth to actual width before collapse, and reset to zero when expand
+            // so that the expand/collapse button does not move
+            if (!superCollapsed && !expanded)
             {
-                var settingsLabelWidth = 30f;
-                var settingsControlWidth = 50f;
-                GetPreferedSettingsWidths(ref settingsLabelWidth, ref settingsControlWidth);
-
-                var labelWidth = 30f;
-                var controlWidth = 50f;
-                GetPreferedWidths(ref labelWidth, ref controlWidth);
-
-                ApplySettingsWidths(settingsLabelWidth, settingsControlWidth);
-
-                ApplyWidths(labelWidth, controlWidth);
-
-                // To prevent width to change between expanded and collapsed state
-                // we set the minwidth to actual width before collapse, and reset to zero when expand
-                // so that the expand/collapse button does not move
-                if (!expanded)
+                if (resolvedStyle.minWidth.value < m_LastExpendedWidth)
                 {
-                    if (resolvedStyle.minWidth.value < m_LastExpendedWidth)
-                    {
-                        style.minWidth = m_LastExpendedWidth;
-                    }
-
-                    return;
+                    style.minWidth = m_LastExpendedWidth;
                 }
+                return;
             }
 
             style.minWidth = 0f;

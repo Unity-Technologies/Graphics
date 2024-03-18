@@ -7,6 +7,7 @@ namespace UnityEditor.VFX.UI
         }
 
         public override float GetPreferredControlWidth() => 60;
+        protected override void UpdateIndeterminate() { }
 
         public override void SetValue(object obj)
         {
@@ -18,11 +19,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<string> CreateField()
         {
-            var hlslModel = provider is VFXSettingController settingController && settingController.owner is VFXModel model
-                ? model
-                : null;
-
-            return new VFXTextEditorField(hlslModel);
+            return new VFXTextEditorField(provider);
         }
     }
 }

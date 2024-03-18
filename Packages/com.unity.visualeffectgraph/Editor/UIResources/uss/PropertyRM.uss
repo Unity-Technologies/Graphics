@@ -2,39 +2,57 @@
 {
     flex-direction: row;
     align-items:center;
+    align-self: stretch;
 }
 
-.propertyrm #icon
-{
-    width: 13px;
-    height: 13px;
+.unity-base-field {
+    margin: 0;
+    padding: 1px 0;
 }
 
-.propertyrm.icon-expandable #icon
+.propertyrm.expandable
 {
+    padding-left: 10px;
+    background-size: 12px 12px;
+    background-position-x: left;
     background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout.png");
 }
-.propertyrm.icon-expandable #icon:hover
+
+.propertyrm.expandable:hover
 {
     background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout focus.png");
 }
-.propertyrm.icon-expandable #icon:hover:active
+
+.propertyrm.expandable:hover:active
 {
     background-image:resource("Builtin Skins/DarkSkin/Images/IN foldout act.png");
 }
 
-
-.propertyrm.icon-expandable.icon-expanded #icon
+.propertyrm.expandable.icon-expanded
 {
     background-image:resource("IN foldout on.png");
 }
-.propertyrm.icon-expandable.icon-expanded #icon:hover
+
+.propertyrm.expandable.icon-expanded:hover
 {
     background-image:resource("IN foldout focus on.png");
 }
-.propertyrm.icon-expandable.icon-expanded #icon:active
+.propertyrm.expandable.icon-expanded:active
 {
     background-image:resource("IN foldout act on.png");
+}
+
+.propertyrm.hasDepth {
+    border-left-width: 1px;
+    border-left-color: #4c4c4c;
+}
+
+.propertyrm.hasDepth > Label {
+    padding-left: 20px;
+ }
+
+.propertyrm.expandable.hasDepth {
+    background-position-x: 4px;
 }
 
 .propertyrm #spacebutton
@@ -44,40 +62,40 @@
     margin-left: 4px;
     margin-right: 8px;
 }
-.propertyrm .unity-button
-{
-    margin-top: 1px;
-    margin-bottom: 1px;
-    padding-top:0;
-    padding-bottom:0;
-}
 
-.propertyrm #label
+.propertyrm > Label
 {
-    color: rgb(153,153,153);
+    margin-left: 4px;
     height: 16px;
-    margin-left:0;
-    margin-top: 0;
-    padding-left: 1px;
-    margin-bottom:0;
-    padding-bottom:0;
     overflow:hidden;
     -unity-text-align:middle-left;
 }
 
-.propertyrm > VFXLabeledField.fieldContainer,.propertyrm > VFXEnumField.fieldContainer
-{
-    height: 18px;
-}
 .propertyrm > VFXEnumField.fieldContainer .unity-enum-field__input
 {
     height: 16px;
+    margin-left: 8px;
+    flex-grow: 1;
 }
 
 .propertyrm VFXMatrix4x4Field.fieldContainer
 {
     flex:1 0 auto;
-    height: -1px;
+    flex-direction: column;
+}
+
+.propertyrm VFXMatrix4x4Field #matrixContainer {
+    flex-grow: 1;
+}
+
+.propertyrm VFXMatrix4x4Field #matrixLine {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.propertyrm VFXMatrix4x4Field Label {
+    width: 18px;
+    margin-left: 4px;
 }
 
 .spaceLocal
@@ -115,10 +133,10 @@
     -unity-text-align: middle-left;
 }
 
-.propertyrm .fieldContainer > *
+/*.propertyrm .fieldContainer > *
 {
     flex:1 1 auto;
-}
+}*/
 
 .propertyrm:disabled
 {
@@ -129,10 +147,7 @@
 {
     color:#888;
     flex:0 0 auto;
-    -unity-text-align:middle-center;
-    margin-left:0;
     padding-left: 4px;
-    margin-right: 2px;
     padding-right:0;
 }
 
@@ -145,31 +160,32 @@
 {
     flex-direction:row;
     flex:1 1 auto;
-    margin: 0;
+    height: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.propertyrm .fieldContainer:disabled {
+    opacity: 1;
+}
+
+.propertyrm .unity-base-field:disabled {
+    opacity: 1;
+}
+
+.propertyrm .unity-base-field:disabled Label {
+    cursor: arrow;
+}
+
+.propertyrm .unity-base-field:disabled .unity-base-field__input {
+    opacity: 0.5;
 }
 
 .propertyrm .unity-enum-field
 {
     flex:1 1;
     flex-basis: auto;
-}
-
-.propertyrm .unity-enum-field
-{
-    flex:1 1;
-    flex-basis: auto;
-}
-
-BoolPropertyRM > .unity-toggle
-{
-    padding-top:0;
-    padding-bottom:0;
-    padding-left:0;
-    padding-right:0;
-    margin-left:0;
-    margin-right:0;
-    margin-top:0;
-    margin-bottom:0;
+    padding: 1px 0;
 }
 
 .propertyrm  .maincontainer
@@ -210,12 +226,17 @@ ColorPropertyRM > .maincontainer > .fieldContainer
 Vector3PropertyRM VFXColorField
 {
     flex: 0 0 auto;
+    margin-left: 4px;
 }
 
 Vector3PropertyRM.propertyrm VFXVector3Field.fieldContainer
 {
     height: 20px;
-    flex: 0 0 auto;
+    flex: 1 0 auto;
+}
+
+VFXVector3Field FloatField {
+    margin-left: 4px;
 }
 
 ColorPropertyRM .unity-float-field
@@ -249,9 +270,25 @@ UintPropertyRM .unity-long-field
     flex:1 0 auto;
 }
 
-CurvePropertyRM .unity-curve-field
-{
-    flex:1 0 auto;
+CurvePropertyRM .unity-curve-field {
+    flex: 1 0 auto;
+    min-height: 18px;
+}
+
+CurvePropertyRM .unity-curve-field__input {
+    flex: 1 1 auto;
+    height: 17px;
+    background-color: #2a2a2a;
+    border-color: #212121;
+    border-top-color: #0d0d0d;
+    border-width: 1px;
+    border-radius: 3px;
+    margin-top: 0;
+    padding: 0;
+}
+
+CurvePropertyRM .unity-curve-field:focus .unity-curve-field__input {
+    border-color: var(--unity-colors-input_field-border-focus);
 }
 
 CurvePropertyRM
@@ -262,15 +299,15 @@ CurvePropertyRM
 
 StringPropertyRM VFXStringField .unity-text-field
 {
-    margin-left:0;
-    margin-right:0;
-    margin-top:0;
-    margin-bottom:0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 0 0 1px;
 }
 
 Matrix4x4PropertyRM.propertyrm > .fieldContainer
 {
     height: auto;
+    flex-direction: row;
 }
 Matrix4x4PropertyRM.propertyrm VFXMatrix4x4Field
 {
@@ -309,20 +346,21 @@ Matrix4x4PropertyRM.propertyrm VFXMatrix4x4Field
 
 .ListPropertyRM > .ReorderableList
 {
-    margin-top:4px;
-    margin-left:4px;
-    margin-right:4px;
-    flex:1 1 auto;
+    margin-top: 4px;
+    margin-left: 0;
+    margin-right: 4px;
+    flex: 1 1 auto;
 }
 
 HLSLPropertyRM VFXTextEditorField Button.propertyrm-button.unity-button
 {
-    margin-top: 0px;
+    flex-grow: 1;
+    margin-top: 0;
     height: 17px;
 }
 
 DropdownField {
-    margin: 0px;
+    margin: 0;
     flex: 1 1;
 }
 ColorPropertyRM
@@ -340,3 +378,33 @@ VFXColorField .colorcontainer
     margin-right: 24px;
 }
 
+.propertyrm .unity-base-field > Label {
+    min-width: initial;
+    padding-top: 0;
+    align-self: center;
+    overflow: hidden;
+    padding: 0;
+    padding-left: 4px;
+    color: #888888;
+}
+
+#settings .propertyrm .unity-base-field > Label {
+    margin-left: 14px;
+    margin-right: 0;
+}
+
+#settings .propertyrm .fieldContainer > Label {
+    margin-left: 14px;
+}
+
+.fieldContainer #FieldParent {
+    flex-basis: 1px;
+}
+
+.fieldContainer > Label {
+    align-self: center;
+}
+
+.propertyrm.hasDepth > .unity-base-field {
+    margin-left: 4px;
+}

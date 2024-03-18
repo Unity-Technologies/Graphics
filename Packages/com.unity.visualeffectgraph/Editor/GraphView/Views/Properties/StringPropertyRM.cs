@@ -130,14 +130,16 @@ namespace UnityEditor.VFX.UI
         {
             var stringProvider = FindStringProvider(null, m_Provider.customAttributes);
             var pushButtonProvider = FindPushButtonBehavior(m_Provider.customAttributes);
+            var label = new Label(ObjectNames.NicifyVariableName(provider.name));
+
             if (stringProvider != null)
             {
-                m_StringFieldProvider = new VFXStringFieldProvider(m_Label, stringProvider);
+                m_StringFieldProvider = new VFXStringFieldProvider(label, stringProvider);
                 return m_StringFieldProvider;
             }
             else if (pushButtonProvider.action != null)
             {
-                m_StringFieldPushButton = new VFXStringFieldPushButton(m_Label, pushButtonProvider.action, pushButtonProvider.buttonName);
+                m_StringFieldPushButton = new VFXStringFieldPushButton(label, pushButtonProvider.action, pushButtonProvider.buttonName);
                 if (isDelayed)
                 {
                     VisualElement input = m_StringFieldPushButton.textfield.Q("unity-text-input");
@@ -148,7 +150,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                m_StringField = new VFXStringField(m_Label);
+                m_StringField = new VFXStringField(label);
                 if (isDelayed)
                 {
                     VisualElement input = m_StringField.textfield.Q("unity-text-input");

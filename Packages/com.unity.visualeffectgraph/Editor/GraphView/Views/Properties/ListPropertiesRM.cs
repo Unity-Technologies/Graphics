@@ -1,17 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
+
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
-using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using VFXVector2Field = UnityEditor.VFX.UI.VFXVector2Field;
-using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -20,6 +11,9 @@ namespace UnityEditor.VFX.UI
         public ListPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             AddToClassList("ListPropertyRM");
+            var label = new Label(ObjectNames.NicifyVariableName(controller.name));
+            label.AddToClassList("label");
+            Add(label);
             m_List = new ReorderableList(this);
             Add(m_List);
         }

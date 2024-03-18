@@ -70,11 +70,6 @@ namespace UnityEditor.VFX.UIElements
 
             style.flexDirection = FlexDirection.Row;
             Add(m_DropDownButton);
-
-            var icon = new VisualElement() { name = "icon" };
-            icon.AddToClassList("unity-enum-field__arrow");
-
-            m_DropDownButton.Add(icon);
         }
 
         public VFXEnumField(Label existingLabel, System.Type enumType) : base(existingLabel)

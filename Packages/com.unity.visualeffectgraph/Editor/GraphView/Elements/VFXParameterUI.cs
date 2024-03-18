@@ -110,9 +110,6 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
             m_ExposedIcon = this.Q<Image>("exposed-icon");
-            m_SuperCollapsedButton = this.Q("super-collapse-button");
-            m_SuperCollapsedButton.AddManipulator(new Clickable(OnToggleSuperCollapse));
-
             this.AddManipulator(new SuperCollapser());
 
             m_Pill = this.Q("pill");
@@ -120,19 +117,12 @@ namespace UnityEditor.VFX.UI
 
         VisualElement m_Pill;
 
-        void OnToggleSuperCollapse()
-        {
-            controller.superCollapsed = !controller.superCollapsed;
-        }
-
-        VisualElement m_SuperCollapsedButton;
-
         public new VFXParameterNodeController controller
         {
             get { return base.controller as VFXParameterNodeController; }
         }
 
-        public override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
+        protected override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
             if (controller.direction == Direction.Input)
                 return VFXInputParameterDataAnchor.Create(controller, node);

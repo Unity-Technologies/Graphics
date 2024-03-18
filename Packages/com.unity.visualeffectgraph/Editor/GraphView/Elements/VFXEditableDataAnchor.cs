@@ -30,6 +30,8 @@ namespace UnityEditor.VFX.UI
         protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
             Profiler.BeginSample("VFXEditableDataAnchor.VFXEditableDataAnchor");
+
+            this.Q<Label>("type").RemoveFromHierarchy();
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
             Profiler.EndSample();
@@ -108,18 +110,14 @@ namespace UnityEditor.VFX.UI
         {
             Profiler.BeginSample("VFXNodeUI.BuildProperty");
 
-            float effectiveWidth = -1;
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
-                effectiveWidth = m_PropertyRM.effectiveLabelWidth;
             }
             m_PropertyRM = PropertyRM.Create(controller, VFXNodeUI.DefaultLabelWidth);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
-                if (effectiveWidth >= 0)
-                    m_PropertyRM.SetLabelWidth(effectiveWidth);
             }
             Profiler.EndSample();
         }

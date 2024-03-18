@@ -1,23 +1,19 @@
-using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-
-using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UI
 {
     class VFXFlipBookField : VFXControl<FlipBook>
     {
-        VFXLabeledField<IntegerField, int> m_X;
-        VFXLabeledField<IntegerField, int> m_Y;
+        IntegerField m_X;
+        IntegerField m_Y;
 
         void CreateTextField()
         {
-            m_X = new VFXLabeledField<IntegerField, int>("X");
-            m_Y = new VFXLabeledField<IntegerField, int>("Y");
+            m_X = new IntegerField("X");
+            m_Y = new IntegerField("Y");
 
-            m_X.control.AddToClassList("fieldContainer");
-            m_Y.control.AddToClassList("fieldContainer");
+            m_X.AddToClassList("fieldContainer");
+            m_Y.AddToClassList("fieldContainer");
             m_X.AddToClassList("fieldContainer");
             m_Y.AddToClassList("fieldContainer");
 
@@ -41,19 +37,19 @@ namespace UnityEditor.VFX.UI
 
         public override bool indeterminate
         {
-            get
-            {
-                return m_X.indeterminate;
-            }
+            get => m_X.showMixedValue;
             set
             {
-                m_X.indeterminate = value;
-                m_Y.indeterminate = value;
+                m_X.showMixedValue = value;
+                m_Y.showMixedValue = value;
             }
         }
 
-        public VFXFlipBookField()
+        public VFXFlipBookField(string label)
         {
+            var labelElement = new Label(label);
+            labelElement.AddToClassList("label");
+            Add(labelElement);
             CreateTextField();
 
             style.flexDirection = FlexDirection.Row;
@@ -63,10 +59,10 @@ namespace UnityEditor.VFX.UI
 
         protected override void ValueToGUI(bool force)
         {
-            if (!m_X.control.HasFocus() || force)
+            if (!m_X.HasFocus() || force)
                 m_X.value = value.x;
 
-            if (!m_Y.control.HasFocus() || force)
+            if (!m_Y.HasFocus() || force)
                 m_Y.value = value.y;
         }
     }

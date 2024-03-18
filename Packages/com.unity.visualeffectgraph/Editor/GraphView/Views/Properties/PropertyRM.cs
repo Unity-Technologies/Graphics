@@ -105,13 +105,9 @@ namespace UnityEditor.VFX.UI
         public abstract object GetValue();
         public virtual void SetMultiplier(object obj) { }
 
-        public VisualElement m_Icon;
         Clickable m_IconClickable;
 
         static Texture2D[] m_IconStates;
-
-        protected Label m_Label;
-
 
         public bool m_PropertyEnabled;
 
@@ -137,6 +133,8 @@ namespace UnityEditor.VFX.UI
                 UpdateIndeterminate();
             }
         }
+
+        public float labelWidth { get; private set; }
         public virtual bool isDelayed { get; set; }
 
         protected bool hasChangeDelayed { get; set; }
@@ -147,40 +145,48 @@ namespace UnityEditor.VFX.UI
             return GetType() == GetPropertyType(provider);
         }
 
-        public const float depthOffset = 8;
+        public const float depthOffset = 10;
 
-        public virtual float GetPreferredLabelWidth()
+        public float GetPreferredLabelWidth()
         {
-            if (m_Label.panel == null) return 40;
-
-            VisualElement element = this;
-            while (element != null && string.IsNullOrEmpty(element.resolvedStyle.unityFontDefinition.ToString()))
+            if (hasLabel && this.Q<Label>() is { } label && label.resolvedStyle.unityFontDefinition.fontAsset != null)
             {
-                element = element.parent;
+                return label.MeasureTextSize(label.text, -1, MeasureMode.Undefined, 11, MeasureMode.Exactly).x
+                       + m_Provider.depth * depthOffset
+                       + label.resolvedStyle.paddingLeft
+                       + label.resolvedStyle.marginLeft
+                       + (provider.spaceableAndMasterOfSpace ? 16f : 0f);
             }
 
-            if (m_Label.style.unityFont == null && element != null)
-            {
-                m_Label.style.unityFont = element.resolvedStyle.unityFontDefinition.font;
-            }
-
-            return m_Label.style.unityFont != null
-                ? m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.resolvedStyle.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset
-                : 40 + m_Provider.depth * depthOffset;
+            return 0;
         }
 
+        private bool hasLabel => !string.IsNullOrEmpty(m_Provider.name);
         public abstract float GetPreferredControlWidth();
 
-        public void SetLabelWidth(float label)
+        public void SetLabelWidth(float width)
         {
-            m_labelWidth = label;
-            m_Label.style.width = effectiveLabelWidth - m_Provider.depth * depthOffset;
+            if (hasLabel && this.Q<Label>() is { } label)
+            {
+                label.style.width = width - m_Provider.depth * depthOffset + 4 - (provider.spaceableAndMasterOfSpace ? 16 : 0) ;
+            }
         }
 
         protected abstract void UpdateEnabled();
 
         protected abstract void UpdateIndeterminate();
 
+        protected void ValueDragFinished()
+        {
+            m_Provider.EndLiveModification();
+            hasChangeDelayed = false;
+            NotifyValueChanged();
+        }
+
+        protected void ValueDragStarted()
+        {
+            m_Provider.StartLiveModification();
+        }
 
         public void ForceUpdate()
         {
@@ -239,24 +245,15 @@ namespace UnityEditor.VFX.UI
             string text = ObjectNames.NicifyVariableName(m_Provider.name);
             string tooltip = null;
             m_Provider.attributes.ApplyToGUI(ref text, ref tooltip);
-            m_Label.text = text;
-
-            m_Label.tooltip = tooltip;
             Profiler.EndSample();
             Profiler.EndSample();
         }
 
-        bool m_IconClickableAdded;
-
         void UpdateExpandable()
         {
-            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || !showsEverything))
+            if (IsExpandable())
             {
-                if (!m_IconClickableAdded)
-                {
-                    m_Icon.AddManipulator(m_IconClickable);
-                    m_IconClickableAdded = false;
-                }
+                AddToClassList("expandable");
                 if (m_Provider.expanded)
                 {
                     AddToClassList("icon-expanded");
@@ -265,17 +262,10 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveFromClassList("icon-expanded");
                 }
-                AddToClassList("icon-expandable");
             }
             else
             {
-                if (m_IconClickableAdded)
-                {
-                    m_Icon.RemoveManipulator(m_IconClickable);
-                    m_IconClickableAdded = false;
-                }
-
-                m_Icon.style.backgroundImage = null;
+                RemoveFromClassList("expandable");
             }
         }
 
@@ -285,10 +275,7 @@ namespace UnityEditor.VFX.UI
             this.AddStyleSheetPathWithSkinVariant("PropertyRM");
 
             m_Provider = provider;
-            m_labelWidth = labelWidth;
-
-            m_IconClickable = new Clickable(OnExpand);
-
+            this.labelWidth = labelWidth;
             isDelayed = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Delayed);
 
             if (provider.attributes.Is(VFXPropertyAttributes.Type.Angle))
@@ -297,35 +284,36 @@ namespace UnityEditor.VFX.UI
             string labelText = provider.name;
             string labelTooltip = null;
             provider.attributes.ApplyToGUI(ref labelText, ref labelTooltip);
-            m_Label = new Label() { name = "label", text = labelText };
-            m_Label.tooltip = labelTooltip;
 
             if (provider.depth != 0)
             {
-                for (int i = 0; i < provider.depth; ++i)
+                AddToClassList("hasDepth");
+                style.backgroundPositionX = new StyleBackgroundPosition(new BackgroundPosition(BackgroundPositionKeyword.Left, 9 + (provider.depth - 1) * 14 ));
+                style.paddingLeft = 0;
+                style.marginLeft = 5;
+                for (int i = 1; i < provider.depth; ++i)
                 {
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = depthOffset + (i == 0 ? -2 : 0);
-                    line.style.marginRight = ((i == provider.depth - 1) ? 2 : 0);
+                    line.style.marginLeft =  13;
 
                     Add(line);
                 }
             }
-            m_Icon = new VisualElement() { name = "icon" };
-            Add(m_Icon);
 
-            m_Label.style.width = effectiveLabelWidth - provider.depth * depthOffset;
-            Add(m_Label);
+            if (IsExpandable())
+            {
+                m_IconClickable = new Clickable(OnExpand);
+                this.AddManipulator(m_IconClickable);
+            }
 
             AddToClassList("propertyrm");
-
-
             RegisterCallback<MouseDownEvent>(OnCatchMouse);
 
-            UpdateExpandable();
         }
+
+        bool IsExpandable() => m_Provider.expandable && (m_Provider.expandableIfShowsEverything || !showsEverything);
 
         void OnCatchMouse(MouseDownEvent e)
         {
@@ -335,16 +323,6 @@ namespace UnityEditor.VFX.UI
                 node.OnSelectionMouseDown(e);
             }
             e.StopPropagation();
-        }
-
-        protected float m_labelWidth = 100;
-
-        public virtual float effectiveLabelWidth
-        {
-            get
-            {
-                return m_labelWidth;
-            }
         }
 
         static readonly Dictionary<Type, Type> m_TypeDictionary = new Dictionary<Type, Type>
@@ -445,8 +423,26 @@ namespace UnityEditor.VFX.UI
             hasChangeDelayed = false;
         }
 
-        void OnExpand()
+        void OnExpand(EventBase evt)
         {
+            // Allow expand/collapse on when clicking over the arrow icon (which can be embedded in the label's background)
+            if (evt is PointerUpEvent pointerUpEvent)
+            {
+                var label = this.Q<Label>();
+                if (label != null)
+                {
+                    if (provider.depth > 0)
+                    {
+                        if (pointerUpEvent.localPosition.x > label.layout.x + 20)
+                            return;
+                    }
+                    else if (pointerUpEvent.localPosition.x > 20)
+                    {
+                        return;
+                    }
+                }
+            }
+
             if (m_Provider.expanded)
             {
                 m_Provider.RetractPath();
@@ -528,11 +524,6 @@ namespace UnityEditor.VFX.UI
             m_Field.SetEnabled(propertyEnabled);
         }
 
-        protected override void UpdateIndeterminate()
-        {
-            m_Field.visible = !indeterminate;
-        }
-
         protected ValueControl<T> m_Field;
         public override void UpdateGUI(bool force)
         {
@@ -558,30 +549,17 @@ namespace UnityEditor.VFX.UI
     {
         public abstract INotifyValueChanged<U> CreateField();
 
-        protected VisualElement m_FieldParent;
-        protected VisualElement m_TooltipHolder;
-
         public SimpleUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Field = CreateField();
             isDelayed = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Delayed);
 
-            m_FieldParent = new VisualElement { name = "fieldContainerParent" };
-
             VisualElement fieldElement = m_Field as VisualElement;
             fieldElement.AddToClassList("fieldContainer");
             fieldElement.RegisterCallback<ChangeEvent<U>>(OnValueChanged);
-            m_FieldParent.Add(fieldElement);
-            m_FieldParent.style.flexGrow = 1;
 
-            m_TooltipHolder = new VisualElement();
-            m_TooltipHolder.style.position = UnityEngine.UIElements.Position.Absolute;
-            m_TooltipHolder.style.top = 0;
-            m_TooltipHolder.style.left = 0;
-            m_TooltipHolder.style.right = 0;
-            m_TooltipHolder.style.bottom = 0;
-
-            Add(m_FieldParent);
+            Add(fieldElement);
+            SetLabelWidth(labelWidth);
         }
 
         public virtual T Convert(object value)
@@ -615,23 +593,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateEnabled()
         {
-            (m_Field as VisualElement).SetEnabled(propertyEnabled);
-
-            if (propertyEnabled)
-            {
-                if (m_TooltipHolder.parent != null)
-                    m_TooltipHolder.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (m_TooltipHolder.parent == null)
-                    m_FieldParent.Add(m_TooltipHolder);
-            }
-        }
-
-        protected override void UpdateIndeterminate()
-        {
-            (m_Field as VisualElement).visible = !indeterminate;
+            ((VisualElement)m_Field).SetEnabled(propertyEnabled);
         }
 
         INotifyValueChanged<U> m_Field;
@@ -662,23 +624,14 @@ namespace UnityEditor.VFX.UI
         public override bool showsEverything { get { return true; } }
     }
 
-    abstract class SimpleVFXUIPropertyRM<T, U> : SimpleUIPropertyRM<U, U> where T : VFXControl<U>, new()
+    abstract class SimpleVFXUIPropertyRM<T, U> : SimpleUIPropertyRM<U, U> where T : VFXControl<U>
     {
         public SimpleVFXUIPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
 
-        public override INotifyValueChanged<U> CreateField()
-        {
-            var field = new VFXLabeledField<T, U>(m_Label);
+        protected IVFXControl fieldControl => (IVFXControl)field;
 
-            return field;
-        }
-
-        protected T fieldControl
-        {
-            get { return (base.field as VFXLabeledField<T, U>).control; }
-        }
         protected override void UpdateIndeterminate()
         {
             fieldControl.indeterminate = indeterminate;
@@ -687,17 +640,6 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             fieldControl.SetEnabled(propertyEnabled);
-
-            if (propertyEnabled)
-            {
-                if (m_TooltipHolder.parent != null)
-                    m_TooltipHolder.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (m_TooltipHolder.parent == null)
-                    m_FieldParent.Add(m_TooltipHolder);
-            }
         }
 
         public override void UpdateGUI(bool force)
@@ -707,7 +649,6 @@ namespace UnityEditor.VFX.UI
                 fieldControl.ForceUpdate();
         }
     }
-
 
     class EmptyPropertyRM : PropertyRM
     {
@@ -735,6 +676,9 @@ namespace UnityEditor.VFX.UI
 
         public EmptyPropertyRM(IPropertyRMProvider provider, float labelWidth) : base(provider, labelWidth)
         {
+            var label = new Label(ObjectNames.NicifyVariableName(provider.name));
+            label.AddToClassList("label");
+            Add(label);
         }
 
         public override void UpdateGUI(bool force)

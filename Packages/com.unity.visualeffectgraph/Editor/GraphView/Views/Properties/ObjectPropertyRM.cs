@@ -17,19 +17,19 @@ namespace UnityEditor.VFX.UI
 
             if (m_Provider.portType.IsSubclassOf(typeof(Texture)))
             {
-                m_ObjectField = new ObjectField { objectType = typeof(Texture), allowSceneObjects = false };
+                m_ObjectField = new ObjectField(ObjectNames.NicifyVariableName(controller.name)) { objectType = typeof(Texture), allowSceneObjects = false };
                 m_ObjectField.onObjectSelectorShow += OnShowObjectSelector;
             }
             else
             {
-                m_ObjectField = new ObjectField { objectType = m_Provider.portType, allowSceneObjects = false };
+                m_ObjectField = new ObjectField(ObjectNames.NicifyVariableName(controller.name)) { objectType = m_Provider.portType, allowSceneObjects = false };
             }
 
             m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
             Add(m_ObjectField);
         }
 
-        public override float GetPreferredControlWidth() => 120;
+        public override float GetPreferredControlWidth() => 140;
 
         public override void UpdateGUI(bool force)
         {

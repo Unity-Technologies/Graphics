@@ -139,8 +139,16 @@ VFXContextUI #HeaderContainer
 
 VFXContextUI #footer
 {
+    align-self: center;
+    height: 16px;
+    font-size: 11px;
     flex-direction:row;
     margin-bottom: 1px;
+    padding-left: 18px;
+    -unity-font-style: normal;
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Execution.png");
+    background-size: 16px 16px;
+    background-position-x: left;
 }
 
 VFXContextUI #node-border > #inside > #title > #title-label
@@ -150,12 +158,6 @@ VFXContextUI #node-border > #inside > #title > #title-label
     color:#c4c4c4;
     font-size: 18px;
     height: 24px;
-}
-VFXContextUI #footer #title-label
-{
-    font-size: 11px;
-    -unity-font-style: normal;
-    height: 16px;
 }
 
 VFXContextUI #title #icon
@@ -195,11 +197,6 @@ VFXContextUI #header-space.spaceLocal
 VFXContextUI #header-space.spaceWorld
 {
     --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/title-world.png");
-}
-
-VFXContextUI #footer #icon
-{
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Execution.png");
 }
 
 VFXContextUI #block-container {
@@ -350,3 +347,15 @@ VFXContextUI .subtitle.empty
     display:None;
 }
 
+#settings {
+    border-bottom-color: #242424;
+    border-bottom-width: 1px;
+}
+
+VFXContextUI.nosettings #top {
+    border-top-width: 0;
+}
+
+#contents #settings {
+    border-top-width: 0;
+}

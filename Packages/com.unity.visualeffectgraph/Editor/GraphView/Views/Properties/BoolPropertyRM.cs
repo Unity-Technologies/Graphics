@@ -1,22 +1,16 @@
-using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-    class BoolPropertyRM : PropertyRM<bool>
+    sealed class BoolPropertyRM : PropertyRM<bool>
     {
         public BoolPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_Toggle = new Toggle();
+            // Hack: no label for '_vfx_enable' activation port
+            m_Toggle = controller.name == "_vfx_enabled" ? new Toggle() : new Toggle(ObjectNames.NicifyVariableName(controller.name));
             m_Toggle.RegisterCallback<ChangeEvent<bool>>(OnValueChanged);
             Add(m_Toggle);
+            SetLabelWidth(labelWidth);
         }
 
         void OnValueChanged(ChangeEvent<bool> e)
