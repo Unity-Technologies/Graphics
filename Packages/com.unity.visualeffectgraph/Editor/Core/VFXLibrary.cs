@@ -601,7 +601,8 @@ namespace UnityEditor.VFX
         [InitializeOnLoadMethod]
         private static void RegisterSRPChangeCallback()
         {
-            RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
+            if(!AssetDatabase.IsAssetImportWorkerProcess())
+                RenderPipelineManager.activeRenderPipelineTypeChanged += SRPChanged;
         }
 
         private static void SRPChanged()
