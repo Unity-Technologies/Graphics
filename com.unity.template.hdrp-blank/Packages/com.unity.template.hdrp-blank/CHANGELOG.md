@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [14.0.4] - 2024-03-19
+
+### Changed
+
+- Enabled Incremental GC
+
 ## [14.0.3] - 2023-05-15
 
 Regenerate packages
