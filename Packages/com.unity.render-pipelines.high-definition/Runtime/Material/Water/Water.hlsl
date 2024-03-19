@@ -798,7 +798,11 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     if (preLightData.aboveWater)
         lighting.specularTransmitted = absorptionTint * cameraColor * absorptionTint * bsdfData.caustics * (1 - saturate(bsdfData.foam));
     else
-        lighting.specularTransmitted = absorptionTint == 0.0 ? preLightData.scatteringColor * UNDER_WATER_SCATTERING_ATTENUATION : cameraColor;
+    {
+        lighting.specularTransmitted.x = absorptionTint.x == 0.0 ? preLightData.scatteringColor.x * UNDER_WATER_SCATTERING_ATTENUATION : cameraColor.x;
+        lighting.specularTransmitted.y = absorptionTint.y == 0.0 ? preLightData.scatteringColor.y * UNDER_WATER_SCATTERING_ATTENUATION : cameraColor.y;
+        lighting.specularTransmitted.z = absorptionTint.z == 0.0 ? preLightData.scatteringColor.z * UNDER_WATER_SCATTERING_ATTENUATION : cameraColor.z;
+    }
 
     // Apply the additional attenuation, the fresnel and the exposure
     lighting.specularTransmitted *= (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();
