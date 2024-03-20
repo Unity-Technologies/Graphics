@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [17.0.3] - 2024-03-20
+
+### Changed
+
+- Fixed an issue where switching editor color would not update welcome page text color
+
 ## [17.0.2] - 2024-03-05
 
 ### Changed
