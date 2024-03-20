@@ -681,7 +681,10 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
     // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
     // There is a special case when baseColor < meanColor to avoid getting negative values.
-    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
+    float3 factor = (baseColor0 - meanColor);
+    factor.x = baseColor.x > meanColor.x ? factor.x : (baseColor0.x * baseColor.x / max(meanColor.x, 0.001) - baseColor.x); // max(to avoid divide by 0)
+    factor.y = baseColor.y > meanColor.y ? factor.y : (baseColor0.y * baseColor.y / max(meanColor.y, 0.001) - baseColor.y);
+    factor.z = baseColor.z > meanColor.z ? factor.z : (baseColor0.z * baseColor.z / max(meanColor.z, 0.001) - baseColor.z);
     return influenceFactor * factor + baseColor;
 }
 #ifndef SHADER_STAGE_RAY_TRACING
