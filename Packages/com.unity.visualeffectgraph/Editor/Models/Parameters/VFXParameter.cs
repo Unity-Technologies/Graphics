@@ -214,6 +214,7 @@ namespace UnityEditor.VFX
         {
             if (!isOutput)
             {
+                MarkOutputExpressionsAsOutOfDate();
                 m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
                 m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
             }
@@ -421,6 +422,7 @@ namespace UnityEditor.VFX
 
                 if (valueExprChanged)
                 {
+                    MarkOutputExpressionsAsOutOfDate();
                     m_ValueExpr = valueExpr;
                     outputSlots[0].InvalidateExpressionTree();
                     Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
@@ -737,7 +739,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void UpdateOutputExpressions()
+        protected override void UpdateOutputExpressions()
         {
             if (!isOutput)
             {

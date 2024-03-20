@@ -29,6 +29,8 @@ namespace UnityEditor.VFX
         InitAndUpdateAndOutput = Init | Update | Output,
         UpdateAndOutput = Update | Output,
         All = Init | Update | Output | Spawner | Subgraph,
+
+        CanHaveBlocks = ~(OutputEvent | Event | SpawnerGPU),
     };
 
     [Flags]
@@ -270,6 +272,11 @@ namespace UnityEditor.VFX
         {
             var testedType = contextType == VFXContextType.Output ? inputType : outputType;
             return ((block.compatibleContexts & contextType) != 0) && ((block.compatibleData & testedType) != 0);
+        }
+
+        public bool CanHaveBlocks()
+        {
+            return (contextType & VFXContextType.CanHaveBlocks) != 0;
         }
 
         protected override void OnAdded()

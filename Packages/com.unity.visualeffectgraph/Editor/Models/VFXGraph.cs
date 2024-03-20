@@ -1274,7 +1274,7 @@ namespace UnityEditor.VFX
                 {
                     operatorChild.RecreateCopy();
                     if (operatorChild.ResyncSlots(true))
-                        operatorChild.UpdateOutputExpressions();
+                        operatorChild.UpdateOutputExpressionsIfNeeded();
                 }
             }
         }
@@ -1309,7 +1309,7 @@ namespace UnityEditor.VFX
                 else if (child is VFXSubgraphOperator operatorChild)
                 {
                     operatorChild.ResyncSlots(false);
-                    operatorChild.UpdateOutputExpressions();
+                    operatorChild.UpdateOutputExpressionsIfNeeded();
                 }
             }
             foreach (var child in children)

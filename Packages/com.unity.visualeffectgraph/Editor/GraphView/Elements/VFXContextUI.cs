@@ -40,15 +40,7 @@ namespace UnityEditor.VFX.UI
         }
         protected override void OnNewController()
         {
-            foreach (var descriptor in VFXLibrary.GetBlocks())
-            {
-                var model = descriptor.CreateInstance();
-                if (controller.model.AcceptChild(model))
-                {
-                    m_CanHaveBlocks = true;
-                    break;
-                }
-            }
+            m_CanHaveBlocks = controller.model.CanHaveBlocks();
         }
 
         public bool canHaveBlocks { get => m_CanHaveBlocks; }

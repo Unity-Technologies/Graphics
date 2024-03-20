@@ -124,6 +124,8 @@ namespace UnityEditor.VFX
                     m_Flag |= attributeType;
                 }
             }
+            else
+                m_AllAttributes = Array.Empty<Attribute>(); // Just to discriminate between uninitialized and no properties
         }
 
         public bool IsEqual(VFXPropertyAttributes other)
@@ -311,6 +313,8 @@ namespace UnityEditor.VFX
         {
             return (m_Flag & type) == type;
         }
+
+        public bool IsInitialized => m_AllAttributes != null;
 
         public IReadOnlyCollection<Attribute> attributes => m_AllAttributes != null ? m_AllAttributes : new Attribute[0];
 
