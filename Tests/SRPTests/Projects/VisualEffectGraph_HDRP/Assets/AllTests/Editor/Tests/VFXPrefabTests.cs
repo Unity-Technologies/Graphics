@@ -441,7 +441,7 @@ namespace UnityEditor.VFX.Test
         [SerializeField] private GameObject m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable;
         private static readonly string m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = "mlkj";
 
-        [UnityTest, Timeout(500 * 1000) /* Increase timeout due to UUM-42516 */]
+        [UnityTest]
         public IEnumerator CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable_Root()
         {
             //Cover case 1230230 : VFX parameters are not set when the gameobject is immediately deactivated and is not selected in the Hierarchy
@@ -464,11 +464,7 @@ namespace UnityEditor.VFX.Test
 
             m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = prefabInstanceObject;
 
-            var stopWatch = new System.Diagnostics.Stopwatch();
-            stopWatch.Start();
             yield return new EnterPlayMode(false);
-            stopWatch.Stop();
-            Debug.LogFormat("EnterPlayMode duration: {0} (see UUM-42516)", stopWatch.Elapsed);
 
             var exposedExpectedValue = 43000u;
             var exposedName = m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable;
@@ -492,11 +488,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(exposedExpectedValue, vfx.GetUInt(exposedName));
 
-            stopWatch.Start();
             yield return new ExitPlayMode();
-            stopWatch.Stop();
-            Debug.LogFormat("ExitPlayMode duration: {0} (see UUM-42516)", stopWatch.Elapsed);
-
             m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = null;
         }
 
