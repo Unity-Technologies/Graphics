@@ -1279,7 +1279,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Materials.lensFlareDataDriven;
                 passData.width = (float)m_Descriptor.width;
                 passData.height = (float)m_Descriptor.height;
-                passData.viewport = cameraData.pixelRect;
+                passData.viewport.x = 0.0f;
+                passData.viewport.y = 0.0f;
+                passData.viewport.width = (float)m_Descriptor.width;
+                passData.viewport.height = (float)m_Descriptor.height;
                 if (m_PaniniProjection.IsActive())
                 {
                     passData.usePanini = true;
