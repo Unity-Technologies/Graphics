@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
@@ -496,7 +497,18 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="width">Initial reference rendering width.</param>
         /// <param name="height">Initial reference rendering height.</param>
+        public static void Initialize(int width, int height)
+        {
+            s_DefaultInstance.Initialize(width, height);
+        }
+
+        /// <summary>
+        /// Initialize the default RTHandle system.
+        /// </summary>
+        /// <param name="width">Initial reference rendering width.</param>
+        /// <param name="height">Initial reference rendering height.</param>
         /// <param name="useLegacyDynamicResControl">Use legacy hardware DynamicResolution control in the default RTHandle system.</param>
+        [Obsolete("useLegacyDynamicResControl is deprecated. Please use SetHardwareDynamicResolutionState() instead.")]
         public static void Initialize(int width, int height, bool useLegacyDynamicResControl = false)
         {
             s_DefaultInstance.Initialize(width, height, useLegacyDynamicResControl);
