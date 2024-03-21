@@ -95,11 +95,6 @@ VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
     display: none;
 }
 
-VFXContextUI .VFXNodeUI.node #node-border #title.activationslot > #title-label
-{
-    margin-left: 44px;
-}
-
 #block-container .activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
 {
     padding-top: 0px;

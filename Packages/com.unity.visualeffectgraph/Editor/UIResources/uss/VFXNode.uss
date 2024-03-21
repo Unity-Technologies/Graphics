@@ -18,6 +18,7 @@
 
 .VFXNodeUI.node #node-border > #title > #title-label
 {
+    margin-left: 54px;
     flex:1 1 auto;
     overflow:hidden;
 }
