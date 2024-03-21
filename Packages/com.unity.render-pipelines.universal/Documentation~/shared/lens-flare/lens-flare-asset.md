@@ -4,7 +4,7 @@ Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/Scr
 
 For examples of how to use Lens Flares, refer to the [Lens Flare samples in URP Package Samples](../../package-sample-urp-package-samples.md#lens-flares).
 
-To create a Lens Flare Data asset, select **Assets > Create > Lens Flare (SRP)**. To use this asset, assign it to the **Lens Flare Data** property of a [Lens Flare (SRP) component](lens-flare-component.md).
+To create a Lens Flare Data asset, select **Assets** &gt; **Create** &gt; **Lens Flare (SRP)**. To use this asset, assign it to the **Lens Flare Data** property of a [Lens Flare (SRP) component](lens-flare-component.md).
 
 ## Properties
 
@@ -38,8 +38,6 @@ The Lens Flare Element asset has the following properties:
 
 #### Image
 
-![](../../images/shared/lens-flare/LensFlareShapeImage.png)
-
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
 | Flare Texture         | The Texture this lens flare element uses.                    |
@@ -48,8 +46,6 @@ The Lens Flare Element asset has the following properties:
 <a name="Circle"></a>
 
 #### Circle
-
-![](../../images/shared/lens-flare/LensFlareShapeCircle.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -60,8 +56,6 @@ The Lens Flare Element asset has the following properties:
 <a name="Polygon"></a>
 
 #### Polygon
-
-![](../../images/shared/lens-flare/LensFlareShapePolygon.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -74,8 +68,6 @@ The Lens Flare Element asset has the following properties:
 <a name="Ring"></a>
 
 #### Ring
-
-![](images/LensFlareShapeRing.png)
 
 | **Property**    | **Description**                                                |
 | --------------- | -------------------------------------------------------------- |
@@ -90,8 +82,6 @@ The Lens Flare Element asset has the following properties:
 <a name="LensFlareDataSRP"></a>
 
 #### Lens Flare Data Driven SRP
-
-![](images/LensFlareShapeLensFlareDataSRP.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -108,8 +98,6 @@ That will trigger a warning and execution 16 recursions:
 
 ## Color
 
-![](../../images/shared/lens-flare/LensFlareColor.png)
-
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | Color Type              | Select the color type of Lens Flare Element this asset creates: <br />&#8226; [Constant](#ColorConstant) <br />&#8226; [Radial](#ColorRadial) <br />&#8226; [Angular](#ColorAngular) |
@@ -122,8 +110,6 @@ That will trigger a warning and execution 16 recursions:
 
 ### Constant Color
 
-![](../../images/shared/lens-flare/LensFlareColorConstant.png)
-
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | Tint                    | Changes the tint of the lens flare. If this asset is attached to the light, this property is based on the light tint. |
@@ -132,8 +118,6 @@ That will trigger a warning and execution 16 recursions:
 
 ### Constant Color
 
-![](../../images/shared/lens-flare/LensFlareColorRadialGradient.png)
-
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | Tint Radial             | Specifies the radial gradient tint of the element. If the element type is set to Image, the Flare Texture is multiplied by this color. |
@@ -141,8 +125,6 @@ That will trigger a warning and execution 16 recursions:
 <a name="ColorAngular"></a>
 
 ### Constant Color
-
-![](../../images/shared/lens-flare/LensFlareColorAngularGradient.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -156,8 +138,6 @@ That will trigger a warning and execution 16 recursions:
 
 ### Cutoff
 
-![](../../images/shared/lens-flare/LensFlareCutoff.png)
-
 | **Property** | **Description** |
 | --- | --- |
 | Cutoff Speed | Sets the speed at which the radius occludes the element.<br/>A value of zero (with a large radius) does not occlude anything. The higher this value, the faster the element is occluded on the side of the screen.<br/>The effect of this value is more noticeable with multiple elements. |
@@ -168,8 +148,6 @@ That will trigger a warning and execution 16 recursions:
 <a name="Transform"></a>
 
 ### Transform
-
-![](../../images/shared/lens-flare/LensFlareTransform.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -184,8 +162,6 @@ That will trigger a warning and execution 16 recursions:
 
 ### Axis Transform
 
-![](../../images/shared/lens-flare/LensFlareAxisTransform.png)
-
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
 | Starting Position | Defines the starting position of the lens flare relative to its source. This value operates in screen space. |
@@ -195,8 +171,6 @@ That will trigger a warning and execution 16 recursions:
 <a name="Distortion"></a>
 
 ### Distortion
-
-![](../../images/shared/lens-flare/LensFlareRadialDistortion.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -218,8 +192,6 @@ That will trigger a warning and execution 16 recursions:
 | Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
 
 #### Uniform
-![](../../images/shared/lens-flare/LensFlareMultileElementUniform.png)
-
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | Colors | The range of colors that this asset applies to the lens flares. |
@@ -228,8 +200,6 @@ That will trigger a warning and execution 16 recursions:
 <a name="Curve"></a>
 
 #### Curve
-
-![](../../images/shared/lens-flare/LensFlareMultileElementCurve.png)
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
@@ -241,8 +211,6 @@ That will trigger a warning and execution 16 recursions:
 <a name="Random"></a>
 
 #### Random
-
-![](../../images/shared/lens-flare/LensFlareMultileElementRandom.png)
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |

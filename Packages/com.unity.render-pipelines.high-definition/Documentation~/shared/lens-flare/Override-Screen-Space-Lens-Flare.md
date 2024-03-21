@@ -1,4 +1,4 @@
-# Screen Space Lens Flare
+# Add screen space lens flares
 
 ![](../../Images/shared/lens-flare/screenspacelensflares.png)
 
@@ -50,7 +50,7 @@ To enable screen space lens flares, follow these steps:
 
 If lens flares don't appear, check the settings of the **Bloom** override in the default volume in **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Default Volume Profile Asset** > **Bloom**.
 
-For information about screen space lens flare properties, refer to [Screen Space Lens Flare reference](shared/lens-flare/reference-screen-space-lens-flare.md).
+For information about screen space lens flare properties, refer to [Screen Space Lens Flare reference](reference-screen-space-lens-flare.md).
 
 [!include[](../../snippets/volume-override-api.md)]
 
