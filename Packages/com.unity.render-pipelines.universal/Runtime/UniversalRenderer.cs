@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.Universal
                 copyDepthEvent,
                 m_CopyDepthMaterial,
                 shouldClear: true,
-                copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents);
+                copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported() && SystemInfo.supportsMultisampleAutoResolve && copyDepthAfterTransparents);
 
             // Motion vectors depend on the (copy) depth texture. Depth is reprojected to calculate motion vectors.
             m_MotionVectorPass = new MotionVectorRenderPass(copyDepthEvent + 1, m_CameraMotionVecMaterial, m_ObjectMotionVecMaterial);
@@ -528,7 +528,7 @@ namespace UnityEngine.Rendering.Universal
             if (DebugHandler != null)
             {
                 DebugHandler.Setup(context, ref renderingData);
-                
+
                 if (DebugHandler.IsActiveForCamera(ref cameraData))
                 {
                     if (DebugHandler.WriteToDebugScreenTexture(ref cameraData))
@@ -1496,7 +1496,9 @@ namespace UnityEngine.Rendering.Universal
                         if (IsDepthPrimingEnabled(ref cameraData))
                             depthDescriptor.bindMS = true;
                         else
-                            depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() && m_CopyDepthMode == CopyDepthMode.AfterTransparents);
+                            depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() &&
+                                                       SystemInfo.supportsMultisampleAutoResolve &&
+                                                       m_CopyDepthMode == CopyDepthMode.AfterTransparents);
                     }
 
                     // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
