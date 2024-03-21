@@ -194,12 +194,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        readonly string[] k_PassNameDebugIgnoreList = new string[] { k_BeginProfilingSamplerPassName, k_EndProfilingSamplerPassName };
+
         [Conditional("UNITY_EDITOR")]
         void AddPassDebugMetadata(string passName, string file, int line)
         {
             // Does nothing unless debug data capture is requested
             if (m_CaptureDebugDataForExecution == null)
                 return;
+
+            for (int i = 0; i < k_PassNameDebugIgnoreList.Length; ++i)
+                if (passName == k_PassNameDebugIgnoreList[i])
+                    return;
 
             if (!DebugData.s_PassScriptMetadata.TryAdd(passName, new DebugData.PassScriptInfo { filePath = file, line = line }))
             {
