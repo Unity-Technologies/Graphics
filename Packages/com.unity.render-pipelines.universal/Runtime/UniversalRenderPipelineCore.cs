@@ -973,6 +973,10 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int worldToCameraMatrix = Shader.PropertyToID("unity_WorldToCamera");
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
+        public static readonly int shadowBias = Shader.PropertyToID("_ShadowBias");
+        public static readonly int lightDirection = Shader.PropertyToID("_LightDirection");
+        public static readonly int lightPosition = Shader.PropertyToID("_LightPosition");
+
         public static readonly int cameraWorldClipPlanes = Shader.PropertyToID("unity_CameraWorldClipPlanes");
 
         public static readonly int billboardNormal = Shader.PropertyToID("unity_BillboardNormal");
