@@ -1,11 +1,7 @@
 VFXComponentBoard.graphElement
 {
     position:Absolute;
-
-    padding-left:0;
-    padding-right:0;
-    padding-top:0;
-    padding-bottom:0;
+    padding: 0;
 
 
 
@@ -25,39 +21,8 @@ VFXComponentBoard.graphElement > .mainContainer
     margin-bottom:6px;
 }
 
- *
-{
-    font-size: 11px;
-}
-
-#divider {
-    background-color: rgba(35,35,35,0.8);
-    border-color: rgba(35,35,35,0.8);
-}
-
-#divider.horizontal {
-    height: 0.05px;
-    border-bottom-width: 1px;
-}
-
-
-VFXComponentBoard .unity-scroll-view
-{
-    flex-direction:column;
-    align-items:stretch;
-    overflow:hidden;
-    flex: 1 1 auto;
-}
-
-VFXComponentBoard, #component-container
-{
-    flex-direction:column;
-    align-items:stretch;
-    overflow:hidden;
-    padding-top: 8px;
-}
-
 #header {
+    flex-shrink: 0;
     flex-direction: row;
     align-items: stretch;
     background-color: #393939;
@@ -65,59 +30,37 @@ VFXComponentBoard, #component-container
     border-color: #212121;
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
-    padding-left: 8px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding: 8px;
 }
-#header > #labelContainer {
-    flex:1 0 auto;
-    flex-direction: column;
-    align-items: stretch;
-}
+
 #header > #labelContainer > #titleLabel {
     font-size : 14px;
     color: #c1c1c1;
 }
-#header > #labelContainer > #subTitleLabel {
-    font-size: 11px;
-    color: #606060;
-    white-space: normal;
+
+#header > #labelContainer #subTitleLabel {
+    font-size: 12px;
+    color: #808080;
+    flex-grow: 1;
 }
 
-
-VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach, #select,#component-path
-{
-    height: 20px;
+#labelContainer {
+    flex-grow: 1;
 }
 
-
-#attach, #select
-{
-    width: 60px;
+#subtitle {
+    flex-grow: 1;
+    flex-direction: row;
 }
 
-#component-path
+#subTitle-icon
 {
-    flex:1;
-}
-
-#particle-count-container, #attach-container
-{
-    flex-direction:row;
-}
-
-#attach-container
-{
-    padding-top: 8px;
-    padding-bottom: 8px;
-}
-#particle-count-container > #particle-count
-{
-    flex:1 0 auto;
+    margin-right: 4px;
 }
 
 #toolbar
 {
+    margin-top: 8px;
     flex-direction:row;
 }
 
@@ -126,62 +69,50 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     flex:1 0 auto;
     height: 24px;
     align-items:center;
+    background-size: 16px 16px;
 }
 
-#toolbar .unity-button#stop #icon
+#toolbar .unity-button#stop
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Stop.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Stop.png");
 }
-#toolbar .unity-button#play #icon
+#toolbar .unity-button#play
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Pause.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Pause.png");
 }
-#toolbar .unity-button#play.paused #icon
+#toolbar .unity-button#play.paused
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Play.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Play.png");
 }
-#toolbar .unity-button#step #icon
+#toolbar .unity-button#step
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Step.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Step.png");
 }
-#toolbar .unity-button#restart #icon
+#toolbar .unity-button#restart
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Restart.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Restart.png");
 }
 
+#play-rate-menu .unity-base-popup-field__text {
+    -unity-text-align: middle-center;
+}
 
-
-#play-rate-container
-{
+#play-rate-container {
     flex-direction:row;
-    height: 28px;
     align-items: center;
     padding-bottom: 8px;
 }
 
-#events-label
-{
-    padding-top: 8px;
+.component-container {
+    margin: 0;
+    padding: 8px 8px;
+    border-bottom-width: 1px;
+    border-color: rgba(35,35,35,0.8);
 }
 
-#play-rate-container, #debug-tool-container, #events-tool-container, #bounds-tool-container
-{
-    margin: 8px;
+.empty {
+    border-width: 0;
 }
-
-#debug-container
-{
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-
-#debug-label
-{
-    padding-top: 10px;
-}
-
-
 
 #debug-box
 {
@@ -198,12 +129,6 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 {
     flex:1 1 auto;
     flex-direction:row;
-}
-
-#debug-settings-element-container
-{
-    flex-direction:column;
-    align-content:center;
 }
 
 #debug-box-axis-container
@@ -236,9 +161,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 
 #debug-system-stat-container
 {
-    flex-direction:row;
-    height:200px;
-    width: 100%;
+    margin-top: 4px;
 }
 
 #debug-system-stat-title, #debug-system-stat-title-name {
@@ -248,11 +171,6 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     -unity-text-align: middle-center;
 }
 
-#debug-system-stat-title-name {
-    width: 25%;
-}
-
-
 #debug-system-stat-entry-container
 {
     flex-direction:row;
@@ -261,16 +179,13 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     width:100%;
 }
 
-#debug-system-stat-entry, #debug-system-stat-entry-name {
-    flex-grow: 1;
-    width: 20%;
-    -unity-text-align: middle-center;
-    white-space: normal;
-}
-#debug-system-stat-entry-name {
+#debug-system-stat-entry-container > * {
     width: 25%;
 }
 
+#debug-system-stat-entry-container > Toggle {
+    width: auto;
+}
 
 #play-rate-container #play-rate-slider
 {
@@ -279,78 +194,45 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 
 #play-rate-container #play-rate-field
 {
-    width: 80px;
-}
-
-#play-rate-container #play-rate-menu
-{
-    padding-left:0;
-    border-left-width:0;
-    border-top-width:0;
     width: 40px;
-    height: 16px;
 }
 
-#system-bounds-container
-{
-    padding-bottom: 2px;
+.row {
+    padding: 3px 0;
 }
 
-#bounds-actions-container
-{
+#bounds-actions-container {
     flex-direction:row;
-    height: 30px;
     align-items: center;
-    padding-bottom: 2px;
-    padding-top: 2px;
 }
 
-#bounds-actions-container #bounds-label
-{
+#bounds-actions-container #bounds-label {
     flex-grow: 1;
 }
 
-#bounds-actions-container #record
-{
+#bounds-actions-container #record {
     height: 20px;
     width: 30px;
+    background-size: 16px 16px;
 }
 
-
-#bounds-actions-container .unity-button#record #record-icon
-{
-    /*--unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Record\ On.png"); */
-        height: 16px;
-        width: 16px;
+#bounds-tool-container.is-recording {
+    background-color: #833232;
 }
 
-VFXComponentBoardEventUI
-{
+#bounds-actions-container #record.show-recording {
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Record.png");
+}
+
+VFXComponentBoardEventUI {
     flex-direction:row;
     align-items:center;
 }
-VFXComponentBoardEventUI #event-name
-{
-    flex:1;
+
+VFXComponentBoardEventUI #event-name {
+    flex: 1;
 }
 
-#subtitle
-{
-    flex-direction:row;
-    flex:1 0 auto;
-    align-items:center;
-}
-
-#subTitleLabel
-{
-    height: 16px;
+#system-field {
     flex-grow: 1;
-    -unity-text-align: lower-left;
-    margin-right: 4px;
-    overflow: hidden;
-}
-
-#subTitle-icon
-{
-    margin-right: 4px;
 }
