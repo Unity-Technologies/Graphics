@@ -1475,8 +1475,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 bool hasPersistentHistory = camera.m_AdditionalCameraData != null && camera.m_AdditionalCameraData.hasPersistentHistory;
-                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
-                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory && !camera.isPersistent))
+                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null.
+                // We also cannot dispose of disabled Game View cameras. They can still be used for rendering from script via Camera.Render.
+                // If we dispose of a camera, we risk invalidating all cached data associated with it (e.g. the cached sky rendering context).
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && camera.camera.cameraType != CameraType.Game && !hasPersistentHistory && !camera.isPersistent))
                     s_Cleanup.Add(key);
             }
 
