@@ -46,20 +46,28 @@ namespace UnityEditor.VFX.Block
             HLSLFunctionParameter attributesInput = null;
             foreach (var input in selectedFunction.inputs)
             {
-                if (input.rawType == "Texture2D")
+                if (input.access is HLSLAccess.IN or HLSLAccess.INOUT &&
+                   input.rawType is "Texture2D" or "Texture3D" or "TextureCube" or "Texture2DArray")
                 {
-                    yield return new HLSLTexture2DShouldNotBeUsed(input.name);
+                    yield return new HLSLWrongHLSLTextureType(input.rawType, input.name);
+                }
+                if (input.rawType is "TextureCubeArray" or "VFXSamplerCubeArray")
+                {
+                    yield return new HLSLTextureCubeArrayNotSupported(input.name);
                 }
                 if (input.type == typeof(VFXAttribute))
                 {
                     attributesInput = input;
+                }
+                else if (input.access is HLSLAccess.OUT or HLSLAccess.INOUT)
+                {
+                    yield return new HLSLOutParameterNotAllowed(input.name);
                 }
             }
             if (attributesInput == null)
             {
                 yield return new HLSLMissingVFXAttribute();
             }
-
             if (attributesInput != null && selectedFunction.attributes.Count > 0)
             {
                 if (!attributesInput.access.HasFlag(HLSLAccess.OUT))
@@ -309,7 +317,7 @@ namespace UnityEditor.VFX.Block
                 return;
             }
 
-            var hasError = m_Function?.errorList != null;
+            var hasError = m_Function?.errorList.Count > 0;
             var strippedHLSL = HLSLParser.StripCommentedCode(GetHLSLCode());
             if (hasError || strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunction.GetSelection() || m_AvailableFunction.values == null)
             {
@@ -355,7 +363,7 @@ namespace UnityEditor.VFX.Block
                     m_Properties = new List<VFXPropertyWithValue>();
                     foreach (var input in m_Function.inputs)
                     {
-                        if (input.type != null && input.type != typeof(VFXAttribute))
+                        if (input.type != null && input.type != typeof(VFXAttribute) && input.access is HLSLAccess.IN)
                         {
                             m_Properties.Add(CreateProperty(input));
                         }
@@ -403,16 +411,12 @@ namespace UnityEditor.VFX.Block
             var functionParameters = new List<string>();
 
             // Create and initialize a VFXAttributes structure
-            if (m_Attributes.Count > 0)
+            builder.AppendLine("VFXAttributes att = (VFXAttributes)0;");
+            foreach (var attribute in m_Attributes)
             {
-                builder.AppendLine("VFXAttributes att = (VFXAttributes)0;");
-                foreach (var attribute in m_Attributes)
-                {
-                    builder.AppendLine($"att.{attribute.attrib.name} = {attribute.attrib.name};");
-                }
-                //builder.AppendLine();
-                functionParameters.Add("att");
+                builder.AppendLine($"att.{attribute.attrib.name} = {attribute.attrib.name};");
             }
+            functionParameters.Add("att");
 
             // Make the call to custom hlsl function
             var functionName = HasShaderFile()

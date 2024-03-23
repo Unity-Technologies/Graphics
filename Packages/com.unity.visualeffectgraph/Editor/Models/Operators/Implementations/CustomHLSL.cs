@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Text;
 using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
@@ -36,7 +36,20 @@ namespace UnityEditor.VFX.Operator
 
             if (selectedFunction.returnType == typeof(void))
             {
-                yield return new HLSLVoidReturnTypeUnsupported(selectedFunction.name);
+                var hasOutParameter = false;
+                foreach (var input in selectedFunction.inputs)
+                {
+                    if (input.access is HLSLAccess.OUT or HLSLAccess.INOUT)
+                    {
+                        hasOutParameter = true;
+                        break;
+                    }
+                }
+
+                if (!hasOutParameter)
+                {
+                    yield return new HLSLVoidReturnTypeUnsupported(selectedFunction.name);
+                }
             }
             if (selectedFunction.returnType == null)
             {
@@ -53,9 +66,14 @@ namespace UnityEditor.VFX.Operator
             }
             foreach (var input in selectedFunction.inputs)
             {
-                if (input.rawType == "Texture2D")
+                if (input.access is HLSLAccess.IN or HLSLAccess.INOUT &&
+                    input.rawType is "Texture2D" or "Texture3D" or "TextureCube" or "Texture2DArray")
                 {
-                    yield return new HLSLTexture2DShouldNotBeUsed(input.name);
+                    yield return new HLSLWrongHLSLTextureType(input.rawType, input.name);
+                }
+                if (input.rawType is "TextureCubeArray" or "VFXSamplerCubeArray")
+                {
+                    yield return new HLSLTextureCubeArrayNotSupported(input.name);
                 }
             }
             foreach (var message in selectedFunction.inputs)
@@ -234,6 +252,9 @@ namespace UnityEditor.VFX.Operator
         {
             ParseCodeIfNeeded();
 
+            if (m_Function == null)
+                return Array.Empty<VFXExpression>();
+
             // Specifically handle buffers to specify the templated type
             for (int i = 0; i < inputExpression.Length; i++)
             {
@@ -250,29 +271,23 @@ namespace UnityEditor.VFX.Operator
                 }
             }
 
-            var hasShaderFile = HasShaderFile();
-            var hlslCode = hasShaderFile
-                ? $"#include \"{AssetDatabase.GetAssetPath(m_ShaderFile)}\"\n"
-                : BuildCustomCode();
-            var functionName = hasShaderFile
-                ? m_Function?.name
-                : m_Function?.GetNameWithHashCode();
-            var valueType = GetValueType(m_Function?.returnType);
-
-            if (valueType == VFXValueType.None)
-            {
-                return new VFXExpression[] { new VFXValue<int>(0, VFXValue.Mode.Constant, VFXExpression.Flags.InvalidOnCPU) };
-            }
-
             var expressions = new List<VFXExpression>(m_OutputProperties.Count);
-            expressions.Add(new VFXExpressionHLSL(functionName, hlslCode, valueType, inputExpression));
             for (int i = 0; i < m_InputParameters.Count; i++)
             {
                 var parameter = m_InputParameters[i];
                 if (parameter.access is HLSLAccess.IN or HLSLAccess.NONE)
                     continue;
 
-                expressions.Add(new VFXExpressionPassThrough(i, GetValueType(parameter.type), inputExpression));
+                var parameterType = VFXExpression.GetVFXValueTypeFromType(parameter.type);
+                var hlslCode = BuildHLSLWrapperCode(i, parameter.name, parameter.rawType, out var wrapperFunctionName);
+                expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, parameterType, inputExpression));
+            }
+
+            var valueType = VFXExpression.GetVFXValueTypeFromType(m_Function?.returnType);
+            if (valueType != VFXValueType.None)
+            {
+                var hlslCode = BuildHLSLWrapperCode(m_InputParameters.Count, "Return", m_Function.rawReturnType, out var wrapperFunctionName);
+                expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, valueType, inputExpression));
             }
 
             return expressions.ToArray();
@@ -283,28 +298,6 @@ namespace UnityEditor.VFX.Operator
             base.OnAdded();
             // Parse again now that the parent graph is accessible
             Invalidate(InvalidationCause.kSettingChanged);
-        }
-
-        private VFXValueType GetValueType(Type type)
-        {
-            switch (type)
-            {
-                case null: return VFXValueType.None;
-                case var x when x == typeof(bool): return VFXValueType.Boolean;
-                case var x when x == typeof(float): return VFXValueType.Float;
-                case var x when x == typeof(Vector2): return VFXValueType.Float2;
-                case var x when x == typeof(Vector3): return VFXValueType.Float3;
-                case var x when x == typeof(Vector4): return VFXValueType.Float4;
-                case var x when x == typeof(int): return VFXValueType.Int32;
-                case var x when x == typeof(uint): return VFXValueType.Uint32;
-                case var x when x == typeof(Texture2D): return VFXValueType.Texture2D;
-                case var x when x == typeof(Texture3D): return VFXValueType.Texture3D;
-                case var x when x == typeof(Matrix4x4): return VFXValueType.Matrix4x4;
-                case var x when x == typeof(Buffer): return VFXValueType.Buffer;
-                case var x when x == typeof(AnimationCurve): return VFXValueType.Curve;
-                case var x when x == typeof(Gradient): return VFXValueType.ColorGradient;
-                default: return VFXValueType.None;
-            }
         }
 
         private string GetHLSLCode()
@@ -326,8 +319,9 @@ namespace UnityEditor.VFX.Operator
                 return;
             }
 
+            var hasError = m_Function?.errorList.Count > 0;
             var strippedHLSL = HLSLParser.StripCommentedCode(GetHLSLCode());
-            if (strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunctions.GetSelection() || m_AvailableFunctions.values == null)
+            if (hasError || strippedHLSL != cachedHLSLCode || m_SelectedFunction != m_AvailableFunctions.GetSelection() || m_AvailableFunctions.values == null)
             {
                 var functions = new List<HLSLFunction>(HLSLFunction.Parse(graph.attributesManager, strippedHLSL));
 
@@ -368,7 +362,12 @@ namespace UnityEditor.VFX.Operator
                     m_SelectedFunction = m_Function.name;
                     m_InputParameters = new List<HLSLFunctionParameter>(m_Function.inputs);
                     m_InputProperties = new List<VFXPropertyWithValue>();
-                    var additionalOutputProperties = new List<VFXPropertyWithValue>();
+                    m_OutputProperties = new List<VFXPropertyWithValue>();
+
+                    if (m_Function.returnType != typeof(void) && m_Function.returnType != null)
+                    {
+                        m_OutputProperties.Add(new VFXPropertyWithValue(new VFXProperty(m_Function.returnType, m_Function.returnName)));
+                    }
 
                     foreach (var input in m_InputParameters)
                     {
@@ -380,18 +379,8 @@ namespace UnityEditor.VFX.Operator
                             }
                             else if (input.access is HLSLAccess.OUT or HLSLAccess.INOUT)
                             {
-                                additionalOutputProperties.Add(CreateProperty(input));
+                                m_OutputProperties.Add(CreateProperty(input));
                             }
-                        }
-                    }
-
-                    m_OutputProperties = new List<VFXPropertyWithValue>();
-                    if (m_Function.returnType != typeof(void) && m_Function.returnType != null)
-                    {
-                        m_OutputProperties.Add(new VFXPropertyWithValue(new VFXProperty(m_Function.returnType, "Out")));
-                        if (additionalOutputProperties.Count > 0)
-                        {
-                            m_OutputProperties.AddRange(additionalOutputProperties);
                         }
                     }
                 }
@@ -406,12 +395,16 @@ namespace UnityEditor.VFX.Operator
                 }
 
                 cachedHLSLCode = strippedHLSL;
+                // Since the "values" is not serialized in MultipleValuesChoice the drop down is empty when the node is restored after undoing deletion.
+                // It's not serialized because it depends on the HLSL code and the HLSL can be changed independently
+                // So the Invalidate is here to update the GUI when the m_AvailableFunctions setting is changed
+                Invalidate(InvalidationCause.kSettingChanged);
             }
         }
 
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
         {
-            var propertyAttributes = new List<PropertyAttribute>();
+            var propertyAttributes = new List<object>();
             if (!string.IsNullOrEmpty(parameter.templatedType))
             {
                 propertyAttributes.Add(new TemplatedTypeAttribute(parameter.templatedType));
@@ -427,13 +420,72 @@ namespace UnityEditor.VFX.Operator
                 : new VFXPropertyWithValue(new VFXProperty(parameter.type, parameter.name));
         }
 
-        private string BuildCustomCode()
+        private string BuildHLSLWrapperCode(int outputIndex, string returnedParameterName, string returnType, out string wrapperFunctionName)
         {
             ParseCodeIfNeeded();
 
-            return m_Function != null
-                ? m_Function.GetTransformedHLSL()
-                : string.Empty;
+            if (m_Function != null)
+            {
+                var hasShaderFile = HasShaderFile();
+                var functionName = hasShaderFile ? m_Function.name : m_Function.GetNameWithHashCode();
+
+                StringBuilder hlslCode = new StringBuilder();
+                hlslCode.Append(hasShaderFile
+                    ? $"#include \"{AssetDatabase.GetAssetPath(m_ShaderFile)}\"\n"
+                    : m_Function.GetTransformedHLSL());
+
+                wrapperFunctionName = $"{functionName}_Wrapper_{returnedParameterName}";
+
+                hlslCode.Append($"{returnType} {wrapperFunctionName}(");
+                var isFirst = true;
+                foreach (var parameter in m_InputParameters)
+                {
+                    if (parameter.access is not HLSLAccess.OUT)
+                    {
+                        if (!isFirst)
+                            hlslCode.Append(", ");
+                        else
+                            isFirst = false;
+                        hlslCode.Append($"{parameter.templatedRawType} {parameter.name}");
+                    }
+                }
+                hlslCode.AppendLine(")");
+
+                hlslCode.AppendLine("{");
+                uint paramIndex = 0;
+                string[] parameters = new string[m_InputParameters.Count + 1];
+                foreach (var input in this.m_InputParameters)
+                {
+                    if (input.access is HLSLAccess.OUT)
+                    {
+                        var parameterName = $"var_{paramIndex}";
+                        parameters[paramIndex++] = parameterName;
+                        hlslCode.AppendLine($"\t{input.rawType} {parameterName};");
+                    }
+                    else
+                    {
+                        parameters[paramIndex++] = input.name;
+                    }
+                }
+
+                var inputParametersString = string.Join(", ", parameters).TrimEnd(new [] { ' ', ',' });
+                if (m_Function.returnType != typeof(void))
+                {
+                    var returnName = $"var_{paramIndex}";
+                    parameters[paramIndex++] = returnName;
+                    // This will put the return value as last output slot
+                    hlslCode.Append($"\t{m_Function.rawReturnType} {returnName} = ");
+                }
+
+                hlslCode.AppendLine($"\t{functionName}({inputParametersString});");
+                hlslCode.AppendLine($"\treturn {parameters[outputIndex]};");
+                hlslCode.AppendLine("}");
+
+                return hlslCode.ToString();
+            }
+
+            wrapperFunctionName = null;
+            return string.Empty;
         }
 
         public bool Equals(IHLSLCodeHolder other)

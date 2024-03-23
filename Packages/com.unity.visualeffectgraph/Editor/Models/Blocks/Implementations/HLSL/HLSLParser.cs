@@ -85,8 +85,8 @@ namespace UnityEditor.VFX.Block
 
     class HLSLMissingVFXAttribute : IHLSMessage
     {
-        public string message => "Missing `VFXAttributes attributes` as function's parameter.\nNeeded because your code access (read or write) to at least one attribute.\nIt has been automatically fixed for you";
-        public VFXErrorType type => VFXErrorType.Warning;
+        public string message => "Missing `VFXAttributes attributes` as function's parameter";
+        public VFXErrorType type => VFXErrorType.Error;
     }
 
     class HLSLUnknownParameterType : IHLSMessage
@@ -99,11 +99,30 @@ namespace UnityEditor.VFX.Block
         public VFXErrorType type => VFXErrorType.Error;
     }
 
-    class HLSLTexture2DShouldNotBeUsed : IHLSMessage
+    class HLSLTextureCubeArrayNotSupported : IHLSMessage
     {
-        public HLSLTexture2DShouldNotBeUsed(string paramName)
+        public HLSLTextureCubeArrayNotSupported(string paramName)
         {
-            message = $"The function parameter '{paramName}' is of type Texture2D.\nPlease use VFXSampler2D type instead (see documentation)";
+            message = $"The function parameter '{paramName}' is of type TextureCubeArray which is not supported in CustomHLSL";
+        }
+        public string message { get; }
+        public VFXErrorType type => VFXErrorType.Error;
+    }
+
+    class HLSLWrongHLSLTextureType : IHLSMessage
+    {
+        private static Dictionary<string, string> s_TextureTypeMapping = new()
+        {
+            { "Texture2D", "VFXSampler2D"},
+            { "Texture3D", "VFXSampler3D"},
+            { "TextureCube", "VFXSamplerCube"},
+            //{ "TextureCubeArray", "VFXSamplerCubeArray"},
+            { "Texture2DArray", "VFXSampler2DArray"},
+        };
+
+        public HLSLWrongHLSLTextureType(string inputRawType, string paramName)
+        {
+            message = $"The function parameter '{paramName}' is of type {inputRawType}.\nPlease use {s_TextureTypeMapping[inputRawType]} type instead (see documentation)";
         }
         public string message { get; }
         public VFXErrorType type => VFXErrorType.Error;
@@ -159,6 +178,16 @@ namespace UnityEditor.VFX.Block
         public VFXErrorType type => VFXErrorType.Error;
     }
 
+    class HLSLOutParameterNotAllowed : IHLSMessage
+    {
+        public HLSLOutParameterNotAllowed(string parameterName)
+        {
+            message = $"Parameter {parameterName} has out or inout access which is not allowed for Custom HLSL block";
+        }
+        public string message { get; }
+        public VFXErrorType type => VFXErrorType.Error;
+    }
+
     class HLSLFunctionParameter
     {
         // Match inout/in/out accessor then any whitespace then the parameter type then optionally a template type any whitespace and then the parameter name
@@ -171,6 +200,7 @@ namespace UnityEditor.VFX.Block
         public string name { get; }
         public string tooltip { get; }
         public string templatedType { get; }
+        public string templatedRawType { get; }
         public HLSLAccess access { get; }
         public IReadOnlyCollection<IHLSMessage> errors { get; }
 
@@ -197,7 +227,8 @@ namespace UnityEditor.VFX.Block
             this.type = HLSLParser.HLSLToUnityType(this.rawType);
             this.templatedType = template;
             this.access = HLSLParser.HLSLAccessToEnum(access);
-            this.m_RawCode = $"{access} {type}{(string.IsNullOrEmpty(this.templatedType) ?"" : $"<{template}>")} {name}";
+            this.templatedRawType = string.IsNullOrEmpty(template) ? this.rawType : $"{type}<{template}>";
+            this.m_RawCode = $"{access} {this.templatedRawType} {name}";
 
             if (this.type == null)
             {
@@ -229,7 +260,7 @@ namespace UnityEditor.VFX.Block
         static HLSLFunction()
         {
             var supportedReturnTypes = string.Join("|", HLSLParser.s_KnownTypes.Keys);
-            var pattern = @"^(?<doc>(^/{3}.*\n)*)(?<returnType>" + supportedReturnTypes + @")\s+(?<name>\w+)\((?<parameters>[^\)]+)\)\s*";
+            var pattern = @"^(?<doc>(^/{3}.*\n)*)(?<returnType>" + supportedReturnTypes + @")\s+(?<name>\w+)\((?<parameters>[^\)]*)\)\s*";
             s_FunctionParser = new Regex(pattern, RegexOptions.Compiled | RegexOptions.Multiline);
         }
 
@@ -265,6 +296,10 @@ namespace UnityEditor.VFX.Block
             this.rawReturnType = returnType;
             this.returnType = HLSLParser.HLSLToUnityType(returnType);
             var doc = this.GetDoc(rawDoc);
+            if (this.returnType != null && this.returnType != typeof(void))
+            {
+                this.returnName = doc.GetValueOrDefault("return", "out");
+            }
             this.m_Inputs = new List<HLSLFunctionParameter>(HLSLFunctionParameter.Parse(parameters, doc));
             this.body = body.Trim('\n');
             this.attributes = new List<VFXAttributeInfo>(GetAttributes(attributesManager, this.body, errors));
@@ -273,6 +308,7 @@ namespace UnityEditor.VFX.Block
 
         public int index { get; }
         public string name { get; }
+        public string returnName { get; }
         public Type returnType { get; }
         public IReadOnlyCollection<HLSLFunctionParameter> inputs => m_Inputs;
         public IReadOnlyCollection<VFXAttributeInfo> attributes { get; }
@@ -437,6 +473,9 @@ namespace UnityEditor.VFX.Block
             { "Texture2D", typeof(Texture2D) },
             { "VFXSampler2D", typeof(Texture2D) },
             { "VFXSampler3D", typeof(Texture3D) },
+            { "VFXSampler2DArray", typeof(Texture2DArray) },
+            { "VFXSamplerCube", typeof(Cubemap) },
+            //{ "VFXSamplerCubeArray", typeof(CubemapArray) },
             { "VFXGradient", typeof(Gradient) },
             { "VFXCurve", typeof(AnimationCurve) },
             { "bool", typeof(bool) },

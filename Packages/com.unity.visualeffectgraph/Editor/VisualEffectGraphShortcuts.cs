@@ -242,6 +242,50 @@ namespace UnityEditor.VFX
             }
         }
 
+        [Shortcut("Visual Effect Graph/Save HLSL Code", typeof(VFXTextEditor), KeyCode.S, ShortcutModifiers.Action)]
+        static void SaveHLSLCode(ShortcutArguments args)
+        {
+            if (args.context is VFXTextEditor window)
+            {
+                window.Save();
+            }
+        }
+
+        [Shortcut("Visual Effect Graph/Undo HLSL Change", typeof(VFXTextEditor), KeyCode.Z, ShortcutModifiers.Action)]
+        static void UndoHLSLCode(ShortcutArguments args)
+        {
+            if (args.context is VFXTextEditor window)
+            {
+                window.Undo();
+            }
+        }
+
+        [Shortcut("Visual Effect Graph/Redo HLSL Change", typeof(VFXTextEditor), KeyCode.Y, ShortcutModifiers.Action)]
+        static void RedoHLSLCode(ShortcutArguments args)
+        {
+            if (args.context is VFXTextEditor window)
+            {
+                window.Redo();
+            }
+        }
+
+        [Shortcut("Visual Effect Graph/Increase Font Size in HLSL Code Editor", typeof(VFXTextEditor), KeyCode.WheelUp, ShortcutModifiers.Control)]
+        static void IncreasTextSizeHLSLCode(ShortcutArguments args)
+        {
+            if (args.context is VFXTextEditor window)
+            {
+                window.ChangeTextSize(1);
+            }
+        }
+        [Shortcut("Visual Effect Graph/Decrease Font Size in HLSL Code Editor", typeof(VFXTextEditor), KeyCode.WheelDown, ShortcutModifiers.Control)]
+        static void DecreaseTextSizeHLSLCode(ShortcutArguments args)
+        {
+            if (args.context is VFXTextEditor window)
+            {
+                window.ChangeTextSize(-1);
+            }
+        }
+
         // Currently a text field eats up all shortcuts with ALT or SHIFT modifiers
         /*
         [Shortcut("Visual Effect Graph/Toggle Sub-variant in node search", typeof(VFXFilterWindow), KeyCode.V, ShortcutModifiers.Shift)]

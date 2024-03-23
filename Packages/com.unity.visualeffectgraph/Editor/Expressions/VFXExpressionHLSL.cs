@@ -4,43 +4,6 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
 #pragma warning disable 0659
-    class VFXExpressionPassThrough : VFXExpression
-    {
-        private int m_ParentIndex;
-        private VFXValueType m_ValueType;
-
-        public VFXExpressionPassThrough() : this(0, VFXValueType.None, new [] { VFXValue<int>.Default })
-        {
-        }
-
-        public VFXExpressionPassThrough(int index, VFXValueType type, params VFXExpression[] parents) : base(Flags.InvalidOnCPU, parents)
-        {
-            m_ParentIndex = index;
-            m_ValueType = type;
-        }
-
-        public override VFXExpressionOperation operation => VFXExpressionOperation.None;
-
-        public override VFXValueType valueType => m_ValueType;
-
-        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
-        {
-            return this;
-        }
-
-        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
-        {
-            var newExpression = (VFXExpressionPassThrough)base.Reduce(reducedParents);
-            newExpression.m_ParentIndex = m_ParentIndex;
-            newExpression.m_ValueType = m_ValueType;
-            return newExpression;
-        }
-
-        public override string GetCodeString(string[] parents)
-        {
-            return parents[m_ParentIndex];
-        }
-    }
 
     class VFXExpressionHLSL : VFXExpression, IHLSLCodeHolder
     {

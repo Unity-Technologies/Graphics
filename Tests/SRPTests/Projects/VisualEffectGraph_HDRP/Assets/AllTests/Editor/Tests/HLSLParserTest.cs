@@ -177,6 +177,24 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void HLSL_Check_Return_Documentation()
+        {
+            // Arrange
+            var hlslCode =
+                "/// return: myoutslot" + "\n" +
+                "float CustomHLSL(in float3 offset)" + "\n" +
+                "{" + "\n" +
+                "  return offset.x;" + "\n" +
+                "}";
+
+            // Act
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
+
+            // Assert
+            Assert.AreEqual("myoutslot", function.returnName);
+        }
+
+        [Test]
         public void HLSL_Check_Hidden_Function()
         {
             // Arrange
@@ -254,6 +272,44 @@ namespace UnityEditor.VFX.Test
             // Assert
             Assert.AreEqual(1, function.attributes.Count);
             Assert.AreEqual("seed", function.attributes.Single().attrib.name);
+        }
+
+        [Test]
+        public void HLSL_Check_Function_No_Parameter()
+        {
+            // Arrange
+            var hlslCode =
+                $"void Function()" + "\n" +
+                "{" + "\n" +
+                "  float r = 1;" + "\n" +
+                "}";
+
+            // Act
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
+
+            // Assert
+            Assert.AreEqual(0, function.errorList.Count);
+            Assert.AreEqual(0, function.inputs.Count);
+        }
+
+        [Test]
+        public void HLSL_Check_Function_Only_Out_Parameters()
+        {
+            // Arrange
+            var hlslCode =
+                $"void Function(out float a, out float b)" + "\n" +
+                "{" + "\n" +
+                "  a = 1;" + "\n" +
+                "  b = 2;" + "\n" +
+                "}";
+
+            // Act
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
+
+            // Assert
+            Assert.AreEqual(0, function.errorList.Count);
+            Assert.AreEqual(2, function.inputs.Count);
+            Assert.IsTrue(function.inputs.All(x => x.access is HLSLAccess.OUT));
         }
 
         [Test]

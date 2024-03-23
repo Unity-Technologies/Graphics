@@ -427,8 +427,8 @@ namespace UnityEditor.VFX.Test
             // Assert
             var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
             Assert.IsNotNull(report);
-            Assert.AreEqual(VFXErrorType.Warning, report.type);
-            Assert.AreEqual("Missing `VFXAttributes attributes` as function's parameter.\nNeeded because your code access (read or write) to at least one attribute.\nIt has been automatically fixed for you", report.description);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual("Missing `VFXAttributes attributes` as function's parameter", report.description);
         }
 
         [UnityTest]
