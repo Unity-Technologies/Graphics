@@ -1370,6 +1370,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
             public Vector2 viewportScale;
             public Material blitMaterial;
+            public Rect viewportSize;
         }
 
         internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
@@ -1380,14 +1381,16 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
             {
                 var inputDesc = renderGraph.GetTextureDesc(input);
-                var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
-                passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
+                var targetSize = RTHandles.rtHandleProperties.currentRenderTargetSize;
+                passData.viewportScale = new Vector2(targetSize.x / finalViewport.width, targetSize.y / finalViewport.height);
+
                 passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
                 passData.recorderCaptureActions = m_RecorderCaptureActions;
                 passData.input = builder.ReadTexture(input);
+                passData.viewportSize = finalViewport;
                 // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
                 // Since recorder does not know about this, we need to send a texture of the right size.
-                passData.tempTexture = builder.CreateTransientTexture(new TextureDesc(actualWidth, actualHeight)
+                passData.tempTexture = builder.CreateTransientTexture(new TextureDesc((int)finalViewport.width, (int)finalViewport.height)
                 { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" });
 
                 builder.SetRenderFunc(
@@ -1398,6 +1401,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
                         mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
                         ctx.cmd.SetRenderTarget(data.tempTexture);
+                        ctx.cmd.SetViewport(data.viewportSize);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
 
                         for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
