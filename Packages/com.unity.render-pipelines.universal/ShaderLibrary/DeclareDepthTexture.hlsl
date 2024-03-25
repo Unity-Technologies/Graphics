@@ -4,7 +4,6 @@
 
 TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
-float4 _CameraDepthTexture_TexelSize;
 
 float SampleSceneDepth(float2 uv)
 {

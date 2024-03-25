@@ -533,7 +533,7 @@ namespace UnityEngine.Rendering.Universal
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 var clearFlag = pass.rendererData.useDepthStencilBuffer ? ClearFlag.All : ClearFlag.Color;
-                clearFlag = bFirstClear ? clearFlag : ClearFlag.None;
+                clearFlag = bFirstClear ? clearFlag : ClearFlag.Color;
                 bFirstClear = false;
 
                 if (depthTarget != BuiltinRenderTextureType.None)

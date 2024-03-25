@@ -27,9 +27,9 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         #region Constructors
-        internal MotionVectorRenderPass(Material cameraMaterial, Material objectMaterial)
+        internal MotionVectorRenderPass(RenderPassEvent evt, Material cameraMaterial, Material objectMaterial)
         {
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+            renderPassEvent = evt;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
             m_PassData = new PassData();

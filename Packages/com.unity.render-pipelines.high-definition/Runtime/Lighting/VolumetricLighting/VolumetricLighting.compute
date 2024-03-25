@@ -719,7 +719,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)
         // do not support reprojection and should neither read nor write to the history buffer.
         // This will cause them to alias, but it is the only way to prevent ghosting.
-        _VBufferFeedback[voxelCoord] = normalizedBlendValue * float4(GetCurrentExposureMultiplier().xxx, 1);
+        _VBufferFeedback[voxelCoord] = clamp(normalizedBlendValue * float4(GetCurrentExposureMultiplier().xxx, 1), 0, HALF_MAX);
 
         float4 linearizedBlendValue = normalizedBlendValue * dt;
         float4 blendValue = DelinearizeRGBD(linearizedBlendValue);
@@ -778,7 +778,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // This means storing the tone mapped radiance and transmittance instead of optical depth.
         // See "A Fresh Look at Generalized Sampling", p. 51.
         // TODO: re-enable tone mapping after implementing pre-exposure.
-        _VBufferLighting[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
+        _VBufferLighting[voxelCoord] = max(0, LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1));
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;

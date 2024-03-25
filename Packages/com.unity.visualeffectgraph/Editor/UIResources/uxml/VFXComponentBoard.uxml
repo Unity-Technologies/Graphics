@@ -11,60 +11,39 @@
         </ui:VisualElement>
         <ui:ScrollView class="stretchContentWidth">
             <ui:VisualElement name="component-container">
-                <ui:VisualElement pickingMode="Ignore" >
-                    <ui:VisualElement name="toolbar" pickingMode="Ignore" >
-                        <ui:Button name="stop">
-                            <ui:Image name="icon"/>
-                        </ui:Button>
-                        <ui:Button name="play">
-                            <ui:Image name="icon"/>
-                        </ui:Button>
-                        <ui:Button name="step">
-                            <ui:Image name="icon"/>
-                        </ui:Button>
-                        <ui:Button name="restart">
-                            <ui:Image name="icon"/>
-                        </ui:Button>
+                <ui:VisualElement name="toolbar" pickingMode="Ignore" >
+                    <ui:Button name="stop" tooltip="Stop VFX simulation" />
+                    <ui:Button name="play" tooltip="Play VFX simulation" />
+                    <ui:Button name="step" tooltip="Next VFX simulation frame" />
+                    <ui:Button name="restart" tooltip="Restart VFX simulation" />
+                </ui:VisualElement>
+                <ui:VisualElement name="play-rate-container" pickingMode="Ignore" class="component-container" >
+                    <ui:Label text="Play Rate" />
+                    <ui:Slider name="play-rate-slider" direction="Horizontal" tooltip="VFX simulation play rate" />
+                    <uie:IntegerField name="play-rate-field"  tooltip="VFX simulation play rate" />
+                    <ui:DropdownField name="play-rate-menu" class="MiniDropDown" tooltip="Select a predefined VFX simulation play rates" />
+                </ui:VisualElement>
+                <ui:VisualElement name="bounds-tool-container" pickingMode="Ignore" class="component-container">
+                    <ui:VisualElement name="bounds-actions-container" pickingMode="Ignore" class="row">
+                        <ui:Label name="bounds-label" text="Bounds Recording"/>
+                        <ui:Button name="record"  tooltip="Start recording VFX bounding box" />
+                        <ui:Button name="apply-bounds-button" text="Apply Bounds" tooltip="Apply recorded VFX bounding box"/>
                     </ui:VisualElement>
-                    <ui:VisualElement name="play-rate-container" pickingMode="Ignore" >
-                        <ui:Label text="Play Rate" />
-                        <ui:Slider name="play-rate-slider" direction="Horizontal" />
-                        <uie:IntegerField name="play-rate-field"/>
-                        <ui:Button name="play-rate-menu" text="Set" class="MiniDropDown"/>
+                    <vfx:VFXBoundsSelector name="system-bounds-container" class="row" />
+                </ui:VisualElement>
+                <ui:VisualElement name="events-tool-container" pickingMode="Ignore" class="component-container">
+                    <ui:Label name="events-label" text="Events"/>
+                    <ui:VisualElement name="on-play-stop" pickingMode="Ignore" style="flex-direction:row">
+                        <ui:Button name="on-play-button" text="OnPlay" style="flex:1" tooltip="Send 'OnPlay' event" />
+                        <ui:Button name="on-stop-button" text="OnStop" style="flex:1" tooltip="Send 'OnStop' event" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="divider" class="horizontal"/>
-                    <ui:VisualElement>
-                        <ui:VisualElement name="bounds-tool-container" pickingMode="Ignore">
-                            <ui:VisualElement name="bounds-actions-container" pickingMode="Ignore">
-                                <ui:Label name="bounds-label" text="Bounds Recording"/>
-                                <ui:Button name="record">
-                                    <ui:Image name ="record-icon"/>
-                                </ui:Button>
-                                <ui:Button name="apply-bounds-button" text="Apply Bounds"/>
-                            </ui:VisualElement>
-                            <vfx:VFXBoundsSelector name="system-bounds-container" />
-                        </ui:VisualElement>
-                        <ui:VisualElement name="divider" class="horizontal"/>
-                        <ui:VisualElement name="events-tool-container" pickingMode="Ignore">
-                            <ui:Label name="events-label" text="Events"/>
-                            <ui:VisualElement name="on-play-stop" pickingMode="Ignore" style="flex-direction:row">
-                                <ui:Button name="on-play-button" text="OnPlay" style="flex:1"/>
-                                <ui:Button name="on-stop-button" text="OnStop" style="flex:1"/>
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement name="divider" class="horizontal"/>
-                        <ui:VisualElement name="debug-tool-container" pickingMode="Ignore">
-                            <ui:Label name="debug-label" text="Debug"/>
-                            <ui:VisualElement name="debug-container" pickingMode="Ignore">
-                                <ui:Button name="debug-modes" text="Debug modes" class="DropDown"/>
-                                <ui:VisualElement name="debug-modes-container" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                    <ui:VisualElement>
-                        <ui:VisualElement name="divider" class="horizontal"/>
-                        <ui:VisualElement name="events-container" pickingMode="Ignore" >
-                        </ui:VisualElement>
+                    <ui:VisualElement name="events-container" />
+                </ui:VisualElement>
+                <ui:VisualElement name="debug-tool-container" pickingMode="Ignore" class="component-container">
+                    <ui:Label name="debug-label" text="Debug"/>
+                    <ui:VisualElement name="debug-container" pickingMode="Ignore">
+                        <ui:Button name="debug-modes" text="Debug modes" class="DropDown" tooltip="Select a debugging chart" />
+                        <ui:VisualElement name="debug-modes-container" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>

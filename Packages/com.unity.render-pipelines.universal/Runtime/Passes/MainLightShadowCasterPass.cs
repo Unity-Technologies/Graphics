@@ -231,10 +231,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MainLightShadow)))
             {
+                // Need to start by setting the Camera position and worldToCamera Matrix as that is not set for passes executed before normal rendering
+                ShadowUtils.SetCameraPosition(cmd, renderingData.cameraData.worldSpaceCameraPos);
+
+                // Need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
+                // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
+                ShadowUtils.SetWorldToCameraMatrix(cmd, renderingData.cameraData.GetViewMatrix());
+
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex, BatchCullingProjectionType.Orthographic);
                 settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;
-                // Need to start by setting the Camera position as that is not set for passes executed before normal rendering
-                cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, renderingData.cameraData.worldSpaceCameraPos);
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {

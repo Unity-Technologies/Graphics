@@ -21,6 +21,18 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'GLES3 renders these tests incorrectly (FB: 1354427)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e2be1657f285b724c8e4fc40a9ab77fd, type: 3}
+    - {fileID: 102900000, guid: 8d4f811a4f241464fb438ad434fbaba4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 44
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-66304
