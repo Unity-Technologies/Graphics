@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (shader == null)
                 {
-                    Debug.LogError($"Missing shader. {GetType().DeclaringType.Name} render pass will not execute. Check for missing reference in the renderer resources.");
+                    Debug.LogError($"Missing shader. ColorGradingLutPass render pass will not execute. Check for missing reference in the renderer resources.");
                     return null;
                 }
 
