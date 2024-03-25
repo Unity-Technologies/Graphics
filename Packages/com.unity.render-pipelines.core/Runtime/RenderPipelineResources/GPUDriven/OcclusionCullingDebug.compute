@@ -10,16 +10,17 @@
 void ClearOcclusionDebug(uint2 dispatchIndex : SV_DispatchThreadID, uint3 groupId : SV_GroupID)
 {
 #ifdef OCCLUSION_DEBUG
-    SET_SLICE_INDEX(groupId.z);
+    int clearSliceIndex = groupId.z;
 
     for (int i = 0; i < OCCLUSIONCULLINGCOMMONCONFIG_MAX_OCCLUDER_MIPS; ++i)
     {
         uint4 bounds = _OccluderMipBounds[i];
+        bounds.y += clearSliceIndex * _OccluderMipLayoutSizeY;
         if (all(dispatchIndex < bounds.zw))
-            _OcclusionDebugPyramid[toDebugPyramidCoord(bounds.xy + dispatchIndex)] = 0;
+            _OcclusionDebugOverlay[OcclusionDebugOverlayOffset(bounds.xy + dispatchIndex)] = 0;
     }
 
-    if (all(dispatchIndex == 0))
-        _OcclusionDebugPyramid[0] = 0;
+    if (all(dispatchIndex == 0) && clearSliceIndex == 0)
+        _OcclusionDebugOverlay[0] = 0;
 #endif
 }

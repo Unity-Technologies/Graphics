@@ -4,12 +4,6 @@
     align-items:center;
 }
 
-.bounds-mode
-{
-    width : 86px;
-    margin-right: 3px;
-}
-
 #system-field
 {
     width: 40%;
@@ -39,4 +33,8 @@
 #divider.horizontal {
     height: 0.05px;
     border-bottom-width: 1px;
+}
+
+EnumField {
+    width: 94px;
 }

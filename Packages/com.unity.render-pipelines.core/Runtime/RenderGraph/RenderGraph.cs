@@ -1247,6 +1247,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public ProfilingSampler sampler;
         }
 
+        const string k_BeginProfilingSamplerPassName = "BeginProfile";
+        const string k_EndProfilingSamplerPassName = "EndProfile";
+
         /// <summary>
         /// Begin a profiling scope.
         /// </summary>
@@ -1260,7 +1263,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (sampler == null)
                 return;
 
-            using (var builder = AddRenderPass<ProfilingScopePassData>("BeginProfile", out var passData, (ProfilingSampler)null, file, line))
+            using (var builder = AddRenderPass<ProfilingScopePassData>(k_BeginProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
@@ -1285,7 +1288,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (sampler == null)
                 return;
 
-            using (var builder = AddRenderPass<ProfilingScopePassData>("EndProfile", out var passData, (ProfilingSampler)null, file, line))
+            using (var builder = AddRenderPass<ProfilingScopePassData>(k_EndProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);

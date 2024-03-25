@@ -1,16 +1,15 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using System.Collections.Generic;
+
 using Type = System.Type;
 
 namespace UnityEditor.VFX.UI
 {
-    partial class VFXOutputDataAnchor : VFXDataAnchor
+    class VFXOutputDataAnchor : VFXDataAnchor
     {
         // TODO This is a workaround to avoid having a generic type for the anchor as generic types mess with USS.
-        public static new VFXOutputDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
+        public new static VFXOutputDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
             var anchor = new VFXOutputDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
@@ -20,21 +19,12 @@ namespace UnityEditor.VFX.UI
             return anchor;
         }
 
-        VisualElement m_Icon;
-
         protected VFXOutputDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
-            m_Icon = new VisualElement()
-            {
-                name = "icon"
-            };
-
-            //Add(new VisualElement() { name = "lineSpacer" });
             AddToClassList("VFXOutputDataAnchor");
-            Add(m_Icon); //insert at first ( right since reversed)
         }
 
-        void OnToggleExpanded()
+        void OnToggleExpanded(PointerDownEvent evt)
         {
             if (controller.expandedSelf)
             {
@@ -57,17 +47,16 @@ namespace UnityEditor.VFX.UI
 
             if (controller.depth != 0 && m_Lines == null)
             {
-                m_Lines = new VisualElement[controller.depth + 1];
-
-                for (int i = 0; i < controller.depth; ++i)
+                AddToClassList("hasDepth");
+                m_Lines = new VisualElement[controller.depth - 1];
+                for (int i = 0; i < controller.depth - 1; ++i)
                 {
                     var line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = PropertyRM.depthOffset - 2;
                     line.style.marginRight = 0;
 
-                    Insert(3, line);
+                    Insert(childCount - 1, line);
                     m_Lines[i] = line;
                 }
             }
@@ -83,22 +72,25 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveFromClassList("icon-expanded");
                 }
-                AddToClassList("icon-expandable");
+                AddToClassList("expandable");
 
                 if (m_ExpandClickable == null)
                 {
-                    m_ExpandClickable = new Clickable(OnToggleExpanded);
-                    m_Icon.AddManipulator(m_ExpandClickable);
+                    var label = this.Q<Label>("type");
+                    label.pickingMode = PickingMode.Position;
+                    label.RegisterCallback<PointerDownEvent>(OnToggleExpanded, TrickleDown.TrickleDown);
                 }
             }
             else
             {
-                m_Icon.style.backgroundImage = null;
                 if (m_ExpandClickable != null)
                 {
-                    m_Icon.RemoveManipulator(m_ExpandClickable);
+                    var label = this.Q<Label>("type");
+                    label.pickingMode = PickingMode.Ignore;
+                    label.UnregisterCallback<PointerDownEvent>(OnToggleExpanded, TrickleDown.TrickleDown);
                     m_ExpandClickable = null;
                 }
+                RemoveFromClassList("expandable");
             }
 
 

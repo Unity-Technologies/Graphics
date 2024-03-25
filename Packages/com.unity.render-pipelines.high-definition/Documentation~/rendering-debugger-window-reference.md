@@ -21,10 +21,10 @@ Refer to [Use the Rendering debugger](use-the-rendering-debugger.md) for more in
 
 The **Decals** panel has tools that you can use to debug [decals](decal-material-inspector-reference.md) affecting transparent objects in your project.
 
-| **Debug Option**  | **Description**                                              |
+| **Debug Option** | **Description** |
 | ----------------- | ------------------------------------------------------------ |
 | **Display Atlas** | Enable the checkbox to display the decal atlas for a Camera in the top left of that Camera's view. |
-| **Mip Level**     | Use the slider to select the mip level for the decal atlas. The higher the mip level, the blurrier the decal atlas. |
+| **Mip Level** | Use the slider to select the mip level for the decal atlas. The higher the mip level, the blurrier the decal atlas. |
 
 <a name="StatsPanel"></a>
 
@@ -40,27 +40,27 @@ Use the [runtime shortcuts](#Navigation at runtime) to open the Display stats wi
 
 The Frame Stats section displays the average, minimum, and maximum value of each property. HDRP calculates each Frame Stat value over the 30 most recent frames.
 
-| **Property**                 |                         | **Description**                                              |
+| **Property** | | **Description** |
 | ---------------------------- | ----------------------- | ------------------------------------------------------------ |
-| **Frame Rate**               |                         | The frame rate (in frames per second) for the current camera view. |
-| **Frame Time**               |                         | The total frame time for the current camera view.            |
-| **CPU Main Thread Frame**    |                         | The total time (in milliseconds) between the start of the frame and the time when the Main Thread finished the job. |
-| **CPU  Render Thread Frame** |                         | The time (in milliseconds) between the start of the work on the Render Thread and the time Unity waits to render the present frame ([Gfx.PresentFrame](https://docs.unity3d.com/2022.1/Documentation/Manual/profiler-markers.html)). |
-| **CPU Present Wait**         |                         | The time (in milliseconds) that the CPU spent waiting for Unity to render the present frame ([Gfx.PresentFrame](https://docs.unity3d.com/2022.1/Documentation/Manual/profiler-markers.html)) during the last frame. |
-| **GPU Frame**                |                         | The amount of time (in milliseconds) the GPU takes to render a given frame. |
-| **RT Mode**                  |                         | When you [enable ray tracing](Ray-Tracing-Getting-Started.md), this property shows the ray tracing quality mode that HDRP uses during rendering. HDRP updates this value once every frame based on the previous frame. |
-| **Count Rays**               |                         | Count the number of traced rays for each effect (in MRays / frame). This property only appears when you enable ray tracing. |
-|                              | **Ambient Occlusion**   | The number of rays that HDRP traced for [Ambient Occlusion (AO)](Ambient-Occlusion.md) computations, when you enable realtime ambient occlusion (RT AO). |
-|                              | **Shadows Directional** | The number of rays that HDRP traced for [directional lights](Light-Component.md) when you enable ray-traced shadows. |
-|                              | **Shadows Area**        | The number of rays that HDRP traced towards area lights when you enable [ray-traced shadows](Ray-Traced-Shadows.md). |
-|                              | **Shadows Point/Spot**  | The number of rays that HDRP traced towards point and spot lights when you enable ray-traced shadows. |
-|                              | **Reflection Forward**  | The number of rays that HDRP traced for reflection computations that use [forward shading](Forward-And-Deferred-Rendering.md). |
-|                              | **Reflection Deferred** | The number of rays that HDRP traced for reflection computations that use [deferred shading](Forward-And-Deferred-Rendering.md). |
-|                              | **Diffuse GI Forward**  | The number of rays that HDRP traced for diffuse [Global Illumination (GI)](Ray-Traced-Global-Illumination.md) computations that use forward shading. |
-|                              | **Diffuse GI Deferred** | The number of rays that HDRP traced for diffuse Global Illumination (GI) computations that use deferred shading. |
-|                              | **Recursive**           | The number of rays that HDRP traced for diffuse Global Illumination (GI) computations when you enable recursive ray tracing. |
-|                              | **Total**               | The total number of rays that HDRP traced.                   |
-| **Debug XR Layout**          |                         | Display debug information for XR passes. <br>This mode is only available in editor and development builds. |
+| **Frame Rate** | | The frame rate (in frames per second) for the current camera view. |
+| **Frame Time** | | The total frame time for the current camera view. |
+| **CPU Main Thread Frame** | | The total time (in milliseconds) between the start of the frame and the time when the Main Thread finished the job. |
+| **CPU Render Thread Frame** | | The time (in milliseconds) between the start of the work on the Render Thread and the time Unity waits to render the present frame ([Gfx.PresentFrame](https://docs.unity3d.com/2022.1/Documentation/Manual/profiler-markers.html)). |
+| **CPU Present Wait** | | The time (in milliseconds) that the CPU spent waiting for Unity to render the present frame ([Gfx.PresentFrame](https://docs.unity3d.com/2022.1/Documentation/Manual/profiler-markers.html)) during the last frame. |
+| **GPU Frame** | | The amount of time (in milliseconds) the GPU takes to render a given frame. |
+| **RT Mode** | | When you [enable ray tracing](Ray-Tracing-Getting-Started.md), this property shows the ray tracing quality mode that HDRP uses during rendering. HDRP updates this value once every frame based on the previous frame. |
+| **Count Rays** | | Count the number of traced rays for each effect (in MRays / frame). This property only appears when you enable ray tracing. |
+| | **Ambient Occlusion** | The number of rays that HDRP traced for [Ambient Occlusion (AO)](Ambient-Occlusion.md) computations, when you enable realtime ambient occlusion (RT AO). |
+| | **Shadows Directional** | The number of rays that HDRP traced for [directional lights](Light-Component.md) when you enable ray-traced shadows. |
+| | **Shadows Area** | The number of rays that HDRP traced towards area lights when you enable [ray-traced shadows](Ray-Traced-Shadows.md). |
+| | **Shadows Point/Spot** | The number of rays that HDRP traced towards point and spot lights when you enable ray-traced shadows. |
+| | **Reflection Forward** | The number of rays that HDRP traced for reflection computations that use [forward shading](Forward-And-Deferred-Rendering.md). |
+| | **Reflection Deferred** | The number of rays that HDRP traced for reflection computations that use [deferred shading](Forward-And-Deferred-Rendering.md). |
+| | **Diffuse GI Forward** | The number of rays that HDRP traced for diffuse [Global Illumination (GI)](Ray-Traced-Global-Illumination.md) computations that use forward shading. |
+| | **Diffuse GI Deferred** | The number of rays that HDRP traced for diffuse Global Illumination (GI) computations that use deferred shading. |
+| | **Recursive** | The number of rays that HDRP traced for diffuse Global Illumination (GI) computations when you enable recursive ray tracing. |
+| | **Total** | The total number of rays that HDRP traced. |
+| **Debug XR Layout** | | Display debug information for XR passes. <br>This mode is only available in editor and development builds. |
 
 <a name="bottlenecks"></a>
 
@@ -74,12 +74,12 @@ The **Bottlenecks** section describes the distribution of the last 60 frames acr
 
 #### Bottleneck categories
 
-| **Category**        | **Description**                                              |
+| **Category** | **Description** |
 | ------------------- | ------------------------------------------------------------ |
-| **CPU**             | The percentage of the last 60 frames in which the CPU limited the frame time. |
-| **GPU**             | The percentage of the last 60 frames in which the GPU limited the frame time. |
+| **CPU** | The percentage of the last 60 frames in which the CPU limited the frame time. |
+| **GPU** | The percentage of the last 60 frames in which the GPU limited the frame time. |
 | **Present limited** | The percentage of the last 60 frames in which the frame time was limited by the following presentation constraints:<br>&bull; Vertical Sync (Vsync): Vsync synchronizes rendering to the refresh rate of your display.<br>&bull;[Target framerate]([Application.targetFrameRate](https://docs.unity3d.com/ScriptReference/Application-targetFrameRate.html)): A function that you can use to manually limit the frame rate of an application. If a frame is ready before the time you specify in targetFrameRate, Unity waits before presenting the frame. |
-| **Balanced**        | This percentage of the last 60 frames in which the frame time was not limited by any of the above categories. A frame that is 100% balanced indicates the processing time for both CPU and GPU is approximately equal. |
+| **Balanced** | This percentage of the last 60 frames in which the frame time was not limited by any of the above categories. A frame that is 100% balanced indicates the processing time for both CPU and GPU is approximately equal. |
 
 #### Bottleneck example
 
@@ -98,12 +98,12 @@ In this example, the bottleneck is the GPU.
 
 The Detailed Stats section displays the amount of time in milliseconds that each rendering step takes on the CPU and GPU. HDRP updates these values once every frame based on the previous frame. 
 
-| **Property**                     | **Description**                                              |
+| **Property** | **Description** |
 | -------------------------------- | ------------------------------------------------------------ |
 | Update every second with average | Calculate average values over one second and update every second. |
-| Hide empty scopes                | Hide profiling scopes that use 0.00ms of processing time on the CPU and GPU. |
-| Count Rays                       | Count the number of traced rays for each effect (in MRays / frame). This mode only appears when you enable ray tracing. |
-| Debug XR Layout                  | Enable to display debug information for [XR](https://docs.unity3d.com/Manual/XR.html) passes. This mode only appears in the editor and development builds. |
+| Hide empty scopes | Hide profiling scopes that use 0.00ms of processing time on the CPU and GPU. |
+| Count Rays | Count the number of traced rays for each effect (in MRays / frame). This mode only appears when you enable ray tracing. |
+| Debug XR Layout | Enable to display debug information for [XR](https://docs.unity3d.com/Manual/XR.html) passes. This mode only appears in the editor and development builds. |
 
 <a name="MaterialPanel"></a>
 
@@ -112,93 +112,93 @@ The Detailed Stats section displays the amount of time in milliseconds that each
 The **Material** panel has tools that you can use to visualize different Material properties.
 
 <table>
-  <thead>
-    <tr>
-      <th colspan="1"><strong>Debug Option</strong></th>
-      <th colspan="2"><strong>Description</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="1"><strong>Common Material Property</strong></td>
-      <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on screen. All HDRP Materials share the properties available.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Material</strong></td>
-      <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader. The properties available depend on the HDRP Material type you select in the drop-down.</td>
-    </tr>
-    <tr>
-      <td rowspan="5"><strong>Rendering Layer Mask</strong></td>
-      <td colspan="2">These parameters only appear when you set the Material Debug Option to Rendering Layers.</td>
-    </tr>
-    <tr>
-      <td><strong>Filter with Light Layers from Selected Light</strong></td>
-      <td>Enable the checkbox to visualize GameObjects that the selected light affects.</td>
-    </tr>
-    <tr>
-      <td><strong>Use Light&#39;s Shadow Layer Mask</strong></td>
-      <td>Enable the checkbox to visualize GameObjects that cast shadows for the selected light.</td>
-    </tr>
-    <tr>
-      <td><strong>Filter Layers</strong></td>
-      <td>Use the drop-down to filter layers that you want to display. GameObjects that have a matching layer appear in a specific color. Use **Layers Color** to define this color.</td>
-    </tr>
-    <tr>
-      <td><strong>Layers Color</strong></td>
-      <td>Use the color pickers to select the display color of each rendering layer.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Engine</strong></td>
-      <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on a screen that uses a specific Shader. The properties available are the same as <Strong>Material</Strong> but are in the form that the lighting engine uses them (for example, <Strong>Smoothness</Strong> is <Strong>Perceptual Roughness</Strong>).</td>
-    </tr>
-        <tr>
-      <td rowspan="1"><strong>Attributes</strong></td>
-      <td colspan="2">Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen.</td>
-    </tr>
-    </tr>
-        <tr>
-      <td rowspan="1"><strong>Properties</strong></td>
-      <td colspan="2">Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select.</td>
-    </tr>
-    </tr>
-        <tr>
-      <td rowspan="1"><strong>GBuffer</strong></td>
-      <td colspan="2">Use the drop-down to select a property to visualize from the GBuffer for deferred Materials.</td>
-    </tr>
-    <tr>
-      <td rowspan="5"><strong>Material Validator</strong></td>
-      <td colspan="2">Use the drop-down to select properties to display validation colors for:<br/><ul> <li><strong>Diffuse Color</strong>: Select this option to check if the diffuse colors in your Scene adheres to an acceptable <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Glossary.html#PhysicallyBasedRendering">PBR</a> range. If the Material color is out of this range, the debugger displays it in the <strong>Too High Color</strong> color if it's above the range, or in the <strong>Too Low Color</strong> if it's below the range.</li>
-      <li><strong>Metal or SpecularColor</strong>: Select this option to check if a pixel contains a metallic or specular color that adheres to an acceptable PBR range. If it doesn't, the debugger highlights it in the <strong>Not A Pure Metal Color</strong>. For information about the acceptable PBR ranges in Unity, see the <a href="https://docs.unity3d.com/Manual/StandardShaderMaterialCharts.html">Material Charts documentation</a>.</li></ul></td>
-    </tr>
-    <tr>
-      <td><strong>Too High Color</strong></td>
-      <td>Use the color picker to select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
-    </tr>
-    <tr>
-      <td><strong>Too Low Color</strong></td>
-      <td>Use the color picker to select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
-    </tr>
-    <tr>
-      <td><strong>Not A Pure Metal Color</strong></td>
-      <td>Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the <strong>True Metals</strong> checkbox.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
-    <tr>
-      <td><strong>Pure Metals</strong></td>
-      <td>Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the <strong>Not A Pure Metal Color</strong> to highlight these pixels.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Override Global Material Texture Mip Bias</strong></td>
-      <td colspan="2">Enable the checkbox to override the mipmap level bias of texture samplers in material shaders. Use the <strong>Debug Global Material Texture Mip Bias Value</strong> to control the mipmap level bias override.<br/>When using this feature, be aware of the following:
-      <ul>
-      <li>It only affects gbuffer, forward opaque, transparency and decal passes.</li>
-      <li>It doesn't affect virtual texturing sampling.</li>
-      <li>It doesn't affect custom passes.</li>
-      </ul></td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Debug Global Material Texture Mip Bias Value</strong></td>
-      <td colspan="2">Use the slider to control the amount of mip bias of texture samplers in material shaders.</td>
-    </tr>
-  </tbody>
+ <thead>
+ <tr>
+ <th colspan="1"><strong>Debug Option</strong></th>
+ <th colspan="2"><strong>Description</strong></th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td rowspan="1"><strong>Common Material Property</strong></td>
+ <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on screen. All HDRP Materials share the properties available.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Material</strong></td>
+ <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader. The properties available depend on the HDRP Material type you select in the drop-down.</td>
+ </tr>
+ <tr>
+ <td rowspan="5"><strong>Rendering Layer Mask</strong></td>
+ <td colspan="2">These parameters only appear when you set the Material Debug Option to Rendering Layers.</td>
+ </tr>
+ <tr>
+ <td><strong>Filter with Light Layers from Selected Light</strong></td>
+ <td>Enable the checkbox to visualize GameObjects that the selected light affects.</td>
+ </tr>
+ <tr>
+ <td><strong>Use Light&#39;s Shadow Layer Mask</strong></td>
+ <td>Enable the checkbox to visualize GameObjects that cast shadows for the selected light.</td>
+ </tr>
+ <tr>
+ <td><strong>Filter Layers</strong></td>
+ <td>Use the drop-down to filter layers that you want to display. GameObjects that have a matching layer appear in a specific color. Use **Layers Color** to define this color.</td>
+ </tr>
+ <tr>
+ <td><strong>Layers Color</strong></td>
+ <td>Use the color pickers to select the display color of each rendering layer.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Engine</strong></td>
+ <td colspan="2">Use the drop-down to select a Material property to visualize on every GameObject on a screen that uses a specific Shader. The properties available are the same as <Strong>Material</Strong> but are in the form that the lighting engine uses them (for example, <Strong>Smoothness</Strong> is <Strong>Perceptual Roughness</Strong>).</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Attributes</strong></td>
+ <td colspan="2">Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen.</td>
+ </tr>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Properties</strong></td>
+ <td colspan="2">Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select.</td>
+ </tr>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>GBuffer</strong></td>
+ <td colspan="2">Use the drop-down to select a property to visualize from the GBuffer for deferred Materials.</td>
+ </tr>
+ <tr>
+ <td rowspan="5"><strong>Material Validator</strong></td>
+ <td colspan="2">Use the drop-down to select properties to display validation colors for:<br/><ul> <li><strong>Diffuse Color</strong>: Select this option to check if the diffuse colors in your Scene adheres to an acceptable <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Glossary.html#PhysicallyBasedRendering">PBR</a> range. If the Material color is out of this range, the debugger displays it in the <strong>Too High Color</strong> color if it's above the range, or in the <strong>Too Low Color</strong> if it's below the range.</li>
+ <li><strong>Metal or SpecularColor</strong>: Select this option to check if a pixel contains a metallic or specular color that adheres to an acceptable PBR range. If it doesn't, the debugger highlights it in the <strong>Not A Pure Metal Color</strong>. For information about the acceptable PBR ranges in Unity, see the <a href="https://docs.unity3d.com/Manual/StandardShaderMaterialCharts.html">Material Charts documentation</a>.</li></ul></td>
+ </tr>
+ <tr>
+ <td><strong>Too High Color</strong></td>
+ <td>Use the color picker to select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
+ </tr>
+ <tr>
+ <td><strong>Too Low Color</strong></td>
+ <td>Use the color picker to select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
+ </tr>
+ <tr>
+ <td><strong>Not A Pure Metal Color</strong></td>
+ <td>Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the <strong>True Metals</strong> checkbox.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
+ <tr>
+ <td><strong>Pure Metals</strong></td>
+ <td>Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the <strong>Not A Pure Metal Color</strong> to highlight these pixels.<br/>This property only appears when you select <strong>Diffuse Color</strong> or <strong>Metal or SpecularColor</strong> from the <strong>Material Validator</strong> drop-down.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Override Global Material Texture Mip Bias</strong></td>
+ <td colspan="2">Enable the checkbox to override the mipmap level bias of texture samplers in material shaders. Use the <strong>Debug Global Material Texture Mip Bias Value</strong> to control the mipmap level bias override.<br/>When using this feature, be aware of the following:
+ <ul>
+ <li>It only affects gbuffer, forward opaque, transparency and decal passes.</li>
+ <li>It doesn't affect virtual texturing sampling.</li>
+ <li>It doesn't affect custom passes.</li>
+ </ul></td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Debug Global Material Texture Mip Bias Value</strong></td>
+ <td colspan="2">Use the slider to control the amount of mip bias of texture samplers in material shaders.</td>
+ </tr>
+ </tbody>
 </table>
 
 If the geometry or the shading normal is denormalized, the view renders the target pixel red.
@@ -211,54 +211,54 @@ The **Lighting** panel has tools that you can use to visualize various component
 
 
 <table>
-  <thead>
-    <tr>
-      <th colspan="1"><strong>Shadow Debug Option</strong></th>
-      <th colspan="2"><strong>Description</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="3"><strong>Debug Mode</strong></td>
-      <td colspan="2">Use the drop-down to select which shadow debug information to overlay on the screen:<br/>
-      <ul>
-      <li><strong>None</strong>: Select this mode to remove the shadow debug information from the screen.</li>
-      <li><strong>VisualizePunctualLightAtlas</strong>: Select this mode to overlay the shadow atlas for <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Glossary.html#PunctualLight">Punctual Lights</a> in your Scene.</li>
-      <li><strong>VisualizeDirectionalLightAtlas</strong>: Select this mode to overlay the shadow atlas for Directional Lights in your Scene.</li>
-      <li><strong>VisualizeAreaLightAtlas</strong>: Select this mode to overlay the shadow atlas for area Lights in your Scene.</li>
-      <li><strong>VisualizeShadowMap</strong>: Select this mode to overlay a single shadow map for a Light in your Scene.</li>
-      <li><strong>SingleShadow</strong>: Select this mode to replace the Scene's lighting with a single Light. To select which Light to isolate, see <strong>Use Selection</strong> or <strong>Shadow Map Index</strong>.</li>
-      </ul></td>
-    </tr>
-    <tr>
-      <td><strong>Use Selection</strong></td>
-      <td>Enable the checkbox to display the shadow map for the Light you select in the Scene.<br/>This property only appears when you select <Strong>VisualizeShadowMap</Strong> or <Strong>SingleShadow</Strong> from the <Strong>Shadow Debug Mode</Strong> drop-down.</td>
-    </tr>
-    <tr>
-      <td><strong>Shadow Map Index</strong></td>
-      <td>Use the slider to select the index of the shadow map to view. To use this property correctly, you must have at least one <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Light-Component.html">Light</a> in your Scene that uses shadow maps.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Global Scale Factor</strong></td>
-      <td colspan="2">Use the slider to set the global scale that HDRP applies to the shadow rendering resolution.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Clear Shadow Atlas</strong></td>
-      <td colspan="2">Enable the checkbox to clear the shadow atlas every frame.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Range Minimum Value</strong></td>
-      <td colspan="2">Set the minimum shadow value to display in the various shadow debug overlays.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Range Maximum Value</strong></td>
-      <td colspan="2">Set the maximum shadow value to display in the various shadow debug overlays.</td>
-    </tr>
-    <tr>
-      <td rowspan="1"><strong>Log Cached Shadow Atlas Status</strong></td>
-      <td colspan="2">Set the maximum shadow value to display in the various shadow debug overlays.</td>
-    </tr>
-  </tbody>
+ <thead>
+ <tr>
+ <th colspan="1"><strong>Shadow Debug Option</strong></th>
+ <th colspan="2"><strong>Description</strong></th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td rowspan="3"><strong>Debug Mode</strong></td>
+ <td colspan="2">Use the drop-down to select which shadow debug information to overlay on the screen:<br/>
+ <ul>
+ <li><strong>None</strong>: Select this mode to remove the shadow debug information from the screen.</li>
+ <li><strong>VisualizePunctualLightAtlas</strong>: Select this mode to overlay the shadow atlas for <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Glossary.html#PunctualLight">Punctual Lights</a> in your Scene.</li>
+ <li><strong>VisualizeDirectionalLightAtlas</strong>: Select this mode to overlay the shadow atlas for Directional Lights in your Scene.</li>
+ <li><strong>VisualizeAreaLightAtlas</strong>: Select this mode to overlay the shadow atlas for area Lights in your Scene.</li>
+ <li><strong>VisualizeShadowMap</strong>: Select this mode to overlay a single shadow map for a Light in your Scene.</li>
+ <li><strong>SingleShadow</strong>: Select this mode to replace the Scene's lighting with a single Light. To select which Light to isolate, see <strong>Use Selection</strong> or <strong>Shadow Map Index</strong>.</li>
+ </ul></td>
+ </tr>
+ <tr>
+ <td><strong>Use Selection</strong></td>
+ <td>Enable the checkbox to display the shadow map for the Light you select in the Scene.<br/>This property only appears when you select <Strong>VisualizeShadowMap</Strong> or <Strong>SingleShadow</Strong> from the <Strong>Shadow Debug Mode</Strong> drop-down.</td>
+ </tr>
+ <tr>
+ <td><strong>Shadow Map Index</strong></td>
+ <td>Use the slider to select the index of the shadow map to view. To use this property correctly, you must have at least one <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Light-Component.html">Light</a> in your Scene that uses shadow maps.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Global Scale Factor</strong></td>
+ <td colspan="2">Use the slider to set the global scale that HDRP applies to the shadow rendering resolution.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Clear Shadow Atlas</strong></td>
+ <td colspan="2">Enable the checkbox to clear the shadow atlas every frame.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Range Minimum Value</strong></td>
+ <td colspan="2">Set the minimum shadow value to display in the various shadow debug overlays.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Range Maximum Value</strong></td>
+ <td colspan="2">Set the maximum shadow value to display in the various shadow debug overlays.</td>
+ </tr>
+ <tr>
+ <td rowspan="1"><strong>Log Cached Shadow Atlas Status</strong></td>
+ <td colspan="2">Set the maximum shadow value to display in the various shadow debug overlays.</td>
+ </tr>
+ </tbody>
 </table>
 
 <table>
@@ -476,88 +476,71 @@ The **Lighting** panel has tools that you can use to visualize various component
 
 The **Volume** panel has tools that you can use to visualize the Volume Components affecting a camera.
 
-| **Debug Option**       | **Description**                                      |
+| **Debug Option** | **Description** |
 | ---------------------- | ---------------------------------------------------- |
-| **Component**          | Use the drop-down to select which volume component to visualize. |
-| **Camera**             | Use the drop-down to select which camera to use as volume anchor. |
-| **Parameter**          | List of parameters for the selected component. |
+| **Component** | Use the drop-down to select which volume component to visualize. |
+| **Camera** | Use the drop-down to select which camera to use as volume anchor. |
+| **Parameter** | List of parameters for the selected component. |
 | **Interpolated Value** | Current value affecting the choosen camera for each parameter. |
-| **Other columns**      | Each one of the remaining columns display the parameter values of a volume affecting the selected **Camera**. They're sorted from left to right by decreasing influence. |
+| **Other columns** | Each one of the remaining columns display the parameter values of a volume affecting the selected **Camera**. They're sorted from left to right by decreasing influence. |
 
 <a name="ProbeVolume"></a>
 
 ## Probe Volume panel
 
-These settings make it possible for you to visualize [Probe Volumes](probevolumes.md) in your Scene, and configure the visualization.
+These settings make it possible for you to visualize [Adaptive Probe Volumes](probevolumes.md) in your Scene, and configure the visualization.
 
+### Subdivision Visualization
 
-<table>
-<thead>
-  <tr>
-    <td colspan="2"><b>Property</b></th>
-    <td colspan="1"><b>Description</b></th>
-  </tr>
-</thead>
-<tbody>
-  <tr>
-    <td rowspan="5"><b>Subdivision Visualization</b></td>
-  </tr>
-  <tr>
-    <td><b>Display Cells</b></td>
-    <td>Display cells, which are the units used for <a href="probevolumes-streaming.md">streaming</a></td>
-  </tr>
-  <tr>
-    <td><b>Display Bricks</b></td>
-    <td>Display <a href="probevolumes.md#bricks">Bricks</a>.</td>
-  </tr>
-  <tr>
-    <td><b>Realtime Update</b> <a name="realtimeupdatessubdivisionsview"></a></td>
-    <td>Preview Probe Volume data in the Scene without baking. </td>
-  </tr>
-  <tr>
-    <td><b>Culling Distance</b></td>
-    <td>Determines how far from the Scene Camera Unity draws debug visuals for cells and bricks, in meters.</td>
-  </tr>
-  <tr>
-    <td rowspan="5"><b>Probe Visualization</b></td>
-  </tr>
-  <tr>
-    <td><b>Display Probes</b></td>
-    <td>Display probe positions. <br></td>
-  </tr>
-  <tr>
-    <td><b>Debug Probe Sampling</b></td>
-    <td>Display how probes are sampled at a selected pixel. <br></td>
-  </tr>
-  <tr>
-    <td><b>Virtual Offset</b></td>
-    <td>Display the offsets Unity applies to Light Probe capture positions. </td>
-  </tr>
-  <tr>
-    <td><b>Culling Distance</b></td>
-    <td>Determines how far from the Scene Camera Unity draws Light Probe position indicators, in meters. </td>
-  </tr>
-  <tr>
-    <td rowspan="5"><b>Scenario Blending</b></td>
-  </tr>
-  <tr>
-    <td><b>Number of Cells Blended Per Frame</b></td>
-    <td>Determines the maximum number of cells Unity blends per frame.</td>
-  </tr>
-  <tr>
-    <td><b>Turnover Rate</b></td>
-    <td>Delay in seconds between updates to cell, brick, and Light Probe positions during <a href="probevolumes-use.md#scenarios">Lighting Scenario</a> blending. </td>
-  </tr>
-  <tr>
-    <td><b>Scenario To Blend With</b></td>
-    <td>Select another Lighting Scenario to blend with the active lighting scenario. </td>
-  </tr>
-  <tr>
-    <td><b>Scenario Blending Factor</b></td>
-    <td>Adjust to blend between Light Scenarios.</td>
-  </tr>
-</tbody>
-</table>
+| **Property** | **Sub-property** | **Description** |
+|-|-|-|
+| **Display Cells** || Display cells. Refer to [Understanding Adaptive Probe Volumes](../probevolumes-concept.md) for more information. |
+| **Display Bricks** || Display bricks. Refer to [Understanding Adaptive Probe Volumes](../probevolumes-concept.md) for more information. |
+| **Live Subdivision Preview** || Enable a preview of Adaptive Probe Volume data in the scene without baking. This might make the Editor slower. This setting appears only if you select **Display Cells** or **Display Bricks**. |
+|| **Cell Updates Per Frame** | Set the number of cells, bricks, and probe positions to update per frame. Higher values might make the Editor slower.  The default value is 4. This property appears only if you enable **Live Subdivision Preview**. |
+|| **Update Frequency** | Set how frequently Unity updates cell, bricks, and probe positions, in seconds. The default value is 1. This property appears only if you enable **Live Subdivision Preview**. |
+| **Debug Draw Distance** || Set how far from the scene camera Unity draws debug visuals for cells and bricks, in meters. The default value is 500. |
+
+### Probe Visualization
+
+| **Property** | **Sub-property** | **Description** |
+|-|-|-|
+| **Display Probes** || Display probes. |
+|| **Probe Shading Mode** | Set what the Rendering Debugger displays. The options are:<ul><li><strong>SH</strong>: Display the [spherical harmonics (SH) lighting data](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) for the final color calculation. The number of bands depends on the **SH Bands** setting in the active [HDRP Asset](HDRP-Asset.md).</li><li><strong>SHL0</strong>: Display the spherical harmonics (SH) lighting data with only the first band.</li><li><strong>SHL0L1</strong>: Display the spherical Harmonics (SH) lighting data with the first two bands.</li><li><strong>Validity</strong>: Display whether probes are valid, based on the number of backfaces the probe samples. Refer to [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md) for more information about probe validity.</li><li><strong>Probe Validity Over Dilation Threshold</strong>: Display red if a probe samples too many backfaces, based on the **Validity Threshold** set in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.md). This means the probe can't be baked or sampled.</li><li><strong>Invalidated By Touchup Volumes</strong>: Display probes that a [Probe Adjustment Volume component](probevolumes-adjustment-volume-component-reference.md) has made invalid.</li><li><strong>Size</strong>: Display a different color for each size of [brick](probevolumes-concept.md).</li></ul>|
+|| **Debug Size** | Set the size of the displayed probes. The default is 0.3. |
+|| **Exposure Compensation** | Set the brightness of the displayed probes. Decrease the value to increase brightness. The default is 0. This property appears only if you set **Probe Shading Mode** to **SH**, **SHL0**, or **SHL0L1**. |
+|| **Max Subdivisions Displayed** | Set the lowest probe density to display. For example, set this to 0 to display only the highest probe density. |
+|| **Min Subdivisions Displayed** | Set the highest probe density to display. |
+| **Debug Probe Sampling** || Display how probes are sampled for a pixel. In the Scene view, in the **Adaptive Probe Volumes** overlay, select **Select Pixel** to change the pixel. |
+|| **Debug Size** | Set the size of the **Debug Probe Sampling** display. |
+|| **Debug With Sampling Noise** | Enable sampling noise for this debug view. Enabling this gives more accurate information, but makes the information more difficult to read. |
+| **Virtual Offset Debug** || Display the offsets Unity applies to Light Probe capture positions. |
+|| **Debug Size** | Set the size of the arrows that represent Virtual Offset values. |
+| **Debug Draw Distance** || Set how far from the scene camera Unity draws debug visuals for cells and bricks, in meters. The default is 200. |
+
+### Streaming
+
+Use the following properties to control how HDRP streams Adaptive Probe Volumes. Refer to [Streaming Adaptive Probe Volumes](probevolumes-streaming.md) for more information.
+
+| **Property** | **Description** |
+| ------------ | --------------- |
+| **Freeze Streaming** | Stop Unity from streaming probe data. |
+| **Display Streaming Score** | If you enable **Display Cells**, this setting darkens cells that have a lower priority for streaming. Cells closer to the camera usually have the highest priority. |
+| **Maximum cell streaming** | Stream as many cells as possible every frame. |
+| **Display Index Fragmentation** | Open an overlay that displays how fragmented the streaming memory is. A green square is an area of used memory. The more spaces between the green squares, the more fragmented the memory. |
+| **Index Fragmentation Rate** | Displays the amount of fragmentation as a numerical value, where 0 is no fragmentation. |
+| **Verbose Log** | Log information about streaming. |
+
+### Scenario Blending
+
+Use the following properties to control how HDRP blends Lighting Scenarios. Refer to [Bake different lighting setups with Lighting Scenarios](probevolumes-bakedifferentlightingsetups.md) for more information.
+
+| **Property** | **Description** |
+| - | - |
+| **Number of Cells Blended Per Frame** | Determines the maximum number of cells Unity blends per frame. The default is 10,000. |
+| **Turnover Rate** | Set the blending priority of cells close to the camera. The range is 0 to 1, where 0 sets the cells close to the camera with high priority, and 1 sets all cells with equal priority. Increase **Turnover Rate** to avoid cells close to the camera blending too frequently. |
+| **Scenario To Blend With** | Select a Lighting Scenario to blend with the active Lighting Scenario. |
+| **Scenario Blending Factor** | Set how far to blend from the active Lighting Scenario to the **Scenario To Blend With**. The range is 0 to 1, where 0 is fully the active Lighting Scenario, and 1 is fully the **Scenario To Blend With**. |
 
 <a name="RenderingPanel"></a>
 
@@ -669,10 +652,10 @@ For more information on how to debug compute thickness, refer to <a href="Comput
 </tbody>
 </table>
 
-| **Color Picker**      | **Description**                                              |
+| **Color Picker** | **Description** |
 | --------------------- | ------------------------------------------------------------ |
-| **Debug Mode**        | Use the drop-down to select the format of the color picker display. |
-| **Font Color**        | Use the color picker to select a color for the font that the Color Picker uses for its display. |
+| **Debug Mode** | Use the drop-down to select the format of the color picker display. |
+| **Font Color** | Use the color picker to select a color for the font that the Color Picker uses for its display. |
 
 The **Color Picker** works with whichever debug mode HDRP displays at the time. This means that you can see the values of various components of the rendering like Albedo or Diffuse Lighting. By default, this displays the value of the main High Dynamic Range (HDR) color buffer.
 
@@ -717,36 +700,36 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 
 The **Color monitors** are a set of industry-standard monitors to help artists control the overall look and exposure of a scene.
 
-| **Debug Option** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Debug Option** | **Description**    |
 |------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Waveform**     | Displays the full range of luma (brightness) information in the Camera’s output. The horizontal axis of the graph corresponds to the render (from left to right) and the vertical axis indicates the brightness value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **Exposure**     | Determines the exposure multiplier HDRP applies to the waveform values.<br/><br/>This property only appears when you enable the **Waveform** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| **Parade mode**  | Splits the image into red, green and blue separately. You can use this to visualise the RGB balance of the Camera's image. This helps you to see large offsets in one particular channel, or to determine if GameObjects are true black or true white. A true black, white, or grey GameObject has equal values across all channels.<br/><br/>This property only appears when you enable the **Waveform** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                  |
-| **Vectorscope**  | The Vectorscope monitor measures the overall range of hue and saturation within the Camera’s image in real-time. To display the data, it uses a scatter graph relative to the center of the Vectorscope.<br/><br/>The Vectorscope measures hue values between yellow, red, magenta, blue, cyan and green. The center of the Vectorscope represents absolute zero saturation and the edges represent the highest level of saturation. To determine the hues in your scene and their saturation, look at the distribution of the Vectorscope’s scatter graph.<br/>To identify whether there is a color imbalance in the image, look at how close the middle of the Vectorscope graph is to the absolute center. If the Vectorscope graph is off-center, this indicates that there is a color cast (tint) in the image. |
-| **Exposure**     | Determines the exposure multiplier HDRP applies to the vectorscope values.<br/><br/>This property only appears when you enable the **Vectorscope** checkbox.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| **Size**         | The size ratio of the color monitors.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **Waveform** | Displays the full range of luma (brightness) information in the Camera’s output. The horizontal axis of the graph corresponds to the render (from left to right) and the vertical axis indicates the brightness value.   |
+| **Exposure** | Determines the exposure multiplier HDRP applies to the waveform values.<br/><br/>This property only appears when you enable the **Waveform** checkbox.   |
+| **Parade mode** | Splits the image into red, green and blue separately. You can use this to visualise the RGB balance of the Camera's image. This helps you to see large offsets in one particular channel, or to determine if GameObjects are true black or true white. A true black, white, or grey GameObject has equal values across all channels.<br/><br/>This property only appears when you enable the **Waveform** checkbox.  |
+| **Vectorscope** | The Vectorscope monitor measures the overall range of hue and saturation within the Camera’s image in real-time. To display the data, it uses a scatter graph relative to the center of the Vectorscope.<br/><br/>The Vectorscope measures hue values between yellow, red, magenta, blue, cyan and green. The center of the Vectorscope represents absolute zero saturation and the edges represent the highest level of saturation. To determine the hues in your scene and their saturation, look at the distribution of the Vectorscope’s scatter graph.<br/>To identify whether there is a color imbalance in the image, look at how close the middle of the Vectorscope graph is to the absolute center. If the Vectorscope graph is off-center, this indicates that there is a color cast (tint) in the image. |
+| **Exposure** | Determines the exposure multiplier HDRP applies to the vectorscope values.<br/><br/>This property only appears when you enable the **Vectorscope** checkbox.   |
+| **Size** | The size ratio of the color monitors.   |
 
-| **Debug Option**  | **Description**                                              |
+| **Debug Option** | **Description** |
 | ----------------- | ------------------------------------------------------------ |
-| **Clear Render Targets at creation**  | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
-| **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
-| **Immediate Mode**                    | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
-| **Log Frame Information**             | Press the button to log in the Console informations about the passes rendered during a frame. |
-| **Log Resources**                     | Press the button to log in the Console the list of resources used when rendering a frame. |
+| **Clear Render Targets at creation** | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
+| **Disable Pass Culling** | Enable the checkbox to render passes which have no impact on the final render. |
+| **Immediate Mode** | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
+| **Log Frame Information** | Press the button to log in the Console informations about the passes rendered during a frame. |
+| **Log Resources** | Press the button to log in the Console the list of resources used when rendering a frame. |
 
 The **NVIDIA device debug view** is a panel that displays a list of the current feature states of NVIDIA Deep Learning Super Sampling (DLSS). Each row represents an active screen in which DLSS is running.
 
-| **Information**          | **Description**    |
+| **Information** | **Description** |
 | ------------------------ | ------------------ |
 | **NVUnityPlugin Version**| Displays the current internal version id of the NVIDIA Unity Plugin that interacts with DLSS. |
-| **NGX API Version**      | Displays the actual version which DLSS operates on. |
-| **Device Status**        | Displays the current status of the NVIDIA driver. If an internal error occurred when initializing the driver, Unity displays the error here. |
-| **DLSS Supported**       | Displays **True** if your project supports DLSS at runtime. Otherwise, displays **False**. |
-| **DLSS Slot ID**         | Displays an internal ID for the particular DLSS view being displayed. |
-| **Status**               | Displays whether the view is **valid** or **invalid**. A view is invalid if there is an internal error, or if the Scriptable Render Pipeline passes incorrect parameters. |
-| **Input resolution**     | Displays the current input resolution. Unity calculates this from the screen percentage specified for dynamic resolution scaling. |
-| **Output resolution**    | Displays the target resolution for this particular DLSS view. |
-| **Quality**              | Displays the quality selected for this particular DLSS view.  |
+| **NGX API Version** | Displays the actual version which DLSS operates on. |
+| **Device Status** | Displays the current status of the NVIDIA driver. If an internal error occurred when initializing the driver, Unity displays the error here. |
+| **DLSS Supported** | Displays **True** if your project supports DLSS at runtime. Otherwise, displays **False**. |
+| **DLSS Slot ID** | Displays an internal ID for the particular DLSS view being displayed. |
+| **Status** | Displays whether the view is **valid** or **invalid**. A view is invalid if there is an internal error, or if the Scriptable Render Pipeline passes incorrect parameters. |
+| **Input resolution** | Displays the current input resolution. Unity calculates this from the screen percentage specified for dynamic resolution scaling. |
+| **Output resolution** | Displays the target resolution for this particular DLSS view. |
+| **Quality** | Displays the quality selected for this particular DLSS view. |
 
 The **History Buffers view** lets you display various render pipeline full screen buffers that persist across multiple frames.
 
@@ -766,12 +749,12 @@ In the **Rendering Debugger**, each active Camera in the Scene has its own debug
 
 The following columns are available for each Frame Setting:
 
-| **Column**     | **Description**                                              |
+| **Column** | **Description** |
 | -------------- | ------------------------------------------------------------ |
-| **Debug**      | Displays Frame Setting values you can modify for the selected Camera. You can use these to temporarily alter the Camera’s Frame Settings for debugging purposes. You can't enable Frame Setting features that your HDRP Asset doesn't support. |
-| **Sanitized**  | Displays the Frame Setting values that the selected Camera uses after Unity checks to see if your HDRP Asset supports them. |
+| **Debug** | Displays Frame Setting values you can modify for the selected Camera. You can use these to temporarily alter the Camera’s Frame Settings for debugging purposes. You can't enable Frame Setting features that your HDRP Asset doesn't support. |
+| **Sanitized** | Displays the Frame Setting values that the selected Camera uses after Unity checks to see if your HDRP Asset supports them. |
 | **Overridden** | Displays the Frame Setting values that the selected Camera overrides. If you don't check the **Custom Frame Settings** checkbox, check it and don't override any settings, this column is identical to the **Default** column. |
-| **Default**    | Displays the default Frame Setting values in your current [HDRP Asset](HDRP-Asset.md). |
+| **Default** | Displays the default Frame Setting values in your current [HDRP Asset](HDRP-Asset.md). |
 
 Unity processes **Sanitized**, **Overridden**, and **Default** in a specific order:
 
@@ -793,7 +776,7 @@ Unity processes **Sanitized**, **Overridden**, and **Default** in a specific ord
 
 You can use the **Virtual Texturing** panel to visualize [Streaming Virtual Texturing](https://docs.unity3d.com/Manual/svt-streaming-virtual-texturing.html).
 
-| **Debug Option**                     | **Description**                                               |
+| **Debug Option** | **Description** |
 | ------------------------------------ | ------------------------------------------------------------- |
 | **Debug disable Feedback Streaming** | Deactivate Streaming Virtual Texturing to quickly assess its cost in performance and memory at runtime. |
-| **Textures with Preloaded Mips**        | Display the total number of virtual textures Unity has loaded into the scene. Unity tries to preload the least detailed mipmap level (least being 128x128) into GPU memory. This number increases every time a material is loaded. |
+| **Textures with Preloaded Mips** | Display the total number of virtual textures Unity has loaded into the scene. Unity tries to preload the least detailed mipmap level (least being 128x128) into GPU memory. This number increases every time a material is loaded. |

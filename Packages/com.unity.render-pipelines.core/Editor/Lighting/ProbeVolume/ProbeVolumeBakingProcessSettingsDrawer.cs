@@ -78,8 +78,8 @@ namespace UnityEngine.Rendering
                 {
                     if (IndentedButton(EditorGUIUtility.TrTextContent("Refresh Dilation")))
                     {
-                        ProbeGIBaking.RevertDilation();
-                        ProbeGIBaking.PerformDilation();
+                        AdaptiveProbeVolumes.RevertDilation();
+                        AdaptiveProbeVolumes.PerformDilation();
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering
 
                 if (IndentedButton(EditorGUIUtility.TrTextContent("Refresh Virtual Offset Debug", "Re-run the virtual offset simulation; it will be applied only for debug visualization sake and not affect baked data.")))
                 {
-                    ProbeGIBaking.RecomputeVOForDebugOnly();
+                    AdaptiveProbeVolumes.RecomputeVOForDebugOnly();
                 }
             }
         }

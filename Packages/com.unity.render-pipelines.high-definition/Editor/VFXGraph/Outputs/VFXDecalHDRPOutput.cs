@@ -360,31 +360,31 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             GetDecalSupport(out var supportDecals, out var enableDecalLayers, out var metalAndAODecals);
 
             if (!supportDecals)
             {
-                manager.RegisterError("DecalsDisabled", VFXErrorType.Warning,
-                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Asset. Enable 'Decals' in your HDRP Asset to make this output work.");
+                report.RegisterError("DecalsDisabled", VFXErrorType.Warning,
+                    $"Decals will not be rendered because the 'Decals' is disabled in your HDRP Asset. Enable 'Decals' in your HDRP Asset to make this output work.", this);
             }
 
             if (!enableDecalLayers)
             {
-                manager.RegisterError("DecalLayersDisabled", VFXErrorType.Warning,
+                report.RegisterError("DecalLayersDisabled", VFXErrorType.Warning,
                     $"The Angle Fade parameter won't have any effect, because the 'Decal Layers' setting is disabled." +
                     $" Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade." +
-                    $" There is a performance cost of enabling this option.");
+                    $" There is a performance cost of enabling this option.", this);
             }
 
             if (!metalAndAODecals)
             {
-                manager.RegisterError("DecalMetalAODisabled", VFXErrorType.Warning,
+                report.RegisterError("DecalMetalAODisabled", VFXErrorType.Warning,
                     $"The Metallic and Ambient Occlusion parameters won't have any effect, because the 'Metal and AO properties' setting is disabled." +
-                    $" Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.");
+                    $" Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.", this);
             }
         }
 

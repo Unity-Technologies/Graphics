@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.Block
                 default: throw new NotImplementedException();
             }
         }
-        
+
         public enum Behavior
         {
             None = 0,
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Specifies the collision shape mode. The collider can either be a solid volume which particles cannot enter, or an empty volume which particles cannot leave.")]
         public Mode mode = Mode.Solid;
         [VFXSetting, Tooltip("Specifies the collision radius of each particle. This can be set to none (zero), automatically inherited from the particle size, or a custom value.")]
-        public RadiusMode radiusMode = RadiusMode.None;      
+        public RadiusMode radiusMode = RadiusMode.None;
         [VFXSetting, Tooltip("Specifies if the block should write collision attributes (HasCollisionEvent, CollisionEventNormal, CollisionEventPosition and CollisionEventCount). Attributes can be written in case of punctual collisions only or always.")]
         public CollisionAttributesMode collisionAttributes;
         [VFXSetting, Tooltip("When enabled, randomness is added to the direction in which particles bounce back to simulate collision with a rough surface.")]
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Block
                 return VFXContextType.InitAndUpdateAndOutput;
             }
         }
-            
+
         public override VFXDataType compatibleData => VFXDataType.Particle;
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -128,11 +128,11 @@ namespace UnityEditor.VFX.Block
                 }
 
                	if (collisionAttributes != CollisionAttributesMode.NoWrite)
-               	{ 
-               	    yield return new VFXAttributeInfo(VFXAttribute.HasCollisionEvent, VFXAttributeMode.Write); //collision detected at instant T then reset 
+               	{
+               	    yield return new VFXAttributeInfo(VFXAttribute.HasCollisionEvent, VFXAttributeMode.Write); //collision detected at instant T then reset
                     yield return new VFXAttributeInfo(VFXAttribute.CollisionEventNormal, VFXAttributeMode.Write);
                     yield return new VFXAttributeInfo(VFXAttribute.CollisionEventPosition, VFXAttributeMode.Write);
-                    yield return new VFXAttributeInfo(VFXAttribute.CollisionEventCount, VFXAttributeMode.ReadWrite);                 
+                    yield return new VFXAttributeInfo(VFXAttribute.CollisionEventCount, VFXAttributeMode.ReadWrite);
                	}
             }
         }
@@ -238,7 +238,7 @@ float3 hitPos = (float3)0.0f;
 
                 stringBuilder.Append(collisionDetection);
 
-                
+
                 stringBuilder.Append(@"
 if (hit)
 {
@@ -263,7 +263,7 @@ if (hit)
                     stringBuilder.Append(@"
 
     float projVel = dot(hitNormal, velocity);
-    
+
     float3 normalVel = projVel * hitNormal;
     float3 tangentVel = velocity - normalVel;
 
@@ -273,7 +273,7 @@ if (hit)
 	    float restitutionCoef = isPunctualContact ? Bounce : 0.0f;
         if (projVel > -BounceSpeedThreshold)
         {
-            float bounceAttenuation = -projVel / (BounceSpeedThreshold + VFX_EPSILON);           
+            float bounceAttenuation = -projVel / (BounceSpeedThreshold + VFX_EPSILON);
             restitutionCoef *= bounceAttenuation;
             isPunctualContact = false; // Don't send punctual collision event under velocity threshold
         }
@@ -315,18 +315,18 @@ if (hit)
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             if (behavior == Behavior.None && collisionAttributes == CollisionAttributesMode.NoWrite)
             {
-                manager.RegisterError("NoEffectColliderBlock", VFXErrorType.Warning, "The block behavior is set to None and collision attributes are not written. This block does not have any effect.");
+                report.RegisterError("NoEffectColliderBlock", VFXErrorType.Warning, "The block behavior is set to None and collision attributes are not written. This block does not have any effect.", this);
             }
 
             if (behavior != Behavior.Collision && collisionAttributes == CollisionAttributesMode.WritePunctalContactOnly)
             {
-                manager.RegisterError("NotCollisionAndWriteOnPunctual", VFXErrorType.Warning, "Punctual contacts work only with Collision behavior. The collision attributes mode should be changed to Write Always.");
+                report.RegisterError("NotCollisionAndWriteOnPunctual", VFXErrorType.Warning, "Punctual contacts work only with Collision behavior. The collision attributes mode should be changed to Write Always.", this);
             }
 
             if (behavior == Behavior.Collision)
@@ -358,10 +358,10 @@ if (hit)
 
                     if (velocityWriteFound)
                     {
-                        manager.RegisterError("VelocityWrittenAfterCollision", VFXErrorType.Warning, "Velocity attribute is written after this block in the context. You should only write velocity prior to collisions otherwise they might not work as expected");
+                        report.RegisterError("VelocityWrittenAfterCollision", VFXErrorType.Warning, "Velocity attribute is written after this block in the context. You should only write velocity prior to collisions otherwise they might not work as expected", this);
                     }
                 }
-            }     
+            }
         }
 
         public class CollisionProperties

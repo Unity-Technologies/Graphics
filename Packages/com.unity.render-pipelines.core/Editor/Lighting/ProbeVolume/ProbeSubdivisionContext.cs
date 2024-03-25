@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering
 
                     IEnumerator Subdivide()
                     {
-                        var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(true);
+                        var ctx = AdaptiveProbeVolumes.PrepareProbeSubdivisionContext(true);
                         var contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
 
                         // Cull all the cells that are not visible (we don't need them for realtime debug)
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering
                             ctx.cells.Clear();
                             ctx.cells.Add(cell);
 
-                            var result = ProbeGIBaking.BakeBricks(ctx, contributors);
+                            var result = AdaptiveProbeVolumes.BakeBricks(ctx, contributors);
 
                             if (result.cells.Count != 0)
                                 ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.bounds] = result.cells[0].bricks;
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering
             float cellSize = profileInfo.cellSizeInMeters;
             Vector3 cellDimensions = new Vector3(cellSize, cellSize, cellSize);
 
-            var pvList = ProbeGIBaking.GetProbeVolumeList();
+            var pvList = AdaptiveProbeVolumes.GetProbeVolumeList();
             foreach (var pv in pvList)
             {
                 if (!pv.isActiveAndEnabled)

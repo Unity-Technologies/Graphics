@@ -4,46 +4,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-
 namespace UnityEditor.VFX.UI
 {
-    class EnumPropertyRM : SimplePropertyRM<int>
+    sealed class EnumPropertyRM : PropertyRM<Enum>
     {
+        private readonly EnumField m_EnumField;
+
         public EnumPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
+            m_EnumField = new EnumField(ObjectNames.NicifyVariableName(m_Provider.name), (Enum)m_Provider.value);
+            m_EnumField.RegisterCallback<ChangeEvent<Enum>>(OnValueChange);
+            Add(m_EnumField);
+            SetLabelWidth(labelWidth);
         }
 
-        public override float GetPreferredControlWidth()
+        private void OnValueChange(ChangeEvent<Enum> evt)
         {
-            int min = 120;
-            foreach (var str in Enum.GetNames(provider.portType))
-            {
-                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined);
-
-                size.x += 60;
-                if (min < size.x)
-                    min = (int)size.x;
-            }
-            if (min > 200)
-                min = 200;
-
-
-            return min;
+            provider.value = evt.newValue;
         }
 
-        public override ValueControl<int> CreateField()
-        {
-            var field = new EnumField(m_Label, m_Provider.portType);
-            field.OnDisplayMenu = OnDisplayMenu;
-
-            return field;
-        }
-
-        void OnDisplayMenu(EnumField field)
-        {
-            field.filteredOutValues = provider.filteredOutEnumerators;
-        }
+        public override float GetPreferredControlWidth() => 120;
+        protected override void UpdateEnabled() => m_EnumField.SetEnabled(propertyEnabled);
+        protected override void UpdateIndeterminate() => m_EnumField.showMixedValue = indeterminate;
+        public override void UpdateGUI(bool force) => m_EnumField.SetValueWithoutNotify(m_Value);
+        public override bool showsEverything => true;
     }
 
     [Serializable]
@@ -78,7 +62,7 @@ namespace UnityEditor.VFX.UI
         public ListPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             var choices = (MultipleValuesChoice<string>)m_Provider.value;
-            m_Field = new DropdownField(null, choices.values ?? new List<string>(), 0, FormatSelectedValueCallback);
+            m_Field = new DropdownField(ObjectNames.NicifyVariableName(controller.name), choices.values ?? new List<string>(), 0, FormatSelectedValueCallback);
             m_Field.RegisterValueChangedCallback(OnValueChanged);
             Add(m_Field);
         }
@@ -90,13 +74,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public override float GetPreferredControlWidth() => 120;
-        protected override void UpdateEnabled()
-        {
-        }
-
-        protected override void UpdateIndeterminate()
-        {
-        }
+        protected override void UpdateEnabled() => m_Field.SetEnabled(propertyEnabled);
+        protected override void UpdateIndeterminate() => m_Field.showMixedValue = indeterminate;
 
         public override void UpdateGUI(bool force)
         {
@@ -126,27 +105,20 @@ namespace UnityEditor.VFX.UI
     {
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_FieldParent.style.flexDirection = FlexDirection.Row;
-
-            fieldControl.onValueDragFinished = () => ValueDragFinished();
-            fieldControl.onValueDragStarted = () => ValueDragStarted();
+            fieldControl.onValueDragFinished += ValueDragFinished;
+            fieldControl.onValueDragStarted += ValueDragStarted;
         }
 
-        public override float GetPreferredControlWidth()
+        public override float GetPreferredControlWidth() => 260;
+
+        protected override void UpdateIndeterminate()
         {
-            return 260;
+            ((VFXMatrix4x4Field)field).indeterminate = indeterminate;
         }
 
-        protected void ValueDragFinished()
+        public override INotifyValueChanged<Matrix4x4> CreateField()
         {
-            m_Provider.EndLiveModification();
-            hasChangeDelayed = false;
-            NotifyValueChanged();
-        }
-
-        protected void ValueDragStarted()
-        {
-            m_Provider.StartLiveModification();
+            return new VFXMatrix4x4Field(ObjectNames.NicifyVariableName(provider.name));
         }
     }
 
@@ -156,9 +128,16 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override float GetPreferredControlWidth()
+        public override float GetPreferredControlWidth() => 100;
+
+        protected override void UpdateIndeterminate()
         {
-            return 100;
+            ((VFXFlipBookField)field).indeterminate = indeterminate;
+        }
+
+        public override INotifyValueChanged<FlipBook> CreateField()
+        {
+            return new VFXFlipBookField(ObjectNames.NicifyVariableName(provider.name));
         }
     }
 }

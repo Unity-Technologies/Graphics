@@ -37,16 +37,16 @@ namespace UnityEditor.Rendering.Universal
 
         static GUIStyle s_PreLabel;
 
-        static GUIContent[] s_Curves =
+        static string[] s_CurveNames =
         {
-            new GUIContent("Master"),
-            new GUIContent("Red"),
-            new GUIContent("Green"),
-            new GUIContent("Blue"),
-            new GUIContent("Hue Vs Hue"),
-            new GUIContent("Hue Vs Sat"),
-            new GUIContent("Sat Vs Sat"),
-            new GUIContent("Lum Vs Sat")
+            "Master",
+            "Red",
+            "Green",
+            "Blue",
+            "Hue Vs Hue",
+            "Hue Vs Sat",
+            "Sat Vs Sat",
+            "Lum Vs Sat"
         };
 
         SavedInt m_SelectedCurve;
@@ -127,9 +127,28 @@ namespace UnityEditor.Rendering.Universal
             overrideProp.boolValue = GUILayout.Toggle(overrideProp.boolValue, EditorGUIUtility.TrTextContent("Override"), EditorStyles.toolbarButton);
         }
 
+        string MakeCurveSelectionPopupLabel(int id)
+        {
+            string label = s_CurveNames[id];
+            const string overrideSuffix = " (Overriding)";
+            switch (id)
+            {
+                case 0: if (m_Master.overrideState.boolValue) label += overrideSuffix; break;
+                case 1: if (m_Red.overrideState.boolValue) label += overrideSuffix; break;
+                case 2: if (m_Green.overrideState.boolValue) label += overrideSuffix; break;
+                case 3: if (m_Blue.overrideState.boolValue) label += overrideSuffix; break;
+                case 4: if (m_HueVsHue.overrideState.boolValue) label += overrideSuffix; break;
+                case 5: if (m_HueVsSat.overrideState.boolValue) label += overrideSuffix; break;
+                case 6: if (m_SatVsSat.overrideState.boolValue) label += overrideSuffix; break;
+                case 7: if (m_LumVsSat.overrideState.boolValue) label += overrideSuffix; break;
+            }
+            return label;
+        }
+
         int DoCurveSelectionPopup(int id)
         {
-            GUILayout.Label(s_Curves[id], EditorStyles.toolbarPopup, GUILayout.MaxWidth(150f));
+            var label = MakeCurveSelectionPopupLabel(id);
+            GUILayout.Label(label, EditorStyles.toolbarPopup, GUILayout.MaxWidth(150f));
 
             var lastRect = GUILayoutUtility.GetLastRect();
             var e = Event.current;
@@ -138,13 +157,15 @@ namespace UnityEditor.Rendering.Universal
             {
                 var menu = new GenericMenu();
 
-                for (int i = 0; i < s_Curves.Length; i++)
+                for (int i = 0; i < s_CurveNames.Length; i++)
                 {
                     if (i == 4)
                         menu.AddSeparator("");
 
                     int current = i; // Capture local for closure
-                    menu.AddItem(s_Curves[i], current == id, () =>
+
+                    var menuLabel = MakeCurveSelectionPopupLabel(i);
+                    menu.AddItem(new GUIContent(menuLabel), current == id, () =>
                     {
                         m_SelectedCurve.value = current;
                         serializedObject.ApplyModifiedProperties();

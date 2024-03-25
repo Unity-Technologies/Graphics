@@ -13,7 +13,6 @@
         </ui:VisualElement>
         <ui:VisualElement name="contents" pickingMode="Ignore">
           <ui:VisualElement name="settings"/>
-          <ui:VisualElement name="divider" class="horizontal"/>
           <ui:VisualElement name="top" pickingMode="Ignore">
             <ui:VisualElement name="input" pickingMode="Ignore" />
             <ui:VisualElement name="divider" class="vertical"/>
@@ -29,10 +28,7 @@
           <ui:Label name="no-blocks" text="Press space to add blocks" pickingMode="Ignore" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="footer" pickingMode="Ignore"  class="extremity">
-          <ui:Image name="icon" text=""/>
-          <ui:Label name="title-label" text="" />
-        </ui:VisualElement>
+        <ui:Label name="footer" pickingMode="Ignore"  class="extremity" />
       </ui:VisualElement>
     </vfx:VFXContextBorder>
 

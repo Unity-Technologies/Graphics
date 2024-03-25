@@ -62,29 +62,6 @@ Shader "Hidden/Core/DebugOccluder"
 
             ENDHLSL
         }
-
-        Pass
-        {
-            Name "DebugOccluder_Array"
-            ZTest Off
-            Blend One Zero
-            Cull Off
-            ZWrite On
-
-            HLSLPROGRAM
-
-            TEXTURE2D_ARRAY(_OccluderTexture);
-
-            #pragma vertex Vert
-            #pragma fragment Fragment
-
-            float4 Fragment(Varyings input) : SV_Target
-            {
-                return GetOutputColor(SAMPLE_TEXTURE2D_ARRAY(_OccluderTexture, ltc_linear_clamp_sampler, input.texcoord, 0).x);
-            }
-
-            ENDHLSL
-        }
     }
     Fallback Off
 }

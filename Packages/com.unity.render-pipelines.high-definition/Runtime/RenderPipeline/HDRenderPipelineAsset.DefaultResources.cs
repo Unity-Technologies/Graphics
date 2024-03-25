@@ -53,7 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
         #region SpeedTree
 
         /// <summary>HDRP default speed tree v8 shader</summary>
-        public override Shader defaultSpeedTree8Shader => defaultShaders.defaultSpeedTree8Shader;
+        public override Shader defaultSpeedTree8Shader => defaultShaders?.defaultSpeedTree8Shader;
+
+        /// <summary>HDRP default speed tree v9 shader</summary>
+        public override Shader defaultSpeedTree9Shader => defaultShaders?.defaultSpeedTree9Shader;
 
         #endregion
 

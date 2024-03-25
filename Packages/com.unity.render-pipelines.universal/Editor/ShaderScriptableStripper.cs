@@ -37,6 +37,7 @@ namespace UnityEditor.Rendering.Universal
             public PassType passType { get; set; }
             public PassIdentifier passIdentifier { get; set; }
 
+            public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get; set; }
 
             public bool IsShaderFeatureEnabled(ShaderFeatures feature);
@@ -70,6 +71,7 @@ namespace UnityEditor.Rendering.Universal
             public string passName { get => passData.passName; set {} }
             public PassType passType { get => passData.passType; set {} }
             public PassIdentifier passIdentifier { get => passData.pass; set {} }
+            public bool IsHDRDisplaySupportEnabled { get; set; }
             public bool IsHDRShaderVariantValid { get => HDROutputUtils.IsShaderVariantValid(variantData.shaderKeywordSet, PlayerSettings.allowHDRDisplaySupport); set { } }
 
             public bool IsKeywordEnabled(LocalKeyword keyword)
@@ -836,7 +838,7 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripInvalidVariants_HDR(ref IShaderScriptableStrippingData strippingData)
         {
             // We do not need to strip out HDR output variants if HDR display is enabled.
-            if (PlayerSettings.allowHDRDisplaySupport)
+            if (strippingData.IsHDRDisplaySupportEnabled)
                 return false;
 
             // Shared keywords between URP and HDRP.
@@ -1042,6 +1044,7 @@ namespace UnityEditor.Rendering.Universal
                 stripScreenCoordOverrideVariants = ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants,
                 stripUnusedVariants = ShaderBuildPreprocessor.s_StripUnusedVariants,
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
+                IsHDRDisplaySupportEnabled = PlayerSettings.allowHDRDisplaySupport,
                 shader = shader,
                 passData = passData,
                 variantData = variantData

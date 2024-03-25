@@ -8,7 +8,7 @@
         "UnityEditor.TestRunner",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.GraphicTests.Performance.Runtime"
+        "UnityEngine.TestTools.Graphics.Performance"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

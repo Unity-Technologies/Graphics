@@ -1,14 +1,17 @@
 # Custom rendering and post-processing 
 
-Customize and extend the rendering process in the Universal Render Pipeline (URP). URP uses Renderer Features to implement certain effects. URP includes a selection of pre-built Renderer Features and the ability to create customized Renderer Features known as Scriptable Renderer Features.
+Customize and extend the rendering process in the Universal Render Pipeline (URP). Create a custom render pass in a C# script and inject it into the URP frame rendering loop.
 
-| Page | Description |
+|Page|Description|
 |-|-|
-|[Custom render passes](renderer-features/custom-rendering-passes.md)|Create a custom render pass in a C# script and inject it into the URP frame rendering loop.|
-|[Injection points reference](customize/custom-pass-injection-points.md)|The injection points you can use to inject render passes into the frame rendering loop.|
-|[Scriptable Renderer Feature and Scriptable Render Pass API reference](renderer-features/scriptable-renderer-features/scriptable-renderer-feature-reference.md)|Common methods you can use to write Scriptable Renderer Passes and Scriptable Renderer Features.|
+|[Custom render pass workflow in URP](renderer-features/custom-rendering-pass-workflow-in-urp.md) |Add and inject a custom render pass to change how URP renders a scene or the objects within a scene.|
+|[Scriptable Render Passes](renderer-features/scriptable-render-passes.md)|Use the Scriptable Render Pass API and the render graph system to create a custom render pass.|
+|[Scriptable Renderer Features](renderer-features/scriptable-renderer-features/scriptable-renderer-features-landing.md)|Use the `ScriptableRendererFeature` API to inject a custom render pass into the URP frame rendering loop.|
+|[Compatibility Mode](compatibility-mode.md)|Write a Scriptable Render Pass if you enable **Compatibility Mode (Render Graph Disabled)** in URP graphics settings. Unity no longer develops or improves this rendering path.|
 
 ## Additional resources
 
+- [Rendering](rendering-in-universalrp.md)
+- [Render pipeline concepts](urp-concepts.md)
 - [Pre-built effects (Renderer Features)](urp-renderer-feature.md)
 - [How to create a custom post-processing effect](post-processing/post-processing-custom-effect-low-code.md)

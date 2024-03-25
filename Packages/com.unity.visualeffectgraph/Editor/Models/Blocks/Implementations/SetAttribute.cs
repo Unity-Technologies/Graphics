@@ -433,18 +433,18 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             if (!CustomAttributeUtility.IsShaderCompilableName(attribute))
             {
-                manager.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character");
+                report.RegisterError("InvalidCustomAttributeName", VFXErrorType.Error, $"Custom attribute name '{attribute}' is not valid.\n -The name must not contain spaces or any special character\n -The name must not start with a digit character", this);
             }
 
             if (Source == ValueSource.Source && GetParent() is { } parentContext && (parentContext.contextType & VFXContextType.UpdateAndOutput) != 0)
             {
-                manager.RegisterError("SourceNotAllowed", VFXErrorType.Warning, "Inherit attribute is not supported in Update and Output contexts");
+                report.RegisterError("SourceNotAllowed", VFXErrorType.Warning, "Inherit attribute is not supported in Update and Output contexts", this);
             }
 
             if (GetNbInputSlots() == 0)
@@ -464,7 +464,7 @@ namespace UnityEditor.VFX.Block
                     lifeTimeExpression.Get<float>() is var lifeTime &&
                     lifeTime > 1e4)
                 {
-                    manager.RegisterError("TooLongLifeTime", VFXErrorType.Warning, $"The lifetime is pretty high: {TimeSpan.FromSeconds(lifeTime):hh\\hmm\\m}.\nYou might prefer to make immortal particles by removing the Set Lifetime block.");
+                    report.RegisterError("TooLongLifeTime", VFXErrorType.Warning, $"The lifetime is pretty high: {TimeSpan.FromSeconds(lifeTime):hh\\hmm\\m}.\nYou might prefer to make immortal particles by removing the Set Lifetime block.", this);
                 }
             }
 
@@ -482,7 +482,7 @@ namespace UnityEditor.VFX.Block
                         scaleExpression.valueType == VFXValueType.Float2 && scaleExpression.Get<Vector2>() is var vec2 && Mathf.Approximately(vec2.x * vec2.y, 0f) ||
                         scaleExpression.valueType == VFXValueType.Float3 && scaleExpression.Get<Vector3>() is var vec3 && Mathf.Approximately(vec3.x * vec3.y * vec3.z, 0f) )
                     {
-                        manager.RegisterError("ZeroScaleValue", VFXErrorType.Warning, "Scale is set to zero");
+                        report.RegisterError("ZeroScaleValue", VFXErrorType.Warning, "Scale is set to zero", this);
                     }
                 }
             }

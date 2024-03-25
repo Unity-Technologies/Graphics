@@ -1,19 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
     abstract class VFXOperatorDynamicBranch : VFXOperatorDynamicType
     {
-        public override sealed IEnumerable<Type> validTypes
+        public override IEnumerable<Type> validTypes
         {
             get
             {
-                var exclude = new[] { typeof(GPUEvent) };
-                return VFXLibrary.GetSlotsType().Except(exclude);
+                var outputTypes = new List<Type>();
+                foreach (var slotType in VFXLibrary.GetSlotsType())
+                {
+                    var typesAttributes = slotType.GetCustomAttributes(typeof(VFXTypeAttribute), false);
+                    if (typesAttributes.Length > 0)
+                    {
+                        var typeAttribute = typesAttributes[0] as VFXTypeAttribute;
+                        if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                            continue;
+                    }
+
+                    outputTypes.Add(slotType);
+                }
+                outputTypes.Sort((i, j) => String.Compare(i.ToString(), j.ToString(), StringComparison.Ordinal));
+                return outputTypes;
             }
         }
 
@@ -25,14 +37,18 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        static Dictionary<Type, int> s_ExpressionCountPerType = new Dictionary<Type, int>();
+        static Dictionary<Type, int> s_ExpressionCountPerType;
         private static int FindOrComputeExpressionCountPerType(Type type)
         {
-            int count = -1;
-            if (!s_ExpressionCountPerType.TryGetValue(type, out count))
+            s_ExpressionCountPerType ??= new Dictionary<Type, int>();
+            if (!s_ExpressionCountPerType.TryGetValue(type, out var count))
             {
                 var tempInstance = VFXSlot.Create(new VFXPropertyWithValue(new VFXProperty(type, "temp")), VFXSlot.Direction.kInput);
-                count = tempInstance.GetExpressionSlots().Count();
+                count = 0;
+                foreach (var slot in tempInstance.GetExpressionSlots())
+                {
+                    count++;
+                }
                 s_ExpressionCountPerType.Add(type, count);
             }
             return count;
@@ -53,7 +69,7 @@ namespace UnityEditor.VFX.Operator
             for (int subExpression = 0; subExpression < expressionCountPerUniqueSlot; ++subExpression)
             {
                 var branch = new VFXExpression[valueStartIndex.Length];
-                branch[valueStartIndex.Length - 1] = expressions[valueStartIndex.Last() + subExpression]; //Last entry always is a fallback
+                branch[^1] = expressions[valueStartIndex[^1] + subExpression]; //Last entry always is a fallback
                 for (int i = valueStartIndex.Length - 2; i >= 0; i--)
                 {
                     branch[i] = new VFXExpressionBranch(compare[i], expressions[valueStartIndex[i] + subExpression], branch[i + 1]);
@@ -81,7 +97,7 @@ namespace UnityEditor.VFX.Operator
         public sealed override string name { get { return "Branch"; } }
 
 
-        public override sealed IEnumerable<int> staticSlotIndex
+        public sealed override IEnumerable<int> staticSlotIndex
         {
             get
             {
@@ -115,7 +131,7 @@ namespace UnityEditor.VFX.Operator
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var valueStartIndex = new[] { 1, expressionCountPerUniqueSlot + 1 };
-            return ChainedBranchResult(inputExpression.Take(1).ToArray(), inputExpression, valueStartIndex);
+            return ChainedBranchResult(new ArraySegment<VFXExpression>(inputExpression, 0, 1).ToArray(), inputExpression, valueStartIndex);
         }
     }
 }

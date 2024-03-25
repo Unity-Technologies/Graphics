@@ -19,30 +19,8 @@ int _BackFaceCulling;
 int _BakeSkyShadingDirection;
 
 StructuredBuffer<float3> _ProbePositions;
-StructuredBuffer<float3> _SkyShadingPrecomputedDirection;
 RWStructuredBuffer<float4> _SkyOcclusionOut;
 RWStructuredBuffer<float3> _SkyShadingOut;
-RWStructuredBuffer<uint> _SkyShadingDirectionIndexOut;
-
-
-uint LinearSearchClosestDirection(float3 direction)
-{
-    int indexMax = 255;
-    float bestDot = -10.0f;
-    int bestIndex = 0;
-
-    for (int index=0; index< indexMax; index++)
-    {
-        float currentDot = dot(direction, _SkyShadingPrecomputedDirection[index]);
-        if (currentDot > bestDot)
-        {
-            bestDot = currentDot;
-            bestIndex = index;
-        }
-    }
-    return bestIndex;
-}
-
 
 void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 {
@@ -168,23 +146,5 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         // The 1.125f exponent comes from experimental testing. It's the value that works the best when trying to match a bake and deringing done with the lightmapper, but it has no theoretical explanation.
         // In the future, we should replace these custom windowing and deringing operations with the ones used in the lightmapper to implement a more academical solution.
         _SkyOcclusionOut[probeId].yzw *= lerp(1.0f, radianceToIrradianceFactor, pow(windowL1, 1.125f));
-
-
-        // Normalize computed direction
-        if (_BakeSkyShadingDirection > 0)
-        {
-            uint bestDirectionIndex = 255;
-            float norm = length(_SkyShadingOut[probeId]);
-            if (norm > 0.0001f)
-            {
-                _SkyShadingOut[probeId] /= norm;
-                bestDirectionIndex = LinearSearchClosestDirection(_SkyShadingOut[probeId]);
-            }
-            else
-            {
-                _SkyShadingOut[probeId] = float3(0.0f, 0.0f, 0.0f);
-            }
-            _SkyShadingDirectionIndexOut[probeId] = bestDirectionIndex;
-        }
     }
 }

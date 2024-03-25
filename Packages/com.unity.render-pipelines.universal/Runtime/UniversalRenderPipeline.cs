@@ -24,30 +24,44 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public const string k_ShaderTagName = "UniversalPipeline";
 
-        internal static class Profiling
+        // Cache camera data to avoid per-frame allocations.
+        internal static class CameraMetadataCache
         {
-            private static Dictionary<int, ProfilingSampler> s_HashSamplerCache = new Dictionary<int, ProfilingSampler>();
-            public static readonly ProfilingSampler unknownSampler = new ProfilingSampler("Unknown");
-
-            // Specialization for camera loop to avoid allocations.
-            public static ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
+            public class CameraMetadataCacheEntry
             {
-#if UNIVERSAL_PROFILING_NO_ALLOC
-                return unknownSampler;
-#else
-                ProfilingSampler ps = null;
-                int cameraId = camera.GetHashCode();
-                bool exists = s_HashSamplerCache.TryGetValue(cameraId, out ps);
-                if (!exists)
-                {
-                    // NOTE: camera.name allocates!
-                    ps = new ProfilingSampler($"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCameraInternal)}: {camera.name}");
-                    s_HashSamplerCache.Add(cameraId, ps);
-                }
-                return ps;
-#endif
+                public string name;
+                public ProfilingSampler sampler;
             }
 
+            static Dictionary<int, CameraMetadataCacheEntry> s_MetadataCache = new();
+
+            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { name = "Unknown", sampler = new ProfilingSampler("Unknown") };
+
+            public static CameraMetadataCacheEntry GetCached(Camera camera)
+            {
+#if UNIVERSAL_PROFILING_NO_ALLOC
+                return k_NoAllocEntry;
+#else
+                int cameraId = camera.GetHashCode();
+                if (!s_MetadataCache.TryGetValue(cameraId, out CameraMetadataCacheEntry result))
+                {
+                    string cameraName = camera.name; // Warning: camera.name allocates
+                    result = new CameraMetadataCacheEntry
+                    {
+                        name = cameraName,
+                        sampler = new ProfilingSampler(
+                            $"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCameraInternal)}: {cameraName}")
+                    };
+                    s_MetadataCache.Add(cameraId, result);
+                }
+
+                return result;
+#endif
+            }
+        }
+
+        internal static class Profiling
+        {
             public static class Pipeline
             {
                 // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs, requires changes outside of Universal.
@@ -698,8 +712,8 @@ namespace UnityEngine.Rendering.Universal
             // Until then, we can't use nested profiling scopes with XR multipass
             CommandBuffer cmdScope = cameraData.xr.enabled ? null : cmd;
 
-            ProfilingSampler sampler = Profiling.TryGetOrAddCameraSampler(camera);
-            using (new ProfilingScope(cmdScope, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
+            var cameraMetadata = CameraMetadataCache.GetCached(camera);
+            using (new ProfilingScope(cmdScope, cameraMetadata.sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
 
@@ -798,7 +812,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useRenderGraph)
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, cameraMetadata.name);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
                 else
@@ -1393,7 +1407,7 @@ namespace UnityEngine.Rendering.Universal
             bool canSkipFrontToBackSorting = (baseCamera.opaqueSortMode == OpaqueSortMode.Default && hasHSRGPU) || baseCamera.opaqueSortMode == OpaqueSortMode.NoDistanceSort;
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
-            cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
+            cameraData.captureActions = Unity.RenderPipelines.Core.Runtime.Shared.CameraCaptureBridge.GetCachedCaptureActionsEnumerator(baseCamera);
         }
 
         /// <summary>
@@ -1458,7 +1472,6 @@ namespace UnityEngine.Rendering.Universal
             // enable GPU occlusion culling in game and scene views only
             cameraData.useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
                 && renderer.supportsGPUOcclusion
-                && !XRSRPSettings.enabled
                 && camera.cameraType is CameraType.SceneView or CameraType.Game or CameraType.Preview;
             cameraData.requiresDepthTexture |= cameraData.useGPUOcclusionCulling;
 

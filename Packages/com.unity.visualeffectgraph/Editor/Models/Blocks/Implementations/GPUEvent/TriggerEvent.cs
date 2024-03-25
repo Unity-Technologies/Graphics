@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.Block
                             }
                             break;
                         }
-                    case Mode.OnDie:                    
+                    case Mode.OnDie:
                         yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                         yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
                         yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
@@ -148,9 +148,9 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        internal override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override sealed void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var parent = GetParent();
             if (parent != null)
@@ -170,13 +170,13 @@ namespace UnityEditor.VFX.Block
 
                     if (!anySendEvent)
                     {
-                        manager.RegisterError("TriggerCollisionNeedscolliding", VFXErrorType.Warning, "Event will not be sent, because no Collider block exists or the ‘Write Collision Event Attributes’ checkbox is set to false in it. To trigger an event on collide, set the ‘Write Attributes’ checkbox to true in a collider block.");
+                        report.RegisterError("TriggerCollisionNeedscolliding", VFXErrorType.Warning, "Event will not be sent, because no Collider block exists or the ‘Write Collision Event Attributes’ checkbox is set to false in it. To trigger an event on collide, set the ‘Write Attributes’ checkbox to true in a collider block.", this);
                     }
                 }
 
                 if ((mode == Mode.OverDistance || mode == Mode.OverTime) && (parent.contextType == VFXContextType.Init))
                 {
-                    manager.RegisterError("TriggerOnRateInInit", VFXErrorType.Warning, "The modes Over Time and Over Distance are not designed to work in Initialize. You might consider changing the mode to Always or move the block in Update.");
+                    report.RegisterError("TriggerOnRateInInit", VFXErrorType.Warning, "The modes Over Time and Over Distance are not designed to work in Initialize. You might consider changing the mode to Always or move the block in Update.", this);
                 }
             }
         }

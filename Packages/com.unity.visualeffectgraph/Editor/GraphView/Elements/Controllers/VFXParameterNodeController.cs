@@ -162,16 +162,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_ParentController.model.order; }
         }
-        public override bool expanded
-        {
-            get
-            {
-                return true;
-            }
-            set
-            {
-            }
-        }
+        public override bool expanded { get; set; }
         public override bool superCollapsed
         {
             get

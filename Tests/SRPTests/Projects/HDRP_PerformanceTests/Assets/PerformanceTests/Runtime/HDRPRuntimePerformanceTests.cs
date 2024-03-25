@@ -6,7 +6,8 @@ using System;
 using UnityEngine.Rendering;
 using NUnit.Framework;
 using UnityEngine.TestTools;
-using static PerformanceTestUtils;
+using static UnityEngine.TestTools.Graphics.Performance.PerformanceTestUtils;
+using UnityEngine.TestTools.Graphics.Performance;
 using Unity.PerformanceTesting;
 
 public class HDRPRuntimePerformanceTests : PerformanceTests

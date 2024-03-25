@@ -6,9 +6,9 @@
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
-        "Unity.GraphicTests.Performance.Runtime",
+        "UnityEngine.TestTools.Graphics.Performance",
         "UnityEngine.TestRunner",
-        "Unity.GraphicTests.Performance.Editor",
+        "UnityEngine.TestTools.Graphics.Performance.Editor",
         "Unity.RenderPipelines.HighDefinition.Editor"
     ],
     "includePlatforms": [

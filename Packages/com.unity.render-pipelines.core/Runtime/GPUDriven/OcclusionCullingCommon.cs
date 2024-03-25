@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
@@ -11,19 +12,25 @@ namespace UnityEngine.Rendering
     {
         MaxOccluderMips = 8,
         MaxOccluderSilhouettePlanes = 6,
-        DebugPyramidOffset = 4,
+        MaxSubviewsPerView = 6,
+        DebugPyramidOffset = 4, // TODO: rename
+    }
+
+    [GenerateHLSL(needAccessors = false)]
+    internal enum OcclusionTestDebugFlag
+    {
+        AlwaysPass = (1 << 0),
+        CountVisible = (1 << 1),
     }
 
     internal struct OcclusionTestComputeShader
     {
         public ComputeShader cs;
-        public LocalKeyword useArrayKeyword;
         public LocalKeyword occlusionDebugKeyword;
 
         public void Init(ComputeShader cs)
         {
             this.cs = cs;
-            this.useArrayKeyword = new LocalKeyword(cs, "USE_ARRAY");
             this.occlusionDebugKeyword = new LocalKeyword(cs, "OCCLUSION_DEBUG");
         }
     }
@@ -160,7 +167,7 @@ namespace UnityEngine.Rendering
 
         private SilhouettePlaneCache m_SilhouettePlaneCache;
 
-        private NativeParallelHashMap<int, int> m_SubviewIDToIndexMap;
+        private NativeParallelHashMap<int, int> m_ViewIDToIndexMap;
         private List<OccluderContext> m_OccluderContextData;
         private NativeList<OccluderContextSlot> m_OccluderContextSlots;
         private NativeList<int> m_FreeOccluderContexts;
@@ -187,7 +194,7 @@ namespace UnityEngine.Rendering
 
             m_SilhouettePlaneCache.Init();
 
-            m_SubviewIDToIndexMap = new NativeParallelHashMap<int, int>(64, Allocator.Persistent);
+            m_ViewIDToIndexMap = new NativeParallelHashMap<int, int>(64, Allocator.Persistent);
             m_OccluderContextData = new List<OccluderContext>();
             m_OccluderContextSlots = new NativeList<OccluderContextSlot>(64, Allocator.Persistent);
             m_FreeOccluderContexts = new NativeList<int>(64, Allocator.Persistent);
@@ -206,39 +213,32 @@ namespace UnityEngine.Rendering
         {
             public static readonly int OcclusionCullingCommonShaderVariables = Shader.PropertyToID("OcclusionCullingCommonShaderVariables");
             public static readonly int _OccluderDepthPyramid = Shader.PropertyToID("_OccluderDepthPyramid");
-            public static readonly int _OcclusionDebugPyramid = Shader.PropertyToID("_OcclusionDebugPyramid");
+            public static readonly int _OcclusionDebugOverlay = Shader.PropertyToID("_OcclusionDebugOverlay");
 
-            public static readonly int _OcclusionDebugPyramidOverlay = Shader.PropertyToID("_OcclusionDebugPyramidOverlay");
             public static readonly int OcclusionCullingDebugShaderVariables = Shader.PropertyToID("OcclusionCullingDebugShaderVariables");
-        }
-
-        internal static bool UseArray(in OccluderContext occluderCtx)
-        {
-            return occluderCtx.depthSliceCount != 0;
         }
 
         internal static bool UseOcclusionDebug(in OccluderContext occluderCtx)
         {
-            return occluderCtx.debugTextureSize.x != 0;
+            return occluderCtx.occlusionDebugOverlaySize != 0;
         }
 
-        internal void PrepareCulling(ComputeCommandBuffer cmd, in OccluderContext occluderCtx, int viewInstanceID, int cullingSplitIndex, in OcclusionTestComputeShader shader, bool useArray, bool useOcclusionDebug)
+        internal void PrepareCulling(ComputeCommandBuffer cmd, in OccluderContext occluderCtx, in OcclusionCullingSettings settings, in InstanceOcclusionTestSubviewSettings subviewSettings, in OcclusionTestComputeShader shader, bool useOcclusionDebug)
         {
-            OccluderContext.SetKeyword(cmd, shader.cs, shader.useArrayKeyword, useArray);
             OccluderContext.SetKeyword(cmd, shader.cs, shader.occlusionDebugKeyword, useOcclusionDebug);
 
             var debugStats = GPUResidentDrawer.GetDebugStats();
 
             m_CommonShaderVariables[0] = new OcclusionCullingCommonShaderVariables(
                 in occluderCtx,
-                cullingSplitIndex,
+                subviewSettings,
                 debugStats?.occlusionOverlayCountVisible ?? false,
                 debugStats?.overrideOcclusionTestToAlwaysPass ?? false);
             cmd.SetBufferData(m_CommonConstantBuffer, m_CommonShaderVariables);
 
             cmd.SetComputeConstantBufferParam(shader.cs, ShaderIDs.OcclusionCullingCommonShaderVariables, m_CommonConstantBuffer, 0, m_CommonConstantBuffer.stride);
 
-            DispatchDebugClear(cmd, viewInstanceID);
+            DispatchDebugClear(cmd, settings.viewInstanceID);
         }
 
         internal static void SetDepthPyramid(ComputeCommandBuffer cmd, in OcclusionTestComputeShader shader, int kernel, in OccluderHandles occluderHandles)
@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering
 
         internal static void SetDebugPyramid(ComputeCommandBuffer cmd, in OcclusionTestComputeShader shader, int kernel, in OccluderHandles occluderHandles)
         {
-            cmd.SetComputeBufferParam(shader.cs, kernel, ShaderIDs._OcclusionDebugPyramid, occluderHandles.debugPyramid);
+            cmd.SetComputeBufferParam(shader.cs, kernel, ShaderIDs._OcclusionDebugOverlay, occluderHandles.occlusionDebugOverlay);
         }
 
         private class OcclusionTestOverlaySetupPassData
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering
                 return;
 
             OcclusionCullingDebugOutput debugOutput = GetOcclusionTestDebugOutput(viewInstanceID);
-            if (debugOutput.debugPyramid == null)
+            if (debugOutput.occlusionDebugOverlay == null)
                 return;
 
             using (var builder = renderGraph.AddComputePass<OcclusionTestOverlaySetupPassData>("OcclusionTestOverlay", out var passData, m_ProfilingSamplerOcclusionTestOverlay))
@@ -298,7 +298,7 @@ namespace UnityEngine.Rendering
             {
                 builder.AllowGlobalStateModification(true);
 
-                passData.debugPyramid = renderGraph.ImportBuffer(debugOutput.debugPyramid);
+                passData.debugPyramid = renderGraph.ImportBuffer(debugOutput.occlusionDebugOverlay);
 
                 builder.SetRenderAttachment(colorBuffer, 0);
                 builder.UseBuffer(passData.debugPyramid);
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering
                 builder.SetRenderFunc(
                     (OcclusionTestOverlayPassData data, RasterGraphContext ctx) =>
                     {
-                        ctx.cmd.SetGlobalBuffer(ShaderIDs._OcclusionDebugPyramidOverlay, data.debugPyramid);
+                        ctx.cmd.SetGlobalBuffer(ShaderIDs._OcclusionDebugOverlay, data.debugPyramid);
                         CoreUtils.DrawFullScreen(ctx.cmd, m_DebugOcclusionTestMaterial);
                     });
             }
@@ -335,17 +335,15 @@ namespace UnityEngine.Rendering
             if (!debugSettings.occluderDebugViewEnable)
                 return;
 
-            int viewInstanceID = debugSettings.GetOccluderViewInstanceID();
-            if (viewInstanceID == 0)
+            if (!debugSettings.GetOccluderViewInstanceID(out var viewInstanceID))
                 return;
 
-            var occluderTexture = GetOcclusionTestDebugOutput(viewInstanceID).occluderTexture;
+            var occluderTexture = GetOcclusionTestDebugOutput(viewInstanceID).occluderDepthPyramid;
             if (occluderTexture == null)
                 return;
 
             Material debugMaterial = m_OccluderDebugViewMaterial;
-            bool isArrayTexture = occluderTexture.rt.dimension == TextureDimension.Tex2DArray;
-            int passIndex = isArrayTexture ? debugMaterial.FindPass("DebugOccluder_Array") : debugMaterial.FindPass("DebugOccluder");
+            int passIndex = debugMaterial.FindPass("DebugOccluder");
 
             Vector2 outputSize = occluderTexture.referenceSize;
             float scaleFactor = maxHeight / outputSize.y;
@@ -380,7 +378,7 @@ namespace UnityEngine.Rendering
 
         private void DispatchDebugClear(ComputeCommandBuffer cmd, int viewInstanceID)
         {
-            if (!m_SubviewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex))
+            if (!m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex))
                 return;
 
             OccluderContext occluderCtx = m_OccluderContextData[contextIndex];
@@ -392,10 +390,10 @@ namespace UnityEngine.Rendering
 
                 cmd.SetComputeConstantBufferParam(cs, ShaderIDs.OcclusionCullingCommonShaderVariables, m_CommonConstantBuffer, 0, m_CommonConstantBuffer.stride);
 
-                cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._OcclusionDebugPyramid, occluderCtx.debugPyramid);
+                cmd.SetComputeBufferParam(cs, kernel, ShaderIDs._OcclusionDebugOverlay, occluderCtx.occlusionDebugOverlay);
 
                 Vector2Int mip0Size = occluderCtx.occluderMipBounds[0].size;
-                cmd.DispatchCompute(cs, kernel, (mip0Size.x + 7) / 8, (mip0Size.y + 7) / 8, Mathf.Max(occluderCtx.depthSliceCount, 1));
+                cmd.DispatchCompute(cs, kernel, (mip0Size.x + 7) / 8, (mip0Size.y + 7) / 8, occluderCtx.subviewCount);
 
                 // mark as cleared in the dictionary
                 occluderCtx.debugNeedsClear = false;
@@ -408,7 +406,7 @@ namespace UnityEngine.Rendering
             OccluderHandles occluderHandles = new OccluderHandles();
             if (occluderParams.depthTexture.IsValid())
             {
-                if (!m_SubviewIDToIndexMap.TryGetValue(occluderParams.viewInstanceID, out var contextIndex))
+                if (!m_ViewIDToIndexMap.TryGetValue(occluderParams.viewInstanceID, out var contextIndex))
                     contextIndex = NewContext(occluderParams.viewInstanceID);
 
                 OccluderContext ctx = m_OccluderContextData[contextIndex];
@@ -423,15 +421,15 @@ namespace UnityEngine.Rendering
             return occluderHandles;
         }
 
-        private void CreateFarDepthPyramid(ComputeCommandBuffer cmd, in OccluderParameters occluderParams, in OccluderHandles occluderHandles)
+        private void CreateFarDepthPyramid(ComputeCommandBuffer cmd, in OccluderParameters occluderParams, ReadOnlySpan<OccluderSubviewUpdate> occluderSubviewUpdates, in OccluderHandles occluderHandles)
         {
-            if (!m_SubviewIDToIndexMap.TryGetValue(occluderParams.viewInstanceID, out var contextIndex))
+            if (!m_ViewIDToIndexMap.TryGetValue(occluderParams.viewInstanceID, out var contextIndex))
                 return;
 
             var silhouettePlanes = m_SilhouettePlaneCache.GetSubArray(occluderParams.viewInstanceID);
 
             OccluderContext ctx = m_OccluderContextData[contextIndex];
-            ctx.CreateFarDepthPyramid(cmd, occluderParams, occluderHandles, silhouettePlanes, m_OccluderDepthPyramidCS, m_OccluderDepthDownscaleKernel);
+            ctx.CreateFarDepthPyramid(cmd, occluderParams, occluderSubviewUpdates, occluderHandles, silhouettePlanes, m_OccluderDepthPyramidCS, m_OccluderDepthDownscaleKernel);
             ctx.version++;
             m_OccluderContextData[contextIndex] = ctx;
 
@@ -443,10 +441,11 @@ namespace UnityEngine.Rendering
         private class UpdateOccludersPassData
         {
             public OccluderParameters occluderParams;
+            public List<OccluderSubviewUpdate> occluderSubviewUpdates;
             public OccluderHandles occluderHandles;
         }
 
-        public bool UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParams)
+        public bool UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParams, ReadOnlySpan<OccluderSubviewUpdate> occluderSubviewUpdates)
         {
             var occluderHandles = PrepareOccluders(renderGraph, occluderParams);
             if (!occluderHandles.occluderDepthPyramid.IsValid())
@@ -457,6 +456,12 @@ namespace UnityEngine.Rendering
                 builder.AllowGlobalStateModification(true);
 
                 passData.occluderParams = occluderParams;
+                if (passData.occluderSubviewUpdates is null)
+                    passData.occluderSubviewUpdates = new List<OccluderSubviewUpdate>();
+                else
+                    passData.occluderSubviewUpdates.Clear();
+                for (int i = 0; i < occluderSubviewUpdates.Length; ++i)
+                    passData.occluderSubviewUpdates.Add(occluderSubviewUpdates[i]);
                 passData.occluderHandles = occluderHandles;
 
                 builder.UseTexture(passData.occluderParams.depthTexture);
@@ -465,9 +470,17 @@ namespace UnityEngine.Rendering
                 builder.SetRenderFunc(
                     (UpdateOccludersPassData data, ComputeGraphContext context) =>
                     {
+                        Span<OccluderSubviewUpdate> occluderSubviewUpdates = stackalloc OccluderSubviewUpdate[data.occluderSubviewUpdates.Count];
+                        int subviewMask = 0;
+                        for (int i = 0; i < data.occluderSubviewUpdates.Count; ++i)
+                        {
+                            occluderSubviewUpdates[i] = data.occluderSubviewUpdates[i];
+                            subviewMask |= 1 << data.occluderSubviewUpdates[i].subviewIndex;
+                        }
+
                         var batcher = GPUResidentDrawer.instance.batcher;
-                        batcher.occlusionCullingCommon.CreateFarDepthPyramid(context.cmd, in data.occluderParams, in data.occluderHandles);
-                        batcher.instanceCullingBatcher.InstanceOccludersUpdated(data.occluderParams.viewInstanceID);
+                        batcher.occlusionCullingCommon.CreateFarDepthPyramid(context.cmd, in data.occluderParams, occluderSubviewUpdates, in data.occluderHandles);
+                        batcher.instanceCullingBatcher.InstanceOccludersUpdated(data.occluderParams.viewInstanceID, subviewMask);
                     });
             }
 
@@ -481,7 +494,7 @@ namespace UnityEngine.Rendering
 
         internal OcclusionCullingDebugOutput GetOcclusionTestDebugOutput(int viewInstanceID)
         {
-            if (m_SubviewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) && m_OccluderContextSlots[contextIndex].valid)
+            if (m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) && m_OccluderContextSlots[contextIndex].valid)
                 return m_OccluderContextData[contextIndex].GetDebugOutput();
             return new OcclusionCullingDebugOutput();
         }
@@ -489,14 +502,15 @@ namespace UnityEngine.Rendering
         public void UpdateOccluderStats(DebugRendererBatcherStats debugStats)
         {
             debugStats.occluderStats.Clear();
-            foreach (var pair in m_SubviewIDToIndexMap)
+            foreach (var pair in m_ViewIDToIndexMap)
             {
                 if (pair.Value < m_OccluderContextSlots.Length && m_OccluderContextSlots[pair.Value].valid)
                 {
                     debugStats.occluderStats.Add(new DebugOccluderStats
                     {
                         viewInstanceID = pair.Key,
-                        occluderTextureSize = m_OccluderContextData[pair.Value].occluderTextureSize,
+                        subviewCount = m_OccluderContextData[pair.Value].subviewCount,
+                        occluderMipLayoutSize = m_OccluderContextData[pair.Value].occluderMipLayoutSize,
                     });
                 }
             }
@@ -504,12 +518,12 @@ namespace UnityEngine.Rendering
 
         internal bool HasOccluderContext(int viewInstanceID)
         {
-            return m_SubviewIDToIndexMap.ContainsKey(viewInstanceID);
+            return m_ViewIDToIndexMap.ContainsKey(viewInstanceID);
         }
 
         internal bool GetOccluderContext(int viewInstanceID, out OccluderContext occluderContext)
         {
-            if (m_SubviewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) && m_OccluderContextSlots[contextIndex].valid)
+            if (m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) && m_OccluderContextSlots[contextIndex].valid)
             {
                 occluderContext = m_OccluderContextData[contextIndex];
                 return true;
@@ -561,19 +575,19 @@ namespace UnityEngine.Rendering
                 m_OccluderContextSlots.Add(newCtxSlot);
             }
 
-            m_SubviewIDToIndexMap.Add(viewInstanceID, newSlot);
+            m_ViewIDToIndexMap.Add(viewInstanceID, newSlot);
             return newSlot;
         }
 
         private void DeleteContext(int viewInstanceID)
         {
-            if (!m_SubviewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) || !m_OccluderContextSlots[contextIndex].valid)
+            if (!m_ViewIDToIndexMap.TryGetValue(viewInstanceID, out var contextIndex) || !m_OccluderContextSlots[contextIndex].valid)
                 return;
 
             m_OccluderContextData[contextIndex].Dispose();
             m_OccluderContextSlots[contextIndex] = new OccluderContextSlot { valid = false };
             m_FreeOccluderContexts.Add(contextIndex);
-            m_SubviewIDToIndexMap.Remove(viewInstanceID);
+            m_ViewIDToIndexMap.Remove(viewInstanceID);
         }
 
         public void Dispose()
@@ -589,7 +603,7 @@ namespace UnityEngine.Rendering
 
             m_SilhouettePlaneCache.Dispose();
 
-            m_SubviewIDToIndexMap.Dispose();
+            m_ViewIDToIndexMap.Dispose();
             m_FreeOccluderContexts.Dispose();
             m_OccluderContextData.Clear();
             m_OccluderContextSlots.Dispose();

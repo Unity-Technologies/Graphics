@@ -22,10 +22,7 @@ namespace UnityEditor.VFX.UI
         Image m_HeaderIcon;
         Image m_HeaderSpace;
         Label m_Subtitle;
-
-        VisualElement m_Footer;
-        Image m_FooterIcon;
-        Label m_FooterTitle;
+        Label m_Footer;
 
         VisualElement m_FlowInputConnectorContainer;
         VisualElement m_FlowOutputConnectorContainer;
@@ -43,15 +40,7 @@ namespace UnityEditor.VFX.UI
         }
         protected override void OnNewController()
         {
-            foreach (var descriptor in VFXLibrary.GetBlocks())
-            {
-                var model = descriptor.CreateInstance();
-                if (controller.model.AcceptChild(model))
-                {
-                    m_CanHaveBlocks = true;
-                    break;
-                }
-            }
+            m_CanHaveBlocks = controller.model.CanHaveBlocks();
         }
 
         public bool canHaveBlocks { get => m_CanHaveBlocks; }
@@ -128,8 +117,6 @@ namespace UnityEditor.VFX.UI
                 mainContainer.RemoveFromClassList("empty");
             }
 
-            m_Divider.visible = hasSettings;
-
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image != null;
 
@@ -204,15 +191,14 @@ namespace UnityEditor.VFX.UI
 
                 if (controller.model.outputFlowSlot.Any())
                 {
-                    m_FooterTitle.text = controller.model.outputType.ToString();
-                    m_FooterIcon.image = GetIconForVFXType(controller.model.outputType);
+                    m_Footer.text = controller.model.outputType.ToString();
+                    m_Footer.style.backgroundImage = GetIconForVFXType(controller.model.outputType);
                 }
                 else
                 {
-                    m_FooterTitle.text = string.Empty;
-                    m_FooterIcon.image = null;
+                    m_Footer.text = string.Empty;
+                    m_Footer.style.backgroundImage = null;
                 }
-                m_FooterIcon.visible = m_FooterIcon.image != null;
             }
 
             Profiler.BeginSample("VFXContextUI.CreateInputFlow");
@@ -281,8 +267,6 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
         }
 
-        VisualElement m_Divider;
-
         public VFXContextUI() : base("uxml/VFXContext")
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
@@ -294,9 +278,6 @@ namespace UnityEditor.VFX.UI
             AddToClassList("selectable");
 
             this.mainContainer.style.overflow = Overflow.Visible;
-
-
-            m_Divider = this.mainContainer.Q("divider");
 
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
@@ -310,11 +291,7 @@ namespace UnityEditor.VFX.UI
             m_BlockContainer = this.Q("block-container");
             m_NoBlock = m_BlockContainer.Q("no-blocks");
 
-            m_Footer = this.Q("footer");
-
-            m_FooterTitle = m_Footer.Q<Label>("title-label");
-            m_FooterIcon = m_Footer.Q<Image>("icon");
-
+            m_Footer = this.Q<Label>("footer");
 
             m_DragDisplay = new VisualElement();
             m_DragDisplay.AddToClassList("dragdisplay");

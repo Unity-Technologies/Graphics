@@ -79,7 +79,6 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent skyOcclusionAverageAlbedo = new GUIContent("Albedo Override", "Sky Occlusion does not consider the albedo of materials in the Scene when calculating bounced light from the sky. Albedo Override determines the value used instead. Lower values darken and higher values will brighten the Scene.");
             public static readonly GUIContent skyOcclusionShadingDirection = new GUIContent("Sky Direction", "For each probe, additionally bake the most suitable direction to use for sampling the Scene’s Ambient Probe. When disabled, surface normals are used instead. Sky Direction improves visual quality at the expense of memory.");
             public static readonly GUIContent cpuLightmapperNotSupportedWarning = new GUIContent("Sky Occlusion is not supported by the current lightmapper. Ensure that Progressive GPU is selected in Lightmapper Settings.");
-            
 
 
             // Probe Settings section
@@ -148,7 +147,7 @@ namespace UnityEditor.Rendering
                 return;
 
             EditorGUI.indentLevel++;
-            bool canFreezePlacement = ProbeGIBaking.CanFreezePlacement();
+            bool canFreezePlacement = AdaptiveProbeVolumes.CanFreezePlacement();
             if (ProbeReferenceVolume.instance.supportLightingScenarios)
             {
                 using (new EditorGUI.DisabledGroupScope(!canFreezePlacement))
@@ -160,9 +159,9 @@ namespace UnityEditor.Rendering
                         m_FreezePlacement.boolValue = freeze;
                 }
 
-                ProbeGIBaking.isFreezingPlacement = canFreezePlacement && m_FreezePlacement.boolValue;
+                AdaptiveProbeVolumes.isFreezingPlacement = canFreezePlacement && m_FreezePlacement.boolValue;
 
-                if (canFreezePlacement && !ProbeGIBaking.isFreezingPlacement && m_LightingScenarios.arraySize > 1)
+                if (canFreezePlacement && !AdaptiveProbeVolumes.isFreezingPlacement && m_LightingScenarios.arraySize > 1)
                 {
                     foreach (var guid in bakingSet.sceneGUIDs)
                     {
@@ -179,7 +178,7 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            using (new EditorGUI.DisabledScope(Lightmapping.isRunning || (canFreezePlacement && ProbeGIBaking.isFreezingPlacement)))
+            using (new EditorGUI.DisabledScope(Lightmapping.isRunning || (canFreezePlacement && AdaptiveProbeVolumes.isFreezingPlacement)))
             {
                 // Display vector3 ourselves otherwise display is messed up
                 {

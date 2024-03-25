@@ -65,6 +65,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
         public VFXSGInputs SGInputs;
+        public List<uint> instancingSplitValues;
         public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public (VFXSlot slot, VFXData data)[] linkedEventOut;
@@ -864,7 +865,7 @@ namespace UnityEditor.VFX
                                 errors.ForEach(x =>
                                 {
                                     errorMessage.AppendLine($"\t{x}");
-                                    m_Graph.RegisterCompileError(context, x);
+                                    m_Graph.RegisterCompileError("CompileError", x, context);
                                 });
                             }
                         }
@@ -1167,30 +1168,33 @@ namespace UnityEditor.VFX
                 var valueDescs = new List<VFXExpressionValueContainerDesc>();
                 FillExpressionDescs(m_ExpressionGraph, expressionDescs, expressionPerSpawnEventAttributesDescs, valueDescs);
 
-                var compiledData = new VFXCompiledData { contextToCompiledData = new(), taskToCompiledData = new() };
-                // Initialize context tasks
-                foreach (var context in compilableContexts)
-                    compiledData.contextToCompiledData[context] = context.PrepareCompiledData();
-
-                foreach (var contextCompiledData in compiledData.contextToCompiledData.Values)
-                    foreach (var task in contextCompiledData.tasks)
-                        compiledData.taskToCompiledData.Add(task, new VFXTaskCompiledData() { indexInShaderSource = -1 });
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating mappings", 5 / nbSteps);
+
+                var compiledData = new VFXCompiledData { contextToCompiledData = new(), taskToCompiledData = new() };
+
+                // Initialize contexts and tasks
                 foreach (var context in compilableContexts)
                 {
+                    var contextCompiledData = context.PrepareCompiledData();
                     var cpuMapper = m_ExpressionGraph.BuildCPUMapper(context);
+                    var instancingSplitValues = context.CreateInstancingSplitValues(m_ExpressionGraph);
 
-                    foreach (var task in compiledData.contextToCompiledData[context].tasks)
+                    foreach (var task in contextCompiledData.tasks)
                     {
-                        var contextData = compiledData.taskToCompiledData[task];
+                        var contextData = new VFXTaskCompiledData() { indexInShaderSource = -1 };
                         contextData.hlslCodeHolders = m_ExpressionGraph.customHLSLExpressions;
                         contextData.cpuMapper = cpuMapper;
                         contextData.parameters = context.additionalMappings.ToArray();
                         contextData.linkedEventOut = ComputeEventListFromSlot(context.allLinkedOutputSlot).ToArray();
+                        contextData.instancingSplitValues = instancingSplitValues;
+
                         compiledData.taskToCompiledData[task] = contextData;
                     }
+
+                    compiledData.contextToCompiledData[context] = contextCompiledData;
                 }
+
 
                 var exposedParameterDescs = new List<(VFXMapping mapping, VFXSpace space, SpaceableType spaceType)>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
@@ -1272,7 +1276,7 @@ namespace UnityEditor.VFX
                         dataToSystemIndex.Add(data, (uint)systemDescs.Count);
                     }
 
-                    data.FillDescs(m_Graph.compileReporter,
+                    data.FillDescs(m_Graph.errorManager.compileReporter,
                         compilationMode,
                         bufferDescs,
                         temporaryBufferDescs,

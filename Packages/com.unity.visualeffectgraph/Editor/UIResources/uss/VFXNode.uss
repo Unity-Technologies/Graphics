@@ -1,24 +1,3 @@
-#divider {
-    background-color: rgba(35,35,35,0.8);
-    border-color: rgba(35,35,35,0.8);
-}
-
-#node-border > #title > #collapse-button >#icon
-{
-    visibility: visible;
-}
-
-
-#divider.horizontal {
-    height: 0.01px;
-    border-bottom-width: 1px;
-}
-
-#divider.horizontal.hidden {
-    height:0;
-    border-bottom-width: 0;
-}
-
 #divider.vertical {
     width: 0.01px;
     border-right-width: 1px;
@@ -33,14 +12,13 @@
 {
     justify-content:flex-start;
     border-radius: 6px 6px 0 0;
-}
-
-.VFXNodeUI.node.collapsed #node-border > #title {
-    border-radius: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: #242424;
 }
 
 .VFXNodeUI.node #node-border > #title > #title-label
 {
+    margin-left: 54px;
     flex:1 1 auto;
     overflow:hidden;
 }
@@ -55,35 +33,63 @@
 
 .VFXNodeUI #settings
 {
+    border-bottom-color: rgba(35,35,35,0.8);
+    border-bottom-width: 1px;
     margin-top: 8px;
-    margin-bottom: 8px;
-    margin-right: 4px;
-    margin-left: 16px; /* this is meant to compense for data anchors connector, so that settings labels are aligned with input labels. */
-    padding-right: 4px;
+    margin-bottom: 0px;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-bottom: 8px;
     overflow:hidden;
 }
 
 .VFXNodeUI.collapsed #settings
 {
     display:none;
-}
-
-.VFXNodeUI #settings.nosettings
-{
-    display:none;
-}
-
-.VFXNodeUI.collapsed #settings
-{
     max-height:0;
     height:0;
 }
-.node.collapsed > #node-border > #title > #collapse-button > #icon {
-    background-image: resource("GraphView/Nodes/NodeChevronLeft.png");
+
+.VFXNodeUI #settings.nosettings {
+    display: none;
 }
 
-.node.expanded > #node-border > #title > #collapse-button > #icon {
-    background-image : resource("GraphView/Nodes/NodeChevronDown.png");
+.node > #node-border > #title #collapse-button {
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    align-self: center;
+    border-radius: 3px;
+    opacity: 0.5;
+    background-size: 16px 16px;
+}
+
+.node > #node-border > #title #collapse-button:hover {
+    opacity: 1;
+    background-color: #2B2B2B;
+}
+
+.node > #node-border > #title #collapse-button:disabled {
+    background-color: initial;
+    opacity: 0.2;
+}
+
+.node.block-disabled > #node-border > #title #collapse-button:hover {
+    opacity: 1;
+    background-color: #383838;
+}
+
+.node.collapsed > #node-border > #title #collapse-button {
+    background-image: resource("GraphView/Nodes/NodeChevronLeft@2x.png");
+}
+
+.node.expanded > #node-border > #title #collapse-button {
+    background-image : resource("GraphView/Nodes/NodeChevronDown@2x.png");
+}
+
+.node.superCollapsed > #node-border > #title > #edit,.VFXNodeUI.superCollapsed > #node-border > #title > #collapse-button
+{
+    display: none;
 }
 
 .VFXNodeUI.node #contents > #top > #input
@@ -98,7 +104,7 @@
 {
     padding-top: 6px;
     padding-bottom: 6px;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     border-radius: 0 0 6px 0;
 }
 
@@ -107,29 +113,13 @@
     background-color:#4c4c4c;
 }
 
-#settings-divider
-{
-    background-color: rgba(35,35,35,0.8);
-    border-color: rgba(35,35,35,0.8);
-    height: 0.01px;
-    border-bottom-width: 1px;
-}
-
-#settings-divider.hidden
-{
-    height:0;
-    border-bottom-width: 0;
-}
-
-.VFXNodeUI.collapsed #settings-divider
-{
-    height:0;
-    border-bottom-width: 0;
-}
-
 .VFXNodeUI.hovered #selection-border
 {
     border-width: 2px;
     background-color:rgba(255,128,0,0.4);
     border-color: rgba(255,128,0,1);
+}
+
+VFXBlockUI #top, VFXOperatorUI #top {
+    flex-grow: 1;
 }

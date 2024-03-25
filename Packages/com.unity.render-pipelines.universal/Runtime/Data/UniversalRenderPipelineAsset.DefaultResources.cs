@@ -203,6 +203,12 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Returns the default SpeedTree8 shader that this asset uses.</returns>
         public override Shader defaultSpeedTree8Shader => defaultShaders?.defaultSpeedTree8Shader;
 
+        /// <summary>
+        /// Returns the default SpeedTree9 shader that this asset uses.
+        /// </summary>
+        /// <returns>Returns the default SpeedTree9 shader that this asset uses.</returns>
+        public override Shader defaultSpeedTree9Shader => defaultShaders?.defaultSpeedTree9Shader;
+
         #endregion
 
 #endif

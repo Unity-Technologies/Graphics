@@ -830,9 +830,9 @@ namespace UnityEditor.VFX
             return SupportsMotionVectorPerVertex(taskType, HasStrips(false), isRayTraced, out vertsCount);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             var dataParticle = GetData() as VFXDataParticle;
 
             if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
@@ -846,10 +846,10 @@ namespace UnityEditor.VFX
                             || attr.attrib.name.Contains("scale")
                             || attr.attrib.name.Contains("pivot")));
                 if (modifiedBounds && CanBeCompiled())
-                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning,
+                    report.RegisterError("WarningBoundsComputation", VFXErrorType.Warning,
                         $"Bounds computation during recording is based on Position and Size in the Update Context." +
                         $" Changing these properties now could lead to incorrect bounds." +
-                        $" Use padding to mitigate this discrepancy.");
+                        $" Use padding to mitigate this discrepancy.", this);
             }
 
             if (HasSorting())
@@ -881,17 +881,17 @@ namespace UnityEditor.VFX
 
                     if (isCriterionModified)
                     {
-                        manager.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
+                        report.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
                             $"Sorting happens in Update, before the attributes were modified in the Output context." +
-                            $" All the modifications made here will not be taken into account during sorting.");
+                            $" All the modifications made here will not be taken into account during sorting.", this);
                     }
                 }
 
                 if (sortMode == VFXSortingUtility.SortCriteria.YoungestInFront)
                 {
                     if (!GetData().IsAttributeUsed(VFXAttribute.Age))
-                        manager.RegisterError("NoAgeToSort", VFXErrorType.Warning,
-                            $"The sorting mode depends on the Age attribute, which is neither set nor updated in this system.");
+                        report.RegisterError("NoAgeToSort", VFXErrorType.Warning,
+                            $"The sorting mode depends on the Age attribute, which is neither set nor updated in this system.", this);
                 }
             }
 
@@ -899,8 +899,8 @@ namespace UnityEditor.VFX
             {
                 if (!SystemInfo.supportsRayTracing)
                 {
-                    manager.RegisterError("RaytracingNotSupported", VFXErrorType.Warning,
-                        $"Ray tracing is not supported on this machine. You can still enable it in the graph for a use on another device.");
+                    report.RegisterError("RaytracingNotSupported", VFXErrorType.Warning,
+                        $"Ray tracing is not supported on this machine. You can still enable it in the graph for a use on another device.", this);
                 }
 
             }

@@ -71,7 +71,7 @@ namespace Common
             }
         }
 
-        static void ForceInitialization()
+        public static void ForceInitialization()
         {
             if (Camera.main != null)
                 Camera.main.Render();

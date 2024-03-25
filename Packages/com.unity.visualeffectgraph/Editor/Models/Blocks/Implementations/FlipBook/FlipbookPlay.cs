@@ -421,14 +421,14 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var data = GetData();// as VFXDataParticle;
             if (mode == Mode.Cycles && data != null && !data.IsAttributeStored(VFXAttribute.Alive))
             {
-                manager.RegisterError("FlipbookAnimLengthUnavailable", VFXErrorType.Warning, "Cycles mode only works with particles that have the Lifetime attribute");
+                report.RegisterError("FlipbookAnimLengthUnavailable", VFXErrorType.Warning, "Cycles mode only works with particles that have the Lifetime attribute", this);
             }
 
             if (needsRange && (animationRange == AnimationRange.EntireFlipbook || animationRange == AnimationRange.FlipbookRow || animationRange == AnimationRange.FlipbookColumn))
@@ -445,7 +445,7 @@ namespace UnityEditor.VFX.Block
                 }
                 if (!usesFlipbook)
                 {
-                    manager.RegisterError("NoFlipbookOutput", VFXErrorType.Warning, "Flipbook mode requires an output with Uv Mode set to Flipbook");
+                    report.RegisterError("NoFlipbookOutput", VFXErrorType.Warning, "Flipbook mode requires an output with Uv Mode set to Flipbook", this);
                 }
             }
         }

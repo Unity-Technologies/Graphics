@@ -1,4 +1,4 @@
-# Lens Flare (SRP) component
+# Add lens flares
 
 ![](../../images/shared/lens-flare/lens-flare-header.png)
 
@@ -19,30 +19,7 @@ To create a lens flare in a scene:
 5. In the Lens Flare (SRP) component Inspector, assign the new Lens Flare (SRP) Data asset to the **Lens Flare Data** property.
 6. Select the Lens Flare (SRP) Data asset and, in the Inspector, add a new element to the **Elements** list. A default white lens flare now renders at the position of the Lens Flare (SRP) component. For information on how to customize how the lens flare looks, refer to [Lens Flare (SRP) Data](lens-flare-asset.md).
 
-## Properties
+Refer to the following for more information:
 
-### General
-
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Lens Flare Data | Select the [Lens Flare (SRP) Data](lens-flare-asset.md) asset this component controls. |
-| Intensity     | Multiplies the intensity of the lens flare. |
-| Scale         | Multiplies the scale of the lens flare. |
-| Light Override  | Specifies the light component where the color and shape values are fetched from when using "Modulate By Light Color" or "Attenuation By Light Shape" properties on a Lens Flare Element. If nothing is specified, the light component from this gameobject is used. |
-| Attenuation by Light Shape | Enable this property to automatically change the appearance of the lens flare based on the type of light you attached this component to.<br/>For example, if this component is attached to a spot light and the camera is looking at this light from behind, the lens flare will not be visible. <br/>This property is only available when this component is attached to a light. |
-| Attenuation Distance |The distance between the start and the end of the Attenuation Distance Curve.<br/>This value operates between 0 and 1 in world space.  |
-| Attenuation Distance Curve | Fades out the appearance of the lens flare over the distance between the GameObject this asset is attached to, and the Camera. |
-| Scale Distance | The distance between the start and the end of the **Scale Distance Curve**.<br/>This value operates between 0 and 1 in world space. |
-| Scale Distance Curve | Changes the size of the lens flare over the distance between the GameObject this asset is attached to, and the Camera. |
-| Screen Attenuation Curve | Reduces the effect of the lens flare based on its distance from the edge of the screen. You can use this to display a lens flare at the edge of your screen |
-
-### Occlusion
-
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Enable | Enable this property to partially obscure the lens flare based on the depth buffer |
-| Occlusion Radius | Defines how far from the light source Unity occludes the lens flare. This value is in world space. |
-| Sample Count | The number of random samples the CPU uses to generate the **Occlusion Radius.** |
-| Occlusion Offset | Offsets the plane that the occlusion operates on. A higher value moves this plane closer to Camera. This value is in world space. <br/>For example, if a lens flare is inside the light bulb, you can use this to sample occlusion outside the light bulb. |
-| Occlusion Remap Curve | Allow the occlusion [from 0 to 1] to be remap with any desired shape. |
-| Allow Off Screen | Enable this property to allow lens flares outside the Camera's view to affect the current field of view. |
+- [Lens Flare (SRP) reference](lens-flare-srp-reference.md)
+- [Lens Flare (SRP) Data Asset reference](lens-flare-asset.md)

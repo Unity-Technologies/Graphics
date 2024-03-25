@@ -1103,6 +1103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateShaderVariablesGlobalCB(HDCamera hdCamera, CommandBuffer cmd)
         {
             hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+            hdCamera.UpdateGlobalMipBiasCB(ref m_ShaderVariablesGlobalCB, GetGlobalMipBias(hdCamera));
             Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
@@ -1553,6 +1554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skipRequest = true;
                 // First prepare the global constant buffer for users (Only camera properties)
                 hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+                hdCamera.UpdateGlobalMipBiasCB(ref m_ShaderVariablesGlobalCB, GetGlobalMipBias(hdCamera));
                 ConstantBuffer.PushGlobal(m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 // Execute custom render
                 BeginCameraRendering(renderContext, camera);

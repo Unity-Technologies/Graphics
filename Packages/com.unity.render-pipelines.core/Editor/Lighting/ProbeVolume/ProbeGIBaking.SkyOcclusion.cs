@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine.Rendering.Sampling;
 using UnityEngine.Rendering.UnifiedRayTracing;
@@ -5,9 +6,114 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering
 {
-    partial class ProbeGIBaking
+    partial class AdaptiveProbeVolumes
     {
-        struct SkyOcclusionBaking
+        /// <summary>
+        /// Sky occlusion baker
+        /// </summary>
+        public abstract class SkyOcclusionBaker : IDisposable
+        {
+            /// <summary>The current baking step.</summary>
+            public abstract ulong currentStep { get; }
+            /// <summary>The total amount of step.</summary>
+            public abstract ulong stepCount { get; }
+
+            /// <summary>Array storing the sky occlusion per probe. Expects Layout DC, x, y, z.</summary>
+            public abstract NativeArray<Vector4> occlusion { get; }
+            /// <summary>Array storing the sky shading direction per probe.</summary>
+            public abstract NativeArray<Vector3> shadingDirections { get; }
+
+            /// <summary>
+            /// This is called before the start of baking to allow allocating necessary resources.
+            /// </summary>
+            /// <param name="bakingSet">The baking set that is currently baked.</param>
+            /// <param name="probePositions">The probe positions.</param>
+            public abstract void Initialize(ProbeVolumeBakingSet bakingSet, NativeArray<Vector3> probePositions);
+
+            /// <summary>
+            /// Run a step of sky occlusion baking. Baking is considered done when currentStep property equals stepCount.
+            /// </summary>
+            /// <returns>Return false if bake failed and should be stopped.</returns>
+            public abstract bool Step();
+
+            /// <summary>
+            /// Performs necessary tasks to free allocated resources.
+            /// </summary>
+            public abstract void Dispose();
+            
+            internal NativeArray<uint> encodedDirections;
+            internal void Encode() { encodedDirections = EncodeShadingDirection(shadingDirections); }
+            
+            static int k_MaxProbeCountPerBatch = 65535;
+            static readonly int _SkyShadingPrecomputedDirection = Shader.PropertyToID("_SkyShadingPrecomputedDirection");
+            static readonly int _SkyShadingDirections = Shader.PropertyToID("_SkyShadingDirections");
+            static readonly int _SkyShadingIndices = Shader.PropertyToID("_SkyShadingIndices");
+            static readonly int _ProbeCount = Shader.PropertyToID("_ProbeCount");
+
+            internal static NativeArray<uint> EncodeShadingDirection(NativeArray<Vector3> directions)
+            {
+                var cs = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().skyOcclusionCS;
+                int kernel = cs.FindKernel("EncodeShadingDirection");
+
+                DynamicSkyPrecomputedDirections.Initialize();
+                var precomputedShadingDirections = ProbeReferenceVolume.instance.GetRuntimeResources().SkyPrecomputedDirections;
+
+                int probeCount = directions.Length;
+                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
+                int batchCount = CoreUtils.DivRoundUp(probeCount, k_MaxProbeCountPerBatch);
+
+                var directionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
+                var encodedBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<uint>());
+
+                var directionResults = new NativeArray<uint>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+                for (int batchIndex = 0; batchIndex < batchCount; batchIndex++)
+                {
+                    int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
+                    int probeInBatch = Mathf.Min(probeCount - batchOffset, k_MaxProbeCountPerBatch);
+                    
+                    directionBuffer.SetData(directions, batchOffset, 0, probeInBatch);
+
+                    cs.SetBuffer(kernel, _SkyShadingPrecomputedDirection, precomputedShadingDirections);
+                    cs.SetBuffer(kernel, _SkyShadingDirections, directionBuffer);
+                    cs.SetBuffer(kernel, _SkyShadingIndices, encodedBuffer);
+
+                    cs.SetInt(_ProbeCount, probeInBatch);
+                    cs.Dispatch(kernel, CoreUtils.DivRoundUp(probeCount, 64), 1, 1);
+
+                    var batchResult = directionResults.GetSubArray(batchOffset, probeInBatch);
+                    AsyncGPUReadback.RequestIntoNativeArray(ref batchResult, encodedBuffer, probeInBatch * sizeof(uint), 0).WaitForCompletion();
+                }
+                
+                directionBuffer.Dispose();
+                encodedBuffer.Dispose();
+
+                return directionResults;
+            }
+
+            internal static uint EncodeSkyShadingDirection(Vector3 direction)
+            {
+                var precomputedDirections = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
+
+                uint indexMax = 255;
+                float bestDot = -10.0f;
+                uint bestIndex = 0;
+
+                for (uint index = 0; index < indexMax; index++)
+                {
+                    float currentDot = Vector3.Dot(direction, precomputedDirections[index]);
+                    if (currentDot > bestDot)
+                    {
+                        bestDot = currentDot;
+                        bestIndex = index;
+                    }
+                }
+
+                return bestIndex;
+            }
+        }
+
+        class DefaultSkyOcclusion : SkyOcclusionBaker
         {
             const int k_MaxProbeCountPerBatch = 65535 * 64;
             const float k_SkyOcclusionOffsetRay = 0.015f;
@@ -19,61 +125,87 @@ namespace UnityEngine.Rendering
             static readonly int _OffsetRay = Shader.PropertyToID("_OffsetRay");
             static readonly int _ProbePositions = Shader.PropertyToID("_ProbePositions");
             static readonly int _SkyOcclusionOut = Shader.PropertyToID("_SkyOcclusionOut");
-            static readonly int _SkyShadingPrecomputedDirection = Shader.PropertyToID("_SkyShadingPrecomputedDirection");
             static readonly int _SkyShadingOut = Shader.PropertyToID("_SkyShadingOut");
-            static readonly int _SkyShadingDirectionIndexOut = Shader.PropertyToID("_SkyShadingDirectionIndexOut");
             static readonly int _AverageAlbedo = Shader.PropertyToID("_AverageAlbedo");
             static readonly int _BackFaceCulling = Shader.PropertyToID("_BackFaceCulling");
             static readonly int _BakeSkyShadingDirection = Shader.PropertyToID("_BakeSkyShadingDirection");
             static readonly int _SobolBuffer = Shader.PropertyToID("_SobolBuffer");
             static readonly int _CPRBuffer = Shader.PropertyToID("_CPRBuffer");
 
-            public bool skyOcclusion;
-            public bool skyDirection;
-
-            private int skyOcclusionBackFaceCulling;
-            private float skyOcclusionAverageAlbedo;
-            private int probeCount;
+            int skyOcclusionBackFaceCulling;
+            float skyOcclusionAverageAlbedo;
+            int probeCount;
+            ulong step;
 
             // Input data
             NativeArray<Vector3> probePositions;
-            private BakeJob[] jobs;
-            private int currentJob;
-            public int sampleIndex;
-            public int batchIndex;
+            int currentJob;
+            int sampleIndex;
+            int batchIndex;
+
+            public BakeJob[] jobs;
 
             // Output buffers
-            private GraphicsBuffer occlusionOutputBuffer;
-            private GraphicsBuffer skyShadingIndexBuffer;
-            public Vector4[] occlusionResults;
-            public uint[] directionResults;
+            GraphicsBuffer occlusionOutputBuffer;
+            GraphicsBuffer shadingDirectionBuffer;
+            NativeArray<Vector4> occlusionResults;
+            NativeArray<Vector3> directionResults;
 
-            private IRayTracingAccelStruct m_AccelerationStructure;
-            private GraphicsBuffer scratchBuffer;
-            private GraphicsBuffer probePositionsBuffer;
-            private GraphicsBuffer skyShadingBuffer;
-            private ComputeBuffer precomputedShadingDirections;
-            private GraphicsBuffer sobolBuffer;
-            private GraphicsBuffer cprBuffer; // Cranley Patterson rotation
+            public override NativeArray<Vector4> occlusion => occlusionResults;
+            public override NativeArray<Vector3> shadingDirections => directionResults;
 
-            public ulong currentStep;
-            public ulong stepCount => (ulong)probeCount;
+            IRayTracingAccelStruct m_AccelerationStructure;
+            GraphicsBuffer scratchBuffer;
+            GraphicsBuffer probePositionsBuffer;
+            GraphicsBuffer sobolBuffer;
+            GraphicsBuffer cprBuffer; // Cranley Patterson rotation
 
-            public void Initialize(ProbeVolumeBakingSet bakingSet, BakeJob[] bakeJobs, int probeCount)
+            public override ulong currentStep => step;
+            public override ulong stepCount => (ulong)probeCount;
+
+            public override void Initialize(ProbeVolumeBakingSet bakingSet, NativeArray<Vector3> positions)
             {
-                // We have to copy the values from the baking set as they may get modified by the user while baking
-                skyOcclusion = bakingSet.skyOcclusion;
-                skyDirection = bakingSet.skyOcclusionShadingDirection && skyOcclusion;
                 skyOcclusionAverageAlbedo = bakingSet.skyOcclusionAverageAlbedo;
                 skyOcclusionBackFaceCulling = 0; // see PR #40707
 
-                jobs = bakeJobs;
                 currentJob = 0;
                 sampleIndex = 0;
                 batchIndex = 0;
 
-                currentStep = 0;
-                this.probeCount = skyOcclusion ? probeCount : 0;
+                step = 0;
+                probeCount = bakingSet.skyOcclusion ? positions.Length : 0;
+                probePositions = positions;
+
+                if (stepCount == 0)
+                    return;
+
+                // Allocate array storing results
+                occlusionResults = new NativeArray<Vector4>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                if (bakingSet.skyOcclusionShadingDirection)
+                    directionResults = new NativeArray<Vector3>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+                // Create acceletation structure
+                m_AccelerationStructure = BuildAccelerationStructure();
+                var skyOcclusionShader = s_TracingContext.shaderSO;
+                bool skyDirection = shadingDirections.IsCreated;
+
+                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
+                probePositionsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
+                occlusionOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector4>());
+                shadingDirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, skyDirection ? batchSize : 1, Marshal.SizeOf<Vector3>());
+                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure, skyOcclusionShader, (uint)batchSize, 1, 1);
+
+                var buildCmd = new CommandBuffer();
+                m_AccelerationStructure.Build(buildCmd, scratchBuffer);
+                Graphics.ExecuteCommandBuffer(buildCmd);
+                buildCmd.Dispose();
+
+                int sobolBufferSize = (int)(SobolData.SobolDims * SobolData.SobolSize);
+                sobolBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, sobolBufferSize, Marshal.SizeOf<uint>());
+                sobolBuffer.SetData(SobolData.SobolMatrices);
+
+                cprBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, SamplingResources.cranleyPattersonRotationBufferSize, Marshal.SizeOf<float>());
+                cprBuffer.SetData(SamplingResources.GetCranleyPattersonRotations());
             }
 
             static IRayTracingAccelStruct BuildAccelerationStructure()
@@ -125,71 +257,26 @@ namespace UnityEngine.Rendering
                 return accelStruct;
             }
 
-            public void StartBaking(NativeArray<Vector3> positions)
-            {
-                if (!skyOcclusion)
-                    return;
-
-                probePositions = positions;
-                occlusionResults = new Vector4[probeCount];
-                directionResults = skyDirection ? new uint[probeCount] : null;
-
-                // Create acceletation structure
-                m_AccelerationStructure = BuildAccelerationStructure();
-                var skyOcclusionShader = s_TracingContext.shaderSO;
-
-                int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
-                probePositionsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
-                occlusionOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector4>());
-                skyShadingBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, skyDirection ? batchSize : 1, Marshal.SizeOf<Vector3>());
-                skyShadingIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, skyDirection ? batchSize : 1, Marshal.SizeOf<uint>());
-                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure, skyOcclusionShader,
-                    (uint)batchSize, 1, 1);
-
-                var buildCmd = new CommandBuffer();
-                m_AccelerationStructure.Build(buildCmd, scratchBuffer);
-                Graphics.ExecuteCommandBuffer(buildCmd);
-                buildCmd.Dispose();
-
-                int sobolBufferSize = (int)(SobolData.SobolDims * SobolData.SobolSize);
-                sobolBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, sobolBufferSize, Marshal.SizeOf<uint>());
-                sobolBuffer.SetData(SobolData.SobolMatrices);
-
-                cprBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, SamplingResources.cranleyPattersonRotationBufferSize, Marshal.SizeOf<float>());
-                cprBuffer.SetData(SamplingResources.GetCranleyPattersonRotations());
-
-                if (skyDirection)
-                {
-                    DynamicSkyPrecomputedDirections.Initialize();
-                    precomputedShadingDirections = ProbeReferenceVolume.instance.GetRuntimeResources().SkyPrecomputedDirections;
-                }
-                else
-                {
-                    precomputedShadingDirections = new ComputeBuffer(1, Marshal.SizeOf<Vector3>());
-                }
-            }
-
-            public bool RunSkyOcclusionStep()
+            public override bool Step()
             {
                 if (currentStep >= stepCount)
                     return true;
 
                 ref var job = ref jobs[currentJob];
-                if (job.indices.Length == 0)
+                if (job.probeCount == 0)
                 {
                     currentJob++;
-                    return false;
-
+                    return true;
                 }
 
                 var cmd = new CommandBuffer();
                 var skyOccShader = s_TracingContext.shaderSO;
 
                 // Divide the job into batches of 128k probes to reduce memory usage.
-                int batchCount = CoreUtils.DivRoundUp(job.indices.Length, k_MaxProbeCountPerBatch);
+                int batchCount = CoreUtils.DivRoundUp(job.probeCount, k_MaxProbeCountPerBatch);
 
                 int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
-                int batchSize = Mathf.Min(job.indices.Length - batchOffset, k_MaxProbeCountPerBatch);
+                int batchSize = Mathf.Min(job.probeCount - batchOffset, k_MaxProbeCountPerBatch);
 
                 if (sampleIndex == 0)
                 {
@@ -199,16 +286,14 @@ namespace UnityEngine.Rendering
                 s_TracingContext.BindSamplingTextures(cmd);
                 skyOccShader.SetAccelerationStructure(cmd, "_AccelStruct", m_AccelerationStructure);
 
-                skyOccShader.SetIntParam(cmd, _BakeSkyShadingDirection, skyDirection ? 1 : 0);
+                skyOccShader.SetIntParam(cmd, _BakeSkyShadingDirection, shadingDirections.IsCreated ? 1 : 0);
                 skyOccShader.SetIntParam(cmd, _BackFaceCulling, skyOcclusionBackFaceCulling);
                 skyOccShader.SetFloatParam(cmd, _AverageAlbedo, skyOcclusionAverageAlbedo);
 
                 skyOccShader.SetFloatParam(cmd, _OffsetRay, k_SkyOcclusionOffsetRay);
                 skyOccShader.SetBufferParam(cmd, _ProbePositions, probePositionsBuffer);
                 skyOccShader.SetBufferParam(cmd, _SkyOcclusionOut, occlusionOutputBuffer);
-                skyOccShader.SetBufferParam(cmd, _SkyShadingPrecomputedDirection, precomputedShadingDirections);
-                skyOccShader.SetBufferParam(cmd, _SkyShadingOut, skyShadingBuffer);
-                skyOccShader.SetBufferParam(cmd, _SkyShadingDirectionIndexOut, skyShadingIndexBuffer);
+                skyOccShader.SetBufferParam(cmd, _SkyShadingOut, shadingDirectionBuffer);
 
                 skyOccShader.SetBufferParam(cmd, _SobolBuffer, sobolBuffer);
                 skyOccShader.SetBufferParam(cmd, _CPRBuffer, cprBuffer);
@@ -240,70 +325,51 @@ namespace UnityEngine.Rendering
                         }
 
                         // Progress bar
-                        currentStep += (ulong)batchSize;
+                        step += (ulong)batchSize;
                         break;
                     }
                 }
 
                 cmd.Dispose();
-                return false;
+                return true;
             }
 
             void FetchResults(in BakeJob job, int batchOffset, int batchSize)
             {
-                var batchOcclusionResults = new Vector4[batchSize];
-                var batchDirectionResults = skyDirection ? new uint[batchSize] : null;
+                var batchOcclusionResults = occlusionResults.GetSubArray(job.startOffset + batchOffset, batchSize);
+                var req1 = AsyncGPUReadback.RequestIntoNativeArray(ref batchOcclusionResults, occlusionOutputBuffer, batchSize * 4 * sizeof(float), 0);
 
-                occlusionOutputBuffer.GetData(batchOcclusionResults);
-                if (skyDirection)
-                    skyShadingIndexBuffer.GetData(batchDirectionResults);
-
-                for (int i = 0; i < batchSize; i++)
+                if (directionResults.IsCreated)
                 {
-                    var dst = job.indices[i + batchOffset];
-                    occlusionResults[dst] = batchOcclusionResults[i];
-                    if (skyDirection)
-                        directionResults[dst] = batchDirectionResults[i];
+                    var batchDirectionResults = directionResults.GetSubArray(job.startOffset + batchOffset, batchSize);
+                    var req2 = AsyncGPUReadback.RequestIntoNativeArray(ref batchDirectionResults, shadingDirectionBuffer, batchSize * 3 * sizeof(float), 0);
+
+                    req2.WaitForCompletion();
                 }
+
+                // TODO: use double buffering to hide readback latency
+                req1.WaitForCompletion();
             }
 
-            public void Dispose()
+            public override void Dispose()
             {
                 if (m_AccelerationStructure == null)
                     return;
 
                 occlusionOutputBuffer?.Dispose();
-                skyShadingBuffer?.Dispose();
+                shadingDirectionBuffer?.Dispose();
 
                 scratchBuffer?.Dispose();
                 probePositionsBuffer?.Dispose();
-                skyShadingIndexBuffer?.Dispose();
                 sobolBuffer?.Dispose();
                 cprBuffer?.Dispose();
 
-                if (!skyDirection)
-                    precomputedShadingDirections?.Dispose();
+                occlusionResults.Dispose();
+                if (directionResults.IsCreated)
+                    directionResults.Dispose();
 
                 m_AccelerationStructure.Dispose();
             }
-        }
-
-        internal static uint LinearSearchClosestDirection(Vector3[] precomputedDirections, Vector3 direction)
-        {
-            uint indexMax = 255;
-            float bestDot = -10.0f;
-            uint bestIndex = 0;
-
-            for (uint index = 0; index < indexMax; index++)
-            {
-                float currentDot = Vector3.Dot(direction, precomputedDirections[index]);
-                if (currentDot > bestDot)
-                {
-                    bestDot = currentDot;
-                    bestIndex = index;
-                }
-            }
-            return bestIndex;
         }
     }
 }

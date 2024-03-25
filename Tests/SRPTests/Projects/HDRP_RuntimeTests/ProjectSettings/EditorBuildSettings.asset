@@ -17,7 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/004-CloudsFlaresDecals.unity
     guid: 254ba04bcf8c1a649bbe1a8e7b7addf3
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/005-DistortCloudsParallax.unity
     guid: 6aa3f93497269764cb080370aba9c23d
   - enabled: 1

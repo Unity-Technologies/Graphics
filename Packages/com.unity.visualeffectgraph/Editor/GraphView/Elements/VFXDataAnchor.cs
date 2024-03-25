@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -9,13 +9,12 @@ using UnityEngine.Profiling;
 
 using Type = System.Type;
 
-using PositionType = UnityEngine.UIElements.Position;
-
 namespace UnityEditor.VFX.UI
 {
     class VFXDataAnchor : Port, IControlledElement<VFXDataAnchorController>, IEdgeConnectorListener
     {
-        readonly Vector2 portPositionOffset = new Vector2(-4, -20);
+        static readonly Vector2 s_DragEdgeTolerance = new Vector2(3, 3);
+        static readonly Vector2 portPositionOffset = new Vector2(-4, -20);
 
         VFXDataAnchorController m_Controller;
         Controller IControlledElement.controller
@@ -56,11 +55,14 @@ namespace UnityEditor.VFX.UI
             this.AddStyleSheetPath("VFXTypeColor");
 
             m_Node = node;
+            this.Q<VisualElement>("cap").RemoveFromHierarchy();
 
             RegisterCallback<PointerEnterEvent>(OnPointerEnter);
             RegisterCallback<PointerLeaveEvent>(OnPointerLeave);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+            RegisterCallback<CustomStyleResolvedEvent>(OneTimeCustomStyleResolved);
+
             Profiler.EndSample();
         }
 
@@ -108,23 +110,43 @@ namespace UnityEditor.VFX.UI
             highlight = true;
         }
 
+        protected override void HandleEventBubbleUp(EventBase evt)
+        {
+            // Inflate the area to slightly increase sensitive area
+            var rect = this.connector.layout;
+            rect.min -= s_DragEdgeTolerance;
+            rect.max += s_DragEdgeTolerance;
+
+            // This is to prevent from initiating a link creation even when click outside the port's dot button
+            if (evt is PointerDownEvent pointerDownEvent && !rect.Contains(pointerDownEvent.localPosition))
+            {
+                evt.StopImmediatePropagation();
+            }
+            else
+            {
+                base.HandleEventBubbleUp(evt);
+            }
+        }
+
         void OnPointerEnter(PointerEnterEvent e)
         {
             // Prevent VisualElement from setting hover pseudo-state
             if (m_EdgeDragging && !highlight)
                 e.StopPropagation();
+
+            this.connector.style.backgroundColor = portColor;
         }
 
         void OnPointerLeave(PointerLeaveEvent e)
         {
             if (m_EdgeDragging && !highlight)
                 e.StopPropagation();
+
+            if (!connected)
+                this.connector.style.backgroundColor = StyleKeyword.Null;
         }
 
-        public override bool collapsed
-        {
-            get { return !controller.expandedInHierachy; }
-        }
+        public override bool collapsed => !controller.expandedInHierachy;
 
         IEnumerable<VFXDataEdge> GetAllEdges()
         {
@@ -198,13 +220,21 @@ namespace UnityEditor.VFX.UI
                 AddToClassList("hidden");
             }
 
-            UpdateCapColor();
+            UpdateCapColorCustom();
 
 
             if (controller.direction == Direction.Output)
                 m_ConnectorText.text = controller.name;
             else
                 m_ConnectorText.text = "";
+        }
+
+        private void UpdateCapColorCustom()
+        {
+            if (this.portCapLit || this.connected)
+                this.connector.style.backgroundColor = this.portColor;
+            else
+                this.connector.style.backgroundColor = StyleKeyword.Null;
         }
 
         void IEdgeConnectorListener.OnDrop(GraphView graphView, Edge edge)
@@ -216,10 +246,16 @@ namespace UnityEditor.VFX.UI
             view.controller.AddElement(edgeController);
         }
 
+        public override void Connect(Edge edge)
+        {
+            base.Connect(edge);
+            UpdateCapColorCustom();
+        }
+
         public override void Disconnect(Edge edge)
         {
             base.Disconnect(edge);
-            UpdateCapColor();
+            UpdateCapColorCustom();
         }
 
         void IEdgeConnectorListener.OnDropOutsidePort(Edge edge, Vector2 position)
@@ -278,6 +314,11 @@ namespace UnityEditor.VFX.UI
             }
             else if (controller.direction == Direction.Input && Event.current.modifiers == EventModifiers.Alt)
             {
+                if (startSlot == null)
+                {
+                    Debug.LogWarning("Creating a node with a shortcut is not supported for unspecified type ports. Instead, create it by dragging an edge and using node search.");
+                    return;
+                }
                 var targetType = controller.portType;
 
                 var attribute = VFXLibrary.GetAttributeFromSlotType(controller.portType);
@@ -495,6 +536,12 @@ namespace UnityEditor.VFX.UI
             {
                 parameter.value = convertedValue;
             }
+        }
+
+        private void OneTimeCustomStyleResolved(CustomStyleResolvedEvent evt)
+        {
+            UpdateCapColorCustom();
+            UnregisterCallback<CustomStyleResolvedEvent>(OneTimeCustomStyleResolved);
         }
     }
 }

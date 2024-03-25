@@ -28,31 +28,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        // As connections changed can be triggered from ResyncSlots, we need to make sure it is not reentrant
-        [NonSerialized]
-        private bool m_ResyncingSlots = false;
-
-        public override bool ResyncSlots(bool notify)
-        {
-            bool changed = false;
-            if (!m_ResyncingSlots)
-            {
-                m_ResyncingSlots = true;
-                try
-                {
-                    changed = base.ResyncSlots(notify);
-                    if (changed && notify)
-                        foreach (var slot in outputSlots) // invalidate expressions on output slots
-                            slot.InvalidateExpressionTree();
-                }
-                finally
-                {
-                    m_ResyncingSlots = false;
-                }
-            }
-            return changed;
-        }
-
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
@@ -79,16 +54,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (cause == InvalidationCause.kConnectionChanged)
-            {
-                if (model is VFXSlot slot && slot.direction == VFXSlot.Direction.kInput)
-                    ResyncSlots(true);
-            }
+            bool isInputSlot = model is VFXSlot && ((VFXSlot)model).direction == VFXSlot.Direction.kInput;
 
             if (cause == InvalidationCause.kParamChanged ||
                 cause == InvalidationCause.kExpressionValueInvalidated)
             {
-                if (model is VFXSlot && ((VFXSlot)model).direction == VFXSlot.Direction.kInput)
+                if (isInputSlot)
                 {
                     foreach (var slot in outputSlots)
                         slot.Invalidate(InvalidationCause.kExpressionValueInvalidated);
@@ -96,6 +67,14 @@ namespace UnityEditor.VFX
             }
 
             base.OnInvalidate(model, cause);
+
+            if (cause == InvalidationCause.kSettingChanged ||
+    (isInputSlot && (cause == InvalidationCause.kExpressionInvalidated || cause == InvalidationCause.kConnectionChanged)))
+            {
+                MarkOutputExpressionsAsOutOfDate();
+                foreach (var slot in outputSlots) // invalidate expressions on output slots
+                    slot.InvalidateExpressionTree();
+            }
         }
 
         public override VFXSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
@@ -106,7 +85,7 @@ namespace UnityEditor.VFX
                 : VFXSpace.None;
         }
 
-        public override sealed void UpdateOutputExpressions()
+        protected override sealed void UpdateOutputExpressions()
         {
             var outputSlotWithExpression = new List<VFXSlot>();
             var inputSlotWithExpression = new List<VFXSlot>();

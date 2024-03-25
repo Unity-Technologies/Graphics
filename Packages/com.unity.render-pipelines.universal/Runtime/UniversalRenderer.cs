@@ -270,7 +270,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_MotionVectorPass = new MotionVectorRenderPass(m_CameraMotionVecMaterial);
 
             if (renderingModeRequested == RenderingMode.Forward || renderingModeRequested == RenderingMode.ForwardPlus)
             {
@@ -312,12 +311,16 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardWithRenderingLayersPass = new DrawObjectsWithRenderingLayersPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
             bool copyDepthAfterTransparents = m_CopyDepthMode == CopyDepthMode.AfterTransparents;
+            RenderPassEvent copyDepthEvent = copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox;
 
             m_CopyDepthPass = new CopyDepthPass(
-                copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox,
+                copyDepthEvent,
                 copyDephPS,
                 shouldClear: true,
                 copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents);
+
+            // Motion vectors depend on the (copy) depth texture. Depth is reprojected to calculate motion vectors.
+            m_MotionVectorPass = new MotionVectorRenderPass(copyDepthEvent + 1, m_CameraMotionVecMaterial);
 
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
@@ -545,8 +548,10 @@ namespace UnityEngine.Rendering.Universal
             bool isFirstCameraToWriteDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
             // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
             bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
+            // Depth is not rendered in a depth-only camera setup with depth priming (UUM-38158)
+            bool isNotOffscreenDepthTexture = !IsOffscreenDepthTexture(cameraData);
 
-            return  depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotWebGL;
+            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotOffscreenDepthTexture && isNotWebGL;
         }
 
         bool IsWebGL()
@@ -639,6 +644,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
+
+            // Because of the shortcutting done by depth only offscreen cameras, useDepthPriming must be computed early
+            useDepthPriming = IsDepthPrimingEnabled(cameraData);
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             if (IsOffscreenDepthTexture(cameraData))
@@ -741,7 +749,6 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.isPreviewCamera;
-            useDepthPriming = IsDepthPrimingEnabled(cameraData);
             // This indicates whether the renderer will output a depth texture.
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || useDepthPriming;
 
@@ -1696,7 +1703,11 @@ namespace UnityEngine.Rendering.Universal
 
             // Motion vectors imply depth
             if (inputSummary.requiresMotionVectors)
+            {
                 inputSummary.requiresDepthTexture = true;
+                inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)m_MotionVectorPass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
+            }
+
 
             return inputSummary;
         }

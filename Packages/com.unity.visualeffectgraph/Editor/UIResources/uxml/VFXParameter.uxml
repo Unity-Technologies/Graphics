@@ -4,9 +4,7 @@
       <ui:VisualElement name="pill" >
         <ui:Image name="exposed-icon" pickingMode="Ignore"/>
         <ui:Label name="title-label" text=""  pickingMode="Ignore"/>
-        <ui:VisualElement name="super-collapse-button" text="">
-          <ui:VisualElement name="icon" text="" pickingMode="Ignore"/>
-        </ui:VisualElement>
+        <ui:VisualElement name="collapse-button" text="" />
       </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="contents" pickingMode="Ignore">

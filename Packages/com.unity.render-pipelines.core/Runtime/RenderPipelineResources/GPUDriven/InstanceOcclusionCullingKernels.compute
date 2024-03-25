@@ -102,11 +102,11 @@ void CopyInstances(uint dispatchIdx : SV_DispatchThreadID)
         IndirectDrawInfo drawInfo = LoadDrawInfo(dispatchIdx);
 
         uint argsBase = DRAW_ARGS_INDEX(dispatchIdx);
-        _DrawArgs[argsBase + 0] = drawInfo.indexCount;          // IndirectDrawIndexedArgs.indexCountPerInstance
-        _DrawArgs[argsBase + 1] = drawInfo.maxInstanceCount;    // IndirectDrawIndexedArgs.instanceCount
-        _DrawArgs[argsBase + 2] = drawInfo.firstIndex;          // IndirectDrawIndexedArgs.startIndex
-        _DrawArgs[argsBase + 3] = drawInfo.baseVertex;          // IndirectDrawIndexedArgs.baseVertexIndex
-        _DrawArgs[argsBase + 4] = 0;                            // IndirectDrawIndexedArgs.startInstance
+        _DrawArgs[argsBase + 0] = drawInfo.indexCount;   // IndirectDrawIndexedArgs.indexCountPerInstance
+        _DrawArgs[argsBase + 1] = drawInfo.maxInstanceCount << _InstanceMultiplierShift;  // IndirectDrawIndexedArgs.instanceCount
+        _DrawArgs[argsBase + 2] = drawInfo.firstIndex;   // IndirectDrawIndexedArgs.startIndex
+        _DrawArgs[argsBase + 3] = drawInfo.baseVertex;   // IndirectDrawIndexedArgs.baseVertexIndex
+        _DrawArgs[argsBase + 4] = 0;                     // IndirectDrawIndexedArgs.startInstance
     }
 
     if (dispatchIdx < _InstanceInfoCount)
@@ -119,10 +119,8 @@ void CopyInstances(uint dispatchIdx : SV_DispatchThreadID)
 }
 
 [numthreads(64,1,1)]
-void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
 {
-    SET_SLICE_INDEX(groupId.y);
-
     uint instanceInfoCount = GetInstanceInfoCount();
     if (instanceInfoOffset < instanceInfoCount)
     {
@@ -130,9 +128,9 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID, uint2 groupId 
         uint drawOffset = instanceInfo.drawOffsetAndSplitMask >> 8;
         uint splitMask = instanceInfo.drawOffsetAndSplitMask & 0xff;
 
-        // check renderer list filtering (only run occlusion culling for this cascade)
+        // early out if none of these culling splits are visible
         // TODO: plumb through other state per draw command to filter here?
-        if ((splitMask & _RendererListSplitMask) == 0)
+        if ((splitMask & _CullingSplitMask) == 0)
             return;
 
         bool isVisible = true;
@@ -141,7 +139,22 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID, uint2 groupId 
         int instanceID = instanceInfo.instanceIndexAndCrossFade & 0xffffff;
         SphereBound boundingSphere = LoadInstanceBoundingSphere(instanceID);
 
-        isVisible = IsOcclusionVisible(boundingSphere);
+        bool isOccludedInAll = true;
+        for (int testIndex = 0; testIndex < _OcclusionTestCount; ++testIndex)
+        {
+            // unpack the culling split index and subview index for this test
+            int splitIndex = (_CullingSplitIndices >> (4 * testIndex)) & 0xf;
+            int subviewIndex = (_OccluderSubviewIndices >> (4 * testIndex)) & 0xf;
+
+            // skip if this draw call is not present in this split index
+            if (((1 << splitIndex) & splitMask) == 0)
+                continue;
+
+            // occlusion test against the corresponding subview
+            if (IsOcclusionVisible(boundingSphere, subviewIndex))
+                isOccludedInAll = false;
+        }
+        isVisible = !isOccludedInAll;
         
 #ifdef OCCLUSION_FIRST_PASS
         // if we failed the occlusion check, then add to the list for the second pass
@@ -159,15 +172,15 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID, uint2 groupId 
         {
             // TODO: sum each within wave, first thread in wave issues atomic add to memory
             int counterIndex = isVisible ? INSTANCEOCCLUSIONTESTDEBUGCOUNTER_NOT_OCCLUDED : INSTANCEOCCLUSIONTESTDEBUGCOUNTER_OCCLUDED;
-            int resultUnused = 0;
-            InterlockedAdd(_OcclusionDebugCounters[_DebugCounterIndex*INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT + counterIndex], 1, resultUnused);
+            InterlockedAdd(_OcclusionDebugCounters[_DebugCounterIndex*INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT + counterIndex], 1);
         }
 
         if (isVisible)
         {
             uint argsBase = DRAW_ARGS_INDEX(drawOffset);
             uint offsetWithinDraw = 0;
-            InterlockedAdd(_DrawArgs[argsBase + 1], 1, offsetWithinDraw);   // IndirectDrawIndexedArgs.instanceCount
+            InterlockedAdd(_DrawArgs[argsBase + 1], 1 << _InstanceMultiplierShift, offsetWithinDraw);   // IndirectDrawIndexedArgs.instanceCount
+            offsetWithinDraw = offsetWithinDraw >> _InstanceMultiplierShift;
 
             IndirectDrawInfo drawInfo = LoadDrawInfo(drawOffset);
             uint writeIndex = drawInfo.firstInstanceGlobalIndex + offsetWithinDraw;

@@ -1,11 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-
-using Action = System.Action;
-
-using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEngine.UIElements.FloatField, float>;
-
 namespace UnityEditor.VFX.UI
 {
     class VFXMatrix4x4Field : VFXControl<Matrix4x4>
@@ -20,14 +15,14 @@ namespace UnityEditor.VFX.UI
             {
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
-                    var newField = new FloatField(string.Format("{0}{1}", i, j));
+                    var newField = new FloatField($"{i}{j}");
                     m_FloatFields[i, j] = newField;
                     newField.AddToClassList("fieldContainer");
-                    newField.control.AddToClassList("fieldContainer");
+                    newField.AddToClassList("fieldContainer");
                     newField.RegisterCallback<ChangeEvent<float>>(OnFloatValueChanged);
-
-                    newField.SetOnValueDragFinished(t => ValueDragFinished());
-                    newField.SetOnValueDragStarted(t => ValueDragStarted());
+                    var label = newField.Q<Label>();
+                    label.RegisterCallback<PointerCaptureEvent>(ValueDragStarted);
+                    label.RegisterCallback<PointerCaptureOutEvent>(ValueDragFinished);
                 }
             }
         }
@@ -36,7 +31,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return m_FloatFields[0, 0].indeterminate;
+                return m_FloatFields[0, 0].showMixedValue;
             }
             set
             {
@@ -44,26 +39,11 @@ namespace UnityEditor.VFX.UI
                 {
                     for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                     {
-                        m_FloatFields[i, j].indeterminate = value;
+                        m_FloatFields[i, j].showMixedValue = value;
                     }
                 }
             }
         }
-
-        void ValueDragFinished()
-        {
-            if (onValueDragFinished != null)
-                onValueDragFinished();
-        }
-
-        void ValueDragStarted()
-        {
-            if (onValueDragStarted != null)
-                onValueDragStarted();
-        }
-
-        public Action onValueDragFinished;
-        public Action onValueDragStarted;
 
         void OnFloatValueChanged(ChangeEvent<float> e)
         {
@@ -105,24 +85,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXMatrix4x4Field()
+        public VFXMatrix4x4Field(string label)
         {
             CreateTextField();
 
-            style.flexDirection = FlexDirection.Column;
+            if (!string.IsNullOrEmpty(label))
+            {
+                var labelElement = new Label(label);
+                labelElement.AddToClassList("label");
+                Add(labelElement);
+            }
 
+            var matrixContainer = new VisualElement { name = "matrixContainer" };
             for (int i = 0; i < m_FloatFields.GetLength(0); ++i)
             {
-                var line = new VisualElement() { name = "matrixLine" };
-                line.style.flexDirection = FlexDirection.Row;
-
+                var line = new VisualElement { name = "matrixLine" };
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
                     line.Add(m_FloatFields[i, j]);
                 }
 
-                Add(line);
+                matrixContainer.Add(line);
             }
+            Add(matrixContainer);
         }
 
         protected override void ValueToGUI(bool force)
@@ -132,7 +117,7 @@ namespace UnityEditor.VFX.UI
             {
                 for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                 {
-                    if (!m_FloatFields[i, j].control.HasFocus() || force)
+                    if (!m_FloatFields[i, j].HasFocus() || force)
                     {
                         m_FloatFields[i, j].value = value[i, j];
                     }

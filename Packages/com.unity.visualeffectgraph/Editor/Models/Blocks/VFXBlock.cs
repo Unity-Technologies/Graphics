@@ -196,15 +196,15 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             if (GetParent() is VFXBlockSubgraphContext)
             {
                 var notUndefinedSpace = inputSlots.Where(o => o.space != VFXSpace.None);
                 if (notUndefinedSpace.Any())
                 {
-                    manager.RegisterError("SubgraphBlockSpaceIsIgnored", VFXErrorType.Warning, "Space Local/World are ignored in subgraph blocks.");
+                    report.RegisterError("SubgraphBlockSpaceIsIgnored", VFXErrorType.Warning, "Space Local/World are ignored in subgraph blocks.", this);
                 }
             }
         }

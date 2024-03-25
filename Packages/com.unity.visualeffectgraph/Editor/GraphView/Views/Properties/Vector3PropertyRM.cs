@@ -1,55 +1,39 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
-
-using VFXVector3Field = UnityEditor.VFX.UI.VFXVector3Field;
-using VFXColorField = UnityEditor.VFX.UI.VFXColorField;
 
 namespace UnityEditor.VFX.UI
 {
-    class Vector3PropertyRM : PropertyRM<Vector3>
+    class Vector3PropertyRM : VectorPropertyRM<VFXVector3Field, Vector3>
     {
-        VFXColorField m_ColorField;
-
-        VFXVector3Field m_VectorField;
+        private VFXColorField m_ColorField;
 
         public Vector3PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            bool isColor = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Color);
+            var isColor = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Color);
 
             if (isColor)
             {
-                m_ColorField = new VFXColorField(m_Label);
-                m_ColorField.OnValueChanged = OnColorValueChanged;
-                m_ColorField.showAlpha = false;
-                m_VectorField = new VFXVector3Field();
-                m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
-                var mainContainer = new VisualElement() { name = "mainContainer" };
+                var mainContainer = new VisualElement { name = "mainContainer" };
                 mainContainer.AddToClassList("maincontainer");
 
+                m_ColorField = new VFXColorField((Label)null);
+                m_ColorField.OnValueChanged = OnColorValueChanged;
+                m_ColorField.showAlpha = false;
+                var vector3Field = this.Q<VFXVector3Field>();
                 mainContainer.Add(m_ColorField);
-                mainContainer.Add(m_VectorField);
+                mainContainer.Add(vector3Field);
                 Add(mainContainer);
-                m_VectorField.AddToClassList("fieldContainer");
             }
-            else
-            {
-                var labeledField = new VFXLabeledField<VFXVector3Field, Vector3>(m_Label);
-                m_VectorField = labeledField.control;
-                labeledField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
-                Add(labeledField);
-                labeledField.AddToClassList("fieldContainer");
-            }
+        }
 
-            m_VectorField.onValueDragFinished = ValueDragFinished;
-            m_VectorField.onValueDragStarted = ValueDragStarted;
+        public override float GetPreferredControlWidth() => 170;
+
+        public override INotifyValueChanged<Vector3> CreateField()
+        {
+            var label = new Label(ObjectNames.NicifyVariableName(provider.name));
+            label.AddToClassList("label");
+            Add(label);
+            return new VFXVector3Field();
         }
 
         public override void UpdateGUI(bool force)
@@ -57,9 +41,7 @@ namespace UnityEditor.VFX.UI
             if (m_ColorField != null)
                 m_ColorField.value = new Color(m_Value.x, m_Value.y, m_Value.z);
 
-            m_VectorField.SetValueWithoutNotify(m_Value);
-            if (force)
-                m_VectorField.ForceUpdate();
+            base.UpdateGUI(force);
         }
 
         void OnColorValueChanged()
@@ -69,53 +51,29 @@ namespace UnityEditor.VFX.UI
             NotifyValueChanged();
         }
 
-        void OnValueChanged(ChangeEvent<Vector3> e)
-        {
-            m_Value = m_VectorField.value;
-
-            NotifyValueChanged();
-        }
-
-        protected void ValueDragFinished()
-        {
-            m_Provider.EndLiveModification();
-            hasChangeDelayed = false;
-            NotifyValueChanged();
-        }
-
-        protected void ValueDragStarted()
-        {
-            m_Provider.StartLiveModification();
-        }
-
         protected override void UpdateEnabled()
         {
-            m_VectorField.SetEnabled(propertyEnabled);
+            fieldControl.SetEnabled(propertyEnabled);
             if (m_ColorField != null)
                 m_ColorField.SetEnabled(propertyEnabled);
         }
 
         protected override void UpdateIndeterminate()
         {
-            m_VectorField.indeterminate = indeterminate;
+            fieldControl.indeterminate = indeterminate;
             if (m_ColorField != null)
                 m_ColorField.indeterminate = indeterminate;
         }
 
-        public override float GetPreferredControlWidth()
+        public override bool IsCompatible(IPropertyRMProvider providerParam)
         {
-            return 170;
-        }
-
-        public override bool IsCompatible(IPropertyRMProvider provider)
-        {
-            if (!base.IsCompatible(provider)) return false;
+            if (!base.IsCompatible(providerParam)) return false;
 
             bool isColor = provider.attributes.Is(VFXPropertyAttributes.Type.Color);
 
             return isColor == (m_ColorField != null);
         }
 
-        public override bool showsEverything { get { return true; } }
+        public override bool showsEverything => true;
     }
 }

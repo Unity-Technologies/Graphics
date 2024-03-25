@@ -134,10 +134,8 @@ namespace UnityEditor.VFX
                         graph.CollectDependencies(dependencies);
                         var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
 
-                        var window = VFXViewWindow.GetWindow(graph, false, false);
-                        var reporter = window != null ? window.graphView.StartCompilationErrorReport(graph) : null;
+                        graph.errorManager.RefreshCompilationReport();
                         graph.CompileForImport();
-                        reporter?.Dispose();
 
                         VFXGraph.restoringGraph = true;
                         try
@@ -487,7 +485,8 @@ namespace UnityEditor.VFX
         // 15: New ShaderGraph integration uses independent output
         // 16: Add a collection of custom attributes (to be listed in blackboard)
         // 17: New Flipbook player and split the different Flipbook modes in UVMode into separate variables
-        public static readonly int CurrentVersion = 17;
+        // 18: Change ProbabilitySampling m_IntegratedRandomDeprecated changed to m_Mode
+        public static readonly int CurrentVersion = 18;
 
         [NonSerialized]
         internal static bool compilingInEditMode = false;
@@ -544,9 +543,11 @@ namespace UnityEditor.VFX
 
         public VFXParameterInfo[] m_ParameterInfo;
 
+        private VFXErrorManager m_ErrorManager;
         private readonly VFXSystemNames m_SystemNames = new();
         private readonly VFXAttributesManager m_AttributesManager = new();
 
+        public VFXErrorManager errorManager => m_ErrorManager ??= new VFXErrorManager();
         public VFXSystemNames systemNames => m_SystemNames;
         public VFXAttributesManager attributesManager => m_AttributesManager;
 
@@ -1273,7 +1274,7 @@ namespace UnityEditor.VFX
                 {
                     operatorChild.RecreateCopy();
                     if (operatorChild.ResyncSlots(true))
-                        operatorChild.UpdateOutputExpressions();
+                        operatorChild.UpdateOutputExpressionsIfNeeded();
                 }
             }
         }
@@ -1308,7 +1309,7 @@ namespace UnityEditor.VFX
                 else if (child is VFXSubgraphOperator operatorChild)
                 {
                     operatorChild.ResyncSlots(false);
-                    operatorChild.UpdateOutputExpressions();
+                    operatorChild.UpdateOutputExpressionsIfNeeded();
                 }
             }
             foreach (var child in children)
@@ -1404,8 +1405,6 @@ namespace UnityEditor.VFX
             m_ExpressionValuesDirty = false;
         }
 
-        public IVFXErrorReporter compileReporter { get; set; }
-
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
             SanitizeGraph();
@@ -1449,11 +1448,13 @@ namespace UnityEditor.VFX
                 }
                 m_DependentDirty = false;
             }
+
+            errorManager.GenerateErrors();
         }
 
-        public void RegisterCompileError(VFXModel model, string description)
+        public void RegisterCompileError(string error, string description, VFXModel model)
         {
-            compileReporter?.RegisterError("CompilationError", VFXErrorType.Error, description, model);
+            errorManager.compileReporter.RegisterError(error, VFXErrorType.Error, description, model);
         }
 
         private VFXGraphCompiledData compiledData

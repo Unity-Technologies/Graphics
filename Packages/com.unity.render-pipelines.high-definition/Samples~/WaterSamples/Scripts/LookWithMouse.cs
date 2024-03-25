@@ -1,4 +1,8 @@
-#if ENABLE_INPUT_SYSTEM
+#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
+#define USE_INPUT_SYSTEM
+#endif
+
+#if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -28,7 +32,7 @@ public class LookWithMouse : MonoBehaviour
     {
         bool unlockPressed = false, lockPressed = false;
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
         float mouseX = 0, mouseY = 0;
 
         if (Mouse.current != null)

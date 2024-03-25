@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -886,26 +887,51 @@ namespace UnityEngine.Rendering.Universal
 
         private void UpdateInstanceOccluders(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle depthTexture)
         {
-            var viewMatrix = cameraData.GetViewMatrix();
-            var projMatrix = cameraData.GetProjectionMatrix();
             int scaledWidth = (int)(cameraData.pixelWidth * cameraData.renderScale);
             int scaledHeight = (int)(cameraData.pixelHeight * cameraData.renderScale);
+            bool isSinglePassXR = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
             var occluderParams = new OccluderParameters(cameraData.camera.GetInstanceID())
             {
-                viewMatrix = viewMatrix,
-                invViewMatrix = viewMatrix.inverse,
-                gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
-                viewOffsetWorldSpace = Vector3.zero,
+                subviewCount = isSinglePassXR ? 2 : 1,
                 depthTexture = depthTexture,
                 depthSize = new Vector2Int(scaledWidth, scaledHeight),
+                depthIsArray = isSinglePassXR,
             };
-            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams);
+            Span<OccluderSubviewUpdate> occluderSubviewUpdates = stackalloc OccluderSubviewUpdate[occluderParams.subviewCount];
+            for (int subviewIndex = 0; subviewIndex < occluderParams.subviewCount; ++subviewIndex)
+            {
+                var viewMatrix = cameraData.GetViewMatrix(subviewIndex);
+                var projMatrix = cameraData.GetProjectionMatrix(subviewIndex);
+                occluderSubviewUpdates[subviewIndex] = new OccluderSubviewUpdate(subviewIndex)
+                {
+                    depthSliceIndex = subviewIndex,
+                    viewMatrix = viewMatrix,
+                    invViewMatrix = viewMatrix.inverse,
+                    gpuProjMatrix = GL.GetGPUProjectionMatrix(projMatrix, true),
+                    viewOffsetWorldSpace = Vector3.zero,
+                };
+            }
+            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams, occluderSubviewUpdates);
         }
 
         private void InstanceOcclusionTest(RenderGraph renderGraph, UniversalCameraData cameraData, OcclusionTest occlusionTest)
         {
-            var settings = new OcclusionCullingSettings(cameraData.camera.GetInstanceID(), occlusionTest);
-            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings);
+            bool isSinglePassXR = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
+            int subviewCount = isSinglePassXR ? 2 : 1;
+            var settings = new OcclusionCullingSettings(cameraData.camera.GetInstanceID(), occlusionTest)
+            {
+                instanceMultiplier = (isSinglePassXR && !SystemInfo.supportsMultiview) ? 2 : 1,
+            };
+            Span<SubviewOcclusionTest> subviewOcclusionTests = stackalloc SubviewOcclusionTest[subviewCount];
+            for (int subviewIndex = 0; subviewIndex < subviewCount; ++subviewIndex)
+            {
+                subviewOcclusionTests[subviewIndex] = new SubviewOcclusionTest()
+                {
+                    cullingSplitIndex = 0,
+                    occluderSubviewIndex = subviewIndex,
+                };
+            }
+            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests);
         }
 
         private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context)
@@ -1122,6 +1148,10 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true);
             }
 
+            // Depends on the camera (copy) depth texture. Depth is reprojected to calculate motion vectors.
+            if (renderPassInputs.requiresMotionVectors && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
+                m_MotionVectorPass.Render(renderGraph, frameData, resourceData.cameraDepthTexture, resourceData.motionVectorColor, resourceData.motionVectorDepth);
+
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingSkybox);
 
             if (cameraData.camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
@@ -1174,8 +1204,8 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Postprocess pass should be able configure its render pass inputs per camera per frame (settings) BEFORE building any of the graph
             // TODO: Alternatively we could always build the graph (a potential graph) and cull away unused passes if "record + cull" is fast enough.
             // TODO: Currently we just override "requiresMotionVectors" for TAA in GetRenderPassInputs()
-            // Depends on camera depth
-            if (renderPassInputs.requiresMotionVectors)
+            // Depends on camera (copy) depth texture
+            if (renderPassInputs.requiresMotionVectors && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
                 m_MotionVectorPass.Render(renderGraph, frameData, resourceData.cameraDepthTexture, resourceData.motionVectorColor, resourceData.motionVectorDepth);
 
             if (context.HasInvokeOnRenderObjectCallbacks())
@@ -1336,6 +1366,11 @@ namespace UnityEngine.Rendering.Universal
 
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+            }
+
+            if (cameraData.captureActions != null)
+            {
+                m_CapturePass.RecordRenderGraph(renderGraph, frameData);
             }
 
             cameraTargetResolved =

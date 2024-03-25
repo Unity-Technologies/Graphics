@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.ComponentModel;
 using System.Collections.Generic;
 using UnityEditor;
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 7;
+        internal const int k_LastVersion = 8;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -130,6 +131,25 @@ namespace UnityEngine.Rendering.Universal
 
 #pragma warning restore 618 // Type or member is obsolete
                 asset.m_AssetVersion = 7;
+            }
+
+            // Reload PSDImporter and AsepriteImporter assets for 2D. Importers are triggered before graphics settings are loaded
+            // This ensures affected assets dependent on default materials from graphics settings are loaded correctly
+            if (asset.m_AssetVersion < 8)
+            {
+                var distinctGuids = AssetDatabase.FindAssets("", new[] { "Assets" });
+
+                for (int i = 0; i < distinctGuids.Length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(distinctGuids[i]);
+                    var assetExt = Path.GetExtension(path);
+
+                    if (assetExt == ".psb" || assetExt == ".psd" ||
+                        assetExt == ".ase" || assetExt == ".aseprite")
+                        AssetDatabase.ImportAsset(path);
+                }
+
+                asset.m_AssetVersion = 8;
             }
 
             // If the asset version has changed, means that a migration step has been executed

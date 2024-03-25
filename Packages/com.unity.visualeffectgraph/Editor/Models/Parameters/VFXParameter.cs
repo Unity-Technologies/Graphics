@@ -214,6 +214,7 @@ namespace UnityEditor.VFX
         {
             if (!isOutput)
             {
+                MarkOutputExpressionsAsOutOfDate();
                 m_ExprSlots = outputSlots[0].GetVFXValueTypeSlots().ToArray();
                 m_ValueExpr = m_ExprSlots.Select(t => t.DefaultExpression(valueMode)).ToArray();
             }
@@ -381,17 +382,17 @@ namespace UnityEditor.VFX
             return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             var type = this.type;
             if (Deprecated.s_Types.Contains(type))
             {
-                manager.RegisterError(
+                report.RegisterError(
                     "DeprecatedTypeParameter",
                     VFXErrorType.Warning,
-                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name));
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name), this);
             }
         }
 
@@ -421,6 +422,7 @@ namespace UnityEditor.VFX
 
                 if (valueExprChanged)
                 {
+                    MarkOutputExpressionsAsOutOfDate();
                     m_ValueExpr = valueExpr;
                     outputSlots[0].InvalidateExpressionTree();
                     Invalidate(InvalidationCause.kExpressionGraphChanged); // As we need to update exposed list event if not connected to a compilable context
@@ -737,7 +739,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void UpdateOutputExpressions()
+        protected override void UpdateOutputExpressions()
         {
             if (!isOutput)
             {

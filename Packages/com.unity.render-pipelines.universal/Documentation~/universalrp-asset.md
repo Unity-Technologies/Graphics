@@ -83,18 +83,22 @@ These settings affect the lights in your scene.
 
 If you disable some of these settings, the relevant [keywords](https://docs.unity3d.com/Manual/shader-keywords) are [stripped from the Shader variables](shader-stripping.md). If there are settings that you know for certain you won’t use in your game or app, you can disable them to improve performance and reduce build time.
 
-| Property              | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| **Main Light**        | These settings affect the main [Directional Light](https://docs.unity3d.com/Manual/Lighting.html) in your scene. You can select this by assigning it as a [Sun Source](https://docs.unity3d.com/Manual/GlobalIllumination.html) in the Lighting Inspector. If you don’t assign a sun source, the URP treats the brightest directional light in the scene as the main light. You can choose between [Pixel Lighting](https://docs.unity3d.com/Manual/LightPerformance.html) and _None_. If you choose None, URP doesn’t render a main light,  even if you’ve set a sun source. |
-| **Cast Shadows**      | Check this box to make the main light cast shadows in your scene. |
-| **Shadow Resolution** | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
-| **Mixed Lighting**    | When [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) is enabled, Unity includes mixed lighting shader variants in the build.|
-| **Use Rendering Layers** | With this option selected, you can configure certain Lights to affect only specific GameObjects. For more information on Rendering Layers and how to use them, refer to the documentation on [Rendering Layers](features/rendering-layers.md)
-| **Additional Lights** | Here, you can choose to have additional lights to supplement your main light. Choose between [Per Vertex](https://docs.unity3d.com/Manual/LightPerformance.html), [Per Pixel](https://docs.unity3d.com/Manual/LightPerformance.html), or **Disabled**. |
-| **Per Object Limit**  | This slider sets the limit for how many additional lights can affect each GameObject. |
-| **Cast Shadows**      | Check this box to make the additional lights cast shadows in your scene. |
-| **Shadow Resolution** | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
-| **Mixed Lighting**         | Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) to configure the pipeline to include mixed lighting shader variants in the build. |
+| **Property** | **Sub-property** | **Description** |
+|-|-|-|
+| **Main Light**        || These settings affect the main [Directional Light](https://docs.unity3d.com/Manual/Lighting.html) in your scene. You can select this by assigning it as a [Sun Source](https://docs.unity3d.com/Manual/GlobalIllumination.html) in the Lighting Inspector. If you don’t assign a sun source, the URP treats the brightest directional light in the scene as the main light. You can choose between [Pixel Lighting](https://docs.unity3d.com/Manual/LightPerformance.html) and _None_. If you choose None, URP doesn’t render a main light,  even if you’ve set a sun source. |
+| **Cast Shadows**      || Check this box to make the main light cast shadows in your scene. |
+| **Shadow Resolution** || This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
+| **Light Probe System** || <ul><li>**Light Probe Groups (Legacy)**: Use the same [Light Probe Group system](https://docs.unity3d.com/Manual/class-LightProbeGroup.html) as the Built-In Render Pipeline.</li><li>**Adaptive Probe Volumes**: Use [Adaptive Probe Volumes](probevolumes.md).</li></ul> |
+|| **Memory Budget** | Limits the width and height of the textures that store baked Global Illumination data, which determines the amount of memory Unity sets aside to store baked Adaptive Probe Volume data. These textures have a fixed depth.<br/>Options: <ul><li>**Memory Budget Low**</li><li>**Memory Budget Medium**</li><li>**Memory Budget High**</li></ul> |
+|| **SH Bands** | Determines the [spherical harmonics (SH) bands](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) Unity uses to store probe data. L2 provides more precise results, but uses more system resources.<br/>Options: <ul><li>**Spherical Harmonics L1**</li><li>**Spherical Harmonics L2**</li></ul> |
+|| **Enable Streaming** | Enable to stream Adaptive Probe Volume data from CPU memory to GPU memory at runtime. Refer to [Streaming Adaptive Probe Volumes](probevolumes-streaming.md) for more information. |
+|| **Estimated GPU Memory Cost** | Indicates the amount of texture data used by Adaptive Probe Volumes in your project. |
+| **Additional Lights** || Here, you can choose to have additional lights to supplement your main light. Choose between [Per Vertex](https://docs.unity3d.com/Manual/LightPerformance.html), [Per Pixel](https://docs.unity3d.com/Manual/LightPerformance.html), or **Disabled**. |
+|| **Per Object Limit**  | This slider sets the limit for how many additional lights can affect each GameObject. |
+|| **Cast Shadows**      | Check this box to make the additional lights cast shadows in your scene. |
+|| **Shadow Resolution** | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
+| **Use Rendering Layers** || With this option selected, you can configure certain Lights to affect only specific GameObjects. For more information on Rendering Layers and how to use them, refer to the documentation on [Rendering Layers](features/rendering-layers.md)
+| **Mixed Lighting**         || Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) to configure the pipeline to include mixed lighting shader variants in the build. |
 
 ### Shadows
 
@@ -135,7 +139,7 @@ This section allows you to fine-tune global post-processing settings.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
-| **Volume Update Mode** | Select how Unity updates Volumes at run time. <br />&#8226; **Every Frame**: Unity updates volumes every frame. <br />&#8226; **Via Scripting**: Unity updates volumes when triggered via scripting.<br /> In the Editor, Unity updates Volumes every frame when not in Play mode. |
+| **Volume Update Mode** | Select how Unity updates Volumes at run time. <ul><li>**Every Frame**: Unity updates volumes every frame.</li><li>**Via Scripting**: Unity updates volumes when triggered via scripting.</li></ul>In the Editor, Unity updates Volumes every frame when not in Play mode. |
 | **Volume Profile** | Set the [Volume Profile](Volume-Profile.md) that a scene uses by default. Refer to [Understand volumes](Volumes.md) for more information. |
 
 The list of Volume Overrides that the Volume Profile contains appears below **Volume Profile**. You can add, remove, disable, and enable Volume Overrides, and edit their properties. Refer to [Volume Overrides](VolumeOverrides.md) for more information.

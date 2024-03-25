@@ -279,13 +279,13 @@ These settings control lighting features for your rendering components. Here you
     <td><strong>Probe Volume</strong></td>
     <td></td>
     <td></td>
-    <td>Use <a href="probevolumes.md">Probe Volumes</a>.</td>
+    <td>Use <a href="probevolumes.md">Adaptive Probe Volumes</a>.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Normalize Reflection Probes</strong></td>
     <td></td>
-    <td>Use the data in Probe Volumes to adjust lighting from Reflection Probes to match the local environment, which reduces the number of Reflection Probes you need.</td>
+    <td>Use the data in Adaptive Probe Volumes to adjust lighting from Reflection Probes to match the local environment, which reduces the number of Reflection Probes you need.</td>
   </tr>
   <tr>
     <td><strong>Screen Space Shadows</strong></td>

@@ -504,7 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Unfortunately changing this would cause quite a bit of unknowns all over since its a change required on RTHandle scaling.
             // Its safer to fix it case by case for now, and this problem has only been seen on xb1 HW drs on low res transparent.
             // In this case we compute the error between both computations, and plumb it as the DRS percentate. This ultimately means that low res transparency.
-            // 
+            //
             Vector2Int originalLowResHWViewport = new Vector2Int(Mathf.RoundToInt((float)RTHandles.maxWidth * lowResFactor), Mathf.RoundToInt((float)RTHandles.maxHeight * lowResFactor));
             Vector2Int lowResHWViewport = resolutionHandler.GetScaledSize(originalLowResHWViewport);
             Vector2 lowResViewport = new Vector2(Mathf.RoundToInt((float)scaledSize.x * lowResFactor), Mathf.RoundToInt((float)scaledSize.y * lowResFactor));
@@ -1475,8 +1475,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 bool hasPersistentHistory = camera.m_AdditionalCameraData != null && camera.m_AdditionalCameraData.hasPersistentHistory;
-                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
-                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory && !camera.isPersistent))
+                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null.
+                // We also cannot dispose of disabled Game View cameras. They can still be used for rendering from script via Camera.Render.
+                // If we dispose of a camera, we risk invalidating all cached data associated with it (e.g. the cached sky rendering context).
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && camera.camera.cameraType != CameraType.Game && !hasPersistentHistory && !camera.isPersistent))
                     s_Cleanup.Add(key);
             }
 
@@ -1520,10 +1522,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DynamicResolutionFullscreenScale = new Vector4(actualWidth / finalViewport.width, actualHeight / finalViewport.height, 0, 0);
         }
 
-        internal void UpdateGlobalMipBiasCB(ref ShaderVariablesGlobal cb)
+        internal void UpdateGlobalMipBiasCB(ref ShaderVariablesGlobal cb, float mipBias)
         {
-            cb._GlobalMipBias = globalMipBias;
-            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, globalMipBias);
+            if (!ShaderConfig.s_GlobalMipBias)
+                return;
+            
+            cb._GlobalMipBias = mipBias;
+            cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, mipBias);
         }
 
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
@@ -1563,7 +1568,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._TaaFrameInfo = new Vector4(taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.LowQuality ? taaSharpenStrength : 0, 0, taaFrameIndex, taaEnabled ? 1 : 0);
             cb._TaaJitterStrength = taaJitter;
             cb._ColorPyramidLodCount = colorPyramidHistoryMipCount;
-            UpdateGlobalMipBiasCB(ref cb);
 
             float ct = time;
             float pt = lastTime;
@@ -1712,6 +1716,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
             public Vector2 viewportScale;
             public Material blitMaterial;
+            public Rect viewportSize;
         }
 
         internal void ExecuteCaptureActions(RenderGraph renderGraph, TextureHandle input)
@@ -1722,14 +1727,16 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
             {
                 var inputDesc = renderGraph.GetTextureDesc(input);
-                var rtHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
-                passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
+                var targetSize = RTHandles.rtHandleProperties.currentRenderTargetSize;
+                passData.viewportScale = new Vector2(targetSize.x / finalViewport.width, targetSize.y / finalViewport.height);
+
                 passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
                 passData.recorderCaptureActions = m_RecorderCaptureActions;
                 passData.input = builder.ReadTexture(input);
+                passData.viewportSize = finalViewport;
                 // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
                 // Since recorder does not know about this, we need to send a texture of the right size.
-                passData.tempTexture = builder.CreateTransientTexture(new TextureDesc(actualWidth, actualHeight)
+                passData.tempTexture = builder.CreateTransientTexture(new TextureDesc((int)finalViewport.width, (int)finalViewport.height)
                 { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" });
 
                 builder.SetRenderFunc(
@@ -1740,6 +1747,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
                         mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
                         ctx.cmd.SetRenderTarget(data.tempTexture);
+                        ctx.cmd.SetViewport(data.viewportSize);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
 
                         for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)

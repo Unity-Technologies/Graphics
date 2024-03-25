@@ -269,10 +269,7 @@ namespace UnityEditor.VFX
                     if (reduced.Is(check))
                     {
                         var message = $"The expression \"{reduced.GetType().Name}\" is not valid as it have the flag: {check}";
-                        if (context.GetGraph().compileReporter is { } compileReporter)
-                        {
-                            compileReporter.RegisterError("CompileReduceExpressionFail", VFXErrorType.Error, message, context);
-                        }
+                        context.GetGraph().RegisterCompileError("CompileReduceExpressionFail", message, context);
                         throw new InvalidOperationException(message);
                     }
 

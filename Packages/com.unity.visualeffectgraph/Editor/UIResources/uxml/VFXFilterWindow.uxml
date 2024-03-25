@@ -40,6 +40,7 @@
             <ui:VisualElement name="ColorFieldRow">
                 <uie:ColorField name="CategoryColorField"
                                 label="Set Custom color"
+                                show-eye-dropper="false"
                                 value="#FFFFFF"
                                 />
                 <ui:Button name="ResetButton"

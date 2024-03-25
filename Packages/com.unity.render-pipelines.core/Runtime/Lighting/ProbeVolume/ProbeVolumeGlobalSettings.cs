@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
         int m_Version = 1;
 
         public int version { get => m_Version; }
-        
+
         [Header("Runtime")]
         [ResourcePath("Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.compute")]
         public ComputeShader probeVolumeBlendStatesCS;
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
         int m_Version = 1;
 
         public int version { get => m_Version; }
-        
+
         [Header("Debug")]
         [ResourcePath("Runtime/Debug/ProbeVolumeDebug.shader")]
         public Shader probeVolumeDebugShader;
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering
         int m_Version = 1;
 
         public int version { get => m_Version; }
-        
+
         [Header("Baking")]
         [ResourcePath("Editor/Lighting/ProbeVolume/ProbeVolumeCellDilation.compute")]
         public ComputeShader dilationShader;

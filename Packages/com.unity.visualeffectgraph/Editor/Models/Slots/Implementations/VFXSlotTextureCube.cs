@@ -8,12 +8,12 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Cubemap))]
     class VFXSlotTextureCube : VFXSlotObject
     {
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
             if (value is Texture texture && texture.dimension != TextureDimension.Cube)
-                manager.RegisterError("Slot_Value_Incorrect_TextureCube", VFXErrorType.Error, $"The selected texture {(string.IsNullOrEmpty(this.property.name) ? "" : $"'{this.property.name}' ")}is not a Cubemap texture", this.owner as VFXModel);
+                report.RegisterError("Slot_Value_Incorrect_TextureCube", VFXErrorType.Error, $"The selected texture {(string.IsNullOrEmpty(this.property.name) ? "" : $"'{this.property.name}' ")}is not a Cubemap texture", this.owner as VFXModel);
 
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
         }
 
         public override VFXValue DefaultExpression(VFXValue.Mode mode)

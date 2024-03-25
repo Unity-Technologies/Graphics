@@ -1,30 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
-using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VectorPropertyRM<U, T> : SimpleVFXUIPropertyRM<U, T> where U : VFXVectorNField<T>, new()
+    abstract class VectorPropertyRM<T, U> : SimpleVFXUIPropertyRM<T, U> where T : VFXVectorNField<U>, new()
     {
         public VectorPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            fieldControl.onValueDragFinished = () => ValueDragFinished();
-            fieldControl.onValueDragStarted = () => ValueDragStarted();
+            fieldControl.onValueDragFinished += ValueDragFinished;
+            fieldControl.onValueDragStarted += ValueDragStarted;
         }
 
-        protected void ValueDragFinished()
+        protected override void UpdateIndeterminate()
         {
-            m_Provider.EndLiveModification();
-            hasChangeDelayed = false;
-            NotifyValueChanged();
-        }
-
-        protected void ValueDragStarted()
-        {
-            m_Provider.StartLiveModification();
+            ((VFXVectorNField<U>)field).indeterminate = indeterminate;
         }
     }
 
@@ -34,9 +23,14 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public override float GetPreferredControlWidth()
+        public override float GetPreferredControlWidth() => 224;
+
+        public override INotifyValueChanged<Vector4> CreateField()
         {
-            return 224;
+            var label = new Label(ObjectNames.NicifyVariableName(provider.name));
+            label.AddToClassList("label");
+            Add(label);
+            return new VFXVector4Field();
         }
     }
 }

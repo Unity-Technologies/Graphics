@@ -554,7 +554,7 @@ namespace UnityEditor.VFX.Test
         public void Space_Slot_Sanitize_Still_Possible_Simple_Sphere()
         {
             var branch = ScriptableObject.CreateInstance<Operator.Branch>();
-            branch.SetOperandType(typeof(Sphere));
+            branch.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
 
             var slot = branch.inputSlots[1];
             Assert.AreEqual(typeof(Sphere), slot.property.type);
@@ -574,7 +574,7 @@ namespace UnityEditor.VFX.Test
         public void Space_Slot_Sanitize_Still_Possible_ArcSphere([ValueSource("trueOrFalse")] bool fromParentToChildSanitize, [ValueSource("trueOrFalse")] bool hackChildSphere)
         {
             var branch = ScriptableObject.CreateInstance<Operator.Branch>();
-            branch.SetOperandType(typeof(ArcSphere));
+            branch.SetSettingValue("m_Type", (SerializableType)typeof(ArcSphere));
 
             var slot = branch.inputSlots[1];
             Assert.AreEqual(typeof(ArcSphere), slot.property.type);

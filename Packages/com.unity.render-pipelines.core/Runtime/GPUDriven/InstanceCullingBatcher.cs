@@ -1049,9 +1049,10 @@ namespace UnityEngine.Rendering
             m_DrawInstanceData.NeedsRebuild();
             UpdateInstanceDataBufferLayoutVersion();
         }
-        public void InstanceOccludersUpdated(int viewInstanceID)
+
+        public void InstanceOccludersUpdated(int viewInstanceID, int subviewMask)
         {
-            m_Culler.InstanceOccludersUpdated(viewInstanceID, m_BatchersContext);
+            m_Culler.InstanceOccludersUpdated(viewInstanceID, subviewMask, m_BatchersContext);
         }
 
         public void UpdateFrame()

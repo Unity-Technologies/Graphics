@@ -2,12 +2,15 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-[Category("PackageValidation")]
-public class PackageValidationTests
+namespace UnityEngine.TestTools.Graphics.Performance.PackageValidationTests
 {
-    [Test]
-    public void DummyTest()
+    [Category("PackageValidation")]
+    public class PackageValidationTests
     {
-        Assert.Pass();
+        [Test]
+        public void DummyTest()
+        {
+            Assert.Pass();
+        }
     }
 }

@@ -322,7 +322,12 @@ VFXBlackboard VFXBlackboardPropertyView
 
 VFXBlackboard VFXBlackboardPropertyView .propertyrm
 {
-    margin: 2px 4px 2px -4px;
+    padding: 2px 0;
+    margin: 0 4px 0 4px;
+}
+
+VFXBlackboard VFXBlackboardPropertyView .propertyrm.hasDepth {
+    border-width: 0;
 }
 /*-- End of BlackboardField UI --*/
 

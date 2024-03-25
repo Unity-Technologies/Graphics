@@ -2,7 +2,6 @@
 
 using UnityEngine;
 using UnityEngine.UIElements;
-using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEngine.UIElements.FloatField, float>;
 
 
 namespace UnityEditor.VFX.UI
@@ -15,8 +14,10 @@ namespace UnityEditor.VFX.UI
             m_MainContainer = new VisualElement();
 
 #if USE_MY_COLOR_FIELD
-            m_ColorField = new UnityEditor.VFX.UI.VFXColorField(m_Label);
+            var label = new Label(ObjectNames.NicifyVariableName(controller.name));
+            m_ColorField = new VFXColorField(label);
             m_ColorField.OnValueChanged = OnValueChanged;
+            Add(label);
 #else
             m_ColorField = new LabeledField<UnityEditor.UIElements.ColorField, Color>(m_Label);
             m_ColorField.RegisterCallback<ChangeEvent<Color>>(OnValueChanged);
@@ -30,36 +31,21 @@ namespace UnityEditor.VFX.UI
             fieldContainer.AddToClassList("fieldContainer");
 
             m_FloatFields = new FloatField[4];
-            m_TooltipHolders = new VisualElement[4];
-            m_FieldParents = new VisualElement[4];
             for (int i = 0; i < 4; ++i)
             {
                 m_FloatFields[i] = new FloatField(names[i]);
                 m_FloatFields[i].RegisterCallback<ChangeEvent<float>>(OnValueChanged);
-
-                m_FieldParents[i] = new VisualElement();
-                m_FieldParents[i].Add(m_FloatFields[i]);
-                m_FieldParents[i].style.flexGrow = 1;
-                m_TooltipHolders[i] = new VisualElement();
-                m_TooltipHolders[i].style.position = UnityEngine.UIElements.Position.Absolute;
-                m_TooltipHolders[i].style.top = 0;
-                m_TooltipHolders[i].style.left = 0;
-                m_TooltipHolders[i].style.right = 0;
-                m_TooltipHolders[i].style.bottom = 0;
-                fieldContainer.Add(m_FieldParents[i]);
+                fieldContainer.Add(m_FloatFields[i]);
             }
 
             m_MainContainer.Add(fieldContainer);
 
-            m_FloatFields[0].label.AddToClassList("first");
+            m_FloatFields[0].AddToClassList("first");
 
             Add(m_MainContainer);
         }
 
-        public override float GetPreferredControlWidth()
-        {
-            return 224;
-        }
+        public override float GetPreferredControlWidth() => 224;
 
         protected override void UpdateEnabled()
         {
@@ -68,16 +54,6 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < 4; ++i)
             {
                 m_FloatFields[i].SetEnabled(enabled);
-                if (enabled)
-                {
-                    if (m_TooltipHolders[i].parent != null)
-                        m_TooltipHolders[i].RemoveFromHierarchy();
-                }
-                else
-                {
-                    if (m_TooltipHolders[i].parent == null)
-                        m_FieldParents[i].Add(m_TooltipHolders[i]);
-                }
             }
         }
 
@@ -85,7 +61,7 @@ namespace UnityEditor.VFX.UI
         {
             m_ColorField.indeterminate = indeterminate;
             for (int i = 0; i < 4; ++i)
-                m_FloatFields[i].indeterminate = indeterminate;
+                m_FloatFields[i].showMixedValue = indeterminate;
         }
 
         public void OnValueChanged(ChangeEvent<Color> e)
@@ -93,7 +69,7 @@ namespace UnityEditor.VFX.UI
             OnValueChanged(false);
         }
 
-        public void OnValueChanged(ChangeEvent<float> e)
+        void OnValueChanged(ChangeEvent<float> e)
         {
             OnValueChanged(true);
         }
@@ -127,9 +103,6 @@ namespace UnityEditor.VFX.UI
 
         FloatField[] m_FloatFields;
 
-        VisualElement[] m_FieldParents;
-        VisualElement[] m_TooltipHolders;
-
         readonly string[] names = new string[]
         {
             "R",
@@ -151,7 +124,6 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < 4; ++i)
             {
                 m_FloatFields[i].SetValueWithoutNotify(m_Value[i]);
-                m_TooltipHolders[i].tooltip = m_Value[i].ToString();
             }
         }
 
@@ -167,6 +139,6 @@ namespace UnityEditor.VFX.UI
             return value;
         }
 
-        public override bool showsEverything { get { return true; } }
+        public override bool showsEverything => true;
     }
 }

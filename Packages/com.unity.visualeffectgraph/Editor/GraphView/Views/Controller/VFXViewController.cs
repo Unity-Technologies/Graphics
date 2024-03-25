@@ -218,9 +218,9 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                     Profiler.EndSample();
-                    if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
+                    if (!kv.Value && obj is VFXModel vfxModel && errorRefresh) // we refresh errors only if it wasn't a ui change
                     {
-                        model.RefreshErrors();
+                        vfxModel.RefreshErrors();
                     }
                 }
                 m_CurrentlyNotified = null;

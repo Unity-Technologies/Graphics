@@ -983,7 +983,6 @@ namespace UnityEditor.VFX.Test
             {
                 var propertyRMProviderMock = new Mock<IPropertyRMProvider>();
                 propertyRMProviderMock.SetupProperty(x => x.value, initialValue);
-                propertyRMProviderMock.SetupSet(x => x.value = It.IsAny<T>()).Verifiable();
                 propertyRMProviderMock.SetupGet(x => x.name).Returns("Mocked property");
                 propertyRMProviderMock.SetupGet(x => x.attributes).Returns(new VFXPropertyAttributes(attribute));
                 var numericPropertyRM = creator(propertyRMProviderMock.Object);
@@ -995,7 +994,7 @@ namespace UnityEditor.VFX.Test
                     // Act
                     numericPropertyRM.Q<TextValueField<U>>().value = (U)Convert.ChangeType(testCase.Item1, typeof(U));
                     // Assert
-                    propertyRMProviderMock.VerifySet(x => x.value = testCase.Item2);
+                    propertyRMProviderMock.Object.value = testCase.Item2;
                 }
             }
             finally

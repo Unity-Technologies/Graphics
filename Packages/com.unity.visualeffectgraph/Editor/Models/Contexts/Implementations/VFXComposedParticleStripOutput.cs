@@ -19,14 +19,14 @@ namespace UnityEditor.VFX
     {
         VFXComposedParticleStripOutput() : base(true) { }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             foreach (var attributeInfo in GetAttributesInfos())
             {
                 if (attributeInfo.mode.HasFlag(VFXAttributeMode.Write) && attributeInfo.attrib.Equals(VFXAttribute.Position))
                 {
-                    manager.RegisterError("WritePositionInStrip", VFXErrorType.Warning, VFXQuadStripOutput.WriteToPositionMessage);
+                    report.RegisterError("WritePositionInStrip", VFXErrorType.Warning, VFXQuadStripOutput.WriteToPositionMessage, this);
                     break;
                 }
             }

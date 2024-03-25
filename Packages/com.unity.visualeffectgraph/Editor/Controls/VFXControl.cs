@@ -1,6 +1,6 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 
 using System.Collections.Generic;
 
@@ -12,17 +12,27 @@ namespace UnityEditor.VFX.UI
         public static readonly Color indeterminateTextColor = new Color(0.82f, 0.82f, 0.82f);
     }
 
-    abstract class VFXControl<T> : VisualElement, INotifyValueChanged<T>
+    interface IVFXControl
+    {
+        bool indeterminate { get; set; }
+        event Action onValueDragFinished;
+        event Action onValueDragStarted;
+        void ForceUpdate();
+        void SetEnabled(bool isEnabled);
+    }
+
+    abstract class VFXControl<T> : VisualElement, INotifyValueChanged<T>, IVFXControl
     {
         T m_Value;
         public T value
         {
-            get { return m_Value; }
-            set
-            {
-                SetValueAndNotify(value);
-            }
+            get => m_Value;
+            set => SetValueAndNotify(value);
         }
+
+        public event Action onValueDragFinished;
+        public event Action onValueDragStarted;
+
         public void SetValueAndNotify(T newValue)
         {
             if (!EqualityComparer<T>.Default.Equals(value, newValue))
@@ -64,5 +74,9 @@ namespace UnityEditor.VFX.UI
         {
             UnregisterCallback(callback);
         }
+
+        protected void ValueDragFinished(PointerCaptureOutEvent evt) => onValueDragFinished?.Invoke();
+
+        protected void ValueDragStarted(PointerCaptureEvent evt) => onValueDragStarted?.Invoke();
     }
 }

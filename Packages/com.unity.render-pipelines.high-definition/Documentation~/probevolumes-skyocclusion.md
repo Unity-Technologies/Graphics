@@ -52,7 +52,7 @@ Enabling Sky Direction can improve visual results, especially in cave-like scena
 
 ## Debugging Sky Occlusion
 
-You can inspect the Sky Occlusion value using the **Display Probes** option in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#ProbeVolume). Two views are provided in the **Probe Shading Mode** dropdown:
+You can inspect the Sky Occlusion value using the **Display Probes** option in the [Rendering Debugger](rendering-debugger-window-reference.md#probe-volume-panel). Two views are provided in the **Probe Shading Mode** dropdown:
 1. **Sky Occlusion SH**: Display the gray value (scalar) used to attenuate Sky lighting.
 2. **Sky Direction**: Displays a green dot corresponding to the direction used to sample the Ambient Probe. If **Sky Direction** was not enabled or could not be computed this displays a red probe.
 
@@ -66,5 +66,5 @@ You can inspect the Sky Occlusion value using the **Display Probes** option in t
 
 
 
-* [Understand Probe Volumes](probevolumes-concept.md)
+* [Understand Adaptive Probe Volumes](probevolumes-concept.md)
 * [Visual Environment Volume override](Override-Visual-Environment.md)

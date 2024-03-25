@@ -84,20 +84,20 @@ namespace UnityEngine.Rendering
             m_InstanceCullingBatcher.DestroyMeshes(destroyedMeshes);
         }
 
-        public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings)
+        public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, ReadOnlySpan<SubviewOcclusionTest> subviewOcclusionTests)
         {
             if (!m_BatchersContext.hasBoundingSpheres)
                 return;
 
-            m_InstanceCullingBatcher.culler.InstanceOcclusionTest(renderGraph, settings, m_BatchersContext);
+            m_InstanceCullingBatcher.culler.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests, m_BatchersContext);
         }
 
-        public void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParams)
+        public void UpdateInstanceOccluders(RenderGraph renderGraph, in OccluderParameters occluderParams, ReadOnlySpan<OccluderSubviewUpdate> occluderSubviewUpdates)
         {
             if (!m_BatchersContext.hasBoundingSpheres)
                 return;
 
-            m_BatchersContext.occlusionCullingCommon.UpdateInstanceOccluders(renderGraph, occluderParams);
+            m_BatchersContext.occlusionCullingCommon.UpdateInstanceOccluders(renderGraph, occluderParams, occluderSubviewUpdates);
         }
 
         public void UpdateRenderers(NativeArray<int> renderersID)

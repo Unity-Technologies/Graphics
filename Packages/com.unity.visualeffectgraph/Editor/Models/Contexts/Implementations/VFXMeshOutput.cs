@@ -133,14 +133,36 @@ namespace UnityEditor.VFX
             return mapper;
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             var dataParticle = GetData() as VFXDataParticle;
             if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
-                manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
+                report.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
                     $" so the resulted computed bounds can be too small or big" +
-                    $" Please use padding to mitigate this discrepancy.");
+                    $" Please use padding to mitigate this discrepancy.", this);
         }
+
+        public override IEnumerable<VFXExpression> instancingSplitCPUExpressions
+        {
+            get
+            {
+                foreach (var exp in base.instancingSplitCPUExpressions)
+                    yield return exp;
+
+                // Only single mesh, multi-mesh will be patched later
+                if (meshCount == 1)
+                {
+                    foreach (var name in VFXMultiMeshHelper.GetCPUExpressionNames(1))
+                    {
+                        var exp = inputSlots.First(s => s.name == name).GetExpression();
+                        if (exp != null && !exp.IsAny(VFXExpression.Flags.Constant))
+                            yield return exp;
+                    }
+                }
+            }
+        }
+
+
     }
 }

@@ -857,12 +857,15 @@ namespace UnityEngine.Rendering
 
             foreach (var data in perSceneDataList)
                 data.QueueSceneRemoval();
-            
+
             UnloadBakingSet();
             SetBakingSetAsCurrent(bakingSet);
-            
-            foreach (var data in perSceneDataList)
-                data.QueueSceneLoading();
+
+            if (m_CurrentBakingSet != null)
+            {
+                foreach (var data in perSceneDataList)
+                    data.QueueSceneLoading();
+            }
         }
 
         void SetBakingSetAsCurrent(ProbeVolumeBakingSet bakingSet)
@@ -2069,7 +2072,7 @@ namespace UnityEngine.Rendering
 
                 m_TemporaryDataLocation.Cleanup();
                 m_ProbeReferenceVolumeInit = false;
-                
+
                 if (m_CurrentBakingSet != null)
                     m_CurrentBakingSet.Cleanup();
                 m_CurrentBakingSet = null;

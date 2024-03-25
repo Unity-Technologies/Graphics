@@ -381,18 +381,18 @@ namespace UnityEditor.VFX
             base.Invalidate(model, cause);
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             if (SerializationUtility.HasManagedReferencesWithMissingTypes(this))
             {
-                manager.RegisterError("AnyMissingRef", VFXErrorType.Error, "Missing Assembly reference(s).");
+                report.RegisterError("AnyMissingRef", VFXErrorType.Error, "Missing Assembly reference(s).", this);
             }
             else
             {
                 var desc = GetOrRefreshDecription(false);
                 foreach (var error in desc.errors)
-                    manager.RegisterError(error.key, error.type, error.description);
+                    report.RegisterError(error.key, error.type, error.description, this);
             }
         }
 

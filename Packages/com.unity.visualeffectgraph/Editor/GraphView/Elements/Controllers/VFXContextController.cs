@@ -275,7 +275,14 @@ namespace UnityEditor.VFX.UI
 
         public static bool IsTypeExpandable(System.Type type)
         {
-            return !type.IsPrimitive && !typeof(UnityObject).IsAssignableFrom(type) && type != typeof(AnimationCurve) && !type.IsEnum && type != typeof(Gradient) && type != typeof(CameraBuffer);
+            return !type.IsPrimitive &&
+                   !typeof(UnityObject).IsAssignableFrom(type) &&
+                   type != typeof(AnimationCurve) &&
+                   !type.IsEnum &&
+                   type != typeof(Gradient) &&
+                   type != typeof(CameraBuffer) &&
+                   type != typeof(Matrix4x4) &&
+                   type != typeof(GPUEvent);
         }
     }
 }

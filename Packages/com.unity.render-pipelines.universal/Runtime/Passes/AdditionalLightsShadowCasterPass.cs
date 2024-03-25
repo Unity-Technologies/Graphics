@@ -711,6 +711,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.AdditionalLightsShadow)))
             {
+                // For non-RG, need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
+                // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
+                if (!useRenderGraph)
+                    ShadowUtils.SetWorldToCameraMatrix(cmd, data.viewMatrix);
+
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_ShadowSliceToAdditionalLightIndex.Count;
                 if (shadowSlicesCount > 0)
@@ -826,6 +831,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal UniversalLightData lightData;
             internal UniversalShadowData shadowData;
+            internal Matrix4x4 viewMatrix;
             internal bool stripShadowsOffVariants;
 
             internal AdditionalLightsShadowCasterPass pass;
@@ -846,6 +852,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             passData.lightData = lightData;
             passData.shadowData = shadowData;
+            passData.viewMatrix = cameraData.GetViewMatrix();
             passData.stripShadowsOffVariants = cameraData.renderer.stripShadowsOffVariants;
 
             passData.emptyShadowmap = m_CreateEmptyShadowmap;

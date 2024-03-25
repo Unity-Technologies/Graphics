@@ -1,8 +1,12 @@
+#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
+#define USE_INPUT_SYSTEM
+#endif
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -58,7 +62,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void SetSkyFromInput()
     {
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
         if (Keyboard.current.digit1Key.wasPressedThisFrame)
         {
             SetSky(0);
@@ -102,7 +106,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void MoveLightWithMouse()
     {
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
         if (Mouse.current.leftButton.IsPressed())
         {
             var mousePosition = Mouse.current.position.ReadValue();
@@ -121,7 +125,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
     {
         LockCursorWhileMouseButtonDown();
 
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
         if (Mouse.current.rightButton.isPressed)
         {
             var mouseMovement = Mouse.current.delta.ReadValue() * cameraRotationSpeed / 30f;
@@ -154,7 +158,7 @@ public class LensFlareSamplesInputAndControl : MonoBehaviour
 
     private void LockCursorWhileMouseButtonDown()
     {
-#if ENABLE_INPUT_SYSTEM
+#if USE_INPUT_SYSTEM
         if (Mouse.current.rightButton.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.Locked;

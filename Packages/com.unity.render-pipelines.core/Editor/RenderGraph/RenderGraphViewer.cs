@@ -127,6 +127,7 @@ namespace UnityEditor.Rendering
         enum EmptyStateReason
         {
             None = 0,
+            NoGraphRegistered,
             NoExecutionRegistered,
             NoDataAvailable,
             WaitingForCameraRender,
@@ -137,7 +138,8 @@ namespace UnityEditor.Rendering
         static readonly string[] kEmptyStateMessages =
         {
             "",
-            L10n.Tr("The selected camera is not active. Activate the selected camera to display data in the Render Graph viewer."),
+            L10n.Tr("No Render Graph has been registered. The Render Graph Viewer is only functional when Render Graph API is in use."),
+            L10n.Tr("The selected camera has not rendered anything yet. Interact with the selected camera to display data in the Render Graph Viewer."),
             L10n.Tr("No data to display. Click refresh to capture data."),
             L10n.Tr("Waiting for the selected camera to render. Depending on the camera, you may need to trigger rendering by selecting the Scene or Game view."),
             L10n.Tr("No passes to display. Select a different Pass Filter to display contents."),
@@ -1398,6 +1400,12 @@ namespace UnityEditor.Rendering
 
             ClearGraphViewerUI();
             ClearEmptyStateMessage();
+
+            if (m_RegisteredGraphs.Count == 0)
+            {
+                SetEmptyStateMessage(EmptyStateReason.NoGraphRegistered);
+                return;
+            }
 
             if (!CaptureEnabled())
             {

@@ -33,6 +33,8 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define OneOverResScale 1.0f
 #define MaxColorMip     0.0f
 #define AdaptiveSamplingWeights _Params2.xy
+#define BlurResolution _Params2.z
+#define InvBlurResolution _Params2.w
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DoFGatherUtils.hlsl"
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
@@ -65,7 +67,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else if (tileClass == FAST_DEFOCUS_TILE)
     {
-        float2 uv = ClampAndScaleUVPostProcessTextureForPoint((posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw);
+        float2 uv = (posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw;
+        uv = ClampAndScaleUV(uv, _PostProcessScreenSize.zw * BlurResolution, 0.5f, _RTHandlePostProcessScale.xy);
         output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
     }
     else

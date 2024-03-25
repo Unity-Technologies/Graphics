@@ -1075,6 +1075,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Defines
     static class CoreDefines
     {
+        public static DefineCollection SupportGlobalMipBias = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SupportGlobalMipBias, 1 },
+        };
+
         public static DefineCollection Tessellation = new DefineCollection
         {
             { CoreKeywordDescriptors.Tessellation, 1 },
@@ -1620,6 +1625,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Tessellation",
             referenceName = "TESSELLATION_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor SupportGlobalMipBias = new KeywordDescriptor()
+        {
+            displayName = "Support Global Mip Bias",
+            referenceName = "SUPPORT_GLOBAL_MIP_BIAS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

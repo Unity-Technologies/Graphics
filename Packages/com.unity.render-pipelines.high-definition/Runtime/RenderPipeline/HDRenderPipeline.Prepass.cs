@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -218,7 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
         OccluderPass GetOccluderPass(HDCamera hdCamera)
         {
             bool useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
-                                          && !XRSRPSettings.enabled
                                           && hdCamera.camera.cameraType is CameraType.Game or CameraType.SceneView or CameraType.Preview;
             if (!useGPUOcclusionCulling)
                 return OccluderPass.None;
@@ -233,25 +233,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateInstanceOccluders(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture)
         {
-            var occluderParameters = new OccluderParameters(hdCamera.camera.GetInstanceID())
+            bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
+            var occluderParams = new OccluderParameters(hdCamera.camera.GetInstanceID())
             {
-                viewMatrix = hdCamera.mainViewConstants.viewMatrix,
-                invViewMatrix = hdCamera.mainViewConstants.invViewMatrix,
-                gpuProjMatrix = hdCamera.mainViewConstants.projMatrix,
-                viewOffsetWorldSpace = hdCamera.mainViewConstants.worldSpaceCameraPos,
-
+                subviewCount = isSinglePassXR ? 2 : 1,
                 depthTexture = depthTexture,
-                depthOffset = new Vector2Int(0, 0),
                 depthSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight),
-                depthSliceCount = TextureXR.useTexArray ? 1 : 0,
+                depthIsArray = TextureXR.useTexArray,
             };
-            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParameters);
+            Span<OccluderSubviewUpdate> occluderSubviewUpdates = stackalloc OccluderSubviewUpdate[occluderParams.subviewCount];
+            for (int subviewIndex = 0; subviewIndex < occluderParams.subviewCount; ++subviewIndex)
+            {
+                occluderSubviewUpdates[subviewIndex] = new OccluderSubviewUpdate(subviewIndex)
+                {
+                    depthSliceIndex = subviewIndex,
+                    viewMatrix = hdCamera.m_XRViewConstants[subviewIndex].viewMatrix,
+                    invViewMatrix = hdCamera.m_XRViewConstants[subviewIndex].invViewMatrix,
+                    gpuProjMatrix = hdCamera.m_XRViewConstants[subviewIndex].projMatrix,
+                    viewOffsetWorldSpace = hdCamera.m_XRViewConstants[subviewIndex].worldSpaceCameraPos,
+                };
+            }
+            GPUResidentDrawer.UpdateInstanceOccluders(renderGraph, occluderParams, occluderSubviewUpdates);
         }
 
         void InstanceOcclusionTest(RenderGraph renderGraph, HDCamera hdCamera, OcclusionTest occlusionTest)
         {
-            var occlusionSettings = new OcclusionCullingSettings(hdCamera.camera.GetInstanceID(), occlusionTest);
-            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, occlusionSettings);
+            bool isSinglePassXR = hdCamera.xr.enabled && hdCamera.xr.singlePassEnabled;
+            int subviewCount = isSinglePassXR ? 2 : 1;
+            var settings = new OcclusionCullingSettings(hdCamera.camera.GetInstanceID(), occlusionTest)
+            {
+                instanceMultiplier = (isSinglePassXR && !SystemInfo.supportsMultiview) ? 2 : 1,
+            };
+            Span<SubviewOcclusionTest> subviewOcclusionTests = stackalloc SubviewOcclusionTest[subviewCount];
+            for (int subviewIndex = 0; subviewIndex < subviewCount; ++subviewIndex)
+            {
+                subviewOcclusionTests[subviewIndex] = new SubviewOcclusionTest()
+                {
+                    cullingSplitIndex = 0,
+                    occluderSubviewIndex = subviewIndex,
+                };
+            }
+            GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests);
         }
 
         PrepassOutput RenderPrepass(RenderGraph renderGraph,
@@ -290,8 +312,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderRayTracingDepthPrepass(renderGraph, cullingResults, hdCamera, result.depthBuffer);
 
-                ApplyCameraMipBias(hdCamera);
-
                 OccluderPass occluderPass = GetOccluderPass(hdCamera);
 
                 bool shouldRenderMotionVectorAfterGBuffer = false;
@@ -326,8 +346,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                ResetCameraMipBias(hdCamera);
-
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
                 bool needCameraMVBeforeResolve = msaa;
@@ -342,8 +360,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
-
-                ApplyCameraMipBias(hdCamera);
 
                 if (IsComputeThicknessNeeded(hdCamera))
                     // Compute thicknes for AllOpaque before the GBuffer without reading DepthBuffer
@@ -404,8 +420,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
                 mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && hdCamera.isLowResScaleHalf;
-
-                ResetCameraMipBias(hdCamera);
 
                 DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
 
@@ -1157,7 +1171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // In vulkan, dx12 and consoles the first read of a texture always triggers a depth decompression
                     // (in vulkan is seen as a vk event, in dx12 as a barrier, and in gnm as a straight up depth decompress compute job).
                     // Unfortunately, the current render graph implementation only see's the current texture as a read since the abstraction doesnt go too low.
-                    // The GfxDevice has no context of passes so it can't put the barrier in the right spot... so for now hacking this by *assuming* this is the first read. :( 
+                    // The GfxDevice has no context of passes so it can't put the barrier in the right spot... so for now hacking this by *assuming* this is the first read. :(
                     passData.inputDepth = builder.ReadWriteTexture(output.resolvedDepthBuffer);
                     //passData.inputDepth = builder.ReadTexture(output.resolvedDepthBuffer);
 

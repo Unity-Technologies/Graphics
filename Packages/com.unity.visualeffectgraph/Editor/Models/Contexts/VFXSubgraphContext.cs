@@ -73,13 +73,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
             if (inputFlowCount > VFXContext.kMaxFlowCount)
             {
                 var message = $@"This subgraph handle too many flow anchor to be fully displayed. Maximum: {VFXContext.kMaxFlowCount}, Actual: {inputFlowCount}";
-                manager.RegisterError("MaxContextFlowCount", VFXErrorType.Error, message);
+                report.RegisterError("MaxContextFlowCount", VFXErrorType.Error, message, this);
             }
         }
 

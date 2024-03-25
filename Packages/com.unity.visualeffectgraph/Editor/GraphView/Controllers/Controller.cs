@@ -75,8 +75,7 @@ namespace UnityEditor.VFX.UI
                 return;
             if (eventHandler is VisualElement element)
             {
-                //Why not GetFirstAncestorOfType ? OnControllerChanged is already called on the current eventHandler
-                eventHandler = element.GetFirstOfType<IControlledElement>();
+                eventHandler = element.GetFirstAncestorOfType<IControlledElement>();
                 while (eventHandler != null)
                 {
                     eventHandler.OnControllerChanged(ref e);

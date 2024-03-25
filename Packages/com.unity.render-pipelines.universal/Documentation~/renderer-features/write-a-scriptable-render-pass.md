@@ -1,11 +1,15 @@
-# Write a Scriptable Render Pass
+# Write a Scriptable Render Pass in Compatibility Mode
+
+If you enable **Compatibility Mode (Render Graph Disabled)** in [URP graphics settings](../urp-global-settings.md), you can write a Scriptable Render Pass without using the [render graph API](../render-graph.md).
+
+> **Note**: Unity no longer develops or improves the rendering path that doesn't use the render graph API. Use the render graph API instead when developing new graphics features.
 
 The following example is a `ScriptableRenderPass` instance that performs the following steps:
 
 1. Creates a temporary render texture using the `RenderTextureDescriptor` API.
 2. Applies two passes of the [custom shader](#example-shader) to the camera output using the `RTHandle` and the `Blit` API.
 
-After you write a Scriptable Render Pass, you can inject the pass using one of the following methods:
+After you write a Scriptable Render Pass, you can inject the render pass using one of the following methods:
 
 - [Use the `RenderPipelineManager` API](../customize/inject-render-pass-via-script.md)
 - [Use a Scriptable Renderer Feature](scriptable-renderer-features/inject-a-pass-using-a-scriptable-renderer-feature.md)
@@ -102,7 +106,7 @@ public class RedTintRenderPass : ScriptableRenderPass
     }
     ```
 
-5. Use the Blit method to apply the two passes from the custom shader to the camera output.
+5. Use the Blit method to apply the two render passes from the custom shader to the camera output.
 
     ```C#
     public override void Execute(ScriptableRenderContext context,

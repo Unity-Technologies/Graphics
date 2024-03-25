@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using UnityEditor;
+
+using Cell = UnityEngine.Rendering.ProbeReferenceVolume.Cell;
 
 namespace UnityEngine.Rendering
 {
-    partial class ProbeGIBaking
+    partial class AdaptiveProbeVolumes
     {
         static ComputeShader dilationShader;
         static int dilationKernel = -1;
@@ -14,6 +17,13 @@ namespace UnityEngine.Rendering
                 dilationShader = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().dilationShader;
                 dilationKernel = dilationShader.FindKernel("DilateCell");
             }
+        }
+
+        static void GetProbeAndChunkIndex(int globalProbeIndex, out int chunkIndex, out int chunkProbeIndex)
+        {
+            var chunkSizeInProbeCount = ProbeBrickPool.GetChunkSizeInProbeCount();
+            chunkIndex = globalProbeIndex / chunkSizeInProbeCount;
+            chunkProbeIndex = globalProbeIndex - chunkIndex * chunkSizeInProbeCount;
         }
 
         [GenerateHLSL(needAccessors = false)]
@@ -97,10 +107,7 @@ namespace UnityEngine.Rendering
                 if (cellChunkData.skyOcclusionDataL0L1.Length != 0)
                     WriteToShaderSkyOcclusion(SO_L0L1, cellChunkData.skyOcclusionDataL0L1, index * 4);
                 if (cellChunkData.skyShadingDirectionIndices.Length != 0)
-                {
-                    var directions = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
-                    cellChunkData.skyShadingDirectionIndices[index] = (byte)LinearSearchClosestDirection(directions, SO_Direction);
-                }
+                    cellChunkData.skyShadingDirectionIndices[index] = (byte)SkyOcclusionBaker.EncodeSkyShadingDirection(SO_Direction);
             }
         }
 
@@ -166,6 +173,112 @@ namespace UnityEngine.Rendering
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
+
+        // Can definitively be optimized later on.
+        // Also note that all the bookkeeping of all the reference volumes will likely need to change when we move to
+        // proper UX.
+        internal static void PerformDilation()
+        {
+            var prv = ProbeReferenceVolume.instance;
+            var perSceneDataList = prv.perSceneDataList;
+            if (perSceneDataList.Count == 0) return;
+            SetBakingContext(perSceneDataList);
+
+            List<Cell> tempLoadedCells = new List<Cell>();
+
+            if (m_BakingSet.hasDilation)
+            {
+                var dilationSettings = m_BakingSet.settings.dilationSettings;
+
+                // Make sure all assets are loaded.
+                prv.PerformPendingOperations();
+
+                // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
+                for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
+                {
+                    // Try to load all available cells to the GPU. Might not succeed depending on the memory budget.
+                    prv.LoadAllCells();
+
+                    // Dilate all cells
+                    List<Cell> dilatedCells = new List<Cell>(prv.cells.Values.Count);
+                    bool everythingLoaded = !prv.hasUnloadedCells;
+
+                    if (everythingLoaded)
+                    {
+                        foreach (var cell in prv.cells.Values)
+                        {
+                            if (m_CellsToDilate.ContainsKey(cell.desc.index))
+                            {
+                                PerformDilation(cell, m_BakingSet);
+                                dilatedCells.Add(cell);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // When everything does not fit in memory, we are going to dilate one cell at a time.
+                        // To do so, we load the cell and all its neighbours and then dilate.
+                        // This is an inefficient use of memory but for now most of the time is spent in reading back the result anyway so it does not introduce any performance regression.
+
+                        // Free All memory to make room for each cell and its neighbors for dilation.
+                        prv.UnloadAllCells();
+
+                        foreach (var cell in prv.cells.Values)
+                        {
+                            if (!m_CellsToDilate.ContainsKey(cell.desc.index))
+                                continue;
+
+                            var cellPos = cell.desc.position;
+                            // Load the cell and all its neighbors before doing dilation.
+                            for (int x = -1; x <= 1; ++x)
+                            {
+                                for (int y = -1; y <= 1; ++y)
+                                {
+                                    for (int z = -1; z <= 1; ++z)
+                                    {
+                                        Vector3Int pos = cellPos + new Vector3Int(x, y, z);
+                                        if (m_CellPosToIndex.TryGetValue(pos, out var cellToLoadIndex))
+                                        {
+                                            if (prv.cells.TryGetValue(cellToLoadIndex, out var cellToLoad))
+                                            {
+                                                if (prv.LoadCell(cellToLoad))
+                                                {
+                                                    tempLoadedCells.Add(cellToLoad);
+                                                }
+                                                else
+                                                    Debug.LogError($"Not enough memory to perform dilation for cell {cell.desc.index}");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            PerformDilation(cell, m_BakingSet);
+                            dilatedCells.Add(cell);
+
+                            // Free memory again.
+                            foreach (var cellToUnload in tempLoadedCells)
+                                prv.UnloadCell(cellToUnload);
+                            tempLoadedCells.Clear();
+                        }
+                    }
+
+                    // Now write back the assets.
+                    WriteDilatedCells(dilatedCells);
+
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
+
+                    // Reload data
+                    foreach (var sceneData in perSceneDataList)
+                    {
+                        sceneData.QueueSceneRemoval();
+                        sceneData.QueueSceneLoading();
+                    }
+                    prv.PerformPendingOperations();
+                }
+            }
+        }
 
         static void PerformDilation(ProbeReferenceVolume.Cell cell, ProbeVolumeBakingSet bakingSet)
         {
@@ -234,6 +347,37 @@ namespace UnityEngine.Rendering
 
             data.ExtractDilatedProbes();
             data.Dispose();
+        }
+
+        // NOTE: This is somewhat hacky and is going to likely be slow (or at least slower than it could).
+        // It is only a first iteration of the concept that won't be as impactful on memory as other options.
+        internal static void RevertDilation()
+        {
+            if (m_BakingSet == null)
+            {
+                if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
+                SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
+            }
+
+            var dilationSettings = m_BakingSet.settings.dilationSettings;
+            var blackProbe = new SphericalHarmonicsL2();
+
+            int chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            {
+                for (int i = 0; i < cell.data.validity.Length; ++i)
+                {
+                    if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.data.validity[i] > dilationSettings.dilationValidityThreshold)
+                    {
+                        GetProbeAndChunkIndex(i, out var chunkIndex, out var index);
+
+                        var cellChunkData = GetCellChunkData(cell.data, chunkIndex);
+
+                        WriteToShaderCoeffsL0L1(blackProbe, cellChunkData.shL0L1RxData, cellChunkData.shL1GL1RyData, cellChunkData.shL1BL1RzData, index * 4);
+                        WriteToShaderCoeffsL2(blackProbe, cellChunkData.shL2Data_0, cellChunkData.shL2Data_1, cellChunkData.shL2Data_2, cellChunkData.shL2Data_3, index * 4);
+                    }
+                }
+            }
         }
     }
 }

@@ -59,3 +59,7 @@
 #else
 #define CULL_VERTEX(o) { o.VFX_VARYING_POSCS.x = VFX_NAN; return o; }
 #endif
+
+// Enable the support of global mip bias in the shader.
+// Only has effect if the global mip bias is enabled in shader config and DRS is enabled.
+#define SUPPORT_GLOBAL_MIP_BIAS

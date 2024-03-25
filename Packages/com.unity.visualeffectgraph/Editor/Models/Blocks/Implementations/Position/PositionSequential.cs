@@ -319,7 +319,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
             if (shape == SequentialShape.Circle)
             {
@@ -332,7 +332,7 @@ namespace UnityEditor.VFX.Block
                     countExpression.Is(VFXExpression.Flags.Constant) &&
                     countExpression.Get<uint>() == 0)
                 {
-                    manager.RegisterError("CircleCountIsZero", VFXErrorType.Warning, "A circle with Count = 0 is not valid");
+                    report.RegisterError("CircleCountIsZero", VFXErrorType.Warning, "A circle with Count = 0 is not valid", this);
                 }
             }
         }

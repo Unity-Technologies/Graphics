@@ -159,11 +159,11 @@ namespace UnityEditor.VFX
             base.Sanitize(version);
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
             if (GetAttributesInfos().Any(x => x.mode.HasFlag(VFXAttributeMode.Write) && x.attrib.Equals(VFXAttribute.Position)))
             {
-                manager.RegisterError("WritePositionInStrip", VFXErrorType.Warning, WriteToPositionMessage);
+                report.RegisterError("WritePositionInStrip", VFXErrorType.Warning, WriteToPositionMessage, this);
             }
         }
     }

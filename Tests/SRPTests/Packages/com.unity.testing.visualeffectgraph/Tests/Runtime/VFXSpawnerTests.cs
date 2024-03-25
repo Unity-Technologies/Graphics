@@ -276,7 +276,7 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < 3; ++i)
             {
                 var random = ScriptableObject.CreateInstance<Operator.Random>();
-                random.SetSettingValue("seed", VFXSeedMode.PerComponent);
+                random.SetSettingValue("seed", VFXSeedMode.PerVFXComponent);
                 random.SetSettingValue("constant", true);
                 graph.AddChild(outputEvent);
                 random.outputSlots.First().Link(setAttributePosition.inputSlots.First()[i]);

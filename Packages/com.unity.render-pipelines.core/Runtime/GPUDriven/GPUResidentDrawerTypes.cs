@@ -54,12 +54,23 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>Parameter structure for passing to GPUResidentDrawer.InstanceOcclusionTest.</summary>
+    public struct SubviewOcclusionTest
+    {
+        /// <summary>The split index to read from the CPU culling output.</summary>
+        public int cullingSplitIndex;
+        /// <summary>The occluder subview to occlusion test against.</summary>
+        public int occluderSubviewIndex;
+    }
+
+    /// <summary>Parameter structure for passing to GPUResidentDrawer.InstanceOcclusionTest.</summary>
     public struct OcclusionCullingSettings
     {
         /// <summary>The instance ID of the camera, to identify the culling output and occluders to use.</summary>
         public int viewInstanceID;
         /// <summary>The occlusion test to use.</summary>
         public OcclusionTest occlusionTest;
+        /// <summary>An instance multiplier to use for the generated indirect draw calls.</summary>
+        public int instanceMultiplier;
 
         /// <summary>Creates a new structure using the given parameters.</summary>
         /// <param name="viewInstanceID">The instance ID of the camera to find culling output and occluders for.</param>
@@ -68,14 +79,22 @@ namespace UnityEngine.Rendering
         {
             this.viewInstanceID = viewInstanceID;
             this.occlusionTest = occlusionTest;
+            this.instanceMultiplier = 1;
         }
     }
 
     /// <summary>Parameters structure for passing to GPUResidentDrawer.UpdateInstanceOccluders.</summary>
-    public struct OccluderParameters
+    public struct OccluderSubviewUpdate
     {
-        /// <summary>The instance ID of the camera, used to identify these occluders for the occlusion test.</summary>
-        public int viewInstanceID;
+        /// <summary>
+        /// The subview index within this camera or light, used to identify these occluders for the occlusion test.
+        /// </summary>
+        public int subviewIndex;
+
+        /// <summary>The slice index of the depth data to read.</summary>
+        public int depthSliceIndex;
+        /// <summary>The offset in pixels to the start of the depth data to read.</summary>
+        public Vector2Int depthOffset;
 
         /// <summary>The transform from world space to view space when rendering the depth buffer.</summary>
         public Matrix4x4 viewMatrix;
@@ -86,28 +105,47 @@ namespace UnityEngine.Rendering
         /// <summary>An additional world space offset to apply when moving between world space and view space.</summary>
         public Vector3 viewOffsetWorldSpace;
 
+        /// <summary>Creates a new structure using the given parameters.</summary>
+        /// <param name="subviewIndex">The index of the subview within this occluder.</param>
+        public OccluderSubviewUpdate(int subviewIndex)
+        {
+            this.subviewIndex = subviewIndex;
+
+            this.depthSliceIndex = 0;
+            this.depthOffset = Vector2Int.zero;
+
+            this.viewMatrix = Matrix4x4.identity;
+            this.invViewMatrix = Matrix4x4.identity;
+            this.gpuProjMatrix = Matrix4x4.identity;
+            this.viewOffsetWorldSpace = Vector3.zero;
+        }
+    }
+
+    /// <summary>Parameters structure for passing to GPUResidentDrawer.UpdateInstanceOccluders.</summary>
+    public struct OccluderParameters
+    {
+        /// <summary>The instance ID of the camera, used to identify these occluders for the occlusion test.</summary>
+        public int viewInstanceID;
+        /// <summary>The total number of subviews for this occluder.</summary>
+        public int subviewCount;
+
         /// <summary>The depth texture to read.</summary>
         public TextureHandle depthTexture;
-        /// <summary>The offset in pixels to the start of the depth data to read.</summary>
-        public Vector2Int depthOffset;
         /// <summary>The size in pixels of the area of the depth data to read.</summary>
         public Vector2Int depthSize;
-        /// <summary>The number of slices, expected to be 0 or 1 for 2D and 2DArray textures respectively.</summary>
-        public int depthSliceCount;
+        /// <summary>True if the depth texture is a texture array, false otherwise.</summary>
+        public bool depthIsArray;
 
         /// <summary>Creates a new structure using the given parameters.</summary>
         /// <param name="viewInstanceID">The instance ID of the camera to associate with these occluders.</param>
         public OccluderParameters(int viewInstanceID)
         {
             this.viewInstanceID = viewInstanceID;
-            this.viewMatrix = Matrix4x4.identity;
-            this.invViewMatrix = Matrix4x4.identity;
-            this.gpuProjMatrix = Matrix4x4.identity;
-            this.viewOffsetWorldSpace = Vector3.zero;
+            this.subviewCount = 1;
+
             this.depthTexture = TextureHandle.nullHandle;
-            this.depthOffset = Vector2Int.zero;
             this.depthSize = Vector2Int.zero;
-            this.depthSliceCount = 0;
+            this.depthIsArray = false;
         }
     }
 }

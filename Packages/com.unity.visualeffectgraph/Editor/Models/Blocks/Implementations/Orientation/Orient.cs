@@ -354,9 +354,9 @@ axisY = cross(axisZ, axisX);
             base.Sanitize(version);
         }
 
-        internal sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
-            base.GenerateErrors(manager);
+            base.GenerateErrors(report);
 
             if (!canTestStrips)
                 return;
@@ -375,7 +375,7 @@ axisY = cross(axisZ, axisX);
             if (hasInvalidMode)
             {
                 string outputTypeStr = hasStrips ? "strip" : "non strip";
-                manager.RegisterError("InvalidOrientMode", VFXErrorType.Error, string.Format("Orient mode {0} is invalid with {1} output", mode, outputTypeStr));
+                report.RegisterError("InvalidOrientMode", VFXErrorType.Error, string.Format("Orient mode {0} is invalid with {1} output", mode, outputTypeStr), this);
             }
 
             if (mode is Mode.Advanced or Mode.FixedAxis)
@@ -400,7 +400,7 @@ axisY = cross(axisZ, axisX);
                         direction.Get<Vector3>() is { sqrMagnitude: var sqrMag } &&
                         (float.IsNaN(sqrMag) || sqrMag <= Mathf.Epsilon))
                     {
-                        manager.RegisterError("InvalidAxis", VFXErrorType.Error, $"{GetInputSlot(i).property.name} vector must not be zero length");
+                        report.RegisterError("InvalidAxis", VFXErrorType.Error, $"{GetInputSlot(i).property.name} vector must not be zero length", this);
                     }
                 }
             }

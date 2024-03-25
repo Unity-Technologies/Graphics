@@ -3090,7 +3090,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, 0.0f, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, (float)dofParameters.resolution, 1.0f/(float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);

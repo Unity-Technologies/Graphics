@@ -72,12 +72,6 @@ VFXContextUI .VFXNodeUI.node.block-disabled #node-border #title, VFXContextUI #b
     background-color: rgba(41,41,41,0.8);
 }
 
-.VFXNodeUI.node #title #collapse-button
-{
-    flex-grow: 0;
-    width: 20px;
-    padding-right: 4px;
-}
 .VFXNodeUI.node
 {
     margin-left:0;
@@ -101,21 +95,6 @@ VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
     display: none;
 }
 
-VFXContextUI .VFXNodeUI.node #node-border #title.activationslot > #title-label
-{
-    margin-left: 44px;
-}
-
-#title.activationslot > #collapse-button
-{
-    flex-grow: 1;
-}
-
-#title.activationslot > #collapse-button > #icon
-{
-    align-self: flex-end;
-}
-
 #block-container .activationslot.collapsed.VFXNodeUI.node #contents > #top > #input
 {
     padding-top: 0px;
@@ -134,4 +113,12 @@ VFXContextUI .VFXNodeUI.node #node-border #title.activationslot > #title-label
 #block-container .collapsed.VFXNodeUI.node #contents > #top > #input > VFXEditableDataAnchor.activationslot
 {
     margin-top: 1px;
+}
+
+VFXBlockUI BoolPropertyRM Label {
+    margin-right: 3px;
+}
+
+#settings .propertyrm {
+    height: 18px;
 }

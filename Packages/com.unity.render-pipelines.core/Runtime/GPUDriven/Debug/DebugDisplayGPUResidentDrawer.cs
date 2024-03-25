@@ -32,18 +32,20 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>Returns the view instances id for the selected occluder debug view index, or 0 if not valid.</summary>
-        internal int GetOccluderViewInstanceID()
+        internal bool GetOccluderViewInstanceID(out int viewInstanceID)
         {
             DebugRendererBatcherStats debugStats = GPUResidentDrawer.GetDebugStats();
-            if (debugStats == null)
-                return 0;
-
-            if (occluderDebugViewIndex >= 0 && occluderDebugViewIndex < debugStats.occluderStats.Length)
+            if (debugStats != null)
             {
-                return debugStats.occluderStats[occluderDebugViewIndex].viewInstanceID;
+                if (occluderDebugViewIndex >= 0 && occluderDebugViewIndex < debugStats.occluderStats.Length)
+                {
+                    viewInstanceID = debugStats.occluderStats[occluderDebugViewIndex].viewInstanceID;
+                    return true;
+                }
             }
 
-            return 0;
+            viewInstanceID = 0;
+            return false;
         }
 
         /// <summary>Returns if the occlusion test heatmap debug overlay is enabled.</summary>
@@ -192,6 +194,7 @@ namespace UnityEngine.Rendering
                     new DebugUI.Value { displayName = "View Instance ID",   refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetInstanceOcclusionEventStats(eventIndex).viewInstanceID },
                     new DebugUI.Value { displayName = "Event Type",         refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => $"{GetInstanceOcclusionEventStats(eventIndex).eventType}" },
                     new DebugUI.Value { displayName = "Occluder Version",   refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => OccluderVersionString(GetInstanceOcclusionEventStats(eventIndex)) },
+                    new DebugUI.Value { displayName = "Subview Mask",       refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => $"0x{GetInstanceOcclusionEventStats(eventIndex).subviewMask:X}" },
                     new DebugUI.Value { displayName = "Occlusion Test",     refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => $"{OcclusionTestString(GetInstanceOcclusionEventStats(eventIndex))}" },
                     new DebugUI.Value { displayName = "Visible Instances",  refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => VisibleInstancesString(GetInstanceOcclusionEventStats(eventIndex)) },
                     new DebugUI.Value { displayName = "Culled Instances",   refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => CulledInstancesString(GetInstanceOcclusionEventStats(eventIndex)) },
@@ -209,11 +212,12 @@ namespace UnityEngine.Rendering
                 children =
                 {
                     new DebugUI.Value { displayName = "View Instance ID",   refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetOccluderStats(index).viewInstanceID },
-                    new DebugUI.Value { displayName = "Texture Size",       refreshRate = k_RefreshRate, formatString = k_FormatString, getter =
+                    new DebugUI.Value { displayName = "Subview Count",      refreshRate = k_RefreshRate, formatString = k_FormatString, getter = () => GetOccluderStats(index).subviewCount },
+                    new DebugUI.Value { displayName = "Size Per Subview",       refreshRate = k_RefreshRate, formatString = k_FormatString, getter =
                     () =>
                     {
-                        Vector2Int size = GetOccluderStats(index).occluderTextureSize;
-                        return $"{size.x}x{size.x}";
+                        Vector2Int size = GetOccluderStats(index).occluderMipLayoutSize;
+                        return $"{size.x}x{size.y}";
                     }},
                 }
             };

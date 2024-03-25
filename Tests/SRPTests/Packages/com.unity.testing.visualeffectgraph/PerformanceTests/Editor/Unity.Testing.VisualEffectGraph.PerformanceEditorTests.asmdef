@@ -4,8 +4,8 @@
         "UnityEngine.TestRunner",
         "Unity.PerformanceTesting",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.GraphicTests.Performance.Editor",
-        "Unity.GraphicTests.Performance.Runtime",
+        "UnityEngine.TestTools.Graphics.Performance.Editor",
+        "UnityEngine.TestTools.Graphics.Performance",
         "Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests",
         "Unity.VisualEffectGraph.Editor"
     ],

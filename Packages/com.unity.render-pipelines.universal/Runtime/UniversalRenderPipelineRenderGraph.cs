@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -9,12 +10,11 @@ namespace UnityEngine.Rendering.Universal
             renderer.RecordRenderGraph(renderGraph, context);
         }
 
-        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera)
+        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera, string cameraName)
         {
-            RenderGraphParameters rgParams = new RenderGraphParameters()
+            RenderGraphParameters rgParams = new RenderGraphParameters
             {
-                // TODO Rendergraph - we are reusing the sampler name, as camera.name does an alloc. we could probably cache this as the current string we get is a bit too informative
-                executionName = Profiling.TryGetOrAddCameraSampler(camera).name,
+                executionName = cameraName,
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,
