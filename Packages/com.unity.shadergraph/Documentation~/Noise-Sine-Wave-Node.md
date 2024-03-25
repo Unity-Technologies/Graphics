@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the sine of the value of input **In**. For variance, psuedo-random noise is added to the amplitude of the sine wave, within a range determined by input **Min Max**.
+Returns the sine of the value of input **In**. For variance, pseudo-random noise is added to the amplitude of the sine wave, within a range determined by input **Min Max**.
 
 ## Ports
 
