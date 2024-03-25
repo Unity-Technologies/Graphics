@@ -24,9 +24,9 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         #region Constructors
-        internal MotionVectorRenderPass(Material cameraMaterial)
+        internal MotionVectorRenderPass(RenderPassEvent evt, Material cameraMaterial)
         {
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+            renderPassEvent = evt;
             m_CameraMaterial = cameraMaterial;
             m_PassData = new PassData();
             base.profilingSampler = ProfilingSampler.Get(URPProfileId.MotionVectors);

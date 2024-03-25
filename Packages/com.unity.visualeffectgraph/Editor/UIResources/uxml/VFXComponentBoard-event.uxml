@@ -2,6 +2,6 @@
   <vfx:VFXComponentBoardEventUI name="container" pickingMode="Ignore">
     <!--<ui:Label text="Event" />-->
     <ui:TextField name="event-name" />
-    <ui:Button name="event-send" text="Send"/>
+    <ui:Button name="event-send" text="Send" tooltip="Send event to VFX asset" />
   </vfx:VFXComponentBoardEventUI>
 </UXML>

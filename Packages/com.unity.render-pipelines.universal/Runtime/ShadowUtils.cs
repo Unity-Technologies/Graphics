@@ -415,15 +415,44 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetupShadowCasterConstantBuffer(RasterCommandBuffer cmd, ref VisibleLight shadowLight, Vector4 shadowBias)
         {
-            cmd.SetGlobalVector("_ShadowBias", shadowBias);
+            SetShadowBias(cmd, shadowBias);
 
             // Light direction is currently used in shadow caster pass to apply shadow normal offset (normal bias).
             Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
-            cmd.SetGlobalVector("_LightDirection", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+            SetLightDirection(cmd, lightDirection);
 
             // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
             Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
-            cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
+            SetLightPosition(cmd, lightPosition);
+        }
+
+        internal static void SetShadowBias(RasterCommandBuffer cmd, Vector4 shadowBias)
+        {
+            cmd.SetGlobalVector(ShaderPropertyId.shadowBias, shadowBias);
+        }
+
+        internal static void SetLightDirection(RasterCommandBuffer cmd, Vector3 lightDirection)
+        {
+            cmd.SetGlobalVector(ShaderPropertyId.lightDirection, new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+        }
+
+        internal static void SetLightPosition(RasterCommandBuffer cmd, Vector3 lightPosition)
+        {
+            cmd.SetGlobalVector(ShaderPropertyId.lightPosition, new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
+        }
+
+        internal static void SetCameraPosition(RasterCommandBuffer cmd, Vector3 worldSpaceCameraPos)
+        {
+            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+        }
+
+        internal static void SetWorldToCameraMatrix(RasterCommandBuffer cmd, Matrix4x4 viewMatrix)
+        {
+            // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
+            // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
+            // we will also change it here to avoid breaking existing shaders. (case 1257518)
+            Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
+            cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
         }
 
         private static RenderTextureDescriptor GetTemporaryShadowTextureDescriptor(int width, int height, int bits)

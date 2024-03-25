@@ -823,6 +823,16 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthPass.Render(renderGraph, cameraDepthTexture, activeDepthTexture, ref renderingData, true);
             }
 
+            // Depends on the camera (copy) depth texture. Depth is reprojected to calculate motion vectors.
+            if (renderPassInputs.requiresMotionVectors && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
+            {
+                TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
+                TextureHandle motionVectorColor = resources.GetTexture(UniversalResource.MotionVectorColor);
+                TextureHandle motionVectorDepth = resources.GetTexture(UniversalResource.MotionVectorDepth);
+                // Depends on camera depth
+                m_MotionVectorPass.Render(renderGraph, cameraDepthTexture, motionVectorColor, motionVectorDepth, ref renderingData);
+            }
+
             if (requiresColorCopyPass)
             {
                 TextureHandle activeColor = activeColorTexture;
@@ -866,7 +876,8 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Postprocess pass should be able configure its render pass inputs per camera per frame (settings) BEFORE building any of the graph
             // TODO: Alternatively we could always build the graph (a potential graph) and cull away unused passes if "record + cull" is fast enough.
             // TODO: Currently we just override "requiresMotionVectors" for TAA in GetRenderPassInputs()
-            if (renderPassInputs.requiresMotionVectors)
+            // Depends on camera depth
+            if (renderPassInputs.requiresMotionVectors && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
             {
                 TextureHandle cameraDepthTexture = resources.GetTexture(UniversalResource.CameraDepthTexture);
                 TextureHandle motionVectorColor = resources.GetTexture(UniversalResource.MotionVectorColor);
