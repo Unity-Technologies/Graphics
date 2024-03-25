@@ -186,7 +186,7 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
     float2 minCoord;
     EvalShadow_Area_GetMinMaxCoords(sd, texelSize, minCoord, maxCoord);
 
-    return any(posTC.xy > maxCoord || posTC.xy < minCoord) ? 1.0f : AREA_FILTER_ALGORITHM(sd, positionSS, posTC, tex, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS);
+    return any(posTC.xy > maxCoord) || any(posTC.xy < minCoord) ? 1.0f : AREA_FILTER_ALGORITHM(sd, positionSS, posTC, tex, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS);
 }
 
 
