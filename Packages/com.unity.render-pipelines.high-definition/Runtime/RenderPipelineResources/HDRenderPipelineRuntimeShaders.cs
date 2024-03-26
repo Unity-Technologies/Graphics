@@ -526,7 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_ScreenSpaceMultipleScatteringCS;
             set => this.SetValueAndNotify(ref m_ScreenSpaceMultipleScatteringCS, value);
         }
-        
+
         #endregion
 
         #region SSS
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Volumetric Clouds
         [Header("Volumetric Clouds")]
-        [SerializeField, ResourcePath("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
+        [SerializeField, ResourcePath("Runtime/Lighting/VolumetricClouds/VolumetricClouds.compute")]
         private ComputeShader m_VolumetricCloudsCS;
 
         public ComputeShader volumetricCloudsCS
@@ -736,7 +736,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_VolumetricCloudMapGeneratorCS, value);
         }
 
-        [SerializeField, ResourcePath("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
+        [SerializeField, ResourcePath("Runtime/Lighting/VolumetricClouds/VolumetricCloudsCombine.shader")]
         private Shader m_VolumetricCloudsCombinePS;
 
         public Shader volumetricCloudsCombinePS
