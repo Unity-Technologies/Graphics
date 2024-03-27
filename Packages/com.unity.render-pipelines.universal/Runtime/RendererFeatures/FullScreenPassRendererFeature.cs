@@ -86,6 +86,11 @@ public class FullScreenPassRendererFeature : ScriptableRendererFeature
     /// <inheritdoc/>
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        if (renderingData.cameraData.cameraType == CameraType.Preview
+            || renderingData.cameraData.cameraType == CameraType.Reflection
+            || UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
+            return;
+
         if (passMaterial == null)
         {
             Debug.LogWarningFormat("Missing Post Processing effect Material. {0} Fullscreen pass will not execute. Check for missing reference in the assigned renderer.", GetType().Name);
