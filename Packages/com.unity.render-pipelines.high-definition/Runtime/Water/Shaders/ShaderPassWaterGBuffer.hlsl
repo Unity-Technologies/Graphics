@@ -32,6 +32,17 @@ void Frag(PackedVaryingsToPS packedInput,
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
+    // Support custom rendering when used by custom pass
+    if (_CustomOutputForCustomPass != 0)
+    {
+        if (_CustomOutputForCustomPass == 1) // depth
+            surfaceData.baseColor = posInput.linearDepth;
+        else if (_CustomOutputForCustomPass == 2) // normal
+            surfaceData.baseColor = surfaceData.normalWS;
+        else if (_CustomOutputForCustomPass == 3) // tangent
+            surfaceData.baseColor = input.tangentToWorld[0].xyz;
+    }
+
     // Light layers need to be set manually here as there is no mesh renderer
     builtinData.renderingLayers = RENDERING_LAYERS_MASK;
 

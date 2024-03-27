@@ -98,7 +98,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _UnderWaterCausticsMaxLOD;
     float _UnderWaterCausticsShadowIntensity;
     float _UnderWaterCausticsRegionSize;
-    float _PaddingG1;
+    int _CustomOutputForCustomPass;
     int _PreRefractionPass;
     int _SpecularFade;
     uint _EnableRenderingLayers;

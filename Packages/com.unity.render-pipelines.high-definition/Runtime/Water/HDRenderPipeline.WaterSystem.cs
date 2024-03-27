@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         GraphicsBuffer m_WaterCameraFrustrumBuffer;
         FrustumGPU[] m_WaterCameraFrustumCPU = new FrustumGPU[1];
 
+        // We can't name it simply GBuffer otherwise it's stripped in forward only
         internal const string k_WaterGBufferPass = "WaterGBuffer";
         internal const string k_WaterMaskPass = "WaterMask";
         internal const string k_LowResGBufferPass = "LowRes";
@@ -1068,6 +1069,44 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareWaterLighting(renderGraph, hdCamera, depthBuffer, normalBuffer, lightLists, ref outputGBuffer);
 
             return outputGBuffer;
+        }
+
+        internal void RenderWaterFromCamera(Camera camera, CommandBuffer cmd, int mode)
+        {
+            var hdCamera = HDCamera.GetOrCreate(camera, 0);
+            if (!ShouldRenderWater(hdCamera))
+                return;
+
+            // Backup frustum as we are rendering from another point of view
+            var frustum = m_WaterCameraFrustumCPU[0];
+
+            // Upload mode
+            if (mode != 0)
+            {
+                m_ShaderVariablesGlobalCB._CustomOutputForCustomPass = mode;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+            }
+
+            WaterRenderingData passData = new();
+            PrepareWaterRenderingData(passData, hdCamera);
+
+            for (int surfaceIdx = 0; surfaceIdx < WaterSurface.instanceCount; ++surfaceIdx)
+            {
+                ref var surfaceData = ref passData.surfaces[surfaceIdx];
+
+                if (surfaceData.render)
+                    RenderWaterSurface(cmd, passData, ref surfaceData);
+            }
+            
+            if (mode != 0)
+            {
+                m_ShaderVariablesGlobalCB._CustomOutputForCustomPass = 0;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+            }
+
+            // Restore camera frustum
+            m_WaterCameraFrustumCPU[0] = frustum;
+            m_WaterCameraFrustrumBuffer.SetData(m_WaterCameraFrustumCPU);
         }
         #endregion
 

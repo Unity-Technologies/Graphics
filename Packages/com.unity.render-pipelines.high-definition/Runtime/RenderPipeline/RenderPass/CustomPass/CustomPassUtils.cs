@@ -559,7 +559,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new OverrideCameraRendering(ctx, view, aspectRatio))
                 {
                     using (new ProfilingScope(ctx.cmd, renderFromCameraSampler))
+                    {
                         DrawRenderers(ctx, shaderTags, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
+                        
+                        if (GetRenderQueueRangeFromRenderQueueType(renderQueueFilter).Contains((int)RenderQueue.Transparent))
+                        {
+                            int mode = 0;
+                            if (overrideMaterialIndex == depthToColorPassIndex) mode = 1;
+                            if (overrideMaterialIndex == normalToColorPassIndex) mode = 2;
+                            if (overrideMaterialIndex == tangentToColorPassIndex) mode = 3;
+
+                            HDRenderPipeline.currentPipeline.RenderWaterFromCamera(view, ctx.cmd, mode);
+                        }
+                    }
                 }
             }
         }
