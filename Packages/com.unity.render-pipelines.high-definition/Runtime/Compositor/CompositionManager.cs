@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
                 SetupCompositionMaterial();
 
-                SetupCompositorLayers();
+                SetupCompositorLayers(false);
 
                 SetupGlobalCompositorVolume();
 
@@ -400,11 +400,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
-        void SetupCompositorLayers()
+        void SetupCompositorLayers(bool allowUndo = true)
         {
             for (int i = 0; i < m_InputLayers.Count; ++i)
             {
-                m_InputLayers[i].Init($"Layer{i}");
+                m_InputLayers[i].Init($"Layer{i}", allowUndo);
             }
 
             SetLayerRenderTargets();
