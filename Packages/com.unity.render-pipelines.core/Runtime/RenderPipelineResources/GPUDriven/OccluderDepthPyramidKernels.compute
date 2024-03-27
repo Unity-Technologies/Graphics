@@ -1,6 +1,6 @@
 #pragma kernel OccluderDepthDownscale
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch webgpu
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/GPUDriven/OccluderDepthPyramidConstants.cs.hlsl"
@@ -66,11 +66,15 @@ void SubgroupMergeDepths(uint threadID : SV_GroupThreadID, uint bitIndex, inout 
 
     if (lowIndex == (1 << bitIndex))
         s_farDepth[highIndex] = farDepth;
+#if !defined(SHADER_API_WEBGPU)
     GroupMemoryBarrierWithGroupSync();
+#endif
 
     if (lowIndex == 0)
         farDepth = FarthestDepth(farDepth, s_farDepth[highIndex]);
+#if !defined(SHADER_API_WEBGPU)
     GroupMemoryBarrierWithGroupSync();
+#endif
 }
 
 int2 DestMipOffset(int mipIndex, int dstSubviewIndex)
