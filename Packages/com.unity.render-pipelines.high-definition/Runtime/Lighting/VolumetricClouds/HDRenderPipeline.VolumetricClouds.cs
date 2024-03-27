@@ -66,7 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int intermediateHeight;
             public int finalWidth;
             public int finalHeight;
-            public int viewCount;
             public bool enableExposureControl;
             public bool lowResolution;
             public bool enableIntegration;
@@ -384,7 +383,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ErosionOcclusion = settings.erosionOcclusion.value;
             cb._ErosionFactorCompensation = ErosionNoiseTypeToErosionCompensation(settings.erosionNoiseType.value);
 
-            UpdateMatricesForXR(ref cb, hdCamera);
+            if (!shadowPass)
+                UpdateMatricesForXR(ref cb, hdCamera);
 
             Vector3 cameraPosPS = hdCamera.mainViewConstants.worldSpaceCameraPos - hdCamera.planet.center;
             Vector3 prevCameraPosPS = cameraPosPS + hdCamera.mainViewConstants.prevWorldSpaceCameraPos; // prev pos is camera relative
@@ -410,7 +410,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe internal void UpdateMatricesForXR(ref ShaderVariablesClouds cb, HDCamera hdCamera)
         {
-
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 var vp = hdCamera.m_XRViewConstants[viewIndex].prevViewProjMatrix;

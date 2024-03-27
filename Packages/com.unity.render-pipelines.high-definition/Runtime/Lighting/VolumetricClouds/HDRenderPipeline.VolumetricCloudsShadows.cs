@@ -170,7 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.intermediateHeight = 1;
             cameraData.finalWidth = 1;
             cameraData.finalHeight = 1;
-            cameraData.viewCount = 1;
             cameraData.enableExposureControl = false;
             cameraData.lowResolution = false;
             cameraData.enableIntegration = false;

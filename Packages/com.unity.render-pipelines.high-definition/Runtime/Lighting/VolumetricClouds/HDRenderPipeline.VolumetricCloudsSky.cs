@@ -89,7 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.intermediateHeight = data.intermediateHeight;
             cameraData.finalWidth = data.finalWidth;
             cameraData.finalHeight = data.finalHeight;
-            cameraData.viewCount = 1;
             cameraData.enableExposureControl = data.commonData.enableExposureControl;
             cameraData.lowResolution = true;
             cameraData.enableIntegration = false;
@@ -178,7 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.intermediateHeight = data.finalHeight;
             cameraData.finalWidth = data.finalWidth;
             cameraData.finalHeight = data.finalHeight;
-            cameraData.viewCount = 1;
             cameraData.enableExposureControl = data.commonData.enableExposureControl;
             cameraData.lowResolution = false;
             cameraData.enableIntegration = false;
