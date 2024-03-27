@@ -62,7 +62,11 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
 #endif
             opacity), opacity);
     else
-        return float4(diffuseLighting + specularLighting, opacity);
+        return float4(diffuseLighting + specularLighting * (
+#ifdef SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+        _EnableBlendModePreserveSpecularLighting ? 1.0f :
+#endif
+            opacity), opacity);
 
 #endif
 }
