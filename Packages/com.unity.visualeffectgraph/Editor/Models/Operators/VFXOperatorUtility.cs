@@ -688,12 +688,12 @@ namespace UnityEditor.VFX
             var minusTwoExp = MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float];
 
             var zero = ZeroExpression[VFXValueType.Float];
-            var m0 = new VFXExpressionCombine(cotangent / aspect, zero, zero, zero);
-            var m1 = new VFXExpressionCombine(zero, cotangent, zero, zero);
-            var m2 = new VFXExpressionCombine(minusTwoExp * lensShift.x, minusTwoExp * lensShift.y, MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
-            var m3 = new VFXExpressionCombine(zero, zero, TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ, zero);
+            var r0 = new VFXExpressionCombine(cotangent / aspect, zero, minusTwoExp * lensShift.x, zero);
+            var r1 = new VFXExpressionCombine(zero, cotangent, minusTwoExp * lensShift.y, zero);
+            var r2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ, TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ);
+            var r3 = new VFXExpressionCombine(zero, zero, OneExpression[VFXValueType.Float], zero);
 
-            return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+            return new VFXExpressionRowToMatrix(r0, r1, r2, r3);
         }
 
         static public VFXExpression GetOrthographicMatrix(VFXExpression orthoSize, VFXExpression aspect, VFXExpression zNear, VFXExpression zFar)
@@ -702,12 +702,12 @@ namespace UnityEditor.VFX
             var oneOverSize = OneExpression[VFXValueType.Float] / orthoSize;
 
             var zero = ZeroExpression[VFXValueType.Float];
-            var m0 = new VFXExpressionCombine(oneOverSize / aspect, zero, zero, zero);
-            var m1 = new VFXExpressionCombine(zero, oneOverSize, zero, zero);
-            var m2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float] / deltaZ, zero);
-            var m3 = new VFXExpressionCombine(zero, zero, (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
+            var r0 = new VFXExpressionCombine(oneOverSize / aspect, zero, zero, zero);
+            var r1 = new VFXExpressionCombine(zero, oneOverSize, zero, zero);
+            var r2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * TwoExpression[VFXValueType.Float] / deltaZ, (zFar + zNear) / deltaZ);
+            var r3 = new VFXExpressionCombine(zero, zero, zero, OneExpression[VFXValueType.Float]);
 
-            return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
+            return new VFXExpressionRowToMatrix(r0, r1, r2, r3);
         }
 
         static public VFXExpression InverseTransposeTRS(VFXExpression matrix)
@@ -717,9 +717,9 @@ namespace UnityEditor.VFX
 
         static public VFXExpression IsTRSMatrixZeroScaled(VFXExpression matrix)
         {
-            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
-            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
-            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+            var i = new VFXExpressionMatrixToAxis(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToAxis(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToAxis(matrix, VFXValue.Constant(2));
 
             var sqrLengthI = Dot(i, i);
             var sqrLengthJ = Dot(j, j);
@@ -737,9 +737,9 @@ namespace UnityEditor.VFX
 
         static public VFXExpression IsTRSMatrixUniformScaled(VFXExpression matrix)
         {
-            var i = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(0));
-            var j = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(1));
-            var k = new VFXExpressionMatrixToVector3s(matrix, VFXValue.Constant(2));
+            var i = new VFXExpressionMatrixToAxis(matrix, VFXValue.Constant(0));
+            var j = new VFXExpressionMatrixToAxis(matrix, VFXValue.Constant(1));
+            var k = new VFXExpressionMatrixToAxis(matrix, VFXValue.Constant(2));
 
             var sqrLengthI = Dot(i, i);
             var sqrLengthJ = Dot(j, j);

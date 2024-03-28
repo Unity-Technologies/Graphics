@@ -586,7 +586,7 @@ To avoid this, change the input Transform space from Local to World or None.";
 
                 //insure tangent orthonormal with normal (cross of normalized input, not need to renormalize)
                 tangent = VFXOperatorUtility.Cross(bitangent, normal);
-                sampled = new VFXExpressionVector3sToMatrix(bitangent, normal, tangent, position);
+                sampled = new VFXExpressionAxisToMatrix(bitangent, normal, tangent, position);
             }
             else if (currentAttribute == VertexAttributeFlag.Velocity)
             {

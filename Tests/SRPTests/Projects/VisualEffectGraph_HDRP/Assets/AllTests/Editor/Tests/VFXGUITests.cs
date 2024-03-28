@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Test
             var updateContextDesc = allContexts.First(t => t.modelType == typeof(VFXBasicUpdate));
             var updateContext = viewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc.variant);
 
-            var outputContextDesc = allContexts.First(t => t.modelType.IsSubclassOf( typeof(VFXAbstractParticleOutput)) && t.name.Contains("Particle"));
+            var outputContextDesc = allContexts.First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput));
             var outputContext = viewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc.variant);
 
             viewController.ApplyChanges();

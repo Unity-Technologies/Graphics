@@ -567,6 +567,16 @@ float4 VFXGetColumnFromMatrix(float4x4 mat, int column)
     return transpose(mat)[column];
 }
 
+float4x4 VFXCreateMatrixFromRows(float4 i, float4 j, float4 k, float4 o)
+{
+    return float4x4(i, j, k, o);
+}
+
+float4 VFXGetRowFromMatrix(float4x4 mat, int column)
+{
+    return mat[column];
+}
+
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
 // Inverts upper left by calculating its determinant and multiplying it to the symmetric
 // adjust matrix of each element. Finally deals with the translation by transforming the
