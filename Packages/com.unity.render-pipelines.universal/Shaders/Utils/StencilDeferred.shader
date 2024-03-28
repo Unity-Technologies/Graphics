@@ -75,7 +75,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -138,7 +138,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -201,7 +201,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -266,7 +266,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -331,7 +331,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -372,7 +372,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -422,7 +422,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -465,7 +465,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             // -------------------------------------
             // Includes
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }

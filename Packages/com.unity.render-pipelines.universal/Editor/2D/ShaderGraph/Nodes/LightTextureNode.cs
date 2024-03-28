@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl");
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl", true);
             registry.RequiresIncludePath("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightVariables.hlsl");
 
             registry.ProvideFunction($"Unity_GetLightTexture{(int)m_BlendStyle}", s =>
