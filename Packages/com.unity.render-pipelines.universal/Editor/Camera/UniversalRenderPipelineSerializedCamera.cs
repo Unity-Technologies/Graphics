@@ -106,12 +106,12 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
             var taaSettings = serializedAdditionalDataObject.FindProperty(nameof(UniversalAdditionalCameraData.m_TaaSettings));
-            taaQuality = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.quality));
-            taaFrameInfluence = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.frameInfluence));
-            taaJitterScale = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.jitterScale));
-            taaMipBias = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.mipBias));
-            taaVarianceClampScale = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.varianceClampScale));
-            taaContrastAdaptiveSharpening = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.contrastAdaptiveSharpening));
+            taaQuality = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.m_Quality));
+            taaFrameInfluence = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.m_FrameInfluence));
+            taaJitterScale = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.m_JitterScale));
+            taaMipBias = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.m_MipBias));
+            taaVarianceClampScale = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.m_VarianceClampScale));
+            taaContrastAdaptiveSharpening = taaSettings.FindPropertyRelative(nameof(TemporalAA.Settings.m_ContrastAdaptiveSharpening));
 
             allowHDROutput = serializedAdditionalDataObject.FindProperty("m_AllowHDROutput");
         }

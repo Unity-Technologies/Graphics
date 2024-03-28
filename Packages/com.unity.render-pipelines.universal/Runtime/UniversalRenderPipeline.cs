@@ -771,7 +771,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
                 // NOTE: Persistent data is kept over multiple frames. Its life-time differs from typical resources.
                 // NOTE: Shared between both Execute and Render (RG) paths.
-                if (cameraData.taaPersistentData != null)
+                if (cameraData.taaHistory != null)
                     UpdateTemporalAATargets(cameraData);
 
                 RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
@@ -1775,15 +1775,15 @@ namespace UnityEngine.Rendering.Universal
             switch (renderingSettings.taaDebugMode)
             {
                 case DebugDisplaySettingsRendering.TaaDebugMode.ShowClampedHistory:
-                    taaSettings.frameInfluence = 0;
+                    taaSettings.m_FrameInfluence = 0;
                     break;
 
                 case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrame:
-                    taaSettings.frameInfluence = 1;
+                    taaSettings.m_FrameInfluence = 1;
                     break;
 
                 case DebugDisplaySettingsRendering.TaaDebugMode.ShowRawFrameNoJitter:
-                    taaSettings.frameInfluence = 1;
+                    taaSettings.m_FrameInfluence = 1;
                     taaSettings.jitterScale = 0;
                     break;
             }
@@ -1792,8 +1792,8 @@ namespace UnityEngine.Rendering.Universal
         private static void UpdateTemporalAAData(UniversalCameraData cameraData, UniversalAdditionalCameraData additionalCameraData)
         {
             // Always request the TAA history data here in order to fit the existing URP structure.
-            additionalCameraData.historyManager.RequestAccess<TemporalAA.PersistentData>();
-            cameraData.taaPersistentData = additionalCameraData.historyManager.GetHistoryForWrite<TemporalAA.PersistentData>();
+            additionalCameraData.historyManager.RequestAccess<TaaHistory>();
+            cameraData.taaHistory = additionalCameraData.historyManager.GetHistoryForWrite<TaaHistory>();
 
             if (cameraData.IsSTPEnabled())
             {
@@ -1823,13 +1823,13 @@ namespace UnityEngine.Rendering.Universal
                     Debug.Assert(cameraData.stpHistory != null);
 
                     // When STP is active, we don't require the full set of resources needed by TAA.
-                    cameraData.taaPersistentData.Reset();
+                    cameraData.taaHistory.Reset();
 
                     allocation = cameraData.stpHistory.Update(cameraData);
                 }
                 else
                 {
-                    allocation = cameraData.taaPersistentData.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                    allocation = cameraData.taaHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
                 }
 
                 // Fill new history with current frame
@@ -1839,7 +1839,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                cameraData.taaPersistentData.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
+                cameraData.taaHistory.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
 
                 // In the case where STP is enabled, but TAA gets disabled for various reasons, we should release the STP history resources
                 if (cameraData.IsSTPEnabled())
