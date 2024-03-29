@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
 
         int GetSlotIndex(VFXSlot slot);
 
-        void UpdateOutputExpressions();
+        void UpdateOutputExpressionsIfNeeded();
 
         void ClearSlots();
         bool ResyncSlots(bool notify);
@@ -232,6 +232,7 @@ namespace UnityEditor.VFX
         public override void OnUnknownChange()
         {
             base.OnUnknownChange();
+            m_OutputExpressionsUpToDate = false;
             ResyncSlots(false);
         }
 
@@ -448,11 +449,35 @@ namespace UnityEditor.VFX
             return m_expandedPaths.Contains(fieldPath);
         }
 
-        public virtual void UpdateOutputExpressions() { }
+        protected virtual void UpdateOutputExpressions() { }
+
+        [NonSerialized]
+        private bool m_OutputExpressionsUpToDate = false;
+        public void UpdateOutputExpressionsIfNeeded()
+        {
+            if (!m_OutputExpressionsUpToDate)
+            {
+                UpdateOutputExpressions();
+                m_OutputExpressionsUpToDate = true;
+            }
+        }
+
+        public void MarkOutputExpressionsAsOutOfDate()
+        {
+            m_OutputExpressionsUpToDate = false;
+        }
 
         public virtual VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return VFXCoordinateSpace.None;
+        }
+
+        public override void CheckGraphBeforeImport()
+        {
+            // The cache is here to avoid multiple output recomputation when updating the expression graph
+            // So It's marked as out of date before compilation just to minimize risk of cache missed invalidation between different compilation
+            MarkOutputExpressionsAsOutOfDate(); 
+            base.CheckGraphBeforeImport();     
         }
 
         //[SerializeField]

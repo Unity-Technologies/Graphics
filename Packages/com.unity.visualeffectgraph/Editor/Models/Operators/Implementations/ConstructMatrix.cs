@@ -4,7 +4,7 @@ namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-ConstructMatrix")]
     [VFXInfo(category = "Math/Vector")]
-    class MatrixFromVector4 : VFXOperator
+    class ConstructMatrix : VFXOperator
     {
         public class InputProperties
         {
