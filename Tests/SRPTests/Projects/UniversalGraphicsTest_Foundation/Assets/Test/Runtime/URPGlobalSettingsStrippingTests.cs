@@ -6,10 +6,15 @@ using UnityEngine.Rendering.Universal;
 public class URPGlobalSettingsStrippingTests
 {
     [Test]
+    // Runtime settings
     [TestCase(typeof(ShaderStrippingSetting), true)]
-    [TestCase(typeof(URPShaderStrippingSetting), true)]
     [TestCase(typeof(URPDefaultVolumeProfileSettings), true)]
     [TestCase(typeof(RenderGraphSettings), true)]
+    [TestCase(typeof(UniversalRendererResources), true)]
+    [TestCase(typeof(UniversalRenderPipelineRuntimeTextures), true)]
+    [TestCase(typeof(UniversalRenderPipelineRuntimeShaders), true)]
+    // Editor-only settings
+    [TestCase(typeof(URPShaderStrippingSetting), false)]
     public void IsAvailableOnPlayerBuilds(System.Type type, bool expectedAvailable)
     {
         MethodInfo method = typeof(GraphicsSettings).GetMethod(nameof(GraphicsSettings.GetRenderPipelineSettings));

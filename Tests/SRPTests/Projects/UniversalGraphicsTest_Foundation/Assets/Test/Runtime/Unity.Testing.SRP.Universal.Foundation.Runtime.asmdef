@@ -11,12 +11,13 @@
         "GUID:c579267770062bf448e75eb160330b7f",
         "GUID:15fc0a57446b3144c949da3e2b9737a9",
         "GUID:36d514892e55d4340b470c29fcab8b44",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:343deaaf83e0cee4ca978e7df0b80d21",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:adf6f42bac617413dbcd97c993ab7077"
     ],
     "includePlatforms": [],
-    "excludePlatforms": [
-        "Editor"
-    ],
+    "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
