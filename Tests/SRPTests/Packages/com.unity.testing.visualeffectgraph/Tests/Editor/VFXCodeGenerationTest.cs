@@ -8,7 +8,7 @@ using UnityEngine.VFX;
 using UnityEditor.VFX.Block;
 using UnityEngine.TestTools;
 using System.Collections;
-using static UnityEditor.VFX.Block.CollisionBase;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.VFX.Test
 {
@@ -191,16 +191,48 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(4, shaderCount);
             vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
         }
-        
+
+        private IEnumerable CheckCompilation(VFXGraph vfxGraph)
+        {
+            var resource = vfxGraph.GetResource();
+            EditorUtility.SetDirty(resource);
+            var path = AssetDatabase.GetAssetPath(vfxGraph);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            while (ShaderUtil.anythingCompiling)
+                yield return null;
+
+            var computeShaders = AssetDatabase.LoadAllAssetsAtPath(path).OfType<ComputeShader>().ToArray();
+            Assert.AreEqual(3, computeShaders.Length);
+
+            foreach (var computeShader in computeShaders)
+            {
+                var messages = ShaderUtil.GetComputeShaderMessages(computeShader);
+                foreach (var message in messages)
+                    Assert.AreNotEqual(ShaderCompilerMessageSeverity.Error, message.severity, message.message);
+
+                Assert.AreEqual(0, computeShader.FindKernel("CSMain"));
+                Assert.IsTrue(computeShader.IsSupported(0));
+            }
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Combinatory_Position_Shape()
         {
             var vfxGraph = VFXTestCommon.CreateGraph_And_System();
             var initialize = vfxGraph.children.OfType<VFXBasicInitialize>().First();
 
+            var orientations = new List<PositionBase.Orientation>(Enum.GetValues(typeof(PositionBase.Orientation)).OfType<PositionBase.Orientation>());
+            orientations.Add(PositionBase.Orientation.Axes | PositionBase.Orientation.Direction);
+
             foreach (PositionBase.PositionMode positionMode in Enum.GetValues(typeof(PositionBase.PositionMode)))
             foreach (PositionBase.SpawnMode spawnMode in Enum.GetValues(typeof(PositionBase.SpawnMode)))
             foreach (PositionShapeBase.Type shape in Enum.GetValues(typeof(PositionShapeBase.Type)))
+            foreach (PositionBase.Orientation orientation in orientations)
             {
                 var positionShape = ScriptableObject.CreateInstance<PositionShape>();
                 positionShape.SetSettingValue("positionMode", positionMode);
@@ -211,14 +243,15 @@ namespace UnityEditor.VFX.Test
                 positionShape.SetSettingValue("compositionPosition", AttributeCompositionMode.Blend);
                 positionShape.SetSettingValue("compositionAxes", AttributeCompositionMode.Blend);
                 positionShape.SetSettingValue("compositionDirection", AttributeCompositionMode.Blend);
-                positionShape.SetSettingValue("applyOrientation", PositionBase.Orientation.Direction | PositionBase.Orientation.Axes);
+                positionShape.SetSettingValue("applyOrientation", orientation);
 
                 initialize.AddChild(positionShape);
             }
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxGraph));
-            for (int i = 0; i < 4; ++i) //Wait a few frame in case of shader compilation error
-                yield return null;
+            foreach (var yield in CheckCompilation(vfxGraph))
+            {
+                yield return yield;
+            }
         }
 
         [UnityTest]
@@ -259,9 +292,10 @@ namespace UnityEditor.VFX.Test
                 initialize.AddChild(collisionShape);
             }
 
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxGraph));
-            for (int i = 0; i < 4; ++i) //Wait a few frame in case of shader compilation error
-                yield return null;
+            foreach (var yield in CheckCompilation(vfxGraph))
+            {
+                yield return yield;
+            }
         }
     }
 }

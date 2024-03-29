@@ -86,8 +86,35 @@ namespace UnityEditor.VFX.Block
                 boxSize = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
             }
 
+            //If possible, remove scale to allow zero scale matrices (see UUM-62355)
+            var transformForInversion = transform;
+            var isInverseTransposeBoxOrthonormal = VFXOperatorUtility.FalseExpression;
+            if (positionBase.inputSlots[0].space == VFXSpace.None || positionBase.inputSlots[0].space == positionBase.GetParent().space)
+            {
+                if (transform is VFXExpressionTRSToMatrix)
+                {
+                    transformForInversion = new VFXExpressionTRSToMatrix(VFXOperatorUtility.ZeroExpression[VFXValueType.Float3], transform.parents[1], VFXOperatorUtility.OneExpression[VFXValueType.Float3]);
+                    isInverseTransposeBoxOrthonormal = VFXOperatorUtility.TrueExpression;
+                }
+            }
+            else
+            {
+                if (transform is not VFXExpressionTransformMatrix)
+                    throw new InvalidOperationException("Unexpected missing space conversion");
+
+                var left = transform.parents[0];
+                var right = transform.parents[1];
+                if (right is VFXExpressionTRSToMatrix)
+                {
+                    right = new VFXExpressionTRSToMatrix(VFXOperatorUtility.ZeroExpression[VFXValueType.Float3], right.parents[1], VFXOperatorUtility.OneExpression[VFXValueType.Float3]);
+                    transformForInversion = new VFXExpressionTransformMatrix(left, right);
+                    //inverseTransposeBoxOrthonormal still false, LocalToWorld can contains scale
+                }
+            }
+
             yield return new VFXNamedExpression(transform, "Box");
-            yield return new VFXNamedExpression(VFXOperatorUtility.InverseTransposeTRS(transform), "InverseTransposeBox");
+            yield return new VFXNamedExpression(VFXOperatorUtility.InverseTransposeTRS(transformForInversion), "InverseTransposeBox");
+            yield return new VFXNamedExpression(isInverseTransposeBoxOrthonormal, "IsInverseTransposeBoxOrthonormal");
             yield return new VFXNamedExpression(boxSize, "Box_size");
             foreach (var p in GetVolumeExpressions(positionBase.positionMode, boxSize, thickness))
                 yield return p;
@@ -210,8 +237,11 @@ float3 outPos = cube * 0.5f;
 outPos = mul(Box, float4(outPos, 1.0f)).xyz;
 outUp = mul(InverseTransposeBox, float4(outUp, 0.0f)).xyz;
 outDir = mul(InverseTransposeBox, float4(outDir, 0.0f)).xyz;
-outDir = normalize(outDir);
-outUp = normalize(outUp);
+if (!IsInverseTransposeBoxOrthonormal)
+{
+    outDir = normalize(outDir);
+    outUp = normalize(outUp);
+}
 outTan = cross(outDir, outUp);
 ";
 

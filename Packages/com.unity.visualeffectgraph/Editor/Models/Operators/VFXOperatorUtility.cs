@@ -22,6 +22,8 @@ namespace UnityEditor.VFX
             };
         }
 
+        public static readonly VFXExpression TrueExpression = VFXValue.Constant(true);
+        public static readonly VFXExpression FalseExpression = VFXValue.Constant(false);
         public static readonly Dictionary<VFXValueType, VFXExpression> OneExpression = GenerateExpressionConstant(1.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> MinusOneExpression = GenerateExpressionConstant(-1.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> HalfExpression = GenerateExpressionConstant(0.5f);
