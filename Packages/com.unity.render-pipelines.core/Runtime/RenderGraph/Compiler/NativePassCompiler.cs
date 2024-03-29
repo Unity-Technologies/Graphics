@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         internal const int k_EstimatedPassCount = 100;
         internal const int k_EstimatedResourceCountPerType = 50;
+        internal const int k_MaxSubpass = 8; // Needs to match with RenderPassSetup.h
 
         NativeList<AttachmentDescriptor> m_BeginRenderPassAttachments;
 
@@ -662,7 +663,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        private bool IsSameNativeSubPass(ref SubPassDescriptor a, ref SubPassDescriptor b)
+        internal static bool IsSameNativeSubPass(ref SubPassDescriptor a, ref SubPassDescriptor b)
         {
             if (a.flags != b.flags
              || a.colorOutputs.Length != b.colorOutputs.Length
@@ -1250,7 +1251,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 var graphPassNamesForDebugSpan = ReadOnlySpan<byte>.Empty;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if(RenderGraph.enableValidityChecks)
-                { 
+                {
                     graphPassNamesForDebug.Clear();
 
                     nativePass.GetGraphPassNames(contextData, graphPassNamesForDebug);

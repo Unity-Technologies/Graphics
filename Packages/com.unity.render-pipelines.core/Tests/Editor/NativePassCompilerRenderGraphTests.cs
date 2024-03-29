@@ -412,6 +412,32 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void NativeSubPassesLimitNotExceeded()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Native subpasses limit is 8 so go above
+            for (int i = 0; i < Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass + 2; i++)
+            {
+                using var builder = g.AddRasterRenderPass<RenderGraphTestPassData>($"TestPass_{i}", out var passData);
+                builder.SetInputAttachment(buffers.extraBuffers[1 - i % 2], 0);
+
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer);
+                builder.SetRenderAttachment(buffers.extraBuffers[i % 2], 1);
+
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.NativePassCompiler.k_MaxSubpass, passes[0].numGraphPasses);
+            Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.SubPassLimitReached, passes[0].breakAudit.reason);
+        }
+
+        [Test]
         public void AllocateFreeInMergedPassesWorks()
         {
             var g = AllocateRenderGraph();
@@ -814,7 +840,7 @@ namespace UnityEngine.Rendering.Tests
             importInfoDepth.msaaSamples = 4;
             importInfoDepth.volumeDepth = 1;
             importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
-            
+
             ImportResourceParams importResourceParams = new ImportResourceParams();
             importResourceParams.clearOnFirstUse = true;
             importResourceParams.discardOnLastUse = true;
@@ -846,7 +872,7 @@ namespace UnityEngine.Rendering.Tests
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
-            // Validate nr pass 
+            // Validate nr pass
             Assert.AreEqual(1, passes.Count);
             Assert.AreEqual(2, passes[0].attachments.size);
             Assert.AreEqual(1, passes[0].numGraphPasses);
