@@ -21,7 +21,7 @@ public sealed class Colorblindness : CustomPostProcessVolumeComponent, IPostProc
 
     public bool IsActive() => m_Material != null && intensity.value > 0f;
 
-    // Do not forget to add this post process in the Custom Post Process Orders list (Project Settings > Graphics > HDRP Settings).
+    // Do not forget to add this post process in the Custom Post Process Order list (Project Settings > Graphics > HDRP Settings).
     public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
 
     const string kShaderName = "HDRPSamples/ColorblindFilter";

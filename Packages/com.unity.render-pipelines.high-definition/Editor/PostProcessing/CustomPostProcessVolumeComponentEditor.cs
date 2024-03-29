@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
-            public const string helpBoxLabel = "Custom Post Process Orders";
+            public const string helpBoxLabel = "Custom Post Process Order";
             public const string helpBoxMessage = "This Custom Post Process is not registered in ProjectSettings > Graphics.";
         }
 

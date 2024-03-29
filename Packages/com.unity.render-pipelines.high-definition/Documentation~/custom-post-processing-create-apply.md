@@ -14,6 +14,8 @@ HDRP includes a template of each file you need to set up custom post-processing.
   - To create a shader file, go to **Assets** > **Create** > **Shader** and select **HDRP** **Post Process**.
   - To create a [Fullscreen Shader Graph](fullscreen-master-stack-reference.md), go to **Assets** > **Create** > **Shader Graph** > **HDRP** and select **Fullscreen Shader Graph**.
 
+Note that the file name of both the C# post-process volume and the shader need to be the same to work without any modification. If the name doesn't match, you need to update the **kShaderName** property to reflect the actual name of the shader.
+
 This creates each template file in the **Project** window in the **Assets** folder.
 
 <a name="apply-custom-postprocess"></a>
