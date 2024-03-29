@@ -9,11 +9,11 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    class CustomHLSLOperatorFunctionValidator
+    abstract class CustomHLSLFunctionValidator
     {
-        public IEnumerable<IHLSMessage> Validate(IEnumerable<string> functions, HLSLFunction selectedFunction)
+        public IEnumerable<IHLSMessage> Validate(IEnumerable<string> functions, HLSLFunction selectedFunction, IEnumerable<string> includes)
         {
-            if (selectedFunction == null)
+            if (functions == null || selectedFunction == null)
             {
                 yield return new HLSLMissingFunction();
                 yield break;
@@ -34,6 +34,52 @@ namespace UnityEditor.VFX.Operator
                 functionsFound[f] = count + 1;
             }
 
+            foreach (var input in selectedFunction.inputs)
+            {
+                if (input.access is HLSLAccess.IN or HLSLAccess.INOUT &&
+                    input.rawType is "Texture2D" or "Texture3D" or "TextureCube" or "Texture2DArray")
+                {
+                    yield return new HLSLWrongHLSLTextureType(input.rawType, input.name);
+                }
+                if (input.rawType is "TextureCubeArray" or "VFXSamplerCubeArray")
+                {
+                    yield return new HLSLTextureCubeArrayNotSupported(input.name);
+                }
+            }
+
+            foreach (var message in selectedFunction.inputs)
+            {
+                if (message.errors != null)
+                {
+                    foreach (var error in message.errors)
+                    {
+                        yield return error;
+                    }
+                }
+            }
+
+            foreach (var include in includes)
+            {
+                var guid = AssetDatabase.AssetPathToGUID(include);
+                if (string.IsNullOrEmpty(guid))
+                {
+                    yield return new HLSLMissingIncludeFile(include);
+                }
+            }
+
+            foreach (var specificContextMessage in ValidateImpl(functions, selectedFunction))
+            {
+                yield return specificContextMessage;
+            }
+        }
+
+        protected abstract IEnumerable<IHLSMessage> ValidateImpl(IEnumerable<string> functions, HLSLFunction selectedFunction);
+    }
+
+    sealed class CustomHLSLOperatorFunctionValidator : CustomHLSLFunctionValidator
+    {
+        protected override IEnumerable<IHLSMessage> ValidateImpl(IEnumerable<string> functions, HLSLFunction selectedFunction)
+        {
             if (selectedFunction.returnType == typeof(void))
             {
                 var hasOutParameter = false;
@@ -63,36 +109,6 @@ namespace UnityEditor.VFX.Operator
                     attributes.Add(attribute.attrib.name);
                 }
                 yield return new HLSLUnsupportedAttributes(attributes);
-            }
-            foreach (var input in selectedFunction.inputs)
-            {
-                if (input.access is HLSLAccess.IN or HLSLAccess.INOUT &&
-                    input.rawType is "Texture2D" or "Texture3D" or "TextureCube" or "Texture2DArray")
-                {
-                    yield return new HLSLWrongHLSLTextureType(input.rawType, input.name);
-                }
-                if (input.rawType is "TextureCubeArray" or "VFXSamplerCubeArray")
-                {
-                    yield return new HLSLTextureCubeArrayNotSupported(input.name);
-                }
-            }
-            foreach (var message in selectedFunction.inputs)
-            {
-                if (message.errors != null)
-                {
-                    foreach (var error in message.errors)
-                    {
-                        yield return error;
-                    }
-                }
-            }
-
-            foreach (var input in selectedFunction.inputs)
-            {
-                if (input.access == HLSLAccess.NONE)
-                {
-                    yield return new HLSLMissingAccessError(input.name, new [] { HLSLAccess.IN, HLSLAccess.OUT, HLSLAccess.INOUT }, HLSLAccess.IN);
-                }
             }
         }
     }
@@ -177,6 +193,18 @@ namespace UnityEditor.VFX.Operator
         }
         public string customCode => GetHLSLCode();
 
+        public IEnumerable<string> includes
+        {
+            get
+            {
+                if (HasShaderFile())
+                {
+                    return new[] { AssetDatabase.GetAssetPath(m_ShaderFile) };
+                }
+                return HLSLParser.ParseIncludes(m_HLSLCode);
+            }
+        }
+
         public bool HasShaderFile() => m_ShaderFile != null && !object.ReferenceEquals(m_ShaderFile, null);
 
         public override IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.Default)
@@ -242,7 +270,7 @@ namespace UnityEditor.VFX.Operator
             base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLOperatorFunctionValidator();
             ParseCodeIfNeeded();
-            foreach(var error in hlslValidator.Validate(m_AvailableFunctions.values, m_Function))
+            foreach(var error in hlslValidator.Validate(m_AvailableFunctions.values, m_Function, includes))
             {
                 report.RegisterError(string.Empty, error.type, error.message, this);
             }
@@ -271,6 +299,7 @@ namespace UnityEditor.VFX.Operator
                 }
             }
 
+            var currentIncludes = new List<string>(includes).ToArray();
             var expressions = new List<VFXExpression>(m_OutputProperties.Count);
             for (int i = 0; i < m_InputParameters.Count; i++)
             {
@@ -280,14 +309,14 @@ namespace UnityEditor.VFX.Operator
 
                 var parameterType = VFXExpression.GetVFXValueTypeFromType(parameter.type);
                 var hlslCode = BuildHLSLWrapperCode(i, parameter.name, parameter.rawType, out var wrapperFunctionName);
-                expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, parameterType, inputExpression));
+                expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, parameterType, inputExpression, currentIncludes));
             }
 
             var valueType = VFXExpression.GetVFXValueTypeFromType(m_Function?.returnType);
             if (valueType != VFXValueType.None)
             {
                 var hlslCode = BuildHLSLWrapperCode(m_InputParameters.Count, "Return", m_Function.rawReturnType, out var wrapperFunctionName);
-                expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, valueType, inputExpression));
+                expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, valueType, inputExpression, currentIncludes));
             }
 
             return expressions.ToArray();
@@ -429,10 +458,9 @@ namespace UnityEditor.VFX.Operator
                 var hasShaderFile = HasShaderFile();
                 var functionName = hasShaderFile ? m_Function.name : m_Function.GetNameWithHashCode();
 
-                StringBuilder hlslCode = new StringBuilder();
-                hlslCode.Append(hasShaderFile
-                    ? $"#include \"{AssetDatabase.GetAssetPath(m_ShaderFile)}\"\n"
-                    : m_Function.GetTransformedHLSL());
+                var hlslCode = new StringBuilder();
+                if (!hasShaderFile)
+                    hlslCode.Append(m_Function.GetTransformedHLSL());
 
                 wrapperFunctionName = $"{functionName}_Wrapper_{returnedParameterName}";
 

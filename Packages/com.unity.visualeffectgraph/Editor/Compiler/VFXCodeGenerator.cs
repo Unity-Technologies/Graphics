@@ -754,8 +754,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
-            foreach (var block in context.activeFlattenedChildrenWithImplicit)
+            foreach (var block in context.activeFlattenedChildrenWithImplicit.OfType<IHLSLCodeHolder>())
                 includes = includes.Concat(block.includes);
+            foreach (var hlslHolder in taskData.hlslCodeHolders)
+                includes = includes.Concat(hlslHolder.includes);
             var uniqueIncludes = new HashSet<string>(includes);
             foreach (var includePath in uniqueIncludes)
                 perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));

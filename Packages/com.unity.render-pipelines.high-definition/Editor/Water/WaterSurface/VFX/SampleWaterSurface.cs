@@ -79,10 +79,10 @@ namespace UnityEditor.Rendering.HighDefinition
             string EvaluateNormal = baseCode + "float3 EvaluateNormal(float3 positionWS) { " + FindVerticalDisplacements + " return normal; }";
             string EvaluateCurrent = baseCode + "float2 EvaluateCurrent(float3 positionWS) { " + FindVerticalDisplacements + " return current; }";
 
-            VFXExpression outputPosition = new VFXExpressionHLSL("ProjectPoint", ProjectPoint, typeof(Vector3), inputExpression);
-            VFXExpression outputHeight = new VFXExpressionHLSL("EvaluateHeight", EvaluateHeight, typeof(float), inputExpression);
-            VFXExpression outputNormal = new VFXExpressionHLSL("EvaluateNormal", EvaluateNormal, typeof(Vector3), inputExpression);
-            VFXExpression outputCurrent = new VFXExpressionHLSL("EvaluateCurrent", EvaluateCurrent, typeof(Vector3), inputExpression);
+            VFXExpression outputPosition = new VFXExpressionHLSL("ProjectPoint", ProjectPoint, typeof(Vector3), inputExpression, Array.Empty<string>());
+            VFXExpression outputHeight = new VFXExpressionHLSL("EvaluateHeight", EvaluateHeight, typeof(float), inputExpression, Array.Empty<string>());
+            VFXExpression outputNormal = new VFXExpressionHLSL("EvaluateNormal", EvaluateNormal, typeof(Vector3), inputExpression, Array.Empty<string>());
+            VFXExpression outputCurrent = new VFXExpressionHLSL("EvaluateCurrent", EvaluateCurrent, typeof(Vector3), inputExpression, Array.Empty<string>());
             return new [] { outputPosition, outputHeight, outputNormal, outputCurrent };
         }
     }
