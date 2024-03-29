@@ -28,7 +28,7 @@ public class HDRP_GraphicTestRunner
             }
         }
 
-        var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+        var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
         if (renderPipelineAsset is IGPUResidentRenderPipeline mbAsset)
             return forcedOn || mbAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled;
 

@@ -43,12 +43,12 @@ public class BaseGraphicsTests
 #endif
 		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
         var oldTimeScale = Time.timeScale;
-        var currentRPAsset = GraphicsSettings.renderPipelineAsset;
+        var currentRPAsset = GraphicsSettings.defaultRenderPipeline;
         Time.timeScale = 0.0f;
 
         using (new AsyncShaderCompilationScope())
         {
-            GraphicsSettings.renderPipelineAsset = testCase.SRPAsset;
+            GraphicsSettings.defaultRenderPipeline = testCase.SRPAsset;
             yield return null;
 
             EditorSceneManager.OpenScene(testCase.ScenePath);
@@ -87,7 +87,7 @@ public class BaseGraphicsTests
             }
 
             yield return new ExitPlayMode();
-            GraphicsSettings.renderPipelineAsset = currentRPAsset;
+            GraphicsSettings.defaultRenderPipeline = currentRPAsset;
             Time.timeScale = oldTimeScale;
         }
     }

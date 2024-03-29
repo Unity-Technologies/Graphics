@@ -17,11 +17,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest
         {
             if (previousPipeline == null)
             {
-                previousPipeline = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+                previousPipeline = (GraphicsSettings.defaultRenderPipeline as HDRenderPipelineAsset);
             }
-            if (targetPipeline != null && GraphicsSettings.renderPipelineAsset != targetPipeline)
+            if (targetPipeline != null && GraphicsSettings.defaultRenderPipeline != targetPipeline)
             {
-                GraphicsSettings.renderPipelineAsset = targetPipeline;
+                GraphicsSettings.defaultRenderPipeline = targetPipeline;
             }
         }
 
@@ -29,17 +29,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipelineTest
         {
             if (previousPipeline == null)
             {
-                previousPipeline = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+                previousPipeline = (GraphicsSettings.defaultRenderPipeline as HDRenderPipelineAsset);
             }
-            if (targetPipeline != null && GraphicsSettings.renderPipelineAsset != targetPipeline)
+            if (targetPipeline != null && GraphicsSettings.defaultRenderPipeline != targetPipeline)
             {
-                GraphicsSettings.renderPipelineAsset = targetPipeline;
+                GraphicsSettings.defaultRenderPipeline = targetPipeline;
             }
         }
 
         void OnDisable()
         {
-            GraphicsSettings.renderPipelineAsset = previousPipeline;
+            GraphicsSettings.defaultRenderPipeline = previousPipeline;
         }
     }
 }

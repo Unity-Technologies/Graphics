@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 title = Style.hdrpAssetDisplayDialogTitle;
                 content = Style.hdrpAssetDisplayDialogContent;
-                target = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                target = GraphicsSettings.defaultRenderPipeline as HDRenderPipelineAsset;
             }
             else
                 throw new ArgumentException("Unknown type used");
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AssetDatabase.Refresh();
 
                     if (typeof(T) == typeof(HDRenderPipelineAsset))
-                        GraphicsSettings.renderPipelineAsset = asset as HDRenderPipelineAsset;
+                        GraphicsSettings.defaultRenderPipeline = asset as HDRenderPipelineAsset;
                     break;
                 case 1: //cancel
                     onCancel?.Invoke();

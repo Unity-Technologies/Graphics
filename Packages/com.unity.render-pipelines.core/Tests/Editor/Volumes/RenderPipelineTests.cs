@@ -14,14 +14,14 @@ namespace UnityEditor.Rendering.Tests
         [SetUp]
         public virtual void Setup()
         {
-            m_PreviousRenderPipelineAssetInGraphicsSettings = GraphicsSettings.renderPipelineAsset;
+            m_PreviousRenderPipelineAssetInGraphicsSettings = GraphicsSettings.defaultRenderPipeline;
             m_PreviousRenderPipelineAssetInQualitySettings = QualitySettings.renderPipeline;
         }
 
         [TearDown]
         public virtual void TearDown()
         {
-            GraphicsSettings.renderPipelineAsset = m_PreviousRenderPipelineAssetInGraphicsSettings;
+            GraphicsSettings.defaultRenderPipeline = m_PreviousRenderPipelineAssetInGraphicsSettings;
             QualitySettings.renderPipeline = m_PreviousRenderPipelineAssetInQualitySettings;
             UnityEngine.Object.DestroyImmediate(m_CreatedRenderPipelineAsset);
         }
@@ -29,20 +29,20 @@ namespace UnityEditor.Rendering.Tests
         protected void SetupRenderPipeline<T>() where T : RenderPipelineAsset
         {
             m_CreatedRenderPipelineAsset = ScriptableObject.CreateInstance<T>();
-            GraphicsSettings.renderPipelineAsset = m_CreatedRenderPipelineAsset;
+            GraphicsSettings.defaultRenderPipeline = m_CreatedRenderPipelineAsset;
             QualitySettings.renderPipeline = m_CreatedRenderPipelineAsset;
         }
 
         protected void SetupRenderPipeline(Type renderPipelineType)
         {
             m_CreatedRenderPipelineAsset = (RenderPipelineAsset) ScriptableObject.CreateInstance(renderPipelineType);
-            GraphicsSettings.renderPipelineAsset = m_CreatedRenderPipelineAsset;
+            GraphicsSettings.defaultRenderPipeline = m_CreatedRenderPipelineAsset;
             QualitySettings.renderPipeline = m_CreatedRenderPipelineAsset;
         }
 
         protected void RemoveRenderPipeline()
         {
-            GraphicsSettings.renderPipelineAsset = null;
+            GraphicsSettings.defaultRenderPipeline = null;
             QualitySettings.renderPipeline = null;
         }
 

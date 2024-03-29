@@ -12,7 +12,7 @@ public class CheckAssignedRenderPipelineAsset : MonoBehaviour
     private bool m_LastCorrectPipelineResults = false;
 
     private bool isCorrectAssetAssigned => QualitySettings.renderPipeline == m_PipelineAsset
-                                           || QualitySettings.renderPipeline == null && GraphicsSettings.renderPipelineAsset == m_PipelineAsset;
+                                           || QualitySettings.renderPipeline == null && GraphicsSettings.defaultRenderPipeline == m_PipelineAsset;
 
     private void Awake()
     {

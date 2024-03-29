@@ -595,14 +595,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // It returns the previously set RenderPipelineAsset, assetWasFromQuality is true if the current asset was set through the quality settings
         internal static RenderPipelineAsset SwitchToBuiltinRenderPipeline(out bool assetWasFromQuality)
         {
-            var graphicSettingAsset = GraphicsSettings.renderPipelineAsset;
+            var graphicSettingAsset = GraphicsSettings.defaultRenderPipeline;
             assetWasFromQuality = false;
             if (graphicSettingAsset != null)
             {
                 // Check if the currently used pipeline is the one from graphics settings
                 if (GraphicsSettings.currentRenderPipeline == graphicSettingAsset)
                 {
-                    GraphicsSettings.renderPipelineAsset = null;
+                    GraphicsSettings.defaultRenderPipeline = null;
                     return graphicSettingAsset;
                 }
             }
@@ -623,7 +623,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+                GraphicsSettings.defaultRenderPipeline = renderPipelineAsset;
             }
         }
 

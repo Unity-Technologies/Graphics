@@ -1284,8 +1284,8 @@ namespace UnityEditor.VFX
                 {
                     bool showReflectionProbeUsage = m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes;
 
-                    var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.renderPipelineAsset;
-                    if (srpAsset && srpAsset.GetType().ToString().Contains("UniversalRenderPipeline"))
+                    var srpAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+                    if (srpAssetType is not null && srpAssetType.ToString().Contains("UniversalRenderPipeline"))
                     {
                         //Reflection Probe Usage option has been removed in URP but the VFXRenderer uses ReflectionProbeUsage.Off by default
                         //We are temporarily letting this option reachable until the C++ doesn't change the default value

@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static Hash128 ComputeCurrentRenderPipelineHash()
-            => Hash128.Compute(GraphicsSettings.currentRenderPipeline?.GetType()?.FullName ?? "");
+            => Hash128.Compute(GraphicsSettings.currentRenderPipelineAssetType?.FullName ?? string.Empty);
 
         static void SRPChanged()
             => AssetDatabase.RegisterCustomDependency(k_CustomDependencyKey,ComputeCurrentRenderPipelineHash());

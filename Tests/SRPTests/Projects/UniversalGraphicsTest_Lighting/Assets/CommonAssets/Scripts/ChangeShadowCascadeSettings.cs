@@ -10,14 +10,14 @@ public class ChangeShadowCascadeSettings : MonoBehaviour
 
     void Awake()
     {
-        UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+        UniversalRenderPipelineAsset asset = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
         prevShadowCascadeCount = asset.shadowCascadeCount;
         asset.shadowCascadeCount = shadowCascadeCount;
     }
 
     void OnDestroy()
     {
-        UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+        UniversalRenderPipelineAsset asset = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
         asset.shadowCascadeCount = prevShadowCascadeCount;
     }
 }

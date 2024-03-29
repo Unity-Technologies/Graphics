@@ -17,17 +17,17 @@ class EditorTests_URPDisabled
     [SetUp]
     public void Setup()
     {
-        m_PreviousRenderPipelineAssetGraphicsSettings = GraphicsSettings.renderPipelineAsset;
+        m_PreviousRenderPipelineAssetGraphicsSettings = GraphicsSettings.defaultRenderPipeline;
         m_PreviousRenderPipelineAssetQualitySettings = QualitySettings.renderPipeline;
 
-        GraphicsSettings.renderPipelineAsset = null;
+        GraphicsSettings.defaultRenderPipeline = null;
         QualitySettings.renderPipeline = null;
     }
 
     [TearDown]
     public void TearDown()
     {
-        GraphicsSettings.renderPipelineAsset = m_PreviousRenderPipelineAssetGraphicsSettings;
+        GraphicsSettings.defaultRenderPipeline = m_PreviousRenderPipelineAssetGraphicsSettings;
         QualitySettings.renderPipeline = m_PreviousRenderPipelineAssetQualitySettings;
     }
 

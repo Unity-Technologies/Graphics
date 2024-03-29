@@ -450,7 +450,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // To be removed as soon as GraphicsSettings.renderPipelineAsset is removed
         bool IsHdrpAssetGraphicsUsedCorrect()
-            => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
+            => GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset;
 
         void FixHdrpAssetGraphicsUsed(bool fromAsync)
         {
@@ -459,7 +459,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CreateOrLoad<HDRenderPipelineAsset>(fromAsync
                 ? () => m_Fixer.Stop()
                 : (Action)null,
-                asset => GraphicsSettings.renderPipelineAsset = asset);
+                asset => GraphicsSettings.defaultRenderPipeline = asset);
         }
 
         bool IsHdrpAssetQualityUsedCorrect()
@@ -594,7 +594,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset qualityAsset)
                         collection.Add(qualityAsset);
                 }
-                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset graphicsAsset)
+                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset graphicsAsset)
                     collection.Add(graphicsAsset);
 
                 return collection;
@@ -602,7 +602,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsMigratableAssetsCorrect()
-            => !migratableAssets.Any(asset => !asset.IsAtLastVersion());
+            => migratableAssets.All(asset => asset.IsAtLastVersion());
 
         void FixMigratableAssets(bool fromAsyncUnused)
         {

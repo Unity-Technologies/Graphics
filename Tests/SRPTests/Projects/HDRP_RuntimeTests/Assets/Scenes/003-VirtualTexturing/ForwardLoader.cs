@@ -27,7 +27,7 @@ public class ForwardLoader : MonoBehaviour
             // Another frame, another try, scene is now loaded so set it up
             updateCount = 2;
 
-            GraphicsSettings.renderPipelineAsset = RenderPipelineOverride;
+            GraphicsSettings.defaultRenderPipeline = RenderPipelineOverride;
         }
     }
 }
