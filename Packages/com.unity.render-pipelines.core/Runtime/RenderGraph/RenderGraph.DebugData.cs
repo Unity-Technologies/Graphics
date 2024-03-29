@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                             public string loadReason;
                             public string storeAction;
                             public string storeReason;
+                            public string storeMsaaReason;
                         }
 
                         public struct PassCompatibilityInfo

@@ -430,7 +430,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The resource is imported but the import was with the 'discard on last use' option enabled. The data is discarded.",
             "The resource is written by this pass but no later passes are using the results. The data is discarded.",
             "The resource was created as MSAA only resource, the data can never be resolved.",
-            "The resource is an single sample resource, there is no multi-sample data to handle.",
+            "The resource is a single sample resource, there is no multi-sample data to handle.",
         };
 
         public StoreReason reason;
