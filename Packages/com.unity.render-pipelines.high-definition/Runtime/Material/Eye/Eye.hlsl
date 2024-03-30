@@ -467,19 +467,32 @@ float ComputeCaustic(float3 V, float3 positionOS, float3 lightDirOS, BSDFData bs
 
 // This is a test coming from Heretic demo. It is way more expensive
 // and is sometimes better, sometime not than the "else" codee and don't support caustic.
-void LightEyeTransform(PositionInputs posInput, BSDFData bsdfData, inout float3 positionRWS, inout float3 forward, inout float3 right, inout float3 up)
+void LightEyeTransform(PositionInputs posInput, BSDFData bsdfData, inout LightData lightData)
 {
-    float3 L = normalize(positionRWS - posInput.positionWS);
+    float3 L = normalize(lightData.positionRWS - posInput.positionWS);
     float3 refractL = -refract(-L, bsdfData.geomNormalWS, 1.0 / bsdfData.IOR);
 
     float3 axis = normalize(cross(L, refractL));
 
     float angle = acos(dot(L, refractL));
 
-    positionRWS = Rotate(posInput.positionWS, positionRWS, axis, angle);
-    forward = Rotate(float3(0, 0, 0), forward, axis, angle);
-    right = Rotate(float3(0, 0, 0), right, axis, angle);
-    up = Rotate(float3(0, 0, 0), up, axis, angle);
+    lightData.positionRWS = Rotate(posInput.positionWS, lightData.positionRWS, axis, angle);
+    lightData.forward = Rotate(float3(0, 0, 0), lightData.forward, axis, angle);
+    lightData.right = Rotate(float3(0, 0, 0), lightData.right, axis, angle);
+    lightData.up = Rotate(float3(0, 0, 0), lightData.up, axis, angle);
+}
+void LightEyeTransform(PositionInputs posInput, BSDFData bsdfData, inout DirectionalLightData lightData)
+{
+    float3 L = -lightData.forward;
+    float3 refractL = -refract(-L, bsdfData.geomNormalWS, 1.0 / bsdfData.IOR);
+
+    float3 axis = normalize(cross(L, refractL));
+
+    float angle = acos(dot(L, refractL));
+
+    lightData.forward = Rotate(float3(0, 0, 0), lightData.forward, axis, angle);
+    lightData.right = Rotate(float3(0, 0, 0), lightData.right, axis, angle);
+    lightData.up = Rotate(float3(0, 0, 0), lightData.up, axis, angle);
 }
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
@@ -502,7 +515,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
             c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisPlaneOffset, lightPosOS, bsdfData.causticIntensity);
         }
         // Evaluate a second time the light but for a different position and for diffuse only.
-        LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
+        LightEyeTransform(posInput, bsdfData, lightData);
 
         DirectLighting dlIris = ShadeSurface_Directional(   lightLoopContext, posInput, builtinData,
                                                             preLightData, lightData, bsdfData, V);
@@ -541,7 +554,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
             c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisPlaneOffset, TransformWorldToObject(lightData.positionRWS), bsdfData.causticIntensity);
         }
         // Evaluate a second time the light but for a different position and for diffuse only.
-        LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
+        LightEyeTransform(posInput, bsdfData, lightData);
 
         DirectLighting dlIris = ShadeSurface_Punctual(  lightLoopContext, posInput, builtinData,
                                                         preLightData, lightData, bsdfData, V);
@@ -696,7 +709,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
             c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisPlaneOffset, TransformWorldToObject(lightData.positionRWS), bsdfData.causticIntensity);
         }
 
-        LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
+        LightEyeTransform(posInput, bsdfData, lightData);
 
         DirectLighting dl2 = EvaluateBSDF_Area2(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
 
