@@ -1735,7 +1735,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var inputDesc = renderGraph.GetTextureDesc(input);
                 var targetSize = RTHandles.rtHandleProperties.currentRenderTargetSize;
-                passData.viewportScale = new Vector2(targetSize.x / finalViewport.width, targetSize.y / finalViewport.height);
+                passData.viewportScale = new Vector2(finalViewport.width / targetSize.x, finalViewport.height / targetSize.y);
+
 
                 passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
                 passData.recorderCaptureActions = m_RecorderCaptureActions;
