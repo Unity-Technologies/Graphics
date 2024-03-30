@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.Universal
                             width = targetWidth;
                         }
 
-                        m_RenderGraphDebugTextureHandle = RTHandles.Alloc(m_ForwardLights.reflectionProbeManager.atlasRT);
+                        m_RenderGraphDebugTextureHandle = RTHandles.Alloc(m_ForwardLights.reflectionProbeManager.atlasRT, transferOwnership: true);
                     }
                     else // visualize RG internal resources
                     {

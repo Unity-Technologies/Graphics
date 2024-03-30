@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
+//#if UNITY_EDITOR
+using UnityEditor;
+//#endif
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -1162,11 +1166,16 @@ namespace UnityEngine.Rendering
         /// Allocate a RTHandle from a regular RenderTexture.
         /// </summary>
         /// <param name="texture">Input texture</param>
+        /// <param name="transferOwnership">Says if the RTHandleSystem has the ownership of the external RenderTarget, false by default</param>
         /// <returns>A new RTHandle referencing the input texture.</returns>
-        public RTHandle Alloc(RenderTexture texture)
+        public RTHandle Alloc(RenderTexture texture, bool transferOwnership = false)
         {
             var rth = new RTHandle(this);
-            rth.SetRenderTexture(texture);
+#if UNITY_EDITOR
+            Debug.Assert(!(EditorUtility.IsPersistent(texture) == true && transferOwnership == true),
+                    "RTHandle should not have ownership of RenderTarget asset, set transfer ownership as false");
+#endif
+            rth.SetRenderTexture(texture, transferOwnership);
             rth.m_EnableMSAA = false;
             rth.m_EnableRandomWrite = false;
             rth.useScaling = false;

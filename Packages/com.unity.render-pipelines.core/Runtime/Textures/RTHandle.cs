@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -64,6 +68,7 @@ namespace UnityEngine.Rendering
         internal bool m_EnableMSAA = false;
         internal bool m_EnableRandomWrite = false;
         internal bool m_EnableHWDynamicScale = false;
+        internal bool m_RTHasOwnership = true;
         internal string m_Name;
 
         internal bool m_UseCustomHandleScales = false;
@@ -175,10 +180,11 @@ namespace UnityEngine.Rendering
             return handle.rt;
         }
 
-        internal void SetRenderTexture(RenderTexture rt)
+        internal void SetRenderTexture(RenderTexture rt, bool transferOwnership = true)
         {
             m_RT = rt;
             m_ExternalTexture = null;
+            m_RTHasOwnership = transferOwnership;
             m_NameID = new RenderTargetIdentifier(rt);
         }
 
@@ -216,10 +222,12 @@ namespace UnityEngine.Rendering
         public void Release()
         {
             m_Owner.Remove(this);
-            CoreUtils.Destroy(m_RT);
+            if (m_RTHasOwnership)
+                CoreUtils.Destroy(m_RT);
             m_NameID = BuiltinRenderTextureType.None;
             m_RT = null;
             m_ExternalTexture = null;
+            m_RTHasOwnership = true;
         }
 
         /// <summary>

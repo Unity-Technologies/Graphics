@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // check and fix RT handle
             if (m_OutputTarget != OutputTarget.CameraStack && m_RTHandle == null && m_RenderTarget != null)
             {
-                m_RTHandle = RTHandles.Alloc(m_RenderTarget);
+                m_RTHandle = RTHandles.Alloc(m_RenderTarget, transferOwnership: true);
             }
 
             if (m_OutputTarget != OutputTarget.CameraStack && m_AOVBitmask != MaterialSharedProperty.None)
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                         {
                             m_AOVMap[aovNames[i]] = outputIndex;
                             m_AOVRenderTargets.Add(new RenderTexture(pixelWidth, pixelHeight, 24, (GraphicsFormat)m_ColorBufferFormat));
-                            m_AOVHandles.Add(RTHandles.Alloc(m_AOVRenderTargets[outputIndex]));
+                            m_AOVHandles.Add(RTHandles.Alloc(m_AOVRenderTargets[outputIndex], transferOwnership: true));
                             outputIndex++;
                         }
                     }
