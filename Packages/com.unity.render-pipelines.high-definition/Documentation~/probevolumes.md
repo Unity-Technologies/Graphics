@@ -17,6 +17,7 @@ Adaptive Probe Volumes (APV) make [Light Probes](https://docs.unity3d.com/Manual
 | [Adaptive Probe Volumes panel reference](probevolumes-lighting-panel-reference.md) | Reference for the Adaptive Probe Volumes panel in the Lighting settings. |
 | [Probe Volumes Options Override reference](probevolumes-options-override-reference.md) | Reference for the Adaptive Probe Volumes Options Override. |
 | [Probe Adjustment Volume component reference](probevolumes-adjustment-volume-component-reference.md) | Reference for the Probe Adjustment Volume component. |
+| [Override the Adaptive Probe Volumes baking backend](probevolumes-override-backend.md) | Reference for overriding the Adaptive Probe Volumes baking backend. |
 
 ## Additional resources
 

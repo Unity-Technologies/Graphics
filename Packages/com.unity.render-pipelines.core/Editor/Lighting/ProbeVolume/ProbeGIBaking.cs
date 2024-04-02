@@ -785,7 +785,7 @@ namespace UnityEngine.Rendering
         {
             minCellPositionXYZ = Vector3Int.zero;
             maxCellPositionXYZ = Vector3Int.zero;
-            
+
             var centeredMin = globalBounds.min - worldOffset;
             var centeredMax = globalBounds.max - worldOffset;
 
@@ -928,7 +928,7 @@ namespace UnityEngine.Rendering
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 // It can be null if the scene was never added to a baking set and we are baking in single scene mode, in that case we don't have a baking set for it yet and we need to skip
-                if (data.bakingSet != null)
+                if (data.serializedBakingSet != null)
                     data.Initialize();
             }
 
@@ -1179,7 +1179,7 @@ namespace UnityEngine.Rendering
         /// Starts an asynchronous bake job for Adaptive Probe Volumes.
         /// </summary>
         /// <returns>Returns true if the bake was successfully started.</returns>
-        internal static bool BakeAsync()
+        public static bool BakeAsync()
         {
             if (Lightmapping.isRunning || AdaptiveProbeVolumes.isRunning || !PrepareBaking())
                 return false;
@@ -1200,13 +1200,13 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns true when the bake job is running, false otherwise (Read Only).
         /// </summary>
-        internal static bool isRunning => s_AsyncBakeTaskID != -1;
+        public static bool isRunning => s_AsyncBakeTaskID != -1;
 
         /// <summary>
         /// Cancels the currently running asynchronous bake job.
         /// </summary>
-        /// <returns></returns>
-        internal static bool Cancel() => Progress.Cancel(s_AsyncBakeTaskID);
+        /// <returns>Returns true if baking was successfully cancelled.</returns>
+        public static bool Cancel() => Progress.Cancel(s_AsyncBakeTaskID);
 
         /// <summary>
         /// Request additional bake request manager to recompute baked data for an array of requests
@@ -1252,7 +1252,7 @@ namespace UnityEngine.Rendering
 
             BakeAdditionalRequests(probeInstanceIDs);
         }
-        
+
         static VirtualOffsetBaker virtualOffsetOverride = null;
         static LightingBaker lightingOverride = null;
         static SkyOcclusionBaker skyOcclusionOverride = null;
@@ -1263,26 +1263,26 @@ namespace UnityEngine.Rendering
         {
             virtualOffsetOverride = baker;
         }
-        /// <summary>Used to override the sky occlusion baking system.</summary>
+        /// <summary>Used to override the lighting baking system.</summary>
         /// <param name="baker">The baker override or null to use the default system.</param>
         public static void SetLightingBakerOverride(LightingBaker baker)
         {
             lightingOverride = baker;
         }
-        /// <summary>Used to override the probe volume light baking system.</summary>
+        /// <summary>Used to override the sky occlusion baking system.</summary>
         /// <param name="baker">The baker override or null to use the default system.</param>
         public static void SetSkyOcclusionBakerOverride(SkyOcclusionBaker baker)
         {
             skyOcclusionOverride = baker;
         }
-        
+
         /// <summary>Used to override the virtual offset baking system.</summary>
         /// <returns>The baker override or null if none is set.</returns>
         public static VirtualOffsetBaker GetVirtualOffsetBakerOverride()
         {
             return virtualOffsetOverride;
         }
-        /// <summary>Used to override the virtual offset baking system.</summary>
+        /// <summary>Used to override the lighting baking system.</summary>
         /// <returns>The baker override or null if none is set.</returns>
         public static LightingBaker GetLightingBakerOverride()
         {

@@ -33,6 +33,16 @@ When you load multiple scenes together, the lighting might be too bright because
 
 You can load multiple scenes together only if they belong to the same Baking Set.
 
+## Working with multiple Baking Sets
+
+APV can load only a single baking set at a time. When Unity loads a scene, APV loads the associated baking set if it can find one.
+	
+If you want to control which baking set is loaded, regardless of the active scene, you can use [SetActiveBakingSet](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.ProbeReferenceVolume.html#UnityEngine_Rendering_ProbeReferenceVolume_SetActiveBakingSet_UnityEngine_Rendering_ProbeVolumeBakingSet_). You need to provide either the desired baking set, or a scene that belongs to the baking set.
+	
+Alternatively, you can pass `null` to this function to unload APV.
+
+Note that every scene that is part of a baked Baking Set contains a hidden GameObject with a [ProbeVolumePerSceneData](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.ProbeVolumePerSceneData.html) MonoBehaviour. You can use the `ProbeVolumePerSceneData` to find the associated Baking Set.
+
 ## Additional resources
 
 - [Bake different lighting setups with Lighting Scenarios](probevolumes-bakedifferentlightingsetups.md)

@@ -58,8 +58,8 @@ struct VertexRecord
     float3 positionRWS;
     float3 tangentWS;
     float3 normalWS;
-    uint   texCoord0;
-    uint   texCoord1;
+    uint texCoord0;
+    uint texCoord1;
 };
 
 

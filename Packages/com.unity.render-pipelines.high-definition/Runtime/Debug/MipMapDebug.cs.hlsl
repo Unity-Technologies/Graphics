@@ -5,12 +5,6 @@
 #ifndef MIPMAPDEBUG_CS_HLSL
 #define MIPMAPDEBUG_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.DebugMipMapStatusMode:  static fields
-//
-#define DEBUGMIPMAPSTATUSMODE_MATERIAL (0)
-#define DEBUGMIPMAPSTATUSMODE_TEXTURE (1)
-
-//
 // UnityEngine.Rendering.HighDefinition.DebugMipMapMode:  static fields
 //
 #define DEBUGMIPMAPMODE_NONE (0)
@@ -33,6 +27,12 @@
 #define DEBUGMIPMAPMODETERRAINTEXTURE_LAYER5 (6)
 #define DEBUGMIPMAPMODETERRAINTEXTURE_LAYER6 (7)
 #define DEBUGMIPMAPMODETERRAINTEXTURE_LAYER7 (8)
+
+//
+// UnityEngine.Rendering.HighDefinition.DebugMipMapStatusMode:  static fields
+//
+#define DEBUGMIPMAPSTATUSMODE_MATERIAL (0)
+#define DEBUGMIPMAPSTATUSMODE_TEXTURE (1)
 
 
 #endif

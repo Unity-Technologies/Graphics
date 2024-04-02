@@ -18,14 +18,13 @@
 #define _RcpPoolDimXY _RcpPoolDim_XY.w
 #define _MinEntryPosition _MinEntryPos_Noise.xyz
 #define _PVSamplingNoise _MinEntryPos_Noise.w
-#define _GlobalIndirectionDimension _IndicesDim_IndexChunkSize.xyz
-#define _IndexChunkSize _IndicesDim_IndexChunkSize.w
+#define _GlobalIndirectionDimension _IndicesDim_FrameIndex.xyz
+#define _NoiseFrameIndex _IndicesDim_FrameIndex.w
 #define _NormalBias _Biases_NormalizationClamp.x
 #define _ViewBias _Biases_NormalizationClamp.y
 #define _Weight _Weight_MinLoadedCellInEntries.x
 #define _MinLoadedCellInEntries _Weight_MinLoadedCellInEntries.yzw
-#define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_FrameIndex.xyz
-#define _NoiseFrameIndex _MaxLoadedCellInEntries_FrameIndex.w
+#define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_Padding.xyz
 #define _MinReflProbeNormalizationFactor _Biases_NormalizationClamp.z
 #define _MaxReflProbeNormalizationFactor _Biases_NormalizationClamp.w
 #define _LeakReductionMode _LeakReduction_SkyOcclusion.x
@@ -52,35 +51,27 @@ SAMPLER(s_point_clamp_sampler);
 // TODO: Remove define when we are sure about what to do with this.
 #define MANUAL_FILTERING 0
 
+#ifdef USE_APV_TEXTURE_HALF
+#define TEXTURE3D_APV TEXTURE3D_HALF
+#else
+#define TEXTURE3D_APV TEXTURE3D
+#endif
+
 struct APVResources
 {
     StructuredBuffer<int> index;
     StructuredBuffer<float3> SkyPrecomputedDirections;
 
-#ifdef USE_APV_TEXTURE_HALF
-    TEXTURE3D_HALF(L0_L1Rx);
+    TEXTURE3D_APV(L0_L1Rx);
+    TEXTURE3D_APV(L1G_L1Ry);
+    TEXTURE3D_APV(L1B_L1Rz);
+    TEXTURE3D_APV(L2_0);
+    TEXTURE3D_APV(L2_1);
+    TEXTURE3D_APV(L2_2);
+    TEXTURE3D_APV(L2_3);
+    TEXTURE3D_APV(Validity);
 
-    TEXTURE3D_HALF(L1G_L1Ry);
-    TEXTURE3D_HALF(L1B_L1Rz);
-    TEXTURE3D_HALF(L2_0);
-    TEXTURE3D_HALF(L2_1);
-    TEXTURE3D_HALF(L2_2);
-    TEXTURE3D_HALF(L2_3);
-
-    TEXTURE3D_HALF(Validity);
-#else // !USE_APV_TEXTURE_HALF
-    TEXTURE3D(L0_L1Rx);
-
-    TEXTURE3D(L1G_L1Ry);
-    TEXTURE3D(L1B_L1Rz);
-    TEXTURE3D(L2_0);
-    TEXTURE3D(L2_1);
-    TEXTURE3D(L2_2);
-    TEXTURE3D(L2_3);
-
-    TEXTURE3D(Validity);
-#endif // USE_APV_TEXTURE_HALF
-    TEXTURE3D(SkyOcclusionL0L1);
+    TEXTURE3D_APV(SkyOcclusionL0L1);
     TEXTURE3D(SkyShadingDirectionIndices);
 };
 
@@ -173,30 +164,18 @@ StructuredBuffer<int> _APVResIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
 StructuredBuffer<float3> _SkyPrecomputedDirections;
 
-#ifdef USE_APV_TEXTURE_HALF
-TEXTURE3D_HALF(_APVResL0_L1Rx);
+TEXTURE3D_APV(_APVResL0_L1Rx);
 
-TEXTURE3D_HALF(_APVResL1G_L1Ry);
-TEXTURE3D_HALF(_APVResL1B_L1Rz);
-TEXTURE3D_HALF(_APVResL2_0);
-TEXTURE3D_HALF(_APVResL2_1);
-TEXTURE3D_HALF(_APVResL2_2);
-TEXTURE3D_HALF(_APVResL2_3);
+TEXTURE3D_APV(_APVResL1G_L1Ry);
+TEXTURE3D_APV(_APVResL1B_L1Rz);
+TEXTURE3D_APV(_APVResL2_0);
+TEXTURE3D_APV(_APVResL2_1);
+TEXTURE3D_APV(_APVResL2_2);
+TEXTURE3D_APV(_APVResL2_3);
 
-TEXTURE3D_HALF(_APVResValidity);
-#else // !USE_APV_TEXTURE_HALF
-TEXTURE3D(_APVResL0_L1Rx);
+TEXTURE3D_APV(_APVResValidity);
 
-TEXTURE3D(_APVResL1G_L1Ry);
-TEXTURE3D(_APVResL1B_L1Rz);
-TEXTURE3D(_APVResL2_0);
-TEXTURE3D(_APVResL2_1);
-TEXTURE3D(_APVResL2_2);
-TEXTURE3D(_APVResL2_3);
-
-TEXTURE3D(_APVResValidity);
-#endif // USE_APV_TEXTURE_HALF
-TEXTURE3D(_SkyOcclusionTexL0L1);
+TEXTURE3D_APV(_SkyOcclusionTexL0L1);
 TEXTURE3D(_SkyShadingDirectionIndicesTex);
 
 
@@ -334,7 +313,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
             int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
             int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
 
-            locationInPhysicalBuffer = chunkIdx * (int)_IndexChunkSize + flattenedLocationInCell;
+            locationInPhysicalBuffer = chunkIdx * (int)PROBE_INDEX_CHUNK_SIZE + flattenedLocationInCell;
         }
     }
 
@@ -571,47 +550,59 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, ui
     half3 oneMinTexFrac = 1.0 - texFrac;
     uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255.0;
 
-    half4 weights[2];
-    half totalW = 0.0;
-    uint i = 0;
-    float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
-
-    UNITY_UNROLL
-    for (i = 0; i < 8; ++i)
+    if (_LeakReductionMode == APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED || validityMask != 0xFF)
     {
-        uint3 offset = GetSampleOffset(i);
-        half trilinearW =
-            ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
-            ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
-            ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+        uint i = 0;
+        half4 weights[2];
+        half totalW = 0.0;
+        float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
 
+        UNITY_UNROLL
+        for (i = 0; i < 8; ++i)
+        {
+            uint3 offset = GetSampleOffset(i);
+            half validityWeight =
+                ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
+                ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
+                ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+
+            validityWeight *= GetValidityWeight(i, validityMask);
+
+            if (_LeakReductionMode == APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED)
+                validityWeight *= GetNormalWeightHalf(offset, posWS, positionCentralProbe, normalWS, subdiv);
+
+            half weight = saturate(validityWeight);
+
+            weights[i/4][i%4] = weight;
+            totalW += weight;
+        }
+
+        half rcpTotalW = rcp(max(0.0001, totalW));
+        weights[0] *= rcpTotalW;
+        weights[1] *= rcpTotalW;
+
+        half3 fracOffset = -texFrac;
+
+        UNITY_UNROLL
+        for (i = 0; i < 8; ++i)
+        {
+            uint3 offset = GetSampleOffset(i);
+            fracOffset += (half3)offset * weights[i/4][i%4];
+        }
+
+        uvw = uvw + (float3)fracOffset * _RcpPoolDim;
+    }
+
+    // Output values used for debug only
+    UNITY_UNROLL
+    for (uint i = 0; i < 8; i++)
+    {
+        int3 probeCoord = GetSampleOffset(i);
         half validityWeight = GetValidityWeight(i, validityMask);
         validityWeights[i] = validityWeight;
-
-        half geoW = GetNormalWeightHalf(offset, posWS, positionCentralProbe, normalWS, subdiv);
-
-        half weight = saturate(trilinearW * (geoW * validityWeight));
-
-        weights[i/4][i%4] = weight;
-        totalW += weight;
     }
 
-    half rcpTotalW = rcp(max(0.0001, totalW));
-    weights[0] *= rcpTotalW;
-    weights[1] *= rcpTotalW;
-
-    half3 fracOffset = -texFrac;
-
-    UNITY_UNROLL
-    for (i = 0; i < 8; ++i)
-    {
-        uint3 offset = GetSampleOffset(i);
-        fracOffset += (half3)offset * weights[i/4][i%4];
-    }
-
-    normalizedOffset = (float3)(fracOffset + texFrac);
-
-    uvw = uvw + (float3)fracOffset * _RcpPoolDim;
+    normalizedOffset = (float3)(uvw * _PoolDim - (texCoordInt + 0.5));
 }
 
 void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint subdiv, float3 biasedPosWS, inout float3 uvw)

@@ -75,7 +75,7 @@
         {
             return float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
         }
-        else if (_ShadingMode == DEBUGPROBESHADINGMODE_INVALIDATED_BY_TOUCHUP_VOLUMES)
+        else if (_ShadingMode == DEBUGPROBESHADINGMODE_INVALIDATED_BY_ADJUSTMENT_VOLUMES)
         {
             float4 defaultCol = float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             float touchupAction = UNITY_ACCESS_INSTANCED_PROP(Props, _TouchupedByVolume);

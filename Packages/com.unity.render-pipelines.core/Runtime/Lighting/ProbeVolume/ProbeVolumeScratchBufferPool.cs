@@ -50,8 +50,6 @@ namespace UnityEngine.Rendering
         int m_L2Size;
         int m_SkyOcclusionSize;
         int m_SkyShadingDirectionSize;
-        bool m_SkyOcclusion;
-        bool m_SkyShadingDirection;
 
         int m_CurrentlyAllocatedChunkCount = 0;
         // List and not a Dictionary because we need the list sorted.
@@ -59,7 +57,7 @@ namespace UnityEngine.Rendering
         // We store layouts separately because we might use a bigger buffer than required but we still want the layout to match the exact chunk count.
         Dictionary<int, CellStreamingScratchBufferLayout> m_Layouts = new Dictionary<int, CellStreamingScratchBufferLayout>();
 
-        public ProbeVolumeScratchBufferPool(ProbeVolumeBakingSet bakingSet, ProbeVolumeSHBands shBands, bool skyOcclusion, bool skyShadingDirection)
+        public ProbeVolumeScratchBufferPool(ProbeVolumeBakingSet bakingSet, ProbeVolumeSHBands shBands)
         {
             chunkSize = bakingSet.GetChunkGPUMemory(shBands);
             maxChunkCount = bakingSet.maxSHChunkCount;
@@ -70,8 +68,6 @@ namespace UnityEngine.Rendering
             m_SkyOcclusionSize = bakingSet.sharedSkyOcclusionL0L1ChunkSize;
             m_SkyShadingDirectionSize = bakingSet.sharedSkyShadingDirectionIndicesChunkSize;
             m_L2Size = bakingSet.L2TextureChunkSize;
-            m_SkyOcclusion = skyOcclusion;
-            m_SkyShadingDirection = skyShadingDirection;
         }
 
         CellStreamingScratchBufferLayout GetOrCreateScratchBufferLayout(int chunkCount)
@@ -87,12 +83,12 @@ namespace UnityEngine.Rendering
                 bufferLayout._L1Size = m_L1Size;
                 bufferLayout._ValiditySize = m_ValiditySize;
                 bufferLayout._ValidityProbeSize = 1; // 1xbyte => 4 probes at a time.
-                if (m_SkyOcclusion)
+                if (m_SkyOcclusionSize != 0)
                 {
                     bufferLayout._SkyOcclusionSize = m_SkyOcclusionSize;
                     bufferLayout._SkyOcclusionProbeSize = 8; // 4xFP16
 
-                    if (m_SkyShadingDirection)
+                    if (m_SkyShadingDirectionSize != 0)
                     {
                         bufferLayout._SkyShadingDirectionSize = m_SkyShadingDirectionSize;
                         bufferLayout._SkyShadingDirectionProbeSize = 1; // 1xbyte => 4 probes at a time.

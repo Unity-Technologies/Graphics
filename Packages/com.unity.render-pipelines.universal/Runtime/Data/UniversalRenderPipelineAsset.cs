@@ -1503,7 +1503,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
         /// </summary>
-        [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", true)]
+        [Obsolete("This is obsolete, use useRenderingLayers instead.", true)]
         public bool supportsLightLayers => m_SupportsLightLayers;
 
         /// <summary>

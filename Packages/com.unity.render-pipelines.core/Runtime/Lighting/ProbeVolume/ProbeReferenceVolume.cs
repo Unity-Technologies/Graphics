@@ -104,58 +104,19 @@ namespace UnityEngine.Rendering
         public bool supportsRuntimeDebug;
     }
 
-    /// <summary>
-    /// Struct holiding the <see cref="ProbeVolume"/> shading parameters
-    /// </summary>
-    public struct ProbeVolumeShadingParameters
+    internal struct ProbeVolumeShadingParameters
     {
-        /// <summary>
-        /// Normal bias to apply to the position used to sample probe volumes.
-        /// </summary>
         public float normalBias;
-        /// <summary>
-        /// View bias to apply to the position used to sample probe volumes.
-        /// </summary>
         public float viewBias;
-        /// <summary>
-        /// Whether to scale the biases with the minimum distance between probes.
-        /// </summary>
         public bool scaleBiasByMinDistanceBetweenProbes;
-        /// <summary>
-        /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
-        /// </summary>
         public float samplingNoise;
-        /// <summary>
-        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
-        /// </summary>
         public float weight;
-        /// <summary>
-        /// Method used for leak reduction.
-        /// </summary>
         public APVLeakReductionMode leakReductionMode;
-        /// <summary>
-        /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
-        /// </summary>
         public float minValidNormalWeight;
-        /// <summary>
-        /// The frame index to be used to animate the sampling noise if requested.
-        /// </summary>
         public int frameIndexForNoise;
-        /// <summary>
-        /// Lower clamp value for reflection probe normalization.
-        /// </summary>
         public float reflNormalizationLowerClamp;
-        /// <summary>
-        /// Upper clamp value for reflection probe normalization.
-        /// </summary>
         public float reflNormalizationUpperClamp;
-        /// <summary>
-        /// Enable sky occlusion.
-        /// </summary>
         public float skyOcclusionIntensity;
-        /// <summary>
-        /// Enable Sky shading direction.
-        /// </summary>
         public bool skyOcclusionShadingDirection;
     }
 
@@ -846,8 +807,18 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Loads the baking set the given scene is part of if it exists.
+        /// </summary>
+        /// <param name="scene">The scene for which to load the baking set.</param>
+        public void SetActiveScene(Scene scene)
+        {
+            if (TryGetBakingSetForLoadedScene(scene, out var set))
+                SetActiveBakingSet(set);
+        }
+
+        /// <summary>
         /// Set the currently active baking set.
-        /// Can be used when loading additively two scenes belonging to different baking sets to control which one is active
+        /// Can be used when loading additively two scenes belonging to different baking sets to control which one is active.
         /// </summary>
         /// <param name="bakingSet">The baking set to load.</param>
         public void SetActiveBakingSet(ProbeVolumeBakingSet bakingSet)
@@ -890,7 +861,7 @@ namespace UnityEngine.Rendering
         {
             if (m_CurrentBakingSet == null)
             {
-                SetBakingSetAsCurrent(data.bakingSet);
+                SetBakingSetAsCurrent(data.serializedBakingSet);
             }
         }
 
@@ -923,7 +894,7 @@ namespace UnityEngine.Rendering
         {
             bakingSet = null;
             if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
-                bakingSet = perSceneData.bakingSet;
+                bakingSet = perSceneData.serializedBakingSet;
 
             #if UNITY_EDITOR
             // some scenes in a baking set may not contain a probe volume
@@ -1585,6 +1556,13 @@ namespace UnityEngine.Rendering
 
                 m_NeedLoadAsset = true;
             }
+
+            // Refresh debug menu
+            if (DebugManager.instance.GetPanel(k_DebugPanelName, false) != null)
+            {
+                instance.UnregisterDebug(false);
+                instance.RegisterDebug();
+            }
         }
 
         ProbeReferenceVolume()
@@ -1598,8 +1576,8 @@ namespace UnityEngine.Rendering
             //Ensure that all currently loaded scenes belong to the same set.
             foreach (var data in perSceneDataList)
             {
-                if (data.bakingSet != null)
-                    Debug.Assert(data.bakingSet == bakingSet);
+                if (data.serializedBakingSet != null)
+                    Debug.Assert(data.serializedBakingSet == bakingSet);
             }
 
             SetBakingSetAsCurrent(bakingSet);
@@ -1735,11 +1713,6 @@ namespace UnityEngine.Rendering
             UpdateDataLocationTexture(m_TemporaryDataLocation.TexL1_G_ry, data.shL1GL1RyData.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
             UpdateDataLocationTexture(m_TemporaryDataLocation.TexL1_B_rz, data.shL1BL1RzData.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
 
-            if (poolIndex == -1 && validityNeighMaskData.Length > 0) // validity data doesn't need to be updated per scenario
-            {
-                UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
-            }
-
             if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2 && data.shL2Data_0.Length > 0)
             {
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexL2_0, data.shL2Data_0.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
@@ -1748,14 +1721,16 @@ namespace UnityEngine.Rendering
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexL2_3, data.shL2Data_3.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
             }
 
-            if (skyOcclusion && skyOcclusionL0L1Data.Length > 0)
+            if (poolIndex == -1) // shared data that don't need to be updated per scenario
             {
-                UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionL0L1Data.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
-            }
+                if (validityNeighMaskData.Length > 0)
+                    UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
 
-            if (skyOcclusion && skyOcclusionShadingDirection && skyShadingDirectionIndices.Length > 0)
-            {
-                UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyShadingDirectionIndices, skyShadingDirectionIndices.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+                if (skyOcclusion && skyOcclusionL0L1Data.Length > 0)
+                    UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionL0L1Data.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
+
+                if (skyOcclusionShadingDirection && skyShadingDirectionIndices.Length > 0)
+                    UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyShadingDirectionIndices, skyShadingDirectionIndices.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
             }
 
             // New data format only uploads one chunk at a time (we need predictable chunk size)
@@ -1777,7 +1752,8 @@ namespace UnityEngine.Rendering
                 m_BlendingPool.Update(cmd, dataBuffer, layout, chunkList, m_SHBands, poolIndex, m_Pool.GetValidityTexture(), skyOcclusion, m_Pool.GetSkyOcclusionTexture(), skyOcclusionShadingDirection, m_Pool.GetSkyShadingDirectionIndicesTexture());
         }
 
-        void UpdatePoolValidity(List<Chunk> chunkList, NativeArray<byte> validityNeighMaskData, NativeArray<ushort> skyOcclusionData, NativeArray<byte> skyShadingDirectionIndices, int chunkIndex)
+        // Updates data shared by all scenarios (validity, sky occlusion, sky direction)
+        void UpdateSharedData(List<Chunk> chunkList, NativeArray<byte> validityNeighMaskData, NativeArray<ushort> skyOcclusionData, NativeArray<byte> skyShadingDirectionIndices, int chunkIndex)
         {
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInBrickCount() * ProbeBrickPool.kBrickProbeCountTotal;
 
@@ -1839,7 +1815,7 @@ namespace UnityEngine.Rendering
                     // Upload validity data directly to main pool - constant per scenario, will not need blending, therefore we use the cellInfo chunk list.
                     var chunkList = cell.poolInfo.chunkList;
                     for (int chunkIndex = 0; chunkIndex < chunkList.Count; ++chunkIndex)
-                        UpdatePoolValidity(chunkList, cell.data.validityNeighMaskData, cell.data.skyOcclusionDataL0L1, cell.data.skyShadingDirectionIndices, chunkIndex);
+                        UpdateSharedData(chunkList, cell.data.validityNeighMaskData, cell.data.skyOcclusionDataL0L1, cell.data.skyShadingDirectionIndices, chunkIndex);
                 }
 
                 if (bypassBlending)
@@ -2038,10 +2014,10 @@ namespace UnityEngine.Rendering
             shaderVars._PoolDim_MinBrickSize = new Vector4(poolDim.x, poolDim.y, poolDim.z, MinBrickSize());
             shaderVars._RcpPoolDim_XY = new Vector4(1.0f / poolDim.x, 1.0f / poolDim.y, 1.0f / poolDim.z, 1.0f / (poolDim.x * poolDim.y));
             shaderVars._MinEntryPos_Noise = new Vector4(minEntry.x, minEntry.y, minEntry.z, parameters.samplingNoise);
-            shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
+            shaderVars._IndicesDim_FrameIndex = new Vector4(indexDim.x, indexDim.y, indexDim.z, parameters.frameIndexForNoise);
             shaderVars._Biases_NormalizationClamp = new Vector4(normalBias, viewBias, parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp);
             shaderVars._LeakReduction_SkyOcclusion = new Vector4((int)parameters.leakReductionMode, parameters.minValidNormalWeight, parameters.skyOcclusionIntensity, enableSkyOccShadingDir);
-            shaderVars._MaxLoadedCellInEntries_FrameIndex = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.frameIndexForNoise);
+            shaderVars._MaxLoadedCellInEntries_Padding = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

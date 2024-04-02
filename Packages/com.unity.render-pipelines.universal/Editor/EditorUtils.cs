@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
-                Selection.activeObject = UniversalRenderPipeline.asset.scriptableRendererData;
+                EditorUtility.OpenPropertyEditor(UniversalRenderPipeline.asset.scriptableRendererData);
                 GUIUtility.ExitGUI();
             });
         }
@@ -43,9 +43,10 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
-                Selection.activeObject = UniversalRenderPipeline.asset;
+                var currentPipeline = UniversalRenderPipeline.asset;
+                EditorUtility.OpenPropertyEditor(currentPipeline);
 
-                CoreEditorUtils.Highlight("Inspector", propertyPath, HighlightSearchMode.Identifier);
+                CoreEditorUtils.Highlight(currentPipeline.name, propertyPath, HighlightSearchMode.Identifier);
                 GUIUtility.ExitGUI();
             });
         }

@@ -286,7 +286,8 @@ namespace UnityEngine.Rendering
 
                 // Upload probe positions
                 var positionsSlice = new BufferSlice<Vector3>(ctx.positionsBufferID, 0);
-                ctx.ctx.WriteBuffer(positionsSlice, probePositions);
+                var writeEvent = ctx.ctx.WriteBuffer(positionsSlice, probePositions);
+                ctx.ctx.Wait(writeEvent);
 
                 return ctx;
             }

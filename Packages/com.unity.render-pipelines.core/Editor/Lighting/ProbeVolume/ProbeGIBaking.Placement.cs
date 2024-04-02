@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering
 
             foreach (var sceneData in sceneDataList)
             {
-                if (sceneData.bakingSet == null || sceneData.bakingSet.GetSceneCellIndexList(sceneData.sceneGUID) == null)
+                if (sceneData.serializedBakingSet == null || sceneData.serializedBakingSet.GetSceneCellIndexList(sceneData.sceneGUID) == null)
                     return false;
             }
 

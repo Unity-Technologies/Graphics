@@ -1223,7 +1223,7 @@ namespace UnityEngine.Rendering
                     if (m_ScratchBufferPool != null)
                         m_ScratchBufferPool.Cleanup();
 
-                    m_ScratchBufferPool = new ProbeVolumeScratchBufferPool(m_CurrentBakingSet, m_SHBands, skyOcclusion, skyOcclusionShadingDirection);
+                    m_ScratchBufferPool = new ProbeVolumeScratchBufferPool(m_CurrentBakingSet, m_SHBands);
                 }
             }
         }
