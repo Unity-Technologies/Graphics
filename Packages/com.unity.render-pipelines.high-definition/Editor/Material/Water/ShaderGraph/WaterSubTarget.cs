@@ -22,7 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Water/ShaderGraph/"
         };
 
-        // We can't name it simply GBuffer otherwise it's stripped in forward only
         public static readonly string k_CullWaterMask = "_CullWaterMask";
         public static readonly string k_StencilWaterReadMaskGBuffer = "_StencilWaterReadMaskGBuffer";
         public static readonly string k_StencilWaterWriteMaskGBuffer = "_StencilWaterWriteMaskGBuffer";

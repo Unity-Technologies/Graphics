@@ -27,7 +27,7 @@ Shader "Hidden/Light2D"
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 

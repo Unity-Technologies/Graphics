@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _UnderWaterCausticsMaxLOD;
         public float _UnderWaterCausticsShadowIntensity;
         public float _UnderWaterCausticsRegionSize;
-        public float _PaddingG1;
+        public int _CustomOutputForCustomPass;
 
         public int _PreRefractionPass;
         public int _SpecularFade;

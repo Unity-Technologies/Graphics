@@ -430,7 +430,7 @@ namespace UnityEngine.Rendering.Universal
 
             return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
                    && postProcessEnabled                                                                                              // Postprocessing Enabled
-                   && (taaPersistentData != null)                                                                                     // Initialized
+                   && (taaHistory != null)                                                                                            // Initialized
                    && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
                    && !(additionalCameraData?.renderType == CameraRenderType.Overlay || additionalCameraData?.cameraStack.Count > 0)  // No Camera stack
                    && !camera.allowDynamicResolution                                                                                  // No Dynamic Resolution
@@ -551,7 +551,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Persistent TAA data, primarily for the accumulation texture.
         /// </summary>
-        internal TemporalAA.PersistentData taaPersistentData;
+        internal TaaHistory taaHistory;
 
         /// <summary>
         /// The STP history data. It contains both persistent state and textures.
@@ -624,7 +624,7 @@ namespace UnityEngine.Rendering.Universal
             resolveFinalTarget = false;
             worldSpaceCameraPos = default;
             backgroundColor = Color.black;
-            taaPersistentData = null;
+            taaHistory = null;
             stpHistory = null;
             taaSettings = default;
             baseCamera = null;

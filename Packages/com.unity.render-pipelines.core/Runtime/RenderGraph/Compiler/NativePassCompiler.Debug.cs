@@ -23,6 +23,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (storeAudit.passId >= 0)
                 storeReason = storeReason.Replace("{pass}", $"<b>{ctx.passNames[storeAudit.passId].name}</b>");
 
+            string storeMsaaReason = string.Empty;
+            if (storeAudit.msaaReason != StoreReason.InvalidReason && storeAudit.msaaReason != StoreReason.NoMSAABuffer)
+            {
+                storeMsaaReason = StoreAudit.StoreReasonMessages[(int) storeAudit.msaaReason];
+                if (storeAudit.msaaPassId >= 0)
+                    storeMsaaReason = storeMsaaReason.Replace("{pass}", $"<b>{ctx.passNames[storeAudit.msaaPassId].name}</b>");
+            }
+
             return new RenderGraph.DebugData.PassData.NRPInfo.NativeRenderPassInfo.AttachmentInfo
             {
                 resourceName = pointTo.GetName(ctx, attachment.handle),
@@ -30,6 +38,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 loadReason = loadReason,
                 storeAction = attachment.storeAction.ToString(),
                 storeReason = storeReason,
+                storeMsaaReason = storeMsaaReason
             };
         }
 

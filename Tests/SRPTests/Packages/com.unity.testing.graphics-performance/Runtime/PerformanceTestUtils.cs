@@ -24,8 +24,8 @@ namespace UnityEngine.TestTools.Graphics.Performance
                 if (QualitySettings.renderPipeline != asset)
                     QualitySettings.renderPipeline = asset;
             }
-            else if (GraphicsSettings.renderPipelineAsset != asset)
-                GraphicsSettings.renderPipelineAsset = asset;
+            else if (GraphicsSettings.defaultRenderPipeline != asset)
+                GraphicsSettings.defaultRenderPipeline = asset;
 
             SceneManager.LoadScene(sceneName);
 

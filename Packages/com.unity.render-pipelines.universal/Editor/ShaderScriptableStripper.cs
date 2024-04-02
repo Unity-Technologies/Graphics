@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
+            public bool stripUnusedXRVariants { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get; set; }
@@ -63,6 +64,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
+            public bool stripUnusedXRVariants { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get => passData.shaderType; set{} }
@@ -110,6 +112,8 @@ namespace UnityEditor.Rendering.Universal
         Shader m_HDROutputBlitShader = Shader.Find("Hidden/Universal/BlitHDROverlay");
         Shader m_DataDrivenLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareDataDriven");
         Shader m_ScreenSpaceLensFlareShader = Shader.Find("Hidden/Universal Render Pipeline/LensFlareScreenSpace");
+        Shader m_XROcclusionMeshShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XROcclusionMesh");
+        Shader m_XRMirrorViewShader = Shader.Find("Hidden/Universal Render Pipeline/XR/XRMirrorView");
 
         // Pass names
         public static readonly string kPassNameUniversal2D = "Universal2D";
@@ -699,6 +703,22 @@ namespace UnityEditor.Rendering.Universal
             return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.ScreenSpaceLensFlare);
         }
 
+        internal bool StripUnusedFeatures_XRMirrorView(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_XRMirrorViewShader)
+                return false;
+
+            return strippingData.stripUnusedXRVariants;
+        }
+
+        internal bool StripUnusedFeatures_XROcclusionMesh(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_XROcclusionMeshShader)
+                return false;
+
+            return strippingData.stripUnusedXRVariants;
+        }
+
         internal bool StripUnusedFeatures(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedFeatures_DebugDisplay(ref strippingData))
@@ -789,6 +809,12 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_ProbesVolumes(ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_XRMirrorView(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_XROcclusionMesh(ref strippingData))
                 return true;
 
             return false;
@@ -1044,6 +1070,7 @@ namespace UnityEditor.Rendering.Universal
                 stripScreenCoordOverrideVariants = ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants,
                 stripUnusedVariants = ShaderBuildPreprocessor.s_StripUnusedVariants,
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
+                stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,
                 IsHDRDisplaySupportEnabled = PlayerSettings.allowHDRDisplaySupport,
                 shader = shader,
                 passData = passData,

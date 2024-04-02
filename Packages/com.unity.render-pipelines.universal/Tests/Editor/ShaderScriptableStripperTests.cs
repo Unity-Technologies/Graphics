@@ -28,6 +28,7 @@ namespace ShaderStrippingAndPrefiltering
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
+            public bool stripUnusedXRVariants { get; set; }
             public bool IsHDRDisplaySupportEnabled { get; set; }
 
             public Shader shader { get; set; }
@@ -78,7 +79,7 @@ namespace ShaderStrippingAndPrefiltering
                                                                      | VolumeFeatures.BloomHQ | VolumeFeatures.BloomHQDirt;
 
 
-            public TestHelper(Shader shader, ShaderFeatures shaderFeatures, VolumeFeatures volumeFeatures = VolumeFeatures.None, bool stripUnusedVariants = true)
+            public TestHelper(Shader shader, ShaderFeatures shaderFeatures, VolumeFeatures volumeFeatures = VolumeFeatures.None, bool stripUnusedVariants = true, bool stripUnusedXRVariants = true)
             {
                 s_PassKeywords = new List<string>() { };
                 s_EnabledKeywords = new List<string>() { };
@@ -92,6 +93,7 @@ namespace ShaderStrippingAndPrefiltering
                 data.volumeFeatures = volumeFeatures;
                 data.stripUnusedVariants = stripUnusedVariants;
                 data.strip2DPasses = false;
+                data.stripUnusedXRVariants = stripUnusedXRVariants;
 
                 featureStripTool = new ShaderStripTool<ShaderFeatures>(data.shaderFeatures, ref data);
             }
@@ -705,6 +707,8 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing")]
         [TestCase("Hidden/Universal Render Pipeline/LensFlareDataDriven")]
         [TestCase("Hidden/Universal Render Pipeline/LensFlareScreenSpace")]
+        [TestCase("Hidden/Universal Render Pipeline/XR/XROcclusionMesh")]
+        [TestCase("Hidden/Universal Render Pipeline/XR/XRMirrorView")]
         public void TestStripUnusedFeatures(string shaderName)
         {
             Shader shader = Shader.Find(shaderName);
@@ -736,6 +740,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_SHAuto(shader);
             TestStripUnusedFeatures_DataDrivenLensFlare(shader);
             TestStripUnusedFeatures_ScreenSpaceLensFlare(shader);
+            TestStripUnusedFeatures_XR(shader);
         }
 
         public void TestStripUnusedFeatures_DebugDisplay(Shader shader)
@@ -931,6 +936,22 @@ namespace ShaderStrippingAndPrefiltering
             bool isLensFlareDataDriven = shader != null && shader.name == "Hidden/Universal Render Pipeline/LensFlareDataDriven";
             //We should strip the shader only if it's the lens flare one.
             helper.IsTrue(isLensFlareDataDriven ? helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data) : !helper.stripper.StripUnusedFeatures_DataDrivenLensFlare(ref helper.data));
+        }
+
+        public void TestStripUnusedFeatures_XR(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None, stripUnusedXRVariants: false);
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None, stripUnusedXRVariants: true);
+            bool isXROcclusion = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XROcclusionMesh";
+            bool isXRMirror = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XRMirrorView";
+            //We should strip the shader only if it's the XR shader.
+            helper.IsTrue(isXROcclusion ? helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data) : !helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data));
+            helper.IsTrue(isXRMirror ? helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data) : !helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data));
         }
 
         public void TestStripUnusedFeatures_DeferredRendering(Shader shader)

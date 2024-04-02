@@ -589,7 +589,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Persistent TAA data, primarily for the accumulation texture.
         /// </summary>
-        internal ref TemporalAA.PersistentData taaPersistentData => ref frameData.Get<UniversalCameraData>().taaPersistentData;
+        internal ref TaaHistory taaHistory => ref frameData.Get<UniversalCameraData>().taaHistory;
 
         // TAA settings.
         internal ref TemporalAA.Settings taaSettings => ref frameData.Get<UniversalCameraData>().taaSettings;

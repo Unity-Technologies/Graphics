@@ -132,8 +132,8 @@ namespace UnityEditor.Rendering.Universal
 
         private bool RendererIsDeferred()
         {
-            ScreenSpaceAmbientOcclusion ssaoFeature = (ScreenSpaceAmbientOcclusion)this.target;
-            UniversalRenderPipelineAsset pipelineAsset = (UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
+            ScreenSpaceAmbientOcclusion ssaoFeature = (ScreenSpaceAmbientOcclusion) target;
+            UniversalRenderPipelineAsset pipelineAsset = (UniversalRenderPipelineAsset) GraphicsSettings.currentRenderPipeline;
 
             if (ssaoFeature == null || pipelineAsset == null)
                 return false;
@@ -142,14 +142,14 @@ namespace UnityEditor.Rendering.Universal
             var rendererDataList = pipelineAsset.m_RendererDataList;
             for (int rendererIndex = 0; rendererIndex < rendererDataList.Length; ++rendererIndex)
             {
-                ScriptableRendererData rendererData = (ScriptableRendererData)rendererDataList[rendererIndex];
-                if (rendererData == null)
+                var rendererData = rendererDataList[rendererIndex] as UniversalRendererData;
+                if (rendererData == null || rendererData.renderingMode != RenderingMode.Deferred)
                     continue;
 
                 var rendererFeatures = rendererData.rendererFeatures;
                 foreach (var feature in rendererFeatures)
-                    if (feature is ScreenSpaceAmbientOcclusion && (ScreenSpaceAmbientOcclusion)feature == ssaoFeature)
-                        return rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).renderingMode == RenderingMode.Deferred;
+                    if (feature is ScreenSpaceAmbientOcclusion occlusion && occlusion == ssaoFeature)
+                        return true;
             }
 
             return false;

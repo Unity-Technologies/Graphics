@@ -162,13 +162,13 @@ namespace UnityEditor.Rendering.HighDefinition
             /// </summary>
             static void PopulateHDRPAssetsFromQualitySettings(List<HDRPAssetLocations> target)
             {
-                if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp)
+                if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp)
                     target.Add(new HDRPAssetLocations(true, hdrp));
 
                 var qualityLevelCount = QualitySettings.names.Length;
                 for (var i = 0; i < qualityLevelCount; ++i)
                 {
-                    if (!(QualitySettings.GetRenderPipelineAssetAt(i) is HDRenderPipelineAsset hdrp2))
+                    if (QualitySettings.GetRenderPipelineAssetAt(i) is not HDRenderPipelineAsset hdrp2)
                         continue;
 
                     var index = target.FindIndex(a => a.asset == hdrp2);

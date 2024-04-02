@@ -5312,14 +5312,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(passData.sharpenCS, "CLAMP_RINGING", hdCamera.taaRingingReduction > 0);
 
                 builder.SetRenderFunc(
-                        (SharpenData data, RenderGraphContext ctx) =>
-                        {
-                            ctx.cmd.SetComputeVectorParam(data.sharpenCS, "_SharpenParams", data.sharpenParam);
-                            ctx.cmd.SetComputeTextureParam(data.sharpenCS, data.sharpenKernel, HDShaderIDs._InputTexture, data.source);
-                            ctx.cmd.SetComputeTextureParam(data.sharpenCS, data.sharpenKernel, HDShaderIDs._OutputTexture, data.destination);
-                            ctx.cmd.DispatchCompute(data.sharpenCS, data.sharpenKernel, data.dispatchSize.x, data.dispatchSize.y, data.dispatchSize.z);
-
-                        });
+                    (SharpenData data, RenderGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetComputeVectorParam(data.sharpenCS, "_SharpenParams", data.sharpenParam);
+                        ctx.cmd.SetComputeTextureParam(data.sharpenCS, data.sharpenKernel, HDShaderIDs._InputTexture, data.source);
+                        ctx.cmd.SetComputeTextureParam(data.sharpenCS, data.sharpenKernel, HDShaderIDs._OutputTexture, data.destination);
+                        ctx.cmd.DispatchCompute(data.sharpenCS, data.sharpenKernel, data.dispatchSize.x, data.dispatchSize.y, data.dispatchSize.z);
+                    });
 
                 source = passData.destination;
             }

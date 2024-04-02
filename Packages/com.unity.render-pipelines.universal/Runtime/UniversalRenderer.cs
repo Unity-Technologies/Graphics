@@ -904,6 +904,7 @@ namespace UnityEngine.Rendering.Universal
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, cmd, cameraData);
 
                 m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+                m_RenderTransparentForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 m_XROcclusionMeshPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
 #endif

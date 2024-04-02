@@ -106,6 +106,7 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_StripScreenCoordOverrideVariants;
         public static bool s_Strip2DPasses;
         public static bool s_UseSoftShadowQualityLevelKeywords;
+        public static bool s_StripXRVariants;
 
         public static List<ShaderFeatures> supportedFeaturesList
         {
@@ -132,7 +133,6 @@ namespace UnityEditor.Rendering.Universal
         }
 
         // Private
-        private static bool s_StripXRVariants;
         private static bool s_KeepOffVariantForAdditionalLights;
         private static bool s_UseSHPerVertexForSHAuto;
         private static VolumeFeatures s_VolumeFeatures;

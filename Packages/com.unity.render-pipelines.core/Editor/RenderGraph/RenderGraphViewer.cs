@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Analytics;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -1667,11 +1668,12 @@ namespace UnityEditor.Rendering
                 m_PassFilter = (PassFilter)EditorPrefs.GetInt(kPassFilterEditorPrefsKey);
             if (EditorPrefs.HasKey(kResourceFilterEditorPrefsKey))
                 m_ResourceFilter = (ResourceFilter)EditorPrefs.GetInt(kResourceFilterEditorPrefsKey);
+
+            RenderGraphViewerLifetimeAnalytic.WindowOpened();
         }
 
         void CreateGUI()
         {
-
             m_ResourceListIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(string.Format(k_ResourceListIconPath, EditorGUIUtility.isProSkin ? "d_" : ""));
             m_PassListIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(string.Format(k_PassListIconPath, EditorGUIUtility.isProSkin ? "d_" : ""));
 
@@ -1691,6 +1693,8 @@ namespace UnityEditor.Rendering
             RenderGraph.onExecutionRegistered -= OnExecutionRegistered;
             RenderGraph.onExecutionUnregistered -= OnExecutionUnregistered;
             RenderGraph.onDebugDataCaptured -= OnDebugDataCaptured;
+
+            RenderGraphViewerLifetimeAnalytic.WindowClosed();
         }
     }
 

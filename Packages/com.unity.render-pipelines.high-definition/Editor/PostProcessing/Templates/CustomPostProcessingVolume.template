@@ -23,7 +23,7 @@ public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent, IPostProces
         if (Shader.Find(kShaderName) != null)
             m_Material = new Material(Shader.Find(kShaderName));
         else
-            Debug.LogError($"Unable to find shader '{kShaderName}'. Post Process Volume #NAME# is unable to load.");
+            Debug.LogError($"Unable to find shader '{kShaderName}'. Post Process Volume #NAME# is unable to load. To fix this, please edit the 'kShaderName' constant in #NAME#.cs or change the name of your custom post process shader.");
     }
 
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

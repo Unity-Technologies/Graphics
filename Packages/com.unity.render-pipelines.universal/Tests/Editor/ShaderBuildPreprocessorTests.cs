@@ -78,7 +78,7 @@ namespace ShaderStrippingAndPrefiltering
 
                     urpAsset = UniversalRenderPipelineAsset.Create(rendererData);
                     urpAsset.name = "TestHelper_URPAsset";
-                    GraphicsSettings.renderPipelineAsset = urpAsset;
+                    GraphicsSettings.defaultRenderPipeline = urpAsset;
 
                     ScriptableRenderer = urpAsset.GetRenderer(0);
                     universalRenderer = ScriptableRenderer as UniversalRenderer;
@@ -202,10 +202,10 @@ namespace ShaderStrippingAndPrefiltering
         {
             UniversalRenderPipelineGlobalSettings.Ensure();
 
-            m_PreviousRenderPipelineAssetGraphicsSettings = GraphicsSettings.renderPipelineAsset;
+            m_PreviousRenderPipelineAssetGraphicsSettings = GraphicsSettings.defaultRenderPipeline;
             m_PreviousRenderPipelineAssetQualitySettings = QualitySettings.renderPipeline;
 
-            GraphicsSettings.renderPipelineAsset = null;
+            GraphicsSettings.defaultRenderPipeline = null;
             QualitySettings.renderPipeline = null;
         }
 
@@ -224,7 +224,7 @@ namespace ShaderStrippingAndPrefiltering
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
-            GraphicsSettings.renderPipelineAsset = m_PreviousRenderPipelineAssetGraphicsSettings;
+            GraphicsSettings.defaultRenderPipeline = m_PreviousRenderPipelineAssetGraphicsSettings;
             QualitySettings.renderPipeline = m_PreviousRenderPipelineAssetQualitySettings;
         }
 

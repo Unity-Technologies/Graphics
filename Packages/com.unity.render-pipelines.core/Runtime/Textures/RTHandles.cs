@@ -533,10 +533,11 @@ namespace UnityEngine.Rendering
         /// Allocate a RTHandle from a regular RenderTexture for the default RTHandle system.
         /// </summary>
         /// <param name="tex">Input texture</param>
+        /// <param name="transferOwnership">To transfer ownership of the RenderTexture to the default RTHandles system, false by default</param>
         /// <returns>A new RTHandle referencing the input texture.</returns>
-        public static RTHandle Alloc(RenderTexture tex)
+        public static RTHandle Alloc(RenderTexture tex, bool transferOwnership = false)
         {
-            return s_DefaultInstance.Alloc(tex);
+            return s_DefaultInstance.Alloc(tex, transferOwnership);
         }
 
         /// <summary>

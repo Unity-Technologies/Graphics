@@ -156,7 +156,7 @@ namespace UnityEditor.VFX.Test
             blackboard.Update();
             yield return null;
 
-            var descriptorParameter = VFXLibrary.GetParameters().First();
+            var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
 
             // Act
             AddParameter(blackboard, descriptorParameter);
@@ -180,7 +180,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             var blackboard = window.graphView.blackboard;
-            var descriptorParameter = VFXLibrary.GetParameters().First();
+            var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
             var outputCategory = blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == "Output").First();
             blackboard.Q<TreeView>().selectedIndex = outputCategory.category.index;
 
@@ -392,7 +392,7 @@ namespace UnityEditor.VFX.Test
             blackboard.Update();
             yield return null;
 
-            var descriptorParameter = VFXLibrary.GetParameters().First();
+            var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
             AddParameter(blackboard, descriptorParameter);
             yield return null;
 

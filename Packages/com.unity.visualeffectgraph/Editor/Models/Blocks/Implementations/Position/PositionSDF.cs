@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
@@ -45,7 +46,7 @@ namespace UnityEditor.VFX.Block
 
             var extents = new VFXNamedExpression(new VFXExpressionExtractScaleFromMatrix(transform), "extents");
             yield return new VFXNamedExpression(VFX.VFXOperatorUtility.Max3(extents.exp), "scalingFactor");
-            yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(transform), "InvFieldTransform");
+            yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(transform), "inverseTransform");
             var minDim = new VFXExpressionCastUintToFloat(VFX.VFXOperatorUtility.Min3(new VFXExpressionTextureHeight(sdf), new VFXExpressionTextureWidth(sdf), new VFXExpressionTextureDepth(sdf)));
             var gradStep = VFXValue.Constant(0.01f);  //kStep used in SampleSDFDerivativesFast and SampleSDFDerivatives
             var margin = VFXValue.Constant(0.5f) / minDim + gradStep + VFXValue.Constant(0.001f);
@@ -55,32 +56,33 @@ namespace UnityEditor.VFX.Block
 
         public override string GetSource(PositionShape positionBase)
         {
-            string outSource = @"float cosPhi = 2.0f * RAND - 1.0f;";
+            var outSource = new StringBuilder(@"float cosPhi = 2.0f * RAND - 1.0f;");
             if (positionBase.spawnMode == PositionBase.SpawnMode.Random)
-                outSource += @"float theta = TWO_PI * RAND;";
+                outSource.AppendLine(@"float theta = TWO_PI * RAND;");
             else
-                outSource += @"float theta = TWO_PI * ArcSequencer;";
+                outSource.AppendLine(@"float theta = TWO_PI * ArcSequencer;");
             switch (positionBase.positionMode)
             {
                 case (PositionBase.PositionMode.Surface):
-                    outSource += @" float Thickness = 0.0f;";
+                    outSource.AppendLine(@" float Thickness = 0.0f;");
                     break;
                 case (PositionBase.PositionMode.Volume):
-                    outSource += @" float Thickness = scalingFactor;";
+                    outSource.AppendLine(@" float Thickness = scalingFactor;");
                     break;
                 case (PositionBase.PositionMode.ThicknessRelative):
-                    outSource += @" Thickness *= scalingFactor * 0.5f;";
+                    outSource.AppendLine(@" Thickness *= scalingFactor * 0.5f;");
                     break;
             }
-            outSource += @"
+
+            outSource.Append(@"
 //Initialize position within texture bounds
 float2 sincosTheta;
 sincos(theta, sincosTheta.x, sincosTheta.y);
 sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);
-direction = float3(sincosTheta, cosPhi) *  sqrt(3)/2;
-float maxDir = max(0.5f, max(abs(direction.x), max(abs(direction.y), abs(direction.z))));
-direction = direction * (projectionRayWithMargin/maxDir);
-float3 tPos = direction * pow(RAND, 1.0f/3.0f);
+float3 currentAxisY = float3(sincosTheta, cosPhi) *  sqrt(3)/2;
+float maxDir = max(0.5f, max(abs(currentAxisY.x), max(abs(currentAxisY.y), abs(currentAxisY.z))));
+currentAxisY = currentAxisY * (projectionRayWithMargin/maxDir);
+float3 tPos = currentAxisY * pow(RAND, 1.0f/3.0f);
 float3 coord = tPos + 0.5f;
 float3 wPos, n, worldNormal;
 
@@ -92,7 +94,7 @@ for(uint proj_step=0; proj_step < n_steps; proj_step++){
 
     //Projection on surface/volume
     float3 delta;
-    worldNormal = VFXSafeNormalize(mul(float4(n, 0), InvFieldTransform).xyz);
+    worldNormal = VFXSafeNormalize(mul(float4(n, 0), inverseTransform).xyz);
     if (dist > 0)
         delta = dist * worldNormal;
     else
@@ -100,25 +102,55 @@ for(uint proj_step=0; proj_step < n_steps; proj_step++){
         delta = min(dist + Thickness, 0) * worldNormal;
     }
 
-    wPos =  mul(FieldTransform, float4(tPos,1)).xyz + delta;
-    tPos = mul(InvFieldTransform, float4(wPos,1)).xyz;
+    wPos = mul(FieldTransform, float4(tPos,1)).xyz + delta;
+    tPos = mul(inverseTransform, float4(wPos, 1)).xyz;
     coord = tPos + 0.5f;
 
-}
-position = wPos;
-direction = -worldNormal;
-                        ";
-            if (positionBase.killOutliers)
-            {
-                outSource += @"
+}");
+            outSource.AppendFormat(positionBase.composePositionFormatString, "wPos");
 
- float dist = SampleSDF(SDF, coord);
- if (dist * scalingFactor > 0.01)
-    alive = false;
-";
+            if (positionBase.applyOrientation != PositionBase.Orientation.None)
+                outSource.Append(@"currentAxisY = -worldNormal;");
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Axes))
+                outSource.Append(@"
+float3 AxisZCandidateA = float3(-sincosTheta.y, sincosTheta.x, 0);
+float3 AxisZCandidateB = float3(sign(cosPhi), 0, 0);
+AxisZCandidateA = mul(float4(AxisZCandidateA, 0), inverseTransform).xyz;
+AxisZCandidateB = mul(float4(AxisZCandidateB, 0), inverseTransform).xyz;
+
+float3 currentAxisZ = AxisZCandidateA;
+float3 currentAxisX = cross(currentAxisZ, currentAxisY);
+if (dot(currentAxisX, currentAxisX) < 0.00001f)
+{
+    currentAxisZ = AxisZCandidateB;
+    currentAxisX = cross(currentAxisZ, currentAxisY);
+}
+
+currentAxisX = normalize(currentAxisX);
+currentAxisZ = normalize(cross(currentAxisX, currentAxisY));");
+
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Direction))
+            {
+                outSource.AppendFormat(positionBase.composeDirectionFormatString, "currentAxisY");
             }
 
-            return outSource;
+            if (positionBase.applyOrientation.HasFlag(PositionBase.Orientation.Axes))
+            {
+                outSource.AppendFormat(VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisX", "currentAxisX", "blendAxes"));
+                outSource.AppendFormat(VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisY", "currentAxisY", "blendAxes"));
+                outSource.AppendFormat(VFXBlockUtility.GetComposeString(positionBase.compositionAxes, "axisZ", "currentAxisZ", "blendAxes"));
+            }
+
+            if (positionBase.killOutliers)
+            {
+                outSource.Append(@"
+ float dist = SampleSDF(SDF, coord);
+ if (dist * scalingFactor > 0.01)
+    alive = false;");
+            }
+
+            return outSource.ToString();
         }
     }
 }

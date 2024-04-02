@@ -169,7 +169,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ProcessExpressionVector3sToMatrix()
+        public void ProcessExpressionAxisToMatrix()
         {
             var x = Vector3.right;
             var y = Vector3.up;
@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.Test
             var zValue = VFXValue.Constant(z);
             var wValue = VFXValue.Constant(w);
 
-            var matrixValue = new VFXExpressionVector3sToMatrix(xValue, yValue, zValue, wValue);
+            var matrixValue = new VFXExpressionAxisToMatrix(xValue, yValue, zValue, wValue);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var reduced = context.Compile(matrixValue);
@@ -190,33 +190,58 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ProcessExpressionVector4sToMatrix()
+        public void ProcessExpressionColumnToMatrix()
         {
-            var x = new Vector4(1, 0, 0, 0);
-            var y = new Vector4(0, 1, 0, 0);
-            var z = new Vector4(0, 0, 1, 0);
-            var w = new Vector4(0, 0, 0, 1);
+            var x = new Vector4(1, 2, 3, 4);
+            var y = new Vector4(5, 6, 7, 8);
+            var z = new Vector4(9, 10, 11, 12);
+            var w = new Vector4(13, 14, 15, 16);
 
             var xValue = VFXValue.Constant(x);
             var yValue = VFXValue.Constant(y);
             var zValue = VFXValue.Constant(z);
             var wValue = VFXValue.Constant(w);
 
-            var matrixValue = new VFXExpressionVector4sToMatrix(xValue, yValue, zValue, wValue);
+            var matrixValue = new VFXExpressionColumnToMatrix(xValue, yValue, zValue, wValue);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var reduced = context.Compile(matrixValue);
 
-            Assert.AreEqual(Matrix4x4.identity, reduced.Get<Matrix4x4>());
+            Matrix4x4 expected = new Matrix4x4(x, y, z, w);
+
+            Assert.AreEqual(expected, reduced.Get<Matrix4x4>());
         }
 
         [Test]
-        public void ProcessExpressionMatrixToVector3s()
+        public void ProcessExpressionRowToMatrix()
+        {
+            var x = new Vector4(1, 2, 3, 4);
+            var y = new Vector4(5, 6, 7, 8);
+            var z = new Vector4(9, 10, 11, 12);
+            var w = new Vector4(13, 14, 15, 16);
+
+            var xValue = VFXValue.Constant(x);
+            var yValue = VFXValue.Constant(y);
+            var zValue = VFXValue.Constant(z);
+            var wValue = VFXValue.Constant(w);
+
+            var matrixValue = new VFXExpressionRowToMatrix(xValue, yValue, zValue, wValue);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var reduced = context.Compile(matrixValue);
+
+            Matrix4x4 expected = new Matrix4x4(x, y, z, w).transpose;
+
+            Assert.AreEqual(expected, reduced.Get<Matrix4x4>());
+        }
+
+        [Test]
+        public void ProcessExpressionMatrixToAxis()
         {
             var matValue = VFXValue.Constant(Matrix4x4.identity);
             var axisValue = VFXValue.Constant<int>(0);
 
-            var xValue = new VFXExpressionMatrixToVector3s(matValue, axisValue);
+            var xValue = new VFXExpressionMatrixToAxis(matValue, axisValue);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var reduced = context.Compile(xValue);
@@ -225,17 +250,41 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ProcessExpressionMatrixToVector4s()
+        public void ProcessExpressionMatrixToColumn()
         {
-            var matValue = VFXValue.Constant(Matrix4x4.identity);
+            var m = new Matrix4x4();
+            for (int r = 0; r < 4; ++r)
+                for (int c = 0; c < 4; ++c)
+                    m[r, c] = 4 * r + c;
+
+            var matValue = VFXValue.Constant(m);
             var axisValue = VFXValue.Constant<int>(0);
 
-            var xValue = new VFXExpressionMatrixToVector4s(matValue, axisValue);
+            var xValue = new VFXExpressionMatrixToColumn(matValue, axisValue);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var reduced = context.Compile(xValue);
 
-            Assert.AreEqual(new Vector4(1, 0, 0, 0), reduced.Get<Vector4>());
+            Assert.AreEqual(new Vector4(0, 4, 8, 12), reduced.Get<Vector4>());
+        }
+
+        [Test]
+        public void ProcessExpressionMatrixToRow()
+        {
+            var m = new Matrix4x4();
+            for (int r = 0; r < 4; ++r)
+                for (int c = 0; c < 4; ++c)
+                    m[r,c] = 4 * r + c;
+
+            var matValue = VFXValue.Constant(m);
+            var axisValue = VFXValue.Constant<int>(0);
+
+            var xValue = new VFXExpressionMatrixToRow(matValue, axisValue);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var reduced = context.Compile(xValue);
+
+            Assert.AreEqual(new Vector4(0, 1, 2, 3), reduced.Get<Vector4>());
         }
 
 

@@ -484,6 +484,45 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_Keeps_Include_In_Source()
+        {
+            var hlslCode = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl""
+void CustomHLSL(inout VFXAttributes attributes)
+{
+    uint2 code = DecodeMorton2D(attributes.particleId);
+    attributes.position = float3((float)code.x, (float)code.y, 0.0f);
+}";
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+
+            var vfxTargetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Update);
+            vfxTargetContext.label = "Find_Me_In_Generated_Source";
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            graph.errorManager.GenerateErrors();
+            var error = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Any();
+            Assert.IsFalse(error);
+            yield return null;
+
+            bool found = false;
+            var resource = graph.GetResource();
+            for (int i = 0; i < resource.GetShaderSourceCount(); ++i)
+            {
+                var shaderName = resource.GetShaderSourceName(i);
+                if (shaderName.Contains(vfxTargetContext.label))
+                {
+                    var source = resource.GetShaderSource(i);
+                    found = source.Contains("SpaceFillingCurves.hlsl");
+                    break;
+                }
+            }
+            Assert.IsTrue(found, "Unable to find matching include in generated code.");
+        }
+
+        [UnityTest]
         public IEnumerator Check_CustomHLSL_Block_Compiles()
         {
             // Arrange

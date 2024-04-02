@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor.UIElements;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.UIElements;
@@ -343,12 +344,22 @@ namespace UnityEditor.Rendering
 
                             attachmentFoldout.Add(new TextElement
                             {
-                                text = $"<b>Load action:</b> {attachmentInfo.loadAction} ({attachmentInfo.loadReason})"
+                                text = $"<b>Load action:</b> {attachmentInfo.loadAction}\n- {attachmentInfo.loadReason}"
                             });
-                            attachmentFoldout.Add(new TextElement
+
+                            bool addMsaaInfo = !string.IsNullOrEmpty(attachmentInfo.storeMsaaReason);
+                            string resolvedTexturePrefix = addMsaaInfo ? "Resolved surface: " : "";
+
+                            string storeActionText = $"<b>Store action:</b> {attachmentInfo.storeAction}" +
+                                                     $"\n - {resolvedTexturePrefix}{attachmentInfo.storeReason}";
+
+                            if (addMsaaInfo)
                             {
-                                text = $"<b>Store action:</b> {attachmentInfo.storeAction} ({attachmentInfo.storeReason})"
-                            });
+                                string msaaTexturePrefix = "MSAA surface: ";
+                                storeActionText += $"\n - {msaaTexturePrefix}{attachmentInfo.storeMsaaReason}";
+                            }
+
+                            attachmentFoldout.Add(new TextElement { text = storeActionText });
 
                             passItem.Add(attachmentFoldout);
                         }
@@ -427,12 +438,26 @@ namespace UnityEditor.Rendering
             ScrollView scrollView = parent.Q<ScrollView>();
             scrollView.Query<Foldout>(classes: Classes.kPanelListItem).ForEach(foldout =>
             {
-                if (index == (int)foldout.userData)
+                if (index == (int) foldout.userData)
                 {
                     // Trigger animation
                     foldout.AddToClassList(Classes.kPanelListItemSelectionAnimation);
+
+                    // This repaint hack is needed because transition animations have poor framerate. So we are hooking to editor update
+                    // loop for the duration of the animation to force repaints and have a smooth highlight animation.
+                    // See https://jira.unity3d.com/browse/UIE-1326
+                    EditorApplication.update += Repaint;
+
                     foldout.RegisterCallbackOnce<TransitionEndEvent>(_ =>
-                        foldout.RemoveFromClassList(Classes.kPanelListItemSelectionAnimation));
+                    {
+                        // "Highlight in" animation finished
+                        foldout.RemoveFromClassList(Classes.kPanelListItemSelectionAnimation);
+                        foldout.RegisterCallbackOnce<TransitionEndEvent>(_ =>
+                        {
+                            // "Highlight out" animation finished
+                            EditorApplication.update -= Repaint;
+                        });
+                    });
 
                     // Open foldout
                     foldout.value = true;

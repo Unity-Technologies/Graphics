@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering
         {
             if (firstTimeCreated)
             {
-                renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                renderPipelineAsset = GraphicsSettings.defaultRenderPipeline;
                 firstTimeCreated = false;
             }
 
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
-            GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+            GraphicsSettings.defaultRenderPipeline = renderPipelineAsset;
         }
 
 
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering
             Data m_Data;
         }
 
-      
+
 #endif
     }
 }

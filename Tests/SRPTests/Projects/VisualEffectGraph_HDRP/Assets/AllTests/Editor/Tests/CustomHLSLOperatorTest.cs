@@ -89,10 +89,14 @@ namespace UnityEditor.VFX.Test
 
             var hlslExpression = expressions[0] as VFXExpressionHLSL;
             Assert.IsNotNull(hlslExpression);
+
+            var includes = hlslExpression.includes.ToArray();
+            Assert.AreEqual(1, includes.Length);
+            Assert.AreEqual( shaderIncludePath, includes[0]);
+
             Assert.AreEqual(VFXExpressionOperation.None, hlslExpression.operation);
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
-            var expectedGeneratedCode = $"#include \"{shaderIncludePath}\"\n" +
-                                        "float3 Transform_Wrapper_Return(float4x4 mat, float3 vec)\r\n" +
+            var expectedGeneratedCode = "float3 Transform_Wrapper_Return(float4x4 mat, float3 vec)\r\n" +
                                         "{\r\n" +
                                         "\tfloat3 var_2 = \tTransform(mat, vec);\r\n" +
                                         "\treturn var_2;\r\n" +
@@ -177,6 +181,34 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_IncludePath_Fail()
+        {
+            // Arrange
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+
+            var hlslCode =
+                @"#include ""FILE_WHICH_DOESNT_EXIST.hlsl""
+float3 Transform(float3 a, float3 b)
+{
+    return a + b;
+}
+";
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            yield return null;
+
+            // Act
+            graph.errorManager.GenerateErrors();
+
+            // Assert
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslOperator).Single();
+            Assert.IsNotNull(report);
+            Assert.AreEqual(VFXErrorType.Error, report.type);
+            Assert.AreEqual("Couldn't open include file 'FILE_WHICH_DOESNT_EXIST.hlsl'.", report.description);
+        }
+
+        [UnityTest]
         public IEnumerator Check_CustomHLSL_Operator_Twice_Same_Function_Name()
         {
             // Arrange
@@ -225,6 +257,52 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual($"Unknown parameter type '{parameterType}'", report.description);
         }
 
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_With_Include()
+        {
+            var hlslCode = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl""
+float3 DecodeMorton(in uint code)
+{
+    return float3(DecodeMorton2D(code), 0.0f);
+}";
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            var vfxTargetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Update);
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            Assert.IsNotNull(blockAttributeDesc);
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance() as Block.SetAttribute;
+            blockAttribute.SetSettingValue("attribute", "position");
+            vfxTargetContext.AddChild(blockAttribute);
+
+            vfxTargetContext.label = "Find_Me_In_Generated_Source";
+
+            Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            graph.errorManager.GenerateErrors();
+            var error = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslOperator).Any();
+            Assert.IsFalse(error);
+            yield return null;
+
+            bool found = false;
+            var resource = graph.GetResource();
+            for (int i = 0; i < resource.GetShaderSourceCount(); ++i)
+            {
+                var shaderName = resource.GetShaderSourceName(i);
+                if (shaderName.Contains(vfxTargetContext.label))
+                {
+                    var source = resource.GetShaderSource(i);
+                    found = source.Contains("SpaceFillingCurves.hlsl");
+                    break;
+                }
+            }
+            Assert.IsTrue(found, "Unable to find matching include in generated code.");
+        }
 
         public static Array k_Invalid_Texture_Type = new string[] { "Texture2D", "Texture3D", "TextureCube", "Texture2DArray" };
 
@@ -352,6 +430,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(foundCustomFunction);
             yield return null;
         }
+
 
         private VFXExpression[] CallBuildExpression(CustomHLSL hlslOperator, VFXExpression[] parentExpressions)
         {

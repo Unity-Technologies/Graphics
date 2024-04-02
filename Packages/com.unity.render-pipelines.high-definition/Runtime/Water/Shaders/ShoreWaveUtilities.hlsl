@@ -1,6 +1,8 @@
 #ifndef SHORE_WAVE_UTILITIES_H
 #define SHORE_WAVE_UTILITIES_H
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderVariablesWater.cs.hlsl"
+
 struct WaveData
 {
     float position;

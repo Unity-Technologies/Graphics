@@ -9,31 +9,10 @@ using PropertyAttribute = UnityEngine.PropertyAttribute;
 
 namespace UnityEditor.VFX.Block
 {
-    class CustomHLSLBlockFunctionValidator
+    sealed class CustomHLSLBlockFunctionValidator : Operator.CustomHLSLFunctionValidator
     {
-        public IEnumerable<IHLSMessage> Validate(IEnumerable<string> functions, HLSLFunction selectedFunction)
+        protected override IEnumerable<IHLSMessage> ValidateImpl(IEnumerable<string> functions, HLSLFunction selectedFunction)
         {
-            if (functions == null || selectedFunction == null)
-            {
-                yield return new HLSLMissingFunction();
-                yield break;
-            }
-
-            var functionsFound = new Dictionary<string, int>();
-            foreach (var f in functions)
-            {
-                if (functionsFound.TryGetValue(f, out var count) && count == 1)
-                {
-                    yield return new HLSLSameFunctionName(f);
-                }
-                else
-                {
-                    count = 0;
-                }
-
-                functionsFound[f] = count + 1;
-            }
-
             if (selectedFunction.returnType != typeof(void))
             {
                 yield return new HLSLVoidReturnTypeOnlyIsSupported(selectedFunction.name);
@@ -46,15 +25,6 @@ namespace UnityEditor.VFX.Block
             HLSLFunctionParameter attributesInput = null;
             foreach (var input in selectedFunction.inputs)
             {
-                if (input.access is HLSLAccess.IN or HLSLAccess.INOUT &&
-                   input.rawType is "Texture2D" or "Texture3D" or "TextureCube" or "Texture2DArray")
-                {
-                    yield return new HLSLWrongHLSLTextureType(input.rawType, input.name);
-                }
-                if (input.rawType is "TextureCubeArray" or "VFXSamplerCubeArray")
-                {
-                    yield return new HLSLTextureCubeArrayNotSupported(input.name);
-                }
                 if (input.type == typeof(VFXAttribute))
                 {
                     attributesInput = input;
@@ -79,17 +49,6 @@ namespace UnityEditor.VFX.Block
                             yield return new HLSLVFXAttributeAccessError();
                             break;
                         }
-                    }
-                }
-            }
-
-            foreach (var message in selectedFunction.inputs)
-            {
-                if (message.errors != null)
-                {
-                    foreach (var error in message.errors)
-                    {
-                        yield return error;
                     }
                 }
             }
@@ -207,7 +166,7 @@ namespace UnityEditor.VFX.Block
             }
         }
         public string customCode => BuildCustomCode();
-        public override IEnumerable<string> includes
+        public IEnumerable<string> includes
         {
             get
             {
@@ -284,7 +243,7 @@ namespace UnityEditor.VFX.Block
             base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLBlockFunctionValidator();
             ParseCodeIfNeeded();
-            foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function))
+            foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function, includes))
             {
                 report.RegisterError(string.Empty, error.type, error.message, this);
             }

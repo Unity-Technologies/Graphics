@@ -29,6 +29,7 @@ namespace UnityEditor.VFX
 
     interface IHLSLCodeHolder : IEquatable<IHLSLCodeHolder>
     {
+        IEnumerable<string> includes { get; }
         ShaderInclude shaderFile { get; }
         string sourceCode { get; set; }
         string customCode { get; }

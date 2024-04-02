@@ -29,7 +29,7 @@ public static class SetupProject
     {
         RenderPipelineAsset rpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(RPAssets[rpAssetIdentifier]);
 
-        GraphicsSettings.renderPipelineAsset = rpAsset;
+        GraphicsSettings.defaultRenderPipeline = rpAsset;
     }
 
     public static void ApplySettings()

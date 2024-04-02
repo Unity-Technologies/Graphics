@@ -10,8 +10,8 @@ public class SGInstancedTestSettings : ShaderGraphGraphicsTestSettings
     {
         if (SRPBatchingDisabledPipeline != null)
         {
-            previousPipeline = GraphicsSettings.renderPipelineAsset;
-            GraphicsSettings.renderPipelineAsset = SRPBatchingDisabledPipeline;
+            previousPipeline = GraphicsSettings.defaultRenderPipeline;
+            GraphicsSettings.defaultRenderPipeline = SRPBatchingDisabledPipeline;
         }
     }
 
@@ -19,7 +19,7 @@ public class SGInstancedTestSettings : ShaderGraphGraphicsTestSettings
     {
         if (previousPipeline != null)
         {
-            GraphicsSettings.renderPipelineAsset = previousPipeline;
+            GraphicsSettings.defaultRenderPipeline = previousPipeline;
         }
     }
 }

@@ -32,7 +32,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
 
             #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
 

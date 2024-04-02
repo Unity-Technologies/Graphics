@@ -46,43 +46,7 @@ namespace UnityEditor.VFX.Block
         public string message => "Missing `inout` access modifier before the VFXAttributes type.\nNeeded because your code writes to at least one attribute.";
         public VFXErrorType type => VFXErrorType.Error;
     }
-
-    class HLSLMissingAccessError : IHLSMessage
-    {
-        string m_Name;
-        HLSLAccess[] m_ExpectedAccess;
-        HLSLAccess m_Fallback;
-
-        public HLSLMissingAccessError(string parameterName, HLSLAccess[] expectedAccess, HLSLAccess fallback = HLSLAccess.NONE)
-        {
-            m_Name = parameterName;
-            m_ExpectedAccess = expectedAccess;
-            m_Fallback = fallback;
-        }
-
-        public string message
-        {
-            get
-            {
-                var sb = new StringBuilder();
-                sb.Append($"Missing access modifier for parameter {m_Name}. Expected ");
-                foreach (var access in m_ExpectedAccess)
-                {
-                    sb.Append($" or '{access.ToString().ToLower()}'");
-                }
-                if (m_Fallback != HLSLAccess.NONE)
-                {
-                    sb.AppendLine();
-                    sb.Append($"Fallback to '{m_Fallback.ToString().ToLower()}'.");
-                }
-
-                return sb.ToString();
-            }
-        }
-
-        public VFXErrorType type => VFXErrorType.Warning;
-    }
-
+    
     class HLSLMissingVFXAttribute : IHLSMessage
     {
         public string message => "Missing `VFXAttributes attributes` as function's parameter";
@@ -183,6 +147,16 @@ namespace UnityEditor.VFX.Block
         public HLSLOutParameterNotAllowed(string parameterName)
         {
             message = $"Parameter {parameterName} has out or inout access which is not allowed for Custom HLSL block";
+        }
+        public string message { get; }
+        public VFXErrorType type => VFXErrorType.Error;
+    }
+
+    class HLSLMissingIncludeFile : IHLSMessage
+    {
+        public HLSLMissingIncludeFile(string filePath)
+        {
+            message = $"Couldn't open include file '{filePath}'.";
         }
         public string message { get; }
         public VFXErrorType type => VFXErrorType.Error;

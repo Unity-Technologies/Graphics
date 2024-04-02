@@ -280,10 +280,10 @@ namespace UnityEditor.VFX.Block
                 {
                     var sourceTransform = sampling[0];
 
-                    var i = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(0));
-                    var j = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(1));
-                    var k = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(2));
-                    var p = new VFXExpressionMatrixToVector3s(sourceTransform, VFXValue.Constant(3));
+                    var i = new VFXExpressionMatrixToAxis(sourceTransform, VFXValue.Constant(0));
+                    var j = new VFXExpressionMatrixToAxis(sourceTransform, VFXValue.Constant(1));
+                    var k = new VFXExpressionMatrixToAxis(sourceTransform, VFXValue.Constant(2));
+                    var p = new VFXExpressionMatrixToAxis(sourceTransform, VFXValue.Constant(3));
 
                     yield return new VFXNamedExpression(i, "readAxisX");
                     yield return new VFXNamedExpression(j, "readAxisY");

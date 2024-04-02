@@ -465,14 +465,14 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionVector3sToMatrix : VFXExpression
+    class VFXExpressionRowToMatrix : VFXExpression
     {
-        public VFXExpressionVector3sToMatrix() : this(new VFXExpression[] { new VFXValue<Vector3>(Vector3.right), new VFXValue<Vector3>(Vector3.up), new VFXValue<Vector3>(Vector3.forward), VFXValue<Vector3>.Default }
+        public VFXExpressionRowToMatrix() : this(new VFXExpression[] { new VFXValue<Vector4>(new Vector4(1, 0, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 1, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 1, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 0, 1)) }
         )
         {
         }
 
-        public VFXExpressionVector3sToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        public VFXExpressionRowToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
         {
         }
 
@@ -480,7 +480,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.Vector3sToMatrix;
+                return VFXExpressionOperation.RowToMatrix;
             }
         }
 
@@ -491,34 +491,34 @@ namespace UnityEditor.VFX
             var zReduce = constParents[2];
             var wReduce = constParents[3];
 
-            var x = xReduce.Get<Vector3>();
-            var y = yReduce.Get<Vector3>();
-            var z = zReduce.Get<Vector3>();
-            var w = wReduce.Get<Vector3>();
+            var x = xReduce.Get<Vector4>();
+            var y = yReduce.Get<Vector4>();
+            var z = zReduce.Get<Vector4>();
+            var w = wReduce.Get<Vector4>();
 
             Matrix4x4 matrix = new Matrix4x4();
-            matrix.SetColumn(0, new Vector4(x.x, x.y, x.z, 0.0f));
-            matrix.SetColumn(1, new Vector4(y.x, y.y, y.z, 0.0f));
-            matrix.SetColumn(2, new Vector4(z.x, z.y, z.z, 0.0f));
-            matrix.SetColumn(3, new Vector4(w.x, w.y, w.z, 1.0f));
+            matrix.SetRow(0, x);
+            matrix.SetRow(1, y);
+            matrix.SetRow(2, z);
+            matrix.SetRow(3, w);
 
             return VFXValue.Constant(matrix);
         }
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("VFXCreateMatrixFromColumns(float4({0}, 0.0), float4({1}, 0.0), float4({2}, 0.0), float4({3}, 1.0));", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("VFXCreateMatrixFromRows({0}, {1}, {2}, {3});", parents[0], parents[1], parents[2], parents[3]);
         }
     }
 
-    class VFXExpressionVector4sToMatrix : VFXExpression
+    class VFXExpressionColumnToMatrix : VFXExpression
     {
-        public VFXExpressionVector4sToMatrix() : this(new VFXExpression[] { new VFXValue<Vector4>(new Vector4(1, 0, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 1, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 1, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 0, 1)) }
+        public VFXExpressionColumnToMatrix() : this(new VFXExpression[] { new VFXValue<Vector4>(new Vector4(1, 0, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 1, 0, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 1, 0)), new VFXValue<Vector4>(new Vector4(0, 0, 0, 1)) }
         )
         {
         }
 
-        public VFXExpressionVector4sToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        public VFXExpressionColumnToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
         {
         }
 
@@ -526,7 +526,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.Vector4sToMatrix;
+                return VFXExpressionOperation.ColumnToMatrix;
             }
         }
 
@@ -557,14 +557,14 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionMatrixToVector3s : VFXExpression
+    class VFXExpressionAxisToMatrix : VFXExpression
     {
-        public VFXExpressionMatrixToVector3s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) } // TODO row index should not be an expression!
+        public VFXExpressionAxisToMatrix() : this(new VFXExpression[] { new VFXValue<Vector3>(Vector3.right), new VFXValue<Vector3>(Vector3.up), new VFXValue<Vector3>(Vector3.forward), VFXValue<Vector3>.Default }
         )
         {
         }
 
-        public VFXExpressionMatrixToVector3s(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        public VFXExpressionAxisToMatrix(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
         {
         }
 
@@ -572,8 +572,63 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.MatrixToVector3s;
+                return VFXExpressionOperation.AxisToMatrix;
             }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var xReduce = constParents[0];
+            var yReduce = constParents[1];
+            var zReduce = constParents[2];
+            var wReduce = constParents[3];
+
+            var x = xReduce.Get<Vector3>();
+            var y = yReduce.Get<Vector3>();
+            var z = zReduce.Get<Vector3>();
+            var w = wReduce.Get<Vector3>();
+
+            Matrix4x4 matrix = new Matrix4x4();
+            matrix.SetColumn(0, new Vector4(x.x, x.y, x.z, 0.0f));
+            matrix.SetColumn(1, new Vector4(y.x, y.y, y.z, 0.0f));
+            matrix.SetColumn(2, new Vector4(z.x, z.y, z.z, 0.0f));
+            matrix.SetColumn(3, new Vector4(w.x, w.y, w.z, 1.0f));
+
+            return VFXValue.Constant(matrix);
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("VFXCreateMatrixFromColumns(float4({0}, 0.0), float4({1}, 0.0), float4({2}, 0.0), float4({3}, 1.0));", parents[0], parents[1], parents[2], parents[3]);
+        }
+    }
+
+    class VFXExpressionMatrixToRow : VFXExpression
+    {
+        public VFXExpressionMatrixToRow() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) }
+        )
+        {
+        }
+
+        public VFXExpressionMatrixToRow(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.MatrixToRow;
+            }
+        }
+
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionRowToMatrix && reducedParents[1].Is(Flags.Constant))
+                return parent.parents[reducedParents[1].Get<int>()];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
@@ -584,23 +639,23 @@ namespace UnityEditor.VFX
             var mat = matReduce.Get<Matrix4x4>();
             var axis = axisReduce.Get<int>();
 
-            return VFXValue.Constant<Vector3>(mat.GetColumn(axis));
+            return VFXValue.Constant(mat.GetRow(axis));
         }
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("VFXGetColumnFromMatrix({0}, {1}).xyz", parents[0], parents[1]);
+            return string.Format("VFXGetRowFromMatrix({0}, {1})", parents[0], parents[1]);
         }
     }
 
-    class VFXExpressionMatrixToVector4s : VFXExpression
+    class VFXExpressionMatrixToColumn : VFXExpression
     {
-        public VFXExpressionMatrixToVector4s() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) } // TODO row index should not be an expression!
+        public VFXExpressionMatrixToColumn() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) }
         )
         {
         }
 
-        public VFXExpressionMatrixToVector4s(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        public VFXExpressionMatrixToColumn(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
         {
         }
 
@@ -608,8 +663,17 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return VFXExpressionOperation.MatrixToVector4s;
+                return VFXExpressionOperation.MatrixToColumn;
             }
+        }
+
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionColumnToMatrix && reducedParents[1].Is(Flags.Constant))
+                return parent.parents[reducedParents[1].Get<int>()];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
@@ -626,6 +690,52 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             return string.Format("VFXGetColumnFromMatrix({0}, {1})", parents[0], parents[1]);
+        }
+    }
+
+    class VFXExpressionMatrixToAxis : VFXExpression
+    {
+        public VFXExpressionMatrixToAxis() : this(new VFXExpression[] { VFXValue<Matrix4x4>.Default, VFXValue.Constant<int>(0) }
+        )
+        {
+        }
+
+        public VFXExpressionMatrixToAxis(params VFXExpression[] parents) : base(VFXExpression.Flags.None, parents)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.MatrixToAxis;
+            }
+        }
+
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionAxisToMatrix && reducedParents[1].Is(Flags.Constant))
+                return parent.parents[reducedParents[1].Get<int>()];
+
+            return base.Reduce(reducedParents);
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matReduce = constParents[0];
+            var axisReduce = constParents[1];
+
+            var mat = matReduce.Get<Matrix4x4>();
+            var axis = axisReduce.Get<int>();
+
+            Vector4 c = mat.GetColumn(axis);
+            return VFXValue.Constant(new Vector3(c.x, c.y, c.z));
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("VFXGetColumnFromMatrix({0}, {1}).xyz", parents[0], parents[1]);
         }
     }
 }

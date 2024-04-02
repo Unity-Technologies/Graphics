@@ -12,12 +12,12 @@ public class SwapPipelineAsset : MonoBehaviour
     private void OnEnable()
     {
         if (thisTestPipeline)
-            GraphicsSettings.renderPipelineAsset = thisTestPipeline;
+            GraphicsSettings.defaultRenderPipeline = thisTestPipeline;
     }
 
     void OnDisable()
     {
         if (defaultPipeline)
-            GraphicsSettings.renderPipelineAsset = defaultPipeline;
+            GraphicsSettings.defaultRenderPipeline = defaultPipeline;
     }
 }
