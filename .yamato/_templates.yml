@@ -14,7 +14,7 @@ pre_pack_hdrp_template_Win_trunk:
         image: package-ci/win10:v4.30.0
         flavor: b1.large
     commands:
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
@@ -53,7 +53,7 @@ test_hdrp_template_Win_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
@@ -156,7 +156,7 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:v4.30.0
         flavor: b1.large
     commands:
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
@@ -195,7 +195,7 @@ test_hdrp_template_Win_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
@@ -306,7 +306,7 @@ pre_pack_hdrp_blank_template_Win_trunk:
         image: package-ci/win10:v4.30.0
         flavor: b1.large
     commands:
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
     dependencies:
@@ -345,7 +345,7 @@ test_hdrp_blank_template_Win_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template.hdrp-blank
     artifacts:
@@ -448,7 +448,7 @@ pre_pack_hdrp_blank_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:v4.30.0
         flavor: b1.large
     commands:
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
     dependencies:
@@ -487,7 +487,7 @@ test_hdrp_blank_template_Win_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template.hdrp-blank
     artifacts:
@@ -598,7 +598,7 @@ pre_pack_universal_template_Win_trunk:
         image: package-ci/win10:v4.30.0
         flavor: b1.large
     commands:
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
@@ -637,7 +637,7 @@ test_universal_template_Win_trunk:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
@@ -740,7 +740,7 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
         image: package-ci/win10:v4.30.0
         flavor: b1.large
     commands:
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
@@ -779,7 +779,7 @@ test_universal_template_Win_CUSTOM-REVISION:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:

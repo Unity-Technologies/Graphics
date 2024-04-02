@@ -23,7 +23,7 @@ URP_Template_Win_Vulkan_playmode_mono_Linear_trunk:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -88,7 +88,7 @@ Build_URP_Template_Win_Vulkan_Standalone_mono_Linear_trunk:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
          retries: 2
@@ -125,7 +125,7 @@ URP_Template_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
@@ -190,7 +190,7 @@ Build_URP_Template_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  command: gsudo choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
          retries: 2

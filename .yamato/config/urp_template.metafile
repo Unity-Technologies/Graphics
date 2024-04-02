@@ -5,7 +5,7 @@ reuse_blocks:
   unity_downloader_cli:
     - [all]: <shared.platform.commands.setup_utr>
     - [Win_DX11, Win_DX12, Win_Vulkan]:
-      - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      - command: gsudo choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
         retries: 2
       - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor --wait --published-only
         retries: 2
