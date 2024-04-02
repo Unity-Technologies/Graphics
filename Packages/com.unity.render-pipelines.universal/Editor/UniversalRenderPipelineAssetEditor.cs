@@ -75,42 +75,27 @@ namespace UnityEditor.Rendering.Universal
         void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             rect.y += 2;
-            Rect indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
+            var indexRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
             EditorGUI.LabelField(indexRect, index.ToString());
-            Rect objRect = new Rect(rect.x + indexRect.width, rect.y, rect.width - 134, EditorGUIUtility.singleLineHeight);
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.ObjectField(objRect, m_RendererDataProp.GetArrayElementAtIndex(index), GUIContent.none);
-            if (EditorGUI.EndChangeCheck())
-                EditorUtility.SetDirty(target);
-
-            Rect defaultButton = new Rect(rect.width - 75, rect.y, 86, EditorGUIUtility.singleLineHeight);
-            var defaultRenderer = m_DefaultRendererProp.intValue;
-            GUI.enabled = index != defaultRenderer;
-            if (GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
+            using (var changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                m_DefaultRendererProp.intValue = index;
-                EditorUtility.SetDirty(target);
+                var objectFieldWidth = rect.width - 110;
+                var objRect = new Rect(rect.x + indexRect.width, rect.y, objectFieldWidth, EditorGUIUtility.singleLineHeight);
+                EditorGUI.ObjectField(objRect, m_RendererDataProp.GetArrayElementAtIndex(index), GUIContent.none);
+                if (changeCheck.changed)
+                    EditorUtility.SetDirty(target);
             }
-            GUI.enabled = true;
 
-            Rect selectRect = new Rect(rect.x + rect.width - 24, rect.y, 24, EditorGUIUtility.singleLineHeight);
-
-            UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
-
-            if (asset.ValidateRendererData(index))
+            var isDefaultRenderer = index == m_DefaultRendererProp.intValue;
+            using (new EditorGUI.DisabledScope(isDefaultRenderer))
             {
-                if (GUI.Button(selectRect, Styles.rendererSettingsText))
+                var defaultButtonX = rect.width - 51;
+                var defaultButtonRect = new Rect(defaultButtonX, rect.y, 86, EditorGUIUtility.singleLineHeight);
+                if (GUI.Button(defaultButtonRect, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
                 {
-                    Selection.SetActiveObjectWithContext(m_RendererDataProp.GetArrayElementAtIndex(index).objectReferenceValue,
-                        null);
-                }
-            }
-            else // Missing ScriptableRendererData
-            {
-                if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
-                {
-                    EditorGUIUtility.ShowObjectPicker<ScriptableRendererData>(null, false, null, index);
+                    m_DefaultRendererProp.intValue = index;
+                    EditorUtility.SetDirty(target);
                 }
             }
 

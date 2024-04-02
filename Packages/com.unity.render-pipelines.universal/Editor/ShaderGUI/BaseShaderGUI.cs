@@ -226,7 +226,7 @@ namespace UnityEditor
             /// The text and tooltip for the render face GUI.
             /// </summary>
             public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
-                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
+                "Specifies which faces to cull from your geometry. Front culls front faces. Back culls back faces. Both means that both sides are rendered.");
 
             /// <summary>
             /// The text and tooltip for the depth write GUI.
