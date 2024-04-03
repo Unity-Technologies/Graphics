@@ -20,3 +20,5 @@ The Graphics Compositor also includes functionality such as localized post-proce
 
 For an overview of the Graphics Compositor's functionality, refer to [Use the Graphics Compositor](use-the-graphics-compositor.md). For a description on specific options in the user interface, refer to [Graphics Compositor window reference](graphics-compositor-window-reference.md).
 
+Limitation: The Graphics Compositor is not compatible with Virtual Reality.
+
