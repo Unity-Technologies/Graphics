@@ -13,27 +13,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.UnitTests
         /// <inheritdoc />
         protected override GraphInstantiation GraphToInstantiate => GraphInstantiation.MemoryBlank;
 
-        // TODO (Brett) This is commented out to bring tests to a passing status.
-        // TODO (Brett) This test was not removed because it is indicating a valuable failure
-        // TODO (Brett) that should be addressed.
+        [UnityTest]
+        public IEnumerator TestEdgeCanBeDeleted()
+        {
+            // create and connect two nodes
+            var addNodeModel = SGGraphTestUtils.CreateNodeByName(GraphModel,"Add", Vector2.zero);
+            Assert.NotNull(addNodeModel, "Add node could not be added to the graph");
+            var previewNodeModel = SGGraphTestUtils.CreateNodeByName(GraphModel, "Preview", Vector2.zero);
+            Assert.NotNull(previewNodeModel, "Preview node model could not be added to the graph");
 
-        // [UnityTest]
-        // public IEnumerator TestEdgeCanBeDeleted()
-        // {
-        //     // Set up the graph
-        //     yield return m_TestInteractionHelper.CreateNodesAndConnect();
-        //
-        //     var edgeModel = m_MainWindow.GetEdgeModelFromGraphByName("Add", "Preview");
-        //
-        //     // Select element programmatically because it might be behind another one
-        //     m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, edgeModel));
-        //     yield return null;
-        //
-        //     Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
-        //     yield return null;
-        //
-        //     edgeModel = m_MainWindow.GetEdgeModelFromGraphByName("Add", "Preview");
-        //     Assert.IsNull(edgeModel, "Edge should be null after delete operation");
-        // }
+            var edgeModel = m_MainWindow.GetEdgeModelFromGraphByName("Add", "Preview");
+
+            // Select element programmatically because it might be behind another one
+            m_GraphView.Dispatch(new SelectElementsCommand(SelectElementsCommand.SelectionMode.Replace, edgeModel));
+            yield return null;
+
+            Assert.IsTrue(m_TestEventHelper.SendDeleteCommand());
+            yield return null;
+
+            edgeModel = m_MainWindow.GetEdgeModelFromGraphByName("Add", "Preview");
+            Assert.IsNull(edgeModel, "Edge should be null after delete operation");
+        }
     }
 }
