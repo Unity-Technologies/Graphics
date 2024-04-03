@@ -228,7 +228,10 @@ namespace UnityEditor.VFX
 
             // If the graph is reimported it can be because one of its dependency such as the subgraphs, has been changed.
             if (!VFXGraph.explicitCompile)
+            {
+                MarkOutputExpressionsAsOutOfDate();
                 ResyncSlots(true);
+            }
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

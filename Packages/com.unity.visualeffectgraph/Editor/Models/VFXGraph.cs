@@ -127,7 +127,15 @@ namespace UnityEditor.VFX
 
                         graph.CompileForImport();
 
-                        VFXMemorySerializer.ExtractObjects(backup, false);
+                        VFXGraph.restoringGraph = true;
+                        try
+                        {
+                            VFXMemorySerializer.ExtractObjects(backup, false);
+                        }
+                        finally
+                        {
+                            VFXGraph.restoringGraph = false;
+                        }
                         //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
                         //You have to avoid because it will call ResyncSlot
                     }
@@ -760,10 +768,12 @@ namespace UnityEditor.VFX
                 m_DependentDirty = true;
             }
 
-            if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
-                cause != VFXModel.InvalidationCause.kExpressionGraphChanged &&
-                cause != VFXModel.InvalidationCause.kExpressionValueInvalidated &&
-                cause != VFXModel.InvalidationCause.kUIChangedTransient &&
+            if ((cause == InvalidationCause.kStructureChanged ||
+                cause == InvalidationCause.kParamChanged ||
+                cause == InvalidationCause.kSettingChanged ||
+                cause == InvalidationCause.kSpaceChanged ||
+                cause == InvalidationCause.kConnectionChanged ||
+                cause == InvalidationCause.kUIChanged) &&
                 (model.hideFlags & HideFlags.DontSave) == 0)
             {
                 EditorUtility.SetDirty(this);
@@ -941,7 +951,7 @@ namespace UnityEditor.VFX
                 {
                     operatorChild.RecreateCopy();
                     if (operatorChild.ResyncSlots(true))
-                        operatorChild.UpdateOutputExpressions();
+                        operatorChild.UpdateOutputExpressionsIfNeeded();
                 }
             }
         }
@@ -976,7 +986,7 @@ namespace UnityEditor.VFX
                 else if (child is VFXSubgraphOperator operatorChild)
                 {
                     operatorChild.ResyncSlots(false);
-                    operatorChild.UpdateOutputExpressions();
+                    operatorChild.UpdateOutputExpressionsIfNeeded();
                 }
             }
             foreach (var child in children)
@@ -1037,6 +1047,8 @@ namespace UnityEditor.VFX
 
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
         public static bool explicitCompile { get; set; } = false;
+        //Set to true when restoring graph post compilation. Some costly behavior can be skipped in that situation (like reloading the whole UI). This is a safe hack.
+        public static bool restoringGraph { get; set; } = false;
 
 
         public void SanitizeForImport()
