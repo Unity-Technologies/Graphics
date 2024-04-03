@@ -37,9 +37,9 @@ namespace UnityEditor.ShaderGraph
             m_Includes.Add(includes);
         }
 
-        public void RequiresIncludePath(string includePath)
+        public void RequiresIncludePath(string includePath, bool shouldIncludeWithPragmas = false)
         {
-            m_Includes.Add(includePath, IncludeLocation.Graph);
+            m_Includes.Add(includePath, IncludeLocation.Graph, shouldIncludeWithPragmas);
         }
 
         // this list is somewhat redundant, but it preserves function declaration ordering
