@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 // Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
@@ -11,7 +12,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// <summary>
     /// Sets the read and write access for the depth buffer.
     /// </summary>
-    [Flags]
+    [Flags][MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public enum DepthAccess
     {
         ///<summary>Read Access.</summary>
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// <summary>
     /// Express the operations the rendergraph pass will do on a resource.
     /// </summary>
-    [Flags]
+    [Flags][MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public enum AccessFlags
     {
         ///<summary>The pass does not access the resource at all. Calling Use* functions with none has no effect.</summary>
@@ -51,6 +52,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// An object representing the internal context of a rendergraph pass execution.
     /// This object is public for technical reasons only and should not be used.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public class InternalRenderGraphContext
     {
         internal ScriptableRenderContext renderContext;
@@ -83,6 +85,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// command buffer that can be used to schedule all commands. This will eventually be deprecated
     /// in favor of more specific contexts that have more specific command buffer types.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RenderGraphContext : IDerivedRendergraphContext
     {
         private InternalRenderGraphContext wrappedContext;
@@ -107,6 +110,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// This class declares the context object passed to the execute function of a raster render pass.
     /// <see cref="RenderGraph.AddRasterRenderPass"/>
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RasterGraphContext : IDerivedRendergraphContext
     {
         private InternalRenderGraphContext wrappedContext;
@@ -135,6 +139,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// This class declares the context object passed to the execute function of a compute render pass.
     /// <see cref="RenderGraph.AddComputePass"/>
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public class ComputeGraphContext : IDerivedRendergraphContext
     {
         private InternalRenderGraphContext wrappedContext;
@@ -164,6 +169,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// This class declares the context object passed to the execute function of an unsafe render pass.
     /// <see cref="RenderGraph.AddUnsafePass"/>
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public class UnsafeGraphContext : IDerivedRendergraphContext
     {
         private InternalRenderGraphContext wrappedContext;
@@ -191,6 +197,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// <summary>
     /// This struct contains properties which control the execution of the Render Graph.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RenderGraphParameters
     {
         ///<summary>Identifier for this render graph execution.</summary>
@@ -216,12 +223,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// <typeparam name="ContextType">The type of the context that will be passed to the render function.</typeparam>
     /// <param name="data">Render Pass specific data.</param>
     /// <param name="renderGraphContext">Global Render Graph context.</param>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public delegate void BaseRenderFunc<PassData, ContextType>(PassData data, ContextType renderGraphContext) where PassData : class, new();
 
 
     /// <summary>
     /// This class is the main entry point of the Render Graph system.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public partial class RenderGraph
     {
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
@@ -2148,7 +2157,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     else
                     {
                         throw new InvalidOperationException("Setting MRTs without a depth buffer is not supported.");
-                    } 
+                    }
                 }
                 else
                 {
@@ -2547,15 +2556,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
     }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
     /// <summary>
     /// Render Graph Scoped Profiling markers
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RenderGraphProfilingScope : IDisposable
     {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
         ProfilingSampler m_Sampler;
         RenderGraph m_RenderGraph;
         bool m_Disposed;
+#endif
 
         /// <summary>
         /// Profiling Scope constructor
@@ -2564,10 +2575,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public RenderGraphProfilingScope(RenderGraph renderGraph, ProfilingSampler sampler)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_RenderGraph = renderGraph;
             m_Sampler = sampler;
             m_Disposed = false;
             renderGraph.BeginProfilingSampler(sampler);
+#endif
         }
 
         /// <summary>
@@ -2581,6 +2594,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // Protected implementation of Dispose pattern.
         void Dispose(bool disposing)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (m_Disposed)
                 return;
 
@@ -2593,34 +2607,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 
             m_Disposed = true;
-        }
-    }
-#else
-    /// <summary>
-    /// Render Graph Scoped Profiling markers
-    /// </summary>
-    public struct RenderGraphProfilingScope : IDisposable
-    {
-        /// <summary>
-        /// Profiling Scope constructor
-        /// </summary>
-        /// <param name="renderGraph">Render Graph used for this scope.</param>
-        /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
-        public RenderGraphProfilingScope(RenderGraph renderGraph, ProfilingSampler sampler)
-        {
-        }
-
-        /// <summary>
-        ///  Dispose pattern implementation
-        /// </summary>
-        public void Dispose()
-        {
-        }
-
-        // Protected implementation of Dispose pattern.
-        void Dispose(bool disposing)
-        {
-        }
-    }
 #endif
+        }
+    }
 }

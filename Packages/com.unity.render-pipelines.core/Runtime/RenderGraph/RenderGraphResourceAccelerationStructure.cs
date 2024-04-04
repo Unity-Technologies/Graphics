@@ -1,7 +1,5 @@
-using System;
 using System.Diagnostics;
-
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -9,6 +7,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// RayTracingAccelerationStructure resource handle.
     /// </summary>
     [DebuggerDisplay("RayTracingAccelerationStructure ({handle.index})")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RayTracingAccelerationStructureHandle
     {
         private static RayTracingAccelerationStructureHandle s_NullHandle = new RayTracingAccelerationStructureHandle();
@@ -41,6 +40,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// <summary>
     /// Descriptor used to identify ray tracing acceleration structure resources
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RayTracingAccelerationStructureDesc
     {
         /// <summary>RayTracingAccelerationStructure name.</summary>

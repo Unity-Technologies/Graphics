@@ -1,12 +1,12 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Common base interface for the different render graph builders. These functions are supported on all builders.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public interface IBaseRenderGraphBuilder : IDisposable
     {
         /// <summary>
@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// A builder for a compute render pass
     /// <see cref="RenderGraph.AddComputePass"/>
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public interface IComputeRenderGraphBuilder : IBaseRenderGraphBuilder
     {
 
@@ -149,6 +150,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// A builder for an unsafe render pass.
     /// <see cref="RenderGraph.AddUnsafePass"/>
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public interface IUnsafeRenderGraphBuilder : IBaseRenderGraphBuilder
     {
         /// <summary>
@@ -165,6 +167,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// A builder for a raster render pass
     /// <see cref="RenderGraph.AddRasterRenderPass"/>
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public interface IRasterRenderGraphBuilder : IBaseRenderGraphBuilder
     {
         /// <summary>

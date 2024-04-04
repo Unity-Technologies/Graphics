@@ -1,8 +1,11 @@
+using UnityEngine.Scripting.APIUpdating;
+
 namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// A base class that can be inherited by render graph implementers. Currently this is only used by URP. In the future this will allow shared SRP rendering features between HDRP and URP through render graph.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public interface IRenderGraphRecorder
     {
         /// <summary>
