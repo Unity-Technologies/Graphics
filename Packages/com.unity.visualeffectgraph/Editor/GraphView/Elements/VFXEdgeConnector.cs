@@ -2,14 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using UnityEditor.Experimental.GraphView;
-using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Profiling;
-
-using Type = System.Type;
-
-
-using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
@@ -60,6 +53,15 @@ namespace UnityEditor.VFX.UI
             if (view == null)
                 return;
             view.StopEdgeDragInfo();
+        }
+
+        protected override void Abort()
+        {
+            base.Abort();
+            if (m_Anchor.GetFirstAncestorOfType<VFXView>() is { } view)
+            {
+                view.StopEdgeDragInfo();
+            }
         }
 
         static List<VisualElement> s_PickedList = new List<VisualElement>();
