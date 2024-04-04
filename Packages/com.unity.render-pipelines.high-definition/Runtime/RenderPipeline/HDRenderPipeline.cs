@@ -2020,10 +2020,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
 #if UNITY_EDITOR
-            // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
-            // or been deleted/moved (m_globalSettings is not necessarily null)
-            if (m_GlobalSettings == null || HDRenderPipelineGlobalSettings.instance == null)
+            if (m_GlobalSettings == null)
+                    m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
+
+            if (m_GlobalSettings == null)
             {
+                // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
+                // or been deleted/moved (m_globalSettings is not necessarily null)
                 m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
                 m_GlobalSettings.EnsureShadersCompiled();
                 return;
