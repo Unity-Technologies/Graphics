@@ -154,8 +154,6 @@ public class ReadmeEditor : Editor
         }
     }
 
-    bool m_Initialized;
-
     GUIStyle LinkStyle
     {
         get { return m_LinkStyle; }
@@ -219,8 +217,6 @@ public class ReadmeEditor : Editor
 
         m_ButtonStyle = new GUIStyle(EditorStyles.miniButton);
         m_ButtonStyle.fontStyle = FontStyle.Bold;
-
-        m_Initialized = true;
     }
 
     bool LinkLabel(GUIContent label, params GUILayoutOption[] options)
