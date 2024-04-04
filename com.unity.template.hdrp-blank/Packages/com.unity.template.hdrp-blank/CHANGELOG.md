@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [17.0.4] - 2024-04-04
+
+### Changed
+
+- Upgrade Input System to 1.8.1
+- Set input default action to both
+- Add input action asset
+- Update EditorSettings for Trunk Merge
+- Remove unnecessary variable in readme editor
+
 ## [17.0.3] - 2024-03-20
 
 ### Changed
