@@ -33,6 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using var profilerScope = new ProfilingScope(ProfilingSampler.Get(HDProfileId.ComputeShadowCullingSplits));
 
+            HDShadowManagerDataForComputeCullingSplitsJob shadowManagerData = default;
+            shadowManager.GetUnmanageDataForComputeCullingSplitsJob(ref shadowManagerData);
+
             int shadowLightCount = processedVisibleLights.shadowLightCount;
             int maxShadowSplitCount = shadowLightCount * HDShadowUtils.k_MaxShadowSplitCount;
             int visibleLightCount = cullingResult.visibleLights.Length;
@@ -40,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             NativeArray<int> splitBufferOffset = new NativeArray<int>(1, Allocator.TempJob);
             NativeArray<Matrix4x4> cubemapFaces = new NativeArray<Matrix4x4>(HDShadowUtils.kCubemapFaces, Allocator.TempJob);
 
+            NativeReference<float3> newCachedDirectionalAngles = new NativeReference<float3>(HDCachedShadowManager.instance.cachedDirectionalAngles, Allocator.TempJob);
             NativeArray<HDShadowCullingSplit> hdSplitBuffer = processedVisibleLights.shadowCullingSplitBuffer.GetSubArray(0, maxShadowSplitCount);
             NativeArray<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesBuffer = processedVisibleLights.visibleLightsAndIndicesBuffer;
             NativeList<ShadowIndicesAndVisibleLightData> splitVisibleLightsAndIndicesBuffer = processedVisibleLights.splitVisibleLightsAndIndicesBuffer;
@@ -73,6 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 computeAreaRectangleShadowCullingInfosMarker = ComputeShadowCullingInfoProfilerMarkers.computeAreaRectangleShadowCullingInfosMarker,
                 computeDirectionalShadowCullingInfosMarker = ComputeShadowCullingInfoProfilerMarkers.computeDirectionalShadowCullingInfosMarker,
 
+                shadowManager = shadowManagerData,
                 cubeMapFaces = cubemapFaces,
                 visibleLights = cullingResult.visibleLights,
                 processedLights = processedLights,
@@ -87,11 +92,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 punctualShadowFilteringQuality = hdShadowInitParams.punctualShadowFilteringQuality,
                 usesReversedZBuffer = SystemInfo.usesReversedZBuffer,
                 shadowNearPlaneOffset = QualitySettings.shadowNearPlaneOffset,
-                shadowManagerRequestCount = shadowManager.GetShadowRequestCount(),
                 sortedLightCount = processedVisibleLights.sortedLightCounts,
                 invalidDataIndex = HDLightRenderDatabase.InvalidDataIndex,
 
                 inOutSplitBufferOffset = splitBufferOffset,
+                outNewCachedDirectionalAngles = newCachedDirectionalAngles,
                 outShadowRequestValidityArray = processedVisibleLights.shadowRequestValidityArray,
                 outHDSplitBuffer = hdSplitBuffer,
                 outSplitBuffer = outSplitBuffer,
@@ -144,8 +149,11 @@ namespace UnityEngine.Rendering.HighDefinition
             processedVisibleLights.dynamicDirectionalHDSplits = dynamicDirectionalHDSplits;
             processedVisibleLights.cachedDirectionalHDSplits = cachedDirectionalHDSplits;
 
+            HDCachedShadowManager.instance.cachedDirectionalAngles = newCachedDirectionalAngles.Value;
+
             splitBufferOffset.Dispose();
             cubemapFaces.Dispose();
+            newCachedDirectionalAngles.Dispose();
         }
 
         [BurstCompile]
@@ -172,11 +180,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [ReadOnly] public HDShadowFilteringQuality punctualShadowFilteringQuality;
             [ReadOnly] public bool usesReversedZBuffer;
             [ReadOnly] public float shadowNearPlaneOffset;
-            [ReadOnly] public int shadowManagerRequestCount;
             [ReadOnly] public int sortedLightCount;
             [ReadOnly] public int invalidDataIndex;
 
+            public HDShadowManagerDataForComputeCullingSplitsJob shadowManager;
             public NativeArray<int> inOutSplitBufferOffset;
+            public NativeReference<float3> outNewCachedDirectionalAngles;
             public NativeBitArray outShadowRequestValidityArray;
             public NativeArray<HDShadowCullingSplit> outHDSplitBuffer;
             public NativeArray<ShadowSplitData> outSplitBuffer;
@@ -227,6 +236,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (indicesAndPreambleMarker.Auto())
                 {
+                    float3 newCachedDirectionalAngles = shadowManager.cachedDirectionalAngles;
+
                     for (int sortKeyIndex = 0; sortKeyIndex < sortedLightCount; sortKeyIndex++)
                     {
                         uint sortKey = sortKeys[sortKeyIndex];
@@ -244,67 +255,69 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         ref HDAdditionalLightDataUpdateInfo lightUpdateInfo = ref updateInfosUnsafePtr[dataIndex];
-                        LightType lightType = visibleLights[lightIndex].lightType;
-                        int splitCount = HDAdditionalLightData.GetShadowRequestCount(cascadeShadowSplitCount, lightType);
+                        VisibleLight visibleLight = visibleLights[lightIndex];
+                        int splitCount = HDAdditionalLightData.GetShadowRequestCount(cascadeShadowSplitCount, visibleLight.lightType);
+                        ShadowMapUpdateType shadowUpdateType = HDAdditionalLightData.GetShadowUpdateType(visibleLight.lightType,
+                            lightUpdateInfo.shadowUpdateMode,
+                            lightUpdateInfo.alwaysDrawDynamicShadows,
+                            shadowManager.cachedShadowManager.directionalHasCachedAtlas);
 
-                        int shadowRequestCount = 0;
-                        BitArray8 isSplitValidArray = new BitArray8(0);
+                        BitArray8 isSplitValidMask = new BitArray8(0);
 
                         for (int i = 0; i < splitCount; i++)
                         {
                             HDShadowRequestHandle shadowRequestIndexLocation = shadowRequestSetHandle[i];
 
                             int shadowRequestIndex = hdShadowRequestIndicesStorage[shadowRequestIndexLocation.storageIndexForRequestIndex];
-                            if (shadowRequestIndex < 0 || shadowRequestIndex >= shadowManagerRequestCount)
+                            if (shadowRequestIndex < 0 || shadowRequestIndex >= shadowManager.requestCount)
                                 continue;
 
-                            isSplitValidArray[(uint)i] = true;
-                            ++shadowRequestCount;
+                            isSplitValidMask[(uint)i] = true;
                         }
 
-                        if (shadowRequestCount == 0)
+                        if (isSplitValidMask.allFalse)
                             continue;
+
+                        BitArray8 needCacheUpdateMask = ComputeNeedCacheUpdateMask(ref lightUpdateInfo, ref visibleLight, splitCount, ref newCachedDirectionalAngles);
 
                         ref ShadowIndicesAndVisibleLightData bufferElement = ref visibleLightsAndIndicesBufferPtr[lightIndex];
                         bufferElement.additionalLightUpdateInfo = lightUpdateInfo;
-                        bufferElement.visibleLight = visibleLights[lightIndex];
+                        bufferElement.visibleLight = visibleLight;
                         bufferElement.dataIndex = dataIndex;
                         bufferElement.lightIndex = lightIndex;
                         bufferElement.shadowRequestSetHandle = shadowRequestSetHandle;
-                        bufferElement.lightType = lightType;
                         bufferElement.sortKeyIndex = sortKeyIndex;
                         bufferElement.splitCount = splitCount;
-                        bufferElement.isSplitValidArray = isSplitValidArray;
-                        bufferElement.shadowRequestCount = shadowRequestCount;
+                        bufferElement.isSplitValidMask = isSplitValidMask;
+                        bufferElement.needCacheUpdateMask = needCacheUpdateMask;
+                        bufferElement.shadowUpdateType = shadowUpdateType;
 
                         outShadowRequestValidityArray.Set(sortKeyIndex, true);
 
-                        bool hasCachedComponent = lightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
-
-                        switch (lightType)
+                        switch (visibleLight.lightType)
                         {
                             case LightType.Spot:
                             case LightType.Box:
                             case LightType.Pyramid:
-                                if (hasCachedComponent)
+                                if (lightUpdateInfo.hasCachedComponent)
                                     ++cachedSpotCount;
                                 else
                                     ++dynamicSpotCount;
                                 break;
                             case LightType.Directional:
-                                if (hasCachedComponent)
+                                if (lightUpdateInfo.hasCachedComponent)
                                     ++cachedDirectionalCount;
                                 else
                                     ++dynamicDirectionalCount;
                                 break;
                             case LightType.Point:
-                                if (hasCachedComponent)
+                                if (lightUpdateInfo.hasCachedComponent)
                                     ++cachedPointCount;
                                 else
                                     ++dynamicPointCount;
                                 break;
                             case LightType.Rectangle:
-                                if (hasCachedComponent)
+                                if (lightUpdateInfo.hasCachedComponent)
                                     ++cachedAreaRectangleCount;
                                 else
                                     ++dynamicAreaRectangleCount;
@@ -315,6 +328,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ++collectedLightCount;
                     }
+
+                    outNewCachedDirectionalAngles.Value = newCachedDirectionalAngles;
                 }
 
                 // Now that we have the counts for each bucket, we divide a scratchpad array into slices,
@@ -365,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int lightIndex = (int)(sortKey & 0xFFFF);
                         ref ShadowIndicesAndVisibleLightData readData = ref visibleLightsAndIndicesBufferPtr[lightIndex];
                         ref HDAdditionalLightDataUpdateInfo lightUpdateInfo = ref readData.additionalLightUpdateInfo;
-                        LightType lightType = readData.lightType;
+                        LightType lightType = readData.visibleLight.lightType;
                         bool hasCachedComponent = lightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
 
                         switch (lightType)
@@ -496,7 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (visibleLightsAndIndicesDatas.Length == 0)
                     return 0;
 
-                int nextSplitOutputIndex = initialSplitBufferOffset;
+                int lightSplitBufferOffset = initialSplitBufferOffset;
 
                 for (int i = 0; i < visibleLightsAndIndicesDatas.Length; i++)
                 {
@@ -509,49 +524,59 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Debug.Assert(visibleLightsAndIndicesData.splitCount == 1);
 
-                    if (!visibleLightsAndIndicesData.isSplitValidArray[0])
-                        continue;
-
-                    int shadowRequestIndex = shadowRequestIndices[0];
-                    Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
-                    float spotAngleForShadows = light.useCustomSpotLightShadowCone ? Math.Min(light.customSpotLightShadowCone, visibleLight.spotAngle) : visibleLight.spotAngle;
-
-                    ShadowSplitData splitData;
-                    Matrix4x4 view;
-                    Matrix4x4 deviceProjectionYFlip;
-                    Matrix4x4 projection;
-                    Matrix4x4 invViewProjection;
-                    Vector4 deviceProjection;
-
-                    HDShadowUtils.ExtractSpotLightData(spotAngleForShadows, light.shadowNearPlane, light.aspectRatio, light.shapeWidth,
-                        light.shapeHeight, visibleLight, viewportSize, light.normalBias, punctualShadowFilteringQuality, usesReversedZBuffer,
-                        out view, out invViewProjection, out projection,
-                        out deviceProjection, out deviceProjectionYFlip,
-                        out splitData);
-
+                    bool skipCulling = true;
+                    ShadowSplitData splitData = default;
                     HDShadowCullingSplit hdSplit = default;
-                    hdSplit.view = view;
-                    hdSplit.deviceProjectionMatrix = default;
-                    hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
-                    hdSplit.projection = projection;
-                    hdSplit.invViewProjection = invViewProjection;
-                    hdSplit.deviceProjection = deviceProjection;
-                    hdSplit.cullingSphere = splitData.cullingSphere;
-                    hdSplit.viewportSize = viewportSize;
-                    hdSplit.forwardOffset = 0;
+                    hdSplit.splitIndex = 0;
 
-                    outHDSplitBuffer[nextSplitOutputIndex] = hdSplit;
-                    outSplitBuffer[nextSplitOutputIndex] = splitData;
+                    if (visibleLightsAndIndicesData.isSplitValidMask[0])
+                    {
+                        int shadowRequestIndex = shadowRequestIndices[0];
+                        Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
+                        float spotAngleForShadows = light.useCustomSpotLightShadowCone ? Math.Min(light.customSpotLightShadowCone, visibleLight.spotAngle) : visibleLight.spotAngle;
+
+                        Matrix4x4 view;
+                        Matrix4x4 deviceProjectionYFlip;
+                        Matrix4x4 projection;
+                        Matrix4x4 invViewProjection;
+                        Vector4 deviceProjection;
+
+                        HDShadowUtils.ExtractSpotLightData(spotAngleForShadows, light.shadowNearPlane, light.aspectRatio, light.shapeWidth,
+                            light.shapeHeight, visibleLight, viewportSize, light.normalBias, punctualShadowFilteringQuality, usesReversedZBuffer,
+                            out view, out invViewProjection, out projection,
+                            out deviceProjection, out deviceProjectionYFlip,
+                            out splitData);
+
+                        hdSplit.view = view;
+                        hdSplit.deviceProjectionMatrix = default;
+                        hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
+                        hdSplit.projection = projection;
+                        hdSplit.invViewProjection = invViewProjection;
+                        hdSplit.deviceProjection = deviceProjection;
+                        hdSplit.cullingSphere = splitData.cullingSphere;
+                        hdSplit.viewportSize = viewportSize;
+                        hdSplit.forwardOffset = 0;
+
+                        if (!visibleLightsAndIndicesData.HasShadowCacheUpToDate(0))
+                            skipCulling = false;
+                    }
+
+                    outHDSplitBuffer[lightSplitBufferOffset + 0] = hdSplit;
+                    outSplitBuffer[lightSplitBufferOffset + 0] = splitData;
+
+                    uint splitExclusionMask = skipCulling ? 0b1u : 0;
+
                     outPerLightShadowCullingInfos[lightIndex] = new LightShadowCasterCullingInfo
                     {
-                        splitRange = new RangeInt(nextSplitOutputIndex, 1),
+                        splitRange = new RangeInt(lightSplitBufferOffset, 1),
                         projectionType = GetSpotLightCullingProjectionType(visibleLight.lightType),
+                        splitExclusionMask = (ushort)splitExclusionMask,
                     };
 
-                    nextSplitOutputIndex++;
+                    lightSplitBufferOffset += 1;
                 }
 
-                return nextSplitOutputIndex - initialSplitBufferOffset;
+                return lightSplitBufferOffset - initialSplitBufferOffset;
             }
 
             int ComputePointShadowCullingSplits(UnsafeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesDatas, int initialSplitBufferOffset)
@@ -561,7 +586,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (visibleLightsAndIndicesDatas.Length == 0)
                     return 0;
 
-                int nextSplitOutputIndex = initialSplitBufferOffset;
+                int lightSplitBufferOffset = initialSplitBufferOffset;
 
                 for (int i = 0; i < visibleLightsAndIndicesDatas.Length; i++)
                 {
@@ -574,55 +599,62 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Debug.Assert(visibleLightsAndIndicesData.splitCount == SplitCount);
 
-                    int lightSplitBufferOffset = nextSplitOutputIndex;
+                    uint splitMaskRequest = 0;
+
                     for (int splitIndex = 0; splitIndex < SplitCount; splitIndex++)
                     {
-                        if (!visibleLightsAndIndicesData.isSplitValidArray[(uint)splitIndex])
-                            continue;
-
-                        int shadowRequestIndex = shadowRequestIndices[splitIndex];
-                        Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
-
-                        ShadowSplitData splitData;
-                        Matrix4x4 view;
-                        Matrix4x4 deviceProjectionYFlip;
-                        Matrix4x4 projection;
-                        Matrix4x4 invViewProjection;
-                        Vector4 deviceProjection;
-
-                        HDShadowUtils.ExtractPointLightData(cubeMapFaces, visibleLight, viewportSize, light.shadowNearPlane,
-                            light.normalBias, (uint)splitIndex, punctualShadowFilteringQuality, usesReversedZBuffer,
-                            out view, out invViewProjection, out projection,
-                            out deviceProjection, out deviceProjectionYFlip,
-                            out splitData);
-
+                        ShadowSplitData splitData = default;
                         HDShadowCullingSplit hdSplit = default;
-                        hdSplit.view = view;
-                        hdSplit.deviceProjectionMatrix = default;
-                        hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
-                        hdSplit.projection = projection;
-                        hdSplit.invViewProjection = invViewProjection;
-                        hdSplit.deviceProjection = deviceProjection;
-                        hdSplit.cullingSphere = splitData.cullingSphere;
-                        hdSplit.viewportSize = viewportSize;
-                        hdSplit.forwardOffset = 0;
+                        hdSplit.splitIndex = splitIndex;
 
-                        outHDSplitBuffer[nextSplitOutputIndex] = hdSplit;
-                        outSplitBuffer[nextSplitOutputIndex] = splitData;
+                        if (visibleLightsAndIndicesData.isSplitValidMask[(uint)splitIndex])
+                        {
+                            int shadowRequestIndex = shadowRequestIndices[splitIndex];
+                            Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
 
-                        ++nextSplitOutputIndex;
+                            Matrix4x4 view;
+                            Matrix4x4 deviceProjectionYFlip;
+                            Matrix4x4 projection;
+                            Matrix4x4 invViewProjection;
+                            Vector4 deviceProjection;
+
+                            HDShadowUtils.ExtractPointLightData(cubeMapFaces, visibleLight, viewportSize, light.shadowNearPlane,
+                                light.normalBias, (uint)splitIndex, punctualShadowFilteringQuality, usesReversedZBuffer,
+                                out view, out invViewProjection, out projection,
+                                out deviceProjection, out deviceProjectionYFlip,
+                                out splitData);
+
+                            hdSplit.view = view;
+                            hdSplit.deviceProjectionMatrix = default;
+                            hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
+                            hdSplit.projection = projection;
+                            hdSplit.invViewProjection = invViewProjection;
+                            hdSplit.deviceProjection = deviceProjection;
+                            hdSplit.cullingSphere = splitData.cullingSphere;
+                            hdSplit.viewportSize = viewportSize;
+                            hdSplit.forwardOffset = 0;
+
+                            if (!visibleLightsAndIndicesData.HasShadowCacheUpToDate(splitIndex))
+                                splitMaskRequest |= 1u << splitIndex;
+                        }
+
+                        outHDSplitBuffer[lightSplitBufferOffset + splitIndex] = hdSplit;
+                        outSplitBuffer[lightSplitBufferOffset + splitIndex] = splitData;
                     }
 
-                    int addedSplitCount = nextSplitOutputIndex - lightSplitBufferOffset;
+                    uint splitExclusionMask = ~splitMaskRequest & ((1u << SplitCount) - 1);
 
                     outPerLightShadowCullingInfos[lightIndex] = new LightShadowCasterCullingInfo
                     {
-                        splitRange = new RangeInt(lightSplitBufferOffset, addedSplitCount),
+                        splitRange = new RangeInt(lightSplitBufferOffset, SplitCount),
                         projectionType = BatchCullingProjectionType.Perspective,
+                        splitExclusionMask = (ushort)splitExclusionMask,
                     };
+
+                    lightSplitBufferOffset += SplitCount;
                 }
 
-                return nextSplitOutputIndex - initialSplitBufferOffset;
+                return lightSplitBufferOffset - initialSplitBufferOffset;
             }
 
             int ComputeAreaRectangleShadowCullingSplits(UnsafeList<ShadowIndicesAndVisibleLightData> visibleLightsAndIndicesDatas, int initialSplitBufferOffset)
@@ -630,7 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (visibleLightsAndIndicesDatas.Length == 0)
                     return 0;
 
-                int nextSplitOutputIndex = initialSplitBufferOffset;
+                int lightSplitBufferOffset = initialSplitBufferOffset;
 
                 for (int i = 0; i < visibleLightsAndIndicesDatas.Length; i++)
                 {
@@ -644,50 +676,60 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(visibleLightsAndIndicesData.splitCount == 1);
                     Debug.Assert(visibleLight.lightType == LightType.Rectangle);
 
-                    if (!visibleLightsAndIndicesData.isSplitValidArray[0])
-                        continue;
-
-                    int shadowRequestIndex = shadowRequestIndices[0];
-                    Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
-                    Vector2 shapeSize = new Vector2(light.shapeWidth, light.shapeHeight);
-                    float forwardOffset = HDAdditionalLightData.GetAreaLightOffsetForShadows(shapeSize, light.areaLightShadowCone);
-
-                    ShadowSplitData splitData;
-                    Matrix4x4 view;
-                    Matrix4x4 deviceProjectionYFlip;
-                    Matrix4x4 projection;
-                    Matrix4x4 invViewProjection;
-                    Vector4 deviceProjection;
-
-                    HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, light.areaLightShadowCone,
-                        light.shadowNearPlane, shapeSize, viewportSize, light.normalBias, usesReversedZBuffer,
-                        out view, out invViewProjection, out projection,
-                        out deviceProjection, out deviceProjectionYFlip,
-                        out splitData);
-
+                    bool skipCulling = true;
+                    ShadowSplitData splitData = default;
                     HDShadowCullingSplit hdSplit = default;
-                    hdSplit.view = view;
-                    hdSplit.deviceProjectionMatrix = default;
-                    hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
-                    hdSplit.projection = projection;
-                    hdSplit.invViewProjection = invViewProjection;
-                    hdSplit.deviceProjection = deviceProjection;
-                    hdSplit.cullingSphere = splitData.cullingSphere;
-                    hdSplit.viewportSize = viewportSize;
-                    hdSplit.forwardOffset = forwardOffset;
+                    hdSplit.splitIndex = 0;
 
-                    outHDSplitBuffer[nextSplitOutputIndex] = hdSplit;
-                    outSplitBuffer[nextSplitOutputIndex] = splitData;
+                    if (visibleLightsAndIndicesData.isSplitValidMask[0])
+                    {
+                        int shadowRequestIndex = shadowRequestIndices[0];
+                        Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
+                        Vector2 shapeSize = new Vector2(light.shapeWidth, light.shapeHeight);
+                        float forwardOffset = HDAdditionalLightData.GetAreaLightOffsetForShadows(shapeSize, light.areaLightShadowCone);
+
+                        Matrix4x4 view;
+                        Matrix4x4 deviceProjectionYFlip;
+                        Matrix4x4 projection;
+                        Matrix4x4 invViewProjection;
+                        Vector4 deviceProjection;
+
+                        HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, light.areaLightShadowCone,
+                            light.shadowNearPlane, shapeSize, viewportSize, light.normalBias, usesReversedZBuffer,
+                            out view, out invViewProjection, out projection,
+                            out deviceProjection, out deviceProjectionYFlip,
+                            out splitData);
+
+                        hdSplit.view = view;
+                        hdSplit.deviceProjectionMatrix = default;
+                        hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
+                        hdSplit.projection = projection;
+                        hdSplit.invViewProjection = invViewProjection;
+                        hdSplit.deviceProjection = deviceProjection;
+                        hdSplit.cullingSphere = splitData.cullingSphere;
+                        hdSplit.viewportSize = viewportSize;
+                        hdSplit.forwardOffset = forwardOffset;
+
+                        if (!visibleLightsAndIndicesData.HasShadowCacheUpToDate(0))
+                            skipCulling = false;
+                    }
+
+                    outHDSplitBuffer[lightSplitBufferOffset + 0] = hdSplit;
+                    outSplitBuffer[lightSplitBufferOffset + 0] = splitData;
+
+                    uint splitExclusionMask = skipCulling ? 0b1u : 0;
+
                     outPerLightShadowCullingInfos[lightIndex] = new LightShadowCasterCullingInfo
                     {
-                        splitRange = new RangeInt(nextSplitOutputIndex, 1),
+                        splitRange = new RangeInt(lightSplitBufferOffset, 1),
                         projectionType = BatchCullingProjectionType.Perspective,
+                        splitExclusionMask = (ushort)splitExclusionMask,
                     };
 
-                    nextSplitOutputIndex++;
+                    lightSplitBufferOffset += 1;
                 }
 
-                return nextSplitOutputIndex - initialSplitBufferOffset;
+                return lightSplitBufferOffset - initialSplitBufferOffset;
             }
 
             [BurstDiscard]
@@ -726,7 +768,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (visibleLightsAndIndicesDatas.Length == 0)
                     return 0;
 
-                int nextSplitOutputIndex = initialSplitBufferOffset;
+                int lightSplitBufferOffset = initialSplitBufferOffset;
 
                 for (int i = 0; i < visibleLightsAndIndicesDatas.Length; i++)
                 {
@@ -737,55 +779,174 @@ namespace UnityEngine.Rendering.HighDefinition
                     int shadowRequestIndicesBeginIndex = visibleLightsAndIndicesData.shadowRequestSetHandle.storageIndexForRequestIndices;
                     NativeArray<int> shadowRequestIndices = hdShadowRequestIndicesStorage.GetSubArray(shadowRequestIndicesBeginIndex, splitCount);
 
-                    int lightSplitBufferOffset = nextSplitOutputIndex;
+                    uint splitMaskRequest = 0;
+
                     for (int splitIndex = 0; splitIndex < splitCount; splitIndex++)
                     {
-                        if (!visibleLightsAndIndicesData.isSplitValidArray[(uint)splitIndex])
-                            continue;
-
-                        int shadowRequestIndex = shadowRequestIndices[splitIndex];
-                        Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
-
-                        ShadowSplitData splitData;
-                        Matrix4x4 view;
-                        Matrix4x4 deviceProjectionYFlip;
-                        Matrix4x4 deviceProjectionMatrix;
-                        Matrix4x4 projection;
-                        Matrix4x4 invViewProjection;
-                        Vector4 deviceProjection;
-
-                        HDShadowUtils.ExtractDirectionalLightData(viewportSize, (uint)splitIndex, cascadeShadowSplitCount,
-                            cascadeShadowSplits, shadowNearPlaneOffset, cullingResults, lightIndex,
-                            out view, out invViewProjection, out projection,
-                            out deviceProjectionMatrix, out deviceProjection, out deviceProjectionYFlip, out splitData);
-
+                        ShadowSplitData splitData = default;
                         HDShadowCullingSplit hdSplit = default;
-                        hdSplit.view = view;
-                        hdSplit.deviceProjectionMatrix = deviceProjectionMatrix;
-                        hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
-                        hdSplit.projection = projection;
-                        hdSplit.invViewProjection = invViewProjection;
-                        hdSplit.deviceProjection = deviceProjection;
-                        hdSplit.cullingSphere = splitData.cullingSphere;
-                        hdSplit.viewportSize = viewportSize;
-                        hdSplit.forwardOffset = 0;
+                        hdSplit.splitIndex = splitIndex;
 
-                        outHDSplitBuffer[nextSplitOutputIndex] = hdSplit;
-                        outSplitBuffer[nextSplitOutputIndex] = splitData;
+                        if (visibleLightsAndIndicesData.isSplitValidMask[(uint)splitIndex])
+                        {
+                            int shadowRequestIndex = shadowRequestIndices[splitIndex];
+                            Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
 
-                        nextSplitOutputIndex++;
+                            Matrix4x4 view;
+                            Matrix4x4 deviceProjectionYFlip;
+                            Matrix4x4 deviceProjectionMatrix;
+                            Matrix4x4 projection;
+                            Matrix4x4 invViewProjection;
+                            Vector4 deviceProjection;
+
+                            HDShadowUtils.ExtractDirectionalLightData(viewportSize, (uint)splitIndex, cascadeShadowSplitCount,
+                                cascadeShadowSplits, shadowNearPlaneOffset, cullingResults, lightIndex,
+                                out view, out invViewProjection, out projection,
+                                out deviceProjectionMatrix, out deviceProjection, out deviceProjectionYFlip, out splitData);
+
+                            hdSplit.view = view;
+                            hdSplit.deviceProjectionMatrix = deviceProjectionMatrix;
+                            hdSplit.deviceProjectionYFlip = deviceProjectionYFlip;
+                            hdSplit.projection = projection;
+                            hdSplit.invViewProjection = invViewProjection;
+                            hdSplit.deviceProjection = deviceProjection;
+                            hdSplit.cullingSphere = splitData.cullingSphere;
+                            hdSplit.viewportSize = viewportSize;
+                            hdSplit.forwardOffset = 0;
+
+                            if (!visibleLightsAndIndicesData.HasShadowCacheUpToDate(splitIndex))
+                                splitMaskRequest |= 1u << splitIndex;
+                        }
+
+                        outHDSplitBuffer[lightSplitBufferOffset + splitIndex] = hdSplit;
+                        outSplitBuffer[lightSplitBufferOffset + splitIndex] = splitData;
                     }
 
-                    int addedSplitCount = nextSplitOutputIndex - lightSplitBufferOffset;
+                    uint splitExclusionMask = ~splitMaskRequest & ((1u << splitCount) - 1);
 
                     outPerLightShadowCullingInfos[lightIndex] = new LightShadowCasterCullingInfo
                     {
-                        splitRange = new RangeInt(lightSplitBufferOffset, addedSplitCount),
+                        splitRange = new RangeInt(lightSplitBufferOffset, splitCount),
                         projectionType = BatchCullingProjectionType.Orthographic,
+                        splitExclusionMask = (ushort)splitExclusionMask,
                     };
+
+                    lightSplitBufferOffset += splitCount;
                 }
 
-                return nextSplitOutputIndex - initialSplitBufferOffset;
+                return lightSplitBufferOffset - initialSplitBufferOffset;
+            }
+
+            BitArray8 ComputeNeedCacheUpdateMask(ref HDAdditionalLightDataUpdateInfo lightUpdateInfo,
+                ref VisibleLight visibleLight,
+                int splitCount,
+                ref float3 newCachedDirectionalAngles)
+            {
+                BitArray8 needCacheUpdateMask = new BitArray8(0);
+
+                if (lightUpdateInfo.hasCachedComponent)
+                {
+                    float3 lightEulerAngles = visibleLight.localToWorldMatrix.rotation.eulerAngles;
+                    int lightIdxForCachedShadows = lightUpdateInfo.lightIdxForCachedShadows;
+                    bool shadowHasAtlasPlacement = lightIdxForCachedShadows != -1;
+
+                    bool isDirectional = visibleLight.lightType == LightType.Directional;
+                    bool isSpot = visibleLight.lightType == LightType.Spot || visibleLight.lightType == LightType.Pyramid || visibleLight.lightType == LightType.Box;
+                    bool isPoint = visibleLight.lightType == LightType.Point;
+                    bool isArea = visibleLight.lightType == LightType.Rectangle;
+
+                    if (isDirectional)
+                    {
+                        bool needsRenderingDueToTransformChange = false;
+                        if (lightUpdateInfo.updateUponLightMovement)
+                        {
+                            float angleDiffThreshold = lightUpdateInfo.cachedShadowAngleUpdateThreshold;
+                            float3 angleDiff = newCachedDirectionalAngles - lightEulerAngles;
+                            // Any angle difference
+                            if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
+                            {
+                                newCachedDirectionalAngles = lightEulerAngles;
+                                needsRenderingDueToTransformChange = true;
+                            }
+                        }
+
+                        BitArray8 directionalShadowPendingUpdate = shadowManager.cachedShadowManager.directionalShadowPendingUpdate;
+
+                        for (int i = 0; i < splitCount; i++)
+                        {
+                            bool directionalShadowIdxPendingUpdate = directionalShadowPendingUpdate[(uint)(lightIdxForCachedShadows + i)];
+                            bool needToUpdateCachedContent = shadowHasAtlasPlacement && (needsRenderingDueToTransformChange || directionalShadowIdxPendingUpdate);
+
+                            needCacheUpdateMask[(uint)i] = needToUpdateCachedContent;
+                        }
+                    }
+                    else if (isSpot || isPoint || isArea)
+                    {
+                        HDCachedShadowAtlasDataForShadowRequestUpdateJob cachedShadowAtlas = default;
+                        if (isSpot || isPoint)
+                        {
+                            cachedShadowAtlas = shadowManager.cachedShadowManager.punctualShadowAtlas;
+                        }
+                        else if (isArea)
+                        {
+                            cachedShadowAtlas = shadowManager.cachedShadowManager.areaShadowAtlas;
+                        }
+
+                        bool needsRenderingDueToTransformChange = false;
+                        if (lightUpdateInfo.updateUponLightMovement)
+                        {
+                            if (cachedShadowAtlas.transformCaches.TryGetValue(lightUpdateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
+                            {
+                                float positionThreshold = lightUpdateInfo.cachedShadowTranslationUpdateThreshold;
+                                float3 positionDiffVec = cachedTransform.position - visibleLight.GetPosition();
+                                float positionDiff = math.dot(positionDiffVec, positionDiffVec);
+                                if (positionDiff > positionThreshold * positionThreshold)
+                                    needsRenderingDueToTransformChange = true;
+
+                                float angleDiffThreshold = lightUpdateInfo.cachedShadowAngleUpdateThreshold;
+                                float3 cachedAngles = cachedTransform.angles;
+                                float3 angleDiff = cachedAngles - lightEulerAngles;
+                                // Any angle difference
+                                if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
+                                {
+                                    needsRenderingDueToTransformChange = true;
+                                }
+
+                                if (needsRenderingDueToTransformChange)
+                                {
+                                    // Update the record
+                                    cachedTransform.position = visibleLight.GetPosition();
+                                    cachedTransform.angles = lightEulerAngles;
+                                    cachedShadowAtlas.transformCaches[lightUpdateInfo.lightIdxForCachedShadows] = cachedTransform;
+                                }
+                            }
+                        }
+
+                        for (int i = 0; i < splitCount; i++)
+                        {
+                            bool needToUpdateCachedContent = false;
+
+                            if (shadowHasAtlasPlacement)
+                            {
+                                int cachedShadowID = lightUpdateInfo.lightIdxForCachedShadows + i;
+
+                                bool shadowsPendingRenderingContainedShadowID = cachedShadowAtlas.shadowsPendingRendering.Remove(cachedShadowID);
+                                needToUpdateCachedContent = needsRenderingDueToTransformChange || shadowsPendingRenderingContainedShadowID;
+
+                                if (shadowsPendingRenderingContainedShadowID)
+                                {
+                                    // Handshake with the cached shadow manager to notify about the rendering.
+                                    // Technically the rendering has not happened yet, but it is scheduled.
+                                    cachedShadowAtlas.shadowsWithValidData.TryAdd(cachedShadowID, cachedShadowID);
+                                }
+                            }
+
+                            needCacheUpdateMask[(uint)i] = needToUpdateCachedContent;
+                        }
+                    }
+                }
+
+                return needCacheUpdateMask;
             }
         }
 

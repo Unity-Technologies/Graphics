@@ -133,6 +133,8 @@ namespace UnityEngine.Rendering.HighDefinition
             set => flags[UpdateUponLightMovementFlagsIndex] = value;
         }
 
+        public bool hasCachedComponent => shadowUpdateMode != ShadowUpdateMode.EveryFrame;
+
         public void Set(HDAdditionalLightData additionalLightData)
         {
             shadowNearPlane = additionalLightData.shadowNearPlane;
