@@ -19,6 +19,10 @@ VFXOperatorUI #title #edit #icon
     align-self: center;
 }
 
+VFXOperatorUI.node #node-border > #title > Label {
+    margin-left: 16px;
+}
+
 OperandInfo PopupField
 {
     height: 16px;
