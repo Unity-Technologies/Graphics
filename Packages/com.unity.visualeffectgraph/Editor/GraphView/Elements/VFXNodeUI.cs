@@ -240,7 +240,9 @@ namespace UnityEditor.VFX.UI
 
             if (needsResync)
             {
-                var existingAnchors = container.Children().Cast<VFXDataAnchor>().ToDictionary(t => t.controller, t => t);
+                var existingAnchors = container.Children().Cast<VFXDataAnchor>()
+                    .Union(titleContainer.Query<VFXDataAnchor>().ToList())
+                    .ToDictionary(t => t.controller, t => t);
                 container.Clear();
                 for (int i = 0; i < ports.Count; ++i)
                 {
@@ -279,8 +281,6 @@ namespace UnityEditor.VFX.UI
             if (anchor.controller.isSubgraphActivation)
                 anchor.AddToClassList("subgraphblock");
 
-            var settingsCount = expanded ? settingsContainer.childCount : 0;
-            anchor.style.top = -28 - settingsCount * 18 - (settingsCount > 0 ? 18 : 1);
             titleContainer.AddToClassList("activationslot");
             anchor.AddToClassList("activationslot");
             AddToClassList("activationslot");
@@ -294,6 +294,16 @@ namespace UnityEditor.VFX.UI
                 var anchor = inputContainer.Children()
                     .Cast<VFXDataAnchor>()
                     .SingleOrDefault(x => x.controller == anchorController);
+
+                if (anchor != null)
+                {
+                    anchor.RemoveFromHierarchy();
+                    titleContainer.Insert(0, anchor);
+                }
+                else
+                {
+                    anchor = titleContainer.Q<VFXDataAnchor>();
+                }
                 if (anchor != null)
                 {
                     UpdateActivationPortPosition(anchor);
@@ -376,6 +386,11 @@ namespace UnityEditor.VFX.UI
                 foreach (var child in inputContainer.Children().OfType<VFXDataAnchor>())
                 {
                     yield return child;
+                }
+
+                if (titleContainer.Q<VFXDataAnchor>() is { } activationSlot)
+                {
+                    yield return activationSlot;
                 }
             }
             if (output)

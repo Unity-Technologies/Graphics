@@ -54,7 +54,7 @@ VFXBlockUI.VFXNodeUI.node.invalid #node-border
 
 VFXContextUI VFXBlockUI.node #node-border #title #title-label
 {
-    margin-left: 4px;
+    margin-left: 54px;
     flex: 1 0 auto;
 }
 
@@ -105,11 +105,6 @@ VFXBlockUI.node > #node-border
 VFXEditableDataAnchor.activationslot > BoolPropertyRM > Label
 {
     display: none;
-}
-
-VFXContextUI VFXBlockUI.node #node-border #title.activationslot > #title-label
-{
-    margin-left: 44px;
 }
 
 #title.activationslot > #collapse-button
