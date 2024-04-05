@@ -12,6 +12,7 @@ TEXTURE2D_SAMPLER2D(_CameraDepthTexture, sampler_CameraDepthTexture);
 TEXTURE2D_SAMPLER2D(_CameraMotionVectorsTexture, sampler_CameraMotionVectorsTexture);
 
 TEXTURE2D_SAMPLER2D(_CoCTex, sampler_CoCTex);
+TEXTURE2D_SAMPLER2D(_MaxCoCTex, sampler_MaxCoCTex);
 
 TEXTURE2D_SAMPLER2D(_DepthOfFieldTex, sampler_DepthOfFieldTex);
 float4 _DepthOfFieldTex_TexelSize;
@@ -19,6 +20,8 @@ float4 _DepthOfFieldTex_TexelSize;
 // Camera parameters
 float _Distance;
 float _LensCoeff;  // f^2 / (N * (S1 - f) * film_width * 2)
+half4 _CoCKernelLimitsA;
+half4 _CoCKernelLimitsB;
 float _MaxCoC;
 float _RcpMaxCoC;
 float _RcpAspect;
@@ -147,18 +150,95 @@ half4 FragPrefilter(VaryingsDefault i) : SV_Target
     return half4(avg, coc);
 }
 
+half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
+{
+    // TODO gather version
+
+    float3 duv = _MainTex_TexelSize.xyx * float3(0.5, 0.5, -0.5);
+    float2 uv0 = UnityStereoTransformScreenSpaceTex(i.texcoord - duv.xy);
+    float2 uv1 = UnityStereoTransformScreenSpaceTex(i.texcoord - duv.zy);
+    float2 uv2 = UnityStereoTransformScreenSpaceTex(i.texcoord + duv.zy);
+    float2 uv3 = UnityStereoTransformScreenSpaceTex(i.texcoord + duv.xy);
+
+    // Sample CoCs
+    half4 cocs;
+    cocs.x = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv0).r;
+    cocs.y = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv1).r;
+    cocs.z = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv2).r;
+    cocs.w = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv3).r;
+
+#if defined(INITIAL_COC)
+    cocs = cocs * 2.0 - 1.0;
+#endif
+    cocs = abs(cocs);
+
+    half maxCoC = max(cocs.x, Max3(cocs.y, cocs.z, cocs.w));
+    return half4(maxCoC, 0.0, 0.0, 0.0);
+}
+
+half4 FragExtendCoC(VaryingsDefault i) : SV_Target
+{
+    float tx = _MainTex_TexelSize.x;
+    float ty = _MainTex_TexelSize.y;
+
+    float2 uv0 = UnityStereoTransformScreenSpaceTex(i.texcoord);
+    float2 uv1 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx,  0));
+    float2 uv2 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx, ty));
+    float2 uv3 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(  0, ty));
+    float2 uv4 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(-tx, ty));
+    float2 uv5 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(-tx,  0));
+    float2 uv6 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(-tx,-ty));
+    float2 uv7 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2(  0,-ty));
+    float2 uv8 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx,-ty));
+
+    half coc0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv0).r;
+    half coc1 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv1).r;
+    half coc2 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv2).r;
+    half coc3 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv3).r;
+    half coc4 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv4).r;
+    half coc5 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv5).r;
+    half coc6 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv6).r;
+    half coc7 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv7).r;
+    half coc8 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv8).r;
+
+    half maxCoC = Max3(Max3(coc0, coc1, coc2), Max3(coc3, coc4, coc5), Max3(coc6, coc7, coc8));
+    return half4(maxCoC, 0.0, 0.0, 0.0);
+}
+
+
 // Bokeh filter with disk-shaped kernels
 half4 FragBlur(VaryingsDefault i) : SV_Target
 {
     half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
+    // normalized value in range [0, 1]
+    half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo).r;
+
+    int sampleCount;
+
+#if defined(KERNEL_UNIFIED)
+    UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[0])
+        sampleCount = kDiskKernelSizes[0];
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[1])
+        sampleCount = kDiskKernelSizes[1];
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[2])
+        sampleCount = kDiskKernelSizes[2];
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[3])
+        sampleCount = kDiskKernelSizes[3];
+    else
+        sampleCount = kDiskKernelSizes[4];
+    //(kc)    sampleCount = kDiskKernelSizes[4];
+#else
+    sampleCount = kSampleCount;
+#endif
 
     half4 bgAcc = 0.0; // Background: far field bokeh
     half4 fgAcc = 0.0; // Foreground: near field bokeh
 
     UNITY_LOOP
-    for (int si = 0; si < kSampleCount; si++)
+    for (int si = 0; si < sampleCount; si++)
     {
-        float2 disp = kDiskKernel[si] * _MaxCoC;
+        //float2 disp = kDiskKernel[si] * _MaxCoC;
+        float2 disp = kDiskAllKernels[si] * _MaxCoC * (12.0/8.0);
         float dist = length(disp);
 
         float2 duv = float2(disp.x * _RcpAspect, disp.y);
@@ -197,6 +277,22 @@ half4 FragBlur(VaryingsDefault i) : SV_Target
     // Alpha premultiplying
     half alpha = saturate(fgAcc.a);
     half3 rgb = lerp(bgAcc.rgb, fgAcc.rgb, alpha);
+
+#if defined(KERNEL_UNIFIED)
+    if (i.texcoord.x < 0.1)
+        rgb.r += 0.5; // (kc)
+
+    /*
+    if (sampleCount == 8)
+        rgb.r += 0.5;
+    if (sampleCount == 22)
+        rgb.g += 0.5;
+    if (sampleCount == 43)
+        rgb.b += 0.5;
+    if (sampleCount == 1)
+        rgb.rg += 0.5;
+    */
+#endif
 
     return half4(rgb, alpha);
 }

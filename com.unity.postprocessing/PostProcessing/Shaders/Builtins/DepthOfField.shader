@@ -33,6 +33,43 @@ Shader "Hidden/PostProcessing/DepthOfField"
 
         Pass // 2
         {
+            Name "Downsample initial MaxCoC"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertDefault
+                #pragma fragment FragDownsampleCoC
+                #define INITIAL_COC
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+        Pass // 3
+        {
+            Name "Downsample MaxCoC"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertDefault
+                #pragma fragment FragDownsampleCoC
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+        Pass // 4
+        {
+            Name "Extend MaxCoC"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertDefault
+                #pragma fragment FragExtendCoC
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+        Pass // 5
+        {
             Name "Downsample and Prefilter"
 
             HLSLPROGRAM
@@ -43,7 +80,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 3
+        Pass // 6
         {
             Name "Bokeh Filter (small)"
 
@@ -56,7 +93,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 4
+        Pass // 7
         {
             Name "Bokeh Filter (medium)"
 
@@ -69,7 +106,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 5
+        Pass // 8
         {
             Name "Bokeh Filter (large)"
 
@@ -82,7 +119,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 6
+        Pass // 9
         {
             Name "Bokeh Filter (very large)"
 
@@ -95,7 +132,20 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 7
+        Pass // 10
+        {
+            Name "Bokeh Filter (unified)"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertDefault
+                #pragma fragment FragBlur
+                #define KERNEL_UNIFIED
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+        Pass // 11
         {
             Name "Postfilter"
 
@@ -107,7 +157,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 8
+        Pass // 12
         {
             Name "Combine"
 
@@ -119,7 +169,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 9
+        Pass // 13
         {
             Name "Debug Overlay"
 
