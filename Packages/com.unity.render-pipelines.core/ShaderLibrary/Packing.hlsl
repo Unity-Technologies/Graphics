@@ -1,7 +1,7 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -621,7 +621,7 @@ float3 UnpackFromR7G7B6(uint rgb)
 }
 
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 
