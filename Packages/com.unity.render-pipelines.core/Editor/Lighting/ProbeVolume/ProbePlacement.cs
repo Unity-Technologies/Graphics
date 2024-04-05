@@ -44,8 +44,8 @@ namespace UnityEngine.Rendering
             public RenderTexture dummyRenderTarget;
 
             public ComputeBuffer probeVolumesBuffer;
+            public ComputeBuffer brickCountBuffer;
             public ComputeBuffer[] bricksBuffers;
-            public ComputeBuffer[] readbackCountBuffers;
 
             public Vector4[] brickPositions;
 
@@ -91,13 +91,13 @@ namespace UnityEngine.Rendering
                 maxSubdivisionLevelInSubCell = Mathf.Min(maxSubdivisionLevel, k_MaxSubdivisionInSubCell);
                 maxBrickCountPerAxisInSubCell = (int)Mathf.Pow(3, maxSubdivisionLevelInSubCell);
                 bricksBuffers = new ComputeBuffer[maxSubdivisionLevelInSubCell + 1];
-                readbackCountBuffers = new ComputeBuffer[maxSubdivisionLevelInSubCell + 1];
                 for (int i = 0; i <= maxSubdivisionLevelInSubCell; i++)
                 {
                     int brickCountPerAxis = (int)Mathf.Pow(3, maxSubdivisionLevelInSubCell - i);
-                    bricksBuffers[i] = new ComputeBuffer(brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, sizeof(float) * 4, ComputeBufferType.Append);
-                    readbackCountBuffers[i] = new ComputeBuffer(1, sizeof(int), ComputeBufferType.Raw);
+                    bricksBuffers[i] = new ComputeBuffer(brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, sizeof(float) * 4, ComputeBufferType.Structured);
                 }
+
+                brickCountBuffer = new ComputeBuffer(maxSubdivisionLevelInSubCell + 1, sizeof(uint), ComputeBufferType.Structured);
 
                 brickPositions = new Vector4[maxBrickCountPerAxisInSubCell * maxBrickCountPerAxisInSubCell * maxBrickCountPerAxisInSubCell];
             }
@@ -108,16 +108,16 @@ namespace UnityEngine.Rendering
                 RenderTexture.ReleaseTemporary(sceneSDF2);
                 RenderTexture.ReleaseTemporary(dummyRenderTarget);
                 probeVolumesBuffer.Release();
+                brickCountBuffer.Release();
 
                 for (int i = 0; i <= maxSubdivisionLevelInSubCell; i++)
-                {
                     bricksBuffers[i].Release();
-                    readbackCountBuffers[i].Release();
-                }
             }
         }
 
         static readonly int _BricksToClear = Shader.PropertyToID("_BricksToClear");
+        static readonly int _BricksToClearCount = Shader.PropertyToID("_BricksToClearCount");
+        static readonly int _BrickCountBuffer = Shader.PropertyToID("_BrickCountBuffer");
         static readonly int _Output = Shader.PropertyToID("_Output");
         static readonly int _OutputSize = Shader.PropertyToID("_OutputSize");
         static readonly int _VolumeWorldOffset = Shader.PropertyToID("_VolumeWorldOffset");
@@ -356,6 +356,9 @@ namespace UnityEngine.Rendering
             var probeSubdivisionData = ctx.sceneSDF2;
             VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx);
 
+            // Clear the brick counter, equivalent to SetBufferCounterValue(0) but we can't use append buffers
+            cmd.SetBufferData(ctx.brickCountBuffer, new int[ctx.maxSubdivisionLevelInSubCell + 1]);
+
             // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
             int globalMaxSubdiv = ProbeVolumeBakingSet.GetMaxSubdivision(ctx.maxSubdivisionLevel);
             int startSubdivisionLevel = Mathf.Max(0, ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.GetMaxSubdivMultiplier(globalMaxSubdiv))));
@@ -364,22 +367,21 @@ namespace UnityEngine.Rendering
                 // Add the bricks from the probe volume min subdivision level:
                 int brickCountPerAxis = (int)Mathf.Pow(3, ctx.maxSubdivisionLevelInSubCell - subdivisionLevel);
                 var bricksBuffer = ctx.bricksBuffers[subdivisionLevel];
-                var brickCountReadbackBuffer = ctx.readbackCountBuffers[subdivisionLevel];
 
                 using (new ProfilingScope(cmd, new ProfilingSampler("Clear Bricks Buffer")))
                 {
                     cmd.SetComputeBufferParam(subdivideSceneCS, s_ClearBufferKernel, _BricksToClear, bricksBuffer);
-                    DispatchCompute(cmd, s_ClearBufferKernel, brickCountPerAxis * brickCountPerAxis * brickCountPerAxis, 1);
-                    cmd.SetBufferCounterValue(bricksBuffer, 0);
+                    int count = brickCountPerAxis * brickCountPerAxis * brickCountPerAxis;
+                    cmd.SetComputeIntParam(subdivideSceneCS, _BricksToClearCount, count);
+                    DispatchCompute(cmd, s_ClearBufferKernel, count, 1);
                 }
 
                 // Generate the list of bricks on the GPU
-                SubdivideFromDistanceField(cmd, cellAABB, ctx, probeSubdivisionData, bricksBuffer, brickCountPerAxis, subdivisionLevel, minBrickSize, cellOffset);
+                SubdivideFromDistanceField(cmd, cellAABB, ctx, probeSubdivisionData, bricksBuffer, ctx.brickCountBuffer, brickCountPerAxis, subdivisionLevel, minBrickSize, cellOffset);
 
-                cmd.CopyCounterValue(bricksBuffer, brickCountReadbackBuffer, 0);
                 // Capture locally the subdivision level to use it inside the lambda
                 int localSubdivLevel = subdivisionLevel;
-                cmd.RequestAsyncReadback(brickCountReadbackBuffer, sizeof(int), 0, (data) => {
+                cmd.RequestAsyncReadback(ctx.brickCountBuffer, sizeof(int), subdivisionLevel * sizeof(int), (data) => {
                     int readbackBrickCount = data.GetData<int>()[0];
 
                     if (readbackBrickCount > 0)
@@ -394,11 +396,13 @@ namespace UnityEngine.Rendering
                     }
                 });
             }
+            // ExternalGPUProfiler.BeginGPUCapture();
 
             cmd.WaitAllAsyncReadbackRequests();
             Graphics.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
+            // ExternalGPUProfiler.EndGPUCapture();
         }
 
         static bool RasterizeGeometry(CommandBuffer cmd, Bounds cellAABB, GPUSubdivisionContext ctx, GIContributors contributors)
@@ -633,7 +637,7 @@ namespace UnityEngine.Rendering
 
         static void SubdivideFromDistanceField(
             CommandBuffer cmd, Bounds volume, GPUSubdivisionContext ctx, RenderTexture probeVolumeData,
-            ComputeBuffer buffer, int brickCount, int subdivisionLevel, float minBrickSize, Vector3 cellOffset)
+            ComputeBuffer buffer, ComputeBuffer brickCountBuffer, int brickCount, int subdivisionLevel, float minBrickSize, Vector3 cellOffset)
         {
             using (new ProfilingScope(cmd, new ProfilingSampler($"Subdivide Bricks at level {Mathf.Log(brickCount, 3)}")))
             {
@@ -642,6 +646,7 @@ namespace UnityEngine.Rendering
                 Vector3 volumeBrickPosition = (volume.center - volume.extents - cellOffset) / minBrickSize;
                 cmd.SetComputeVectorParam(subdivideSceneCS, _VolumeOffsetInBricks, volumeBrickPosition);
                 cmd.SetComputeBufferParam(subdivideSceneCS, s_SubdivideKernel, _Bricks, buffer);
+                cmd.SetComputeBufferParam(subdivideSceneCS, s_SubdivideKernel, _BrickCountBuffer, brickCountBuffer);
                 cmd.SetComputeVectorParam(subdivideSceneCS, _MaxBrickSize, Vector3.one * brickCount);
                 cmd.SetComputeFloatParam(subdivideSceneCS, _SubdivisionLevel, subdivisionLevel);
                 cmd.SetComputeFloatParam(subdivideSceneCS, _MaxSubdivisionLevel, ctx.maxSubdivisionLevelInSubCell);
