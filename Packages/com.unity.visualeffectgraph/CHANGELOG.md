@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [14.0.10] - 2024-04-03
+
+This version is compatible with Unity 2022.3.24f1.
+
+### Changed
+- Improve compilation times with VFX Graph using Subgraphs
+
+### Fixed
+- Instancing when gradient selection was based on a branch was wrong.
+- Unexpected material listing in animation window.
+- Disabled MeshToSDFBaker shaders on GLES3 to avoid warnings.
+- Incompatibility with HLSL 2021.
+- Removed GetParticleIndex shader warning in particle strip systems.
+- PCache exporter insure color in linear space.
+- Added tooltips to the VFX Control panel.
+- Fix Construct Matrix operator serialization issue
+- Fix some VFX being always considered dirty
 
 ## [14.0.9] - 2023-12-21
 
