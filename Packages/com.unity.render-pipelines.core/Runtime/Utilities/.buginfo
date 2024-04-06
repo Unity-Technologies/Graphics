@@ -18,7 +18,7 @@ xr:
   when:
     path:
       - ^.*XRUtils?.*$
-  area: XR SRP
+  area: SRP XR
 
 hdrp:
   when:

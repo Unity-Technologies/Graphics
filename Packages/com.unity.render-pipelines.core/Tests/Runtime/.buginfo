@@ -11,4 +11,4 @@ xr:
   when:
     path:
       - ^.*XRSubsystem.*$
-  area: XR SRP
+  area: SRP XR
