@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
             return newLength - count;
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct QueryRendererGroupInstancesCountJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 128;
@@ -30,9 +30,9 @@ namespace UnityEngine.Rendering
             [ReadOnly] public CPUInstanceData instanceData;
             [ReadOnly] public CPUSharedInstanceData sharedInstanceData;
             [ReadOnly] public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<int> rendererGroupIDs;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> rendererGroupIDs;
 
-            [NativeDisableContainerSafetyRestriction][WriteOnly] public NativeArray<int> instancesCount;
+            [NativeDisableContainerSafetyRestriction, NoAlias][WriteOnly] public NativeArray<int> instancesCount;
 
             public void Execute(int startIndex, int count)
             {
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct ComputeInstancesOffsetAndResizeInstancesArrayJob : IJob
         {
             [ReadOnly] public NativeArray<int> instancesCount;
@@ -75,15 +75,15 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct QueryRendererGroupInstancesJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 128;
 
             [ReadOnly] public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<int> rendererGroupIDs;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> rendererGroupIDs;
 
-            [NativeDisableContainerSafetyRestriction][WriteOnly] public NativeArray<InstanceHandle> instances;
+            [NativeDisableContainerSafetyRestriction, NoAlias][WriteOnly] public NativeArray<InstanceHandle> instances;
             [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicNonFoundInstancesCount;
 
             public void Execute(int startIndex, int count)
@@ -108,17 +108,17 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct QueryRendererGroupInstancesMultiJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 128;
 
             [ReadOnly] public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<int> rendererGroupIDs;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<int> instancesOffsets;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<int> instancesCounts;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> rendererGroupIDs;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> instancesOffsets;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> instancesCounts;
 
-            [NativeDisableContainerSafetyRestriction][WriteOnly] public NativeArray<InstanceHandle> instances;
+            [NativeDisableContainerSafetyRestriction, NoAlias][WriteOnly] public NativeArray<InstanceHandle> instances;
             [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicNonFoundSharedInstancesCount;
             [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicNonFoundInstancesCount;
 
@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct QuerySortedMeshInstancesJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 64;
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct CalculateInterpolatedLightAndOcclusionProbesBatchJob : IJobParallelFor
         {
             public const int k_BatchSize = 1;
@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct ScatterTetrahedronCacheIndicesJob : IJobParallelFor
         {
             public const int k_BatchSize = 128;
@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering
             [ReadOnly] public NativeArray<InstanceHandle> probeInstances;
             [ReadOnly] public NativeArray<int> compactTetrahedronCache;
 
-            [NativeDisableContainerSafetyRestriction][NativeDisableParallelForRestriction] public CPUInstanceData instanceData;
+            [NativeDisableContainerSafetyRestriction, NoAlias][NativeDisableParallelForRestriction] public CPUInstanceData instanceData;
 
             public void Execute(int index)
             {
@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct TransformUpdateJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 64;
@@ -374,14 +374,14 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct ProbesUpdateJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 64;
 
             [ReadOnly] public bool initialize;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<InstanceHandle> instances;
-            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction] public CPUInstanceData instanceData;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<InstanceHandle> instances;
+            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction, NoAlias] public CPUInstanceData instanceData;
             [ReadOnly] public CPUSharedInstanceData sharedInstanceData;
 
             [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicProbesQueueCount;
@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct MotionUpdateJob : IJobParallelFor
         {
             public const int k_BatchSize = 16;
@@ -488,7 +488,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct ReallocateInstancesJob : IJob
         {
             [ReadOnly] public bool implicitInstanceIndices;
@@ -600,7 +600,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct FreeInstancesJob : IJob
         {
             [ReadOnly] public NativeArray<InstanceHandle> instances;
@@ -652,7 +652,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct FreeRendererGroupInstancesJob : IJob
         {
             [ReadOnly] public NativeArray<int> rendererGroupsID;
@@ -695,7 +695,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct UpdateRendererInstancesJob : IJobParallelFor
         {
             public const int k_BatchSize = 128;
@@ -705,8 +705,8 @@ namespace UnityEngine.Rendering
             [ReadOnly] public NativeArray<InstanceHandle> instances;
             [ReadOnly] public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataMap;
 
-            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction] public CPUInstanceData instanceData;
-            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction] public CPUSharedInstanceData sharedInstanceData;
+            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction, NoAlias] public CPUInstanceData instanceData;
+            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction, NoAlias] public CPUSharedInstanceData sharedInstanceData;
 
             public void Execute(int index)
             {
@@ -819,7 +819,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct CollectInstancesLODGroupsAndMasksJob : IJobParallelFor
         {
             public const int k_BatchSize = 128;
@@ -838,14 +838,14 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct GetVisibleNonProcessedTreeInstancesJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 64;
 
             [ReadOnly] public CPUInstanceData instanceData;
             [ReadOnly] public CPUSharedInstanceData sharedInstanceData;
-            [ReadOnly][NativeDisableContainerSafetyRestriction] public ParallelBitArray compactedVisibilityMasks;
+            [ReadOnly][NativeDisableContainerSafetyRestriction, NoAlias] public ParallelBitArray compactedVisibilityMasks;
             [ReadOnly] public bool becomeVisible;
 
             [NativeDisableParallelForRestriction] public ParallelBitArray processedBits;
@@ -920,14 +920,14 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct UpdateCompactedInstanceVisibilityJob : IJobParallelForBatch
         {
             public const int k_BatchSize = 64;
 
             [ReadOnly] public ParallelBitArray compactedVisibilityMasks;
 
-            [NativeDisableContainerSafetyRestriction][NativeDisableParallelForRestriction] public CPUInstanceData instanceData;
+            [NativeDisableContainerSafetyRestriction, NoAlias][NativeDisableParallelForRestriction] public CPUInstanceData instanceData;
 
             public void Execute(int startIndex, int count)
             {
@@ -949,7 +949,7 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private struct UpdateSelectedInstancesJob : IJobParallelFor
         {
             public const int k_BatchSize = 64;

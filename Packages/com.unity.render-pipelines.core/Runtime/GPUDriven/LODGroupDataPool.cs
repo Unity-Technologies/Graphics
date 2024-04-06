@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering
         public fixed bool percentageFlags[LODGroupData.k_MaxLODLevelsCount];// SpeedTree crossfade.
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct UpdateLODGroupTransformJob : IJobParallelFor
     {
         public const int k_BatchSize = 256;
@@ -41,9 +41,9 @@ namespace UnityEngine.Rendering
         [ReadOnly] public bool requiresGPUUpload;
         [ReadOnly] public bool supportDitheringCrossFade;
 
-        [NativeDisableContainerSafetyRestriction, ReadOnly] public NativeList<LODGroupData> lodGroupData;
+        [NativeDisableContainerSafetyRestriction, NoAlias, ReadOnly] public NativeList<LODGroupData> lodGroupData;
 
-        [NativeDisableContainerSafetyRestriction, WriteOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
+        [NativeDisableContainerSafetyRestriction, NoAlias, WriteOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
 
         [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicUpdateCount;
 
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct AllocateOrGetLODGroupDataInstancesJob : IJob
     {
         [ReadOnly] public NativeArray<int> lodGroupsID;
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct UpdateLODGroupDataJob : IJobParallelFor
     {
         public const int k_BatchSize = 256;
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct FreeLODGroupDataJob : IJob
     {
         [ReadOnly] public NativeArray<int> destroyedLODGroupsID;

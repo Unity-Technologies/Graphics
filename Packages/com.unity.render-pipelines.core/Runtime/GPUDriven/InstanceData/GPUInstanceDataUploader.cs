@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering
                 m_DummyArray.Dispose();
         }
 
-        [BurstCompile(DisableSafetyChecks = true)]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         internal struct WriteInstanceDataParameterJob : IJobParallelFor
         {
             public const int k_BatchSize = 512;
@@ -436,9 +436,9 @@ namespace UnityEngine.Rendering
             [ReadOnly] public int uintPerInstance;
             [ReadOnly] public NativeArray<int> componentDataIndex;
             [ReadOnly] public NativeArray<int> gatherIndices;
-            [NativeDisableContainerSafetyRestriction][ReadOnly] public NativeArray<uint> instanceData;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<uint> instanceData;
 
-            [NativeDisableContainerSafetyRestriction][WriteOnly] public NativeArray<uint> tmpDataBuffer;
+            [NativeDisableContainerSafetyRestriction, NoAlias][WriteOnly] public NativeArray<uint> tmpDataBuffer;
 
             public unsafe void Execute(int index)
             {

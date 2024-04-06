@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         struct ConvertCPUInstancesToGPUInstancesJob : IJobParallelFor
         {
             public const int k_BatchSize = 512;

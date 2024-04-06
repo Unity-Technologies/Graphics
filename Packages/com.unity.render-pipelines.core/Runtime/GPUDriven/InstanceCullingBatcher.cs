@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering
         public uint indexCount;
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct PrefixSumDrawInstancesJob : IJob
     {
         [ReadOnly] public NativeParallelHashMap<RangeKey, int> rangeHash;
@@ -105,18 +105,18 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct BuildDrawListsJob : IJobParallelFor
     {
         public const int k_BatchSize = 128;
         public const int k_IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 
         [ReadOnly] public NativeParallelHashMap<DrawKey, int> batchHash;
-        [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeList<DrawInstance> drawInstances;
-        [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeList<DrawBatch> drawBatches;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeList<DrawInstance> drawInstances;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeList<DrawBatch> drawBatches;
 
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> internalDrawIndex;
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> drawInstanceIndices;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> internalDrawIndex;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> drawInstanceIndices;
 
         private unsafe static int IncrementCounter(int* counter)
         {
@@ -136,13 +136,13 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct FindDrawInstancesJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 128;
 
         [ReadOnly] public NativeArray<InstanceHandle> instancesSorted;
-        [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeList<DrawInstance> drawInstances;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeList<DrawInstance> drawInstances;
 
         [WriteOnly] public NativeList<int>.ParallelWriter outDrawInstanceIndicesWriter;
 
@@ -163,13 +163,13 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct FindMaterialDrawInstancesJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 128;
 
         [ReadOnly] public NativeArray<uint> materialsSorted;
-        [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeList<DrawInstance> drawInstances;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeList<DrawInstance> drawInstances;
 
         [WriteOnly] public NativeList<int>.ParallelWriter outDrawInstanceIndicesWriter;
 
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct FindNonRegisteredInstancesJob<T> : IJobParallelForBatch where T : unmanaged
     {
         public const int k_BatchSize = 128;
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct RegisterNewInstancesJob<T> : IJobParallelFor where T : unmanaged
     {
         public const int k_BatchSize = 128;
@@ -233,10 +233,10 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct RemoveDrawInstanceIndicesJob : IJob
     {
-        [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeArray<int> drawInstanceIndices;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeArray<int> drawInstanceIndices;
 
         public NativeList<DrawInstance> drawInstances;
         public NativeParallelHashMap<RangeKey, int> rangeHash;
@@ -244,7 +244,6 @@ namespace UnityEngine.Rendering
         public NativeList<DrawRange> drawRanges;
         public NativeList<DrawBatch> drawBatches;
 
-        [BurstCompile]
         public void RemoveDrawRange(in RangeKey key)
         {
             int drawRangeIndex = rangeHash[key];
@@ -256,7 +255,6 @@ namespace UnityEngine.Rendering
             drawRanges.RemoveAtSwapBack(drawRangeIndex);
         }
 
-        [BurstCompile]
         public void RemoveDrawBatch(in DrawKey key)
         {
             int drawBatchIndex = batchHash[key];
@@ -303,7 +301,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true)]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct CreateDrawBatchesJob : IJob
     {
         [ReadOnly] public bool implicitInstanceIndices;
@@ -319,7 +317,6 @@ namespace UnityEngine.Rendering
 
         [WriteOnly] public NativeList<DrawInstance> drawInstances;
 
-        [BurstCompile]
         private ref DrawRange EditDrawRange(in RangeKey key)
         {
             int drawRangeIndex;
@@ -338,7 +335,6 @@ namespace UnityEngine.Rendering
             return ref data;
         }
 
-        [BurstCompile]
         private ref DrawBatch EditDrawBatch(in DrawKey key, in SubMeshDescriptor subMeshDescriptor)
         {
             var procInfo = new MeshProceduralInfo();
@@ -531,7 +527,6 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
     internal class CPUDrawInstanceData
     {
         public NativeList<DrawInstance> drawInstances => m_DrawInstances;
