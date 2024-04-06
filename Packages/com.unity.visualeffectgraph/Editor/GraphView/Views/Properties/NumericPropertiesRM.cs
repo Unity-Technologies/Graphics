@@ -21,13 +21,9 @@ namespace UnityEditor.VFX.UI
 
         protected override void UpdateIndeterminate()
         {
-            if (field is BaseField<float> floatField)
+            if (field is IMixedValueSupport mixedValueSupport)
             {
-                floatField.showMixedValue = indeterminate;
-            }
-            else if (field is BaseField<int> intField)
-            {
-                intField.showMixedValue = indeterminate;
+                mixedValueSupport.showMixedValue = indeterminate;
             }
 
             if (m_Slider != null)
@@ -54,7 +50,7 @@ namespace UnityEditor.VFX.UI
             VisualElement createdField;
             if (!HasValidRange(range))
             {
-                createdField = CreateSimpleField(ObjectNames.NicifyVariableName(provider.name));
+                createdField = CreateSimpleField(string.IsNullOrEmpty(provider.name) ? "  " : ObjectNames.NicifyVariableName(provider.name));
                 m_TextField = createdField.Q<TextElement>(null, "unity-text-element__selectable");
                 if (m_TextField != null)
                 {

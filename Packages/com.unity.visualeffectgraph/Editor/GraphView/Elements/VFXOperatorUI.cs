@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXOperatorUI : VFXNodeUI
     {
-        private const float defaultOperatorLabelWidth = 30f;
+        private const float defaultOperatorLabelWidth = 10f;
 
         VisualElement m_EditButton;
         VisualElement m_EditContainer;
