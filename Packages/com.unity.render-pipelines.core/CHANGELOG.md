@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.14] - 2024-04-03
+
+This version is compatible with Unity 2021.3.38f1.
+
+### Fixed
+- Fixed issue where errors could be thrown by debug action registration if deleting all axes in Input Manager.
+- Fixed DebugUI.Button not working in Rendering Debugger runtime UI.
 
 ## [12.1.13] - 2023-12-21
 

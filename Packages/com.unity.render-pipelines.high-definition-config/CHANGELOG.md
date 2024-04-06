@@ -1,10 +1,18 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.14] - 2024-04-03
+
+This version is compatible with Unity 2021.3.38f1.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.14] - 2024-04-03
+
+This version is compatible with Unity 2021.3.38f1.
+
+### Fixed
+- Fixed bright pixels when using a camera with skybox and MSAA rendering opaque objects with alpha clipping together with a transparent object if additive blending.
+- Fixed an issue where renderer features didn't pass validation if they inherit from another renderer feature.
 
 ## [12.1.13] - 2023-12-21
 
