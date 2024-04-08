@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [16.0.5] - 2024-04-03
+
+This version is compatible with Unity 2023.2.18f1.
+
+### Changed
+- Improved scene culling performance when APV is enabled in the project.
+
+### Fixed
+- Fixed NullReferenceException when exiting Play Mode with HDRP + DLSS + XR
+- Fixed for motion blur blending.
+- Fixed the scroll bar jumping at the top of the window when focusing a settings from the same panel in the project settings.
+- Optimize the OnDisable of DecalProjector component when disabling a lot of decals at the same time.
+- Remove the error message "Decal texture atlas out of space..." in release builds (it now only appears in the Editor or Development Builds).
+- Optimize PBR sky precomputation and memory usage.
+- Fixed an issue where HDRP shaders were not HLSL2021 compliant.
+- Fixed artifacts on low resolution SSGI when dynamic resolution values are low.
+- Fixed shader warning.
+- HDRP: Fixed invalid AABB error in the console when using the APV with reflection probes.
+- Fix game view flicker while on HDR and Reflection probe
+- Restore `EditorGUIUtility.labelWidth` to default after drawing Material GUI
+- Fix scene modification when exiting play mode with the graphics compositor enabled.
+- Fix specular blend in premultiplied alpha
+- Add Graphics Compositor Limitation section for VR
+- Fixed screen node not returning correct resolution after post-processing when dynamic resolution is enabled.
+- Fix internally created Game Objects being deallocated on scene changes.
 
 ## [16.0.4] - 2023-12-21
 
