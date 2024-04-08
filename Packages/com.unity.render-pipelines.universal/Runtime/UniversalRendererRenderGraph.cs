@@ -1272,9 +1272,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
-
-            TextureHandle cameraColor = resourceData.cameraColor;
-
+             
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
             // Allocate debug screen texture if the debug mode needs it.
@@ -1316,13 +1314,12 @@ namespace UnityEngine.Rendering.Universal
                     // that the post processing output is rendered to a properly sized target. Any rendering performed beyond this point will also use the upscaled targets.
                     if (cameraData.IsSTPEnabled())
                         m_UseUpscaledColorHandle = true;
-
-                    cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
-                    resourceData.cameraColor = cameraColor;
+                   
+                    resourceData.cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams); 
                 }
 
                 // Desired target for post-processing pass.
-                var target = isTargetBackbuffer ? backbuffer : cameraColor;
+                var target = isTargetBackbuffer ? backbuffer : resourceData.cameraColor;
 
                 // but we may actually render to an intermediate texture if debug views are enabled.
                 // In that case, DebugHandler will eventually blit DebugScreenTexture into AfterPostProcessColor.
@@ -1362,7 +1359,9 @@ namespace UnityEngine.Rendering.Universal
                     target = resourceData.debugScreenColor;
                 }
 
-                m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in cameraColor, in overlayUITexture, in target, needsColorEncoding);
+                // make sure we are accessing the proper camera color in case it was replaced by injected passes
+                var source = resourceData.cameraColor;
+                m_PostProcessPasses.finalPostProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in source, in overlayUITexture, in target, needsColorEncoding);
 
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
@@ -1395,11 +1394,11 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // make sure we are accessing the proper camera color in case it was replaced by injected passes
-                cameraColor = resourceData.cameraColor;
+                var source = resourceData.cameraColor;
 
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
-                m_FinalBlitPass.Render(renderGraph, cameraData, cameraColor, target, overlayUITexture);
+                m_FinalBlitPass.Render(renderGraph, cameraData, source, target, overlayUITexture);
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
             }
