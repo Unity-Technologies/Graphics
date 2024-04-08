@@ -185,6 +185,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         // For Preview windows we want to have a 'fixed' sky, so we can display chrome metal and have always the same look
         HDRISky m_DefaultPreviewSky;
+
+        // Hard-coded SH for DefaultHDRISky.exr
+        // This is a temporary solution for the preview rendering issue when SH is not ready.
+        // A proper fix is needed when we want to expose the control of sky for preview.
+        SphericalHarmonicsL2 m_DefaultPreviewSkyAmbientProbe = new SphericalHarmonicsL2();
 #endif
 
         // Shared resources for sky rendering.
@@ -454,6 +459,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
+
+            {
+                m_DefaultPreviewSkyAmbientProbe[0, 0] = 0.1279895f;
+                m_DefaultPreviewSkyAmbientProbe[0, 1] = -0.01244975f;
+                m_DefaultPreviewSkyAmbientProbe[0, 2] = 0.002333597f;
+                m_DefaultPreviewSkyAmbientProbe[0, 3] = -0.01013585f;
+                m_DefaultPreviewSkyAmbientProbe[0, 4] = -0.006032045f;
+                m_DefaultPreviewSkyAmbientProbe[0, 5] = 0.0005331814f;
+                m_DefaultPreviewSkyAmbientProbe[0, 6] = 0.002311948f;
+                m_DefaultPreviewSkyAmbientProbe[0, 7] = -0.001873836f;
+                m_DefaultPreviewSkyAmbientProbe[0, 8] = 0.0231871f;
+                m_DefaultPreviewSkyAmbientProbe[1, 0] = 0.1585829f;
+                m_DefaultPreviewSkyAmbientProbe[1, 1] = 0.01596837f;
+                m_DefaultPreviewSkyAmbientProbe[1, 2] = 0.003311858f;
+                m_DefaultPreviewSkyAmbientProbe[1, 3] = -0.01475812f;
+                m_DefaultPreviewSkyAmbientProbe[1, 4] = -0.009350514f;
+                m_DefaultPreviewSkyAmbientProbe[1, 5] = 0.000841937f;
+                m_DefaultPreviewSkyAmbientProbe[1, 6] = 0.003378667f;
+                m_DefaultPreviewSkyAmbientProbe[1, 7] = -0.002562553f;
+                m_DefaultPreviewSkyAmbientProbe[1, 8] = 0.03318842f;
+                m_DefaultPreviewSkyAmbientProbe[2, 0] = 0.209883f;
+                m_DefaultPreviewSkyAmbientProbe[2, 1] = 0.06525062f;
+                m_DefaultPreviewSkyAmbientProbe[2, 2] = 0.004639104f;
+                m_DefaultPreviewSkyAmbientProbe[2, 3] = -0.02339679f;
+                m_DefaultPreviewSkyAmbientProbe[2, 4] = -0.01619671f;
+                m_DefaultPreviewSkyAmbientProbe[2, 5] = 0.001453806f;
+                m_DefaultPreviewSkyAmbientProbe[2, 6] = 0.003758613f;
+                m_DefaultPreviewSkyAmbientProbe[2, 7] = -0.003646188f;
+                m_DefaultPreviewSkyAmbientProbe[2, 8] = 0.04316145f;
+            }
 #endif
         }
 
@@ -605,6 +640,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return m_BlackAmbientProbe;
             }
+
+#if UNITY_EDITOR
+            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera))
+            {
+                return m_DefaultPreviewSkyAmbientProbe;
+            }
+#endif
 
             return GetAmbientProbe(GetLightingSky(hdCamera));
         }
