@@ -89,6 +89,8 @@ struct FragmentOutput
 FragmentOutput ToFragmentOutput(half4 finalColor)
 {
     FragmentOutput output;
+    output.GLightBuffer0 = output.GLightBuffer1 = output.GLightBuffer2 = output.GLightBuffer3 = half4(0,0,0,0);
+
     #if USE_SHAPE_LIGHT_TYPE_0
     output.GLightBuffer0 = finalColor;
     #endif
