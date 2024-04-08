@@ -191,10 +191,14 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return 1.0f / (int)scale;
         }
 
-        static T AddComponent<T>(GameObject go) where T : Component
+        static T AddComponent<T>(GameObject go, bool allowUndo = false) where T : Component
         {
 #if UNITY_EDITOR
-            return UnityEditor.Undo.AddComponent<T>(go);
+            if (allowUndo)
+                return UnityEditor.Undo.AddComponent<T>(go);
+            else
+                return go.AddComponent<T>();
+
 #else
             return go.AddComponent<T>();
 #endif
@@ -226,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 return 0;
             }
         }
-        public void Init(string layerID = "")
+        public void Init(string layerID = "", bool allowUndo = false)
         {
             if (m_LayerName == "")
             {
@@ -357,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     // create the component if it is required and does not exist
                     if (layerData == null)
                     {
-                        layerData = AddComponent<AdditionalCompositorData>(m_LayerCamera.gameObject);
+                        layerData = AddComponent<AdditionalCompositorData>(m_LayerCamera.gameObject, allowUndo);
                         layerData.hideFlags = HideFlags.HideAndDontSave | HideFlags.HideInInspector;
                     }
                     // Reset the layer params (in case we cloned a camera which already had AdditionalCompositorData)
