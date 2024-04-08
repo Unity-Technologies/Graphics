@@ -139,12 +139,14 @@ namespace UnityEngine.Rendering.PostProcessing
             return RenderTextureFormat.Default;
         }
 
-        float CalculateMaxCoCRadius(int screenHeight)
+        float CalculateMaxCoCRadius(int screenHeight, out int mipLevel)
         {
             // Estimate the allowable maximum radius of CoC from the kernel
             // size (the equation below was empirically derived).
             float radiusInPixels = (float)settings.kernelSize.value * 4f + 6f;
-
+            // Find the miplevel encasing the bokeh radius.
+            mipLevel = (int)(Mathf.Log(radiusInPixels * 2 - 1) / Mathf.Log(2));
+            
             // Applying a 5% limit to the CoC radius to keep the size of
             // TileMax/NeighborMax small enough.
             return Mathf.Min(0.05f, radiusInPixels / screenHeight);
@@ -176,7 +178,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         public override void Render(PostProcessRenderContext context)
         {
-            bool useUnified = true; // (kc)
+            bool useUnified = (Time.time % 2f) < 1f; // (kc)
 
             // The coc is stored in alpha so we need a 4 channels target. Note that using ARGB32
             // will result in a very weak near-blur.
@@ -189,7 +191,8 @@ namespace UnityEngine.Rendering.PostProcessing
             var s1 = Mathf.Max(settings.focusDistance.value, f);
             var aspect = (float)context.screenWidth / (float)context.screenHeight;
             var coeff = f * f / (settings.aperture.value * (s1 - f) * scaledFilmHeight * 2f);
-            var maxCoC = CalculateMaxCoCRadius(context.screenHeight);
+            int maxCoCMipLevel;
+            var maxCoC = CalculateMaxCoCRadius(context.screenHeight, out maxCoCMipLevel);
 
             Vector4 cocKernelLimitsA;
             Vector4 cocKernelLimitsB;
@@ -233,22 +236,21 @@ namespace UnityEngine.Rendering.PostProcessing
                 cmd.SetGlobalTexture(ShaderIDs.CoCTex, historyWrite);
             }
 
-            int macCoCIndex = 4;
-
-            // Downsampling CoC
-            context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCMips[1], 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, context.width >> 1, context.height >> 1);
-            cmd.BlitFullscreenTriangle(ShaderIDs.CoCTex, ShaderIDs.MaxCoCMips[1], sheet, (int)Pass.downsampleInitialMaxCoC);
-            for (int i = 2; i <= macCoCIndex; ++i)
-            {
-                context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCMips[i], 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, context.width >> i, context.height >> i);
-                cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[i-1], ShaderIDs.MaxCoCMips[i], sheet, (int)Pass.downsampleMaxCoC);
-            }
-
             if (useUnified)
             {
+                // Downsampling CoC
+                context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCMips[1], 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, context.width >> 1, context.height >> 1);
+                cmd.BlitFullscreenTriangle(ShaderIDs.CoCTex, ShaderIDs.MaxCoCMips[1], sheet, (int)Pass.downsampleInitialMaxCoC);
+
+                for (int i = 2; i <= maxCoCMipLevel; ++i)
+                {
+                    context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCMips[i], 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, context.width >> i, context.height >> i);
+                    cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[i - 1], ShaderIDs.MaxCoCMips[i], sheet, (int)Pass.downsampleMaxCoC);
+                }
+
                 // Extend CoC
-                context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCTex, 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, context.width >> macCoCIndex, context.height >> macCoCIndex);
-                cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[macCoCIndex], ShaderIDs.MaxCoCTex, sheet, (int)Pass.extendMaxCoC);
+                context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCTex, 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, context.width >> maxCoCMipLevel, context.height >> maxCoCMipLevel);
+                cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[maxCoCMipLevel], ShaderIDs.MaxCoCTex, sheet, (int)Pass.extendMaxCoC);
             }
 
             // Downsampling and prefiltering pass
@@ -257,7 +259,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
             // Bokeh simulation pass
             context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.DepthOfFieldTemp, 0, colorFormat, RenderTextureReadWrite.Default, FilterMode.Bilinear, context.width / 2, context.height / 2);
-            cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, useUnified ? (int)Pass.BokehUnified : (int)Pass.BokehSmallKernel + (int)settings.kernelSize.value);
+            cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, useUnified ? (int)Pass.BokehUnified :  (int)Pass.BokehSmallKernel + (int)settings.kernelSize.value);
 
             // Postfilter pass
             cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTemp, ShaderIDs.DepthOfFieldTex, sheet, (int)Pass.PostFilter);

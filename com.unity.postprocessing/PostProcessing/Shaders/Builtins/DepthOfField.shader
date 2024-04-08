@@ -139,7 +139,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             HLSLPROGRAM
                 #pragma target 3.5
                 #pragma vertex VertDefault
-                #pragma fragment FragBlur
+                #pragma fragment FragBlurUnified
                 #define KERNEL_UNIFIED
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL

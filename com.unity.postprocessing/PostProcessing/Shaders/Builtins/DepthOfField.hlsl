@@ -213,32 +213,21 @@ half4 FragBlur(VaryingsDefault i) : SV_Target
     // normalized value in range [0, 1]
     half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo).r;
 
-    int sampleCount;
-
-#if defined(KERNEL_UNIFIED)
-    UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[0])
-        sampleCount = kDiskKernelSizes[0];
-    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[1])
-        sampleCount = kDiskKernelSizes[1];
-    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[2])
-        sampleCount = kDiskKernelSizes[2];
-    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[3])
-        sampleCount = kDiskKernelSizes[3];
-    else
-        sampleCount = kDiskKernelSizes[4];
-    //(kc)    sampleCount = kDiskKernelSizes[4];
-#else
-    sampleCount = kSampleCount;
-#endif
+    int sampleCount = kSampleCount;
 
     half4 bgAcc = 0.0; // Background: far field bokeh
     half4 fgAcc = 0.0; // Foreground: near field bokeh
 
+    const half margin = _MainTex_TexelSize.y * 2;
+
     UNITY_LOOP
     for (int si = 0; si < sampleCount; si++)
     {
-        //float2 disp = kDiskKernel[si] * _MaxCoC;
-        float2 disp = kDiskAllKernels[si] * _MaxCoC * (12.0/8.0);
+#if defined(KERNEL_UNIFIED)
+        float2 disp = kDiskAllKernels[si] * _MaxCoC * (12.0 / 8.0);
+#else
+        float2 disp = kDiskKernel[si] * _MaxCoC;
+#endif
         float dist = length(disp);
 
         float2 duv = float2(disp.x * _RcpAspect, disp.y);
@@ -250,8 +239,7 @@ half4 FragBlur(VaryingsDefault i) : SV_Target
 
         // Compare the CoC to the sample distance.
         // Add a small margin to smooth out.
-        const half margin = _MainTex_TexelSize.y * 2;
-        half bgWeight = saturate((bgCoC   - dist + margin) / margin);
+        half bgWeight = saturate((bgCoC - dist + margin) / margin);
         half fgWeight = saturate((-samp.a - dist + margin) / margin);
 
         // Cut influence from focused areas because they're darkened by CoC
@@ -272,27 +260,97 @@ half4 FragBlur(VaryingsDefault i) : SV_Target
     bgAcc.a = smoothstep(_MainTex_TexelSize.y, _MainTex_TexelSize.y * 2.0, samp0.a);
 
     // FG: Normalize the total of the weights.
-    fgAcc.a *= PI / kSampleCount;
+    fgAcc.a *= PI / sampleCount;
 
     // Alpha premultiplying
     half alpha = saturate(fgAcc.a);
     half3 rgb = lerp(bgAcc.rgb, fgAcc.rgb, alpha);
 
-#if defined(KERNEL_UNIFIED)
-    if (i.texcoord.x < 0.1)
-        rgb.r += 0.5; // (kc)
+    return half4(rgb, alpha);
+}
+
+// Bokeh filter with disk-shaped kernels
+half4 FragBlurUnified(VaryingsDefault i) : SV_Target
+{
+    half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
+    // normalized value in range [0, 1]
+    half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo).r;
+
+    int sampleCount;
+
+    UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[0])
+        sampleCount = kDiskAllKernelSizes[0];
+    // margin adjustment later in the shader code artifically expand bokeh by 4px in fullscreen units (1 extra ring), we cannot have small bokeh as a result!
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[1])
+        sampleCount = kDiskAllKernelSizes[1+1];
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[2])
+        sampleCount = kDiskAllKernelSizes[2+1];
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[3])
+        sampleCount = kDiskAllKernelSizes[3+1];
+    else
+        sampleCount = kDiskAllKernelSizes[4];
+
+    const half margin = _MainTex_TexelSize.y * 2;
+
+    half4 bgAcc = 0.0; // Background: far field bokeh
+    half4 fgAcc = 0.0; // Foreground: near field bokeh
+
+    UNITY_LOOP
+    for (int si = 0; si < sampleCount; si++)
+    {
+        float2 disp = kDiskAllKernels[si] * _MaxCoC * (12.0 / 8.0);
+
+        float dist = length(disp);
+
+        float2 duv = float2(disp.x * _RcpAspect, disp.y);
+        half4 samp = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(i.texcoord + duv));
+
+        // BG: Compare CoC of the current sample and the center sample
+        // and select smaller one.
+        half bgCoC = max(min(samp0.a, samp.a), 0.0);
+
+        // Compare the CoC to the sample distance.
+        // Add a small margin to smooth out.
+        half bgWeight = saturate((bgCoC - dist + margin) / margin);
+        half fgWeight = saturate((-samp.a - dist + margin) / margin);
+
+        // Cut influence from focused areas because they're darkened by CoC
+        // premultiplying. This is only needed for near field.
+        fgWeight *= step(_MainTex_TexelSize.y, -samp.a);
+
+        // Accumulation
+        bgAcc += half4(samp.rgb, 1.0) * bgWeight;
+        fgAcc += half4(samp.rgb, 1.0) * fgWeight;
+    }
+
+    // Get the weighted average.
+    bgAcc.rgb /= bgAcc.a + (bgAcc.a == 0.0); // zero-div guard
+    fgAcc.rgb /= fgAcc.a + (fgAcc.a == 0.0);
+
+    // BG: Calculate the alpha value only based on the center CoC.
+    // This is a rather aggressive approximation but provides stable results.
+    bgAcc.a = smoothstep(_MainTex_TexelSize.y, _MainTex_TexelSize.y * 2.0, samp0.a);
+
+    // FG: Normalize the total of the weights.
+    fgAcc.a *= PI / sampleCount;
+
+    // Alpha premultiplying
+    half alpha = saturate(fgAcc.a);
+    half3 rgb = lerp(bgAcc.rgb, fgAcc.rgb, alpha);
 
     /*
+    if (i.texcoord.x < 0.05)
+        rgb.r += 0.5; // (kc)
+
     if (sampleCount == 8)
         rgb.r += 0.5;
     if (sampleCount == 22)
         rgb.g += 0.5;
     if (sampleCount == 43)
         rgb.b += 0.5;
-    if (sampleCount == 1)
+    if (sampleCount == 71)
         rgb.rg += 0.5;
     */
-#endif
 
     return half4(rgb, alpha);
 }

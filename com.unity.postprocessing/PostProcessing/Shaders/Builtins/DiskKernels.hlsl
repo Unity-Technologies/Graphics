@@ -202,7 +202,7 @@ static const float2 kDiskKernel[kSampleCount] = {
 #endif
 
 
-static const int kDiskKernelSizes[7] = { 1, 8, 22, 43, 71, 106, 148 };
+static const int kDiskAllKernelSizes[7] = { 1, 8, 22, 43, 71, 106, 148 };
 static const float2 kDiskAllKernels[148] = {
 float2(0, 0),
 // ring 1 index=1
