@@ -248,8 +248,6 @@ namespace UnityEngine.Rendering.Universal
             XRSystem.SetDisplayMSAASamples(msaaSamples);
             XRSystem.SetRenderScale(asset.renderScale);
 
-            Shader.globalRenderPipeline = k_ShaderTagName;
-
             Lightmapping.SetDelegate(lightsDelegate);
 
             CameraCaptureBridge.enabled = true;
@@ -315,8 +313,6 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
 
             pipelineAsset.DestroyRenderers();
-
-            Shader.globalRenderPipeline = string.Empty;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
