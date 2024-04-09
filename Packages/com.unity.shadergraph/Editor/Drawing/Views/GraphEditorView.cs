@@ -424,10 +424,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_SearchWindowProvider.connectedPort = null;
                 m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
-                var displayPosition = (c.screenMousePosition - m_EditorWindow.position.position);
+                var displayPosition = graphView.cachedMousePosition;
 
                 SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
+                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, displayPosition),
                     displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
             }
         }
