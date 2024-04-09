@@ -253,7 +253,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     p.taaFrameInfluence.floatValue = 1.0f - EditorGUILayout.Slider(Styles.taaBaseBlendFactor, 1.0f - p.taaFrameInfluence.floatValue, 0.6f, 0.98f);
                     EditorGUILayout.Slider(p.taaJitterScale, 0.0f, 1.0f, Styles.taaJitterScale);
-                    EditorGUILayout.Slider(p.taaMipBias, -0.5f, 0.0f, Styles.taaMipBias);
+                    EditorGUILayout.Slider(p.taaMipBias, -1.0f, 0.0f, Styles.taaMipBias);
 
                     if(p.taaQuality.intValue >= (int)TemporalAAQuality.Medium)
                         EditorGUILayout.Slider(p.taaVarianceClampScale, 0.6f, 1.2f, Styles.taaVarianceClampScale);

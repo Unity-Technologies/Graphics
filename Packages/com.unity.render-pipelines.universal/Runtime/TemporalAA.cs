@@ -1,15 +1,44 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal enum TemporalAAQuality
+    /// <summary>
+    /// Temporal Anti-aliasing quality setting.
+    /// </summary>
+    public enum TemporalAAQuality
     {
+        // Quality options were tuned to give meaningful performance differences on mobile hardware.
+
+        /// <summary>
+        /// 5-tap RGB clamp. No motion dilation. Suitable for no/low motion scenes.
+        /// </summary>
         VeryLow = 0,
+
+        /// <summary>
+        /// 5-tap RGB clamp. 5-tap motion dilation.
+        /// </summary>
         Low,
+
+        /// <summary>
+        /// 9-tap YCoCg variance clamp. 9-tap motion dilation.
+        /// </summary>
         Medium,
+
+        /// <summary>
+        /// 9-tap YCoCg variance clamp and bicubic history.
+        /// </summary>
         High,
+
+        // VeryHigh is a catch all option for enabling all the implemented features regardless of cost.
+        // Currently, 9-tap YCoCg variance clip, bicubic history and center sample filtering.
+        // In the future, VeryHigh mode could read additional buffers to improve the quality further.
+
+        /// <summary>
+        /// Best quality, everything enabled.
+        /// </summary>
         VeryHigh
     }
 
@@ -133,7 +162,10 @@ namespace UnityEngine.Rendering.Universal
     };
 
     // All of TAA here, work on TAA == work on this file.
-    static class TemporalAA
+    /// <summary>
+    /// Temporal anti-aliasing.
+    /// </summary>
+    public static class TemporalAA
     {
         static internal class ShaderConstants
         {
@@ -153,31 +185,113 @@ namespace UnityEngine.Rendering.Universal
             public static readonly string TAA_LOW_PRECISION_SOURCE = "TAA_LOW_PRECISION_SOURCE";
         }
 
+        /// <summary>
+        /// Temporal anti-aliasing settings.
+        /// </summary>
         [Serializable]
-        internal struct Settings
+        public struct Settings
         {
-            public TemporalAAQuality quality;
-            public float frameInfluence;
-            public float jitterScale;
-            public float mipBias;
-            public float varianceClampScale;
-            public float contrastAdaptiveSharpening;
+            [SerializeField]
+            [FormerlySerializedAs("quality")]
+            internal TemporalAAQuality m_Quality;
+            [SerializeField]
+            [FormerlySerializedAs("frameInfluence")]
+            internal float m_FrameInfluence;
+            [SerializeField]
+            [FormerlySerializedAs("jitterScale")]
+            internal float m_JitterScale;
+            [SerializeField]
+            [FormerlySerializedAs("mipBias")]
+            internal float m_MipBias;
+            [SerializeField]
+            [FormerlySerializedAs("varianceClampScale")]
+            internal float m_VarianceClampScale;
+            [SerializeField]
+            [FormerlySerializedAs("contrastAdaptiveSharpening")]
+            internal float m_ContrastAdaptiveSharpening;
 
-            [NonSerialized] public int resetHistoryFrames;      // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
-            [NonSerialized] public int jitterFrameCountOffset;  // Jitter "seed" == Time.frameCount + jitterFrameCountOffset. Used for testing determinism.
+            // Internal API
+            [NonSerialized] internal int resetHistoryFrames;      // Number of frames the history is reset. 0 no reset, 1 normal reset, 2 XR reset, -1 infinite (toggle on)
+            [NonSerialized] internal int jitterFrameCountOffset;  // Jitter "seed" == Time.frameCount + jitterFrameCountOffset. Used for testing determinism.
 
+            /// <summary>
+            /// The quality level to use for the temporal anti-aliasing.
+            /// </summary>
+            public TemporalAAQuality quality
+            {
+                get => m_Quality;
+                set => m_Quality = (TemporalAAQuality)Mathf.Clamp((int)value, (int)TemporalAAQuality.VeryLow, (int)TemporalAAQuality.VeryHigh);
+            }
+            /// <summary>
+            /// Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution, which leads to better anti aliasing, but also more prone to ghosting.
+            /// Between 0.0 - 1.0.
+            /// </summary>
+            public float baseBlendFactor
+            {
+                // URP uses frame influence, amount of current frame to blend with history.
+                // HDRP uses base blend factor, the amount of history to blend with current frame.
+                // We flip the value here to match HDRP for consistent API/UI.
+                get => 1.0f - m_FrameInfluence;
+                set => m_FrameInfluence = Mathf.Clamp01(1.0f - value);
+            }
+
+            /// <summary>
+            /// Determines the scale to the jitter applied when TAA is enabled. Lowering this value will lead to less visible flickering and jittering, but also will produce more aliased images.
+            /// </summary>
+            public float jitterScale
+            {
+                get => m_JitterScale;
+                set => m_JitterScale = Mathf.Clamp01(value);
+            }
+
+            /// <summary>
+            /// Determines how much texture mip map selection is biased when rendering. Lowering this can slightly reduce blur on textures at the cost of performance. Requires mip maps in textures.
+            /// Between -1.0 - 0.0.
+            /// </summary>
+            public float mipBias
+            {
+                get => m_MipBias;
+                set => m_MipBias = Mathf.Clamp(value, -1.0f, 0.0f);
+            }
+
+            /// <summary>
+            /// Determines the strength of the history color rectification clamp. Lower values can reduce ghosting, but produce more flickering. Higher values reduce flickering, but are prone to blur and ghosting.
+            /// Between 0.001 - 10.0.
+            /// Good values around 1.0.
+            /// </summary>
+            public float varianceClampScale
+            {
+                get => m_VarianceClampScale;
+                set => m_VarianceClampScale = Mathf.Clamp(value, 0.001f, 10.0f);
+            }
+
+            /// <summary>
+            /// Enables high quality post sharpening to reduce TAA blur. The FSR upscaling overrides this setting if enabled.
+            /// Between 0.0 - 1.0.
+            /// Use 0.0 to disable.
+            /// </summary>
+            public float contrastAdaptiveSharpening
+            {
+                get => m_ContrastAdaptiveSharpening;
+                set => m_ContrastAdaptiveSharpening = Mathf.Clamp01(value);
+            }
+
+            /// <summary>
+            /// Creates a new instance of the settings with default values.
+            /// </summary>
+            /// <returns>Default settings.</returns>
             public static Settings Create()
             {
                 Settings s;
 
-                s.quality                    = TemporalAAQuality.High;
-                s.frameInfluence             = 0.1f;
-                s.jitterScale                = 1.0f;
-                s.mipBias                    = 0.0f;
-                s.varianceClampScale         = 0.9f;
-                s.contrastAdaptiveSharpening = 0.0f; // Disabled
+                s.m_Quality                    = TemporalAAQuality.High;
+                s.m_FrameInfluence             = 0.1f;
+                s.m_JitterScale                = 1.0f;
+                s.m_MipBias                    = 0.0f;
+                s.m_VarianceClampScale         = 0.9f;
+                s.m_ContrastAdaptiveSharpening = 0.0f; // Disabled
 
-                s.resetHistoryFrames = 0;
+                s.resetHistoryFrames     = 0;
                 s.jitterFrameCountOffset = 0;
 
                 return s;
@@ -300,7 +414,7 @@ namespace UnityEngine.Rendering.Universal
             const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
             if(Time.frameCount % warningThrottleFrames == 0)
                 Debug.LogWarning(warning);
-            
+
             return warning;
         }
 
@@ -332,7 +446,7 @@ namespace UnityEngine.Rendering.Universal
                 taaMaterial.SetTexture(ShaderConstants._TaaMotionVectorTex, isNewFrame ? motionVectors : Texture2D.blackTexture);
 
                 ref var taa = ref cameraData.taaSettings;
-                float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
+                float taaInfluence = taa.resetHistoryFrames == 0 ? taa.m_FrameInfluence : 1.0f;
                 taaMaterial.SetFloat(ShaderConstants._TaaFrameInfluence, taaInfluence);
                 taaMaterial.SetFloat(ShaderConstants._TaaVarianceClampScale, taa.varianceClampScale);
 
@@ -391,7 +505,7 @@ namespace UnityEngine.Rendering.Universal
             ref var taa = ref cameraData.taaSettings;
 
             bool isNewFrame = cameraData.taaPersistentData.GetLastAccumFrameIndex(multipassId) != Time.frameCount;
-            float taaInfluence = taa.resetHistoryFrames == 0 ? taa.frameInfluence : 1.0f;
+            float taaInfluence = taa.resetHistoryFrames == 0 ? taa.m_FrameInfluence : 1.0f;
 
             RTHandle accumulationTexture = cameraData.taaPersistentData.accumulationTexture(multipassId);
             TextureHandle srcAccumulation = renderGraph.ImportTexture(accumulationTexture);
