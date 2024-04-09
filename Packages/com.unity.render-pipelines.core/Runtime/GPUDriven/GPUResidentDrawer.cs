@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Static utility class for updating data post cull in begin camera rendering
     /// </summary>
-    public class GPUResidentDrawer
+    public partial class GPUResidentDrawer
     {
         internal static GPUResidentDrawer instance { get => s_Instance; }
         private static GPUResidentDrawer s_Instance = null;
@@ -97,12 +97,12 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Enable or disable GPUResidentDrawer based on the project settings.
-        /// We call this every frame bacause GPUResidentDrawer can be enabled/disabled by the settings outside the render pipeline asset.
+        /// We call this every frame because GPUResidentDrawer can be enabled/disabled by the settings outside the render pipeline asset.
         /// </summary>
         public static void ReinitializeIfNeeded()
         {
 #if UNITY_EDITOR
-            if (!IsForcedOnViaCommandLine() && (IsProjectSupported(false) != IsEnabled()))
+            if (!IsForcedOnViaCommandLine() && (IsProjectSupported() != IsEnabled()))
             {
                 Reinitialize();
             }
@@ -211,48 +211,12 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        internal static bool IsProjectSupported(bool logReason = false)
-        {
-            bool supported = true;
-
-            // The GPUResidentDrawer only has support when the RawBuffer path of providing data
-            // ConstantBuffer path and any other unsupported platforms early out here
-            if (BatchRendererGroup.BufferTarget != BatchBufferTarget.RawBuffer)
-            {
-                if(logReason)
-                    Debug.LogWarning($"GPUResidentDrawer: The current platform does not support {BatchBufferTarget.RawBuffer.GetType()}");
-                supported = false;
-            }
-
-#if UNITY_EDITOR
-            // Check the build target is supported by checking the depth downscale kernel (which has an only_renderers pragma) is present
-            var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
-            if (!resources.occluderDepthPyramidKernels.HasKernel("OccluderDepthDownscale"))
-            {
-                if (logReason)
-                    Debug.LogWarning("GPUResidentDrawer: kernel not present, please ensure the player settings includes a supported graphics API.");
-                supported = false;
-            }
-
-            if (EditorGraphicsSettings.batchRendererGroupShaderStrippingMode != BatchRendererGroupStrippingMode.KeepAll)
-            {
-                if(logReason)
-                    Debug.LogWarning(
-                    "GPUResidentDrawer: \"BatchRendererGroup Variants\" setting must be \"Keep All\". " +
-                    " The current setting will cause errors when building a player because all DOTS instancing shaders will be stripped" +
-                    " To fix, modify Graphics settings and set \"BatchRendererGroup Variants\" to \"Keep All\".");
-                supported = false;
-            }
-#endif
-            return supported;
-        }
-
         internal static bool IsEnabled()
         {
             return s_Instance is not null;
         }
 
-        private static GPUResidentDrawerSettings GetGlobalSettingsFromRPAsset()
+        internal static GPUResidentDrawerSettings GetGlobalSettingsFromRPAsset()
         {
             var renderPipelineAsset = GraphicsSettings.currentRenderPipeline;
             if (renderPipelineAsset is not IGPUResidentRenderPipeline mbAsset)
@@ -328,42 +292,14 @@ namespace UnityEngine.Rendering
         private static void Recreate(GPUResidentDrawerSettings settings)
         {
             CleanUp();
-
-            // nothing to create
-            if (settings.mode == GPUResidentDrawerMode.Disabled)
-                return;
-
-#if UNITY_EDITOR
-            // In play mode, the GPU Resident Drawer is always allowed.
-            // In edit mode, the GPU Resident Drawer is only allowed if the user explicitly requests it with a setting.
-            bool isAllowedInCurrentMode = EditorApplication.isPlayingOrWillChangePlaymode || settings.allowInEditMode;
-            if (!isAllowedInCurrentMode)
+            if (IsGPUResidentDrawerSupportedBySRP(settings, out var message, out var severity))
             {
-                return;
+                s_Instance = new GPUResidentDrawer(settings, 4096, 0);
             }
-#endif
-
-            bool supported = true;
-            if (!IsForcedOnViaCommandLine())
+            else
             {
-                var mbAsset = GraphicsSettings.currentRenderPipeline as IGPUResidentRenderPipeline;
-                if (mbAsset == null)
-                {
-                    Debug.LogWarning("GPUResidentDrawer: Disabled due to current render pipeline not being of type IGPUResidentDrawerRenderPipeline");
-                    supported = false;
-                }
-                else
-                    supported &= mbAsset.IsGPUResidentDrawerSupportedBySRP(true);
-                supported &= IsProjectSupported(true);
+                LogMessage(message, severity);
             }
-
-            // not supported
-            if (!supported)
-            {
-                return;
-            }
-
-            s_Instance = new GPUResidentDrawer(settings, 4096, 0);
         }
 
         internal GPUResidentBatcher batcher { get => m_Batcher; }

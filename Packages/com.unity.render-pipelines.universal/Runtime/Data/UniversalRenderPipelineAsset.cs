@@ -1677,36 +1677,35 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /// <summary>
-        /// Is the GPU resident drawer supported on this render pipeline.
-        /// </summary>
-        /// <param name="logReason">Should the reason for non support be logged?</param>
-        /// <returns>true if supported</returns>
-        public bool IsGPUResidentDrawerSupportedBySRP(bool logReason = false)
+        static class Strings
         {
+            public static readonly string notURPRenderer = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not being {nameof(UniversalRendererData)}.";
+            public static readonly string forwardPlusMissing = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not supporting Forward+.";
+        }
+
+        /// <inheritdoc/>
+        public bool IsGPUResidentDrawerSupportedBySRP(out string message, out LogType severty)
+        {
+            message = string.Empty;
+            severty = LogType.Warning;
+
             // if any of the renderers are not set to Forward+ return false
-            bool supported = true;
             foreach (var rendererData in m_RendererDataList)
             {
-                if (rendererData is UniversalRendererData universalRendererData)
+                if (rendererData is not UniversalRendererData universalRendererData)
                 {
-                    if (universalRendererData.renderingMode != RenderingMode.ForwardPlus)
-                    {
-                        supported = false;
-                        break;
-                    }
+                    message = Strings.notURPRenderer;
+                    return false;
                 }
-                else
-                {
-                    supported = false;
-                    break;
-                }
+
+                if (universalRendererData.renderingMode == RenderingMode.ForwardPlus)
+                    continue;
+
+                message = Strings.forwardPlusMissing;
+                return false;
             }
 
-            if(!supported && logReason)
-                Debug.LogWarning("GPUResidentDrawer: Disabled due to some configured Universal Renderers not supporting Forward+ ");
-
-            return supported;
+            return true;
         }
 
         /// <summary>

@@ -292,8 +292,6 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618
                 });
             }
-
-            GPUResidentDrawer.ReinitializeIfNeeded();
         }
 
         /// <inheritdoc/>
@@ -375,6 +373,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
+
+            GPUResidentDrawer.ReinitializeIfNeeded();
 
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2

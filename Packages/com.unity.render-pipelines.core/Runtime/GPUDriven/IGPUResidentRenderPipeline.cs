@@ -101,6 +101,22 @@ namespace UnityEngine.Rendering
         /// <returns>true if supported</returns>
         bool IsGPUResidentDrawerSupportedBySRP(bool logReason = false)
         {
+            bool supported = IsGPUResidentDrawerSupportedBySRP(out var message, out var severity);
+            if (logReason && !supported)
+                GPUResidentDrawer.LogMessage(message, severity);
+            return supported;
+        }
+
+        /// <summary>
+        /// Is the GPU resident drawer supported on this render pipeline.
+        /// </summary>
+        /// <param name="message">Why the system is not supported</param>
+        /// <param name="severity">The severity of the message</param>
+        /// <returns>true if supported</returns>
+        bool IsGPUResidentDrawerSupportedBySRP(out string message, out LogType severity)
+        {
+            message = string.Empty;
+            severity = LogType.Log;
             return true;
         }
 
@@ -111,7 +127,12 @@ namespace UnityEngine.Rendering
         /// <returns>true if supported</returns>
         static bool IsGPUResidentDrawerSupportedByProjectConfiguration(bool logReason = false)
         {
-            return GPUResidentDrawer.IsProjectSupported(logReason);
+            bool supported = GPUResidentDrawer.IsProjectSupported(out var message, out var severity);
+            if (logReason && !string.IsNullOrEmpty(message))
+            {
+                Debug.LogWarning(message);
+            }
+            return supported;
         }
 
         /// <summary>

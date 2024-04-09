@@ -233,9 +233,24 @@ namespace UnityEngine.Rendering
 
             public SettingsPanel(DebugDisplayGPUResidentDrawer data)
             {
-                AddWidget(new DebugUI.Container()
+                var helpBox = new DebugUI.MessageBox()
+                {
+                    displayName = "Not Supported",
+                    style = MessageBox.Style.Warning,
+                    messageCallback = () =>
+                    {
+                        var settings = GPUResidentDrawer.GetGlobalSettingsFromRPAsset();
+                        return GPUResidentDrawer.IsGPUResidentDrawerSupportedBySRP(settings, out var msg, out var _) ? string.Empty : msg;
+                    },
+                    isHiddenCallback = () => GPUResidentDrawer.IsEnabled()
+                };
+
+                AddWidget(helpBox);
+
+                AddWidget(new Container()
                 {
                     displayName = Strings.occlusionCullingTitle,
+                    isHiddenCallback = () => !GPUResidentDrawer.IsEnabled(),
                     children =
                     {
                         new DebugUI.BoolField { nameAndTooltip = Strings.occlusionTestOverlayEnable, getter = () => data.occlusionTestOverlayEnable, setter = value => data.occlusionTestOverlayEnable = value},
@@ -253,6 +268,7 @@ namespace UnityEngine.Rendering
                 AddWidget(new DebugUI.Container()
                 {
                     displayName = Strings.drawerSettingsContainerName,
+                    isHiddenCallback = () => !GPUResidentDrawer.IsEnabled(),
                     children =
                     {
                         new DebugUI.BoolField { nameAndTooltip = Strings.displayBatcherStats, getter = () => data.displayBatcherStats, setter = value => data.displayBatcherStats = value},
