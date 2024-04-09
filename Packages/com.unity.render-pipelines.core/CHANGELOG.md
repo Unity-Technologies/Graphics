@@ -10,6 +10,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.2] - 2024-04-02
+
+This version is compatible with Unity 6000.0.0b15.
+
+### Changed
+- Improved Render Graph Viewer UI to allow jumping to pass definitions in C# IDE.
+- Replaced the overlays inside the RenderGraph Viewer with a fixed side panel.
+- Small optimization, frame allocation checks of the Render Graph resource pool are now enabled through Validation checks.
+- Improved and unified render graph profiling markers.
+- Improved execution performance with Render Graph.
+- Improved the resource pooling system in Render Graph.
+- Improved `BeginRenderPass` CPU performance in the Native Render Pass Render Graph (URP).
+- Made various improvements to Render Graph Viewer UX.
+
+### Fixed
+- Improve reliability of shader variance list regex parser. Current parser includes time stamps which cause duplicates to not be parsed correctly. Changes improve regex parsing and sanitize the liens from the log (which include time stamps).
+- Fixed amemory leak from NativeList in RenderGraph.
+- Fixed some leaks / missing calls to Dispose() in GI probe baking code.
+- Fixed an issue where Screen Space UI Overlay would not rendered again without a camera in URP/HDRP.
+- Fixed issue where using BiRP-only Camera APIs with active SRP didn't display a warning as expected.
+- Fixed issue where errors could be thrown by debug action registration if deleting all axes in Input Manager.
+- Tier0 rendering ignores the scene visibility toggle.
+- Rendering Debugger - Fixed Render Graph Debug Display Reset behaviour.
+- Added CreateSkyboxRendererList in Render Graph API.
+- Fixed `PackFloat2To8` in `packing.hlsl`.
+- Fixed `DebugUI.Button` not working in Rendering Debugger runtime UI.
+- Fix Render Graph Viewer generating warnings when RenderGraph.Begin/EndProfilingSampler functions are used
+- Fixed Render Graph Viewer becoming empty on URP when selecting Project Settings > Graphics
+- Fix Render Graph Viewer displaying incorrect store action reasoning for MSAA textures
+
 ## [17.0.1] - 2023-12-21
 
 This version is compatible with Unity 2023.3.0b2.

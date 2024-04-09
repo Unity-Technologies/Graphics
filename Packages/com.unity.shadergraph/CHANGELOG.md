@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.2] - 2024-04-02
+
+This version is compatible with Unity 6000.0.0b15.
+
+### Changed
+- Now all the nodes connected to the BaseColor block are taken into shader codegen when generating the picking pass, allowing custom picking-specific code to be included through custom function nodes.
+
+### Fixed
+- Fixed issue when selecting options on the HDRP Target's Material Type would result in an unexpected error.
+- Fixed an issue where hotkeys would be caught by unfocused floating editor windows.
+- Fixed an issue where unexpected slowdowns may occur after dependent saving subgraphs.
+- Fixed an issue where unexpected slowdowns may occur after dependent saving subgraphs.
+
 ## [17.0.1] - 2023-12-21
 
 This version is compatible with Unity 2023.3.0b2.

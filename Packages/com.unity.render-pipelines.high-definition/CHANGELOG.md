@@ -10,6 +10,76 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.2] - 2024-04-02
+
+This version is compatible with Unity 6000.0.0b15.
+
+### Changed
+- Added new visual effects examples to the HDRP Water Sample example scenes.
+- Optimized the performance of reflection probe baking by baking all probes in a single batch.
+- Improved HDRP build time.
+- Optimized the color pyramid GPU time in HDRP.
+- Improved scene culling performance when APV is enabled in the project.
+
+### Fixed
+- Fixed diffusion profiles not being unregistered from Default Volume Profile when deleted.
+- Fixed atmospheric scattering at far range.
+- Fixed specular blend in premultiplied alpha.
+- Fixed NullReferenceException when exiting Play Mode with HDRP + DLSS + XR.
+- Fixed a motion blur blending issue.
+- Fixed an issue that caused warnings for uninitialized variables in pathtracinglight.hlsl.
+- Fixed shader compilation issue in SixWayLit VFX shader when reduced precision types are enabled.
+- Fixed an invalid hair look-up table read / write that was occurring for a graphics format on some platforms.
+- Fixed an issue where debug variants of Terrain shaders would sometimes not compile.
+- Fixed in gpu build light list to avoid crashes on some GPUs.
+- Fixed water in SSR reflections issue.
+- Fixed offset in refraction in XR.
+- Fixed an issue where internally created Game Objects were being deallocated on scene changes.
+- Fixed XR texture 2D creation failure due to invalid slice configuration. The slice is misconfigured to 2 when creating Texture2D, causing internal failures.
+- Fixed artifacts on low resolution SSGI when dynamic resolution values are low.
+- Added an option to fix atmosphere when camera is in space.
+- Fixed errors from HDRP material inspector when URP is active.
+- Fixed missing VFX node to fetch water height at a given point.
+- Fixed shadow flickering when dynamic resolution is enabled.
+- Fixed a performance regression in area light evaluation code.
+- Optimize the OnDisable of DecalProjector component when disabling a lot of decals at the same time.
+- Removed the error message "Decal texture atlas out of space..." in release builds (it now only appears in the Editor or Development Builds).
+- Fixed fog scattering that didn't take in account the scene color.
+- Fixed lens flare occlusion not taking in account the volumetric fog for the sun.
+- Updated HDRP shaders to be HLSL2021 compliant.
+- Fixed interaction between on demand shadow rendering and enable/disable of the light source.
+- Fixed color pyramid perf on GPU using too many threads.
+- Fixed volumetric fog not rendering underwater.
+- Fixed coarse stencil bug computation race condition caused by a compiler bug in DXC.
+The issue manifests itself as flickering tiles on sub surface scatter pixels. This issue is caused because the DXC compiler does not make the branches using a groupThreadId vector comparison a scalar. Changing this to use the group index instead (preflattened) triggers the compiler to recognize the branch as a scalar instead.
+- Fixed SSGI, Ray traced GI, Path traced GI and No-GI now match when using an IBL.
+- Fixed memory leak when virtual texture is used on dx12 (consoles and PC).
+- Fixed correct resolution for refractive color pyramid sampling with DRS.
+- Fixed the wrong texture being set (due to resource name leaking) for half res downsample: instead of using _CameraDepthTexture which could be anything, using an new explicit name _SourceDownsampleDepth.
+When hardware DRS is on, we can safely assume that the ratio between the input and output textures is 1 because the GPU hardware sizes are watertight.
+- Fixed a warning that displayed when opening a template.
+- Fixed issues with dynamic resolution when using FSR 1.0 and Depth of Field.
+- Fixed an issue where global mip bias was updated 12 times during a frame in HDRP even when the value doesn't change.
+- Fixed a core samples dependencies errors with the Input System package.
+- Fixed an issue that caused the Game view to flicker with HDR and Reflection Probe on.
+- Fix a NaN issue in volumetric fog reprojection that caused black to propagate in the fog.
+- Fixed fullscreen material workflow in custom passes.
+- Fixed invalid AABB error in the console when using the APV with reflection probes
+- Restore `EditorGUIUtility.labelWidth` to default after drawing Material GUI
+- Add missing curve override indicator text to Color Curves volume component editor
+- Fix ambient lighting when rendering from script using Camera.Render.
+- Fix a scaling issue with the recorder.
+- Support rendering water in custom passes
+- Fix realloc of history buffer when XR is enabled
+- Fix scene modification when exiting play mode with the graphics compositor enabled.
+- Fix TAA post sharpen in XR
+- Improve the error message when a custom post-process volume doesn't find its shader.
+- Add Graphics Compositor Limitation section for VR
+- Fix cinematic eye shader lighting from directional lights
+- Fixed screen node not returning correct resolution after post-processing when dynamic resolution is enabled.
+- Move water specific global shader variables to separate file
+- Banding in IES importer
+
 ## [17.0.1] - 2023-12-21
 
 This version is compatible with Unity 2023.3.0b2.

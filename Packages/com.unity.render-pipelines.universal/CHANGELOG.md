@@ -10,6 +10,66 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.2] - 2024-04-02
+
+This version is compatible with Unity 6000.0.0b15.
+
+### Changed
+- SSAO CPU optimization. Many RasterPass into single UnsafePass.
+- The Auto option in SH Evaluation Mode, in the URP Asset, now chooses Per Vertex instead of Per Pixel on mobile and similar devices.
+- Bloom shader variants are now stripped per feature (LQ, LQ Dirt, HQ, HQ Dirt).
+- Exposed additional depth formats for `CameraDepthAttachment` and `CameraDepthTexture` (URP).
+- Improved MSL generation for Foveated Rendering.
+
+### Fixed
+- Fixed an issue where an obsolete attribute from EnqueuePass API was not removed.
+- Fixed bright pixels when using a camera with skybox and MSAA rendering opaque objects with alpha clipping together with a transparent object if additive blending.
+- Fixed an issue where Evaluate SH and SoftShadow keywords were incorrectly declared in ShaderGraph shaders.
+- Fixed an "undeclared identifier 'RemapFoveatedRenderingNonUniformToLimear" in ShaderPassDecal.hlsl(252).
+- Fixed an issue where LOD Crossfade was declared twice in Unlit ShaderGraph.
+- Fixed an "Implicit truncation of vector type" warning in ShaderPassDecal.hlsl(221).
+- Fixed an "Output value 'fragmentOutput' is not completely initialized" warning in ShaderPassDecal.hlsl(179).
+- Fixed an error in Bloom.shader for foveated when the debug check is enabled inside FoveatedRendering.hlsl.
+- Fixed an "floating point division by zero" warning in Shadows.hlsl(189)
+- Fixed incorrect alpha-clip behavior on transparent surfaces.
+- Fixed an issue where downsampled SSAO had serious artefacts on Android.
+- RenderGraph: Removed unnecessary clear passes of the bloom pyramid render targets.
+- Fixed an issue where NullReferenceExceptions appeared when switching between Quality Levels with Post Processing Volume Update mode set to ViaScripting.
+- Fixed early return for renderer features which required color when color didn't exist for depth only output texture.
+- Fixed NativeRenderPass store action.
+- Fixed an issue where debug variants of the "TerrainDetailLit" shader would not compile.
+- Fixed Skipped RenderObjects when rendering preview cameras.
+- Fixed the FinalPostPass executing before "AfterRenderingPostProcessing" instead of after it.
+- Fixed an issue where cameras flickered when using deferred rendering, rendering layers and two cameras.
+- Fixed bloom shader not working with non uniform rasterisation based foveated rendering on VR platforms that support it.
+- Added logic to enforce consistent hardware dynamic resolution settings during rendering to avoid issues when external code changes the global setting.
+- Fixed incorrect viewport size adjustment logic in CopyDepthPass that caused issues when dynamic resolution was active.
+- Correctly handle missing motion vectors for TAA. Fixes black screen on the 2D renderer when TAA is enabled.
+- Reduce the number of active unique samplers by using shareable inline samplers for most of the URP internal textures and buffers. Helps to avoid hitting the graphics API limit in URP Lit or custom shaders.
+- Fixed a warning in Lens flare shader for URP.
+- Fixed errors when calling RTHandles.Alloc() inside ScriptableRendererFeature.Create().
+- Fixed Depth of Field for URP RenderGraph.
+- Added UI features to encourage the use of Rendering Layers in URP to control selective lighting, instead of using culling mask. The former works across Deferred, Forward and Forward+, while the latter only works with Forward.
+- Fixed an issue where keywords were incorrectly enabled/disabled when shadows were enabled in the URP Asset and "Transparent Receive Shadows" was disabled on the renderer.
+- Fixed an issue to ensure motion vector depth buffer is valid for cameras with motion vectors enabled.
+- Fixed an issue where using Alpha Clipped shaders and Depth Priming resulted in invisible objects.
+- Fixed reflection probes are now sorted correctly for Forward+.
+- Fixed an issue where SSAO didn't use the correct check for rendering mode.
+- Disabled depth priming for cameras with depth-only render targets.
+- Fixed an issue where Render Graph Viewer display did not display a user-friendly camera name.
+- Fixed an issue with ScreenCaptureBridge under URP RenderGraph.
+- Fixed an issue where an incorrect WorldToCamera matrix was used in the main and additional light shadow passes.
+- Fixed an SRP Lens Flare rendering issue with Render Scale.
+- Restore `EditorGUIUtility.labelWidth` to default after drawing MaterialHeaderScopes
+- Add missing curve override indicator text to Color Curves volume component editor
+- Fixed an issue where logging an error gave a NullReferenceException for Server Builds.
+- Fixed false-negative missing RendererFeatures errors.
+- Motion Vector pass can now render after opaques. It correctly follows its depth dependency in pass order.
+- Fixed an issue where screen space decals wouldn't respect light cookies.
+- Fixed an issue where using the "Accurate G-buffer Normals" feature for deferred rendering on mobile platforms would cause a large amount of artifacts.
+- Scriptable TAA settings.
+- Fixed XROcclusionMesh.shader and XRMirrorView.shader are not stripped down when XR Plugin is not installed
+
 ## [17.0.1] - 2023-12-21
 
 This version is compatible with Unity 2023.3.0b2.

@@ -1,10 +1,10 @@
 {
   "name": "com.unity.render-pipelines.universal-config",
   "description": "Configuration files for the Universal Render Pipeline.",
-  "version": "17.0.1",
-  "unity": "2023.3",
+  "version": "17.0.3",
+  "unity": "6000.0",
   "displayName": "Universal RP Config",
   "dependencies": {
-    "com.unity.render-pipelines.core": "17.0.1"
+    "com.unity.render-pipelines.core": "17.0.3"
   }
 }
