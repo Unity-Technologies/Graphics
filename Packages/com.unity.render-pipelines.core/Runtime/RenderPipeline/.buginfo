@@ -1,9 +1,8 @@
 rule1:
-  area: RP Foundation
+  area: SRP Workflow
 
 rule2:
   when:
     path:
-      - ^.*GlobalSettings.*$
-      - ^.*GraphicsSettings.*$
-  area: RP Workflow
+      - ^.*Cloud.*$
+  area: Environment Effects

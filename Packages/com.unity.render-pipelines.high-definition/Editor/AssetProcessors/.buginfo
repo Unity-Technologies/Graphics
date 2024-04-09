@@ -1,0 +1,5 @@
+Tools:
+  when:
+    path:
+      - ^.*MaterialPostProcessor?.*$
+  area: Graphics Tools

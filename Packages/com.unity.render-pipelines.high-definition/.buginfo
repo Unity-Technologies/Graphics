@@ -1,1 +1,24 @@
-area: HD RP
+old:
+  area: HD RP
+
+Workflow:
+  when:
+    path:
+      - ^.*Volume?.*$
+      - ^.*GlobalSettings?.*$
+      - ^.*Camera?.*$
+      - ^.*AdditionalLight?.*$
+      - ^.*AdditionalReflectionProbe?.*$
+      - ^.*ContextualMenuDispatcher?.*$
+  area: SRP Workflow
+  
+Tools:
+  when:
+    path:
+      - ^.*Analytic?.*$
+      - ^.*Wizard?.*$
+      - ^.*LightExplorer?.*$
+      - ^.*MaterialUpgrader?.*$
+      - ^.*HDProjectSettings?.*$
+      - ^.*HDUserSettings?.*$
+  area: Graphics Tools
