@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
             var channelCount = SlotValueHelper.GetChannelCount(concreteValueType);
             string values = NodeUtils.FloatToShaderValue(value.x);
             if (channelCount == 1)
-                return values;
+                return string.Format("$precision({0})", values);
             for (var i = 1; i < channelCount; i++)
                 values += ", " + NodeUtils.FloatToShaderValue(value[i]);
             return string.Format("$precision{0}({1})", channelCount, values);
