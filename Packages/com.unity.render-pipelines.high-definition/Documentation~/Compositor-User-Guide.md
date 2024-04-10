@@ -104,3 +104,7 @@ Here are some tips that can help you improve the performance of applications tha
     2. In the Inspector select the **Custom Frame Settings**.
     3. Disable as many HDRP features as possible. For example you can disable the support for Screen Space Reflections (SSR) if you know that you aren't going to need SSR for this Sub-layer.
 * Reduce the resolution of specific Composition Layers, while keeping the visually important elements in separate Layers at full resolution. This will affect all Sub-layers that are stacked on this Layer.
+
+## Limitation
+
+The Graphics Compositor is not compatible with Virtual Reality.
