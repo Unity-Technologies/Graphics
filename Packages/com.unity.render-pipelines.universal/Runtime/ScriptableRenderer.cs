@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
             public static readonly ProfilingSampler internalFinishRenderingCommon = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRenderingCommon)}");
             public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
+            public static readonly ProfilingSampler drawWireOverlay = new ProfilingSampler($"{nameof(DrawWireOverlay)}");
             internal static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
             internal static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
             internal static readonly ProfilingSampler initRenderGraphFrame = new ProfilingSampler($"Initialize Render Graph frame settings");
@@ -986,6 +987,39 @@ namespace UnityEngine.Rendering.Universal
                     using (new ProfilingScope(rgContext.cmd, Profiling.drawGizmos))
                     {
                         rgContext.cmd.DrawRendererList(data.gizmoRenderList);
+                    }
+                });
+            }
+#endif
+        }
+
+        private class DrawWireOverlayPassData
+        {
+            public RendererListHandle wireOverlayList;
+        };
+
+        internal void DrawRenderGraphWireOverlay(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color)
+        {
+#if UNITY_EDITOR
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            if (!cameraData.isSceneViewCamera)
+                return;
+
+            using (var builder = renderGraph.AddRasterRenderPass<DrawWireOverlayPassData>("Wire Overlay", out var passData,
+                       Profiling.drawWireOverlay))
+            {
+                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
+
+                passData.wireOverlayList = renderGraph.CreateWireOverlayRendererList(cameraData.camera);
+                builder.UseRendererList(passData.wireOverlayList);
+                builder.AllowPassCulling(false);
+
+                builder.SetRenderFunc(static (DrawWireOverlayPassData data, RasterGraphContext rgContext) =>
+                {
+                    using (new ProfilingScope(rgContext.cmd, Profiling.drawWireOverlay))
+                    {
+                        rgContext.cmd.DrawRendererList(data.wireOverlayList);
                     }
                 });
             }
