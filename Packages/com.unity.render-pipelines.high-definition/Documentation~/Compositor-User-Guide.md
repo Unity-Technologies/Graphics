@@ -85,6 +85,14 @@ You can use the Graphics Compositor to compose screen space Canvas (UI) elements
 
 Furthermore, you can't use the **Output Camera** of the Graphics Compositor as the **Render Camera** to draw Canvas elements on top of the compositor's output. To achieve the same effect, you can add a new Sub-layer in the Render Schedule, use the camera of this layer as the **Render Camera** for the UI, and then compose the resulting layer with the available compositing operations (stacking or graph-bsed composition).
 
+To use the **Screen Space - Overlay** render mode alongside the Graphics Compositor, you must make sure that the function to render the UI overlays is called by the engine, and not by SRP. If SRP calls the function, the Graphics Compositor's final compositing call overrides the UI. 
+
+To force the engine to call the function rather than SRP, use the following line:
+
+```
+SupportedRenderingFeatures.active.rendersUIOverlay = false;
+``` 
+
 ## Performance Considerations
 The Graphics Compositor has a rather high CPU and GPU overhead and it's not recommended  to be used in performance critical applications such as video games.
 
