@@ -204,6 +204,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 needsUpdate |= cachedProbe.imageContentsHash != texture.imageContentsHash;
 #endif
+                needsUpdate |= cachedProbe.hdrData != probe.hdrData;    // The probe needs update if the runtime intensity multiplier changes
 
                 if (needsUpdate)
                 {
