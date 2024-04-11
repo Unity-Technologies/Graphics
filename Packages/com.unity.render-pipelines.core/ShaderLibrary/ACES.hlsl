@@ -1,7 +1,7 @@
 #ifndef __ACES__
 #define __ACES__
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_SWITCH
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -1513,7 +1513,7 @@ half3 ODT_4000nits_ToAP1(half3 oces)
 
     return rgbPost;
 }
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_SWITCH
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

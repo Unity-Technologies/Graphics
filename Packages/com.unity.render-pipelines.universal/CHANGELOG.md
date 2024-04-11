@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,42 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [14.0.10] - 2024-04-03
+
+This version is compatible with Unity 2022.3.24f1.
+
+### Changed
+- The Auto option in SH Evaluation Mode, in the URP Asset, now chooses Per Vertex instead of Per Pixel on mobile and similar devices.
+
+### Fixed
+- Fixed sRGB conversion without PostProcessing.
+- Fixed an issue with missing variant in builds when using Strict Variant Matching and Deferred Rendering.
+- Fixed RenderRequest using wrong renderer.
+- Fixed an issue where downsampled SSAO had serious artefacts on Android.
+- Fixed an issue where Screen Space Decals keyword was missing when Strip  Unused Variants was turned off.
+- Added UI features to encourage the use of Rendering Layers in URP to control selective lighting, instead of using culling mask. The former works across Deferred, Forward and Forward+, while the latter only works with Forward.
+- Fixed incorrect alpha-clip behavior on transparent surfaces.
+- Fixed an issue where using Alpha Clipped shaders and Depth Priming resulted in invisible objects.
+- Ensure motion vector depth buffer is valid for cameras with motion vectors enabled.
+- Fixed an issue where keywords were incorrectly enabled/disabled when shadows were enabled in the URP Asset and "Transparent Receive Shadows" was disabled on the renderer.
+- SSAO is now rendered in deferred when no light is present.
+- Early exit from URP RendererFeatures if they require color and is rendered to a depth on target.
+- Reflection probes now works correctly using mip maps with forward+.
+- Preview cameras now skip render objects.
+- Reflection probes are now sorted in the correct order.
+- Fixed an issue where setting light position, direction and shadow bias allocated due to using strings instead of integers.
+- Motion Vector pass can now render after opaques. It correctly follows its depth dependency in pass order.
+- Disabled depth priming for cameras with depth only render targets.
+- Added logic to enforce consistent hardware dynamic resolution settings during rendering to avoid issues when external code changes the global setting.
+- Fixed an issue where an incorrect WorldToCamera matrix was used in the main and additional light shadow passes.
+- Fixed an issue where errors appeared due to _CameraDepthTexture_TexelSize being added to DeclareDepthTexture.
+- Fixed an issue where logging an error gave a NullReferenceException for Server Builds.
+- Fixed false-negative missing RendererFeatures errors.
+- Restore `EditorGUIUtility.labelWidth` to default after drawing MaterialHeaderScopes.
+- Fix shadow flickering when using Screen Space shadows and have depth priming enabled
+- Fixed the NativeRenderPass camera target MSAA logic to match the non-NRP path
+- Fix depth buffer disappearing after using SwapColorBuffer
 
 ## [14.0.9] - 2023-12-21
 

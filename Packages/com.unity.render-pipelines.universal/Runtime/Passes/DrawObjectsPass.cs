@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.m_FilteringSettings = m_FilteringSettings;
             m_PassData.m_ShaderTagIdList = m_ShaderTagIdList;
             m_PassData.m_ProfilingSampler = m_ProfilingSampler;
+            m_PassData.m_IsActiveTargetBackBuffer = m_IsActiveTargetBackBuffer;
             m_PassData.pass = this;
 
 			CameraSetup(renderingData.commandBuffer, m_PassData, ref renderingData);

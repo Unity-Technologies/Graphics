@@ -538,6 +538,20 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!context.SetupCompilation())
                 return null;
 
+            var data = context.GetData();
+
+            // Readable identifier for the profile marker
+            string shaderIdStr = string.Empty;
+            if (!string.IsNullOrEmpty(data.title))
+                shaderIdStr += data.title;
+            if (!string.IsNullOrEmpty(context.name))
+                shaderIdStr += "/" + context.name;
+            if (!string.IsNullOrEmpty(context.label))
+                shaderIdStr += "/" + context.label;
+            shaderIdStr = shaderIdStr.Replace("\n", " ");
+
+            Profiler.BeginSample($"GenerateShader ({shaderIdStr})");
+
             if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
                 shaderGraphContext.GetOrRefreshShaderGraphObject() != null &&
                 shaderGraphContext.GetOrRefreshShaderGraphObject().generatesWithShaderGraph &&
@@ -549,22 +563,23 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 if (result != null)
                 {
                     context.EndCompilation();
+                    Profiler.EndSample();
                     return result;
                 }
             }
 
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
 
-            var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
-                (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
-                (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
+            var allCurrentAttributes = data.GetAttributes().Where(a =>
+                (data.IsCurrentAttributeUsed(a.attrib, context)) ||
+                (context.contextType == VFXContextType.Init && data.IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
 
-            var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
+            var allSourceAttributes = data.GetAttributes().Where(a => (data.IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values);
             globalDeclaration.WriteLine();
-            var particleData = (context.GetData() as VFXDataParticle);
+            var particleData = (data as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
             contextData.uniformMapper.OverrideUniformsNamesWithOther(systemUniformMapper);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(contextData.uniformMapper);
@@ -585,9 +600,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var blockCallFunction = new VFXShaderWriter();
             var blockDeclared = new HashSet<string>();
 
-            var expressionToName = context.GetData().GetAttributes()
+            var expressionToName = data.GetAttributes()
                 .ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
-            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode)
+            expressionToName = expressionToName
+                .Union(contextData.uniformMapper.expressionToCode)
                 .ToDictionary(s => s.Key, s => s.Value);
 
             int cpt = 0;
@@ -632,9 +648,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines, dependencies));
             }
 
-            if (context.GetData() is ISpaceable)
+            if (data is ISpaceable)
             {
-                var spaceable = context.GetData() as ISpaceable;
+                var spaceable = data as ISpaceable;
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
@@ -738,6 +754,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
             context.EndCompilation();
+            Profiler.EndSample();
             return stringBuilder;
         }
 

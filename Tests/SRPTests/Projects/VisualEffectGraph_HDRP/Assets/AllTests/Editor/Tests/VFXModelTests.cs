@@ -233,6 +233,79 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual("OnInvalidateDelegate  (UnityEditor.VFX.VFXGraph) kStructureChanged", s_logs[4]);
         }
 
+
+        private class DummyModel : VFXSlotContainerModel<VFXModel,VFXModel>
+        {
+            public class InputProperties
+            {
+                public float a;
+            }
+
+            protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+            {
+                s_logs.Add("OnInvalidate DummyModel " + model + " " + cause);
+            }
+        }
+
+        [Test]
+        public void OnExpressionInvalidationPropagation()
+        {
+            s_logs.Clear();
+
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var testModel = ScriptableObject.CreateInstance<DummyModel>();
+
+            var op = ScriptableObject.CreateInstance<Operator.Noise>();
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            var f = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            f.SetSettingValue("m_Type", (SerializableType)typeof(float));
+
+            graph.AddChild(testModel);
+            graph.AddChild(op);
+            graph.AddChild(add);
+            graph.AddChild(f);
+
+            // Noise --|
+            //         |-- Add --> model0
+            // f ------|
+            
+            op.GetOutputSlot(0).Link(add.GetInputSlot(0));
+            f.GetOutputSlot(0).Link(add.GetInputSlot(1));
+
+            Assert.AreEqual(0, s_logs.Count);
+
+            add.GetOutputSlot(0).Link(testModel.GetInputSlot(0));
+            
+            Assert.AreEqual(1, s_logs.Count);
+            Assert.AreEqual("OnInvalidate DummyModel  (UnityEditor.VFX.VFXSlotFloat) kConnectionChanged", s_logs[0]);
+
+            // Change f value
+            f.GetInputSlot(0).value = 42.0f;
+
+            Assert.AreEqual(2, s_logs.Count);
+            Assert.AreEqual("OnInvalidate DummyModel  (UnityEditor.VFX.VFXSlotFloat) kExpressionValueInvalidated", s_logs[1]);
+
+            testModel.GetInputSlot(0).GetExpression(); // Just to trigger recomputation of expression graph
+
+            // Disconnect f
+            f.GetOutputSlot(0).UnlinkAll();
+
+            Assert.AreEqual(3, s_logs.Count);
+            Assert.AreEqual("OnInvalidate DummyModel  (UnityEditor.VFX.VFXSlotFloat) kExpressionInvalidated", s_logs[2]);
+
+            testModel.GetInputSlot(0).GetExpression(); // Just to trigger recomputation of expression graph
+
+            // Change noise setting
+            op.SetSettingValue("type", Operator.Noise.NoiseType.Cellular);
+
+            Assert.AreEqual(4, s_logs.Count);
+            Assert.AreEqual("OnInvalidate DummyModel  (UnityEditor.VFX.VFXSlotFloat) kExpressionInvalidated", s_logs[3]);
+
+            testModel.GetInputSlot(0).GetExpression(); // Just to trigger recomputation of expression graph
+
+            Assert.AreEqual(4, s_logs.Count);
+        }
+
         private void OnModelInvalidated(VFXModel model, VFXModel.InvalidationCause cause)
         {
             s_logs.Add("OnInvalidateDelegate " + model + " " + cause);

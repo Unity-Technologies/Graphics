@@ -598,8 +598,11 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            m_Operands[index].type = type;
-            Invalidate(InvalidationCause.kSettingChanged);
+            if (!m_Operands[index].type.Equals(type))
+            {
+                m_Operands[index].type = type;
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
         }
 
         public void OperandMoved(int movedIndex, int targetIndex)

@@ -661,7 +661,10 @@ namespace UnityEngine.Rendering.Universal
             set => m_AntialiasingQuality = value;
         }
 
-        internal ref TemporalAA.Settings taaSettings
+        /// <summary>
+        /// Returns the current temporal anti-aliasing settings used by this camera.
+        /// </summary>
+        public ref TemporalAA.Settings taaSettings
         {
             get { return ref m_TaaSettings; }
         }

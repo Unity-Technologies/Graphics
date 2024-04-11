@@ -792,6 +792,8 @@ namespace UnityEngine.Rendering.Universal
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming, cmd, ref cameraData);
 
                 m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+                m_RenderTransparentForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
+                m_DrawSkyboxPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 m_XROcclusionMeshPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
 #endif
@@ -1605,7 +1607,7 @@ namespace UnityEngine.Rendering.Universal
 
             //Check if we are using the depth that is attached to color buffer
             if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
-                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ActiveCameraDepthAttachment);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
 

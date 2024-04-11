@@ -10,6 +10,11 @@ namespace UnityEngine.Rendering.Universal
     public class DrawSkyboxPass : ScriptableRenderPass
     {
         /// <summary>
+        /// Used to indicate if the active target of the pass is the back buffer
+        /// </summary>
+        public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+
+        /// <summary>
         /// Creates a new <c>DrawSkyboxPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
@@ -37,60 +42,52 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
             }
+            var skyRendererList = CreateSkyboxRendererList(context, cameraData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                if (cameraData.xr.singlePassEnabled)
+                    renderingData.commandBuffer.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
+
+                if (m_IsActiveTargetBackBuffer)
+                    renderingData.commandBuffer.SetViewport(cameraData.xr.GetViewport());
+            }
+#endif
+            renderingData.commandBuffer.DrawRendererList(skyRendererList);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            // XRTODO: Remove this code once Skybox pass is moved to SRP land.
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+                renderingData.commandBuffer.SetSinglePassStereo(SinglePassStereoMode.None);
+#endif
+        }
+
+        // For non-RG path
+        private RendererList CreateSkyboxRendererList(ScriptableRenderContext context, CameraData cameraData)
+        {
+            var skyRendererList = new RendererList();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
                 // Setup Legacy XR buffer states
                 if (cameraData.xr.singlePassEnabled)
                 {
-                    // Setup legacy skybox stereo buffer
-                    camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, cameraData.GetProjectionMatrix(0));
-                    camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, cameraData.GetViewMatrix(0));
-                    camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, cameraData.GetProjectionMatrix(1));
-                    camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, cameraData.GetViewMatrix(1));
-
-                    var cmd = renderingData.commandBuffer;
-
-                    // Use legacy stereo instancing mode to have legacy XR code path configured
-                    cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    // Calling into built-in skybox pass
-                    context.DrawSkybox(camera);
-
-                    // Disable Legacy XR path
-                    cmd.SetSinglePassStereo(SinglePassStereoMode.None);
-                    context.ExecuteCommandBuffer(cmd);
-                    // We do not need to submit here due to special handling of stereo matrices in core.
-                    // context.Submit();
-                    cmd.Clear();
-
-                    camera.ResetStereoProjectionMatrices();
-                    camera.ResetStereoViewMatrices();
+                    skyRendererList = context.CreateSkyboxRendererList(cameraData.camera,
+                        cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0),
+                        cameraData.GetProjectionMatrix(1), cameraData.GetViewMatrix(1));
                 }
                 else
                 {
-                    camera.projectionMatrix = cameraData.GetProjectionMatrix(0);
-                    camera.worldToCameraMatrix = cameraData.GetViewMatrix(0);
-
-                    context.DrawSkybox(camera);
-
-                    // XRTODO: remove this call because it creates issues with nested profiling scopes
-                    // See examples in UniversalRenderPipeline.RenderSingleCamera() and in ScriptableRenderer.Execute()
-                    context.Submit(); // Submit and execute the skybox pass before resetting the matrices
-
-                    camera.ResetProjectionMatrix();
-                    camera.ResetWorldToCameraMatrix();
+                    skyRendererList = context.CreateSkyboxRendererList(cameraData.camera, cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0));
                 }
             }
             else
 #endif
             {
-                context.DrawSkybox(camera);
+                skyRendererList = context.CreateSkyboxRendererList(cameraData.camera);
             }
+
+            return skyRendererList;
         }
 
         private class PassData

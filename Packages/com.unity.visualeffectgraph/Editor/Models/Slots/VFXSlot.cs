@@ -730,10 +730,12 @@ namespace UnityEditor.VFX
         {
             if (notify)
             {
+                bool wasInitialized = m_Property.attributes.IsInitialized;
                 if (!m_Property.attributes.IsEqual(attributes))
                 {
                     m_Property.attributes = attributes;
-                    Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized
+                    if (wasInitialized) // No invalidate at init 
+                        Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized
                 }
             }
             else // fast path without comparison
@@ -907,6 +909,7 @@ namespace UnityEditor.VFX
         {
             // Start from the top most parent
             var masterSlot = GetMasterSlot();
+            bool wasUpToDate = masterSlot.m_ExpressionTreeUpToDate;
 
             // When deserializing, default expression wont be initialized
             if (!m_DefaultExpressionInitialized)
@@ -933,7 +936,7 @@ namespace UnityEditor.VFX
             {
                 if (owner != null)
                 {
-                    owner.UpdateOutputExpressions();
+                    owner.UpdateOutputExpressionsIfNeeded();
                     // Update outputs can trigger an invalidate, it can be reentrant. Just check if we're up to date after that and early out
                     if (m_ExpressionTreeUpToDate)
                         return;
@@ -983,8 +986,9 @@ namespace UnityEditor.VFX
                     s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : VFXCoordinateSpace.None);
             });
 
-            foreach (var slot in toInvalidate)
-                slot.InvalidateExpressionTree();
+            if (wasUpToDate)
+                foreach (var slot in toInvalidate)
+                    slot.InvalidateExpressionTree();
         }
 
         private static VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot destSlot, VFXSlot sourceSlot)
@@ -1056,6 +1060,9 @@ namespace UnityEditor.VFX
 
         public void InvalidateExpressionTree()
         {
+            if (!m_ExpressionTreeUpToDate)
+                return;
+
             var masterSlot = GetMasterSlot();
 
             masterSlot.PropagateToChildren(s =>

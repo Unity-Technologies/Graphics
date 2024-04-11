@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [14.0.10] - 2024-04-03
+
+This version is compatible with Unity 2022.3.24f1.
+
+### Changed
+- Improved performance entering and leaving playmode for scenes containing large numbers of decal projectors.
+- Improved scene culling performance when APV is enabled in the project.
+
+### Fixed
+- Removed screen space overlay UI being rendered in offscreen camera.
+- Fixed XR texture 2D creation failure due to invalid slice configuration. The slice is misconfigured to 2 when creating Texture2D, causing internal failures.
+- Optimize the OnDisable of DecalProjector component when disabling a lot of decals at the same time.
+- Removed the error message "Decal texture atlas out of space..." in release builds (it now only appears in the Editor or Development Builds).
+- Fixed artifacts on low resolution SSGI when dynamic resolution values are low.
+- Fixed internally created Game Objects being deallocated on scene changes.
+- Fixed misuse of ternary operators in shaders.
+- Fixed a NaN issue in volumetric fog reprojection causing black to propagate in the fog.
+- Fixed invalid AABB error in the console when using the APV with reflection probes.
+- Fixed a scaling issue with the recorder.
+- Restore `EditorGUIUtility.labelWidth` to default after drawing Material GUI.
+- Fix specular blend in premultiplied alpha
+- Fixed screen node not returning correct resolution after post-processing when dynamic resolution is enabled.
 
 ## [14.0.9] - 2023-12-21
 
