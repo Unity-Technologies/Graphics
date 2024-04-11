@@ -17,7 +17,6 @@ namespace UnityEditor.VFX.Test
     public class VisualEffectPrefabTest
     {
         List<GameObject> m_gameObjectToDelete = new ();
-        private bool m_OriginalPlayModeOptionEnabled;
         private EnterPlayModeOptions m_OriginalPlayModeOption;
 
         [OneTimeSetUp]
@@ -29,10 +28,8 @@ namespace UnityEditor.VFX.Test
             camera.transform.localPosition = Vector3.one;
             camera.transform.LookAt(mainCamera.transform);
 
-            m_OriginalPlayModeOptionEnabled = EditorSettings.enterPlayModeOptionsEnabled;
             m_OriginalPlayModeOption = EditorSettings.enterPlayModeOptions;
             EditorSettings.enterPlayModeOptions = EnterPlayModeOptions.DisableDomainReload;
-            EditorSettings.enterPlayModeOptionsEnabled = true;
         }
 
         [OneTimeTearDown]
@@ -40,7 +37,6 @@ namespace UnityEditor.VFX.Test
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
             EditorSettings.enterPlayModeOptions = m_OriginalPlayModeOption;
-            EditorSettings.enterPlayModeOptionsEnabled = m_OriginalPlayModeOptionEnabled;
 
             foreach (var gameObject in m_gameObjectToDelete)
             {
