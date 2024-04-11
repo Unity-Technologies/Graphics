@@ -512,6 +512,17 @@ namespace UnityEditor.Rendering.Universal
             return combinedURPAssetShaderFeatures;
         }
 
+        internal static bool NeedsProceduralKeyword(ref RendererRequirements rendererRequirements)
+        {
+            #if ENABLE_VR && ENABLE_XR_MODULE
+                var xrResourcesAreValid = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>()?.valid ?? false;
+                return rendererRequirements.isUniversalRenderer && xrResourcesAreValid;
+            #else
+                return false;
+            #endif
+        }
+
+
         internal static RendererRequirements GetRendererRequirements(ref UniversalRenderPipelineAsset urpAsset, ref ScriptableRenderer renderer, ref ScriptableRendererData rendererData, bool stripUnusedVariants)
         {
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
@@ -533,13 +544,7 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred);
             rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
-
-            #if ENABLE_VR && ENABLE_XR_MODULE
-            var xrResourcesAreValid = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>()?.valid ?? false;
-            rsd.needsProcedural                   = rsd.isUniversalRenderer && xrResourcesAreValid;
-            #else
-            rsd.needsProcedural                   = false;
-            #endif
+            rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
             rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
             return rsd;
