@@ -324,7 +324,7 @@ namespace UnityEditor.VFX.Block
                     m_Properties = new List<VFXPropertyWithValue>();
                     foreach (var input in m_Function.inputs)
                     {
-                        if (input.type != null && input.type != typeof(VFXAttribute) && input.access is HLSLAccess.IN)
+                        if (input.type != null && input.type != typeof(VFXAttribute) && input.access is HLSLAccess.IN or HLSLAccess.NONE)
                         {
                             m_Properties.Add(CreateProperty(input));
                         }

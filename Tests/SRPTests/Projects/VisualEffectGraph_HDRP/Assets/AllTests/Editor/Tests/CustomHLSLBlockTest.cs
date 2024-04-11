@@ -456,6 +456,34 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual("Missing `inout` access modifier before the VFXAttributes type.\nNeeded because your code writes to at least one attribute.", report.description);
         }
 
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_VFXAttributes_Without_Access_Modifier()
+        {
+            // Arrange
+            var hlslCode =
+                "void TestFunction(inout VFXAttributes attributes, float param)\n" +
+                "{\n" +
+                "    attributes.position = float3(param, param, param);\n" +
+                "}";
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+            yield return null;
+
+            // Act
+            graph.errorManager.GenerateErrors();
+
+            // Assert
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock);
+            Assert.IsFalse(report.Any());
+
+            //Check input slot contents
+            Assert.AreEqual(1, hlslBlock.inputSlots.Count);
+            Assert.AreEqual("param", hlslBlock.inputSlots[0].name);
+            Assert.AreEqual(VFXValueType.Float, hlslBlock.inputSlots[0].valueType);
+        }
+
         [Test]
         public void Check_CustomHLSL_Block_Includes()
         {
