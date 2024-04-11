@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Implement a multiple buffering for RenderTextures.
     /// </summary>
-    /// <exemple>
+    /// <example>
     /// <code>
     /// enum BufferType
     /// {
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering
     ///     // Use previousColor and write into currentColor
     /// }
     /// </code>
-    /// </exemple>
+    /// </example>
     public class BufferedRTHandleSystem : IDisposable
     {
         Dictionary<int, RTHandle[]> m_RTHandles = new Dictionary<int, RTHandle[]>();
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering
         /// Return the frame RT or null.
         /// </summary>
         /// <param name="bufferId">Defines the buffer to use.</param>
-        /// <param name="frameIndex"></param>
+        /// <param name="frameIndex">Defines which frame to access within the buffer.</param>
         /// <returns>The frame RT or null when the <paramref name="bufferId"/> was not previously allocated (<see cref="BufferedRTHandleSystem.AllocBuffer(int, Func{RTHandleSystem, int, RTHandle}, int)" />).</returns>
         public RTHandle GetFrameRT(int bufferId, int frameIndex)
         {

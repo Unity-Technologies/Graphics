@@ -117,8 +117,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Evaluates a point on the curve.
         /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
+        /// <param name="x">The x-coordinate at which to evaluate the curve.</param>
+        /// <returns>The y-coordinate (value) of the curve at the specified x-coordinate.</returns>
         public float Eval(float x)
         {
             float normX = x * inverseWhitePoint;

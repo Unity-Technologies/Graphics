@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// The format of the delegate used to perofrm dynamic resolution.
     /// </summary>
+    /// <returns>A float value representing the scale factor for dynamic resolution.</returns>
     public delegate float PerformDynamicRes();
 
     /// <summary>

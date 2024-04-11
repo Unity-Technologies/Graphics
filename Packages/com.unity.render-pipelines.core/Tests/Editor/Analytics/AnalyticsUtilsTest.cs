@@ -6,7 +6,7 @@ using UnityEngine.Pool;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public class AnalyticsUtilsTests
+    class AnalyticsUtilsTests
     {
         private TestScriptableObject m_SO;
         private TestObject m_Current;

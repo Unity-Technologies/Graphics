@@ -120,7 +120,6 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>
         /// Implicit conversion operator to runtime version of sky datas
         /// </summary>
-        /// <param name="sky">Editor version of the datas</param>
         public UnityEngine.Rendering.LookDev.Sky sky
             => new UnityEngine.Rendering.LookDev.Sky()
             {

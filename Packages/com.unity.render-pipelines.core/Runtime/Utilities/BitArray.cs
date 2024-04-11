@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering
         /// An indexer that allows access to the bit at a given index. This provides both read and write access.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         bool this[uint index] { get; set; }
         /// <summary>Writes the bits in the array in a human-readable form. This is as a string of 0s and 1s packed by 8 bits. This is useful for debugging.</summary>
         string humanizedData { get; }
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Return the BitArray with every bit inverted.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The resulting bit array.</returns>
         IBitArray BitNot();
     }
 
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
         /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         public bool this[uint index]
         {
             get => BitArrayUtilities.Get8(index, data);
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering
         /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         public bool this[uint index]
         {
             get => BitArrayUtilities.Get16(index, data);
@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering
         /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         public bool this[uint index]
         {
             get => BitArrayUtilities.Get32(index, data);
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering
         /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         public bool this[uint index]
         {
             get => BitArrayUtilities.Get64(index, data);
@@ -550,7 +550,7 @@ namespace UnityEngine.Rendering
         /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         public bool this[uint index]
         {
             get => index < 64u
@@ -702,7 +702,7 @@ namespace UnityEngine.Rendering
         /// Returns the state of the bit at a specific index.
         /// </summary>
         /// <param name="index">Index of the bit.</param>
-        /// <returns>State of the bit at the provided index.</returns>
+        /// <value>State of the bit at the provided index.</value>
         public bool this[uint index]
         {
             get => BitArrayUtilities.Get256(index, data1, data2, data3, data4);

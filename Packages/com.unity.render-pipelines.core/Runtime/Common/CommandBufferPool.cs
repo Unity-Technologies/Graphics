@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get a new Command Buffer.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns a new Command Buffer obtained from the buffer pool.</returns>
         public static CommandBuffer Get()
         {
             var cmd = s_BufferPool.Get();
@@ -26,8 +26,8 @@ namespace UnityEngine.Rendering
         /// Get a new Command Buffer and assign a name to it.
         /// Named Command Buffers will add profiling makers implicitly for the buffer execution.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">The name to be assigned to the new Command Buffer.</param>
+        /// <returns>Returns a new Command Buffer with the assigned name.</returns>
         public static CommandBuffer Get(string name)
         {
             var cmd = s_BufferPool.Get();
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Release a Command Buffer.
         /// </summary>
-        /// <param name="buffer"></param>
+        /// <param name="buffer">The Command Buffer to be released back into the buffer pool.</param>
         public static void Release(CommandBuffer buffer)
         {
             s_BufferPool.Release(buffer);

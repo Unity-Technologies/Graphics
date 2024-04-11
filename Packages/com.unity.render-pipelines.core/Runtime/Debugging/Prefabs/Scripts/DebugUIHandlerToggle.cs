@@ -14,7 +14,10 @@ namespace UnityEngine.Rendering.UI
         /// <summary>Checkermark image.</summary>
         public Image checkmarkImage;
 
-        internal protected DebugUI.BoolField m_Field;
+        /// <summary>
+        /// The DebugUI.BoolField instance that represents the data and state of the toggle widget managed by this handler.
+        /// </summary>
+        protected internal DebugUI.BoolField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {

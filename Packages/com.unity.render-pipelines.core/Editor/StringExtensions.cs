@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="input">The input string</param>
         /// <param name="stringsToCheck">List of strings to check</param>
-        /// <returns></returns>
+        /// <returns>True if the input contains any of the strings from stringsToCheck; otherwise, false.</returns>
         public static bool ContainsAny(this string input, params string[] stringsToCheck)
         {
             if(string.IsNullOrEmpty(input))

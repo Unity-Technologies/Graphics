@@ -266,7 +266,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draws an <see cref="EditorGUI.EnumPopup"/> for the given property
         /// </summary>
-        /// <typeparam name="TEnum"></typeparam>
+        /// <typeparam name="TEnum">The type of Enum that the drop down menu will contain.</typeparam>
         /// <param name="rect">The rect where the drop down will be drawn</param>
         /// <param name="label">The label for the drop down</param>
         /// <param name="serializedProperty">The <see cref="SerializedProperty"/> to modify</param>
@@ -1260,9 +1260,9 @@ namespace UnityEditor.Rendering
             return versionText[1];
         }
 
-        /// <summary></summary>
-        /// <param name="VCSEnabled"></param>
-        /// <param name="mat"></param>
+        /// <summary>Checks out a file from the Version Control System if VCS is enabled.</summary>
+        /// <param name="VCSEnabled">A boolean value determining whether Version Control System is enabled or not.</param>
+        /// <param name="mat">The UnityObject to be checked out from the Version Control System.</param>
         static public void CheckOutFile(bool VCSEnabled, UnityObject mat)
         {
             if (VCSEnabled)

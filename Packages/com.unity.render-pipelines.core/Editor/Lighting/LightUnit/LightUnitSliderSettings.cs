@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering
         /// <param name="cautionTooltip">Tooltip for caution</param>
         /// <param name="unitName">The name of the unit</param>
         /// <param name="hasMarkers">If has markers</param>
-        /// <param name="clampValue">If the value will be clamped to the <see cref="valueRanges"></see></param>
+        /// <param name="clampValue">If the value will be clamped to the <see cref="valueRanges"/></param>
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution,
                                            string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
             : this(valueRanges, sliderDistribution, cautionTooltip, cautionTooltip, unitName, hasMarkers, clampValue)
@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering
         /// <param name="aboveRangeTooltip">The tooltip if the value goes above the range</param>
         /// <param name="unitName">The name of the unit</param>
         /// <param name="hasMarkers">If has markers</param>
-        /// <param name="clampValue">If the value will be clamped to the <see cref="valueRanges"></see></param>
+        /// <param name="clampValue">If the value will be clamped to the <see cref="valueRanges"/></param>
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string belowRangeTooltip,
                                            string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
         {
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="tooltip">The tooltip</param>
         /// <param name="value">The min and max values</param>
-        /// <returns></returns>
+        /// <returns>A configured LightUnitSliderUIRange instance representing a caution range.</returns>
         public static LightUnitSliderUIRange CautionRange(string tooltip, float value) => new LightUnitSliderUIRange
         {
             // Load the buildin caution icon with provided tooltip.

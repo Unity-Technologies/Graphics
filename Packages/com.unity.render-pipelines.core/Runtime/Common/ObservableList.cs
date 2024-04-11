@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering
         /// Accessor.
         /// </summary>
         /// <param name="index">Item index.</param>
-        /// <returns>The item at the provided index.</returns>
+        /// <value>The item at the provided index.</value>
         public T this[int index]
         {
             get { return m_List[index]; }

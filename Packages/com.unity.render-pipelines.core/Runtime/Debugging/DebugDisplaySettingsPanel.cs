@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Class to help declare rendering debugger panels
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of Debug Display Settings Data that a Rendering Debugger Panel is using.</typeparam>
     public abstract class DebugDisplaySettingsPanel<T> : DebugDisplaySettingsPanel
         where T : IDebugDisplaySettingsData
     {

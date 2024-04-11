@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Display stats panel constructor with settings
         /// </summary>
-        /// <param name="debugDisplayStats"></param>
+        /// <param name="debugDisplayStats">The debug display stats object that is used for configuring settings in the stats panel.</param>
         public DebugDisplaySettingsStats(DebugDisplayStats<TProfileId> debugDisplayStats)
         {
             this.debugDisplayStats = debugDisplayStats;

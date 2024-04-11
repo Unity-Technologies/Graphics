@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Get or set the state given the mask.</summary>
         /// <param name="mask">The filtering mask</param>
-        /// <returns>True: All flagged area are expended</returns>
+        /// <value>True: All flagged area are expended</value>
         public bool this[TState mask]
         {
             get => GetExpandedAreas(mask);

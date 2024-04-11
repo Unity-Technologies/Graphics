@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
         }
     }
 
-    public class ShaderStrippingReportTest
+    class ShaderStrippingReportTests
     {
         [UnitySetUp]
         public void GlobalSetUp()

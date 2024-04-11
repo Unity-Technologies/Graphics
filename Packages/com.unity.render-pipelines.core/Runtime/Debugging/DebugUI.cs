@@ -203,8 +203,8 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Function used to validate the value when setting it.
             /// </summary>
-            /// <param name="value"></param>
-            /// <returns></returns>
+            /// <param name="value">Input value.</param>
+            /// <returns>Validated value.</returns>
             object ValidateValue(object value);
         }
 

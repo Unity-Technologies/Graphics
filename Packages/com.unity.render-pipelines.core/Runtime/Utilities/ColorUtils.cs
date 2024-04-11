@@ -34,17 +34,17 @@ namespace UnityEngine.Rendering
         /// http://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D
         /// Slightly modifed to adjust it with the D65 white point (x=0.31271, y=0.32902).
         /// </summary>
-        /// <param name="x"></param>
-        /// <returns></returns>
+        /// <param name="x">The input value representing the chromaticity measure.</param>
+        /// <returns>Returns the calculated value of the standard illuminant's Y-coordinate based on the input x.</returns>
         public static float StandardIlluminantY(float x) => 2.87f * x - 3f * x * x - 0.27509507f;
 
         /// <summary>
         /// CIE xy chromaticity to CAT02 LMS.
         /// http://en.wikipedia.org/wiki/LMS_color_space#CAT02
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
+        /// <param name="x">The x value in the CIE xy chromaticity.</param>
+        /// <param name="y">The y value in the CIE xy chromaticity.</param>
+        /// <returns>Vector3 representing the conversion from CIE xy chromaticity to CAT02 LMS color space.</returns>
         public static Vector3 CIExyToLMS(float x, float y)
         {
             float Y = 1f;

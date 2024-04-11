@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
-    /// <summary>
-    /// Contains a set of methods to help render the inspectors of Lights across SRP's
-    /// </summary>
     public partial class LightUI
     {
         /// <summary>

@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering
         /// Creates and returns a new <see cref="VolumeStack"/> to use when you need to store
         /// the result of the Volume blending pass in a separate stack.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A new <see cref="VolumeStack"/> instance with freshly loaded components.</returns>
         /// <seealso cref="VolumeStack"/>
         /// <seealso cref="Update(VolumeStack,Transform,LayerMask)"/>
         public VolumeStack CreateStack()

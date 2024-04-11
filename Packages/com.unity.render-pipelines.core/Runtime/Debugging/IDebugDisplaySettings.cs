@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Executes an action for each element
         /// </summary>
-        /// <param name="onExecute"></param>
+        /// <param name="onExecute">The action to execute for each element, accepting an IDebugDisplaySettingsData object as a parameter.</param>
         void ForEach(Action<IDebugDisplaySettingsData> onExecute);
 
         /// <summary>

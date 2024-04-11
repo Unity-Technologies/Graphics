@@ -771,10 +771,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Render a debug view showing fragmentation of the GPU memory.
         /// </summary>
-        /// <param name="renderGraph"></param>
-        /// <param name="colorBuffer"></param>
-        /// <param name="depthBuffer"></param>
-        /// <param name="debugOverlay"></param>
+        /// <param name="renderGraph">The RenderGraph responsible for executing this pass.</param>
+        /// <param name="colorBuffer">The color buffer where the overlay will be rendered.</param>
+        /// <param name="depthBuffer">The depth buffer used for depth-testing the overlay.</param>
+        /// <param name="debugOverlay">The debug overlay manager to orchestrate multiple overlays.</param>
         public void RenderFragmentationOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, DebugOverlay debugOverlay)
         {
             if (!m_ProbeReferenceVolumeInit || !probeVolumeDebug.displayIndexFragmentation)

@@ -22,7 +22,10 @@ namespace UnityEngine.Rendering.UI
         RectTransform m_MaskTransform;
         DebugUIHandlerWidget m_ScrollTarget;
 
-        internal protected DebugUI.Panel m_Panel;
+        /// <summary>
+        /// The DebugUI.Panel instance that this handler is managing.
+        /// </summary>
+        protected internal DebugUI.Panel m_Panel;
 
         void OnEnable()
         {

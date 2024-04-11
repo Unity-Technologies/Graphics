@@ -2,7 +2,6 @@ using System;
 
 namespace UnityEditor.Rendering
 {
-    /// <summary>Serialisation of BitArray, Utility class</summary>
     public static partial class SerializedBitArrayUtilities
     {
         /// <summary>Convert to 8bit</summary>
@@ -168,8 +167,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="propertyPath">serializedProperty must match its path</param>
         /// <param name="serializedProperty">serializedProperty must match its path</param>
-        /// <param name="bitIndex"></param>
-        /// <returns></returns>
+        /// <param name="bitIndex">The index of the bit to be checked.</param>
+        /// <returns>True if the bit has multiple different values; otherwise, false.</returns>
         [Obsolete("Replaced by HasBitMultipleDifferentValue that now works for all IBitArray implementations. #from(23.2)")]
         unsafe protected bool HasBitMultipleDifferentValue_For64Bits(string propertyPath, SerializedProperty serializedProperty, uint bitIndex)
             => HasBitMultipleDifferentValue(bitIndex);
@@ -201,7 +200,7 @@ namespace UnityEditor.Rendering
     [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray8 : SerializedBitArray
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SerializedBitArray"/>
         public SerializedBitArray8(SerializedProperty serializedProperty, uint capacity) : base(serializedProperty, capacity) { }
 
         /// <inheritdoc/>
@@ -221,7 +220,7 @@ namespace UnityEditor.Rendering
     [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray16 : SerializedBitArray
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SerializedBitArray"/>
         public SerializedBitArray16(SerializedProperty serializedProperty, uint capacity) : base(serializedProperty, capacity) { }
 
         /// <inheritdoc/>
@@ -241,7 +240,7 @@ namespace UnityEditor.Rendering
     [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray32 : SerializedBitArray
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SerializedBitArray"/>
         public SerializedBitArray32(SerializedProperty serializedProperty, uint capacity) : base(serializedProperty, capacity) { }
 
         /// <inheritdoc/>
@@ -261,7 +260,7 @@ namespace UnityEditor.Rendering
     [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray64 : SerializedBitArray
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SerializedBitArray"/>
         public SerializedBitArray64(SerializedProperty serializedProperty, uint capacity) : base(serializedProperty, capacity) { }
 
         /// <inheritdoc/>
@@ -281,7 +280,7 @@ namespace UnityEditor.Rendering
     [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray128 : SerializedBitArray
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SerializedBitArray"/>
         public SerializedBitArray128(SerializedProperty serializedProperty, uint capacity) : base(serializedProperty, capacity) { }
 
         /// <inheritdoc/>
@@ -301,7 +300,7 @@ namespace UnityEditor.Rendering
     [Obsolete("Since SerializedBitArray unification, only use SerializedBitArrayAny. #from(23.2)")]
     public sealed class SerializedBitArray256 : SerializedBitArray
     {
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SerializedBitArray"/>
         public SerializedBitArray256(SerializedProperty serializedProperty, uint capacity) : base(serializedProperty, capacity) { }
 
         /// <inheritdoc/>

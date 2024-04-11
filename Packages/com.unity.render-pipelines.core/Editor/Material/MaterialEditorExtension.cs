@@ -3,10 +3,13 @@ using UnityEngine;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// Set of extensions to allow storing, getting and setting the expandable states of a <see cref="MaterialEditor"/> areas
+    /// Provides a set of extension methods for storing, retrieving, and setting expandable states of areas in a <see cref="MaterialEditor"/>.
+    /// Additionally, these extensions facilitate handling of various shader property drawers within the editor.
     /// </summary>
-    public static partial class MaterialEditorExtension
+    public static class MaterialEditorExtension
     {
+        #region Set of extensions to allow storing, getting and setting the expandable states
+
         const string k_KeyPrefix = "CoreRP:Material:UI_State:";
 
         /// <summary>
@@ -58,13 +61,10 @@ namespace UnityEditor.Rendering
         {
             return k_KeyPrefix + (editor.target as Material).shader.name;
         }
-    }
+        #endregion
 
-    /// <summary>
-    /// Set of extensions to handle more shader property drawer
-    /// </summary>
-    public static partial class MaterialEditorExtension
-    {
+        #region Set of extensions to handle more shader property drawer
+
         static Rect GetRect(MaterialProperty prop)
         {
             return EditorGUILayout.GetControlRect(true, MaterialEditor.GetDefaultPropertyHeight(prop), EditorStyles.layerMaskField);
@@ -282,5 +282,6 @@ namespace UnityEditor.Rendering
 
             MaterialEditor.EndProperty();
         }
+        #endregion
     }
 }

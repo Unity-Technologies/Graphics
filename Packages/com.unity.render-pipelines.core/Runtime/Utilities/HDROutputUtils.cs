@@ -27,10 +27,10 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Constructs HDR Display settings.
             /// </summary>
-            /// <param name="maxFullFrameToneMapLuminance"></param>
-            /// <param name="maxToneMapLuminance"></param>
-            /// <param name="minToneMapLuminance"></param>
-            /// <param name="hdrPaperWhiteNits"></param>
+            /// <param name="maxFullFrameToneMapLuminance">Maximum input luminance at which gradation is preserved even when the entire screen is bright.</param>
+            /// <param name="maxToneMapLuminance">Maximum input luminance at which gradation is preserved when 10% of the screen is bright.</param>
+            /// <param name="minToneMapLuminance">Minimum input luminance at which gradation is identifiable.</param>
+            /// <param name="hdrPaperWhiteNits">The base luminance of a white paper surface in nits or candela per square meter.</param>
             public HDRDisplayInformation(int maxFullFrameToneMapLuminance, int maxToneMapLuminance, int minToneMapLuminance, float hdrPaperWhiteNits)
             {
                 this.maxFullFrameToneMapLuminance = maxFullFrameToneMapLuminance;
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering
         public static bool IsShaderVariantValid(ShaderKeywordSet shaderKeywordSet, bool isHDREnabled)
         {
             bool hasHDRKeywords = shaderKeywordSet.IsEnabled(ShaderKeywords.HDREncoding) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRColorSpaceConversion) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRColorSpaceConversionAndEncoding) || shaderKeywordSet.IsEnabled(ShaderKeywords.HDRInput);
-            
+
             // If we don't plan to enable HDR, remove all HDR Output variants
             if (!isHDREnabled && hasHDRKeywords)
                 return false;

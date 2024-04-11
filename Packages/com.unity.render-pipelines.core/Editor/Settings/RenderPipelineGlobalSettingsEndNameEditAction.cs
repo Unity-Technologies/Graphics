@@ -54,10 +54,10 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Creates a new <see cref="RenderPipelineGlobalSettings"/> of the given type for the given pipeline
         /// </summary>
-        /// <typeparam name="TRenderPipeline"></typeparam>
-        /// <typeparam name="TGlobalSettings"></typeparam>
-        /// <param name="usePathFromCurrentSettings"></param>
-        /// <param name="updateAssetOnGraphicsSettings"></param>
+        /// <typeparam name="TRenderPipeline">The type of the render pipeline the new settings asset is intended for.</typeparam>
+        /// <typeparam name="TGlobalSettings">The type of the global settings asset to create.</typeparam>
+        /// <param name="usePathFromCurrentSettings">If true, the new asset will be created at a unique path based on the current settings' path.</param>
+        /// <param name="updateAssetOnGraphicsSettings">If true, GraphicsSettings will be updated with the new asset.</param>
         public static void CreateNew<TRenderPipeline, TGlobalSettings>(bool usePathFromCurrentSettings = false, bool updateAssetOnGraphicsSettings = false)
             where TRenderPipeline : RenderPipeline
             where TGlobalSettings : RenderPipelineGlobalSettings

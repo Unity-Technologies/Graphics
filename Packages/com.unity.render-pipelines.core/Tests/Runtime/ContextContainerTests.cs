@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    public class ContextContainerTests
+    class ContextContainerTests
     {
         ContextContainer m_container = new();
 

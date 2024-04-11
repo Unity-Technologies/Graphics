@@ -422,16 +422,16 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Compute internal parameters needed to render single flare
         /// </summary>
-        /// <param name="screenPos"></param>
-        /// <param name="translationScale"></param>
-        /// <param name="rayOff0"></param>
-        /// <param name="vLocalScreenRatio"></param>
-        /// <param name="angleDeg"></param>
-        /// <param name="position"></param>
-        /// <param name="angularOffset"></param>
-        /// <param name="positionOffset"></param>
-        /// <param name="autoRotate"></param>
-        /// <returns>Parameter used on the shader for _FlareData0</returns>
+        /// <param name="screenPos">The screen position of the flare.</param>
+        /// <param name="translationScale">The scale of translation applied to the flare.</param>
+        /// <param name="rayOff0">The base offset for the flare ray.</param>
+        /// <param name="vLocalScreenRatio">The ratio of the flare's local screen size.</param>
+        /// <param name="angleDeg">The base angle of rotation for the flare.</param>
+        /// <param name="position">The position along the flare's radial line, relative to the source, where 1.0 represents the edge of the screen.</param>
+        /// <param name="angularOffset">Angular offset applied to the flare's position.</param>
+        /// <param name="positionOffset">The offset from the flare's calculated position.</param>
+        /// <param name="autoRotate">Flag to enable automatic rotation based on flare's position.</param>
+        /// <returns>A Vector4 object representing the shader parameters _FlareData0.</returns>
         static public Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 rayOff0, Vector2 vLocalScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
         {
             if (!SystemInfo.graphicsUVStartsAtTop)
@@ -450,11 +450,6 @@ namespace UnityEngine.Rendering
             float rotation = angleDeg;
 
             rotation += 180.0f;
-            //if (!autoRotate)
-            //{
-            //    //rotation = Mathf.Abs(rotation) < 1e-4f ? 360.0f : rotation;
-            //}
-            //else
             if (autoRotate)
             {
                 Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
@@ -471,8 +466,6 @@ namespace UnityEngine.Rendering
         static Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0, Vector2 vAspectRatio)
         {
             Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
-            //rayOff.y /= vAspectRatio.x;
-            //globalCos0 *= vAspectRatio.x;
             return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
                                globalSin0 * rayOff.x + globalCos0 * rayOff.y);
         }

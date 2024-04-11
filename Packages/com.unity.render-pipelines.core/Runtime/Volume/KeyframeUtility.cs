@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
 using Unity.Collections;
 using UnityEngine.Assertions;
 
@@ -23,7 +17,7 @@ namespace UnityEngine.Rendering
     /// function isn't allowed to fail, so in the case where we run out of memory we fall back to returning a single keyframe.
     /// </summary>
     ///
-    /// <example>Example:
+    /// <example>
     /// <code>
     /// {
     ///     AnimationCurve curve0 = new AnimationCurve();

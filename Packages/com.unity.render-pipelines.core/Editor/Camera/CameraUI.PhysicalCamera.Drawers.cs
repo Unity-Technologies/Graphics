@@ -4,10 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
-
-    using CED = CoreEditorDrawer<ISerializedCamera>;
-
-    /// <summary> Camera UI Shared Properties among SRP</summary>
     public static partial class CameraUI
     {
         /// <summary>

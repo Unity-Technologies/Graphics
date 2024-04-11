@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Register the render graph to the debug window.
         /// </summary>
-        /// <param name="panel"></param>
+        /// <param name="panel">Optional debug panel to which the render graph debug parameters will be registered.</param>
         public void RegisterDebug(DebugUI.Panel panel = null)
         {
             m_DebugParameters.RegisterDebug(name, panel);
@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="rt">Backbuffer render target identifier.</param>
         /// <param name="info">The properties of the passed in RTHandle.</param>
-        /// <param name="importParams">Info describing the clear behavior of imported textures. Clearing textures using importParams may be more efficient than manually clearing the texture using `cmd.Clear` on some hardware.</param>///
+        /// <param name="importParams">Info describing the clear behavior of imported textures. Clearing textures using importParams may be more efficient than manually clearing the texture using `cmd.Clear` on some hardware.</param>
         /// <returns>A new TextureHandle that represents the imported texture in the context of this rendergraph.</returns>
         public TextureHandle ImportBackbuffer(RenderTargetIdentifier rt, RenderTargetInfo info, ImportResourceParams importParams = new ImportResourceParams())
         {

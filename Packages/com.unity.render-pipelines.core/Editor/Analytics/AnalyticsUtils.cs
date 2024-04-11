@@ -231,6 +231,7 @@ namespace UnityEditor.Rendering
         /// <param name="current">The current object to obtain the fields and values.</param>
         /// <param name="compareAndSimplifyWithDefault">If a comparison against the default value must be done.</param>
         /// <returns>The nested columns in form of {key.nestedKey : value} </returns>
+        /// <exception cref="ArgumentNullException">Throws an exception if current parameter is null.</exception>
         public static string[] ToNestedColumn<T>([DisallowNull] this T current, bool compareAndSimplifyWithDefault = false)
             where T : new()
         {
@@ -269,6 +270,7 @@ namespace UnityEditor.Rendering
         /// <param name="current">The current object to obtain the fields and values.</param>
         /// <param name="defaultInstance">The default instance to compare values</param>
         /// <returns>The nested columns in form of {key.nestedKey : value} </returns>
+        /// <exception cref="ArgumentNullException">Throws an exception if the current or defaultInstance parameters are null.</exception>
         public static string[] ToNestedColumn<T>([DisallowNull] this T current, T defaultInstance)
         {
             if (current == null)
@@ -293,7 +295,7 @@ namespace UnityEditor.Rendering
         /// <param name="defaultObject">The default object</param>
         /// <param name="compareAndSimplifyWithDefault">If a comparison against the default value must be done.</param>
         /// <returns>The nested columns in form of {key.nestedKey : value} </returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException">Throws an exception if the current parameter is null.</exception>
         public static string[] ToNestedColumnWithDefault<T>([DisallowNull] this T current, [DisallowNull] T defaultObject, bool compareAndSimplifyWithDefault = false)
         {
             if (current == null)

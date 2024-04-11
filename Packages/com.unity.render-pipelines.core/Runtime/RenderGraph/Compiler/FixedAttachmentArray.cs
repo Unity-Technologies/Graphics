@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         /// <summary>
         /// Intialize the FixedAttachmentArray by copying data from the passed in c# array.
         /// </summary>
-        /// <param name="attachments"></param>
+        /// <param name="attachments">The C# array from which to copy the elements.</param>
         public FixedAttachmentArray(DataType[] attachments) : this(attachments.Length)
         {
             for (int i = 0; i < activeAttachments; ++i)
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         /// <summary>
         /// Intialize the FixedAttachmentArray by copying data from the passed in native array.
         /// </summary>
-        /// <param name="attachments"></param>
+        /// <param name="attachments">The native array from which to copy the elements.</param>
         public FixedAttachmentArray(NativeArray<DataType> attachments) : this(attachments.Length)
         {
             for (int i = 0; i < activeAttachments; ++i)
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         /// Get the element at the specified index in the array.
         /// </summary>
         /// <param name="index">Index of the element.</param>
-        /// <returns>The value of the element.</returns>
+        /// <value>The value of the element.</value>
         /// <exception cref="IndexOutOfRangeException">If the index is outside the valid range.</exception>
         public ref DataType this[int index]
         {

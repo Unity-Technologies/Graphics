@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering
     public struct GlobalDynamicResolutionSettings
     {
         /// <summary>Default GlobalDynamicResolutionSettings</summary>
-        /// <returns></returns>
+        /// <returns>A GlobalDynamicResolutionSettings instance initialized with default values.</returns>
         public static GlobalDynamicResolutionSettings NewDefault() => new GlobalDynamicResolutionSettings()
         {
             useMipBias = false,
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
-            
+
             FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             advancedUpscalersByPriority = new List<AdvancedUpscalers>() { AdvancedUpscalers.STP },
 

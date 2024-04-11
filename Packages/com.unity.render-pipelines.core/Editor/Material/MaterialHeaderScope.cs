@@ -5,7 +5,8 @@ namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Create a toggleable header for material UI, must be used within a scope.
-    /// <example>Example:
+    /// </summary>
+    /// <example>
     /// <code>
     /// void OnGUI()
     /// {
@@ -17,7 +18,6 @@ namespace UnityEditor.Rendering
     /// }
     /// </code>
     /// </example>
-    /// </summary>
     public struct MaterialHeaderScope : IDisposable
     {
         /// <summary>Indicates whether the header is expanded or not. Is true if the header is expanded, false otherwise.</summary>

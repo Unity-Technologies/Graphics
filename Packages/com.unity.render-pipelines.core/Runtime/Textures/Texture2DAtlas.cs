@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering
         /// <param name="width">Request width in pixels.</param>
         /// <param name="height">Request height in pixels.</param>
         /// <param name="overrideInstanceID">Override texture instance ID.</param>
-        /// <returns></returns>
+        /// <returns>True if the texture was successfully allocated and copied; false otherwise.</returns>
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             var instanceID = overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture);
@@ -575,7 +575,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="scaleOffset">Texture scale (.xy) and offset (.zw).</param>
         /// <param name="id">Source texture instance ID.</param>
-        /// <returns></returns>
+        /// <returns>True if the texture is in the atlas, false otherwise</returns>
         public bool IsCached(out Vector4 scaleOffset, int id)
         {
             bool cached = m_AllocationCache.TryGetValue(id, out var value);

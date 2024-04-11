@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests.ShaderStripping
 {
-    public class VariantStrippingTests
+    class VariantStrippingTests
     {
         #region Strippers
         abstract class ShaderVariantStripperTest : IShaderVariantStripper

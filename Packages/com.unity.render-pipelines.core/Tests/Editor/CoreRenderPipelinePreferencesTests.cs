@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.Rendering
 {
-    public class CoreRenderPipelinePreferencesTests
+    class CoreRenderPipelinePreferencesTests
     {
         [Test]
         public void RegisterInvalidPreferenceColorName()

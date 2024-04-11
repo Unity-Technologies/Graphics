@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering
 {
     [TestFixture]
-    public class RenderPipelineGlobalSettingsTests
+    class RenderPipelineGlobalSettingsUtilsTests
     {
         [TearDown]
         public void TearDown()
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering
             var instanceEnsured = RenderPipelineGlobalSettingsUtils.Create<DummyRenderPipelineGlobalSettings>(path);
             Assert.IsNotNull(instanceEnsured);
             Assert.IsTrue(path.Equals(AssetDatabase.GetAssetPath(instanceEnsured), StringComparison.InvariantCultureIgnoreCase));
-            
+
             var instanceIDExpected = instanceEnsured.GetInstanceID();
             var ensureResult = RenderPipelineGlobalSettingsUtils.
                 TryEnsure<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>(ref instanceEnsured, DummyRenderPipelineGlobalSettings.defaultPath, true, out _);

@@ -9,9 +9,9 @@ namespace UnityEngine.Rendering
         internal static class ShaderDefs
         {
             public const int GroupSize = 128;
-            
+
             // Stride of the indirect arguement buffer in uints, the buffer is split into two sections dispatch options ( a lower or upper arguement set )
-            public const int ArgsBufferStride = 16;            
+            public const int ArgsBufferStride = 16;
             public const int ArgsBufferUpper  = 0;
             public const int ArgsBufferLower  = 8;
 
@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Creates the render graph buffer resources from an input count.
             /// </summary>
-            /// <param name="newMaxElementCount"></param>
+            /// <param name="newMaxElementCount">The maximum number of elements that the buffer will support.</param>
             /// <param name="renderGraph">Render Graph</param>
             /// <param name="builder">Render Graph Builder</param>
             /// <param name="outputIsTemp">Whether or not to allocate a transient resource.</param>

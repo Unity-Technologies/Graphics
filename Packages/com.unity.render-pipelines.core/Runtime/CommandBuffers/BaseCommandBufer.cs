@@ -10,7 +10,10 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class BaseCommandBuffer
     {
-        internal protected CommandBuffer m_WrappedCommandBuffer;
+        /// <summary>
+        /// The instance of Unity's CommandBuffer that this class encapsulates, providing access to lower-level rendering commands.
+        /// </summary>
+        protected internal CommandBuffer m_WrappedCommandBuffer;
         internal RenderGraphPass m_ExecutingPass;
 
         // Users cannot directly create command buffers. The rendergraph creates them and passes them to callbacks.
@@ -27,8 +30,15 @@ namespace UnityEngine.Rendering
         ///<summary>See (https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer-sizeInBytes.html)</summary>
         public int sizeInBytes => m_WrappedCommandBuffer.sizeInBytes;
 
+        /// <summary>
+        /// Checks if modifying the global state is permitted by the currently executing render graph pass.
+        /// If such modifications are not allowed, an InvalidOperationException is thrown.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if the current render graph pass does not permit modifications to global state.
+        /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal protected void ThrowIfGlobalStateNotAllowed()
+        protected internal void ThrowIfGlobalStateNotAllowed()
         {
             if (m_ExecutingPass != null && !m_ExecutingPass.allowGlobalState) throw new InvalidOperationException($"{m_ExecutingPass.name}: Modifying global state from this command buffer is not allowed. Please ensure your render graph pass allows modifying global state.");
         }
@@ -38,15 +48,22 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if the there are no active render targets.</exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal protected void ThrowIfRasterNotAllowed()
+        protected internal void ThrowIfRasterNotAllowed()
         {
             if (m_ExecutingPass != null && !m_ExecutingPass.HasRenderAttachments()) throw new InvalidOperationException($"{m_ExecutingPass.name}: Using raster commands from a pass with no active render targets is not allowed as it will use an undefined render target state. Please set-up the pass's render targets using SetRenderAttachments.");
         }
 
-
-        // Validation when it is unknown if the texture will be read or written
+        /// <summary>
+        /// Ensures that the texture handle being used is valid for the currently executing render graph pass.
+        /// This includes checks to ensure that the texture handle is registered for read or write access
+        /// and is not being used incorrectly as a render target attachment.
+        /// </summary>
+        /// <param name="h">The TextureHandle to validate for the current pass.</param>
+        /// <exception cref="Exception">
+        /// Throws an exception if the texture handle is not properly registered for the pass or being used incorrectly.
+        /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal protected void ValidateTextureHandle(TextureHandle h)
+        protected internal void ValidateTextureHandle(TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)
             {
@@ -65,8 +82,16 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Validates that the specified texture handle is registered for read access within the context of the current executing render graph pass.
+        /// Throws an exception if the texture is not registered for reading or is used incorrectly as a render target attachment.
+        /// </summary>
+        /// <param name="h">The TextureHandle to validate for read access.</param>
+        /// <exception cref="Exception">
+        /// Throws an exception if the texture handle is either not registered as a readable resource or misused as both an attachment and a regular texture.
+        /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal protected void ValidateTextureHandleRead(TextureHandle h)
+        protected internal void ValidateTextureHandleRead(TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)
             {
@@ -83,8 +108,17 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Validates that the specified texture handle is registered for write access within the context of the current executing render graph pass.
+        /// Additionally, it checks that built-in textures are not being written to, and that the texture is not incorrectly used as a render target attachment.
+        /// An exception is thrown if any of these checks fail.
+        /// </summary>
+        /// <param name="h">The TextureHandle to validate for write access.</param>
+        /// <exception cref="Exception">
+        /// Throws an exception if the texture handle is not registered for writing, attempts to write to a built-in texture, or is misused as both a writeable resource and a render target attachment.
+        /// </exception>
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        internal protected void ValidateTextureHandleWrite(TextureHandle h)
+        protected internal void ValidateTextureHandleWrite(TextureHandle h)
         {
             if(RenderGraph.enableValidityChecks)
             {

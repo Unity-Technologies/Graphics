@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering
         /// Retrieves the key at index.
         /// </summary>
         /// <param name="index">The index to look for.</param>
-        /// <returns>A key.</returns>
+        /// <value>A key.</value>
         public Keyframe this[int index] => m_Curve[index];
 
         /// <summary>
@@ -208,8 +208,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Removes the keyframe at <paramref name="index"/> and inserts <paramref name="key"/>.
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="key"></param>
+        /// <param name="index">The index of the keyframe to replace.</param>
+        /// <param name="key">The new keyframe to insert at the specified index.</param>
         /// <returns>The index of the keyframe after moving it.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int MoveKey(int index, in Keyframe key)

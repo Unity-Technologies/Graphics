@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering
         /// Get an item from the list.
         /// </summary>
         /// <param name="index">The index of the item to get.</param>
-        /// <returns>A reference to the item.</returns>
+        /// <value>A reference to the item.</value>
         /// <exception cref="IndexOutOfRangeException">If the index is invalid.</exception>
         public ref T this[in int index]
         {
@@ -75,8 +75,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="value">A reference to the value to add.</param>
         /// <returns>
-        ///   <code>true</code> when the value was added,
-        ///   <code>false</code> when the value was not added because the capacity was reached.
+        ///   <c>true</c> when the value was added,
+        ///   <c>false</c> when the value was not added because the capacity was reached.
         /// </returns>
         public bool TryAdd(in T value)
         {
@@ -108,8 +108,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="other">The destination of the copy.</param>
         /// <returns>
-        ///   * <code>true</code> when the copy was performed.
-        ///   * <code>false</code> when the copy was aborted because the destination have a capacity too small.
+        ///   * <c>true</c> when the copy was performed.
+        ///   * <c>false</c> when the copy was aborted because the destination have a capacity too small.
         /// </returns>
         public bool TryCopyTo(ListBuffer<T> other)
         {
@@ -127,8 +127,8 @@ namespace UnityEngine.Rendering
         /// <param name="srcPtr">The pointer of the source memory to copy.</param>
         /// <param name="count">The number of item to copy from the source buffer.</param>
         /// <returns>
-        ///   * <code>true</code> when the copy was performed.
-        ///   * <code>false</code> when the copy was aborted because the capacity of this list is too small.
+        ///   * <c>true</c> when the copy was performed.
+        ///   * <c>false</c> when the copy was aborted because the capacity of this list is too small.
         /// </returns>
         public bool TryCopyFrom(T* srcPtr, int count)
         {

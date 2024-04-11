@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering
 {
     [SupportedOnRenderPipeline(typeof(DummyRenderPipelineAsset))]
-    public class DummyRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>
+    class DummyRenderPipelineGlobalSettings : RenderPipelineGlobalSettings<DummyRenderPipelineGlobalSettings, DummyRenderPipeline>
     {
         internal static string defaultPath => "Assets/Tests/DummyRenderPipelineGlobalSettings.asset";
 

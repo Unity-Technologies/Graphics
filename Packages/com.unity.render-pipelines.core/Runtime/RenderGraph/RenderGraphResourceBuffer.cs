@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Returns a null graphics buffer handle
         /// </summary>
-        /// <returns>A null graphics buffer handle.</returns>
+        /// <value>A null graphics buffer handle.</value>
         public static BufferHandle nullHandle { get { return s_NullHandle; } }
 
         internal ResourceHandle handle;

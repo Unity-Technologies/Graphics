@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering
         /// <param name="saveAsset">Specifies whether to save the Profile Asset or not. This is useful when you need to
         /// create several components in a row and only want to save the Profile Asset after adding the last one,
         /// because saving Assets to disk can be slow.</param>
-        /// <returns></returns>
+        /// <returns>The newly created component of type <typeparamref name="T"/>.</returns>
         public static T CreateVolumeComponent<T>(VolumeProfile profile, bool overrides = false, bool saveAsset = true)
             where T : VolumeComponent
         {

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering
     /// component this drawer is for.
     /// </summary>
     /// <example>
-    /// Below is an example of a custom <see cref="VolumeComponent"/>:
+    /// <para>Below is an example of a custom <see cref="VolumeComponent"/>:</para>
     /// <code>
     /// using UnityEngine.Rendering;
     ///
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering
     ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
     /// }
     /// </code>
-    /// And its associated editor:
+    /// <para>And its associated editor:</para>
     /// <code>
     /// using UnityEditor.Rendering;
     ///
@@ -569,7 +569,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="property">A serialized property holding a <see cref="VolumeParameter{T}"/>
         /// </param>
-        /// <returns></returns>
+        /// <returns>A <see cref="SerializedDataParameter"/> that encapsulates the provided serialized property.</returns>
         protected SerializedDataParameter Unpack(SerializedProperty property)
         {
             Assert.IsNotNull(property);
