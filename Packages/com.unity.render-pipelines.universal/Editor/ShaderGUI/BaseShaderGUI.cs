@@ -846,8 +846,7 @@ namespace UnityEditor
             // user has explicitly selected a render queue and we should not override it.
             //
             bool isShaderGraph = material.IsShaderGraph(); // Non-shadergraph materials use automatic behavior
-            int rawRenderQueue = MaterialAccess.ReadMaterialRawRenderQueue(material);
-            if (!isShaderGraph || rawRenderQueue == -1)
+            if (!isShaderGraph || material.rawRenderQueue == -1)
             {
                 material.SetFloat(Property.QueueControl, (float)QueueControl.Auto); // Automatic behavior - surface type override
             }

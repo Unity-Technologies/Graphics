@@ -2,9 +2,11 @@ using System;
 using System.IO;
 using System.ComponentModel;
 using System.Collections.Generic;
+using UnityEngine.Serialization;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering;
-using UnityEngine.Serialization;
+#endif
 
 namespace UnityEngine.Rendering.Universal
 {

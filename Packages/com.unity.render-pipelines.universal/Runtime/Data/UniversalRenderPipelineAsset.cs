@@ -3,13 +3,9 @@ using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
-using UnityEditorInternal;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System.ComponentModel;
-using System.Linq;
-using UnityEditor.Rendering;
-using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;

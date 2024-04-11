@@ -209,8 +209,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // If we find another value, add the the property set to 1 so we will know that the
             // user has explicitly selected a render queue and we should not override it.
             //
-            int rawRenderQueue = MaterialAccess.ReadMaterialRawRenderQueue(material);
-            if (rawRenderQueue == -1)
+            if (material.rawRenderQueue == -1)
             {
                 material.SetFloat(Property.QueueControl(), (float)QueueControl.Auto); // Automatic behavior - surface type override
             }
