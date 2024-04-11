@@ -1,6 +1,7 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -178,6 +179,33 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(report);
             Assert.AreEqual(VFXErrorType.Error, report.type);
             Assert.AreEqual("No valid HLSL function has been provided. You should write at least one function that returns a value", report.description);
+        }
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_IncludePath_Relative_Path_Success()
+        {
+            // Arrange
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            CustomHLSLBlockTest.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
+            shaderIncludePath = Path.GetFileName(shaderIncludePath);
+
+            var hlslCode = string.Format("#include \"{0}\"", shaderIncludePath);
+            hlslCode += @"
+float3 Transform(float3 a, float3 b)
+{
+    return a + b;
+}";
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            yield return null;
+
+            // Act
+            graph.errorManager.GenerateErrors();
+
+            // Assert
+            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslOperator);
+            Assert.IsTrue(!report.Any());
         }
 
         [UnityTest]

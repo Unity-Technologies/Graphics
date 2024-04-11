@@ -243,7 +243,9 @@ namespace UnityEditor.VFX.Block
             base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLBlockFunctionValidator();
             ParseCodeIfNeeded();
-            foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function, includes))
+
+            var basePath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(GetGraph().GetResource()));
+            foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function, basePath, includes))
             {
                 report.RegisterError(string.Empty, error.type, error.message, this);
             }
