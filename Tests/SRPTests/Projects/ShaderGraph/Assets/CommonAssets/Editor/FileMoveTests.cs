@@ -195,6 +195,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
             yield return null;
 
             CloseGraphWindow();
+
+            // Wait for any potential compilation to finish before entering cleanup, which deletes the files
+            while (ShaderUtil.anythingCompiling)
+            {
+                yield return null;
+            }
         }
     }
 }
