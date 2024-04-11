@@ -42,6 +42,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public class CullResult : IDisposable
         {
+           int m_NumResults;
+
+            public int numResults
+            {
+                get => m_NumResults;
+                set => m_NumResults = value;
+            }
+
             public class Set : IDisposable
             {
                 int m_NumResults;
@@ -1354,7 +1362,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EndCull(CullRequest cullRequest, CullResult cullResults)
         {
-            m_DecalsVisibleThisFrame = QueryCullResults(cullRequest, cullResults);
+            cullResults.numResults = QueryCullResults(cullRequest, cullResults);
             foreach (var pair in m_DecalSets)
                 pair.Value.EndCull(cullRequest[pair.Key]);
         }
@@ -1670,6 +1678,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void LoadCullResults(CullResult cullResult)
         {
+            m_DecalsVisibleThisFrame = cullResult.numResults;
             using (var enumerator = cullResult.requests.GetEnumerator())
             {
                 while (enumerator.MoveNext())
