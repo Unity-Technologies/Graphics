@@ -475,6 +475,20 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Returns if the camera renders to a offscreen depth texture.
+        /// </summary>
+        /// <param name="cameraData">The camera data for the camera being rendered.</param>
+        /// <returns>Returns true if the camera renders to depth without any color buffer. It will return false otherwise.</returns>
+        public static bool IsOffscreenDepthTexture(ref CameraData cameraData) => IsOffscreenDepthTexture(cameraData);
+
+        /// <summary>
+        /// Returns if the camera renders to a offscreen depth texture.
+        /// </summary>
+        /// <param name="cameraData">The camera data for the camera being rendered.</param>
+        /// <returns>Returns true if the camera renders to depth without any color buffer. It will return false otherwise.</returns>
+        public static bool IsOffscreenDepthTexture(CameraData cameraData) => cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+
         bool IsDepthPrimingEnabled(ref CameraData cameraData)
         {
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
@@ -564,16 +578,13 @@ namespace UnityEngine.Rendering.Universal
                 useRenderPassEnabled = false;
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
+            if (IsOffscreenDepthTexture(cameraData))
             {
                 ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
                 SetupRenderPasses(in renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
-                // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
                 // TODO: Transparents might have force Z write option in the future.
-                EnqueuePass(m_DrawSkyboxPass);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
@@ -1657,7 +1668,7 @@ namespace UnityEngine.Rendering.Universal
 
             //Check if we are using the depth that is attached to color buffer
             if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
-                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ActiveCameraDepthAttachment);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -20,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // If the key exists, we can reuse the camera. It means we are rendering the same probe/face
         // If it does not, it means we need a new camera. We either get one from the pool or create a new one.
-        public Camera GetOrCreate(K key, int frameCount, CameraType cameraType = CameraType.Game)
+        public Camera GetOrCreate(K key, int frameCount)
         {
             if (m_Cache == null)
                 throw new ObjectDisposedException(nameof(ProbeCameraCache<K>));
@@ -29,10 +28,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Key isn't currently used, we try to get an existing or new camera from the pool.
                 if (m_CameraPool.Count == 0)
-                    probeCamera = (new GameObject().AddComponent<Camera>(), frameCount);
+                {
+                    var cameraGameObject = new GameObject("Unused Probe Camera")
+                        { hideFlags = HideFlags.HideAndDontSave };
+#if !UNITY_EDITOR
+                    GameObject.DontDestroyOnLoad(cameraGameObject);
+#endif
+
+                    probeCamera = (cameraGameObject.AddComponent<Camera>(), frameCount);
+                    probeCamera.camera.cameraType = CameraType.Reflection;
+
+                    cameraGameObject.SetActive(false);
+                }
                 else
                     probeCamera = (m_CameraPool.Pop(), frameCount);
-                probeCamera.camera.cameraType = cameraType;
+
                 m_Cache[key] = probeCamera;
             }
             else
@@ -68,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         if (value.camera != null)
                         {
+                            value.camera.name = "Unused Probe Camera";
                             m_CameraPool.Push(value.camera);
                         }
                         m_Cache.Remove(key);
@@ -92,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (camera != null)
                     CoreUtils.Destroy(camera.gameObject);
-            }    
+            }
             m_CameraPool.Clear();
         }
 

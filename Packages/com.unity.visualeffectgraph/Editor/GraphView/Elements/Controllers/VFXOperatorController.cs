@@ -34,7 +34,8 @@ namespace UnityEditor.VFX.UI
                 {
                     subgraphOperator.RecreateCopy();
                     model.ResyncSlots(false);
-                    model.UpdateOutputExpressions();
+                    model.MarkOutputExpressionsAsOutOfDate();
+                    model.UpdateOutputExpressionsIfNeeded();
                 }
                 catch (Exception e)
                 {

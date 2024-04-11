@@ -28,7 +28,8 @@ namespace UnityEditor.VFX
         public Action<VFXObject, bool> onModified;
         void OnValidate()
         {
-            Modified(false);
+            if (!VFXGraph.restoringGraph)
+                Modified(false);
         }
 
         public void Modified(bool uiChange)

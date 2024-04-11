@@ -139,11 +139,13 @@ VFXContextUI #output .VFXDataAnchor.port #connector
         -unity-text-align: middle-center;
     }
 
-    .VFXOutputDataAnchor #icon
-    {
-        width: 13px;
-        height: 13px;
-    }
+.activationslot.VFXDataAnchor .propertyrm {
+    margin-left: 10px;
+}
+.activationslot.VFXDataAnchor .propertyrm > #icon {
+    display: none;
+}
+
 
     .VFXOutputDataAnchor.icon-expandable #icon
     {

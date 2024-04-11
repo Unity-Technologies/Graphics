@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [16.0.5] - 2024-04-03
+
+This version is compatible with Unity 2023.2.18f1.
+
+### Fixed
+- Fixed Remove All context action for Volume Profile not working in VolumeEditor.
+- Correct gathering of the current pipeline to generate the UI for the Default Volume Profile.
+- Fix DebugUI.Button not working in Rendering Debugger runtime UI
 
 ## [16.0.4] - 2023-12-21
 

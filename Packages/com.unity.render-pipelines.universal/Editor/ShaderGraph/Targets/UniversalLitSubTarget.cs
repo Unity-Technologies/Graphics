@@ -585,6 +585,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new PassDescriptor()
                 {
                     // Definition
+                    displayName = "Universal 2D",
                     referenceName = "SHADERPASS_2D",
                     lightMode = "Universal2D",
 

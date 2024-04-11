@@ -7,7 +7,7 @@ Provides access to parameters of the screen.
 #### Unity Render Pipelines Support
 - Universal Render Pipeline
 
-The High Definition Render Pipeline does **not** support this Node.
+Note: when dynamic resolution is enabled, this node will return the current viewport of the rendering camera. After the upscaling pass, the output of this node will be equal to the screen size.
 
 ## Ports
 

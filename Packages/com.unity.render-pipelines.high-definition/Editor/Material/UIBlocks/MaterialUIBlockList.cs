@@ -71,6 +71,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     Debug.LogException(e);
                 }
             }
+
+            // Reset label width back to the default of 0 (fix UUM-66215)
+            // NOTE: Because of how EditorGUIUtility.labelWidth works, when the internal value is 0,
+            // we cannot read that value back from the property getter. So we just set it to 0 here.
+            EditorGUIUtility.labelWidth = 0;
         }
 
         /// <summary>

@@ -234,6 +234,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            if (renderingData.cameraData.cameraType == CameraType.Preview
+                || UniversalRenderer.IsOffscreenDepthTexture(ref renderingData.cameraData))
+                return;
+
             renderer.EnqueuePass(renderObjectsPass);
         }
 

@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [16.0.5] - 2024-04-03
+
+This version is compatible with Unity 2023.2.18f1.
+
+### Changed
+- Improve compilation times with VFX Graph using Subgraphs
+
+### Fixed
+- Fixed space conversion error when copy-pasting a system.
+- Remove GetParticleIndex shader warning in particle strip systems.
+- Sample of Camera Buffer isn't available in compute passes.
+- Fixed very very long system name could lead to freeze the Editor.
+- Fixed an issue where instancing rendering on new ShaderGraph outputs was not enabled.
+- Unexpected larger material in runtime leading to a performance loss.
+- Instancing when gradient selection was based on a branch was wrong.
+- Fixed an unexpected material listing in animation window.
+- Disable MeshToSDFBaker shaders on GLES3 to avoid warnings.
+- Fixed an incompatibility with HLSL 2021.
+- Switch property binder from ExecuteInEditMode in ExecuteAlways.
+- Fixed pCache exporter insure color in linear space.
+- Added tooltips to the VFX Control panel
+- When trying to connect incompatible types, the error popup was left over if the action was canceled with Escape key
+- Fix Construct Matrix operator serialization issue
+- Fix some VFX being always considered dirty
+- Fix unexpected error message when compiling some VFX "Expression graph was marked as dirty"
 
 ## [16.0.4] - 2023-12-21
 

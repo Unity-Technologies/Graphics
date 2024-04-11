@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -8,6 +9,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [16.0.5] - 2024-04-03
+
+This version is compatible with Unity 2023.2.18f1.
+
+### Changed
+- Enable renderViewportScale for XR intermediate textures.
+- The Auto option in SH Evaluation Mode, in the URP Asset, now chooses Per Vertex instead of Per Pixel on mobile and similar devices.
+
+### Fixed
+- Fixed an issue where Evaluate SH and SoftShadow keywords were incorrectly declared in ShaderGraph shaders.
+- Fixed an issue where LOD Crossfade was declared twice in Unlit ShaderGraph.
+- Fixed an "Implicit truncation of vector type" warning in ShaderPassDecal.hlsl.
+- Fixed an "Output value 'fragmentOutput' is not completely initialized" warning in ShaderPassDecal.hlsl.
+- Fixed an error in Bloom.shader for foveated when the debug check is enabled inside FoveatedRendering.hlsl.
+- Fixed an "floating point division by zero" warning in Shadows.hlsl.
+- Fixed an issue where disabling SSAO feature didn't work in built projects when the SSAO disabled keyword had been stripped out.
+- Fixed an issue where NullReferenceExceptions appeared when switching between Quality Levels with Post Processing Volume Update mode set to ViaScripting.
+- Fixing RenderRequest using wrong renderer.
+- Fixed an issue where renderer features didn't pass validation if they inherit from another renderer feature.
+- Fixed an issue where downsampled SSAO had serious artefacts on Android.
+- Fixed an issue where Screen Space Decals keyword was missing when Strip  Unused Variants was turned off.
+- Add UI features to encourage the use of Rendering Layers in URP to control selective lighting, instead of using culling mask. The former works across Deferred, Forward and Forward+, while the latter only works with Forward.
+- Fixed the FinalPostPass executing before "AfterRenderingPostProcessing" instead of after it.
+- Fixed overlays not visible when using FXAA with Full Screen Pass Renderer Features set to "AfterRenderingPostProcessing".
+- Fixed incorrect alpha-clip behavior on transparent surfaces.
+- Ensure motion vector depth buffer is valid for cameras with motion vectors enabled.
+- Fixed an issue where using Alpha Clipped shaders and Depth Priming resulted in invisible objects.
+- Fixed an issue where keywords were incorrectly enabled/disabled when shadows were enabled in the URP Asset and "Transparent Receive Shadows" was disabled on the renderer.
+- Fixed an issue where setting light position, direction and shadow bias allocated due to using strings instead of integers.
+- Motion Vector pass can now render after opaques. It correctly follows its depth dependency in pass order.
+- Added logic to enforce consistent hardware dynamic resolution settings during rendering to avoid issues when external code changes the global setting.
+- Fixed an issue where an incorrect WorldToCamera matrix was used in the main and additional light shadow passes.
+- Fixed an issue where logging an error gave a NullReferenceException for Server Builds.
+- Restore `EditorGUIUtility.labelWidth` to default after drawing MaterialHeaderScopes
+- Scriptable TAA settings.
+- Fixed depth only cameras trying to render renderer features which requires depth.
+- Fixed preview windows no longer renders render objects features
+- Fixed the NativeRenderPass camera target MSAA logic to match the non-NRP path
+- Fix depth buffer disappearing after using SwapColorBuffer
+- Fix shadow flickering when using Screen Space shadows and have depth priming enabled
+- Fixed false-negative missing RendererFeatures errors.
 
 ## [16.0.4] - 2023-12-21
 

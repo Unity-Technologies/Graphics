@@ -1,7 +1,7 @@
 {
   "name": "com.unity.testing.graphics-performance",
   "displayName": "Performance Graphics Tests Framework",
-  "version": "16.0.5",
+  "version": "16.0.6",
   "unity": "2023.2",
   "unityRelease": "0a1",
   "description": "Provides performance framework helpers for writing tests for graphics code, such as test scene asset description, performance performance report and shader static analysis.",
@@ -16,6 +16,6 @@
   "dependencies": {
     "com.unity.test-framework.performance": "3.0.3",
     "com.unity.shaderanalysis": "1.0.0",
-    "com.unity.render-pipelines.core": "16.0.5"
+    "com.unity.render-pipelines.core": "16.0.6"
   }
 }

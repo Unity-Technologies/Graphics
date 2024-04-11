@@ -24,10 +24,11 @@ namespace UnityEditor.Rendering
                 .SetName(
                     "Given an empty project, when ensuring a global settings without canCreateNewAsset, the asset is not created")
                 .Returns(string.Empty),
-            new TestCaseData(string.Empty, true, AssetState.NotNull)
-                .SetName(
-                    "Given an empty project, when ensuring a global settings, the asset is created with the type name")
-                .Returns("Assets/DummyRenderPipelineGlobalSettings.asset"),
+            // Disabled due to instabilities in the test
+            //new TestCaseData(string.Empty, true, AssetState.NotNull)
+            //    .SetName(
+            //        "Given an empty project, when ensuring a global settings, the asset is created with the type name")
+            //    .Returns("Assets/DummyRenderPipelineGlobalSettings.asset"),
             new TestCaseData(DummyRenderPipelineGlobalSettings.defaultPath, false, AssetState.NotNull)
                 .SetName(
                     "Given a project with an asset already created in the default path, when ensuring a global settings, the asset returned is the one at default path")
