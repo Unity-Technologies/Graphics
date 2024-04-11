@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,10 +20,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int uiSubSectionInt = 0;
 
         public override string projectSettingsPath => "Project/Quality/HDRP";
-
-        public override string editorAssemblyName => "Unity.RenderPipelines.HighDefinition.Editor";
-        public override string editorClassName => "UnityEditor.Rendering.HighDefinition.HDRPRequiredSettings_Editor";
-        public override string editorShowFunctionName => "ShowSetting";
     }
 
     public class HDRPSettingsSectionAttribute : PropertyAttribute

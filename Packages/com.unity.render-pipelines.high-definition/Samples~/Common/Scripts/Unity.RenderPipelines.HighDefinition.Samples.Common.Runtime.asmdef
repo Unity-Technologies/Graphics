@@ -1,13 +1,11 @@
 {
-    "name": "HDRPSamples",
+    "name": "Unity.RenderPipelines.HighDefinition.Samples.Common.Runtime",
     "rootNamespace": "",
     "references": [
-        "Unity.RenderPipelines.HighDefinition.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.Mathematics",
-        "Unity.TextMeshPro"
+        "Unity.RenderPipelines.Core.Samples.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Samples.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,12 +14,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.textmeshpro",
-            "expression": "0.0.0",
-            "define": "TMP_INSTALLED"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

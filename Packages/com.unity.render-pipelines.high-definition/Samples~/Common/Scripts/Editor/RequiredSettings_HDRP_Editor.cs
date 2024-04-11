@@ -70,11 +70,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
     public class HDRPRequiredSettings_Editor
     {
-        public static void ShowSetting(RequiredSettingHDRP setting)
+        [InitializeOnLoadMethod]
+        static void Initialize()
         {
+            UnityEngine.Rendering.RequiredSettingBase.showSettingCallback = ShowSetting;
+        }
+        
+        static void ShowSetting(UnityEngine.Rendering.RequiredSettingBase settingBase)
+        {
+            var setting = settingBase as RequiredSettingHDRP;
+            
             SettingsService.OpenProjectSettings(setting.projectSettingsPath);
-            // HDRenderPipelineUI.Inspector.Expand(setting.uiSectionInt);
-            // HDRenderPipelineUI.Inspector.Expand(setting.uiSubSectionInt);
             HDRenderPipelineUI.SubInspectors[(HDRenderPipelineUI.ExpandableGroup)setting.uiSectionInt].Expand(setting.uiSubSectionInt);
             CoreEditorUtils.Highlight("Project Settings", setting.propertyPath, HighlightSearchMode.Identifier);
         }

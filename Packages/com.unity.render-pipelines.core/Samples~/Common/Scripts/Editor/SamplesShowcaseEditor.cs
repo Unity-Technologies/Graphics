@@ -170,21 +170,18 @@ public class SamplesShowcaseEditor : Editor
                 var settingButton = new Button(
                 () =>
                 {
-                    if (string.IsNullOrEmpty(setting.editorAssemblyName) || string.IsNullOrEmpty(setting.editorClassName) || string.IsNullOrEmpty(setting.editorShowFunctionName))
+                    if (RequiredSettingBase.showSettingCallback != null)
+                    {
+                        RequiredSettingBase.showSettingCallback(setting);
+                    }
+                    else
                     {
                         SettingsService.OpenProjectSettings(setting.projectSettingsPath);
                         CoreEditorUtils.Highlight("Project Settings", setting.propertyPath, HighlightSearchMode.Identifier);
                     }
-                    else
-                    {
-                        var editorAssembly = Assembly.Load(setting.editorAssemblyName);
-                        var editorClass = editorAssembly.GetType(setting.editorClassName);
-                        editorClass.GetMethod(setting.editorShowFunctionName).Invoke(null, new[] { setting });
-                    }
                 })
                 {
-                    text = setting.name,
-
+                    text = setting.name
                 };
 
                 string description = setting.description;

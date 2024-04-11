@@ -1,9 +1,10 @@
 {
-    "name": "CoreSamples",
+    "name": "Unity.RenderPipelines.HighDefinition.Samples.Runtime",
     "rootNamespace": "",
     "references": [
-        "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Samples.Runtime",
         "Unity.Mathematics",
         "Unity.TextMeshPro"
     ],

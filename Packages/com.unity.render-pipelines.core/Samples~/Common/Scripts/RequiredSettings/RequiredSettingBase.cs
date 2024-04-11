@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
@@ -45,10 +46,8 @@ namespace UnityEngine.Rendering
         }
 
         public virtual string projectSettingsPath { get; }
-
-        public virtual string editorAssemblyName => null;
-        public virtual string editorClassName => null;
-        public virtual string editorShowFunctionName => null;
+        
+        public static Action<RequiredSettingBase> showSettingCallback { get; set; } = null;
 
         public virtual SerializedProperty property
         {
