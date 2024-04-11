@@ -41,51 +41,84 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal List<DebugUI.Widget> GetWidgetList(string name)
         {
-            var list = new List<DebugUI.Widget>();
-
-            list.Add(new DebugUI.Container
+            var list = new List<DebugUI.Widget>
             {
-                displayName = $"{name} Render Graph",
-                children =
+                new DebugUI.Container
                 {
-                    new DebugUI.BoolField { nameAndTooltip = Strings.ClearRenderTargetsAtCreation, getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value },
-                    new DebugUI.BoolField { nameAndTooltip = Strings.ClearRenderTargetsAtFree, getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value },
-                    // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
-                    //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-                    new DebugUI.BoolField { nameAndTooltip = Strings.DisablePassCulling, getter = () => disablePassCulling, setter = value => disablePassCulling = value },
-                    new DebugUI.BoolField { nameAndTooltip = Strings.ImmediateMode, getter = () => immediateMode, setter = value => immediateMode = value },
-                    new DebugUI.BoolField { nameAndTooltip = Strings.EnableLogging, getter = () => enableLogging, setter = value => enableLogging = value },
-                    new DebugUI.Button
+                    displayName = $"{name} Render Graph",
+                    children =
                     {
-                        nameAndTooltip = Strings.LogFrameInformation,
-                        action = () =>
+                        new DebugUI.BoolField
                         {
-                            if (!enableLogging)
-                                Debug.Log("You must first enable logging before this logging frame information.");
-                            logFrameInformation = true;
-            #if UNITY_EDITOR
-                            UnityEditor.SceneView.RepaintAll();
-            #endif
-                        }
-                    },
-                    new DebugUI.Button
-                    {
-                        nameAndTooltip = Strings.LogResources,
-                        action = () =>
+                            nameAndTooltip = Strings.ClearRenderTargetsAtCreation,
+                            getter = () => clearRenderTargetsAtCreation,
+                            setter = value => clearRenderTargetsAtCreation = value
+                        },
+                        new DebugUI.BoolField
                         {
-                            if (!enableLogging)
-                                Debug.Log("You must first enable logging before this logging resources.");
-                            logResources = true;
-
-            #if UNITY_EDITOR
-                            UnityEditor.SceneView.RepaintAll();
-            #endif
+                            nameAndTooltip = Strings.ClearRenderTargetsAtFree,
+                            getter = () => clearRenderTargetsAtRelease,
+                            setter = value => clearRenderTargetsAtRelease = value
+                        },
+                        // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
+                        //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = Strings.DisablePassCulling,
+                            getter = () => disablePassCulling,
+                            setter = value => disablePassCulling = value
+                        },
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = Strings.ImmediateMode,
+                            getter = () => immediateMode,
+                            setter = value => immediateMode = value,
+                            // [UUM-64948] Temporarily disable for URP while we implement support for Immediate Mode in the RenderGraph
+                            isHiddenCallback = () => !IsImmediateModeSupported()
+                        },
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = Strings.EnableLogging,
+                            getter = () => enableLogging,
+                            setter = value => enableLogging = value
+                        },
+                        new DebugUI.Button
+                        {
+                            nameAndTooltip = Strings.LogFrameInformation,
+                            action = () =>
+                            {
+                                if (!enableLogging)
+                                    Debug.Log("You must first enable logging before logging frame information.");
+                                logFrameInformation = true;
+#if UNITY_EDITOR
+                                UnityEditor.SceneView.RepaintAll();
+#endif
+                            }
+                        },
+                        new DebugUI.Button
+                        {
+                            nameAndTooltip = Strings.LogResources,
+                            action = () =>
+                            {
+                                if (!enableLogging)
+                                    Debug.Log("You must first enable logging before logging resources.");
+                                logResources = true;
+#if UNITY_EDITOR
+                                UnityEditor.SceneView.RepaintAll();
+#endif
+                            }
                         }
                     }
                 }
-            });
+            };
 
             return list;
+        }
+
+        private bool IsImmediateModeSupported()
+        {
+            return GraphicsSettings.currentRenderPipeline is IRenderGraphEnabledRenderPipeline rgPipeline &&
+                   rgPipeline.isImmediateModeSupported;
         }
 
         public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)

@@ -12,6 +12,7 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -454,7 +455,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline
     {
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -684,6 +685,9 @@ namespace UnityEngine.Rendering.Universal
 
         static string[] s_Names;
         static int[] s_Values;
+
+        /// <inheritdoc/>
+        public bool isImmediateModeSupported => false;
 
 #if UNITY_EDITOR
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
