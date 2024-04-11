@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Grab the target sun additional data
                 additionalLightData = m_CurrentSunLightAdditionalLightData;
-                cb._SunLightColor = additionalLightData.EvaluateLightColor() * settings.sunLightDimmer.value;
+                cb._SunLightColor = additionalLightData.EvaluateLightColor() * settings.sunLightDimmer.value * additionalLightData.lightDimmer;
                 cb._SunDirection = -currentSun.transform.forward;
             }
             else

@@ -1,10 +1,6 @@
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
-using static UnityEngine.Rendering.DebugUI;
-using ValueTuple = System.ValueTuple;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -232,7 +228,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 ValidateWriteTo(handle);
                 m_RenderPass.AddResourceWrite(m_Resources.GetNewVersionedHandle(handle));
                 m_Resources.IncrementWriteCount(handle);
-            }  
+            }
 
             return GetLatestVersionHandle(handle);
         }

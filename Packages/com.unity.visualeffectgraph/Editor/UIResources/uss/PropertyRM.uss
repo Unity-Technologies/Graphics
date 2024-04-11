@@ -133,11 +133,6 @@
     -unity-text-align: middle-left;
 }
 
-/*.propertyrm .fieldContainer > *
-{
-    flex:1 1 auto;
-}*/
-
 .propertyrm:disabled
 {
     opacity: 1;
@@ -156,10 +151,10 @@
     padding-left:0;
 }
 
-.propertyrm .fieldContainer, .propertyrm .unity-float-field
+.propertyrm .fieldContainer
 {
     flex-direction:row;
-    flex:1 1 auto;
+    flex:1 0 auto;
     height: auto;
     margin-top: 0;
     margin-bottom: 0;
@@ -242,12 +237,6 @@ VFXVector3Field FloatField {
 ColorPropertyRM .unity-float-field
 {
     flex: 1 0 auto;
-}
-
-FloatPropertyRM .unity-float-field
-{
-    align-self:flex-end;
-    flex:1 0 auto;
 }
 
 IntPropertyRM .unity-integer-field

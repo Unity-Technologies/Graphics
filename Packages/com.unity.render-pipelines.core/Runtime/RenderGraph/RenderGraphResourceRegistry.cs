@@ -1,11 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.RendererUtils;
-
+using UnityEngine.Scripting.APIUpdating;
 // Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
 using CoreRendererList = UnityEngine.Rendering.RendererList;
 using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
@@ -15,11 +13,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// <summary>
     /// Basic properties of a RTHandle needed by the render graph compiler. It is not always possible to derive these
     /// given an RTHandle to the user needs to pass these in.
-    /// 
+    ///
     /// We don't use a full RenderTargetDescriptor here as filling out a full descriptor may not be trivial and not all
     /// members of the descriptor are actually used by the render graph. This struct is the minimum set of info needed by the render graph.
     /// If you want to develop some utility framework to work with render textures, etc. it's probably better to use RenderTargetDescriptor.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RenderTargetInfo
     {
         /// <summary>
@@ -516,7 +515,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // (The alternative is for the code calling ImportTexture to use the overload that takes a RenderTargetInfo).
             if(rt != null)
                 ValidateRenderTarget(texHandle.handle);
-            
+
             return texHandle;
         }
 
@@ -675,7 +674,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         private void ValidateRenderTarget(in ResourceHandle res)
         {
             if(RenderGraph.enableValidityChecks)
-            {                
+            {
                 RenderTargetInfo outInfo;
                 GetRenderTargetInfo(res, out outInfo);
             }

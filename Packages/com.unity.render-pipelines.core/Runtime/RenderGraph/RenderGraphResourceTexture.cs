@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -14,7 +15,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// this all textures relevant to the render graph need to be make known to it. A texture handle specifies such a texture as
     /// known to the render graph.
     ///
-    /// It is important to understand that a render graph texture handle does not necessarily represent an actual texture. For example 
+    /// It is important to understand that a render graph texture handle does not necessarily represent an actual texture. For example
     /// textures could be created the render graph that are only referenced by passes that are later culled when executing the graph.
     /// Such textures would never be allocated as actual RenderTextures.
     ///
@@ -25,9 +26,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// Texture handles do not need to be disposed/freed (they are auto-invalidated at the end of graph execution). The RenderTextures they represent
     /// are either freed by the render graph internally (when the handle was acquired through RenderGraph.CreateTexture) or explicitly managed by
     /// some external system (when acquired through RenderGraph.ImportTexture).
-    /// 
+    ///
     /// </summary>
     [DebuggerDisplay("Texture ({handle.index})")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct TextureHandle
     {
         private static TextureHandle s_NullHandle = new TextureHandle();
@@ -335,7 +337,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         /// <summary>
         /// Calculate the final size of the texture descriptor in pixels. This takes into account the sizeMode set for this descriptor.
-        /// For the automatically scaled sizes the size will be relative to the RTHandle reference size <see cref="RTHandles.SetReferenceSize">SetReferenceSize</see>. 
+        /// For the automatically scaled sizes the size will be relative to the RTHandle reference size <see cref="RTHandles.SetReferenceSize">SetReferenceSize</see>.
         /// </summary>
         /// <returns>The calculated size.</returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>

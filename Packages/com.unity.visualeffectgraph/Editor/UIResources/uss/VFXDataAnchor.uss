@@ -85,7 +85,6 @@ VFXContextUI #output .VFXDataAnchor.port #connector
     padding-right: 0;
     margin-left: 0;
     flex-direction: row;
-    /*flex-direction: row-reverse;*/
 }
 
 .VFXDataAnchor.Output #type {

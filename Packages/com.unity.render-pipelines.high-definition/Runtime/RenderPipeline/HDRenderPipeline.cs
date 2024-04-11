@@ -742,9 +742,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void SetRenderingFeatures()
         {
-            // Set sub-shader pipeline tag
-            Shader.globalRenderPipeline = k_ShaderTagName;
-
             // HD use specific GraphicsSettings
             m_PreviousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
             GraphicsSettings.lightsUseLinearIntensity = true;
@@ -860,8 +857,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UnsetRenderingFeatures()
         {
-            Shader.globalRenderPipeline = string.Empty;
-
             GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
             GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;

@@ -480,7 +480,11 @@ namespace UnityEngine.Rendering
             probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", tooltip = "Render the debug view showing probe positions. Use the shading mode to determine which type of lighting data to visualize.", getter = () => probeVolumeDebug.drawProbes, setter = value => probeVolumeDebug.drawProbes = value, onValueChanged = RefreshDebug });
             if (probeVolumeDebug.drawProbes)
             {
-                var probeContainerChildren = new DebugUI.Container();
+                var probeContainerChildren = new DebugUI.Container()
+                {
+                    isHiddenCallback = () => !probeVolumeDebug.drawProbes
+                };
+
                 probeContainerChildren.children.Add(new DebugUI.EnumField
                 {
                     displayName = "Probe Shading Mode",
@@ -701,6 +705,8 @@ namespace UnityEngine.Rendering
                     enumValues = m_DebugScenarioValues,
                     getIndex = () =>
                     {
+                        if (m_CurrentBakingSet == null)
+                            return 0;
                         RefreshScenarioNames(GetSceneGUID(SceneManagement.SceneManager.GetActiveScene()));
 
                         probeVolumeDebug.otherStateIndex = 0;

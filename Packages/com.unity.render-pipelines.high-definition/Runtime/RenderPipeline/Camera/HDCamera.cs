@@ -1773,7 +1773,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 visualSky.cloudSettings = null;
                 visualSky.volumetricClouds = null;
                 lightingSky = visualSky;
-                skyAmbientMode = SkyAmbientMode.Dynamic;
+                skyAmbientMode = SkyAmbientMode.Static;
             }
             else
 #endif

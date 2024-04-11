@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct CullingJob : IJobParallelFor
     {
         public const int k_BatchSize = 32;
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering
 
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
         [ReadOnly] public CPUSharedInstanceData.ReadOnly sharedInstanceData;
-        [NativeDisableContainerSafetyRestriction] [ReadOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
         [NativeDisableUnsafePtrRestriction] [ReadOnly] public IntPtr occlusionBuffer;
 
         [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<byte> rendererVisibilityMasks;
@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct AllocateBinsPerBatch : IJobParallelFor
     {
         [ReadOnly] public BinningConfig binningConfig;
@@ -409,15 +409,15 @@ namespace UnityEngine.Rendering
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
         [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
 
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> batchBinAllocOffsets;
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> batchBinCounts;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> batchBinAllocOffsets;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> batchBinCounts;
 
-        [NativeDisableContainerSafetyRestriction] [DeallocateOnJobCompletion] public NativeArray<int> binAllocCounter;
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<short> binConfigIndices;
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> binVisibleInstanceCounts;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [DeallocateOnJobCompletion] public NativeArray<int> binAllocCounter;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<short> binConfigIndices;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> binVisibleInstanceCounts;
 
         [ReadOnly] public int debugCounterIndexBase;
-        [NativeDisableContainerSafetyRestriction] public NativeArray<int> splitDebugCounters;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> splitDebugCounters;
 
         bool IsInstanceFlipped(int rendererIndex)
         {
@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct PrefixSumDrawsAndInstances : IJob
     {
         [ReadOnly] public NativeList<DrawRange> drawRanges;
@@ -545,14 +545,14 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeArray<int> batchBinCounts;
         [ReadOnly] public NativeArray<int> binVisibleInstanceCounts;
 
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> batchDrawCommandOffsets;
-        [NativeDisableContainerSafetyRestriction] [WriteOnly] public NativeArray<int> binVisibleInstanceOffsets;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> batchDrawCommandOffsets;
+        [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> binVisibleInstanceOffsets;
 
         [NativeDisableUnsafePtrRestriction] public NativeArray<BatchCullingOutputDrawCommands> cullingOutput;
 
         [ReadOnly] public IndirectBufferLimits indirectBufferLimits;
-        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo;
-        [NativeDisableContainerSafetyRestriction] public NativeArray<int> indirectAllocationCounters;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indirectAllocationCounters;
 
         unsafe public void Execute()
         {
@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct DrawCommandOutputPerBatch : IJobParallelFor
     {
         [ReadOnly] public BinningConfig binningConfig;
@@ -731,9 +731,9 @@ namespace UnityEngine.Rendering
         [ReadOnly] public IndirectBufferLimits indirectBufferLimits;
         [ReadOnly] public GraphicsBufferHandle visibleInstancesBufferHandle;
         [ReadOnly] public GraphicsBufferHandle indirectArgsBufferHandle;
-        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo;
-        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectDrawInfo> indirectDrawInfoGlobalArray;
-        [NativeDisableContainerSafetyRestriction] public NativeArray<IndirectInstanceInfo> indirectInstanceInfoGlobalArray;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<IndirectBufferAllocInfo> indirectBufferAllocInfo;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<IndirectDrawInfo> indirectDrawInfoGlobalArray;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<IndirectInstanceInfo> indirectInstanceInfoGlobalArray;
 
         unsafe int EncodeGPUInstanceIndexAndCrossFade(int rendererIndex, bool negateCrossFade)
         {
@@ -999,14 +999,14 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct CompactVisibilityMasksJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 64;
 
         [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
 
-        [NativeDisableContainerSafetyRestriction] public ParallelBitArray compactedVisibilityMasks;
+        [NativeDisableContainerSafetyRestriction, NoAlias] public ParallelBitArray compactedVisibilityMasks;
 
         unsafe public void Execute(int startIndex, int count)
         {
@@ -1032,7 +1032,7 @@ namespace UnityEngine.Rendering
         Picking
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct DrawCommandOutputFiltering : IJob
     {
         [ReadOnly] public NativeParallelHashMap<uint, BatchID> batchIDs;
@@ -1183,7 +1183,7 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct CullSceneViewHiddenRenderersJob : IJobParallelFor
     {
         public const int k_BatchSize = 128;
@@ -1462,7 +1462,6 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile]
     internal struct InstanceCuller : IDisposable
     {
         //@ Move this in CPUInstanceData.

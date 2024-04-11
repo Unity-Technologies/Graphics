@@ -1,7 +1,7 @@
 {
   "name": "com.unity.testing.graphics-performance",
   "displayName": "Performance Graphics Tests Framework",
-  "version": "17.1.1",
+  "version": "17.1.2",
   "unity": "6000.0",
   "unityRelease": "0b15",
   "rootNamespace": "UnityEngine.TestTools.Graphics.Performance",
@@ -17,6 +17,6 @@
   "dependencies": {
     "com.unity.test-framework.performance": "3.0.3",
     "com.unity.shaderanalysis": "1.0.0",
-    "com.unity.render-pipelines.core": "17.0.2"
+    "com.unity.render-pipelines.core": "17.0.3"
   }
 }

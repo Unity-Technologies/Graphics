@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
@@ -34,6 +35,11 @@ namespace UnityEngine.Rendering.UI
                     image.color = k_ErrorBackgroundColor;
                     break;
             }
+        }
+
+        void Update()
+        {
+            nameLabel.text = m_Field.message;
         }
 
         /// <summary>

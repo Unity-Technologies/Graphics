@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int index = 0; index < visibleLightsAndIndices.splitCount; index++)
                     {
-                        if (!visibleLightsAndIndices.isSplitValidArray[(uint)index])
+                        if (!visibleLightsAndIndices.isSplitValidMask[(uint)index])
                             continue;
 
                         HDShadowRequestHandle shadowRequestIndexLocation = shadowRequestSetHandle[index];
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             firstShadowRequestIndex = shadowRequestIndex;
                     }
 
-                    shadowRequestCount = visibleLightsAndIndices.shadowRequestCount;
+                    shadowRequestCount = visibleLightsAndIndices.splitCount;
                 }
 
 #if UNITY_EDITOR
@@ -131,34 +131,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < cachedDirectionalVisibleLightsAndIndices.Length; i++)
                 {
                     ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref cachedDirectionalVisibleLightsAndIndices.ElementAt(i);
-
                     HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
-                    ShadowMapUpdateType cachedDirectionalUpdateType = HDAdditionalLightData.GetShadowUpdateType(LightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
-
+                    ShadowMapUpdateType cachedDirectionalUpdateType = shadowIndicesAndVisibleLightData.shadowUpdateType;
+                    BitArray8 needCacheUpdateMask = shadowIndicesAndVisibleLightData.needCacheUpdateMask;
                     int lightIdxForCachedShadows = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.lightIdxForCachedShadows;
                     bool shadowHasAtlasPlacement = lightIdxForCachedShadows != -1;
-
-                    bool needsRenderingDueToTransformChange = false;
-                    float angleDiffThreshold = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.cachedShadowAngleUpdateThreshold;
-                    float3 cachedAngles = shadowManager.cachedShadowManager.cachedDirectionalAngles.Value;
-                    float3 currentAngles = HDShadowUtils.QuaternionToEulerZXY( new quaternion(shadowIndicesAndVisibleLightData.visibleLight.localToWorldMatrix));
-                    float3 angleDiff = cachedAngles - currentAngles;
-                    // Any angle difference
-                    if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
-                    {
-                        shadowManager.cachedShadowManager.cachedDirectionalAngles.Value = currentAngles;
-                        needsRenderingDueToTransformChange = true;
-                    }
 
                     if (!shadowHasAtlasPlacement)
                         shadowIndices[shadowIndicesAndVisibleLightData.sortKeyIndex] = -1;
 
-                    BitArray8 directionalShadowPendingUpdate = shadowManager.cachedShadowManager.directionalShadowPendingUpdate;
-
-                    for (int index = 0; index < shadowIndicesAndVisibleLightData.shadowRequestCount; index++)
+                    for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                     {
-                        bool directionalShadowIdxPendingUpdate = lightIdxForCachedShadows != -1 && directionalShadowPendingUpdate[(uint)(lightIdxForCachedShadows + index)];
-                        bool needToUpdateCachedContent = shadowHasAtlasPlacement && needsRenderingDueToTransformChange || directionalShadowIdxPendingUpdate;
+                        bool needToUpdateCachedContent = needCacheUpdateMask[(uint)index];
                         HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                         int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                         ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
@@ -170,9 +154,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         shadowRequest.shadowMapType = ShadowMapType.CascadedDirectional;
                         shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
                         shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                         int updateDataListIndex = cachedDirectionalUpdateInfos.Length;
                         cachedDirectionalUpdateInfos.Length = updateDataListIndex + 1;
                         ref ShadowRequestIntermediateUpdateData updateInfo = ref cachedDirectionalUpdateInfos.ElementAt(updateDataListIndex);
+
                         updateInfo.states[ShadowRequestIntermediateUpdateData.k_HasCachedComponent] = true;
                         updateInfo.states[ShadowRequestIntermediateUpdateData.k_NeedToUpdateCachedContent] = needToUpdateCachedContent;
                         updateInfo.shadowRequestHandle = shadowRequestSetHandle[index];
@@ -200,39 +186,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < dynamicDirectionalVisibleLightsAndIndices.Length; i++)
                 {
                     ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref dynamicDirectionalVisibleLightsAndIndices.ElementAt(i);
-
                     HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
-                    var updateType = HDAdditionalLightData.GetShadowUpdateType(LightType.Directional, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
-                    bool hasCachedComponent = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
-                    bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
 
-                    for (int index = 0; index < shadowIndicesAndVisibleLightData.shadowRequestCount; index++)
+                    for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                     {
                         HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                         int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                         ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
 
                         ref var shadowRequest = ref requestStorage.ElementAt(indexHandle.storageIndexForShadowRequest);
-                        shadowRequest.isInCachedAtlas = isSampledFromCache;
-                        shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
+                        shadowRequest.isInCachedAtlas = false;
+                        shadowRequest.isMixedCached = false;
                         shadowRequest.shouldUseCachedShadowData = false;
                         shadowRequest.shadowMapType = ShadowMapType.CascadedDirectional;
                         shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
                         shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                         int updateDataListIndex = dynamicDirectionalUpdateInfos.Length;
                         dynamicDirectionalUpdateInfos.Length = updateDataListIndex + 1;
                         ref ShadowRequestIntermediateUpdateData updateInfo = ref dynamicDirectionalUpdateInfos.ElementAt(updateDataListIndex);
-                        updateInfo.states[ShadowRequestIntermediateUpdateData.k_HasCachedComponent] = hasCachedComponent;
+
+                        updateInfo.states[ShadowRequestIntermediateUpdateData.k_HasCachedComponent] = false;
                         updateInfo.states[ShadowRequestIntermediateUpdateData.k_NeedToUpdateCachedContent] = false;
                         updateInfo.shadowRequestHandle = shadowRequestSetHandle[index];
                         updateInfo.additionalLightDataIndex = shadowIndicesAndVisibleLightData.dataIndex;
-                        updateInfo.updateType = updateType;
+                        updateInfo.updateType = ShadowMapUpdateType.Dynamic;
                         updateInfo.viewportSize = resolutionRequest.resolution;
                         updateInfo.lightIndex = shadowIndicesAndVisibleLightData.lightIndex;
+
                         if (shadowRequestIndex < shadowRequestCount)
-                        {
                             shadowManager.cascadeShadowAtlas.shadowRequests.Add(shadowRequestSetHandle[index]);
-                        }
                     }
                 }
             }
@@ -560,7 +543,11 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < visibleLightsAndIndices.Length; i++)
             {
                 ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref visibleLightsAndIndices.ElementAt(i);
+                HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
+                ShadowMapUpdateType updateType = shadowIndicesAndVisibleLightData.shadowUpdateType;
+                BitArray8 needCacheUpdateMask = shadowIndicesAndVisibleLightData.needCacheUpdateMask;
                 int lightIdxForCachedShadows = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.lightIdxForCachedShadows;
+
                 // If we force evicted the light, it will have lightIdxForCachedShadows == -1
                 bool shadowHasAtlasPlacement = !(cachedShadowAtlas.registeredLightDataPendingPlacement.ContainsKey(lightIdxForCachedShadows) ||
                                                  cachedShadowAtlas.recordsPendingPlacement.ContainsKey(lightIdxForCachedShadows)) && lightIdxForCachedShadows != -1;
@@ -568,71 +555,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!shadowHasAtlasPlacement)
                     shadowIndices[shadowIndicesAndVisibleLightData.sortKeyIndex] = -1;
 
-                bool needsRenderingDueToTransformChange = false;
-                if (shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.updateUponLightMovement)
-                {
-                    if (cachedShadowAtlas.transformCaches.TryGetValue(shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.lightIdxForCachedShadows, out HDCachedShadowAtlas.CachedTransform cachedTransform))
-                    {
-                        float positionThreshold = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.cachedShadowTranslationUpdateThreshold;
-                        float3 positionDiffVec = cachedTransform.position - shadowIndicesAndVisibleLightData.visibleLight.GetPosition();
-                        float positionDiff = math.dot(positionDiffVec, positionDiffVec);
-                        if (positionDiff > positionThreshold * positionThreshold)
-                        {
-                            needsRenderingDueToTransformChange = true;
-                        }
-                        float angleDiffThreshold = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.cachedShadowAngleUpdateThreshold;
-                        float3 cachedAngles = cachedTransform.angles;
-                        float3 angleDiff = cachedAngles - HDShadowUtils.QuaternionToEulerZXY(new quaternion(shadowIndicesAndVisibleLightData.visibleLight.localToWorldMatrix));
-                        // Any angle difference
-                        if (math.abs(angleDiff.x) > angleDiffThreshold || math.abs(angleDiff.y) > angleDiffThreshold || math.abs(angleDiff.z) > angleDiffThreshold)
-                        {
-                            needsRenderingDueToTransformChange = true;
-                        }
-
-                        if (needsRenderingDueToTransformChange)
-                        {
-                            // Update the record
-                            cachedTransform.position = shadowIndicesAndVisibleLightData.visibleLight.GetPosition();
-                            cachedTransform.angles = HDShadowUtils.QuaternionToEulerZXY(new quaternion(shadowIndicesAndVisibleLightData.visibleLight.localToWorldMatrix));
-                            cachedShadowAtlas.transformCaches[shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.lightIdxForCachedShadows] = cachedTransform;
-                        }
-                    }
-                }
-
-                var updateType = HDAdditionalLightData.GetShadowUpdateType(lightType, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
-                bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
-
-                HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
-                for (int index = 0; index < shadowIndicesAndVisibleLightData.shadowRequestCount; index++)
+                for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                 {
                     HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                     int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                     ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
-                    int cachedShadowID = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.lightIdxForCachedShadows + index;
-                    bool needToUpdateCachedContent = false;
-
-                    if (shadowHasAtlasPlacement)
-                    {
-                        bool shadowsPendingRenderingContainedShadowID = cachedShadowAtlas.shadowsPendingRendering.Remove(cachedShadowID);
-                        needToUpdateCachedContent = needsRenderingDueToTransformChange || shadowsPendingRenderingContainedShadowID;
-
-                        if (shadowsPendingRenderingContainedShadowID)
-                        {
-                            // Handshake with the cached shadow manager to notify about the rendering.
-                            // Technically the rendering has not happened yet, but it is scheduled.
-                            cachedShadowAtlas.shadowsWithValidData.TryAdd(cachedShadowID, cachedShadowID);
-                        }
-                    }
+                    bool needToUpdateCachedContent = needCacheUpdateMask[(uint)index];
 
                     ref var shadowRequest = ref requestStorage.ElementAt(indexHandle.storageIndexForShadowRequest);
-                    shadowRequest.isInCachedAtlas = isSampledFromCache;
+                    shadowRequest.isInCachedAtlas = updateType == ShadowMapUpdateType.Cached;
                     shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
                     shadowRequest.shouldUseCachedShadowData = false;
                     shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
                     shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                     int updateDataListIndex = updateDataList.Length;
                     updateDataList.Length = updateDataListIndex + 1;
                     ref ShadowRequestIntermediateUpdateData updateInfo = ref updateDataList.ElementAt(updateDataListIndex);
+
                     updateInfo.visibleLight = shadowIndicesAndVisibleLightData.visibleLight;
                     updateInfo.states[ShadowRequestIntermediateUpdateData.k_HasCachedComponent] = true;
                     updateInfo.states[ShadowRequestIntermediateUpdateData.k_NeedToUpdateCachedContent] = needToUpdateCachedContent;
@@ -647,11 +587,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         bool addToCached = updateType == ShadowMapUpdateType.Cached || updateType == ShadowMapUpdateType.Mixed;
                         bool addDynamic = updateType == ShadowMapUpdateType.Dynamic || updateType == ShadowMapUpdateType.Mixed;
                         HDShadowRequestHandle shadowRequestHandle = shadowRequestSetHandle[index];
+
                         if (addToCached)
                             cachedShadowAtlas.shadowRequests.Add(shadowRequestHandle);
+
                         if (addDynamic)
                         {
                             dynamicShadowAtlas.shadowRequests.Add(shadowRequestHandle);
+
                             if(updateType == ShadowMapUpdateType.Mixed)
                                 dynamicShadowAtlas.mixedRequestsPendingBlits.Add(shadowRequestHandle);
                         }
@@ -670,49 +613,36 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < visibleLightsAndIndices.Length; i++)
             {
                 ref ShadowIndicesAndVisibleLightData shadowIndicesAndVisibleLightData = ref visibleLightsAndIndices.ElementAt(i);
-                var updateType = HDAdditionalLightData.GetShadowUpdateType(lightType, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode, shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.alwaysDrawDynamicShadows, shadowManager.cachedShadowManager.directionalHasCachedAtlas);
-                bool hasCachedComponent = shadowIndicesAndVisibleLightData.additionalLightUpdateInfo.shadowUpdateMode != ShadowUpdateMode.EveryFrame;
-                bool isSampledFromCache = (updateType == ShadowMapUpdateType.Cached);
                 HDShadowRequestSetHandle shadowRequestSetHandle = shadowIndicesAndVisibleLightData.shadowRequestSetHandle;
 
-                for (int index = 0; index < shadowIndicesAndVisibleLightData.shadowRequestCount; index++)
+                for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                 {
                     HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                     int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                     ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
 
                     ref var shadowRequest = ref requestStorage.ElementAt(indexHandle.storageIndexForShadowRequest);
-                    shadowRequest.isInCachedAtlas = isSampledFromCache;
-                    shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
+                    shadowRequest.isInCachedAtlas = false;
+                    shadowRequest.isMixedCached = false;
                     shadowRequest.shouldUseCachedShadowData = false;
                     shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
                     shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                     int updateDataListIndex = updateDataList.Length;
                     updateDataList.Length = updateDataListIndex + 1;
                     ref ShadowRequestIntermediateUpdateData updateInfo = ref updateDataList.ElementAt(updateDataListIndex);
+
                     updateInfo.visibleLight = shadowIndicesAndVisibleLightData.visibleLight;
-                    updateInfo.states[ShadowRequestIntermediateUpdateData.k_HasCachedComponent] = hasCachedComponent;
+                    updateInfo.states[ShadowRequestIntermediateUpdateData.k_HasCachedComponent] = false;
                     updateInfo.states[ShadowRequestIntermediateUpdateData.k_NeedToUpdateCachedContent] = false;
                     updateInfo.shadowRequestHandle = shadowRequestSetHandle[index];
                     updateInfo.additionalLightDataIndex = shadowIndicesAndVisibleLightData.dataIndex;
-                    updateInfo.updateType = updateType;
+                    updateInfo.updateType = ShadowMapUpdateType.Dynamic;
                     updateInfo.viewportSize = resolutionRequest.resolution;
                     updateInfo.lightIndex = shadowIndicesAndVisibleLightData.lightIndex;
 
                     if (shadowRequestIndex < shadowManagerRequestCount)
-                    {
-                        bool addToCached = updateType == ShadowMapUpdateType.Cached || updateType == ShadowMapUpdateType.Mixed;
-                        bool addDynamic = updateType == ShadowMapUpdateType.Dynamic || updateType == ShadowMapUpdateType.Mixed;
-                        HDShadowRequestHandle shadowRequestHandle = shadowRequestSetHandle[index];
-                        if (addToCached)
-                            cachedShadowAtlas.shadowRequests.Add(shadowRequestHandle);
-                        if (addDynamic)
-                        {
-                            dynamicShadowAtlas.shadowRequests.Add(shadowRequestHandle);
-                            if(updateType == ShadowMapUpdateType.Mixed)
-                                dynamicShadowAtlas.mixedRequestsPendingBlits.Add(shadowRequestHandle);
-                        }
-                    }
+                        dynamicShadowAtlas.shadowRequests.Add(shadowRequestSetHandle[index]);
                 }
             }
         }

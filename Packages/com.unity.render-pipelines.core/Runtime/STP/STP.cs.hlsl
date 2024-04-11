@@ -5,7 +5,7 @@
 #ifndef STP_CS_HLSL
 #define STP_CS_HLSL
 //
-// UnityEngine.Rendering.STP+StpInlinePerViewConstants:  static fields
+// UnityEngine.Rendering.STP+StpSetupPerViewConstants:  static fields
 //
 #define STPSETUPPERVIEWCONSTANTS_COUNT (8)
 

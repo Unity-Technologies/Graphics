@@ -1,8 +1,24 @@
 rule1:
-  area: RP Workflow
+  area: SRP Architecture & API
 
 rule2:
   when:
     path:
       - ^.*SpeedTree.*$
-  area: Weta Real Time
+  area: Environment Effects
+
+rule3:
+  when:
+    path:
+      - ^.*Camera.*$
+      - ^.*ContextualMenuDispatcher.*$
+      - ^.*CoreRenderPipelinePreferences.*$
+      - ^.*InspectorCurveEditor.*$
+      - ^.*RemoveAdditionalDataUtils.*$
+  area: SRP Workflow
+  
+rule4:
+  when:
+    path:
+      - ^.*Upgrader.*$
+  area: Graphics Tools

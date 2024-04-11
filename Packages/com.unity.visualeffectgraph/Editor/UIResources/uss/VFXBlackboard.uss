@@ -1,11 +1,13 @@
 VFXBlackboard.blackboard
 {
     background-color: #292929;
+    min-height: 200px;
+    min-width: 250px;
 }
 
 /* This margin is to leave some space around the blackboard for the resizer element to grab the mouse */
 VFXBlackboard.blackboard .mainContainer {
-    margin: 1px 3px;
+    margin: 4px;
 }
 
 VFXBlackboard.blackboard > .mainContainer > #content > #header {

@@ -1,13 +1,13 @@
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Use this struct to set up a new Render Pass.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct RenderGraphBuilder : IDisposable
     {
         RenderGraphPass m_RenderPass;

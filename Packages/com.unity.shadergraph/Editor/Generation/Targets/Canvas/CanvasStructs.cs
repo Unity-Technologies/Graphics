@@ -17,6 +17,8 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Varyings.screenPosition,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.texCoord1,
+                StructFields.Varyings.texCoord2,
+                StructFields.Varyings.texCoord3,
                 StructFields.Varyings.color,
                 StructFields.Varyings.instanceID,
                 StructFields.Varyings.vertexID,
@@ -38,6 +40,8 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Attributes.color,
                 StructFields.Attributes.uv0,
                 StructFields.Attributes.uv1,
+                StructFields.Attributes.uv2,
+                StructFields.Attributes.uv3,
                 StructFields.Attributes.instanceID,
                 StructFields.Attributes.vertexID,
             }

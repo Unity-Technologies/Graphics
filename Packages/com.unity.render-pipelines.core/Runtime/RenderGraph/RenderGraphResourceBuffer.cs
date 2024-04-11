@@ -1,5 +1,5 @@
-using System;
 using System.Diagnostics;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     /// Graphics Buffer resource handle.
     /// </summary>
     [DebuggerDisplay("Buffer ({handle.index})")]
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public struct BufferHandle
     {
         // Minor Warning: This calls the zeroing constructor this means that the embedded ResourceHandle struct will also be zero-ed

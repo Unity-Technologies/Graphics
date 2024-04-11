@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.SceneManagement;
 
-using UnityEditor.VFX.UIElements;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
@@ -71,51 +69,25 @@ namespace UnityEditor.VFX.UI
 
         public static void ValidatePosition(GraphElement element, VFXView view, Rect defaultPosition)
         {
-            Rect viewrect = view.contentRect;
-            Rect rect = element.GetPosition();
-            bool changed = false;
+            var viewrect = view.contentRect;
+            var rect = element.GetPosition();
+            var changed = false;
 
-            Vector2 maxSizeInView = viewrect.max;
-            float newWidth = Mathf.Max(defaultPosition.width, Mathf.Min(rect.width, maxSizeInView.x));
-            float newHeight = Mathf.Max(defaultPosition.height, Mathf.Min(rect.height, maxSizeInView.y));
-
-            if (Mathf.Abs(newWidth - rect.width) > 1)
+            if (rect.xMin > viewrect.xMax || rect.xMax > viewrect.xMax)
             {
-                rect.width = newWidth;
+                var width = Math.Max(Math.Min(rect.width, viewrect.width), element.resolvedStyle.minWidth.value);
+                rect.xMax = viewrect.xMax;
+                rect.xMin = Math.Max(0, rect.xMax - width);
+                rect.width = width;
                 changed = true;
             }
 
-            if (Mathf.Abs(newHeight - rect.height) > 1)
+            if (rect.yMin > viewrect.yMax || rect.yMax > viewrect.yMax)
             {
-                rect.height = newHeight;
-                changed = true;
-            }
-
-            var xDiff = viewrect.xMax - rect.xMax;
-            if (xDiff < 0)
-            {
-                if (rect.x + xDiff >= 0)
-                {
-                    rect.x += xDiff;
-                }
-                else
-                {
-                    rect.width = Math.Max(defaultPosition.width, rect.width + xDiff);
-                }
-                changed = true;
-            }
-
-            var yDiff = viewrect.yMax - rect.yMax;
-            if (yDiff < 0)
-            {
-                if (rect.y + yDiff >= 0)
-                {
-                    rect.y += yDiff;
-                }
-                else
-                {
-                    rect.height = Math.Max(defaultPosition.height, rect.height + yDiff);
-                }
+                var height = Math.Max(Math.Min(rect.height, viewrect.height), element.resolvedStyle.minHeight.value);
+                rect.yMax = viewrect.yMax;
+                rect.yMin = Math.Max(0, rect.yMax - height);
+                rect.height = height;
                 changed = true;
             }
 

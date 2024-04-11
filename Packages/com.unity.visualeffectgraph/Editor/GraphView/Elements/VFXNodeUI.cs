@@ -166,9 +166,10 @@ namespace UnityEditor.VFX.UI
 
         protected virtual bool HasPosition() => true;
 
-        protected void SyncSettings()
+        private bool SyncSettings()
         {
             Profiler.BeginSample("VFXNodeUI.SyncSettings");
+            var hasChanged = false;
             var settings = controller.settings;
             var graphSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph).ToArray();
 
@@ -179,6 +180,7 @@ namespace UnityEditor.VFX.UI
                 {
                     propertyRM.RemoveFromHierarchy();
                     m_Settings.Remove(propertyRM);
+                    hasChanged = true;
                 }
             }
 
@@ -191,6 +193,7 @@ namespace UnityEditor.VFX.UI
                     var setting = settings.Single(x => string.Compare(x.name, vfxSetting.field.Name, StringComparison.OrdinalIgnoreCase) == 0);
                     var propertyRM = AddSetting(setting);
                     settingsContainer.Insert(i, propertyRM);
+                    hasChanged = true;
                 }
             }
 
@@ -215,18 +218,17 @@ namespace UnityEditor.VFX.UI
             }
 
             Profiler.EndSample();
+            return hasChanged;
         }
 
-        void SyncAnchors()
+        bool SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
             var hasResync = SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
             hasResync |= SyncAnchors(controller.outputPorts, outputContainer, false);
-            if (hasResync)
-            {
-                RefreshLayout();
-            }
             Profiler.EndSample();
+
+            return hasResync;
         }
 
         bool SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool hasActivationPort)
@@ -373,15 +375,18 @@ namespace UnityEditor.VFX.UI
 
             base.expanded = controller.expanded;
 
-            SyncSettings();
-            SyncAnchors();
+            var needRefresh = SyncSettings();
+            needRefresh |= SyncAnchors();
             Profiler.BeginSample("VFXNodeUI.SelfChange The Rest");
             RefreshExpandedState();
             Profiler.EndSample();
             Profiler.EndSample();
 
-
             UpdateCollapse();
+            if (needRefresh)
+            {
+                EditorApplication.delayCall += RefreshLayout;
+            }
         }
 
         protected virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController ctrl, VFXNodeUI node)

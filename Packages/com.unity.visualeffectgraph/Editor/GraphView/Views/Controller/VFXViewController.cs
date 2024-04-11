@@ -390,6 +390,8 @@ namespace UnityEditor.VFX.UI
             foreach (var node in nodeToUpdate)
             {
                 node.UpdateAllEditable();
+                // Mark model as changed since it's connections have changed
+                OnObjectModified(node.model, false);
             }
 
             return nodeToUpdate.Any();

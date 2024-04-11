@@ -44,7 +44,10 @@ namespace UnityEditor.Rendering
             PropertyField(m_SamplingNoise);
             PropertyField(m_AnimateNoise);
             PropertyField(m_LeakReductionMode);
-            if (m_LeakReductionMode.value.intValue != 0)
+            if (m_LeakReductionMode.value.intValue == (int)APVLeakReductionMode.ValidityBased)
+            {
+            }
+            else if (m_LeakReductionMode.value.intValue == (int)APVLeakReductionMode.ValidityAndNormalBased)
             {
                 using (new IndentLevelScope())
                     PropertyField(m_MinValidDotProdValue);

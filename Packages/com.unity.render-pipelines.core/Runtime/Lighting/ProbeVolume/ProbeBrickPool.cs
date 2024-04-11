@@ -440,7 +440,7 @@ namespace UnityEngine.Rendering
             return (width * height * depth) * elementSize;
         }
 
-        internal static int EstimateMemoryCost(ProbeVolumeTextureMemoryBudget memoryBudget, bool compressed, ProbeVolumeSHBands bands, bool allocateValidityData)
+        internal static int EstimateMemoryCostForBlending(ProbeVolumeTextureMemoryBudget memoryBudget, bool compressed, ProbeVolumeSHBands bands)
         {
             if (memoryBudget == 0)
                 return 0;
@@ -457,9 +457,6 @@ namespace UnityEngine.Rendering
 
             allocatedBytes += EstimateMemoryCost(width, height, depth, L0Format);
             allocatedBytes += EstimateMemoryCost(width, height, depth, L1L2Format) * 2;
-
-            if (allocateValidityData)
-                allocatedBytes += EstimateMemoryCost(width, height, depth, GraphicsFormat.R8_UNorm);
 
             if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 allocatedBytes += EstimateMemoryCost(width, height, depth, L1L2Format) * 3;
@@ -612,7 +609,7 @@ namespace UnityEngine.Rendering
                     return 0;
                 if (isAllocated)
                     return m_State0.estimatedVMemCost + m_State1.estimatedVMemCost;
-                return ProbeBrickPool.EstimateMemoryCost(m_MemoryBudget, false, m_ShBands, false) * 2;
+                return ProbeBrickPool.EstimateMemoryCostForBlending(m_MemoryBudget, false, m_ShBands) * 2;
             }
         }
 

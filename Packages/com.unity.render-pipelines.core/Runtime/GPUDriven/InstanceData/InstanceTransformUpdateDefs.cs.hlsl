@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
-#ifndef TRANSFORMUPDATERDEFS_CS_HLSL
-#define TRANSFORMUPDATERDEFS_CS_HLSL
+#ifndef INSTANCETRANSFORMUPDATEDEFS_CS_HLSL
+#define INSTANCETRANSFORMUPDATEDEFS_CS_HLSL
 // Generated from UnityEngine.Rendering.SHUpdatePacket
 // PackingRules = Exact
 struct SHUpdatePacket

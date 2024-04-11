@@ -1,11 +1,10 @@
 rule1:
-  area: RP Foundation
+  area: SRP Architecture & API
 
 rule2:
   when:
     path:
-      - ^.*ComponentSingleton.*$
       - ^.*CoreAttributes.*$
       - ^.*IAdditionalData.*$
       - ^.*Reload.*$
-  area: RP Workflow
+  area: SRP Workflow

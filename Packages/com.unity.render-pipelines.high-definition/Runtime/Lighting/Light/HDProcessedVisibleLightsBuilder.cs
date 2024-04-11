@@ -25,11 +25,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public int dataIndex;
         public int lightIndex;
         public HDShadowRequestSetHandle shadowRequestSetHandle;
-        public LightType lightType;
         public int splitCount;
-        public int shadowRequestCount;
         public int sortKeyIndex;
-        public BitArray8 isSplitValidArray;
+        public ShadowMapUpdateType shadowUpdateType;
+        public BitArray8 isSplitValidMask;
+        public BitArray8 needCacheUpdateMask;
+
+        public bool HasShadowCacheUpToDate(int splitIndex) => shadowUpdateType == ShadowMapUpdateType.Cached && !needCacheUpdateMask[(uint)splitIndex];
     }
 
     //Class representing lights in the context of a view.

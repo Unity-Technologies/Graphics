@@ -286,7 +286,10 @@ namespace UnityEngine.Rendering
 
                 // Upload probe positions
                 var positionsSlice = new BufferSlice<Vector3>(ctx.positionsBufferID, 0);
-                ctx.ctx.WriteBuffer(positionsSlice, probePositions);
+                var writeEvent = ctx.ctx.CreateEvent();
+                ctx.ctx.WriteBuffer(positionsSlice, probePositions, writeEvent);
+                ctx.ctx.Wait(writeEvent);
+                ctx.ctx.DestroyEvent(writeEvent);
 
                 return ctx;
             }
@@ -406,8 +409,10 @@ namespace UnityEngine.Rendering
                     var jobValidityResults = validityResults.GetSubArray(job.startOffset + batchOffset, probeCount);
 
                     // Schedule read backs to get results back from GPU memory into CPU memory.
-                    var irradianceReadEvent = ctx.ReadBuffer(combinedSHSlice, jobIrradianceResults);
-                    var validityReadEvent = ctx.ReadBuffer(validitySlice, jobValidityResults);
+                    var irradianceReadEvent = ctx.CreateEvent();
+                    ctx.ReadBuffer(combinedSHSlice, jobIrradianceResults, irradianceReadEvent);
+                    var validityReadEvent = ctx.CreateEvent();
+                    ctx.ReadBuffer(validitySlice, jobValidityResults, validityReadEvent);
                     if (!ctx.Flush()) return false;
 
                     using (new LightTransportBakingProfiling(LightTransportBakingProfiling.Stages.ReadBack))
@@ -416,6 +421,9 @@ namespace UnityEngine.Rendering
                         bool waitResult = ctx.Wait(irradianceReadEvent) && ctx.Wait(validityReadEvent);
                         if (!waitResult) return false;
                     }
+
+                    ctx.DestroyEvent(irradianceReadEvent);
+                    ctx.DestroyEvent(validityReadEvent);
 
                     if (LightingBaker.cancel)
                         return true;

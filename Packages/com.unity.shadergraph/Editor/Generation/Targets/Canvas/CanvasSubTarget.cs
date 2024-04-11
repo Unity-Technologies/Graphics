@@ -405,8 +405,6 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
             StructFields.Attributes.color,
             StructFields.Attributes.uv0, // Always need texCoord0, for UI image
             StructFields.Attributes.uv1, // Always need texCoord1 for UI Clip Mask
-            StructFields.Attributes.uv2,
-            StructFields.Attributes.uv3,
             StructFields.Attributes.positionOS,
             StructFields.Attributes.normalOS,
             StructFields.Attributes.instanceID,

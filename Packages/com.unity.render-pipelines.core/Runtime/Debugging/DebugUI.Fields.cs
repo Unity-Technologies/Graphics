@@ -609,6 +609,16 @@ namespace UnityEngine.Rendering
             /// Style used to render displayName.
             /// </summary>
             public Style style = Style.Info;
+
+            /// <summary>
+            /// Message Callback to feed the new message to the widget
+            /// </summary>
+            public Func<string> messageCallback = null;
+
+            /// <summary>
+            /// This obtains the message from the display name or from the message callback if it is not null
+            /// </summary>
+            public string message => messageCallback == null ? displayName : messageCallback();
         }
 
         /// <summary>

@@ -21,7 +21,7 @@ PropertyRow > #container{
 PropertyRow > #container > #label {
     flex-grow: 2;
     flex-basis: 0;
-    min-width: 92px;
+    min-width: 184px;
     width: 92px;
     font-size: 12px;
     margin-right: 4px;
@@ -47,6 +47,7 @@ PropertyRow > #container > #content{
     flex-basis: 0;
     height: auto;
     -unity-font-style: bold;
+    min-width: 64px;
     width: 100px;
     justify-content: center;
 }

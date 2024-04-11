@@ -8,7 +8,13 @@
 // UnityEngine.Rendering.APVLeakReductionMode:  static fields
 //
 #define APVLEAKREDUCTIONMODE_NONE (0)
-#define APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED (1)
+#define APVLEAKREDUCTIONMODE_VALIDITY_BASED (1)
+#define APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED (2)
+
+//
+// UnityEngine.Rendering.APVDefinitions:  static fields
+//
+#define PROBE_INDEX_CHUNK_SIZE (243)
 
 // Generated from UnityEngine.Rendering.ShaderVariablesProbeVolumes
 // PackingRules = Exact
@@ -18,10 +24,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b6)
     float4 _PoolDim_MinBrickSize;
     float4 _RcpPoolDim_XY;
     float4 _MinEntryPos_Noise;
-    float4 _IndicesDim_IndexChunkSize;
+    float4 _IndicesDim_FrameIndex;
     float4 _Biases_NormalizationClamp;
     float4 _LeakReduction_SkyOcclusion;
-    float4 _MaxLoadedCellInEntries_FrameIndex;
+    float4 _MaxLoadedCellInEntries_Padding;
 CBUFFER_END
 
 

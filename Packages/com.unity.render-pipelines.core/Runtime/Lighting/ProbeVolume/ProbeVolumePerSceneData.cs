@@ -9,17 +9,16 @@ using UnityEditor;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// A component that stores baked probe volume state and data references. Normally hidden from the user.
+    /// A component that stores baked probe volume state and data references. Normally hidden in the hierarchy.
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide.
     public class ProbeVolumePerSceneData : MonoBehaviour
     {
         /// <summary>The baking set this scene is part of.</summary>
-        /// <returns>The baking set this scene is part of.</returns>
-        ProbeVolumeBakingSet GetBakingSet() => bakingSet;
+        public ProbeVolumeBakingSet bakingSet => serializedBakingSet;
 
-        [SerializeField] internal ProbeVolumeBakingSet bakingSet;
+        [SerializeField, FormerlySerializedAs("bakingSet")] internal ProbeVolumeBakingSet serializedBakingSet;
         [SerializeField] internal string sceneGUID = "";
 
         // All code bellow is only kept in order to be able to cleanup obsolete data.
@@ -63,7 +62,7 @@ namespace UnityEngine.Rendering
         internal void Clear()
         {
             QueueSceneRemoval();
-            bakingSet = null;
+            serializedBakingSet = null;
 
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
@@ -72,16 +71,16 @@ namespace UnityEngine.Rendering
 
         internal void QueueSceneLoading()
         {
-            if (bakingSet == null)
+            if (serializedBakingSet == null)
                 return;
 
             var refVol = ProbeReferenceVolume.instance;
-            refVol.AddPendingSceneLoading(sceneGUID, bakingSet);
+            refVol.AddPendingSceneLoading(sceneGUID, serializedBakingSet);
         }
 
         internal void QueueSceneRemoval()
         {
-            if (bakingSet != null)
+            if (serializedBakingSet != null)
                 ProbeReferenceVolume.instance.AddPendingSceneRemoval(sceneGUID);
         }
 
@@ -131,8 +130,8 @@ namespace UnityEngine.Rendering
 
         internal bool ResolveCellData()
         {
-            if (bakingSet != null)
-                return bakingSet.ResolveCellData(bakingSet.GetSceneCellIndexList(sceneGUID));
+            if (serializedBakingSet != null)
+                return serializedBakingSet.ResolveCellData(serializedBakingSet.GetSceneCellIndexList(sceneGUID));
 
             return false;
         }

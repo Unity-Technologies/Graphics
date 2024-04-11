@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering
 
         void CreateProbeVolume()
         {
-            var probeVolume = CoreEditorUtils.CreateGameObject(null, "Probe Volume");
+            var probeVolume = CoreEditorUtils.CreateGameObject(null, "Adaptive Probe Volume");
             var pv = probeVolume.AddComponent<ProbeVolume>();
             pv.mode = ProbeVolume.Mode.Scene;
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -957,8 +957,8 @@ namespace UnityEngine.Rendering
             {
                 if(!activeSet.DialogNoProbeVolumeInSetShown())
                 {
-                    if(EditorUtility.DisplayDialog("No Probe Volume in Scene", "Adaptive Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
-                        "Do you wish to add a Probe Volume to the Active Scene?", "Yes", "No"))
+                    if(EditorUtility.DisplayDialog("No Adaptive Probe Volume in Scene", "Adaptive Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
+                        "Do you wish to add an Adaptive Probe Volume to the Active Scene?", "Yes", "No"))
                         CreateProbeVolume();
                     activeSet.SetDialogNoProbeVolumeInSetShown(true);
                 }

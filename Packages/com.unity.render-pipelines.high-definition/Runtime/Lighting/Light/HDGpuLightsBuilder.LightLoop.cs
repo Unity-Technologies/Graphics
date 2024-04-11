@@ -488,7 +488,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 NativeBitArray shadowRequestValidityArray = visibleLights.shadowRequestValidityArray;
 
                 HDShadowManagerDataForShadowRequestUpateJob shadowManagerData = default;
-                shadowManagerData.cachedShadowManager.cachedDirectionalAngles = m_CachedDirectionalAnglesArray;
                 shadowManager.GetUnmanageDataForShadowRequestJobs(ref shadowManagerData);
 
                 bool usesReversedZBuffer = SystemInfo.usesReversedZBuffer;
@@ -574,8 +573,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
 
                 shadowRequestsAndIndicesJob.Run();
-
-                HDCachedShadowManager.instance.SetCachedDirectionalAngles(m_CachedDirectionalAnglesArray.Value);
 
                 ref UnsafeList<ShadowRequestIntermediateUpdateData> cachedDirectionalUpdateInfos = ref *(m_CachedDirectionalUpdateInfos.GetUnsafeList());
                 int cachedDirectionalCount = cachedDirectionalUpdateInfos.Length;

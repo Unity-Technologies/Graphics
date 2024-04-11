@@ -134,9 +134,9 @@ namespace UnityEngine.Rendering
                 Debug.Assert(ProbeVolumeBakingSet.SceneHasProbeVolumes(data.sceneGUID));
                 bakedSceneGUIDList.Add(data.sceneGUID);
 
-                if (m_BakingSet != data.bakingSet)
+                if (m_BakingSet != data.serializedBakingSet)
                 {
-                    data.bakingSet = m_BakingSet;
+                    data.serializedBakingSet = m_BakingSet;
                     EditorUtility.SetDirty(data);
                 }
             }
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering
             // Remap if needed existing Cell descriptors in the baking set.
             var cellRemapTable = RemapBakedCells(isBakingSubset);
 
-            // Generate list of cells for all cells being baked and remap untouched existing scenes if needed.
+            // Generate list of cells for all scenes being baked and remap untouched existing scenes if needed.
             GenerateScenesCellLists(GetPerSceneDataList(), cellRemapTable);
 
             if (isBakingSubset)
@@ -207,8 +207,8 @@ namespace UnityEngine.Rendering
                     // If a scene was baked
                     if (m_BakingSet.perSceneCellLists.TryGetValue(sceneGUID, out var cellList))
                     {
-                        // And the scene is not loaded
-                        if (!loadedSceneDataList.Exists((x) => x.sceneGUID == sceneGUID) && cellList.Count != 0)
+                        // And the scene is not in the baked subset
+                        if (cellList.Count != 0 && !partialBakeSceneList.Contains(sceneGUID))
                         {
                             // Resolve its data in CPU memory.
                             bool resolved = m_BakingSet.ResolveCellData(cellList);

@@ -108,15 +108,15 @@ namespace UnityEngine.Rendering
             return jobHandle;
         }
 
-        [BurstCompile(DisableSafetyChecks = true)]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         internal struct RadixSortBucketCountJob : IJobFor
         {
             [ReadOnly] public int radix;
             [ReadOnly] public int jobsCount;
             [ReadOnly] public int batchSize;
-            [ReadOnly] [NativeDisableContainerSafetyRestriction] public NativeArray<int> array;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> array;
 
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> buckets;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> buckets;
 
             public void Execute(int index)
             {
@@ -134,17 +134,17 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile(DisableSafetyChecks = true)]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         internal struct RadixSortBatchPrefixSumJob : IJobFor
         {
             [ReadOnly] public int radix;
             [ReadOnly] public int jobsCount;
-            [ReadOnly] [NativeDisableContainerSafetyRestriction] public NativeArray<int> array;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> array;
 
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> counter;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> indicesSum;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> buckets;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> indices;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> counter;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indicesSum;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> buckets;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indices;
 
             private unsafe static int AtomicIncrement(NativeArray<int> counter)
             {
@@ -213,13 +213,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile(DisableSafetyChecks = true)]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         internal struct RadixSortPrefixSumJob : IJobFor
         {
             [ReadOnly] public int jobsCount;
 
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> indicesSum;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> indices;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indicesSum;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indices;
 
             public void Execute(int index)
             {
@@ -239,15 +239,15 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [BurstCompile(DisableSafetyChecks = true)]
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         internal struct RadixSortBucketSortJob : IJobFor
         {
             [ReadOnly] public int radix;
             [ReadOnly] public int batchSize;
-            [ReadOnly] [NativeDisableContainerSafetyRestriction] public NativeArray<int> array;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> array;
 
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> indices;
-            [NativeDisableContainerSafetyRestriction] public NativeArray<int> arraySorted;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> indices;
+            [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<int> arraySorted;
 
             public void Execute(int index)
             {

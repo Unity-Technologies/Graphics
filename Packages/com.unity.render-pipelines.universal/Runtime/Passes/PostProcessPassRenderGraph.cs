@@ -625,6 +625,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = source;
                 builder.UseTexture(source, AccessFlags.Read);
                 passData.depthTexture = resourceData.cameraDepthTexture;
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 passData.material = m_Materials.gaussianDepthOfFieldCoC;
 
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
@@ -843,6 +844,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = source;
                 builder.UseTexture(source, AccessFlags.Read);
                 passData.depthTexture = resourceData.cameraDepthTexture;
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 passData.material = m_Materials.bokehDepthOfFieldCoC;
 
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;

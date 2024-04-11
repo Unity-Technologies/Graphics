@@ -1,5 +1,4 @@
-using System;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -7,14 +6,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         //TODO(ddebaets) move old compile func/members over
 
-        NativeRenderPassCompiler.NativePassCompiler nativeCompiler = null;
+        NativePassCompiler nativeCompiler = null;
 
-        internal NativeRenderPassCompiler.NativePassCompiler CompileNativeRenderGraph(int graphHash)
+        internal NativePassCompiler CompileNativeRenderGraph(int graphHash)
         {
             using (new ProfilingScope(m_RenderGraphContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.CompileRenderGraph)))
             {
                 if (nativeCompiler == null)
-                    nativeCompiler = new NativeRenderPassCompiler.NativePassCompiler(m_CompilationCache);
+                    nativeCompiler = new NativePassCompiler(m_CompilationCache);
 
                 bool compilationIsCached = nativeCompiler.Initialize(m_Resources, m_RenderPasses, m_DebugParameters.disablePassCulling, name, m_EnableCompilationCaching, graphHash, m_ExecutionCount);
                 if (!compilationIsCached)

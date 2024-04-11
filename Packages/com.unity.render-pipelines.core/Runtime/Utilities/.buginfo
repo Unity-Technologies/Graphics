@@ -1,7 +1,7 @@
 default:
-  area: RP Foundation
+  area: SRP Architecture & API
 
-rpw:
+Workflow:
   when:
     path:
       - ^.*CameraCaptureBridge?.*$
@@ -12,19 +12,16 @@ rpw:
       - ^.*ResourceReloader?.*$
       - ^.*SceneRenderPipeline?.*$
       - ^.*TextureCurve?.*$ 
-  area: RP Workflow
+  area: SRP Workflow
 
 xr:
   when:
     path:
       - ^.*XRUtils?.*$
-  area: XR SRP
+  area: SRP XR
 
-hdrp:
+workflow:
   when:
     path:
-      - ^.*FSRUtils?.*$
-      - ^.*HableCurve?.*$
-      - ^.*HaltonSequence?.*$
-      - ^.*MaterialQuality?.*$
-  area: HD RP
+      - ^.*TextureCurve?.*$
+  area: SRP Workflow

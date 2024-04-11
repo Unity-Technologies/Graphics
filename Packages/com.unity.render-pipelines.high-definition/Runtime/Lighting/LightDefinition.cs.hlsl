@@ -52,13 +52,13 @@
 // UnityEngine.Rendering.HighDefinition.EnvLightReflectionData:  static fields
 //
 #define MAX_PLANAR_REFLECTIONS (16)
-#define MAX_CUBE_REFLECTIONS (64)
+#define MAX_CUBE_REFLECTIONS (128)
 
 //
 // UnityEngine.Rendering.HighDefinition.WorldEnvLightReflectionData:  static fields
 //
 #define MAX_PLANAR_REFLECTIONS (16)
-#define MAX_CUBE_REFLECTIONS (64)
+#define MAX_CUBE_REFLECTIONS (128)
 
 // Generated from UnityEngine.Rendering.HighDefinition.CelestialBodyData
 // PackingRules = Exact
@@ -158,7 +158,7 @@ struct EnvLightData
 CBUFFER_START(EnvLightReflectionData)
     float4x4 _PlanarCaptureVP[16];
     float4 _PlanarScaleOffset[16];
-    float4 _CubeScaleOffset[64];
+    float4 _CubeScaleOffset[128];
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
@@ -206,7 +206,7 @@ struct LightData
 GLOBAL_CBUFFER_START(WorldEnvLightReflectionData, b5)
     float4x4 _PlanarCaptureVPWL[16];
     float4 _PlanarScaleOffsetWL[16];
-    float4 _CubeScaleOffsetWL[64];
+    float4 _CubeScaleOffsetWL[128];
 CBUFFER_END
 
 

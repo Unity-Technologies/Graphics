@@ -124,6 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 cullingSphere;
         public Vector2 viewportSize;
         public float forwardOffset;
+        public int splitIndex;
     }
 
     internal struct HDShadowRequestHandle
@@ -470,6 +471,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShadowMapType    shadowMapType;
     }
 
+    internal struct HDShadowManagerDataForComputeCullingSplitsJob
+    {
+        public int requestCount;
+        public float3 cachedDirectionalAngles;
+        public HDCachedShadowManagerDataForShadowRequestUpdateJob cachedShadowManager;
+    }
+
     internal struct HDShadowManagerDataForShadowRequestUpateJob
     {
         public NativeArray<HDShadowRequestHandle> shadowRequests;
@@ -526,7 +534,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDCachedShadowAtlasDataForShadowRequestUpdateJob punctualShadowAtlas;
         public HDCachedShadowAtlasDataForShadowRequestUpdateJob areaShadowAtlas;
         public HDDirectionalLightAtlasDataForShadowRequestUpdateJob directionalLightAtlas;
-        public NativeReference<float3> cachedDirectionalAngles;
         public bool directionalHasCachedAtlas;
 
         public bool LightIsPendingPlacement(int lightIdxForCachedShadows, ShadowMapType shadowMapType)
@@ -1167,6 +1174,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public int GetShadowRequestCount()
         {
             return m_ShadowRequestCount;
+        }
+        
+        internal void GetUnmanageDataForComputeCullingSplitsJob(ref HDShadowManagerDataForComputeCullingSplitsJob shadowManagerData)
+        {
+            shadowManagerData.requestCount = GetShadowRequestCount();
+            shadowManagerData.cachedDirectionalAngles = cachedShadowManager.cachedDirectionalAngles;
+            cachedShadowManager.GetUnmanagedDataForShadowRequestJobs(ref shadowManagerData.cachedShadowManager);
         }
 
         internal void GetUnmanageDataForShadowRequestJobs(ref HDShadowManagerDataForShadowRequestUpateJob shadowManagerData)

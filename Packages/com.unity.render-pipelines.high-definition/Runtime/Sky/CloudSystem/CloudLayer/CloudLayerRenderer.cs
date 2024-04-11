@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CloudLayerMaterial.SetVector(HDShaderIDs._SunDirection, -builtinParams.sunLight.transform.forward);
 
                 var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
-                lightColor = additionalLightData.EvaluateLightColor();
+                lightColor = additionalLightData.EvaluateLightColor() * additionalLightData.lightDimmer;
             }
 
             s_VectorArray[0] = cloudLayer.layerA.Color * lightColor; s_VectorArray[1] = cloudLayer.layerB.Color * lightColor;

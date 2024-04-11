@@ -1,10 +1,11 @@
-using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Helper class allowing access to default resources (black or white texture, etc.) during render passes.
     /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
     public class RenderGraphDefaultResources
     {
         // We need to keep around a RTHandle version of default regular 2D textures since RenderGraph API is all RTHandle.

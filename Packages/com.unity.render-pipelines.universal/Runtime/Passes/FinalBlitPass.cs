@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
 
-        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle src, TextureHandle dest, TextureHandle overlayUITexture)
+        internal void Render(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle src, in TextureHandle dest, TextureHandle overlayUITexture)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
             {

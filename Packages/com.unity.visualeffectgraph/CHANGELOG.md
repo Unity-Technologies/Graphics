@@ -10,6 +10,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.2] - 2024-04-02
+
+This version is compatible with Unity 6000.0.0b15.
+
+### Changed
+- Improved compilation times with VFX Graph using Subgraphs.
+- Improved the performance of VFX.ProcessCommandList by skipping the use of a RenderingCommandBuffer.
+- Added selective VFX Graph buffers to lower the amount of buffer used in the shaders and increased platform reach.
+- The Construct Matrix can now select between row and column. Added the Split Matrix operator.
+
+### Fixed
+- Instancing when gradient selection was based on a branch was wrong.
+- Fixed very very long system name could lead to freeze the Editor.
+- Removed SetDirty calls that triggered assertions in debug mode.
+- Switch property binder from ExecuteInEditMode in ExecuteAlways.
+- Fixed a PCache exporter issue to insure color in linear space.
+- Fixed shadows being cast by Mesh Output when "cast shadows" was disabled (URP only).
+- Fixed an issue where multithreaded camera expression were not allowed.
+- Fixed a build failure on HDRP Linux using Sphere Output.
+- Fixed missing particles with strip systems using instancing.
+- Fixed some sanitation failures with new merged Position and Collision blocks.
+- Unexpected material listing in animation window.
+- Disable MeshToSDFBaker shaders on GLES3 to avoid warnings.
+- Fixed incompatibility issue with HLSL 2021.
+- Fixed an exception that could be raised when deleting all graph nodes in some specific cases.
+- Fixed normal handling of odd-negative scales.
+- Fixed an issue by cleaning data and upgraded VFX assets to prevent unwanted warnings in the console.
+- Fixed Screen Space Size block in Shader Graph outputs.
+- Fixed an editor crash when deleting objects (textures, meshes) that are used by active VFX graph.
+- Fixed an issue that reduced FloatField to a height of 1px.
+- Added tooltips to the VFX Control panel.
+- Fixed an issue where VFX graph rendered the wrong mesh when using different exposed meshes with instancing enabled.
+- When trying to connect incompatible types, the error popup was left over if the action was canceled with Escape key
+- Fixed an issue that caused missing recompilation triggers that occurred when changing some operator settings
+- Fixed an issue that caused an unexpected long enter in Play mode, and removed timeout exception.
+- Removed the eye dropper from Node Search details panel.
+- Fixed activation slot was hidden when a block was collapsed
+- Removed multiple unexpected constraints on CustomHLSL functions
+- Fix Construct Matrix operator serialization issue
+- Correctly handle includes in CustomHLSL operator
+- Initial Position Oriented Box with zero scale is restored.
+- Position On Signed Distance field was failing to compile without direction.
+
 ## [17.0.1] - 2023-12-21
 
 This version is compatible with Unity 2023.3.0b2.

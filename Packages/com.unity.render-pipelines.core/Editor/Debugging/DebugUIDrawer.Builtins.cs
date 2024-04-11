@@ -414,7 +414,7 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.Foldout>(widget);
             var s = Cast<DebugStateBool>(state);
-            
+
             var title = EditorGUIUtility.TrTextContent(w.displayName, w.tooltip);
 
             Action<GenericMenu> fillContextMenuAction = null;
@@ -660,7 +660,7 @@ namespace UnityEditor.Rendering
                 _ => MessageType.None
             };
 
-            EditorGUILayout.HelpBox(w.displayName, type);
+            EditorGUILayout.HelpBox(w.message, type);
 
             return true;
         }

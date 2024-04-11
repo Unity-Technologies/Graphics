@@ -156,6 +156,21 @@ namespace UnityEditor.VFX
             m_ListOfTemplates.ExpandAll();
         }
 
+        private void OnEnable()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+        }
+
+        private void OnDisable()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+        }
+
+        private void OnBeforeAssemblyReload()
+        {
+            this.Close();
+        }
+
         private void OnDestroy()
         {
             EditorPrefs.SetString(LastSelectedGuidKey, m_LastSelectedTemplateGuid);

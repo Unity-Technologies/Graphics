@@ -128,11 +128,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DynamicDirectionalUpdateInfos.Dispose();
             }
 
-            if (m_CachedDirectionalAnglesArray.IsCreated)
-            {
-                m_CachedDirectionalAnglesArray.Dispose();
-            }
-
             if (m_ShadowIndicesScratchpadArray.IsCreated)
             {
                 m_ShadowIndicesScratchpadArray.Dispose();
@@ -208,7 +203,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
         private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
         private NativeList<ShadowRequestIntermediateUpdateData> m_DynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-        private NativeReference<Unity.Mathematics.float3> m_CachedDirectionalAnglesArray = new NativeReference<float3>(Allocator.Persistent);
 
         private void AllocateLightData(int lightCount, int directionalLightCount)
         {
@@ -265,11 +259,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DynamicSpotUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
                 m_DynamicAreaRectangleUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
                 m_DynamicDirectionalUpdateInfos = new NativeList<ShadowRequestIntermediateUpdateData>(Allocator.Persistent);
-            }
-
-            if (!m_CachedDirectionalAnglesArray.IsCreated)
-            {
-                m_CachedDirectionalAnglesArray = new NativeReference<float3>(Allocator.Persistent);
             }
         }
 

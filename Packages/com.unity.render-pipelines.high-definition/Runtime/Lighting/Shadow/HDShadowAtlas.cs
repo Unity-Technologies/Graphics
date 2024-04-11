@@ -419,7 +419,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
                             var commonState = CommonPerShadowRequestUpdate(ctx.cmd, data, shadowRequest, shadowRequestHandle, ref planesScratchpad, ref frustumPlanesStorageUnsafe);
-
                             if (commonState.shouldSkipRequest)
                                 continue;
 
@@ -439,6 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 CoreUtils.DrawFullScreen(ctx.cmd, data.clearMaterial, null, 0);
 
                             data.shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
+                            data.shadowDrawSettings.splitIndex = shadowRequest.cullingSplit.splitIndex;
 
                             //TODO(ddebaets) as the shadowDrawSettings are modified in this loop, we generate this RL very last minute
                             // We might want to refactor this and create the RL ahead of time (especially if we ever allow AsyncPrepare on them)
