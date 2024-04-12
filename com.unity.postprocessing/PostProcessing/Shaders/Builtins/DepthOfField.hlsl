@@ -22,6 +22,13 @@ float _Distance;
 float _LensCoeff;  // f^2 / (N * (S1 - f) * film_width * 2)
 half4 _CoCKernelLimitsA;
 half4 _CoCKernelLimitsB;
+float4 _MaxCoCTexUvScale; // (kc)rename + move more variables to half
+float _CoCRingCount;
+float4 _CoCScreen;
+float _CoCTileXCount;
+float _CoCTileYCount;
+float _CoCTilePixelWidth;
+float _CoCTilePixelHeight;
 float _MaxCoC;
 float _RcpMaxCoC;
 float _RcpAspect;
@@ -150,9 +157,27 @@ half4 FragPrefilter(VaryingsDefault i) : SV_Target
     return half4(avg, coc);
 }
 
+VaryingsDefault VertDownsampleCoC(AttributesDefault v)
+{
+    VaryingsDefault o;
+    o.vertex = float4(v.vertex.xy, 0.0, 1.0);
+    o.texcoord = TransformTriangleVertexToUV(v.vertex.xy);
+#if defined(INITIAL_COC)
+    o.texcoord *= _MaxCoCTexUvScale.xy;
+#endif
+
+#if UNITY_UV_STARTS_AT_TOP
+    o.texcoord = o.texcoord * float2(1.0, -1.0) + float2(0.0, 1.0);
+#endif
+
+    o.texcoordStereo = TransformStereoScreenSpaceTex(o.texcoord, 1.0);
+
+    return o;
+}
+
 half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
 {
-    // TODO gather version
+    // TODO implement gather version
 
     float3 duv = _MainTex_TexelSize.xyx * float3(0.5, 0.5, -0.5);
     float2 uv0 = UnityStereoTransformScreenSpaceTex(i.texcoord - duv.xy);
@@ -168,6 +193,7 @@ half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
     cocs.w = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv3).r;
 
 #if defined(INITIAL_COC)
+    // Storing the absolute normalized CoC is enough.
     cocs = cocs * 2.0 - 1.0;
 #endif
     cocs = abs(cocs);
@@ -209,22 +235,24 @@ half4 FragExtendCoC(VaryingsDefault i) : SV_Target
 // Bokeh filter with disk-shaped kernels
 half4 FragBlur(VaryingsDefault i) : SV_Target
 {
-    half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
-    // normalized value in range [0, 1]
-    half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo).r;
+    const half margin = _MainTex_TexelSize.y * 2;
 
-    int sampleCount = kSampleCount;
+    half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
 
     half4 bgAcc = 0.0; // Background: far field bokeh
     half4 fgAcc = 0.0; // Foreground: near field bokeh
 
-    const half margin = _MainTex_TexelSize.y * 2;
+#if defined(KERNEL_UNIFIED)
+    int sampleCount = kDiskAllKernelSizes[KERNEL_UNIFIED];
+#else
+    int sampleCount = kSampleCount;
+#endif
 
     UNITY_LOOP
     for (int si = 0; si < sampleCount; si++)
     {
 #if defined(KERNEL_UNIFIED)
-        float2 disp = kDiskAllKernels[si] * _MaxCoC * (12.0 / 8.0);
+        float2 disp = kDiskAllKernels[si] * (_MaxCoC * (12.0 / 8.0));
 #else
         float2 disp = kDiskKernel[si] * _MaxCoC;
 #endif
@@ -270,11 +298,11 @@ half4 FragBlur(VaryingsDefault i) : SV_Target
 }
 
 // Bokeh filter with disk-shaped kernels
-half4 FragBlurUnified(VaryingsDefault i) : SV_Target
+half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
 {
     half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
     // normalized value in range [0, 1]
-    half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo).r;
+    half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo * _MaxCoCTexUvScale.zw).r;
 
     int sampleCount;
 
@@ -298,7 +326,7 @@ half4 FragBlurUnified(VaryingsDefault i) : SV_Target
     UNITY_LOOP
     for (int si = 0; si < sampleCount; si++)
     {
-        float2 disp = kDiskAllKernels[si] * _MaxCoC * (12.0 / 8.0);
+        float2 disp = kDiskAllKernels[si] * (_MaxCoC * (12.0 / 8.0));
 
         float dist = length(disp);
 
@@ -338,21 +366,83 @@ half4 FragBlurUnified(VaryingsDefault i) : SV_Target
     half alpha = saturate(fgAcc.a);
     half3 rgb = lerp(bgAcc.rgb, fgAcc.rgb, alpha);
 
-    /*
-    if (i.texcoord.x < 0.05)
-        rgb.r += 0.5; // (kc)
-
-    if (sampleCount == 8)
-        rgb.r += 0.5;
-    if (sampleCount == 22)
-        rgb.g += 0.5;
-    if (sampleCount == 43)
-        rgb.b += 0.5;
-    if (sampleCount == 71)
-        rgb.rg += 0.5;
-    */
-
     return half4(rgb, alpha);
+}
+
+struct Attributes
+{
+    uint vertexID   : SV_VertexID;
+    uint instanceID : SV_InstanceID;
+};
+
+uint2 UnpackTileID(uint tileID)
+{
+    return uint2(tileID & 0xFFFF, (tileID >> 16) & 0xFFFF);
+}
+
+// 0 - 0,1
+// 1 - 0,0
+// 2 - 1,0
+// 3 - 1,1
+float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
+{
+    uint topBit = vertexID >> 1;
+    uint botBit = (vertexID & 1);
+    float x = topBit;
+    float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
+    float4 pos = float4(x, y, z, 1.0);
+    return pos;
+}
+
+VaryingsDefault VertexTiling(Attributes input)
+{
+    uint2 tileCoord = uint2(input.instanceID % (uint)_CoCTileXCount, input.instanceID / (uint)_CoCTileXCount); // (kc) stereo mode?
+    // normalized value in range [0, 1]
+    half maxCoC = LOAD_TEXTURE2D(_MaxCoCTex, _MaxCoCTex_TexelSize, tileCoord).x;
+
+    bool shouldDiscard;
+
+    UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[0])
+        shouldDiscard = _CoCRingCount != 0;
+    // margin adjustment later in the shader code artifically expand bokeh by 4px in fullscreen units (1 extra ring), we cannot have small bokeh as a result!
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[1])
+        shouldDiscard = _CoCRingCount != 1+1;
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[2])
+        shouldDiscard = _CoCRingCount != 2+1;
+    else UNITY_BRANCH if (maxCoC < _CoCKernelLimitsA[3])
+        shouldDiscard = _CoCRingCount != 3+1;
+    else
+        shouldDiscard = _CoCRingCount != 4;
+
+    VaryingsDefault output;
+
+    [branch] if (shouldDiscard)
+    {
+        output.vertex = float4(-2, -2, -2, 1);
+        output.texcoord = 0.0.xx;
+        output.texcoordStereo = 0.0.xx;
+#if STEREO_INSTANCING_ENABLED
+        output.stereoTargetEyeIndex = 0;
+#endif
+        return output;
+    }
+
+    // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
+    uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
+    float2 pp = GetQuadVertexPosition(quadIndex).xy;
+    uint2 pixelCoord = tileCoord * uint2(_CoCTilePixelWidth, _CoCTilePixelHeight);
+    pixelCoord += uint2(pp.xy * uint2(_CoCTilePixelWidth, _CoCTilePixelHeight));
+    pixelCoord.y = _CoCScreen.y - pixelCoord.y;
+    float2 clipCoord = (pixelCoord * _CoCScreen.zw) * 2.0 - 1.0;
+
+    output.vertex = float4(clipCoord, 0, 1);
+    output.texcoord = clipCoord * 0.5 + 0.5;
+    #if UNITY_UV_STARTS_AT_TOP
+    output.texcoord = output.texcoord * float2(1.0, -1.0) + float2(0.0, 1.0);
+    #endif
+    output.texcoordStereo = TransformStereoScreenSpaceTex(output.texcoord, 1.0);
+
+    return output;
 }
 
 // Postfilter blur

@@ -50,7 +50,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
 
             HLSLPROGRAM
                 #pragma target 3.5
-                #pragma vertex VertDefault
+                #pragma vertex VertDownsampleCoC
                 #pragma fragment FragDownsampleCoC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
@@ -134,18 +134,70 @@ Shader "Hidden/PostProcessing/DepthOfField"
 
         Pass // 10
         {
-            Name "Bokeh Filter (unified)"
+            Name "Bokeh Filter (dynamic)"
 
             HLSLPROGRAM
                 #pragma target 3.5
                 #pragma vertex VertDefault
-                #pragma fragment FragBlurUnified
-                #define KERNEL_UNIFIED
+                #pragma fragment FragBlurDynamic
+                #define KERNEL_UNIFIED 4
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
 
-        Pass // 11
+            Pass // 11
+        {
+            Name "Bokeh Filter (1 ring)"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertexTiling
+                #pragma fragment FragBlur
+                #define KERNEL_UNIFIED 1
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+            Pass // 12
+        {
+            Name "Bokeh Filter (2 rings)"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertexTiling
+                #pragma fragment FragBlur
+                #define KERNEL_UNIFIED 2
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+            Pass // 13
+        {
+            Name "Bokeh Filter (3 rings)"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertexTiling
+                #pragma fragment FragBlur
+                #define KERNEL_UNIFIED 3
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+            Pass // 14
+        {
+            Name "Bokeh Filter (4 rings)"
+
+            HLSLPROGRAM
+                #pragma target 3.5
+                #pragma vertex VertexTiling
+                #pragma fragment FragBlur
+                #define KERNEL_UNIFIED 4
+                #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
+            ENDHLSL
+        }
+
+        Pass // 15
         {
             Name "Postfilter"
 
@@ -157,7 +209,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 12
+        Pass // 16
         {
             Name "Combine"
 
@@ -169,7 +221,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             ENDHLSL
         }
 
-        Pass // 13
+        Pass // 17
         {
             Name "Debug Overlay"
 
