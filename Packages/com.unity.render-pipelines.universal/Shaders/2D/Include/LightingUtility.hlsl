@@ -78,18 +78,31 @@
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
 
+#if !defined(USE_SHAPE_LIGHT_TYPE_0) && !defined(USE_SHAPE_LIGHT_TYPE_1) && !defined(USE_SHAPE_LIGHT_TYPE_2) && !defined(USE_SHAPE_LIGHT_TYPE_3)
+#define USE_DEFAULT_LIGHT_TYPE 1
+#endif
+
 struct FragmentOutput
 {
-    half4 GLightBuffer0 : SV_Target0;
+#if USE_SHAPE_LIGHT_TYPE_0 || USE_DEFAULT_LIGHT_TYPE
+   half4 GLightBuffer0 : SV_Target0;
+#endif
+#if USE_SHAPE_LIGHT_TYPE_1
     half4 GLightBuffer1 : SV_Target1;
+#endif
+#if USE_SHAPE_LIGHT_TYPE_2
     half4 GLightBuffer2 : SV_Target2;
+#endif
+#if USE_SHAPE_LIGHT_TYPE_3
     half4 GLightBuffer3 : SV_Target3;
+#endif
 };
 
 FragmentOutput ToFragmentOutput(half4 finalColor)
 {
     FragmentOutput output;
-    #if USE_SHAPE_LIGHT_TYPE_0
+
+    #if USE_SHAPE_LIGHT_TYPE_0 || USE_DEFAULT_LIGHT_TYPE
     output.GLightBuffer0 = finalColor;
     #endif
     #if USE_SHAPE_LIGHT_TYPE_1
@@ -101,9 +114,7 @@ FragmentOutput ToFragmentOutput(half4 finalColor)
     #if USE_SHAPE_LIGHT_TYPE_3
     output.GLightBuffer3 = finalColor;
     #endif
-    #if !defined(USE_SHAPE_LIGHT_TYPE_0) && !defined(USE_SHAPE_LIGHT_TYPE_1) && !defined(USE_SHAPE_LIGHT_TYPE_2) && !defined(USE_SHAPE_LIGHT_TYPE_3)
-    output.GLightBuffer0 = finalColor;
-    #endif
+
     return output;
 }
 

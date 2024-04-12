@@ -153,10 +153,8 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(passData.lightTextures[i]);
                 }
 
-                AccessFlags accessFlags = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ? AccessFlags.Write: AccessFlags.Read;
-
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
-                builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture, accessFlags);
+                builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
                 builder.UseAllGlobalTextures(true);

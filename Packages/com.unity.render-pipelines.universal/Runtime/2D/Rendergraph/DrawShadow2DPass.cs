@@ -61,13 +61,16 @@ namespace UnityEngine.Rendering.Universal
                 passData.isVolumetric = isVolumetric;
                 passData.shadowMap = shadowTexture;
                 passData.shadowDepth = depthTexture;
-                passData.depthTexture = !isVolumetric ? universal2DResourceData.intermediateDepth : commonResourceData.activeDepthTexture;
                 passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
                 passData.fallOffLookUp = graph.ImportTexture(DrawLight2DPass.m_FallOffRTHandle);
                 passData.lightLookUp = graph.ImportTexture(DrawLight2DPass.m_LightLookupRTHandle);
 
                 if (!isVolumetric)
+                {
                     passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
+                    passData.depthTexture = universal2DResourceData.intermediateDepth;
+                    builder.UseTexture(passData.depthTexture, AccessFlags.Write);
+                }
                 else
                 {
                     intermediateTexture[0] = commonResourceData.activeColorTexture;
@@ -85,7 +88,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.UseTexture(shadowTexture, AccessFlags.Write);
                 builder.UseTexture(depthTexture, AccessFlags.Write);
-                builder.UseTexture(passData.depthTexture, AccessFlags.Write);
                 builder.UseTexture(passData.fallOffLookUp);
                 builder.UseTexture(passData.lightLookUp);
 
@@ -122,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
                             cmd.SetRenderTarget(data.lightTexturesRT, data.depthTexture);
                         }
                         else
-                            cmd.SetRenderTarget(data.lightTextures[0], data.depthTexture);
+                            cmd.SetRenderTarget(data.lightTextures[0]);
 
                         // Light Pass
                         using (new ProfilingScope(cmd, DrawLight2DPass.m_ProfilingSamplerLowLevel))
