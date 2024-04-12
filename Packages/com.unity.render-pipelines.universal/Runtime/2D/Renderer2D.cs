@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
 
             var ppParams = PostProcessParams.Create();
             ppParams.blitMaterial = m_BlitMaterial;
-            ppParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+            ppParams.requestColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref ppParams);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;

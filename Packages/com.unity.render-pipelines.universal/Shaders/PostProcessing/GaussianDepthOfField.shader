@@ -96,14 +96,14 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
                 float2(-0.4, -0.9)
             };
 
-            half3 colorAcc = 0.0;
+            half4 colorAcc = 0.0;
             half farCoCAcc = 0.0;
 
             UNITY_UNROLL
             for (int i = 0; i < kCount; i++)
             {
                 float2 tapCoord = _SourceSize.zw * kTaps[i] + uv;
-                half3 tapColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, tapCoord).xyz;
+                half4 tapColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, tapCoord);
                 half coc = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, tapCoord).x;
 
                 // Pre-multiply CoC to reduce bleeding of background blur on focused areas
@@ -111,7 +111,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
                 farCoCAcc += coc;
             }
 
-            half3 color = colorAcc * rcp(kCount);
+            half4 color = colorAcc * rcp(kCount);
             half farCoC = farCoCAcc * rcp(kCount);
 
         #else
@@ -121,14 +121,18 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
             // Fast bilinear downscale of the source target and pre-multiply the CoC to reduce
             // bleeding of background blur on focused areas
-            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv).xyz;
+            half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
             color *= farCoC;
 
         #endif
 
             PrefilterOutput o;
             o.coc   = farCoC;
-            o.color = half4(color, 0);
+            #if _ENABLE_ALPHA_OUTPUT
+            o.color = color;
+            #else
+            o.color = half4(color.xyz, 0);
+            #endif
             return o;
         }
 
@@ -143,21 +147,32 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
             float2 offset = _SourceSize.zw * _DownSampleScaleFactor.zw * dir * samp0CoC * MaxRadius;
             half4 acc = 0.0;
+            half accAlpha = 0.0;
 
             UNITY_UNROLL
             for (int i = 0; i < kTapCount; i++)
             {
                 float2 sampCoord = uv + kOffsets[i] * offset;
                 half sampCoC = SAMPLE_TEXTURE2D_X(_HalfCoCTexture, sampler_LinearClamp, sampCoord).x;
-                half3 sampColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, sampCoord).xyz;
+                half4 sampColor = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, sampCoord);
 
                 // Weight & pre-multiply to limit bleeding on the focused area
                 half weight = saturate(1.0 - (samp0CoC - sampCoC));
-                acc += half4(sampColor, premultiply ? sampCoC : 1.0) * kCoeffs[i] * weight;
-            }
+                acc += half4(sampColor.xyz, premultiply ? sampCoC : 1.0) * kCoeffs[i] * weight;
 
+                #if _ENABLE_ALPHA_OUTPUT
+                accAlpha  += sampColor.a * kCoeffs[i] * weight;
+                #endif
+
+            }
             acc.xyz /= acc.w + 1e-4; // Zero-div guard
+
+            #if _ENABLE_ALPHA_OUTPUT
+            accAlpha /= acc.w + 1e-4; // Zero-div guard
+            return half4(acc.xyz, accAlpha);
+            #else
             return half4(acc.xyz, 1.0);
+            #endif
         }
 
         half4 FragBlurH(Varyings input) : SV_Target
@@ -175,16 +190,16 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
 
-            half3 baseColor = LOAD_TEXTURE2D_X(_BlitTexture, _SourceSize.xy * uv).xyz;
+            half4 baseColor = LOAD_TEXTURE2D_X(_BlitTexture, _SourceSize.xy * uv);
             half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _SourceSize.xy * uv).x;
 
         #if _HIGH_QUALITY_SAMPLING
-            half3 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), uv, _SourceSize * _DownSampleScaleFactor, 1.0, unity_StereoEyeIndex).xyz;
+            half4 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), uv, _SourceSize * _DownSampleScaleFactor, 1.0, unity_StereoEyeIndex);
         #else
-            half3 farColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, uv).xyz;
+            half4 farColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, uv);
         #endif
 
-            half3 dstColor = 0.0;
+            half4 dstColor = 0.0;
             half dstAlpha = 1.0;
 
             UNITY_BRANCH
@@ -197,7 +212,14 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
                 dstAlpha = saturate(1.0 - blend);
             }
 
-            return half4(baseColor * dstAlpha + dstColor, 1.0);
+            #if _ENABLE_ALPHA_OUTPUT
+            half4 outColor = dstColor + baseColor * dstAlpha;
+            // Preserve the original value of the pixels with zero alpha
+            outColor.rgb = outColor.a > 0 ? outColor.rgb : baseColor.rgb;
+            return outColor;
+            #else
+            return half4(dstColor.rgb + baseColor.rgb * dstAlpha, 1.0);
+            #endif
         }
 
     ENDHLSL
@@ -225,7 +247,8 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragPrefilter
-                #pragma multi_compile_local _ _HIGH_QUALITY_SAMPLING
+                #pragma multi_compile_local_fragment _ _HIGH_QUALITY_SAMPLING
+                #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
             ENDHLSL
         }
 
@@ -236,6 +259,8 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragBlurH
+
+                #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
             ENDHLSL
         }
 
@@ -246,6 +271,8 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragBlurV
+
+                #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
             ENDHLSL
         }
 
@@ -256,7 +283,8 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragComposite
-                #pragma multi_compile_local _ _HIGH_QUALITY_SAMPLING
+                #pragma multi_compile_local_fragment _ _HIGH_QUALITY_SAMPLING
+                #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
             ENDHLSL
         }
     }

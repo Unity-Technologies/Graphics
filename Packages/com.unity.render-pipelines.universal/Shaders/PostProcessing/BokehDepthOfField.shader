@@ -169,7 +169,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             // Normalize the total of the weights for the near field
             nearAcc.a *= PI / (SAMPLE_COUNT + 1);
 
-            // Alpha premultiplying
+            // Alpha premultiplying (total near field accumulation weight)
             half alpha = saturate(nearAcc.a);
             half3 rgb = lerp(farAcc.rgb, nearAcc.rgb, alpha);
 
@@ -211,12 +211,22 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         #endif
 
             half alpha = Max3(dof.r, dof.g, dof.b);
-            color = lerp(color, half4(dof.rgb, alpha), ffa + dof.a - ffa * dof.a);
+            half4 outColor = lerp(color, half4(dof.rgb, alpha), ffa + dof.a - ffa * dof.a);
+
+        #if _ENABLE_ALPHA_OUTPUT
+            // Preserve the original value of the pixels with zero alpha
+            outColor.rgb = color.a > 0 ? outColor.rgb : color.rgb;
+            // The BokehDoF does not process source content alpha as it uses the alpha channel to pack CoC and near/far field weights.
+            // The outColor.a is an approximate mixed alpha between the sharp and the blurred (near+far) dof layers.
+            // It is not the actual blurred alpha of the source content.
+            // Keep the original alpha mask.
+            outColor.a = color.a;
+        #endif
 
         #if defined(UNITY_COLORSPACE_GAMMA)
-            color = GetLinearToSRGB(color);
+            outColor = GetLinearToSRGB(outColor);
         #endif
-            return color;
+            return outColor;
         }
 
     ENDHLSL
@@ -279,6 +289,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
                 #pragma vertex Vert
                 #pragma fragment FragComposite
                 #pragma target 4.5
+                #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
             ENDHLSL
         }
     }
@@ -342,6 +353,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
                 #pragma vertex Vert
                 #pragma fragment FragComposite
                 #pragma target 3.5
+                #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
             ENDHLSL
         }
     }

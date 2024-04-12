@@ -416,6 +416,8 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
+                CoreUtils.SetKeyword(taaMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
+
                 Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, taaMaterial, (int)taa.quality);
 
                 if (isNewFrame)
@@ -443,6 +445,7 @@ namespace UnityEngine.Rendering.Universal
             internal float[] taaFilterWeights;
 
             internal bool taaLowPrecisionSource;
+            internal bool taaAlphaOutput;
         }
 
         internal static void Render(RenderGraph renderGraph, Material taaMaterial, UniversalCameraData cameraData, ref TextureHandle srcColor, ref TextureHandle srcDepth, ref TextureHandle srcMotionVectors, ref TextureHandle dstColor)
@@ -504,6 +507,8 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
+                passData.taaAlphaOutput = cameraData.isAlphaOutputEnabled;
+
                 builder.SetRenderFunc(static (TaaPassData data, RasterGraphContext context) =>
                 {
                     data.material.SetFloat(ShaderConstants._TaaFrameInfluence, data.taaFrameInfluence);
@@ -512,6 +517,7 @@ namespace UnityEngine.Rendering.Universal
                     data.material.SetTexture(ShaderConstants._TaaMotionVectorTex, data.srcMotionVectorTex);
                     data.material.SetTexture(ShaderConstants._CameraDepthTexture, data.srcDepthTex);
                     CoreUtils.SetKeyword(data.material, ShaderKeywords.TAA_LOW_PRECISION_SOURCE, data.taaLowPrecisionSource);
+                    CoreUtils.SetKeyword(data.material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.taaAlphaOutput);
 
                     if(data.taaFilterWeights != null)
                         data.material.SetFloatArray(ShaderConstants._TaaFilterWeights, data.taaFilterWeights);

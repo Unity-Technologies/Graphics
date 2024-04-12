@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System;
@@ -35,8 +34,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowGlobalStateModification(true);
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc(
-                    (UpdateCameraResolutionPassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (UpdateCameraResolutionPassData data, UnsafeGraphContext ctx) =>
                 {
                     ctx.cmd.SetGlobalVector(
                         ShaderPropertyId.screenSize,
@@ -77,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = activeCameraColor;
                 builder.UseTexture(activeCameraColor, AccessFlags.Read);
                 passData.stopNaN = m_Materials.stopNaN;
-                builder.SetRenderFunc((StopNaNsPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (StopNaNsPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
@@ -157,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((SMAASetupPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (SMAASetupPassData data, RasterGraphContext context) =>
                 {
                     // Globals
                     data.material.SetVector(ShaderConstants._Metrics, data.metrics);
@@ -195,7 +193,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(resourceData.cameraDepth ,AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (SMAAPassData data, RasterGraphContext context) =>
                 {
                     var SMAAMaterial = data.material;
                     var cmd = context.cmd;
@@ -217,7 +215,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(edgeTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (SMAAPassData data, RasterGraphContext context) =>
                 {
                     var SMAAMaterial = data.material;
                     var cmd = context.cmd;
@@ -240,7 +238,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(blendTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((SMAAPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (SMAAPassData data, RasterGraphContext context) =>
                 {
                     var SMAAMaterial = data.material;
                     var cmd = context.cmd;
@@ -259,11 +257,11 @@ namespace UnityEngine.Rendering.Universal
         private class UberSetupBloomPassData
         {
             internal Vector4 bloomParams;
-            internal bool useRGBM;
             internal Vector4 dirtScaleOffset;
             internal float dirtIntensity;
             internal Texture dirtTexture;
             internal bool highQualityFilteringValue;
+            internal bool useRGBM;
             internal TextureHandle bloomTexture;
             internal Material uberMaterial;
         }
@@ -303,6 +301,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.dirtIntensity = dirtIntensity;
                 passData.dirtTexture = dirtTexture;
                 passData.highQualityFilteringValue = m_Bloom.highQualityFiltering.value;
+                passData.useRGBM = m_DefaultColorFormatUseRGBM;
 
                 passData.bloomTexture = bloomTexture;
                 builder.UseTexture(bloomTexture, AccessFlags.Read);
@@ -311,7 +310,7 @@ namespace UnityEngine.Rendering.Universal
                 // TODO RENDERGRAPH: properly setup dependencies between passes
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((UberSetupBloomPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (UberSetupBloomPassData data, RasterGraphContext context) =>
                 {
                     var uberMaterial = data.uberMaterial;
                     uberMaterial.SetVector(ShaderConstants._Bloom_Params, data.bloomParams);
@@ -349,13 +348,18 @@ namespace UnityEngine.Rendering.Universal
             internal Vector4 parameters;
             internal bool highQualityFiltering;
             internal bool useRGBM;
+            internal bool enableAlphaOutput;
+
             internal bool Equals(ref BloomMaterialParams other)
             {
-                return parameters == other.parameters && highQualityFiltering == other.highQualityFiltering && useRGBM == other.useRGBM;
+                return parameters == other.parameters &&
+                       highQualityFiltering == other.highQualityFiltering &&
+                       useRGBM == other.useRGBM &&
+                       enableAlphaOutput == other.enableAlphaOutput;
             }
         }
 
-        public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination)
+        public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, bool enableAlphaOutput)
         {
             // Start at half-res
             int downres = 1;
@@ -393,7 +397,8 @@ namespace UnityEngine.Rendering.Universal
                 BloomMaterialParams bloomParams = new BloomMaterialParams();
                 bloomParams.parameters = new Vector4(scatter, clamp, threshold, thresholdKnee);
                 bloomParams.highQualityFiltering = m_Bloom.highQualityFiltering.value;
-                bloomParams.useRGBM = m_UseRGBM;
+                bloomParams.useRGBM = m_DefaultColorFormatUseRGBM;
+                bloomParams.enableAlphaOutput = enableAlphaOutput;
 
                 // Setting keywords can be somewhat expensive on low-end platforms.
                 // Previous params are cached to avoid setting the same keywords every frame.
@@ -405,6 +410,7 @@ namespace UnityEngine.Rendering.Universal
                     material.SetVector(ShaderConstants._Params, bloomParams.parameters);
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, bloomParams.enableAlphaOutput);
 
                     // These materials are duplicate just to allow different bloom blits to use different textures.
                     for (uint i = 0; i < k_MaxPyramidSize; ++i)
@@ -413,6 +419,7 @@ namespace UnityEngine.Rendering.Universal
                         materialPyramid.SetVector(ShaderConstants._Params, bloomParams.parameters);
                         CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
                         CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
+                        CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, bloomParams.enableAlphaOutput);
                     }
 
                     m_BloomParamsPrev = bloomParams;
@@ -420,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Create bloom mip pyramid textures
                 {
-                    var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
+                    var desc = GetCompatibleDescriptor(tw, th, m_DefaultColorFormat);
                     _BloomMipDown[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipDown[0].name, false, FilterMode.Bilinear);
                     _BloomMipUp[0] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, m_BloomMipUp[0].name, false, FilterMode.Bilinear);
 
@@ -533,6 +540,8 @@ namespace UnityEngine.Rendering.Universal
                 DepthBits.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_DoFTarget", true, FilterMode.Bilinear);
 
+            CoreUtils.SetKeyword(dofMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
+
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
             {
                 RenderDoFGaussian(renderGraph, resourceData, cameraData, source, destination, ref dofMaterial);
@@ -592,7 +601,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((DoFGaussianSetupPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFGaussianSetupPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
 
@@ -614,9 +623,9 @@ namespace UnityEngine.Rendering.Universal
             var fullCoCTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullCoCTextureDesc, "_FullCoCTexture", true, FilterMode.Bilinear);
             var halfCoCTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_GaussianCoCFormat);
             var halfCoCTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, halfCoCTextureDesc, "_HalfCoCTexture", true, FilterMode.Bilinear);
-            var pingTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_DefaultHDRFormat);
+            var pingTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_DefaultColorFormat);
             var pingTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pingTextureDesc, "_PingTexture", true, FilterMode.Bilinear);
-            var pongTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_DefaultHDRFormat);
+            var pongTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_DefaultColorFormat);
             var pongTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pongTextureDesc, "_PongTexture", true, FilterMode.Bilinear);
 
             using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Compute CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
@@ -634,7 +643,7 @@ namespace UnityEngine.Rendering.Universal
                 else if (renderer.deferredLights.GbufferDepthIndex != -1)
                     builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
 
-                builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -663,7 +672,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(fullCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -686,7 +695,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(halfCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -709,7 +718,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(halfCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -734,7 +743,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(pingTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFGaussianPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -812,7 +821,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((DoFBokehSetupPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehSetupPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
 
@@ -853,7 +862,7 @@ namespace UnityEngine.Rendering.Universal
                 else if (renderer.deferredLights.GbufferDepthIndex != -1)
                     builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
 
-                builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -877,7 +886,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(fullCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -897,7 +906,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(pingTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -916,7 +925,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(pongTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -940,7 +949,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(fullCoCTexture, AccessFlags.Read);
                 passData.material = material;
 
-                builder.SetRenderFunc((DoFBokehPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
                     var cmd = context.cmd;
@@ -1000,7 +1009,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.isPaniniGeneric = 1f - Mathf.Abs(paniniD) > float.Epsilon;
                 passData.sourceTextureDesc = m_Descriptor;
 
-                builder.SetRenderFunc((PaniniProjectionPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PaniniProjectionPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
@@ -1085,6 +1094,7 @@ namespace UnityEngine.Rendering.Universal
             internal XRPass xr;
             internal float intensity;
             internal float clamp;
+            internal bool enableAlphaOutput;
         }
 
         public void RenderMotionBlur(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, out TextureHandle destination)
@@ -1130,9 +1140,10 @@ namespace UnityEngine.Rendering.Universal
                 passData.passIndex = passIndex;
                 passData.camera = cameraData.camera;
                 passData.xr = cameraData.xr;
+                passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
                 passData.intensity = m_MotionBlur.intensity.value;
                 passData.clamp = m_MotionBlur.clamp.value;
-                builder.SetRenderFunc((MotionBlurPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (MotionBlurPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
@@ -1141,6 +1152,7 @@ namespace UnityEngine.Rendering.Universal
 
                     data.material.SetFloat("_Intensity", data.intensity);
                     data.material.SetFloat("_Clamp", data.clamp);
+                    CoreUtils.SetKeyword(data.material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.enableAlphaOutput);
 
                     PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
                     Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
@@ -1199,7 +1211,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
 
                 builder.SetRenderFunc(
-                    (LensFlarePassData data, UnsafeGraphContext ctx) =>
+                    static (LensFlarePassData data, UnsafeGraphContext ctx) =>
                     {
                         Camera camera = data.cameraData.camera;
                         XRPass xr = data.cameraData.xr;
@@ -1307,7 +1319,7 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 }
 
-                builder.SetRenderFunc((LensFlarePassData data, UnsafeGraphContext ctx) =>
+                builder.SetRenderFunc(static (LensFlarePassData data, UnsafeGraphContext ctx) =>
                 {
                     Camera camera = data.cameraData.camera;
                     XRPass xr = data.cameraData.xr;
@@ -1374,6 +1386,7 @@ namespace UnityEngine.Rendering.Universal
             internal RenderTextureDescriptor sourceDescriptor;
             internal Camera camera;
             internal Material material;
+            internal ScreenSpaceLensFlare lensFlareScreenSpace;
             internal int downsample;
         }
 
@@ -1384,7 +1397,7 @@ namespace UnityEngine.Rendering.Universal
             int width = m_Descriptor.width / downsample;
             int height = m_Descriptor.height / downsample;
 
-            var streakTextureDesc = GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultHDRFormat);
+            var streakTextureDesc = GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultColorFormat);
             var streakTmpTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
             var streakTmpTexture2 = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture2", true, FilterMode.Bilinear);
             var resultTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "Lens Flare Screen Space Result", true, FilterMode.Bilinear);
@@ -1406,50 +1419,52 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
+                passData.lensFlareScreenSpace = m_LensFlareScreenSpace; // NOTE: reference, assumed constant until executed.
                 passData.downsample = downsample;
                 passData.result = resultTexture;
                 builder.UseTexture(resultTexture, AccessFlags.Write);
 
-                builder.SetRenderFunc((LensFlareScreenSpacePassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc(static (LensFlareScreenSpacePassData data, UnsafeGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.camera;
+                    var lensFlareScreenSpace = data.lensFlareScreenSpace;
 
                     LensFlareCommonSRP.DoLensFlareScreenSpaceCommon(
-                        m_Materials.lensFlareScreenSpace,
+                        data.material,
                         camera,
                         (float)data.sourceDescriptor.width,
                         (float)data.sourceDescriptor.height,
-                        m_LensFlareScreenSpace.tintColor.value,
+                        data.lensFlareScreenSpace.tintColor.value,
                         data.originalBloomTexture,
                         data.screenSpaceLensFlareBloomMipTexture,
                         null, // We don't have any spectral LUT in URP
                         data.streakTmpTexture,
                         data.streakTmpTexture2,
                         new Vector4(
-                            m_LensFlareScreenSpace.intensity.value,
-                            m_LensFlareScreenSpace.firstFlareIntensity.value,
-                            m_LensFlareScreenSpace.secondaryFlareIntensity.value,
-                            m_LensFlareScreenSpace.warpedFlareIntensity.value),
+                            lensFlareScreenSpace.intensity.value,
+                            lensFlareScreenSpace.firstFlareIntensity.value,
+                            lensFlareScreenSpace.secondaryFlareIntensity.value,
+                            lensFlareScreenSpace.warpedFlareIntensity.value),
                         new Vector4(
-                            m_LensFlareScreenSpace.vignetteEffect.value,
-                            m_LensFlareScreenSpace.startingPosition.value,
-                            m_LensFlareScreenSpace.scale.value,
+                            lensFlareScreenSpace.vignetteEffect.value,
+                            lensFlareScreenSpace.startingPosition.value,
+                            lensFlareScreenSpace.scale.value,
                             0), // Free slot, not used
                         new Vector4(
-                            m_LensFlareScreenSpace.samples.value,
-                            m_LensFlareScreenSpace.sampleDimmer.value,
-                            m_LensFlareScreenSpace.chromaticAbberationIntensity.value,
+                            lensFlareScreenSpace.samples.value,
+                            lensFlareScreenSpace.sampleDimmer.value,
+                            lensFlareScreenSpace.chromaticAbberationIntensity.value,
                             0), // No need to pass a chromatic aberration sample count, hardcoded at 3 in shader
                         new Vector4(
-                            m_LensFlareScreenSpace.streaksIntensity.value,
-                            m_LensFlareScreenSpace.streaksLength.value,
-                            m_LensFlareScreenSpace.streaksOrientation.value,
-                            m_LensFlareScreenSpace.streaksThreshold.value),
+                            lensFlareScreenSpace.streaksIntensity.value,
+                            lensFlareScreenSpace.streaksLength.value,
+                            lensFlareScreenSpace.streaksOrientation.value,
+                            lensFlareScreenSpace.streaksThreshold.value),
                         new Vector4(
                             data.downsample,
-                            m_LensFlareScreenSpace.warpedFlareScale.value.x,
-                            m_LensFlareScreenSpace.warpedFlareScale.value.y,
+                            lensFlareScreenSpace.warpedFlareScale.value.x,
+                            lensFlareScreenSpace.warpedFlareScale.value.y,
                             0), // Free slot, not used
                         cmd,
                         data.result,
@@ -1484,21 +1499,24 @@ namespace UnityEngine.Rendering.Universal
             internal UniversalCameraData cameraData;
         }
 
-        public void RenderFinalSetup(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination, bool isFxaaEnabled, bool isFsrEnabled, HDROutputUtils.Operation hdrOperations)
+        public void RenderFinalSetup(RenderGraph renderGraph, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination, ref FinalBlitSettings settings)
         {
             // Scaled FXAA
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>("Postprocessing Final Setup Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalSetup)))
             {
                 Material material = m_Materials.scalingSetup;
 
-                if (isFxaaEnabled)
+                if (settings.isFxaaEnabled)
                     material.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
-                if (isFsrEnabled)
-                    material.EnableKeyword(hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
+                if (settings.isFsrEnabled)
+                    material.EnableKeyword(settings.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
 
-                if (hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding))
-                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
+                if (settings.hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding))
+                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, settings.hdrOperations);
+
+                if (settings.isAlphaOutputEnabled)
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, settings.isAlphaOutputEnabled);
 
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destination;
@@ -1508,7 +1526,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
                 passData.material = material;
 
-                builder.SetRenderFunc((PostProcessingFinalSetupPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PostProcessingFinalSetupPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
@@ -1526,9 +1544,10 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle destinationTexture;
             internal TextureHandle sourceTexture;
             internal Material material;
+            internal bool enableAlphaOutput;
         }
 
-        public void RenderFinalFSRScale(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination)
+        public void RenderFinalFSRScale(RenderGraph renderGraph, in TextureHandle source, in TextureHandle destination, bool enableAlphaOutput)
         {
             // FSR upscale
             m_Materials.easu.shaderKeywords = null;
@@ -1541,19 +1560,23 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = source;
                 builder.UseTexture(source, AccessFlags.Read);
                 passData.material = m_Materials.easu;
+                passData.enableAlphaOutput = enableAlphaOutput;
 
-                builder.SetRenderFunc((PostProcessingFinalFSRScalePassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PostProcessingFinalFSRScalePassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var sourceTex = data.sourceTexture;
                     var destTex = data.destinationTexture;
                     var material = data.material;
+                    var enableAlphaOutput = data.enableAlphaOutput;
                     RTHandle sourceHdl = (RTHandle)sourceTex;
                     RTHandle destHdl = (RTHandle)destTex;
 
                     var fsrInputSize = new Vector2(sourceHdl.referenceSize.x, sourceHdl.referenceSize.y);
                     var fsrOutputSize = new Vector2(destHdl.referenceSize.x, destHdl.referenceSize.y);
                     FSRUtils.SetEasuConstants(cmd, fsrInputSize, fsrInputSize, fsrOutputSize);
+
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, enableAlphaOutput);
 
                     Vector2 viewportScale = sourceHdl.useScaling ? new Vector2(sourceHdl.rtHandleProperties.rtHandleScale.x, sourceHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                     Blitter.BlitTexture(cmd, sourceHdl, viewportScale, material, 0);
@@ -1586,6 +1609,11 @@ namespace UnityEngine.Rendering.Universal
             public bool requireHDROutput;
             /// <summary>True if final blit needs to resolve to debug screen.</summary>
             public bool resolveToDebugScreen;
+            /// <summary>True if final blit needs to output alpha channel.</summary>
+            public bool isAlphaOutputEnabled;
+
+            /// <summary>HDR Operations</summary>
+            public HDROutputUtils.Operation hdrOperations;
 
             /// <summary>
             /// Create FinalBlitSettings
@@ -1599,6 +1627,10 @@ namespace UnityEngine.Rendering.Universal
                 s.isTaaSharpeningEnabled = false;
                 s.requireHDROutput = false;
                 s.resolveToDebugScreen = false;
+                s.isAlphaOutputEnabled = false;
+
+                s.hdrOperations = HDROutputUtils.Operation.None;
+
                 return s;
             }
         };
@@ -1628,6 +1660,7 @@ namespace UnityEngine.Rendering.Universal
                     var isRcasEnabled = data.settings.isTaaSharpeningEnabled;
                     var requireHDROutput = data.settings.requireHDROutput;
                     var resolveToDebugScreen = data.settings.resolveToDebugScreen;
+                    var isAlphaOutputEnabled = data.settings.isAlphaOutputEnabled;
                     RTHandle sourceTextureHdl = data.sourceTexture;
                     RTHandle destinationTextureHdl = data.destinationTexture;
 
@@ -1657,6 +1690,9 @@ namespace UnityEngine.Rendering.Universal
                         material.EnableKeyword(ShaderKeywordStrings.Rcas);
                         FSRUtils.SetRcasConstantsLinear(cmd, data.cameraData.taaSettings.contrastAdaptiveSharpening);
                     }
+
+                    if (isAlphaOutputEnabled)
+                        CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, isAlphaOutputEnabled);
 
                     bool isRenderToBackBufferTarget = !data.cameraData.isSceneViewCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1729,23 +1765,23 @@ namespace UnityEngine.Rendering.Universal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData.requireSrgbConversion))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            HDROutputUtils.Operation hdrOperations = HDROutputUtils.Operation.None;
+            settings.hdrOperations = HDROutputUtils.Operation.None;
             settings.requireHDROutput = RequireHDROutput(cameraData);
             if (settings.requireHDROutput)
             {
                 // If there is a final post process pass, it's always the final pass so do color encoding
-                hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
+                settings.hdrOperations = m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
                 // If the color space conversion wasn't applied by the uber pass, do it here
                 if (!cameraData.postProcessEnabled)
-                    hdrOperations |= HDROutputUtils.Operation.ColorConversion;
+                    settings.hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
+                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, settings.hdrOperations);
             }
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
             debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
-            bool outputToHDR = cameraData.isHDROutputActive;
+            settings.isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled;
             settings.isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
             settings.isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
@@ -1785,7 +1821,7 @@ namespace UnityEngine.Rendering.Universal
                 // When FXAA is needed while scaling is active, we must perform it before the scaling takes place.
                 if (isSetupRequired)
                 {
-                    RenderFinalSetup(renderGraph, cameraData, in currentSource, in scalingSetupTarget, settings.isFxaaEnabled, settings.isFsrEnabled, hdrOperations);
+                    RenderFinalSetup(renderGraph, cameraData, in currentSource, in scalingSetupTarget, ref settings);
                     currentSource = scalingSetupTarget;
 
                     // Indicate that we no longer need to perform FXAA in the final pass since it was already perfomed here.
@@ -1811,7 +1847,7 @@ namespace UnityEngine.Rendering.Universal
                             }
                             case ImageUpscalingFilter.FSR:
                             {
-                                RenderFinalFSRScale(renderGraph, in currentSource, in upScaleTarget);
+                                RenderFinalFSRScale(renderGraph, in currentSource, in upScaleTarget, settings.isAlphaOutputEnabled);
                                 currentSource = upScaleTarget;
                                 break;
                             }
@@ -1851,14 +1887,15 @@ namespace UnityEngine.Rendering.Universal
             internal Material material;
             internal UniversalCameraData cameraData;
             internal TonemappingMode toneMappingMode;
-            internal bool isHdr;
+            internal bool isHdrGrading;
             internal bool isBackbuffer;
+            internal bool enableAlphaOutput;
         }
 
-        public void RenderUberPost(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool resolveToDebugScreen)
+        public void RenderUberPost(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen)
         {
             var material = m_Materials.uber;
-            bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+            bool hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
             int lutHeight = postProcessingData.lutSize;
             int lutWidth = lutHeight * lutHeight;
 
@@ -1907,13 +1944,15 @@ namespace UnityEngine.Rendering.Universal
                     builder.UseTexture(_BloomMipUp[0], AccessFlags.Read);
                 if (requireHDROutput && m_EnableColorEncodingIfNeeded)
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
+
                 passData.userLutParams = userLutParams;
                 passData.cameraData = cameraData;
                 passData.material = material;
                 passData.toneMappingMode = m_Tonemapping.mode.value;
-                passData.isHdr = hdr;
+                passData.isHdrGrading = hdrGrading;
+                passData.enableAlphaOutput = enableAlphaOutput;
 
-                builder.SetRenderFunc((UberPostPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (UberPostPassData data, RasterGraphContext context) =>
                 {
                     var cmd = context.cmd;
                     var camera = data.cameraData.camera;
@@ -1925,7 +1964,7 @@ namespace UnityEngine.Rendering.Universal
                     material.SetTexture(ShaderConstants._UserLut, data.userLutTexture);
                     material.SetVector(ShaderConstants._UserLut_Params, data.userLutParams);
 
-                    if (data.isHdr)
+                    if (data.isHdrGrading)
                     {
                         material.EnableKeyword(ShaderKeywordStrings.HDRGrading);
                     }
@@ -1938,6 +1977,8 @@ namespace UnityEngine.Rendering.Universal
                             default: break; // None
                         }
                     }
+
+                    CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.enableAlphaOutput);
 
                     // Done with Uber, blit it
                     ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material);
@@ -2015,7 +2056,7 @@ namespace UnityEngine.Rendering.Universal
                 // TODO RENDERGRAPH: properly setup dependencies between passes
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
-                builder.SetRenderFunc((PostFXSetupPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (PostFXSetupPassData data, RasterGraphContext context) =>
                 {
                     // Setup projection matrix for cmd.DrawMesh()
                     context.cmd.SetGlobalMatrix(ShaderConstants._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
@@ -2084,7 +2125,7 @@ namespace UnityEngine.Rendering.Universal
                 //Even if bloom is not active we need the texture if the lensFlareScreenSpace pass is active.
                 if (bloomActive || useLensFlareScreenSpace)
                 {
-                    RenderBloomTexture(renderGraph, currentSource, out var BloomTexture);
+                    RenderBloomTexture(renderGraph, currentSource, out var BloomTexture, cameraData.isAlphaOutputEnabled);
 
                     if (useLensFlareScreenSpace)
                     {
@@ -2127,10 +2168,12 @@ namespace UnityEngine.Rendering.Universal
                     SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperations);
                 }
 
+                bool enableAlphaOutput = cameraData.isAlphaOutputEnabled;
+
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
-                RenderUberPost(renderGraph, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, resolveToDebugScreen);
+                RenderUberPost(renderGraph, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, resolveToDebugScreen);
             }
         }
     }

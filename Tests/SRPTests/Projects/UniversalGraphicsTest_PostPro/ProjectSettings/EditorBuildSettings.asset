@@ -123,6 +123,9 @@ EditorBuildSettings:
     path: Assets/Scenes/150_TAA_RT.unity
     guid: 6f86c8d18eceb4d64a47c435c0f69745
   - enabled: 1
+    path: Assets/Scenes/150_TAA_RT_AlphaOutput.unity
+    guid: a687587c3cec540e194702c4b36f9b20
+  - enabled: 1
     path: Assets/Scenes/160_MultiCameraVolumesEveryFrameTest.unity
     guid: aea08d28b240a4fbcad63f84cd63bce4
   - enabled: 1
@@ -188,6 +191,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/273_AlphaPassthrough_CameraStacking.unity
     guid: f03108b27b564954db827275d62736da
+  - enabled: 1
+    path: Assets/Scenes/275_AlphaOutput_RGBA16F.unity
+    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/276_AlphaOutput_RGBA8.unity
+    guid: 1818ce52245d84b8c95e1521bc378d30
   - enabled: 1
     path: Assets/Scenes/373_HDROutput_ColorGamut.unity
     guid: cef44dde9c315e54fa9e5cfe6a04edbb

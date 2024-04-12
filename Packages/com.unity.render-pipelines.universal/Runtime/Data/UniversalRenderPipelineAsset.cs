@@ -598,6 +598,10 @@ namespace UnityEngine.Rendering.Universal
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
+#if UNITY_EDITOR // multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT)]
+#endif
+        [SerializeField] bool m_AllowPostProcessAlphaOutput = false;
 #if UNITY_EDITOR // multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.UseFastSRGBLinearConversion)]
 #endif
@@ -1583,6 +1587,11 @@ namespace UnityEngine.Rendering.Universal
             get => m_ColorGradingLutSize;
             set => m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize);
         }
+
+        /// <summary>
+        /// Returns true if post-processing should process and output alpha. Requires the color target to have an alpha channel.
+        /// </summary>
+        public bool allowPostProcessAlphaOutput => m_AllowPostProcessAlphaOutput;
 
         /// <summary>
         /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.

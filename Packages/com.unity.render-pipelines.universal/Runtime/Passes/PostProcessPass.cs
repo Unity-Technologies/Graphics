@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -58,8 +57,9 @@ namespace UnityEngine.Rendering.Universal
 
         // Misc
         const int k_MaxPyramidSize = 16;
-        readonly GraphicsFormat m_DefaultHDRFormat;
-        bool m_UseRGBM;
+        readonly GraphicsFormat m_DefaultColorFormat;   // The default format for post-processing, follows back-buffer format in URP.
+        bool m_DefaultColorFormatIsAlpha;
+        bool m_DefaultColorFormatUseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
 
@@ -125,21 +125,6 @@ namespace UnityEngine.Rendering.Universal
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
 
-            // Only two components are needed for edge render texture, but on some vendors four components may be faster.
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, GraphicsFormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
-                m_SMAAEdgeFormat = GraphicsFormat.R8G8_UNorm;
-            else
-                m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
-
-            // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
-            // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, GraphicsFormatUsage.Blend))
-                m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Blend))
-                m_GaussianCoCFormat = GraphicsFormat.R16_SFloat;
-            else // Expect CoC banding
-                m_GaussianCoCFormat = GraphicsFormat.R8_UNorm;
-
             // Bloom pyramid shader ids - can't use a simple stackalloc in the bloom function as we
             // unfortunately need to allocate strings
             ShaderConstants._BloomMipUp = new int[k_MaxPyramidSize];
@@ -164,27 +149,74 @@ namespace UnityEngine.Rendering.Universal
 
             m_BlitMaterial = postProcessParams.blitMaterial;
 
+            // NOTE: Request color format is the back-buffer color format. It can be HDR or SDR (when HDR disabled).
+            // Request color might have alpha or might not have alpha.
+            // The actual post-process target can be different. A RenderTexture with a custom format. Not necessarily a back-buffer.
+            // A RenderTexture with a custom format can have an alpha channel, regardless of the back-buffer setting,
+            // so the post-processing should just use the current target format/alpha to toggle alpha output.
+            //
+            // However, we want to filter out the alpha shader variants when not used (common case).
+            // The rule is that URP post-processing format follows the back-buffer format setting.
+
+            bool requestHDR = IsHDRFormat(postProcessParams.requestColorFormat);
+            bool requestAlpha = IsAlphaFormat(postProcessParams.requestColorFormat);
+
             // Texture format pre-lookup
             // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
             // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
-            const GraphicsFormatUsage usage = GraphicsFormatUsage.Blend;
-            if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
+            if (requestHDR)
             {
-                m_DefaultHDRFormat = postProcessParams.requestHDRFormat;
-                m_UseRGBM = false;
+                m_DefaultColorFormatIsAlpha = requestAlpha;
+                m_DefaultColorFormatUseRGBM  = false;
+
+                const GraphicsFormatUsage usage = GraphicsFormatUsage.Blend;
+                if (SystemInfo.IsFormatSupported(postProcessParams.requestColorFormat, usage))    // Typically, RGBA16Float.
+                {
+                    m_DefaultColorFormat = postProcessParams.requestColorFormat;
+                }
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage)) // HDR fallback
+                {
+                    // NOTE: Technically request format can be with alpha, however if it's not supported and we fall back here
+                    // , we assume no alpha. Post-process default format follows the back buffer format.
+                    // If support failed, it must have failed for back buffer too.
+                    m_DefaultColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                    m_DefaultColorFormatIsAlpha = false;
+                }
+                else
+                {
+                    m_DefaultColorFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                        ? GraphicsFormat.R8G8B8A8_SRGB
+                        : GraphicsFormat.R8G8B8A8_UNorm;
+                    m_DefaultColorFormatUseRGBM = true;   // Encode HDR data into RGBA8888 as RGBM (RGB, Multiplier)
+                }
             }
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage)) // HDR fallback
+            else // SDR
             {
-                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                m_UseRGBM = false;
-            }
-            else
-            {
-                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                m_DefaultColorFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
                     ? GraphicsFormat.R8G8B8A8_SRGB
                     : GraphicsFormat.R8G8B8A8_UNorm;
-                m_UseRGBM = true;
+
+                m_DefaultColorFormatIsAlpha = true;
+                // TODO: Bloom uses RGBM to Emulate HDR.
+                // TODO: Lens Flares render into the bloom texture, but do not support RGBM encoding at the moment.
+                // RGBM is disabled in the SDR case for now.
+                m_DefaultColorFormatUseRGBM = false;
             }
+
+            // Only two components are needed for edge render texture, but on some vendors four components may be faster.
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8G8_UNorm, GraphicsFormatUsage.Render) && SystemInfo.graphicsDeviceVendor.ToLowerInvariant().Contains("arm"))
+                m_SMAAEdgeFormat = GraphicsFormat.R8G8_UNorm;
+            else
+                m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
+
+            // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
+            // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, GraphicsFormatUsage.Blend))
+                m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Blend))
+                m_GaussianCoCFormat = GraphicsFormat.R16_SFloat;
+            else // Expect CoC banding
+                m_GaussianCoCFormat = GraphicsFormat.R8_UNorm;
         }
 
         /// <summary>
@@ -357,6 +389,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        bool IsHDRFormat(GraphicsFormat format)
+        {
+            return format == GraphicsFormat.B10G11R11_UFloatPack32 ||
+                   GraphicsFormatUtility.IsHalfFormat(format) ||
+                   GraphicsFormatUtility.IsFloatFormat(format);
+        }
+
+        bool IsAlphaFormat(GraphicsFormat format)
+        {
+            return GraphicsFormatUtility.HasAlphaChannel(format);
+        }
+
         RenderTextureDescriptor GetCompatibleDescriptor()
             => GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
 
@@ -508,7 +552,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(markerName)))
                 {
-                    DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination(), cameraData.pixelRect);
+                    DoDepthOfField(ref renderingData.cameraData, cmd, GetSource(), GetDestination(), cameraData.pixelRect);
                     Swap(ref renderer);
                 }
             }
@@ -561,7 +605,7 @@ namespace UnityEngine.Rendering.Universal
                 if (bloomActive || lensFlareScreenSpaceActive)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
-                        SetupBloom(cmd, GetSource(), m_Materials.uber);
+                        SetupBloom(cmd, GetSource(), m_Materials.uber, cameraData.isAlphaOutputEnabled);
                 }
 
                 // Lens Flare Screen Space
@@ -631,6 +675,8 @@ namespace UnityEngine.Rendering.Universal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
+                CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
+
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
                 bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
@@ -667,6 +713,7 @@ namespace UnityEngine.Rendering.Universal
                         destination = renderer.GetCameraColorFrontBuffer(cmd);
                         #pragma warning restore CS0618
                     }
+
                     Blitter.BlitCameraTexture(cmd, GetSource(), destination, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.uber, 0);
                     // Disable obsolete warning for internal usage
                     #pragma warning disable CS0618
@@ -783,15 +830,15 @@ namespace UnityEngine.Rendering.Universal
 
         // TODO: CoC reprojection once TAA gets in LW
         // TODO: Proper LDR/gamma support
-        void DoDepthOfField(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect)
+        void DoDepthOfField(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect)
         {
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
-                DoGaussianDepthOfField(camera, cmd, source, destination, pixelRect);
+                DoGaussianDepthOfField(cmd, source, destination, pixelRect, cameraData.isAlphaOutputEnabled);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(cmd, source, destination, pixelRect);
+                DoBokehDepthOfField(cmd, source, destination, pixelRect, cameraData.isAlphaOutputEnabled);
         }
 
-        void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect)
+        void DoGaussianDepthOfField(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect, bool enableAlphaOutput)
         {
             int downSample = 2;
             var material = m_Materials.gaussianDepthOfField;
@@ -806,6 +853,7 @@ namespace UnityEngine.Rendering.Universal
             float maxRadius = m_DepthOfField.gaussianMaxRadius.value * (wh / 1080f);
             maxRadius = Mathf.Min(maxRadius, 2f);
 
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, enableAlphaOutput);
             CoreUtils.SetKeyword(material, ShaderKeywordStrings.HighQualitySampling, m_DepthOfField.highQualitySampling.value);
             material.SetVector(ShaderConstants._CoCParams, new Vector3(farStart, farEnd, maxRadius));
 
@@ -898,7 +946,7 @@ namespace UnityEngine.Rendering.Universal
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect)
+        void DoBokehDepthOfField(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect pixelRect, bool enableAlphaOutput)
         {
             int downSample = 2;
             var material = m_Materials.bokehDepthOfField;
@@ -913,6 +961,7 @@ namespace UnityEngine.Rendering.Universal
             float maxRadius = GetMaxBokehRadiusInPixels(m_Descriptor.height);
             float rcpAspect = 1f / (wh / (float)hh);
 
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, enableAlphaOutput);
             CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseFastSRGBLinearConversion, m_UseFastSRGBLinearConversion);
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
 
@@ -1109,7 +1158,7 @@ namespace UnityEngine.Rendering.Universal
 
             int width = Mathf.Max(1, (int)m_Descriptor.width / ratio);
             int height = Mathf.Max(1, (int)m_Descriptor.height / ratio);
-            var desc = GetCompatibleDescriptor(width, height, m_DefaultHDRFormat);
+            var desc = GetCompatibleDescriptor(width, height, m_DefaultColorFormat);
 
             if (m_LensFlareScreenSpace.IsStreaksActive())
             {
@@ -1223,6 +1272,7 @@ namespace UnityEngine.Rendering.Universal
 
             PostProcessUtils.SetSourceSize(cmd, source);
 
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, pass);
         }
 
@@ -1304,7 +1354,7 @@ namespace UnityEngine.Rendering.Universal
 
 #region Bloom
 
-        void SetupBloom(CommandBuffer cmd, RTHandle source, Material uberMaterial)
+        void SetupBloom(CommandBuffer cmd, RTHandle source, Material uberMaterial, bool enableAlphaOutput)
         {
             // Start at half-res
             int downres = 1;
@@ -1337,10 +1387,11 @@ namespace UnityEngine.Rendering.Universal
             var bloomMaterial = m_Materials.bloom;
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
-            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_UseRGBM);
+            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_DefaultColorFormatUseRGBM);
+            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, enableAlphaOutput);
 
             // Prefilter
-            var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
+            var desc = GetCompatibleDescriptor(tw, th, m_DefaultColorFormat);
             for (int i = 0; i < mipCount; i++)
             {
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_BloomMipUp[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipUp[i].name);
@@ -1382,7 +1433,7 @@ namespace UnityEngine.Rendering.Universal
 
             var bloomParams = new Vector4(m_Bloom.intensity.value, tint.r, tint.g, tint.b);
             uberMaterial.SetVector(ShaderConstants._Bloom_Params, bloomParams);
-            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_UseRGBM ? 1f : 0f);
+            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_DefaultColorFormatUseRGBM ? 1f : 0f);
 
             cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, m_BloomMipUp[0]);
 
@@ -1615,6 +1666,8 @@ namespace UnityEngine.Rendering.Universal
 
                 SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
             }
+
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
 
             DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);

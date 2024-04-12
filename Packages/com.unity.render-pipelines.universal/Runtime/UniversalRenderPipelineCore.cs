@@ -387,6 +387,11 @@ namespace UnityEngine.Rendering.Universal
         public ref bool allowHDROutput => ref frameData.Get<UniversalCameraData>().allowHDROutput;
 
         /// <summary>
+        /// True if this camera writes the alpha channel. Requires to color target to have an alpha channel.
+        /// </summary>
+        public ref bool isAlphaOutputEnabled => ref frameData.Get<UniversalCameraData>().isAlphaOutputEnabled;
+
+        /// <summary>
         /// True if this camera requires to write _CameraDepthTexture.
         /// </summary>
         public ref bool requiresDepthTexture => ref frameData.Get<UniversalCameraData>().requiresDepthTexture;
@@ -1008,6 +1013,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword ProbeVolumeL2;
         public static GlobalKeyword _OUTPUT_DEPTH;
         public static GlobalKeyword LinearToSRGBConversion;
+        public static GlobalKeyword _ENABLE_ALPHA_OUTPUT;
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1115,6 +1121,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.ProbeVolumeL2 = GlobalKeyword.Create(ShaderKeywordStrings.ProbeVolumeL2);
             ShaderGlobalKeywords._OUTPUT_DEPTH = GlobalKeyword.Create(ShaderKeywordStrings._OUTPUT_DEPTH);
             ShaderGlobalKeywords.LinearToSRGBConversion = GlobalKeyword.Create(ShaderKeywordStrings.LinearToSRGBConversion);
+            ShaderGlobalKeywords._ENABLE_ALPHA_OUTPUT = GlobalKeyword.Create(ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT);
         }
     }
 
@@ -1428,6 +1435,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for CopyDepth pass. </summary>
         public const string _OUTPUT_DEPTH = "_OUTPUT_DEPTH";
+
+        /// <summary> Keyword used for enable alpha output. Used in post processing. </summary>
+        public const string _ENABLE_ALPHA_OUTPUT = "_ENABLE_ALPHA_OUTPUT";
     }
 
     public sealed partial class UniversalRenderPipeline

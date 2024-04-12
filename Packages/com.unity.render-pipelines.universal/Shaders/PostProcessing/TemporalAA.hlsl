@@ -87,32 +87,32 @@
 #endif
     }
 
-    float3 WorkingToPerceptual(float3 c)
+    float4 WorkingToPerceptual(float4 c)
     {
-        float scale = PerceptualWeight(c);
+        float scale = PerceptualWeight(c.xyz);
         return c * scale;
     }
 
-    float3 PerceptualToWorking(float3 c)
+    float4 PerceptualToWorking(float4 c)
     {
-        float scale = PerceptualInvWeight(c);
+        float scale = PerceptualInvWeight(c.xyz);
         return c * scale;
     }
 
-    half3 PostFxSpaceToLinear(float3 src)
+    half4 PostFxSpaceToLinear(float4 src)
     {
 // gamma 2.0 is a good enough approximation
 #if TAA_GAMMA_SPACE_POST
-        return src*src;
+        return half4(src.xyz * src.xyz, src.w);
 #else
         return src;
 #endif
     }
 
-    half3 LinearToPostFxSpace(float3 src)
+    half4 LinearToPostFxSpace(float4 src)
     {
 #if TAA_GAMMA_SPACE_POST
-        return sqrt(src);
+        return half4(sqrt(src.xyz), src.w);
 #else
         return src;
 #endif
@@ -120,26 +120,26 @@
 
     // Working Space: The color space that we will do the calculation in.
     // Scene: The incoming/outgoing scene color. Either linear or gamma space
-    half3 SceneToWorkingSpace(half3 src)
+    half4 SceneToWorkingSpace(half4 src)
     {
-        half3 linColor = PostFxSpaceToLinear(src);
+        half4 linColor = PostFxSpaceToLinear(src);
 #if TAA_YCOCG
-        half3 dst = RGBToYCoCg(linColor);
+        half4 dst = half4(RGBToYCoCg(linColor.xyz), linColor.w);
 #else
-        half3 dst = src;
+        half4 dst = src;
 #endif
         return dst;
     }
 
-    half3 WorkingSpaceToScene(half3 src)
+    half4 WorkingSpaceToScene(half4 src)
     {
 #if TAA_YCOCG
-        half3 linColor = YCoCgToRGB(src);
+        half4 linColor = half4(YCoCgToRGB(src.xyz), src.w);
 #else
-        half3 linColor = src;
+        half4 linColor = src;
 #endif
 
-        half3 dst = LinearToPostFxSpace(linColor);
+        half4 dst = LinearToPostFxSpace(linColor);
         return dst;
     }
 
@@ -153,22 +153,22 @@
         return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv + _BlitTexture_TexelSize.xy * texelOffset);
     }
 
-    void AdjustColorBox(inout half3 boxMin, inout half3 boxMax, inout half3 moment1, inout half3 moment2, float2 uv, half currX, half currY)
+    void AdjustColorBox(inout half4 boxMin, inout half4 boxMax, inout half4 moment1, inout half4 moment2, float2 uv, half currX, half currY)
     {
-        half3 color = SceneToWorkingSpace(SampleColorPoint(uv, float2(currX, currY)).xyz);
+        half4 color = SceneToWorkingSpace(SampleColorPoint(uv, float2(currX, currY)));
         boxMin = min(color, boxMin);
         boxMax = max(color, boxMax);
         moment1 += color;
         moment2 += color * color;
     }
 
-    half3 ApplyHistoryColorLerp(half3 workingAccumColor, half3 workingCenterColor, float t)
+    half4 ApplyHistoryColorLerp(half4 workingAccumColor, half4 workingCenterColor, float t)
     {
-        half3 perceptualAccumColor = WorkingToPerceptual(workingAccumColor);
-        half3 perceptualCenterColor = WorkingToPerceptual(workingCenterColor);
+        half4 perceptualAccumColor = WorkingToPerceptual(workingAccumColor);
+        half4 perceptualCenterColor = WorkingToPerceptual(workingCenterColor);
 
-        half3 perceptualDstColor = lerp(perceptualAccumColor, perceptualCenterColor, t);
-        half3 workingDstColor = PerceptualToWorking(perceptualDstColor);
+        half4 perceptualDstColor = lerp(perceptualAccumColor, perceptualCenterColor, t);
+        half4 workingDstColor = PerceptualToWorking(perceptualDstColor);
 
         return workingDstColor;
     }
@@ -176,7 +176,7 @@
     // From Filmic SMAA presentation[Jimenez 2016]
     // A bit more verbose that it needs to be, but makes it a bit better at latency hiding
     // (half version based on HDRP impl)
-    half3 SampleBicubic5TapHalf(TEXTURE2D_X(sourceTexture), float2 UV, float4 sourceTexture_TexelSize)
+    half4 SampleBicubic5TapHalf(TEXTURE2D_X(sourceTexture), float2 UV, float4 sourceTexture_TexelSize)
     {
         const float2 sourceTextureSize = sourceTexture_TexelSize.zw;
         const float2 sourceTexelSize = sourceTexture_TexelSize.xy;
@@ -199,11 +199,11 @@
         float2 tc3 = sourceTexelSize  * (tc1 + 2.0);
         float2 tc12 = sourceTexelSize * (tc1 + w2 / w12);
 
-        half3 s0 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc12.x, tc0.y)).xyz);
-        half3 s1 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc0.x, tc12.y)).xyz);
-        half3 s2 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc12.x, tc12.y)).xyz);
-        half3 s3 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc3.x, tc12.y)).xyz);
-        half3 s4 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc12.x, tc3.y)).xyz);
+        half4 s0 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc12.x, tc0.y)));
+        half4 s1 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc0.x, tc12.y)));
+        half4 s2 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc12.x, tc12.y)));
+        half4 s3 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc3.x, tc12.y)));
+        half4 s4 = SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(sourceTexture, sampler_LinearClamp, float2(tc12.x, tc3.y)));
 
         half cw0 = (w12.x * w0.y);
         half cw1 = (w0.x * w12.y);
@@ -217,10 +217,10 @@
         s3 *= cw3;
         s4 *= cw4;
 
-        half3 historyFiltered = s0 + s1 + s2 + s3 + s4;
+        half4 historyFiltered = s0 + s1 + s2 + s3 + s4;
         half weightSum = cw0 + cw1 + cw2 + cw3 + cw4;
 
-        half3 filteredVal = historyFiltered * rcp(weightSum);
+        half4 filteredVal = historyFiltered * rcp(weightSum);
 
         return filteredVal;
     }
@@ -230,14 +230,14 @@
     //
     // Small color-volume min size seems to produce flicker/noise in YCoCg space, that can't be seen in RGB,
     // when using low precision (RGB111110f) color textures.
-    half3 ClipToAABBCenter(half3 history, half3 minimum, half3 maximum)
+    half4 ClipToAABBCenter(half4 history, half4 minimum, half4 maximum)
     {
         // note: only clips towards aabb center (but fast!)
-        half3 center  = 0.5 * (maximum + minimum);
-        half3 extents = max(0.5 * (maximum - minimum), HALF_MIN);   // Epsilon to avoid precision issues with empty volume.
+        half4 center  = 0.5 * (maximum + minimum);
+        half4 extents = max(0.5 * (maximum - minimum), HALF_MIN);   // Epsilon to avoid precision issues with empty volume.
 
         // This is actually `distance`, however the keyword is reserved
-        half3 offset = history - center;
+        half4 offset = history - center;
         half3 v_unit = offset.xyz / extents.xyz;
         half3 absUnit = abs(v_unit);
         half maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
@@ -248,21 +248,21 @@
     }
 
     // Based on HDRP
-    half3 FilterColor(float2 uv, float weights[9])
+    half4 FilterColor(float2 uv, float weights[9])
     {
-        half3 filtered = weights[0] * PostFxSpaceToLinear(SampleColorPoint(uv, float2(0.0, 0.0f)).xyz);
+        half4 filtered = weights[0] * PostFxSpaceToLinear(SampleColorPoint(uv, float2(0.0, 0.0f)));
 
-        filtered += weights[1] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(0.0f, 1.0)).xyz);
-        filtered += weights[2] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(1.0f, 0.0f)).xyz);
-        filtered += weights[3] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(-1.0f, 0.0f)).xyz);
-        filtered += weights[4] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(0.0f, -1.0f)).xyz);
+        filtered += weights[1] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(0.0f, 1.0)));
+        filtered += weights[2] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(1.0f, 0.0f)));
+        filtered += weights[3] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(-1.0f, 0.0f)));
+        filtered += weights[4] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(0.0f, -1.0f)));
 
-        filtered += weights[5] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(-1.0f, 1.0f)).xyz);
-        filtered += weights[6] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(1.0f, -1.0f)).xyz);
-        filtered += weights[7] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(1.0f, 1.0f)).xyz);
-        filtered += weights[8] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(-1.0f, -1.0f)).xyz);
+        filtered += weights[5] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(-1.0f, 1.0f)));
+        filtered += weights[6] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(1.0f, -1.0f)));
+        filtered += weights[7] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(1.0f, 1.0f)));
+        filtered += weights[8] * PostFxSpaceToLinear(SampleColorPoint(uv,float2(-1.0f, -1.0f)));
         #if TAA_YCOCG
-            return RGBToYCoCg(filtered);
+            return half4(RGBToYCoCg(filtered.xyz), filtered.w);
         #else
             return filtered;
         #endif
@@ -289,16 +289,16 @@
         // uv is exactly on input pixel center (x + 0.5, y + 0.5)
         float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
 
-        half3 colorCenter;
+        half4 colorCenter;
         if(centralFiltering >= 1)
             colorCenter = FilterColor(uv, _TaaFilterWeights);
         else
-            colorCenter = SceneToWorkingSpace(SampleColorPoint( uv, float2(0,0)).xyz);  // Point == Linear as uv == input pixel center.
+            colorCenter = SceneToWorkingSpace(SampleColorPoint( uv, float2(0,0)));  // Point == Linear as uv == input pixel center.
 
-        half3 boxMax = colorCenter;
-        half3 boxMin = colorCenter;
-        half3 moment1 = colorCenter;
-        half3 moment2 = colorCenter * colorCenter;
+        half4 boxMax = colorCenter;
+        half4 boxMin = colorCenter;
+        half4 moment1 = colorCenter;
+        half4 moment2 = colorCenter * colorCenter;
 
         AdjustColorBox(boxMin, boxMax, moment1, moment2, uv, 0.0f, -1.0f);
         AdjustColorBox(boxMin, boxMax, moment1, moment2, uv, -1.0f, 0.0f);
@@ -316,12 +316,12 @@
         if(clampQuality >= 2)
         {
             half perSample = 1 / half(9);
-            half3 mean = moment1 * perSample;
-            half3 stdDev = sqrt(abs(moment2 * perSample - mean * mean));
+            half4 mean = moment1 * perSample;
+            half4 stdDev = sqrt(abs(moment2 * perSample - mean * mean));
 
             half devScale = _TaaVarianceClampScale;
-            half3 devMin = mean - devScale * stdDev;
-            half3 devMax = mean + devScale * stdDev;
+            half4 devMin = mean - devScale * stdDev;
+            half4 devMax = mean + devScale * stdDev;
 
             // Ensure that the variance color box is not worse than simple neighborhood color box.
             boxMin = max(boxMin, devMin);
@@ -351,19 +351,25 @@
         half2 velocity = GetVelocityWithOffset(uv, depthOffsetUv);
 
         float2 historyUv = uv + velocity * float2(1, 1);
-        half3 accum = (historyQuality >= 2) ?
+        half4 accumulation = (historyQuality >= 2) ?
             SampleBicubic5TapHalf(_TaaAccumulationTex, historyUv, _TaaAccumulationTex_TexelSize.xyzw) :
-            SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(_TaaAccumulationTex, sampler_LinearClamp, historyUv).xyz);
+            SceneToWorkingSpace(SAMPLE_TEXTURE2D_X(_TaaAccumulationTex, sampler_LinearClamp, historyUv));
 
-        half3 clampAccum = (clampQuality >= 3) ? ClipToAABBCenter(accum, boxMin, boxMax) : clamp(accum, boxMin, boxMax);
+        half4 clampedAccumulation = (clampQuality >= 3) ? ClipToAABBCenter(accumulation, boxMin, boxMax) : clamp(accumulation, boxMin, boxMax);
 
         // Discard (some) history when outside of history buffer (e.g. camera jump)
         half frameInfluence = ((historyQuality >= 1) && any(abs(uv - 0.5 + velocity) > 0.5)) ? 1 : _TaaFrameInfluence;
 
-        half3 workingColor = ApplyHistoryColorLerp(clampAccum, colorCenter, frameInfluence);
+        half4 workingColor = ApplyHistoryColorLerp(clampedAccumulation, colorCenter, frameInfluence);
 
-        half3 dstSceneColor = WorkingSpaceToScene(workingColor);
-        return half4(max(dstSceneColor, 0.0), 1.0);
+        half4 dstSceneColor = WorkingSpaceToScene(workingColor);
+
+        #if _ENABLE_ALPHA_OUTPUT
+            return max(dstSceneColor, 0.0);
+        #else
+            // NOTE: The compiler should eliminate .w computation since it doesn't affect the output.
+            return half4(max(dstSceneColor.xyz, 0.0), 1.0);
+        #endif
     }
 
 
@@ -372,8 +378,8 @@
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord.xy);
-        half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv).xyz;
+        half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv);
 
-        return half4(color, 1.0f);
+        return color;
     }
 #endif
