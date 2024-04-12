@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+#if UNITY_EDITOR
 using System.IO;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.TestTools.Graphics;
-using UnityEditor.TestTools.Graphics;
-
 
 public class AdditionalMenuItems : MonoBehaviour
 {
@@ -86,3 +83,4 @@ public class AdditionalMenuItems : MonoBehaviour
         }
     }
 }
+#endif

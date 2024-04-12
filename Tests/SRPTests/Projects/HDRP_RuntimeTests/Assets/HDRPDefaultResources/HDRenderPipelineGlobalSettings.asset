@@ -147,12 +147,12 @@ MonoBehaviour:
     m_AfterPostProcessCustomPostProcesses:
       m_InjectionPoint: 2
       m_CustomPostProcessTypesAsString:
-      - TvMonochrome, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - TvMonochrome, HDRP_RuntimeTests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses:
-  - TvMonochrome, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - TvMonochrome, HDRP_RuntimeTests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   beforeTAACustomPostProcesses: []
   defaultRenderingLayerMask: 257
   renderingLayerNames:

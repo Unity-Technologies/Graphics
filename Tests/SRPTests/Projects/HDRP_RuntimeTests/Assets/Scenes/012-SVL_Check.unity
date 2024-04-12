@@ -383,7 +383,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2144884655}
-        m_TargetAssemblyTypeName: SVLChecker, UnityEngine.TestTools.Graphics
+        m_TargetAssemblyTypeName: SVLChecker, HDRP_RuntimeTests
         m_MethodName: Check
         m_Mode: 1
         m_Arguments:
