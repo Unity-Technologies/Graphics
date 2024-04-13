@@ -49,7 +49,6 @@
   },
   "disableProjectUpdate": true,
   "testables": [
-    "com.unity.shadergraph",
-    "com.unity.testframework.graphics"
+    "com.unity.shadergraph"
   ]
 }
