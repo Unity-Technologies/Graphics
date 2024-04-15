@@ -1,11 +1,17 @@
-rpw:
-  area: RP Workflow
+default:
+  area: SRP Architecture & API
 
-urp:
+workflow:
   when:
     path:
-      - ^.*ContextContainer.*$
-  area: Universal RP
+      - ^.*Volume.*$
+  area: SRP Workflow
+
+tools:
+  when:
+    path:
+      - ^.*DebugManager.*$
+  area: Graphics Tools
 
 xr:
   when:
