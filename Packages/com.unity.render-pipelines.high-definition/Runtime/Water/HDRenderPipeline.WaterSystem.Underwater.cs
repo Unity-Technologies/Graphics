@@ -10,17 +10,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EvaluateUnderWaterSurface(HDCamera hdCamera)
         {
-            // Flag that allows us to track which surface is the one we will be using for the under water rendering
-            m_UnderWaterSurfaceIndex = -1;
-
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
             int numWaterSurfaces = WaterSurface.instanceCount;
-
-            // If the water is disabled , no need to render or simulate
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) || numWaterSurfaces == 0)
-                return;
 
             // Grab the camera's world space position
             Vector3 cameraWSPos = hdCamera.camera.transform.position;
@@ -102,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderUnderWaterVolume(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle normalBuffer, TextureHandle depthBuffer)
         {
             // Are we in the volume of any surface at all?
-            if (m_UnderWaterSurfaceIndex == -1 || WaterSurface.instancesAsArray == null || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
+            if (m_UnderWaterSurfaceIndex == -1)
                 return colorBuffer;
 
             // Execute the unique lighting pass

@@ -892,6 +892,11 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", false);
         }
 
+        bool ShouldRenderWater(HDCamera hdCamera, WaterRendering settings)
+        {
+            return WaterSurface.instanceCount != 0 && settings.enable.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) && hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects);
+        }
+
         void RenderWaterSurfaceGBuffer(RenderGraph renderGraph, HDCamera hdCamera,
                                         WaterSurface currentWater, WaterRendering settings, int surfaceIdx, bool evaluateCameraPos,
                                         TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle depthPyramid, ComputeBufferHandle layeredOffsetsBuffer, ComputeBufferHandle logBaseBuffer,
@@ -1000,20 +1005,14 @@ namespace UnityEngine.Rendering.HighDefinition
             outputGBuffer.waterGBuffer1 = renderGraph.defaultResources.blackTextureXR;
             outputGBuffer.waterGBuffer2 = renderGraph.defaultResources.blackTextureXR;
             outputGBuffer.waterGBuffer3 = renderGraph.defaultResources.blackTextureXR;
-
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
+            
+            // Flag that allows us to track which surface is the one we will be using for the under water rendering
+            m_UnderWaterSurfaceIndex = -1;
 
             // If the water is disabled, no need to render or simulate
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || numWaterSurfaces == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
-            {
+            if (!ShouldRenderWater(hdCamera, settings))
                 return outputGBuffer;
-            }
 
             // Evaluate which surface will have under water rendering
             EvaluateUnderWaterSurface(hdCamera);
@@ -1030,6 +1029,10 @@ namespace UnityEngine.Rendering.HighDefinition
             { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 2" });
             TextureHandle WaterGbuffer3 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "Water GBuffer 3" });
+            
+            // Grab all the water surfaces in the scene
+            var waterSurfaces = WaterSurface.instancesAsArray;
+            int numWaterSurfaces = Mathf.Min(WaterSurface.instanceCount, k_MaxNumWaterSurfaceProfiles);
 
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
@@ -1131,10 +1134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the water is disabled, no need to render or simulate
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water)
-                || numWaterSurfaces == 0
-                || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (!ShouldRenderWater(hdCamera, settings))
                 return;
 
             // Request all the gbuffer textures we will need
