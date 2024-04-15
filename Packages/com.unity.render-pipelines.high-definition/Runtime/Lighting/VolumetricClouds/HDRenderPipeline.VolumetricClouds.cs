@@ -399,6 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
             cb._CameraSpace = hdCamera.planet.renderingSpace == RenderingSpace.Camera ? 1 : 0;
             cb._ValidSceneDepth = cameraData.cameraType != TVolumetricCloudsCameraType.Sky ? 1 : 0;
+            cb._IntermediateResolutionScale = cameraData.intermediateWidth == cameraData.finalWidth ? 1u : 2u;
 
             unsafe
             {
@@ -640,7 +641,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid,
-            TextureHandle motionVector,TextureHandle volumetricLighting, ref TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
+            TextureHandle volumetricLighting, ref TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             // If the current volume does not enable the feature, quit right away.
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -669,11 +670,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Render the clouds
             if (accumulationClouds)
-                transparentPrepass.clouds = RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                transparentPrepass.clouds = RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, volumetricLighting);
             else if (fullResolutionClouds)
-                transparentPrepass.clouds = RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                transparentPrepass.clouds = RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, volumetricLighting);
             else // realtime reflection
-                transparentPrepass.clouds = RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                transparentPrepass.clouds = RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, volumetricLighting);
 
             // Push the texture to the debug menu
             if (m_CurrentDebugDisplaySettings.data.volumetricCloudDebug == VolumetricCloudsDebug.Lighting)
@@ -708,10 +709,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderVolumetricCloudsShadows(renderGraph, hdCamera, in settings);
         }
 
-        static void DoVolumetricCloudsPrepare(CommandBuffer cmd, int kernel, int traceTX, int traceTY, int viewCount, in VolumetricCloudCommonData commonData,
+        // Computes a half res buffer of the scene depth (TODO: share that with other effects)
+        static void DoVolumetricCloudsDepthDownscale(CommandBuffer cmd, int kernel, int traceTX, int traceTY, int viewCount, in VolumetricCloudCommonData commonData,
             RTHandle depthPyramid, RTHandle halfResDepthBuffer)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPrepare)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsDepthDownscale)))
             {
                 // Compute the alternative version of the mip 1 of the depth (min instead of max that is required to handle high frequency meshes (vegetation, hair)
                 cmd.SetComputeTextureParam(commonData.volumetricCloudsCS, kernel, HDShaderIDs._DepthTexture, depthPyramid);

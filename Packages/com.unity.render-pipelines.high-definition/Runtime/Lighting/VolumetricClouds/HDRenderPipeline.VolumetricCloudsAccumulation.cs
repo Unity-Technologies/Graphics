@@ -5,54 +5,40 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        // Allocation of the first history buffer
+        static RTHandle VolumetricCloudsHistoryBufferAllocatorFunction(HDCameraFrameHistoryType type, string viewName, int frameIndex, RTHandleSystem rtHandleSystem, bool fullscale)
+        {
+            int index = type == HDCameraFrameHistoryType.VolumetricClouds0 ? 0 : 1;
+            return rtHandleSystem.Alloc(Vector2.one * (fullscale ? 1.0f : 0.5f), TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_CloudsHistory{1}Buffer{2}", viewName, index, frameIndex));
+        }
+
+        static RTHandle VolumetricClouds0HistoryBufferAllocatorFunctionDownscaled(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+            => VolumetricCloudsHistoryBufferAllocatorFunction(HDCameraFrameHistoryType.VolumetricClouds0, viewName, frameIndex, rtHandleSystem, false);
         static RTHandle VolumetricClouds0HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
-        {
-            return rtHandleSystem.Alloc(Vector2.one * 0.5f, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
-                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                name: string.Format("{0}_CloudsHistory0Buffer{1}", viewName, frameIndex));
-        }
+            => VolumetricCloudsHistoryBufferAllocatorFunction(HDCameraFrameHistoryType.VolumetricClouds0, viewName, frameIndex, rtHandleSystem, true);
 
-        // Allocation of the second history buffer
+        static RTHandle VolumetricClouds1HistoryBufferAllocatorFunctionDownscaled(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+            => VolumetricCloudsHistoryBufferAllocatorFunction(HDCameraFrameHistoryType.VolumetricClouds1, viewName, frameIndex, rtHandleSystem, false);
         static RTHandle VolumetricClouds1HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+            => VolumetricCloudsHistoryBufferAllocatorFunction(HDCameraFrameHistoryType.VolumetricClouds1, viewName, frameIndex, rtHandleSystem, true);
+        
+        static RTHandle RequestVolumetricCloudsHistoryTexture(HDCamera hdCamera, bool current, HDCameraFrameHistoryType type, bool fullscale)
         {
-            return rtHandleSystem.Alloc(Vector2.one * 0.5f, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
-                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                name: string.Format("{0}_CloudsHistory1Buffer{1}", viewName, frameIndex));
-        }
-
-        // Functions to request the history buffers
-        static RTHandle RequestCurrentVolumetricCloudsHistoryTexture0(HDCamera hdCamera)
-        {
-            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0,
-                VolumetricClouds0HistoryBufferAllocatorFunction, 2);
-        }
-
-        static RTHandle RequestPreviousVolumetricCloudsHistoryTexture0(HDCamera hdCamera)
-        {
-            return hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0,
-                VolumetricClouds0HistoryBufferAllocatorFunction, 2);
-        }
-
-        static RTHandle RequestCurrentVolumetricCloudsHistoryTexture1(HDCamera hdCamera)
-        {
-            return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds1)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds1,
-                VolumetricClouds1HistoryBufferAllocatorFunction, 2);
-        }
-
-        static RTHandle RequestPreviousVolumetricCloudsHistoryTexture1(HDCamera hdCamera)
-        {
-            return hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds1)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds1,
-                VolumetricClouds1HistoryBufferAllocatorFunction, 2);
+            RTHandle texture = current ? hdCamera.GetCurrentFrameRT((int)type) : hdCamera.GetPreviousFrameRT((int)type);
+            if (texture != null)
+                return texture;
+            
+            // Do that to avoid GC.alloc
+            System.Func<string, int, RTHandleSystem, RTHandle> allocator = type == HDCameraFrameHistoryType.VolumetricClouds0 ?
+                (fullscale ? VolumetricClouds0HistoryBufferAllocatorFunction : VolumetricClouds0HistoryBufferAllocatorFunctionDownscaled) :
+                (fullscale ? VolumetricClouds1HistoryBufferAllocatorFunction : VolumetricClouds1HistoryBufferAllocatorFunctionDownscaled);
+            return hdCamera.AllocHistoryFrameRT((int)type, allocator, 2);
         }
 
         private int CombineVolumetricCloudsHistoryStateToMask(HDCamera hdCamera)
         {
-            // Combine the flags to define the current mask (we use the custom bit 0 to track the locality of the clouds.
+            // Combine the flags to define the current history validity mask
             return (hdCamera.planet.renderingSpace == RenderingSpace.World ? (int)HDCamera.HistoryEffectFlags.CustomBit0 : 0);
         }
 
@@ -80,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int finalHeight;
             public int viewCount;
 
+            public bool downscaleDepth;
             public bool historyValidity;
             public Vector2Int previousViewportSize;
 
@@ -92,7 +79,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumetricCloudCommonData commonData;
         }
 
-        VolumetricCloudsParameters_Accumulation PrepareVolumetricCloudsParameters_Accumulation(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, bool historyValidity)
+        VolumetricCloudsParameters_Accumulation PrepareVolumetricCloudsParameters_Accumulation(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType,
+            bool historyValidity, float downscaling)
         {
             VolumetricCloudsParameters_Accumulation parameters = new VolumetricCloudsParameters_Accumulation();
 
@@ -112,20 +100,29 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.finalWidth = hdCamera.actualWidth;
             parameters.finalHeight = hdCamera.actualHeight;
             // Intermediate resolution at which the effect is accumulated
-            parameters.intermediateWidth = Mathf.RoundToInt(0.5f * hdCamera.actualWidth);
-            parameters.intermediateHeight = Mathf.RoundToInt(0.5f * hdCamera.actualHeight);
+            parameters.intermediateWidth = Mathf.RoundToInt(downscaling * hdCamera.actualWidth);
+            parameters.intermediateHeight = Mathf.RoundToInt(downscaling * hdCamera.actualHeight);
             // Resolution at which the effect is traced
-            parameters.traceWidth = Mathf.RoundToInt(0.25f * hdCamera.actualWidth);
-            parameters.traceHeight = Mathf.RoundToInt(0.25f * hdCamera.actualHeight);
+            parameters.traceWidth = Mathf.RoundToInt(0.5f * downscaling * hdCamera.actualWidth);
+            parameters.traceHeight = Mathf.RoundToInt(0.5f * downscaling * hdCamera.actualHeight);
 
             parameters.viewCount = hdCamera.viewCount;
-            parameters.previousViewportSize = hdCamera.historyRTHandleProperties.previousViewportSize;
             parameters.historyValidity = historyValidity;
+            parameters.downscaleDepth = downscaling == 0.5f;
+
+            float historyScale =  hdCamera.intermediateDownscaling * (hdCamera.volumetricCloudsFullscaleHistory ? 1.0f : 2.0f);
+            parameters.previousViewportSize = new Vector2Int(
+                x: Mathf.RoundToInt(historyScale * hdCamera.historyRTHandleProperties.previousViewportSize.x),
+                y: Mathf.RoundToInt(historyScale * hdCamera.historyRTHandleProperties.previousViewportSize.y)
+            );
 
             // Compute shader and kernels
             parameters.depthDownscaleKernel = m_CloudDownscaleDepthKernel;
             parameters.reprojectKernel = settings.ghostingReduction.value ? m_ReprojectCloudsRejectionKernel : m_ReprojectCloudsKernel;
-            parameters.upscaleClouds = hdCamera.msaaEnabled ? m_UpscaleCloudsKernel : m_UpscaleCloudsPerceptualKernel;
+            if (downscaling == 0.5f)
+                parameters.upscaleClouds = hdCamera.msaaEnabled ? m_UpscaleCloudsKernel : m_UpscaleCloudsPerceptualKernel;
+            else
+                parameters.upscaleClouds = hdCamera.msaaEnabled ? m_CombineCloudsKernel : m_CombineCloudsPerceptualKernel;
 
             // Update the constant buffer
             VolumetricCloudsCameraData cameraData;
@@ -149,11 +146,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void TraceVolumetricClouds_Accumulation(CommandBuffer cmd, VolumetricCloudsParameters_Accumulation parameters, GraphicsBuffer ambientProbe,
-            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle motionVectors, RTHandle volumetricLightingTexture,
+            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle halfResDepthBuffer, RTHandle volumetricLightingTexture,
+            RTHandle intermediateCloudsLighting, RTHandle intermediateCloudsDepth,
             RTHandle currentHistory0Buffer, RTHandle previousHistory0Buffer,
             RTHandle currentHistory1Buffer, RTHandle previousHistory1Buffer,
-            RTHandle intermediateCloudsLighting,
-            RTHandle halfResDepthBuffer, RTHandle intermediateCloudsDepth,
             RTHandle cloudsLighting,  RTHandle cloudsDepth)
         {
             // Compute the number of tiles to evaluate
@@ -184,8 +180,13 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.Set<ShaderVariablesClouds>(parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
 
             // Depth downscale
-            DoVolumetricCloudsPrepare(cmd, parameters.depthDownscaleKernel, intermediateTX, intermediateTY, parameters.viewCount, in parameters.commonData,
-                depthPyramid, halfResDepthBuffer);
+            if (parameters.downscaleDepth)
+            {
+                DoVolumetricCloudsDepthDownscale(cmd, parameters.depthDownscaleKernel, intermediateTX, intermediateTY, parameters.viewCount, in parameters.commonData,
+                    depthPyramid, halfResDepthBuffer);
+            }
+            else
+                halfResDepthBuffer = depthPyramid;
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, traceTX, traceTY, parameters.viewCount, in parameters.commonData,
@@ -221,9 +222,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle currentHistoryBuffer1;
 
             // Intermediate buffers
-            public TextureHandle halfResCloudsLighting;
+            public TextureHandle intermediateCloudsLighting;
             public TextureHandle halfResDepthBuffer;
-            public TextureHandle halfResCloudsDepth;
+            public TextureHandle intermediateCloudsDepth;
 
             // Cloud pass output
             public TextureHandle cloudsLighting;
@@ -231,39 +232,54 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         VolumetricCloudsOutput RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType,
-            TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting)
+            TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle volumetricLighting)
         {
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
+                // When DRS scale is lower than threshold, trace in half res instead of quarter res
+                bool halfRes = DynamicResolutionHandler.instance.GetCurrentScale() * 100.0f < currentPlatformRenderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold;
+                float downscaling = halfRes ? 1.0f : 0.5f;
+
+                bool fullscaleHistory = DynamicResolutionHandler.instance.DynamicResolutionEnabled() ? true : false;
+                if (fullscaleHistory != hdCamera.volumetricCloudsFullscaleHistory)
+                {
+                    // If history size is invalid, release it
+                    hdCamera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0);
+                    hdCamera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds1);
+                    hdCamera.volumetricCloudsFullscaleHistory = fullscaleHistory;
+                }
+
                 // If history buffers are null, it means they were not allocated yet so they will potentially contain garbage at first frame.
                 var historyValidity = EvaluateVolumetricCloudsHistoryValidity(hdCamera) && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricClouds0) != null;
 
                 // Parameters
-                passData.parameters = PrepareVolumetricCloudsParameters_Accumulation(hdCamera, settings, cameraType, historyValidity);
+                passData.parameters = PrepareVolumetricCloudsParameters_Accumulation(hdCamera, settings, cameraType, historyValidity, downscaling);
 
                 // Input buffers
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.motionVectors = builder.ReadTexture(motionVectors);
                 passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
 
                 // History and pass output
-                passData.currentHistoryBuffer0 = renderGraph.ImportTexture(RequestCurrentVolumetricCloudsHistoryTexture0(hdCamera));
-                passData.previousHistoryBuffer0 = renderGraph.ImportTexture(RequestPreviousVolumetricCloudsHistoryTexture0(hdCamera));
-                passData.currentHistoryBuffer1 = renderGraph.ImportTexture(RequestCurrentVolumetricCloudsHistoryTexture1(hdCamera));
-                passData.previousHistoryBuffer1 = renderGraph.ImportTexture(RequestPreviousVolumetricCloudsHistoryTexture1(hdCamera));
+                hdCamera.intermediateDownscaling = downscaling;
+                passData.currentHistoryBuffer0 = renderGraph.ImportTexture(RequestVolumetricCloudsHistoryTexture(hdCamera, true, HDCameraFrameHistoryType.VolumetricClouds0, fullscaleHistory));
+                passData.previousHistoryBuffer0 = renderGraph.ImportTexture(RequestVolumetricCloudsHistoryTexture(hdCamera, false, HDCameraFrameHistoryType.VolumetricClouds0, fullscaleHistory));
+                passData.currentHistoryBuffer1 = renderGraph.ImportTexture(RequestVolumetricCloudsHistoryTexture(hdCamera, true, HDCameraFrameHistoryType.VolumetricClouds1, fullscaleHistory));
+                passData.previousHistoryBuffer1 = renderGraph.ImportTexture(RequestVolumetricCloudsHistoryTexture(hdCamera, false, HDCameraFrameHistoryType.VolumetricClouds1, fullscaleHistory));
+
+                if (passData.parameters.downscaleDepth)
+                    passData.halfResDepthBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * downscaling, true, true)
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Half Res Scene Depth" });
 
                 // Intermediate textures
-                passData.halfResCloudsLighting = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Half Res Clouds Lighting" });
-                passData.halfResDepthBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Half Res Scene Depth" });
-                passData.halfResCloudsDepth = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Half Res Clouds Depth" });
+                passData.intermediateCloudsLighting = builder.CreateTransientTexture(new TextureDesc(Vector2.one * downscaling * 0.5f, true, true)
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Clouds Lighting" });
+                passData.intermediateCloudsDepth = builder.CreateTransientTexture(new TextureDesc(Vector2.one * downscaling * 0.5f, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Intermediate Clouds Depth" });
 
                 // Output of the clouds
                 passData.cloudsLighting = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -275,11 +291,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     (VolumetricCloudsAccumulationData data, RenderGraphContext ctx) =>
                     {
                         TraceVolumetricClouds_Accumulation(ctx.cmd, data.parameters, data.ambientProbeBuffer,
-                            data.colorBuffer, data.depthPyramid, data.motionVectors, data.volumetricLighting,
+                            data.colorBuffer, data.depthPyramid, data.halfResDepthBuffer, data.volumetricLighting,
+                            data.intermediateCloudsLighting, data.intermediateCloudsDepth,
                             data.currentHistoryBuffer0, data.previousHistoryBuffer0,
                             data.currentHistoryBuffer1, data.previousHistoryBuffer1,
-                            data.halfResCloudsLighting,
-                            data.halfResDepthBuffer, data.halfResCloudsDepth,
                             data.cloudsLighting, data.cloudsDepth);
                     });
 

@@ -87,6 +87,7 @@ namespace UnityEngine.Rendering
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f,
             lowResTransparencyMinimumThreshold = 0.0f,
+            lowResVolumetricCloudsMinimumThreshold = 50.0f,
             rayTracingHalfResThreshold = 50.0f,
 
             DLSSUseOptimalSettings = true,
@@ -174,6 +175,9 @@ namespace UnityEngine.Rendering
 
         /// <summary>The minimum percentage threshold allowed to clamp low resolution for SSGI (Screen Space Global Illumination). When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
         public float lowResSSGIMinimumThreshold;
+
+        /// <summary>The minimum percentage threshold allowed to clamp tracing resolution for Volumetric Clouds. When the resolution percentage falls below this threshold, HDRP will trace the Volumetric Clouds in half res.</summary>
+        public float lowResVolumetricCloudsMinimumThreshold;
 
 #pragma warning disable 618 // Type or member is obsolete
         /// <summary>Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.</summary>
