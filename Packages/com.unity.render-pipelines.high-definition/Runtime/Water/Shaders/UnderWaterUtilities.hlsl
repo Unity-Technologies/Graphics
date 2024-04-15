@@ -5,6 +5,17 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
+// This file is included in various part of HDRP
+// We don't want water specific global shader variables to leak into the global scope
+#if defined(WATER_FOG_PASS) || defined(WATER_SURFACE_GBUFFER) || defined(WATER_ONE_BAND) || defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
+#define IS_HDRP_WATER_SYSTEM_PASS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderVariablesWater.cs.hlsl"
+#endif
+
+#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ENABLE_FOG_ON_TRANSPARENT)
+#define SUPPORT_WATER_ABSORPTION
+#endif
+
 // Buffers used for refraction sorting
 TEXTURE2D_X_UINT2(_StencilTexture);
 TEXTURE2D_X(_RefractiveDepthBuffer);
@@ -65,10 +76,11 @@ uint GetWaterSurfaceIndex(uint2 positionSS)
 
 Texture2D<float4> _WaterCausticsDataBuffer;
 
+#if defined(IS_HDRP_WATER_SYSTEM_PASS) || defined(SUPPORT_WATER_ABSORPTION)
 float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWaterDepth, float2 distortedWaterNDC)
 {
     // We cannot have same variable names in different constant buffers, use some defines to select the correct ones
-    #if defined(_TRANSPARENT_REFRACTIVE_SORT) || defined(SUPPORT_WATER_ABSORPTION)
+    #ifdef SUPPORT_WATER_ABSORPTION
     #define _CausticsIntensity          _UnderWaterCausticsIntensity
     #define _CausticsPlaneBlendDistance _UnderWaterCausticsPlaneBlendDistance
     #define _CausticsTilingFactor       _UnderWaterCausticsTilingFactor
@@ -121,9 +133,19 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         caustics = dot(causticsValues, triplanarW.yzx) * causticWeight * _CausticsIntensity;
     }
 
+    #ifdef SUPPORT_WATER_ABSORPTION
+    #undef _CausticsIntensity
+    #undef _CausticsPlaneBlendDistance
+    #undef _CausticsTilingFactor
+    #undef _CausticsRegionSize
+    #undef _CausticsMaxLOD
+    #undef _WaterSurfaceTransform_Inverse
+    #endif
+
     // Evaluate the triplanar weights and blend the samples togheter
     return 1.0 + caustics;
 }
+#endif
 
 #if defined(_ENABLE_FOG_ON_TRANSPARENT) || defined(SUPPORT_WATER_ABSORPTION)
 // This is used by OpaqueAtmosphericScattering pass, and Forward pass of transparents that receive fog (which

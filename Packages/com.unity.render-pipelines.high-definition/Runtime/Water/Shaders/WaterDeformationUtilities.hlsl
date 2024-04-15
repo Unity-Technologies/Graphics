@@ -1,6 +1,8 @@
 #ifndef WATER_DEFORMATION_UTILITIES_H
 #define WATER_DEFORMATION_UTILITIES_H
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+
 // The set of deformers that should be applied this frame
 StructuredBuffer<WaterDeformerData> _WaterDeformerData;
 Texture2D<float> _WaterDeformerTextureAtlas;

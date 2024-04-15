@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ActiveWaterSimulationCPU) return;
             m_ActiveWaterSimulationCPU = false;
 
-            if (m_Asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.CPUSimulation)
+            if (htR0.IsCreated)
             {
                 htR0.Dispose();
                 htI0.Dispose();

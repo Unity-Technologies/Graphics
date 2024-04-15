@@ -1,6 +1,8 @@
 #ifndef WATER_CURRENT_UTILITIES_H
 #define WATER_CURRENT_UTILITIES_H
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderVariablesWater.cs.hlsl"
+
 // Water Current
 // NOTE: This should be a structured buffer, however, due to a metal shader translation bug,
 // we have to make it a texture. Which sucks, but we don't have a choice.

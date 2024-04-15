@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 #if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
@@ -118,7 +119,7 @@ namespace UnityEditor.Rendering
             int width = 2 * textureSize;
             int height = 2 * textureSize;
 
-            NativeArray<Color32> colorBuffer;
+            NativeArray<Color> colorBuffer;
 
             switch (m_iesReader.PhotometricType)
             {
@@ -148,7 +149,7 @@ namespace UnityEditor.Rendering
         /// <returns>A Generated 2D texture doing the projection of the IES using the Gnomonic projection of the bottom half hemisphere with the given 'cone angle'</returns>
         public (string, Texture) Generate2DCookie(TextureImporterCompression compression, float coneAngle, int textureSize, bool applyLightAttenuation)
         {
-            NativeArray<Color32> colorBuffer;
+            NativeArray<Color> colorBuffer;
 
             switch (m_iesReader.PhotometricType)
             {
@@ -171,7 +172,7 @@ namespace UnityEditor.Rendering
             int width = 2 * textureSize;
             int height = textureSize;
 
-            NativeArray<Color32> colorBuffer;
+            NativeArray<Color> colorBuffer;
 
             switch (m_iesReader.PhotometricType)
             {
@@ -189,7 +190,7 @@ namespace UnityEditor.Rendering
             return GenerateTexture(TextureImporterType.Default, TextureImporterShape.Texture2D, compression, width, height, colorBuffer);
         }
 
-        (string, Texture) GenerateTexture(TextureImporterType type, TextureImporterShape shape, TextureImporterCompression compression, int width, int height, NativeArray<Color32> colorBuffer)
+        (string, Texture) GenerateTexture(TextureImporterType type, TextureImporterShape shape, TextureImporterCompression compression, int width, int height, NativeArray<Color> colorBuffer)
         {
             // Default values set by the TextureGenerationSettings constructor can be found in this file on GitHub:
             // https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/AssetPipeline/TextureGenerator.bindings.cs
@@ -218,6 +219,7 @@ namespace UnityEditor.Rendering
             platformSettings.maxTextureSize = 2048;
             platformSettings.resizeAlgorithm = TextureResizeAlgorithm.Bilinear;
             platformSettings.textureCompression = compression;
+            platformSettings.format = TextureImporterFormat.RGB9E5;
 
             TextureGenerationOutput output = TextureGenerator.GenerateTexture(settings, colorBuffer);
 
@@ -229,21 +231,22 @@ namespace UnityEditor.Rendering
             return (output.importInspectorWarnings, output.output);
         }
 
-        private static byte PackIESValue(float value)
+        Color ComputePixelColor(float horizontalAnglePosition, float verticalAnglePosition, float attenuation = 1.0f)
         {
-            return (byte)Math.Clamp(value * 255, 0, 255);
+            float value = m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * attenuation);
+            return new Color(value, value, value, value);
         }
 
-        NativeArray<Color32> BuildTypeACylindricalTexture(int width, int height)
+        NativeArray<Color> BuildTypeACylindricalTexture(int width, int height)
         {
             float stepU = 360f / (width - 1);
             float stepV = 180f / (height - 1);
 
-            var textureBuffer = new NativeArray<Color32>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var textureBuffer = new NativeArray<Color>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             for (int y = 0; y < height; y++)
             {
-                var slice = new NativeSlice<Color32>(textureBuffer, y * width, width);
+                var slice = new NativeSlice<Color>(textureBuffer, y * width, width);
 
                 float latitude = y * stepV - 90f; // in range [-90..+90] degrees
 
@@ -255,24 +258,23 @@ namespace UnityEditor.Rendering
 
                     float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
 
-                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas);
-                    slice[x] = new Color32(value, value, value, value);
+                    slice[x] = ComputePixelColor(horizontalAnglePosition, verticalAnglePosition);
                 }
             }
 
             return textureBuffer;
         }
 
-        NativeArray<Color32> BuildTypeBCylindricalTexture(int width, int height)
+        NativeArray<Color> BuildTypeBCylindricalTexture(int width, int height)
         {
             float stepU = k_TwoPi / (width - 1);
             float stepV = Mathf.PI / (height - 1);
 
-            var textureBuffer = new NativeArray<Color32>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var textureBuffer = new NativeArray<Color>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             for (int y = 0; y < height; y++)
             {
-                var slice = new NativeSlice<Color32>(textureBuffer, y * width, width);
+                var slice = new NativeSlice<Color>(textureBuffer, y * width, width);
 
                 float v = y * stepV - k_HalfPi; // in range [-90..+90] degrees
 
@@ -293,24 +295,23 @@ namespace UnityEditor.Rendering
                     float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
                     float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
-                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas);
-                    slice[x] = new Color32(value, value, value, value);
+                    slice[x] = ComputePixelColor(horizontalAnglePosition, verticalAnglePosition);
                 }
             }
 
             return textureBuffer;
         }
 
-        NativeArray<Color32> BuildTypeCCylindricalTexture(int width, int height)
+        NativeArray<Color> BuildTypeCCylindricalTexture(int width, int height)
         {
             float stepU = k_TwoPi / (width - 1);
             float stepV = Mathf.PI / (height - 1);
 
-            var textureBuffer = new NativeArray<Color32>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var textureBuffer = new NativeArray<Color>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             for (int y = 0; y < height; y++)
             {
-                var slice = new NativeSlice<Color32>(textureBuffer, y * width, width);
+                var slice = new NativeSlice<Color>(textureBuffer, y * width, width);
 
                 float v = y * stepV - k_HalfPi; // in range [-90..+90] degrees
 
@@ -331,25 +332,24 @@ namespace UnityEditor.Rendering
                     float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
                     float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
-                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas);
-                    slice[x] = new Color32(value, value, value, value);
+                    slice[x] = ComputePixelColor(horizontalAnglePosition, verticalAnglePosition);
                 }
             }
 
             return textureBuffer;
         }
 
-        NativeArray<Color32> BuildTypeAGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
+        NativeArray<Color> BuildTypeAGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
         {
             float limitUV = Mathf.Tan(0.5f * coneAngle * Mathf.Deg2Rad);
             float stepUV = (2 * limitUV) / (size - 3);
 
-            var textureBuffer = new NativeArray<Color32>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            var textureBuffer = new NativeArray<Color>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
             // Leave a one-pixel black border around the texture to avoid cookie spilling.
             for (int y = 1; y < size - 1; y++)
             {
-                var slice = new NativeSlice<Color32>(textureBuffer, y * size, size);
+                var slice = new NativeSlice<Color>(textureBuffer, y * size, size);
 
                 float v = (y - 1) * stepUV - limitUV;
 
@@ -368,25 +368,24 @@ namespace UnityEditor.Rendering
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? rayLengthSquared : 1f;
 
-                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation));
-                    slice[x] = new Color32(value, value, value, value);
+                    slice[x] = ComputePixelColor(horizontalAnglePosition, verticalAnglePosition, lightAttenuation);
                 }
             }
 
             return textureBuffer;
         }
 
-        NativeArray<Color32> BuildTypeBGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
+        NativeArray<Color> BuildTypeBGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
         {
             float limitUV = Mathf.Tan(0.5f * coneAngle * Mathf.Deg2Rad);
             float stepUV = (2 * limitUV) / (size - 3);
 
-            var textureBuffer = new NativeArray<Color32>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            var textureBuffer = new NativeArray<Color>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
             // Leave a one-pixel black border around the texture to avoid cookie spilling.
             for (int y = 1; y < size - 1; y++)
             {
-                var slice = new NativeSlice<Color32>(textureBuffer, y * size, size);
+                var slice = new NativeSlice<Color>(textureBuffer, y * size, size);
 
                 float v = (y - 1) * stepUV - limitUV;
 
@@ -406,25 +405,24 @@ namespace UnityEditor.Rendering
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? rayLengthSquared : 1f;
 
-                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation));
-                    slice[x] = new Color32(value, value, value, value);
+                    slice[x] = ComputePixelColor(horizontalAnglePosition, verticalAnglePosition, lightAttenuation);
                 }
             }
 
             return textureBuffer;
         }
 
-        NativeArray<Color32> BuildTypeCGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
+        NativeArray<Color> BuildTypeCGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
         {
             float limitUV = Mathf.Tan(0.5f * coneAngle * Mathf.Deg2Rad);
             float stepUV = (2 * limitUV) / (size - 3);
 
-            var textureBuffer = new NativeArray<Color32>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            var textureBuffer = new NativeArray<Color>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
             // Leave a one-pixel black border around the texture to avoid cookie spilling.
             for (int y = 1; y < size - 1; y++)
             {
-                var slice = new NativeSlice<Color32>(textureBuffer, y * size, size);
+                var slice = new NativeSlice<Color>(textureBuffer, y * size, size);
 
                 float v = (y - 1) * stepUV - limitUV;
 
@@ -443,8 +441,7 @@ namespace UnityEditor.Rendering
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? (uvLength * uvLength + 1) : 1f;
 
-                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation));
-                    slice[x] = new Color32(value, value, value, value);
+                    slice[x] = ComputePixelColor(horizontalAnglePosition, verticalAnglePosition, lightAttenuation);
                 }
             }
 

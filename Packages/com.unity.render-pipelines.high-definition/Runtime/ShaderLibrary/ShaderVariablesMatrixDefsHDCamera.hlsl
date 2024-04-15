@@ -34,7 +34,7 @@
 // Matrix overrides for water system
 #if defined(WATER_SURFACE_GBUFFER) || defined(WATER_ONE_BAND) || defined(WATER_TWO_BANDS) || defined(WATER_THREE_BANDS)
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderVariablesWater.cs.hlsl"
 
 #define _WaterCustomMeshTransform GetRawUnityObjectToWorld()
 #define _WaterCustomMeshTransform_Inverse GetRawUnityWorldToObject()
