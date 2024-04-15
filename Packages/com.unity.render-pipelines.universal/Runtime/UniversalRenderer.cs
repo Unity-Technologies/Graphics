@@ -342,12 +342,13 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
 
             {
+                // URP post-processing format follows the back-buffer format.
                 var postProcessParams = PostProcessParams.Create();
                 postProcessParams.blitMaterial = m_BlitMaterial;
-                postProcessParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                postProcessParams.requestColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 var asset = UniversalRenderPipeline.asset;
                 if (asset)
-                    postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
+                    postProcessParams.requestColorFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
 
                 m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref postProcessParams);
             }

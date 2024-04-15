@@ -127,7 +127,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             bool outputsToHDR = renderingData.cameraData.isHDROutputActive;
-            InitPassData(cameraData, ref m_PassData, outputsToHDR ? BlitType.HDR : BlitType.Core);
+            bool outputsAlpha = false;
+            InitPassData(cameraData, ref m_PassData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha);
 
             if (m_PassData.blitMaterialData.material == null)
             {
@@ -232,6 +233,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // we never want them to show up as wireframe
             cmd.SetWireframe(false);
 
+            CoreUtils.SetKeyword(data.blitMaterialData.material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.enableAlphaOutput);
+
             int shaderPassIndex = source.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
             Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterialData.material, shaderPassIndex);
         }
@@ -243,6 +246,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int sourceID;
             internal Vector4 hdrOutputLuminanceParams;
             internal bool requireSrgbConversion;
+            internal bool enableAlphaOutput;
             internal BlitMaterialData blitMaterialData;
             internal UniversalCameraData cameraData;
         }
@@ -251,10 +255,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// Initialize the shared pass data.
         /// </summary>
         /// <param name="passData"></param>
-        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType)
+        private void InitPassData(UniversalCameraData cameraData, ref PassData passData, BlitType blitType, bool enableAlphaOutput)
         {
             passData.cameraData = cameraData;
             passData.requireSrgbConversion = cameraData.requireSrgbConversion;
+            passData.enableAlphaOutput = enableAlphaOutput;
 
             passData.blitMaterialData = m_BlitMaterialData[(int)blitType];
         }
@@ -273,7 +278,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 bool outputsToHDR = cameraData.isHDROutputActive;
-                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core);
+                bool outputsAlpha = cameraData.isAlphaOutputEnabled;
+                InitPassData(cameraData, ref passData, outputsToHDR ? BlitType.HDR : BlitType.Core, outputsAlpha);
 
                 passData.sourceID = ShaderPropertyId.sourceTex;
                 passData.source = src;

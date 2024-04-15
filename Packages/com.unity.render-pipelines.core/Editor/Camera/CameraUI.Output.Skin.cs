@@ -2,12 +2,8 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
-    /// <summary> Camera UI Shared Properties among SRP</summary>
     public static partial class CameraUI
     {
-        /// <summary>
-        /// Output section
-        /// </summary>
         public static partial class Output
         {
             /// <summary>

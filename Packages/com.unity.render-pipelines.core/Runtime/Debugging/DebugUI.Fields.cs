@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Generic field - will be serialized in the editor if it's not read-only
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type of data managed by the field.</typeparam>
         public abstract class Field<T> : Widget, IValueField
         {
             /// <summary>

@@ -2,7 +2,7 @@
 
 namespace UnityEditor.Rendering
 {
-    public class DummyRenderPipelineAsset : RenderPipelineAsset<DummyRenderPipeline>
+    class DummyRenderPipelineAsset : RenderPipelineAsset<DummyRenderPipeline>
     {
         protected override RenderPipeline CreatePipeline()
         {

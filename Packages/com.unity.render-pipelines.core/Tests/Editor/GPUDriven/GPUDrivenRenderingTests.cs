@@ -15,7 +15,7 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering.Tests
 {
     [InitializeOnLoad]
-    public class OnLoad
+    class OnLoad
     {
         static bool IsGraphicsAPISupported()
         {

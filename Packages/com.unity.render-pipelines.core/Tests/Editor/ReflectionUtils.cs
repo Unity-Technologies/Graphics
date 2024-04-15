@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace UnityEngine.Rendering.Tests
 {
+    /// <summary>
+    /// Set of various reflection utilities
+    /// </summary>
     public static class ReflectionUtils
     {
         /// <summary>
@@ -27,8 +30,10 @@ namespace UnityEngine.Rendering.Tests
         /// <summary>
         /// Calls a private method from a class
         /// </summary>
+        /// <param name="targetType">The Type on which to invoke the static method.</param>
         /// <param name="methodName">The method name</param>
         /// <param name="args">The arguments to pass to the method</param>
+        /// <returns>The return value from the static method invoked, or null for methods returning void.</returns>
         public static object InvokeStatic(this Type targetType, string methodName, params object[] args)
         {
             Assert.True(targetType != null, "Invalid Type");
@@ -42,8 +47,10 @@ namespace UnityEngine.Rendering.Tests
         /// <summary>
         /// Calls a private method from a class
         /// </summary>
+        /// <param name="target">The object instance on which to invoke the method.</param>
         /// <param name="methodName">The method name</param>
         /// <param name="args">The arguments to pass to the method</param>
+        /// <returns>The return value from the invoked method, or null if the method does not return a value.</returns>
         public static object Invoke(this object target, string methodName, params object[] args)
         {
             Assert.True(target != null, "The target could not be null");
@@ -75,6 +82,7 @@ namespace UnityEngine.Rendering.Tests
         /// <summary>
         /// Sets a private field from a class
         /// </summary>
+        /// <param name="target">The object instance that contains the field to be set.</param>
         /// <param name="fieldName">The field to change</param>
         /// <param name="value">The new value</param>
         public static void SetField(this object target, string fieldName, object value)
@@ -87,7 +95,9 @@ namespace UnityEngine.Rendering.Tests
         /// <summary>
         /// Gets the value of a private field from a class
         /// </summary>
-        /// <param name="fieldName">The field to get</param>
+        /// <param name="target">The object instance that contains the field to be retrieved.</param>
+        /// <param name="fieldName">The name of the private field to get the value from.</param>
+        /// <returns>The value of the specified field from the target object.</returns>
         public static object GetField(this object target, string fieldName)
         {
             Assert.True(target != null, "The target could not be null");
@@ -98,6 +108,8 @@ namespace UnityEngine.Rendering.Tests
         /// <summary>
         /// Gets all the fields from a class
         /// </summary>
+        /// <param name="target">The object instance from which to get the fields.</param>
+        /// <returns>An ordered enumeration of FieldInfo objects representing each field defined within the type of the target object.</returns>
         public static IEnumerable<FieldInfo> GetFields(this object target)
         {
             Assert.True(target != null, "The target could not be null");

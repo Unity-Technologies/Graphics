@@ -48,9 +48,6 @@ namespace UnityEditor.Rendering
         void RemoveComponent(T component, IEnumerable<Component> dependencies);
     }
 
-    /// <summary>
-    /// UI for global settings
-    /// </summary>
     public static partial class RenderPipelineGlobalSettingsUI
     {
         /// <summary>A collection of GUIContent for use in the inspector</summary>

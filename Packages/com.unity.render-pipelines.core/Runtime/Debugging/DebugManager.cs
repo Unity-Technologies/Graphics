@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get hashcode state of the Debug Window.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The calculated hashcode for the current state of the Debug Window.</returns>
         public int GetState()
         {
             int hash = 17;
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering
         /// <param name="createIfNull">Create the panel if it does not exists.</param>
         /// <param name="groupIndex">Group index.</param>
         /// <param name="overrideIfExist">Replace an existing panel.</param>
-        /// <returns></returns>
+        /// <returns>The requested debug panel or null if it does not exist and createIfNull is set to false</returns>
         public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0, bool overrideIfExist = false)
         {
             int panelIndex = PanelIndex(displayName);

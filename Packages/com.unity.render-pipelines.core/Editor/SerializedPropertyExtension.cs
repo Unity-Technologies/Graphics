@@ -25,8 +25,8 @@ namespace UnityEditor.Rendering
         /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
         /// <param name="property">The <see cref="SerializedProperty"/></param>
         /// <returns>The <see cref="Enum"/> value</returns>
-        /// <code>
         /// <example>
+        /// <code>
         /// enum MyEnum
         /// {
         ///     A = 2,
@@ -45,8 +45,8 @@ namespace UnityEditor.Rendering
         ///         Debug.Log($"By GetEnumValue: {(MyEnum)serializedObject.FindProperty("theEnum").GetEnumValue&lt;MyEnum&gt;()}");   //write the value MyEnum.A
         ///     }
         /// }
-        /// </example>
         /// </code>
+        /// </example>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetEnumValue<T>(this SerializedProperty property)
             where T : Enum

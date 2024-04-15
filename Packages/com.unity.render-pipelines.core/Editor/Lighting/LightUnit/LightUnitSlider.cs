@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Modifies the <see cref="SerializedObject"/> for this Light slider
         /// </summary>
-        /// <param name="serialized"></param>
+        /// <param name="serialized">The SerializedObject representing the serialized data to be used by this slider.</param>
         public void SetSerializedObject(SerializedObject serialized)
         {
             m_SerializedObject = serialized;

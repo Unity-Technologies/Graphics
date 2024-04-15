@@ -13,6 +13,9 @@ namespace UnityEngine.Rendering.UI
         public Text valueLabel;
 
         DebugUI.Value m_Field;
+        /// <summary>
+        /// An internal timer used by the value widget to determine when to refresh the displayed value.
+        /// </summary>
         protected internal float m_Timer;
         static readonly Color k_ZeroColor = Color.gray;
 

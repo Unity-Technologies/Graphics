@@ -5,7 +5,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Utils.Tests
 {
-    public class TimedScopeTests
+    class TimedScopeTests
     {
         private const int k_MillisecondsTimeout = 1000;
         private const int k_TimeComparisonDelta = 20;

@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering
             /// Implement this method to define the behavior when an item is selected.
             /// </summary>
             /// <param name="element">The selected element.</param>
-            /// <param name="addIfComponent"></param>
+            /// <param name="addIfComponent">A flag indicating whether to add the element as a component if applicable.</param>
             /// <returns><c>true</c> if the window should close, <c>false</c> otherwise.</returns>
             bool GoToChild(Element element, bool addIfComponent);
         }

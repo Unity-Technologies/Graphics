@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Templated class for <see cref="IDebugDisplaySettings"/>
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The specific type of Debug Display Settings that is inheriting from the IDebugDisplaySettings interface.</typeparam>
     public abstract class DebugDisplaySettings<T> : IDebugDisplaySettings
         where T : IDebugDisplaySettings, new()
     {
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Executes an action for each element
         /// </summary>
-        /// <param name="onExecute"></param>
+        /// <param name="onExecute">The action to be executed on each element in the Debug Display Settings data.</param>
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)
         {
             foreach (IDebugDisplaySettingsData setting in m_Settings)

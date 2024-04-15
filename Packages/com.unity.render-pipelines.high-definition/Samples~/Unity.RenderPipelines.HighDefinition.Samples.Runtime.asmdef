@@ -1,0 +1,26 @@
+{
+    "name": "Unity.RenderPipelines.HighDefinition.Samples.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Samples.Runtime",
+        "Unity.Mathematics",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "0.0.0",
+            "define": "TMP_INSTALLED"
+        }
+    ],
+    "noEngineReferences": false
+}

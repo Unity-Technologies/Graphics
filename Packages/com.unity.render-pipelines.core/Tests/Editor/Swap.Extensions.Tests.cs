@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public class SwapExtensionsTests
+    class SwapExtensionsTests
     {
         static TestCaseData[] s_ListTestsCaseDatas =
         {

@@ -26,8 +26,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The constructor of the attribute
         /// </summary>
-        /// <param name="pageName"></param>
-        /// <param name="packageName"></param>
+        /// <param name="pageName">The name of the documentation page.</param>
+        /// <param name="packageName">The package name, defaulting to "com.unity.render-pipelines.core".</param>
         public CoreRPHelpURLAttribute(string pageName, string packageName = "com.unity.render-pipelines.core")
             : base(DocumentationInfo.GetPageLink(packageName, pageName, ""))
         {
@@ -36,9 +36,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The constructor of the attribute
         /// </summary>
-        /// <param name="pageName"></param>
-        /// <param name="packageName"></param>
-        /// <param name="pageHash"></param>
+        /// <param name="pageName">The name of the documentation page.</param>
+        /// <param name="pageHash">The hash specifying a section within the page.</param>
+        /// <param name="packageName">The package name, defaulting to "com.unity.render-pipelines.core".</param>
         public CoreRPHelpURLAttribute(string pageName, string pageHash, string packageName = "com.unity.render-pipelines.core")
             : base(DocumentationInfo.GetPageLink(packageName, pageName, pageHash))
         {
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The constructor of the attribute
         /// </summary>
-        /// <param name="pageName"></param>
+        /// <param name="pageName">The name of the documentation page.</param>
         public CurrentPipelineHelpURLAttribute(string pageName)
             : base(null)
         {

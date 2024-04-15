@@ -3,6 +3,7 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _GAMMA_20 _GAMMA_20_AND_HDR_INPUT
+        #pragma multi_compile_local_fragment _ _ENABLE_ALPHA_OUTPUT
 
         #if defined(_GAMMA_20_AND_HDR_INPUT)
         #define _GAMMA_20 1
@@ -27,10 +28,16 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
             float2 positionNDC = uv;
             int2   positionSS = uv * _SourceSize.xy;
 
-            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv).xyz;
-
+            half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv);
 #if _FXAA
-            color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
+    #if _ENABLE_ALPHA_OUTPUT
+            // When alpha processing is enabled, FXAA should not affect pixels with zero alpha
+            UNITY_BRANCH
+            if(color.a > 0)
+                color.rgb = ApplyFXAA(color.rgb, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
+    #else
+            color.rgb = ApplyFXAA(color.rgb, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
+    #endif
 #endif
 
 #if _GAMMA_20 && !UNITY_COLORSPACE_GAMMA
@@ -45,7 +52,18 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
             color = LinearToGamma20(color);
 #endif
 
-            return half4(color, 1.0);
+#if _ENABLE_ALPHA_OUTPUT
+            // Alpha will lose precision and band due to low bits in alpha.
+            // Should be fine for alpha test mask.
+            // Or a simple 2-bit dither can be done.
+            // uint2 b = positionSS & 1;
+            // uint dp = b.y ? (b.x ? 1 : 3) : (b.x ? 2 : 0);
+            // half d = ((dp / 3.0) - 0.5) * 0.25;
+            // color.a += d;
+            return color;
+#else
+            return half4(color.rgb, 1.0);
+#endif
         }
 
     ENDHLSL

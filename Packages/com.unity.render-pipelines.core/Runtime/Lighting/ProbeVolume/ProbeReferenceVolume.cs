@@ -1637,7 +1637,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns whether any brick data has been loaded.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if brick data is present, otherwise false.</returns>
         public bool DataHasBeenLoaded() => m_LoadedCells.size != 0;
 
         internal void Clear()

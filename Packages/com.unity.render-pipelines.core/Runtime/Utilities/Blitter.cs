@@ -82,8 +82,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Initialize Blitter resources. Must be called once before any use
         /// </summary>
-        /// <param name="blitPS"></param> Blit shader
-        /// <param name="blitColorAndDepthPS"></param> Blit shader
+        /// <param name="blitPS">Blit shader</param>
+        /// <param name="blitColorAndDepthPS">Blit shader</param>
         public static void Initialize(Shader blitPS, Shader blitColorAndDepthPS)
         {
             if (s_Blit != null)
@@ -191,13 +191,13 @@ namespace UnityEngine.Rendering
                     return r;
                 }
             }
-            
+
             // Build shader pass map:
             var passNames = Enum.GetNames(typeof(BlitShaderPassNames));
             s_BlitShaderPassIndicesMap = new int[passNames.Length];
             for (int i = 0; i < passNames.Length; i++)
                 s_BlitShaderPassIndicesMap[i] = s_Blit.FindPass(passNames[i]);
-            
+
             passNames = Enum.GetNames(typeof(BlitColorAndDepthPassNames));
             s_BlitColorAndDepthShaderPassIndicesMap = new int[passNames.Length];
             for (int i = 0; i < passNames.Length; i++)
@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="dimension">Dimension of the texture to blit, either 2D or 2D Array.</param>
         /// <param name="singleSlice">Blit only a single slice of the array if applicable.</param>
-        /// <returns></returns>
+        /// <returns>The default blit material for specified arguments.</returns>
         static public Material GetBlitMaterial(TextureDimension dimension, bool singleSlice = false)
         {
             bool useTexArray = dimension == TextureDimension.Tex2DArray;
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">Command buffer used for rendering.</param>
         /// <param name="source">Source cube texture.</param>
         /// <param name="mipLevelTex">Mip level to sample.</param>
-        /// /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
         public static void BlitCubeToOctahedral2DQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex)
         {
             s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTexture, source);

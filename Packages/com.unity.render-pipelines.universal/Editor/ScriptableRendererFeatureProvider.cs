@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
         {
             if (element is FeatureElement featureElement)
             {
-                m_Editor.AddComponent(featureElement.type.Name);
+                m_Editor.AddComponent(featureElement.type);
                 return true;
             }
 

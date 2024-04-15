@@ -69,6 +69,7 @@ namespace UnityEditor.Rendering.Universal
         SoftShadowsLow = (1L << 46),
         SoftShadowsMedium = (1L << 47),
         SoftShadowsHigh = (1L << 48),
+        AlphaOutput = (1L << 49),
 
     }
 
@@ -453,6 +454,16 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
                 urpAssetShaderFeatures |= ShaderFeatures.UseLegacyLightmaps;
 
+            // URP post-processing and alpha output follows the back-buffer color format requested in the asset.
+            // Back-buffer alpha format is required. Or a render texture with alpha formats.
+            // Without any external option we would need to keep all shaders and assume potential alpha output for all projects.
+            // Therefore we strip the shader based on the asset enabling the alpha output for post-processing.
+            // Alpha backbuffer is supported for:
+            //   SDR 32-bit, RGBA8, (!urpAsset.supportsHDR)
+            //   HDR 64-bit, RGBA16Float, (urpAsset.supportsHDR && urpAsset.hdrColorBufferPrecision == HDRColorBufferPrecision._64Bits)
+            if(urpAsset.allowPostProcessAlphaOutput)
+                urpAssetShaderFeatures |= ShaderFeatures.AlphaOutput;
+
             // Check each renderer & renderer feature
             urpAssetShaderFeatures = GetSupportedShaderFeaturesFromRenderers(
                 ref urpAsset,
@@ -512,6 +523,17 @@ namespace UnityEditor.Rendering.Universal
             return combinedURPAssetShaderFeatures;
         }
 
+        internal static bool NeedsProceduralKeyword(ref RendererRequirements rendererRequirements)
+        {
+            #if ENABLE_VR && ENABLE_XR_MODULE
+                var xrResourcesAreValid = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>()?.valid ?? false;
+                return rendererRequirements.isUniversalRenderer && xrResourcesAreValid;
+            #else
+                return false;
+            #endif
+        }
+
+
         internal static RendererRequirements GetRendererRequirements(ref UniversalRenderPipelineAsset urpAsset, ref ScriptableRenderer renderer, ref ScriptableRendererData rendererData, bool stripUnusedVariants)
         {
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
@@ -533,13 +555,7 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred);
             rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
-
-            #if ENABLE_VR && ENABLE_XR_MODULE
-            var xrResourcesAreValid = GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>()?.valid ?? false;
-            rsd.needsProcedural                   = rsd.isUniversalRenderer && xrResourcesAreValid;
-            #else
-            rsd.needsProcedural                   = false;
-            #endif
+            rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
             rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
             return rsd;
@@ -851,6 +867,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripSoftShadowsQualityMedium = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsMedium);
             spd.stripSoftShadowsQualityHigh = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsHigh);
             spd.stripHDRKeywords = stripHDR;
+            spd.stripAlphaOutputKeywords = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.AlphaOutput);
             spd.stripDebugDisplay = stripDebug;
             spd.stripScreenCoordOverride = stripScreenCoord;
 

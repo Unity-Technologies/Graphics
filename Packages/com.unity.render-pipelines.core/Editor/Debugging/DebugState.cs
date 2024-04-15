@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Generic serialized state of a Debug Item.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of the Debug Item.</typeparam>
     [Serializable]
     public class DebugState<T> : DebugState
     {

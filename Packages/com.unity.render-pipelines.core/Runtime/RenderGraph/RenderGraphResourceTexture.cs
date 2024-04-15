@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Returns a null texture handle
         /// </summary>
-        /// <returns>A null texture handle.</returns>
+        /// <value>A null texture handle.</value>
         public static TextureHandle nullHandle { get { return s_NullHandle; } }
 
         internal ResourceHandle handle;
@@ -278,7 +278,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Copy constructor
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="input">The TextureDesc instance to copy from.</param>
         public TextureDesc(TextureDesc input)
         {
             this = input;
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// For the automatically scaled sizes the size will be relative to the RTHandle reference size <see cref="RTHandles.SetReferenceSize">SetReferenceSize</see>.
         /// </summary>
         /// <returns>The calculated size.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if the texture descriptor's size mode falls outside the expected range.</exception>
         public Vector2Int CalculateFinalDimensions()
         {
             return sizeMode switch

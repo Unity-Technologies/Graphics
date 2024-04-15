@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering
         /// <param name="removeIndices">Indices of element to remove in <paramref name="oldHashes"/> will be written here.</param>
         /// <param name="addCount">Number of elements to add will be written here.</param>
         /// <param name="remCount">Number of elements to remove will be written here.</param>
-        /// <returns>The number of operation to perform (<code><paramref name="addCount"/> + <paramref name="remCount"/></code>)</returns>
+        /// <returns>The number of operations to perform (<paramref name="addCount"/><c> + </c><paramref name="remCount"/>)</returns>
 
         public static int CompareHashes<TOldValue, TOldGetter, TNewValue, TNewGetter>(
             int oldHashCount, void* oldHashes,
@@ -610,7 +610,7 @@ namespace UnityEngine.Rendering
         /// <param name="removeIndices">Indices of element to remove in <paramref name="oldHashes"/> will be written here.</param>
         /// <param name="addCount">Number of elements to add will be written here.</param>
         /// <param name="remCount">Number of elements to remove will be written here.</param>
-        /// <returns>The number of operation to perform (<code><paramref name="addCount"/> + <paramref name="remCount"/></code>)</returns>
+        /// <returns>The number of operations to perform (<paramref name="addCount"/><c> + </c><paramref name="remCount"/>)</returns>
         public static int CompareHashes(
             int oldHashCount, Hash128* oldHashes,
             int newHashCount, Hash128* newHashes,

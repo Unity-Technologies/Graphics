@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Returns a null ray tracing acceleration structure handle
         /// </summary>
-        /// <returns>A null ray tracing acceleration structure handle.</returns>
+        /// <value>A null ray tracing acceleration structure handle.</value>
         public static RayTracingAccelerationStructureHandle nullHandle { get { return s_NullHandle; } }
 
         internal ResourceHandle handle;

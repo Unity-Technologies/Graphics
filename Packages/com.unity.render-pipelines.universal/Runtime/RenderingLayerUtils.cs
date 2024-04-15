@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal

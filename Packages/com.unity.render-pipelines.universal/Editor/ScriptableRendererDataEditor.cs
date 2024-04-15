@@ -235,12 +235,12 @@ namespace UnityEditor.Rendering.Universal
             menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), fullScreenFeature.showAdditionalProperties, () => fullScreenFeature.showAdditionalProperties = !fullScreenFeature.showAdditionalProperties);
         }
 
-        internal void AddComponent(string type)
+        internal void AddComponent(Type type)
         {
             serializedObject.Update();
 
-            ScriptableObject component = CreateInstance((string)type);
-            component.name = $"{(string)type}";
+            ScriptableObject component = CreateInstance(type);
+            component.name = $"{type.Name}";
             Undo.RegisterCreatedObjectUndo(component, "Add Renderer Feature");
 
             // Store this new effect as a sub-asset so we can reference it safely afterwards

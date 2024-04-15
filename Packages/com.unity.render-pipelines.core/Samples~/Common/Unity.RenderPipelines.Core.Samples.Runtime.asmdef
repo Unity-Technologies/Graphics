@@ -1,0 +1,24 @@
+{
+    "name": "Unity.RenderPipelines.Core.Samples.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.TextMeshPro",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "INPUT_SYSTEM_INSTALLED"
+        }
+    ],
+    "noEngineReferences": false
+}

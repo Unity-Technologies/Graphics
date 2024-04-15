@@ -1,6 +1,10 @@
 Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 {
     HLSLINCLUDE
+        #pragma vertex VertCMB
+        #pragma fragment FragCMB
+        #pragma multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -86,11 +90,11 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             return ClampVelocity(velocity, _Clamp);
         }
 
-        half3 GatherSample(half sampleNumber, half2 velocity, half invSampleCount, float2 centerUV, half randomVal, half velocitySign)
+        half4 GatherSample(half sampleNumber, half2 velocity, half invSampleCount, float2 centerUV, half randomVal, half velocitySign)
         {
             half  offsetLength = (sampleNumber + 0.5h) + (velocitySign * (randomVal - 0.5h));
             float2 sampleUV = centerUV + (offsetLength * invSampleCount) * velocity * velocitySign;
-            return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, sampleUV).xyz;
+            return SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, sampleUV);
         }
 
         half4 DoMotionBlur(VaryingsCMB input, int iterations, int useMotionVectors)
@@ -113,7 +117,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             half randomVal = InterleavedGradientNoise(uv * _SourceSize.xy, 0);
             half invSampleCount = rcp(iterations * 2.0);
 
-            half3 color = 0.0;
+            half4 color = 0.0;
 
             UNITY_UNROLL
             for (int i = 0; i < iterations; i++)
@@ -122,9 +126,13 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
                 color += GatherSample(i, velocity, invSampleCount, uv, randomVal,  1.0);
             }
 
-            return half4(color * invSampleCount, 1.0);
+            #if _ENABLE_ALPHA_OUTPUT
+                return color * invSampleCount;
+            #else
+                  // NOTE: Rely on the compiler to eliminate .w computation above
+                return half4(color.xyz * invSampleCount, 1.0);
+            #endif
         }
-
     ENDHLSL
 
     SubShader
@@ -138,9 +146,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             Name "Camera Motion Blur - Low Quality"
 
             HLSLPROGRAM
-
-                #pragma vertex VertCMB
-                #pragma fragment FragCMB
 
                 half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
@@ -156,9 +161,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
             HLSLPROGRAM
 
-                #pragma vertex VertCMB
-                #pragma fragment FragCMB
-
                 half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 3, 0);
@@ -172,9 +174,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             Name "Camera Motion Blur - High Quality"
 
             HLSLPROGRAM
-
-                #pragma vertex VertCMB
-                #pragma fragment FragCMB
 
                 half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
@@ -190,9 +189,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
             HLSLPROGRAM
 
-                #pragma vertex VertCMB
-                #pragma fragment FragCMB
-
                 half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 2, 1);
@@ -207,9 +203,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
             HLSLPROGRAM
 
-                #pragma vertex VertCMB
-                #pragma fragment FragCMB
-
                 half4 FragCMB(VaryingsCMB input) : SV_Target
                 {
                     return DoMotionBlur(input, 3, 1);
@@ -223,9 +216,6 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             Name "Camera And Object Motion Blur - High Quality"
 
             HLSLPROGRAM
-
-                #pragma vertex VertCMB
-                #pragma fragment FragCMB
 
                 half4 FragCMB(VaryingsCMB input) : SV_Target
                 {

@@ -6,10 +6,10 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+        #pragma multi_compile_local_fragment _ _ENABLE_ALPHA_OUTPUT
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ HDR_INPUT HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
-
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -64,31 +64,42 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             int2   positionSS  = uv * _SourceSize.xy;
 
             #if _POINT_SAMPLING
-            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv).xyz;
+                // Hlsl specifies missing input.a to fill 1 (0 for .rgb).
+                half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, uv);
             #elif (_RCAS || _EASU_RCAS_AND_HDR_INPUT) && SHADER_TARGET >= 45
-            half3 color = ApplyRCAS(positionSS);
-            // When Unity is configured to use gamma color encoding, we must convert back from linear after RCAS is performed.
-            // (The input color data for this shader variant is always linearly encoded because RCAS requires it)
+                half4 color = half4(ApplyRCAS(positionSS), 1.0);
+                // When Unity is configured to use gamma color encoding, we must convert back from linear after RCAS is performed.
+                // (The input color data for this shader variant is always linearly encoded because RCAS requires it)
             #if _EASU_RCAS_AND_HDR_INPUT
-            // Revert operation from ScalingSetup.shader
-            color.rgb = FastTonemapInvert(color.rgb) * PaperWhite;
+                // Revert operation from ScalingSetup.shader
+                color.rgb = FastTonemapInvert(color.rgb) * PaperWhite;
             #endif
             #if UNITY_COLORSPACE_GAMMA
-            color = GetLinearToSRGB(color);
+                color = GetLinearToSRGB(color);
+            #endif
+            #if _ENABLE_ALPHA_OUTPUT
+                color.a = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv).a;
             #endif
             #else
-            half3 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv).xyz;
+                half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
             #endif
 
             #if _FXAA
             {
-                color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
+            #if _ENABLE_ALPHA_OUTPUT
+                // When alpha processing is enabled, FXAA should not affect pixels with zero alpha
+                UNITY_BRANCH
+                if(color.a > 0)
+                    color.rgb = ApplyFXAA(color.rgb, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
+            #else
+                    color.rgb = ApplyFXAA(color.rgb, positionNDC, positionSS, _SourceSize, _BlitTexture, PaperWhite, OneOverPaperWhite);
+            #endif
             }
             #endif
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset, OneOverPaperWhite);
+                color.rgb = ApplyGrain(color.rgb, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset, OneOverPaperWhite);
             }
             #endif
 
@@ -100,7 +111,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
+                color.rgb = ApplyDithering(color.rgb, SCREEN_COORD_APPLY_SCALEBIAS(positionNDC), TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset, PaperWhite, OneOverPaperWhite);
             }
             #endif
 
@@ -118,7 +129,11 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             }
             #endif
 
-            half4 finalColor = half4(color, 1);
+            #if _ENABLE_ALPHA_OUTPUT
+            half4 finalColor = color;
+            #else
+            half4 finalColor = half4(color.rgb, 1.0);
+            #endif
 
             #if defined(DEBUG_DISPLAY)
             half4 debugColor = 0;

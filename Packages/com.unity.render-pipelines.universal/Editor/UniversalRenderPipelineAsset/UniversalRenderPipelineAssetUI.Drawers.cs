@@ -617,6 +617,12 @@ namespace UnityEditor.Rendering.Universal
             if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && serialized.colorGradingLutSize.intValue < 32)
                 EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
+            HDRColorBufferPrecision hdrPrecision = (HDRColorBufferPrecision)serialized.hdrColorBufferPrecisionProp.intValue;
+            bool alphaEnabled = !isHdrOn /*RGBA8*/ || (isHdrOn && hdrPrecision == HDRColorBufferPrecision._64Bits); /*RGBA16Float*/
+            EditorGUILayout.PropertyField(serialized.allowPostProcessAlphaOutput, Styles.allowPostProcessAlphaOutput);
+            if(!alphaEnabled && serialized.allowPostProcessAlphaOutput.boolValue)
+                EditorGUILayout.HelpBox(Styles.alphaOutputWarning, MessageType.Warning);
+
             EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
             EditorGUILayout.PropertyField(serialized.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
             EditorGUILayout.PropertyField(serialized.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);

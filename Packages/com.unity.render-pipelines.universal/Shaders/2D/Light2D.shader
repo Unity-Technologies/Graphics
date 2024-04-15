@@ -218,7 +218,7 @@ Shader "Hidden/Light2D"
                 return ToFragmentOutput(lightColor * _InverseHDREmulationScale);
             }
 
-            FragmentOutput frag(Varyings i) : SV_Target
+            FragmentOutput frag(Varyings i)
             {
 
                 PerLight2D light;

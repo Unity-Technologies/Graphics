@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// Collection to store <see cref="MaterialHeaderScopeItem"></see>
+    /// Collection to store <see cref="MaterialHeaderScopeItem"/>
     /// </summary>
     public class MaterialHeaderScopeList
     {

@@ -243,7 +243,9 @@ namespace UnityEditor.VFX.Block
             base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLBlockFunctionValidator();
             ParseCodeIfNeeded();
-            foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function, includes))
+
+            var basePath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(GetGraph().GetResource()));
+            foreach(var error in hlslValidator.Validate(m_AvailableFunction.values, m_Function, basePath, includes))
             {
                 report.RegisterError(string.Empty, error.type, error.message, this);
             }
@@ -322,7 +324,7 @@ namespace UnityEditor.VFX.Block
                     m_Properties = new List<VFXPropertyWithValue>();
                     foreach (var input in m_Function.inputs)
                     {
-                        if (input.type != null && input.type != typeof(VFXAttribute) && input.access is HLSLAccess.IN)
+                        if (input.type != null && input.type != typeof(VFXAttribute) && input.access is HLSLAccess.IN or HLSLAccess.NONE)
                         {
                             m_Properties.Add(CreateProperty(input));
                         }

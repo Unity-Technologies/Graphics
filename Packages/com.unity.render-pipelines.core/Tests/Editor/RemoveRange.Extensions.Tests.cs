@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {
-    public class RemoveRangeExtensionsTests
+    class RemoveRangeExtensionsTests
     {
         static TestCaseData[] s_ListTestsCaseDatas =
         {

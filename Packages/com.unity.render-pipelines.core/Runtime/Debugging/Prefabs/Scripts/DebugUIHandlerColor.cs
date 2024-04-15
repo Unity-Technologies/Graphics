@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.UI
     {
         /// <summary>Name of the widget.</summary>
         public Text nameLabel;
-        /// <summary>/// <summary>Name of the widget.</summary>alue toggle.</summary>
+        /// <summary>Toggles a visibility in the user interface.</summary>
         public UIFoldout valueToggle;
         /// <summary>Color image.</summary>
         public Image colorImage;

@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Set static RTHandle wrapper given a RTid. The static RTHandle wrapper is treated as external handle in RTHandleSystem
-        /// Get the static wrapper through `RTHandleStaticHelpers.s_RTHandleWrapper`. 
+        /// Get the static wrapper through `RTHandleStaticHelpers.s_RTHandleWrapper`.
         /// </summary>
         /// <param name="rtId">Input render target identifier to be converted.</param>
         public static void SetRTHandleStaticWrapper(RenderTargetIdentifier rtId)
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Set user managed RTHandle wrapper given a RTid. The wrapper is treated as external handle in RTHandleSystem 
+        /// Set user managed RTHandle wrapper given a RTid. The wrapper is treated as external handle in RTHandleSystem
         /// </summary>
         /// <param name="rtWrapper">User managed RTHandle wrapper.</param>
         /// <param name="rtId">Input render target identifier to be set.</param>
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A RTHandle is a RenderTexture that scales automatically with the camera size.
     /// This allows proper reutilization of RenderTexture memory when different cameras with various sizes are used during rendering.
-    /// <seealso cref="RTHandleSystem"/>
+    /// <see cref="RTHandleSystem"/>
     /// </summary>
     public class RTHandle
     {

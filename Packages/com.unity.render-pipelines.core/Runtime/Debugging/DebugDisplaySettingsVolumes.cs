@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Constructor with the settings
         /// </summary>
-        /// <param name="volumeDebugSettings"></param>
+        /// <param name="volumeDebugSettings">The volume debug settings object used for configuration.</param>
         public DebugDisplaySettingsVolume(IVolumeDebugSettings volumeDebugSettings)
         {
             this.volumeDebugSettings = volumeDebugSettings;

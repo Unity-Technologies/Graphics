@@ -1,6 +1,5 @@
 namespace UnityEditor.Rendering
 {
-    /// <summary> Camera UI Shared Properties among SRP</summary>
     public static partial class CameraUI
     {
         public static partial class Rendering

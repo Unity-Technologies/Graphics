@@ -1441,6 +1441,9 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.activeDepthTexture, cameraDepthTexture, false, "Final Depth Copy");
             }
 #endif
+            if (cameraData.isSceneViewCamera)
+                DrawRenderGraphWireOverlay(renderGraph, frameData, resourceData.backBufferColor);
+
             if (drawGizmos)
                 DrawRenderGraphGizmos(renderGraph, frameData, resourceData.backBufferColor, resourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
         }

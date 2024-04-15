@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
             /// <param name="count">The number of (key, value) elements.</param>
             /// <param name="renderGraph">Render Graph</param>
             /// <param name="builder">Render Graph Builder</param>
-            /// <returns></returns>
+            /// <returns>An initialized RenderGraphResources object containing the created sort buffers.</returns>
             public static RenderGraphResources Create(int count, RenderGraph renderGraph, RenderGraphBuilder builder)
             {
                 var targets = GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopyDestination;
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
             /// Load supporting resources from Render Graph Resources.
             /// </summary>
             /// <param name="renderGraphResources">Render Graph Resources</param>
-            /// <returns></returns>
+            /// <returns>A new instance of SupportResources with key and value buffers loaded from the given RenderGraphResources.</returns>
             public static SupportResources Load(RenderGraphResources renderGraphResources)
             {
                 var resources = new SupportResources

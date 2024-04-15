@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
 {
     abstract class CustomHLSLFunctionValidator
     {
-        public IEnumerable<IHLSMessage> Validate(IEnumerable<string> functions, HLSLFunction selectedFunction, IEnumerable<string> includes)
+        public IEnumerable<IHLSMessage> Validate(IEnumerable<string> functions, HLSLFunction selectedFunction, string basePath, IEnumerable<string> includes)
         {
             if (functions == null || selectedFunction == null)
             {
@@ -63,7 +63,10 @@ namespace UnityEditor.VFX.Operator
                 var guid = AssetDatabase.AssetPathToGUID(include);
                 if (string.IsNullOrEmpty(guid))
                 {
-                    yield return new HLSLMissingIncludeFile(include);
+                    //Try with Relative Path
+                    guid = AssetDatabase.AssetPathToGUID(Path.Combine(basePath, include));
+                    if (string.IsNullOrEmpty(guid))
+                        yield return new HLSLMissingIncludeFile(include);
                 }
             }
 
@@ -270,7 +273,9 @@ namespace UnityEditor.VFX.Operator
             base.GenerateErrors(report);
             var hlslValidator = new CustomHLSLOperatorFunctionValidator();
             ParseCodeIfNeeded();
-            foreach(var error in hlslValidator.Validate(m_AvailableFunctions.values, m_Function, includes))
+
+            var basePath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(GetGraph().GetResource()));
+            foreach (var error in hlslValidator.Validate(m_AvailableFunctions.values, m_Function, basePath, includes))
             {
                 report.RegisterError(string.Empty, error.type, error.message, this);
             }

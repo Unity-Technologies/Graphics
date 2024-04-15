@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering
     /// contained in a <see cref="VolumeProfile"/> in the Inspector.
     /// </summary>
     /// <example>
-    /// A minimal example of how to write a custom editor that displays the content of a profile
-    /// in the inspector:
+    /// <para>A minimal example of how to write a custom editor that displays the content of a profile
+    /// in the inspector:</para>
     /// <code>
     /// using UnityEngine.Rendering;
     ///
@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Set whether the editor behaves as a default volume profile.
         /// </summary>
-        /// <param name="isDefaultVolumeProfile"></param>
+        /// <param name="isDefaultVolumeProfile">If set to true, the editor treats the volume profile as the default global profile; otherwise, it treats it as a custom profile.</param>
         public void SetIsGlobalDefaultVolumeProfile(bool isDefaultVolumeProfile)
         {
             m_IsDefaultVolumeProfile = isDefaultVolumeProfile;

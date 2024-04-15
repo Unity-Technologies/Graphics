@@ -1,0 +1,22 @@
+{
+    "name": "Unity.RenderPipelines.HighDefinition.Samples.Common.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.Core.Samples.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Samples.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Samples.Common.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

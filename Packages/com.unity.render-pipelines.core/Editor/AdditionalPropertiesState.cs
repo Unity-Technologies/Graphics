@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering
 
         /// <summary>Get or set the state given the mask.</summary>
         /// <param name="mask">The filtering mask</param>
-        /// <returns>True: All flagged area are expended</returns>
+        /// <value>True: All flagged area are expended</value>
         public bool this[TState mask]
         {
             get => GetAdditionalPropertiesState(mask);
@@ -67,6 +67,10 @@ namespace UnityEditor.Rendering
             return anim;
         }
 
+        /// <summary>
+        /// Resets the animation associated with the given mask to a default state with the animated value set to 1.0 and the target value set to 0.0.
+        /// </summary>
+        /// <param name="mask">The state mask used to retrieve the associated animation.</param>
         protected internal void ResetAnimation(TState mask)
         {
             AnimFloat anim = GetAnimation(mask);
@@ -100,6 +104,9 @@ namespace UnityEditor.Rendering
     public class AdditionalPropertiesState<TState, TTarget> : AdditionalPropertiesStateBase<TState>
         where TState : struct, IConvertible
     {
+        /// <summary>
+        /// Stores the expanded or collapsed state of each section defined by <typeparamref name="TState"/>.
+        /// </summary>
         protected internal EditorPrefBoolFlags<TState> m_State;
 
 

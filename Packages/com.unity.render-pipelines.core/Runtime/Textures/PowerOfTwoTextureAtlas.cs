@@ -314,11 +314,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get cache size in bytes.
         /// </summary>
-        /// <param name="nbElement"></param>
+        /// <param name="nbElement">The number of elements stored in the cache.</param>
         /// <param name="resolution">Atlas resolution (square).</param>
         /// <param name="hasMipmap">Atlas uses mip maps.</param>
         /// <param name="format">Atlas format.</param>
-        /// <returns></returns>
+        /// <returns>The approximate size of the cache in bytes.</returns>
         public static long GetApproxCacheSizeInByte(int nbElement, int resolution, bool hasMipmap, GraphicsFormat format)
             => (long)(nbElement * resolution * resolution * (double)((hasMipmap ? k_MipmapFactorApprox : 1.0f) * GraphicsFormatUtility.GetBlockSize(format)));
 
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering
         /// <param name="weight">Atlas size in bytes.</param>
         /// <param name="hasMipmap">Atlas uses mip maps.</param>
         /// <param name="format">Atlas format.</param>
-        /// <returns></returns>
+        /// <returns>The largest possible resolution for a square atlas, constrained by weight, as a power of two value.</returns>
         public static int GetMaxCacheSizeForWeightInByte(int weight, bool hasMipmap, GraphicsFormat format)
         {
             float bytePerPixel = (float)GraphicsFormatUtility.GetBlockSize(format) * (hasMipmap ? k_MipmapFactorApprox : 1.0f);

@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering
     /// property as-is.
     /// </remarks>
     /// <example>
-    /// Here's an example about how <see cref="ClampedFloatParameter"/> is implemented:
+    /// <para>Here's an example about how <see cref="ClampedFloatParameter"/> is implemented:</para>
     /// <code>
     /// [VolumeParameterDrawer(typeof(ClampedFloatParameter))]
     /// class ClampedFloatParameterDrawer : VolumeParameterDrawer

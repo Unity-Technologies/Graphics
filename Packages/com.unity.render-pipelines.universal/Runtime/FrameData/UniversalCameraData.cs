@@ -221,6 +221,11 @@ namespace UnityEngine.Rendering.Universal
         public bool allowHDROutput;
 
         /// <summary>
+        /// True if this camera can write the alpha channel. Post-processing uses this. Requires the color target to have an alpha channel.
+        /// </summary>
+        public bool isAlphaOutputEnabled;
+
+        /// <summary>
         /// True if this camera requires to write _CameraDepthTexture.
         /// </summary>
         public bool requiresDepthTexture;
@@ -604,6 +609,7 @@ namespace UnityEngine.Rendering.Universal
             isDefaultViewport = false;
             isHdrEnabled = false;
             allowHDROutput = false;
+            isAlphaOutputEnabled = false;
             requiresDepthTexture = false;
             requiresOpaqueTexture = false;
             postProcessingRequiresDepthTexture = false;

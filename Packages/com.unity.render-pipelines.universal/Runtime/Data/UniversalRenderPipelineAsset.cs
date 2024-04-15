@@ -3,15 +3,12 @@ using System;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
-using UnityEditorInternal;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 using System.ComponentModel;
-using System.Linq;
-using UnityEditor.Rendering;
-using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -454,7 +451,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline
     {
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -601,6 +598,10 @@ namespace UnityEngine.Rendering.Universal
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
+#if UNITY_EDITOR // multi_compile_fragment _ _ENABLE_ALPHA_OUTPUT
+        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT)]
+#endif
+        [SerializeField] bool m_AllowPostProcessAlphaOutput = false;
 #if UNITY_EDITOR // multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.UseFastSRGBLinearConversion)]
 #endif
@@ -684,6 +685,9 @@ namespace UnityEngine.Rendering.Universal
 
         static string[] s_Names;
         static int[] s_Values;
+
+        /// <inheritdoc/>
+        public bool isImmediateModeSupported => false;
 
 #if UNITY_EDITOR
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
@@ -1583,6 +1587,11 @@ namespace UnityEngine.Rendering.Universal
             get => m_ColorGradingLutSize;
             set => m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize);
         }
+
+        /// <summary>
+        /// Returns true if post-processing should process and output alpha. Requires the color target to have an alpha channel.
+        /// </summary>
+        public bool allowPostProcessAlphaOutput => m_AllowPostProcessAlphaOutput;
 
         /// <summary>
         /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.

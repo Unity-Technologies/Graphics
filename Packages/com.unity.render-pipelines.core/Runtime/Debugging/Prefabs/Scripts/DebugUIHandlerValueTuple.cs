@@ -15,7 +15,14 @@ namespace UnityEngine.Rendering.UI
         /// <summary>Value of the value field.</summary>
         public Text valueLabel;
 
+        /// <summary>
+        /// The DebugUI.ValueTuple instance that represents the data and state of the tuple value widget managed by this handler.
+        /// </summary>
         protected internal DebugUI.ValueTuple m_Field;
+
+        /// <summary>
+        /// The text elements used to display the values of the tuple value widget on the UI.
+        /// </summary>
         protected internal Text[] valueElements;
 
         const float k_XOffset = 230f;

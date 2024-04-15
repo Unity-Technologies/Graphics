@@ -62,8 +62,8 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Constructor. This overload allows you to only allocate memory without setting the size.
         /// </summary>
-        /// <param name="capacity">The nubmer of elements to allocate.</param>
-        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If false, only allocate data but keep the size at 0.</param>///
+        /// <param name="capacity">The number of elements to allocate.</param>
+        /// <param name="resize">If true, also set the size of the array to the passed in capacity. If false, only allocate data but keep the size at 0.</param>
         public DynamicArray(int capacity, bool resize)
         {
             m_Array = new T[capacity];
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering
         /// <param name="item">The object to locate in the DynamicArray. The value can be null for reference types.</param>
         /// <param name="index">The zero-based starting index of the search. 0 (zero) is valid in an empty list.</param>
         /// <param name="count">The number of elements in the section to search.</param>
-        /// <returns></returns>
+        /// <returns>The index of the first occurrence of the object within the range of elements, or -1 if not found.</returns>
         public int IndexOf(T item, int index, int count)
         {
             for (int i = index; i < size && count > 0; ++i, --count)
@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering
         /// ref access to an element.
         /// </summary>
         /// <param name="index">Element index</param>
-        /// <returns>The requested element.</returns>
+        /// <value>The requested element.</value>
         public ref T this[int index]
         {
             get
@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// IEnumerator-like struct used to loop over this entire array. See the IEnumerator docs for more info:
-        /// <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerator" langword="IEnumerator" />
+        /// <a href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerator">IEnumerator</a>
         /// </summary>
         /// <remarks>
         /// This struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Returns an enumerator that iterates through of this array.
-        /// See the IEnumerable docs for more info: <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerable" langword="IEnumarable" />
+        /// See the IEnumerable docs for more info: <a href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerable" >IEnumerable</a>
         /// </summary>
         /// <remarks>
         /// The returned struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
@@ -474,7 +474,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// IEnumerable-like struct used to iterate through a subsection of this array.
-        /// See the IEnumerable docs for more info: <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerable" langword="IEnumarable" />
+        /// See the IEnumerable docs for more info: <a href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerable">IEnumerable</a>
         /// </summary>
         /// <remarks>
         /// This struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering
         {
             /// <summary>
             /// IEnumerator-like struct used to iterate through a subsection of this array.
-            /// See the IEnumerator docs for more info: <see href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerator" langword="IEnumerator" />
+            /// See the IEnumerator docs for more info: <a href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.ienumerator">IEnumerator</a>
             /// </summary>
             /// <remarks>
             /// This struct intentionally does not explicitly implement the IEnumarable/IEnumerator interfaces it just follows
@@ -608,6 +608,9 @@ namespace UnityEngine.Rendering
             return r;
         }
 
+        /// <summary>
+        /// Increments the internal version counter.
+        /// </summary>
         protected internal void BumpVersion()
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR

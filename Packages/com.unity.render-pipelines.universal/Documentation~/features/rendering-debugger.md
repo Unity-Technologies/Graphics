@@ -207,7 +207,6 @@ The properties in this section let you change how the [render graph system](../r
 | **Clear Render Targets At Creation**  | Clear render textures the first time the render graph system uses them. |
 | **Clear Render Targets When Freed**  | Clear render textures when they're no longer used by render graph. |
 | **Disable Pass Culling** | Disable URP culling render passes that have no impact on the final render. |
-| **Immediate Mode** | Force URP to execute passes in the order you set them up. |
 | **Enable Logging** | Enable logging to the **Console** window. |
 | **Log Frame Information** | Log how URP uses the resources during the frame, in the **Console** window. |
 | **Log Resources** | Log the resources URP uses during the frame, in the **Console** window. |

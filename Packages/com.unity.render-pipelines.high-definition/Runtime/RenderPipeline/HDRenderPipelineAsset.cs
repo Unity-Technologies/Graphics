@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using System.Linq;
@@ -20,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
 #endif
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline
     {
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
@@ -202,6 +203,9 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_UseRenderGraph;
             set => m_UseRenderGraph = value;
         }
+
+        /// <inheritdoc/>
+        public bool isImmediateModeSupported => true;
 
         [SerializeField] private CustomPostProcessVolumeComponentList m_CompositorCustomVolumeComponentsList = new(CustomPostProcessInjectionPoint.BeforePostProcess);
 

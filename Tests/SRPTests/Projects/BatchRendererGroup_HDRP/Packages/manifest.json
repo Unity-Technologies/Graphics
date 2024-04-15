@@ -56,7 +56,6 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "com.unity.testframework.graphics",
     "com.unity.testing.xr"
   ],
   "useSatSolver": true,

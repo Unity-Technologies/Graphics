@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering
         /// <param name="overrides">Specifies whether Unity should automatically override all the settings when
         /// you add a <see cref="VolumeComponent"/> to the Volume Profile.</param>
         /// <returns>The instance created for the given type that has been added to the profile</returns>
-        /// <see cref="Add{T}"/>
+        /// <seealso cref="Add{T}"/>
         public VolumeComponent Add(Type type, bool overrides = false)
         {
             if (Has(type))
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Gets the <seealso cref="VolumeComponent"/>, which is a subclass of <paramref name="type"/>, if
+        /// Gets the <see cref="VolumeComponent"/>, which is a subclass of <paramref name="type"/>, if
         /// it exists.
         /// </summary>
         /// <typeparam name="T">A type of <see cref="VolumeComponent"/>.</typeparam>
@@ -275,12 +275,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Gets all the <seealso cref="VolumeComponent"/> that are subclasses of the specified type,
+        /// Gets all the <see cref="VolumeComponent"/> that are subclasses of the specified type,
         /// if there are any.
         /// </summary>
         /// <typeparam name="T">A type of <see cref="VolumeComponent"/>.</typeparam>
         /// <param name="type">A type that inherits from <see cref="VolumeComponent"/>.</param>
-        /// <param name="result">The output list that contains all the <seealso cref="VolumeComponent"/>
+        /// <param name="result">The output list that contains all the <see cref="VolumeComponent"/>
         /// if any. Note that Unity does not clear this list.</param>
         /// <returns><c>true</c> if any <see cref="VolumeComponent"/> have been found in the profile,
         /// <c>false</c> otherwise.</returns>

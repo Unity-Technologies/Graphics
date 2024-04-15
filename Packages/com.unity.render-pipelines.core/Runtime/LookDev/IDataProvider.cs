@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.LookDev
         void UpdateSky(Camera camera, Sky sky, StageRuntimeInterface stage);
 
         /// <summary>Notify the LookDev about what debug view mode are available in this SRP</summary>
-        /// <returns>The list of the mode, None is not required.</returns>
+        /// <value>The list of the mode, None is not required.</value>
         IEnumerable<string> supportedDebugModes { get; }
 
         /// <summary>Notify the SRP about a change in the DebugMode used</summary>
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.LookDev
         /// [OPTIONAL] If true, the object is not recreated with the scene update.
         /// Default value: false.
         /// </param>
-        /// <returns></returns>
+        /// <returns>The newly created GameObject, or null if the creation process failed.</returns>
         public GameObject AddGameObject(bool persistent = false)
             => m_AddGameObject?.Invoke(persistent);
 

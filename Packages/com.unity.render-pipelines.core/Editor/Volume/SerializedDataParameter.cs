@@ -65,8 +65,8 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Gets and casts an attribute applied on the base <see cref="VolumeParameter{T}"/>.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of the attribute to retrieve.</typeparam>
+        /// <returns>The first attribute of type T found, or null if no such attribute is present.</returns>
         public T GetAttribute<T>()
             where T : Attribute
         {
