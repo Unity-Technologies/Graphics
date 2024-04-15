@@ -1433,7 +1433,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
 
-            if (cameraData.isSceneViewCamera || (isGizmosEnabled && cameraData.resolveFinalTarget))
+            if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera || (isGizmosEnabled && cameraData.resolveFinalTarget))
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 m_FinalDepthCopyPass.CopyToDepth = true;
