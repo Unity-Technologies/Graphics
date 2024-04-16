@@ -137,8 +137,7 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    var mesh = renderer.component.GetComponent<MeshFilter>().sharedMesh;
-                    if (mesh == null)
+                    if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;

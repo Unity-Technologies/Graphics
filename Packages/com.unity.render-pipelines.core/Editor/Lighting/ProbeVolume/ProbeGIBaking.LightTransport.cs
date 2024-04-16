@@ -561,6 +561,26 @@ namespace UnityEngine.Rendering
                 SamplingResources.BindSamplingTextures(cmd, m_SamplingResources);
             }
 
+            public bool TryGetMeshForAccelerationStructure(Renderer renderer, out Mesh mesh)
+            {
+                mesh = null;
+                if (renderer.isPartOfStaticBatch)
+                {
+                    Debug.LogError("Static batching is not supported when baking APV.");
+                    return false;
+                }
+
+                mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                if (mesh == null)
+                    return false;
+
+                // This would error out later in LoadIndexBuffer in LightTransport package
+                if ((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) == 0 && (mesh.GetIndices(0) == null || mesh.GetIndices(0).Length == 0))
+                    return false;
+
+                return true;
+            }
+
             public void Dispose()
             {
                 if (m_Context != null)

@@ -215,13 +215,7 @@ namespace UnityEngine.Rendering
 
                 foreach (var renderer in contributors.renderers)
                 {
-                    if (renderer.component.isPartOfStaticBatch)
-                    {
-                        Debug.LogError("Static batching should be disabled when using sky occlusion support.");
-                    }
-
-                    var mesh = renderer.component.GetComponent<MeshFilter>().sharedMesh;
-                    if (mesh == null)
+                    if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
                     var matIndices = GetMaterialIndices(renderer.component);
