@@ -84,6 +84,8 @@ namespace UnityEngine.Rendering.PostProcessing
         internal static readonly int CoCTileYCount = Shader.PropertyToID("_CoCTileYCount");
         internal static readonly int CoCTilePixelWidth = Shader.PropertyToID("_CoCTilePixelWidth");
         internal static readonly int CoCTilePixelHeight = Shader.PropertyToID("_CoCTilePixelHeight");
+        internal static readonly int KernelScale = Shader.PropertyToID("_KernelScale");
+        internal static readonly int MarginFactors = Shader.PropertyToID("_MarginFactors");
         internal static readonly int MaxCoC = Shader.PropertyToID("_MaxCoC");
         internal static readonly int RcpMaxCoC = Shader.PropertyToID("_RcpMaxCoC");
         internal static readonly int RcpAspect = Shader.PropertyToID("_RcpAspect");

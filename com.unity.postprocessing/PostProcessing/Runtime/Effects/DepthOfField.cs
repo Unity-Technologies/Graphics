@@ -217,6 +217,8 @@ namespace UnityEngine.Rendering.PostProcessing
             sheet.properties.SetVector(ShaderIDs.CoCKernelLimitsA, cocKernelLimitsA);
             sheet.properties.SetVector(ShaderIDs.CoCKernelLimitsB, cocKernelLimitsB);
             sheet.properties.SetVector(ShaderIDs.MaxCoCTexUvScale, new Vector4(paddedWidth / (float)context.width, paddedHeight / (float)context.height, context.width / (float)paddedWidth, context.height / (float)paddedHeight));
+            sheet.properties.SetVector(ShaderIDs.KernelScale, new Vector4(maxCoC * (12f / 8f) / aspect, maxCoC * (12f / 8f), maxCoC * (12f / 8f), 0f)); // (kc) hardcoded for 4 rings
+            sheet.properties.SetVector(ShaderIDs.MarginFactors, new Vector4(2f / (context.height >> 1), (context.height >> 1) / 2f, 0f, 0f));
             sheet.properties.SetFloat(ShaderIDs.MaxCoC, maxCoC);
             sheet.properties.SetVector(ShaderIDs.CoCScreen, new Vector4(context.width, context.height, 1f / context.width, 1f / context.height));
             sheet.properties.SetFloat(ShaderIDs.CoCTileXCount, paddedWidth >> maxCoCMipLevel);
