@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
             displacementBufferSynchronizer.ReleaseATSResources();
 
             // Make sure to release the resources if they have been created (before HDRP destroys them)
-            if (simulation != null && simulation.AllocatedTextures())
+            if (simulation != null)
                 simulation.ReleaseSimulationResources();
             simulation = null;
         }

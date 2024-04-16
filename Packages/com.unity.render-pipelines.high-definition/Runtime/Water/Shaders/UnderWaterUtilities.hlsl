@@ -135,6 +135,15 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float refractedWat
         caustics = dot(causticsValues, triplanarW.yzx) * causticWeight * _CausticsIntensity;
     }
 
+    #ifdef SUPPORT_WATER_ABSORPTION
+    #undef _CausticsIntensity
+    #undef _CausticsPlaneBlendDistance
+    #undef _CausticsTilingFactor
+    #undef _CausticsRegionSize
+    #undef _CausticsMaxLOD
+    #undef _WaterSurfaceTransform_Inverse
+    #endif
+
     // Evaluate the triplanar weights and blend the samples togheter
     return 1.0 + caustics;
 }

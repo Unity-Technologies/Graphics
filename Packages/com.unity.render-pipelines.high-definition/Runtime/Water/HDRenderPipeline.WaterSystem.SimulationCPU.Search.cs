@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return data;
         }
 
-        internal static void ProjectPointOnWaterSurface(WaterSimSearchData wsd,
+        internal static bool ProjectPointOnWaterSurface(WaterSimSearchData wsd,
                                                     WaterSearchParameters wsp,
                                                     ref WaterSearchResult sr)
         {
@@ -351,6 +351,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Initialize the search data
             WaterSimulationTapData tapData = EvaluateDisplacementData(wsd, startPositionOS, targetPositionOS, !wsp.excludeSimulation);
+            if (float.IsNaN(tapData.distance))
+                return false;
+
             float2 stepSize = tapData.offset;
             sr.error = tapData.distance;
             sr.candidateLocationWS = startPositionOS;
@@ -369,6 +372,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float3 candidateLocation = sr.candidateLocationWS + new float3(stepSize.x, 0, stepSize.y);
                 tapData = EvaluateDisplacementData(wsd, candidateLocation, targetPositionOS, !wsp.excludeSimulation);
+                if (float.IsNaN(tapData.distance))
+                    return false;
+
                 if (tapData.distance < sr.error)
                 {
                     sr.candidateLocationWS = candidateLocation;
@@ -389,6 +395,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (wsp.includeDeformation && wsd.activeDeformation)
             {
                 float deformation = EvaluateDeformers(wsd, wsp.targetPositionWS);
+                if (float.IsNaN(deformation))
+                    return false;
+
                 tapData.displacedPoint.y += deformation;
                 tapData.currentDisplacement.y += deformation;
                 tapData.height = tapData.currentDisplacement.y;
@@ -403,6 +412,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float3 normalOS = EvaluateNormal(wsd, wsp, sr.candidateLocationWS);
                 sr.normalWS = mul((float3x3)wsd.rendering.waterToWorldMatrix, normalOS);
             }
+
+            return true;
         }
     }
 
