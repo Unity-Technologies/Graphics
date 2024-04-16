@@ -32,3 +32,7 @@ Unity doesn't automatically load the scenes in a Baking Set when you select the 
 When you load multiple scenes together, the lighting might be too bright because URP combines light from all the scenes. Refer to [Set up multiple Scenes](https://docs.unity3d.com/Manual/setupmultiplescenes.html) for more information on loading and unloading Scenes.
 
 You can load multiple scenes together only if they belong to the same Baking Set.
+
+## Additional resources
+
+- [Bake different lighting setups with Lighting Scenarios](probevolumes-bakedifferentlightingsetups.md)

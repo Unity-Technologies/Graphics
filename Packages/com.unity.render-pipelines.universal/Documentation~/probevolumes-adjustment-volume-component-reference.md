@@ -35,14 +35,29 @@ Refer to the following for more information about using the Probe Adjustment Vol
             <td colspan="2">
                 <p>Select how to override probes inside the Adjustment Volume.</p>
                 <ul>
-                    <li><strong>Invalidate Probes:</strong> Mark selected probes as invalid. Refer to <a href="probevolumes-fixissues.md#how-light-probe-validity-works">How light probe validity works</a> for more information.</li>
-                    <li><strong>Override Validity Threshold:</strong> Override the threshold URP uses to determine whether Light Probes are marked as invalid. Refer to <a href="probevolumes-fixissues.md#adjust-dilation">Adjust Dilation</a> for more information.</li>
-                    <li><strong>Apply Virtual Offset:</strong> Change the position Light Probes use when sampling the lighting in the scene during baking. Refer to <a href="probevolumes-fixissues.md#adjust-virtual-offset">Adjust Virtual Offset</a> for more information.</li>
-                    <li><strong>Override Virtual Offset Settings:</strong> Override the biases URP uses during baking to determine when Light Probes use Virtual Offset, and calculate sampling positions. Refer to <a href="probevolumes-fixissues.md#adjust-virtual-offset">Adjust Virtual Offset</a> for more information</li>
-                    <li><strong>Intensity Scale:</strong> Override the intensity of probes to brighten or darken affected areas.</li>
+                    <li><strong>Invalidate Probes</strong> Mark selected probes as invalid. Refer to <a href="probevolumes-fixissues.md#how-light-probe-validity-works">How light probe validity works</a> for more information.</li>
+                    <li><strong>Override Validity Threshold</strong> Override the threshold URP uses to determine whether Light Probes are marked as invalid. Refer to <a href="probevolumes-fixissues.md#adjust-dilation">Adjust Dilation</a> for more information.</li>
+                    <li><strong>Apply Virtual Offset</strong> Change the position Light Probes use when sampling the lighting in the scene during baking. Refer to <a href="probevolumes-fixissues.md#adjust-virtual-offset">Adjust Virtual Offset</a> for more information.</li>
+                    <li><strong>Override Virtual Offset Settings</strong> Override the biases URP uses during baking to determine when Light Probes use Virtual Offset, and calculate sampling positions. Refer to <a href="probevolumes-fixissues.md#adjust-virtual-offset">Adjust Virtual Offset</a> for more information</li>
+                    <li><strong>Intensity Scale</strong> Override the intensity of probes to brighten or darken affected areas.</li>
+                    <li><strong>Override Sky Direction</strong> Override the directions Unity uses to sample the ambient probe, if you enable <a href="probevolumes-skyocclusion.md">sky occlusion</a>.</li>
+                    <li><strong>Override Sample Count:</strong> Override the number of samples Unity uses for Adaptive Probe Volumes.</li>                      
                 </ul>
             </td>
         </tr>
+    </tbody>
+</table>
+
+### Mode settings
+
+<table>
+    <thead>
+        <tr>
+            <th><strong>Property</strong></th>
+            <th colspan="2"><strong>Description</strong></th>
+        </tr>
+    </thead>
+    <tbody>
         <tr>
             <td><strong>Dilation Validity Threshold</strong></td>
             <td colspan="2">
@@ -78,5 +93,41 @@ Refer to the following for more information about using the Probe Adjustment Vol
                 <p>Change the brightness of all probes covered by the Probe Volumes Adjustment Volume component. Use this sparingly, because changing the intensity of probe data can lead to inconsistencies in the lighting. This option only appears if you set <strong>Mode</strong> to <strong>Intensity Scale</strong>.</p>
             </td>
         </tr>
+        <tr>
+            <td><strong>Sky Direction</strong></td>
+            <td colspan="2">
+                <p>Set the direction Unity uses to sample the ambient probe. This option only appears if you set <strong>Mode</strong> to <strong>Override Sky Direction</strong>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td rowspan="5"><strong>Probes</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Direct Sample Count</strong></td>
+            <td>Set the number of samples Unity uses to calculate the direct light each probe stores. This option only appears if you set <strong>Mode</strong> to <strong>Override Sample Count</strong>.</td>
+        </tr>
+        <tr>
+            <td><strong>Indirect Sample Count</strong></td>
+            <td>Set the number of samples Unity uses to calculate the indirect light each probe stores, including environment samples. This option only appears if you set <strong>Mode</strong> to <strong>Override Sample Count</strong>.</td>
+        </tr>
+        <tr>
+            <td><strong>Sample Count Multiplier</strong></td>
+            <td>Set the value Unity multiplies <strong>Direct Sample Count</strong> and <strong>Indirect Sample Count</strong> by. This option only appears if you set <strong>Mode</strong> to <strong>Override Sample Count</strong>.</td>
+        </tr>
+        <tr>
+            <td><strong>Max Bounces</strong></td>
+            <td>Set the number of times Unity bounces light off objects. This option only appears if you set <strong>Mode</strong> to <strong>Override Sample Count</strong>.</td>
+        </tr>
+        <tr>
+            <td colspan="1" rowspan="10"><strong>Sky Occlusion</strong></td>
+        </tr>        
+        <tr>
+            <td><strong>Sample Count</strong></td>
+            <td>Set the number of samples Unity uses to calculate the amount of light each probe receives from the sky, if you enable <a href="probevolumes-skyocclusion.md">sky occlusion</a>. This option only appears if you set <strong>Mode</strong> to <strong>Override Sample Count</strong>.</td>
+        </tr>
+        <tr>
+            <td><strong>Max Bounces</strong></td>
+            <td>Set the number of times Unity bounces light from the sky off objects to calculate the sky occlusion data, if you enable <a href="probevolumes-skyocclusion.md">sky occlusion</a>. This option only appears if you set <strong>Mode</strong> to <strong>Override Sample Count</strong>.</td>
+        </tr>        
     </tbody>
 </table>
