@@ -12,7 +12,9 @@ Contexts connect to one another sequentially to define the lifecycle of particle
 
 A Context is a type of [graph element](GraphLogicAndPhilosophy.md#graph-elements) so to create one, see [Adding graph elements](VisualEffectGraphWindow.md#adding-graph-elements).
 
-Contexts connect to one another in a vertical, linear order. To achieve this, they use [flow slots](). Depending on which part of the particle lifecycle a Context defines, it may have flow slots on its top, its bottom, or both.
+Contexts connect to one another in a vertical, linear order. To achieve this, they use flow ports. Depending on which part of the particle lifecycle a Context defines, it may have flow ports on its top, its bottom, or both.
+
+![Context input/output ports](Images/Context-Flow-Slots.png)
 
 ## Configuring Contexts
 
@@ -35,8 +37,8 @@ For a breakdown of Context compatibility, see the table below.
 | Context            | Input Data Type                      | Output Data Type | Specific Comments                                            |
 | ---------------------- | --------------------------------------------- | ------------------- | ------------------------------------------------------------ |
 | **Event**              | **None**                                      | **SpawnEvent** (1+) | **None**                                                     |
-| **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow slots which start and stop the **Spawn** Context respectively. |
-| **GPU Event**          | **None**                                      | **SpawnEvent**      | Outputs to **Initialize** Context                            |
+| **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow ports which start and stop the **Spawn** Context respectively. |
+| **GPU Event**          | **None**                                      | **SpawnEvent**      | Outputs to **Initialize** Context.                            |
 | **Output Event** | **SpawnEvent (1+)** |  | Outputs a CPU SpawnEvent back to the Visual Effect component. |
 | **Initialize**         | **SpawnEvent** (1+) or **GPUSpawnEvent** (1+) | **Particle** (1)    | Input types are either **SpawnEvent** or **GPUSpawnEvent**. These input types are mutually exclusive.<br/>Can output to **Particle Update** or **Particle Output**. |
 | **Update**             | **Particle** (1)                              | **Particle** (1+)   | Can output to a **Particle Update** or **Particle Output**.  |
@@ -63,10 +65,10 @@ To customize **Spawn** Contexts, you can add compatible **Blocks** to them. For 
 
 ### Enabling and disabling
 
-Spawn Contexts expose two [flow slots](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): **Start** and **Stop**:
+Spawn Contexts expose two [flow ports](GraphLogicAndPhilosophy.md#processing-workflow-vertical-logic): **Start** and **Stop**:
 
-- The **Start** input resets/starts the Spawn Context. If you do not connect anything to this flow slot, it implicitly uses the **OnPlay** [Event](Events.md). Using **Start** many times has the same effect as using it once.
-- The **Stop** input stops the Spawn System. If you do not connect anything to this flow slot, it implicitly uses the **OnStop** [Event](Events.md).
+- The **Start** input resets/starts the Spawn Context. If you do not connect anything to this flow port, it implicitly uses the **OnPlay** [Event](Events.md). Using **Start** many times has the same effect as using it once.
+- The **Stop** input stops the Spawn System. If you do not connect anything to this flow port, it implicitly uses the **OnStop** [Event](Events.md).
 
 ### Looping and delaying
 

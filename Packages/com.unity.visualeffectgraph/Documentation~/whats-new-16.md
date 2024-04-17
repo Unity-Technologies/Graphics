@@ -24,6 +24,6 @@ VFX Graph 16 adds a [template window](https://docs.unity3d.com/Packages/com.unit
 ![](Images/WhatsNew_16_URPDecalOutput.gif)    
 VFX Graph version 16 adds the Lit Decal output for your Universal Render Pipeline (URP) project. Use this output to use lit particle decals in a URP project.
 
-### Six Way Smoke for URP and ShaderGraph 
+### Six Way Smoke for URP and Shader Graph 
 ![](Images/WhatsNew_16_URP_SmokeLighting.gif)   
-Version 16 makes the smoke lighting model compatible with URP [Lit Outputs](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Context-OutputLitSettings.html) and [ShaderGraph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/sg-working-with.html). This means that you can use lightmaps exported from third-party software to create advanced custom shaders to light a smoke texture in URP and HDRP. 
+Version 16 makes the smoke lighting model compatible with URP [Lit Outputs](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Context-OutputLitSettings.html) and [Shader Graph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/sg-working-with.html). This means that you can use lightmaps exported from third-party software to create advanced custom shaders to light a smoke texture in URP and HDRP. 

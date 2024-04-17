@@ -9,7 +9,7 @@ The Visual Effect Graph uses two distinct workflows:
 ## Processing workflow (vertical logic)
 The processing workflow links together a succession of customizable stages to define the complete system logic. This is where you can determine when the spawn, initialization, updating, and rendering of the particles happen during the effect.
 
-The processing workflow connects Contexts using their **flow slots** located at the top and the bottom of the Context Node.
+The processing workflow connects Contexts using their **flow ports** located at the top and the bottom of the Context Node.
 
 The processing logic defines the different stages of processing of a visual effect. Each stage consists of a large colored container called a [Contexts](Contexts.md). Each Context connects to another compatible Context, which defines how the next stage of processing uses the current Context.
 
@@ -17,7 +17,7 @@ Contexts can contain elements called [Blocks](Blocks.md). Every Block is a stack
 ## Property workflow (horizontal logic)
 In the horizontal property workflow, you can define mathematical operations to enhance the visual effect. This affects how the particles look and behave.
 
-The property workflow connects Contexts using the **Property Slots** of their Blocks. The left side is the input and the right side is the output.
+The property workflow connects Contexts using the **Property Ports** of their Blocks. The left side is the input and the right side is the output.
 
 The Visual Effect Graph comes with a large Block and Node library that you can use to define the behavior of your visual effect. The network of Nodes that you create controls the horizontal flow of data that the render pipeline passes to the Blocks within your graph's Contexts.
 
@@ -56,7 +56,7 @@ The four most common Contexts in a Visual Effect Graph are:
 ### Blocks
 [Blocks](Blocks.md) are Nodes that you can stack into a Context. Every Block is in charge of one operation. For example, it can apply a force to the velocity, collide with a sphere, or set a random color.
 
-When you create a Block, you can reorder it within it current Context, or move it to another compatible Context.
+When you create a Block, you can reorder it within its current Context, or move it to another compatible Context.
 
 To customize a Block, you can:
 
@@ -76,8 +76,8 @@ While the graph elements are different, their contents and behavior tend to be t
 
 Settings are Fields that you cannot connect to using the property workflow. Every graph element displays settings:
 
-* In the **Graph** : Between the Title and the property container in the Graph.
-* In the **Inspector** : When you select a Node, the Inspector displays additional, advanced settings.
+* In the **Graph**: Between the Title and the property container in the Graph.
+* In the **Inspector**: When you select a Node, the Inspector displays additional, advanced settings.
 
 If you change the value of a setting, you need to recompile the Graph to see the effect.
 

@@ -12,17 +12,6 @@ Multiple Systems can interact with each other within a Visual Effect Graph:
 
 * A **Spawn** System can **enable and disable** other **Spawn Systems**. This allows you to use a master Spawn System that manages other Spawn Systems to synchronize particle emission.
 
-
-## Creating System from templates
-
-The Visual Effect Graph comes with pre-built System templates that you can add to your graph. To create a System from a template:
-
-1.  Right Click in an empty space of your workspace and select **Create Node**.
-2.  In The menu, select **System**.
-3.  Select a template from the list.
-
-![](Images/SystemAddTemplate.png)
-
 ## System simulation spaces
 
 Some Systems use a simulation space property to define the reference space that it uses to simulate its contents:

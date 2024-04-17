@@ -50,6 +50,13 @@ When this component receives an Output Event with the name you specify, it looks
 - **VFXOutputEventPrefabAttributeHandler_Light**: When the Prefab spawns, this sets the color and the brightness of the attached Light component based on the OutputEvent's [color attribute](Reference-Attributes.md) and the script's **Brightness Scale** property respectively.
 - **VFXOutputEventPrefabAttributeHandler_RigidBodyVelocity**: When the Prefab spawns, this sets the velocity for the attached RigidBody based on the OutputEvent's [velocity attribute](Reference-Attributes.md).
 
+## Learning Templates   
+
+The [Learning Templates sample](sample-learningTemplates.md) is a collection of VFX assets designed to help you learn VFX Graph concepts and features. It contains scenes for both URP and HDRP, a collection of effects, and a sample showcase with information and links to relevant documentation. To learn more about the Learning Templates sample, refer to the [Learning Templates](sample-learningTemplates.md) documentation.
+
+
+
+
 ## Visual Effect Graph Additions
 
 This sample includes assets and example graphs that help you get started with the Visual Effect Graph. For example, this sample includes:

@@ -2,7 +2,7 @@
 
 The **Output Particle HDRP Lit Decal** Context uses a decal to render a particle system. A decal is a box that the Visual Effect Graph projects a texture into. Unity renders that texture on any geometry that intersects the decal along its xy plane. This means decal particles that don’t intersect any geometry are not visible. When a decal is not visible, it still contributes to the resource intensity required to simulate and render the system.
 
-This Context can project its properties onto a surface using a Base Color map (albedo), a Normal Map, or a Mask Map. It does not support [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest). To use this context, enable **Decals** in the [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Asset.html) and in the [HDRP Settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/Frame-Settings.html).
+This Context can project its properties onto a surface using a Base Color map (albedo), a Normal Map, or a Mask Map. To use this Context, enable **Decals** in the [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Asset.html) and in the [HDRP Settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/Frame-Settings.html).
 
 Menu Path : **Context > Output Particle HDRP Lit Decal**
 

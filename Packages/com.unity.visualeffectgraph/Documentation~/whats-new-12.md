@@ -65,7 +65,7 @@ The following is a list of improvements Unity made to the Visual Effect Graph in
 
 This VFX graph version adds a transform to various shape blocks and operators to make them easier to use and to give you more precise control. For example, you can use this transform to rotate a Position Circle block to make the circle shape face a new direction, or to scale the shape of a sphere collision block on one axis to collide with an ellipsoid.
 
-### Upgraded ShaderGraph integration
+### Upgraded Shader Graph integration
 
 ![img](Images/banner-upgraded-shadergraph.png)
 

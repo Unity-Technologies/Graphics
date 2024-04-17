@@ -2,7 +2,7 @@
 
 The **Output Particle URP Lit Decal** Context uses a decal to render a particle system. A decal is a box that the Visual Effect Graph projects a texture into. Unity renders that texture on any geometry that intersects the decal along its xy plane. This means decal particles that don’t intersect any geometry are not visible. When a decal is not visible, it still contributes to the resource intensity required to simulate and render the system.
 
-This Context can project its properties onto a surface using a Base Color map (albedo), a Normal Map, a Metallic Map and/or an Occlusion Map. It does not support [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest). 
+This Context can project its properties onto a surface using a Base Color map (albedo), a Normal Map, a Metallic Map and/or an Occlusion Map.
 
 To use this context, add the [URP Decal Renderer Feature](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest?subfolder=/manual/renderer-feature-decal.html) to your Renderer. For more information, refer to [How to add a Renderer Feature](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest?subfolder=/manual/urp-renderer-feature-how-to-add.html). 
 
