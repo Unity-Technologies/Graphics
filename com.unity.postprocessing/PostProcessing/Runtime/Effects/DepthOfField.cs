@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         public override void Render(PostProcessRenderContext context)
         {
-            // Legacy: if KERNEL_SMALL was selected, then run different sample pattern from KERNEL_MEDIUM, KERNEL_LARGE and KERNEL_VERY_LARGE
+            // Legacy: if KERNEL_SMALL is selected, then run a different sample pattern from KERNEL_MEDIUM, KERNEL_LARGE and KERNEL_VERY_LARGE (no dynamic branching).
             bool useDynamicBokeh = settings.kernelSize.value != KernelSize.Small;
 
             // The coc is stored in alpha so we need a 4 channels target. Note that using ARGB32
