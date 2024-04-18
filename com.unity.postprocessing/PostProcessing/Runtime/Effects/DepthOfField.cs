@@ -91,17 +91,10 @@ namespace UnityEngine.Rendering.PostProcessing
             CoCTemporalFilter,
             downsampleInitialMaxCoC,
             downsampleMaxCoC,
-            extendMaxCoC,
+            neighborMaxCoC,
             DownsampleAndPrefilter,
             BokehSmallKernel,
-            BokehMediumKernel,
-            BokehLargeKernel,
-            BokehVeryLargeKernel,
-            BokehUnified,
-            BokehKernel1,
-            BokehKernel2,
-            BokehKernel3,
-            BokehKernel4,
+            BokehDynamic,
             PostFilter,
             Combine,
             DebugOverlay
@@ -156,10 +149,9 @@ namespace UnityEngine.Rendering.PostProcessing
             return Mathf.Min(0.05f, radiusInPixels / screenHeight);
         }
 
-        void CalculateCoCKernelLimits(int screenHeight, out Vector4 cocKernelLimitsA, out Vector4 cocKernelLimitsB)
+        void CalculateCoCKernelLimits(int screenHeight, out Vector4 cocKernelLimits)
         {
-            cocKernelLimitsA = new Vector4(2-0.5f, 6- 0.5f, 10- 0.5f, 14- 0.5f) / screenHeight;
-            cocKernelLimitsB = new Vector4(18, 22, 26, 30) / screenHeight;
+            cocKernelLimits = new Vector4(2 - 0.5f, 6 - 0.5f, 10 - 0.5f, 14 - 0.5f) / screenHeight;
         }
 
         RenderTexture CheckHistory(int eye, int id, PostProcessRenderContext context, RenderTextureFormat format)
@@ -182,8 +174,8 @@ namespace UnityEngine.Rendering.PostProcessing
 
         public override void Render(PostProcessRenderContext context)
         {
-            bool useUnified = true;// (Time.time % 2f) < 1f; // (kc)
-            bool useStaticTiles = false;
+            // Legacy: if KERNEL_SMALL was selected, then run different sample pattern from KERNEL_MEDIUM, KERNEL_LARGE and KERNEL_VERY_LARGE
+            bool useDynamicBokeh = settings.kernelSize.value != KernelSize.Small;
 
             // The coc is stored in alpha so we need a 4 channels target. Note that using ARGB32
             // will result in a very weak near-blur.
@@ -204,27 +196,36 @@ namespace UnityEngine.Rendering.PostProcessing
             int paddedWidth = ((context.width + tileSize - 1) >> maxCoCMipLevel) << maxCoCMipLevel;
             int paddedHeight = ((context.height + tileSize - 1) >> maxCoCMipLevel) << maxCoCMipLevel;
 
-            Vector4 cocKernelLimitsA;
-            Vector4 cocKernelLimitsB;
-            CalculateCoCKernelLimits(context.screenHeight, out cocKernelLimitsA, out cocKernelLimitsB);
-            cocKernelLimitsA /= maxCoC;
-            cocKernelLimitsB /= maxCoC;
+            Vector4 cocKernelLimits;
+            CalculateCoCKernelLimits(context.screenHeight, out cocKernelLimits);
+            cocKernelLimits /= maxCoC;
+
+            // The samples coordinates in kDiskAllKernels in the shader code are normalized to 4 rings (coordinates with length 1 lies on the 4th ring).
+            // The ring placement are not uniform but:
+            // 1st ring: 8/29
+            // 2nd ring: 15/29
+            // 3rd ring: 22/29
+            // 4th ring: 19/29
+            // When the user clamps the bokeh size, the sample coordinates must be renormalized to the number of rings requested.
+            float kernelScaleReNormalization = 1f;
+            if (settings.kernelSize.value == KernelSize.Small)
+                kernelScaleReNormalization = 1f; // custom sampling pattern, does not use kDiskAllKernels array.
+            else if (settings.kernelSize.value == KernelSize.Medium)
+                kernelScaleReNormalization = 29f / 15f;
+            else if (settings.kernelSize.value == KernelSize.Large)
+                kernelScaleReNormalization = 29f / 22f;
+            else if (settings.kernelSize.value == KernelSize.VeryLarge)
+                kernelScaleReNormalization = 29f / 29f;
 
             var sheet = context.propertySheets.Get(context.resources.shaders.depthOfField);
             sheet.properties.Clear();
             sheet.properties.SetFloat(ShaderIDs.Distance, s1);
             sheet.properties.SetFloat(ShaderIDs.LensCoeff, coeff);
-            sheet.properties.SetVector(ShaderIDs.CoCKernelLimitsA, cocKernelLimitsA);
-            sheet.properties.SetVector(ShaderIDs.CoCKernelLimitsB, cocKernelLimitsB);
-            sheet.properties.SetVector(ShaderIDs.MaxCoCTexUvScale, new Vector4(paddedWidth / (float)context.width, paddedHeight / (float)context.height, context.width / (float)paddedWidth, context.height / (float)paddedHeight));
-            sheet.properties.SetVector(ShaderIDs.KernelScale, new Vector4(maxCoC * (12f / 8f) / aspect, maxCoC * (12f / 8f), maxCoC * (12f / 8f), 0f)); // (kc) hardcoded for 4 rings
+            sheet.properties.SetVector(ShaderIDs.CoCKernelLimits, cocKernelLimits);
+            sheet.properties.SetVector(ShaderIDs.MaxCoCTexScale, new Vector4(paddedWidth / (float)context.width, paddedHeight / (float)context.height, context.width / (float)paddedWidth, context.height / (float)paddedHeight));
+            sheet.properties.SetVector(ShaderIDs.KernelScale, new Vector4(maxCoC * kernelScaleReNormalization / aspect, maxCoC * kernelScaleReNormalization, maxCoC * kernelScaleReNormalization, 0f));
             sheet.properties.SetVector(ShaderIDs.MarginFactors, new Vector4(2f / (context.height >> 1), (context.height >> 1) / 2f, 0f, 0f));
             sheet.properties.SetFloat(ShaderIDs.MaxCoC, maxCoC);
-            sheet.properties.SetVector(ShaderIDs.CoCScreen, new Vector4(context.width, context.height, 1f / context.width, 1f / context.height));
-            sheet.properties.SetFloat(ShaderIDs.CoCTileXCount, paddedWidth >> maxCoCMipLevel);
-            sheet.properties.SetFloat(ShaderIDs.CoCTileYCount, paddedHeight >> maxCoCMipLevel);
-            sheet.properties.SetFloat(ShaderIDs.CoCTilePixelWidth, 1 << maxCoCMipLevel);
-            sheet.properties.SetFloat(ShaderIDs.CoCTilePixelHeight, 1 << maxCoCMipLevel);
             sheet.properties.SetFloat(ShaderIDs.RcpMaxCoC, 1f / maxCoC);
             sheet.properties.SetFloat(ShaderIDs.RcpAspect, 1f / aspect);
 
@@ -254,21 +255,23 @@ namespace UnityEngine.Rendering.PostProcessing
                 cmd.SetGlobalTexture(ShaderIDs.CoCTex, historyWrite);
             }
 
-            if (useUnified || useStaticTiles)
+            if (useDynamicBokeh)
             {
-                // Downsampling CoC
+                // Downsample MaxCoC.
                 context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCMips[1], 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, paddedWidth >> 1, paddedHeight >> 1);
                 cmd.BlitFullscreenTriangle(ShaderIDs.CoCTex, ShaderIDs.MaxCoCMips[1], sheet, (int)Pass.downsampleInitialMaxCoC);
 
+                // Downsample until tile-size reaches CoC max radius.
                 for (int i = 2; i <= maxCoCMipLevel; ++i)
                 {
                     context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCMips[i], 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, paddedWidth >> i, paddedHeight >> i);
                     cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[i - 1], ShaderIDs.MaxCoCMips[i], sheet, (int)Pass.downsampleMaxCoC);
                 }
 
-                // Extend CoC
+                // Neighbor MaxCoC.
+                // We can then sample it during Bokeh simulation pass and dynamically adjust the number of samples (== number of rings) to generate the bokeh.
                 context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.MaxCoCTex, 0, cocFormat, RenderTextureReadWrite.Linear, FilterMode.Point, paddedWidth >> maxCoCMipLevel, paddedHeight >> maxCoCMipLevel);
-                cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[maxCoCMipLevel], ShaderIDs.MaxCoCTex, sheet, (int)Pass.extendMaxCoC);
+                cmd.BlitFullscreenTriangle(ShaderIDs.MaxCoCMips[maxCoCMipLevel], ShaderIDs.MaxCoCTex, sheet, (int)Pass.neighborMaxCoC);
             }
 
             // Downsampling and prefiltering pass
@@ -277,32 +280,10 @@ namespace UnityEngine.Rendering.PostProcessing
 
             // Bokeh simulation pass
             context.GetScreenSpaceTemporaryRT(cmd, ShaderIDs.DepthOfFieldTemp, 0, colorFormat, RenderTextureReadWrite.Default, FilterMode.Bilinear, context.width / 2, context.height / 2);
-            if (useUnified)
-            {
-                /*
-                int tileXCount = paddedWidth >> maxCoCMipLevel;
-                int tileYCount = paddedHeight >> maxCoCMipLevel;
-                int tileCount = tileXCount * tileYCount;
-                cmd.SetGlobalFloat(ShaderIDs.CoCRingCount, 2.0f);
-                cmd.BlitProcedural(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, (int)Pass.BokehUnified, 6, tileCount);
-                */
-                cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, (int)Pass.BokehUnified);
-            }
-            else if (useStaticTiles)
-            {
-                int tileXCount = paddedWidth >> maxCoCMipLevel;
-                int tileYCount = paddedHeight >> maxCoCMipLevel;
-                int tileCount = tileXCount * tileYCount;
-                for (int i = 0; i < 4; ++i)
-                {
-                    cmd.SetGlobalFloat(ShaderIDs.CoCRingCount, i + 1);
-                    cmd.BlitProcedural(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, (int)Pass.BokehKernel1 + i, 6, tileCount);
-                }
-            }
+            if (useDynamicBokeh)
+                cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, (int)Pass.BokehDynamic);
             else
-            {
-                cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, (int)Pass.BokehSmallKernel + (int)settings.kernelSize.value);
-            }
+                cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTex, ShaderIDs.DepthOfFieldTemp, sheet, (int)Pass.BokehSmallKernel);
 
             // Postfilter pass
             cmd.BlitFullscreenTriangle(ShaderIDs.DepthOfFieldTemp, ShaderIDs.DepthOfFieldTex, sheet, (int)Pass.PostFilter);
