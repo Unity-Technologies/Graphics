@@ -24,16 +24,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Before using the AccessFlags use resourceHandle.isValid()
         // to make sure that the data in the colorBuffer/fragmentInput/randomAccessResource buffers are up to date
-        public TextureHandle depthBuffer { get; protected set; }
-        public AccessFlags depthBufferAccessFlags { get; protected set; }
+        public TextureAccess depthAccess { get; protected set; }
 
-        public TextureHandle[] colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
-        public AccessFlags[] colorBufferAccessFlags { get; protected set; } = new AccessFlags[RenderGraph.kMaxMRTCount];
+        public TextureAccess[] colorBufferAccess { get; protected set; } = new TextureAccess[RenderGraph.kMaxMRTCount];
         public int colorBufferMaxIndex { get; protected set; } = -1;
 
         // Used by native pass compiler only
-        public TextureHandle[] fragmentInputs { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
-        public AccessFlags[] fragmentInputAccessFlags { get; protected set; } = new AccessFlags[RenderGraph.kMaxMRTCount];
+        public TextureAccess[] fragmentInputAccess { get; protected set; } = new TextureAccess[RenderGraph.kMaxMRTCount];
         public int fragmentInputMaxIndex { get; protected set; } = -1;
 
         public struct RandomWriteResourceInfo
@@ -105,7 +102,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasRenderAttachments()
         {
-            return depthBuffer.IsValid() || colorBuffers[0].IsValid() || colorBufferMaxIndex > 0;
+            return depthAccess.textureHandle.IsValid() || colorBufferAccess[0].textureHandle.IsValid() || colorBufferMaxIndex > 0;
         }
 
         // Checks if the resource is involved in this pass
@@ -157,10 +154,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             // We ignore the version when checking, if any version is used it is considered a match
 
-            if (depthBuffer.IsValid() && depthBuffer.handle.index == res.handle.index) return true;
-            for (int i = 0; i < colorBuffers.Length; i++)
+            if (depthAccess.textureHandle.IsValid() && depthAccess.textureHandle.handle.index == res.handle.index) return true;
+            for (int i = 0; i < colorBufferAccess.Length; i++)
             {
-                if (colorBuffers[i].IsValid() && colorBuffers[i].handle.index == res.handle.index) return true;
+                if (colorBufferAccess[i].textureHandle.IsValid() && colorBufferAccess[i].textureHandle.handle.index == res.handle.index) return true;
             }
 
             return false;
@@ -232,20 +229,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
-            colorBuffers[index] = resource;
+            colorBufferAccess[index].textureHandle = resource;
             AddResourceWrite(resource.handle);
         }
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetColorBufferRaw(in TextureHandle resource, int index, AccessFlags accessFlags)
+        public void SetColorBufferRaw(in TextureHandle resource, int index, AccessFlags accessFlags, int mipLevel, int depthSlice)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            if (colorBuffers[index].handle.Equals(resource.handle) || !colorBuffers[index].IsValid())
+            if (colorBufferAccess[index].textureHandle.handle.Equals(resource.handle) || !colorBufferAccess[index].textureHandle.IsValid())
             {
                 colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
-                colorBuffers[index] = resource;
-                colorBufferAccessFlags[index] = accessFlags;
+                colorBufferAccess[index].textureHandle = resource;
+                colorBufferAccess[index].flags = accessFlags;
+                colorBufferAccess[index].mipLevel = mipLevel;
+                colorBufferAccess[index].depthSlice = depthSlice;
             }
             else
             {
@@ -258,14 +257,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Sets up the color buffer for this pass but not any resource Read/Writes for it
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetFragmentInputRaw(in TextureHandle resource, int index, AccessFlags accessFlags)
+        public void SetFragmentInputRaw(in TextureHandle resource, int index, AccessFlags accessFlags, int mipLevel, int depthSlice)
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-            if (fragmentInputs[index].handle.Equals(resource.handle) || !fragmentInputs[index].IsValid())
+            if (fragmentInputAccess[index].textureHandle.handle.Equals(resource.handle) || !fragmentInputAccess[index].textureHandle.IsValid())
             {
                 fragmentInputMaxIndex = Math.Max(fragmentInputMaxIndex, index);
-                fragmentInputs[index] = resource;
-                fragmentInputAccessFlags[index] = accessFlags;
+                fragmentInputAccess[index].textureHandle = resource;
+                fragmentInputAccess[index].flags = accessFlags;
+                fragmentInputAccess[index].mipLevel = mipLevel;
+                fragmentInputAccess[index].depthSlice = depthSlice;
             }
             else
             {
@@ -299,7 +300,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetDepthBuffer(in TextureHandle resource, DepthAccess flags)
         {
-            depthBuffer = resource;
+            depthAccess = new TextureAccess(resource, (AccessFlags)flags, 0, 0);
             if ((flags & DepthAccess.Read) != 0)
                 AddResourceRead(resource.handle);
             if ((flags & DepthAccess.Write) != 0)
@@ -308,20 +309,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         // Sets up the depth buffer for this pass but not any resource Read/Writes for it
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetDepthBufferRaw(in TextureHandle resource, AccessFlags accessFlags)
+        public void SetDepthBufferRaw(in TextureHandle resource, AccessFlags accessFlags, int mipLevel, int depthSlice)
         {
             // If no depth buffer yet or if it is the same one as the previous one, allow the call otherwise log an error.
-            if (depthBuffer.handle.Equals(resource.handle) || !depthBuffer.handle.IsValid())
+            if (depthAccess.textureHandle.handle.Equals(resource.handle) || !depthAccess.textureHandle.IsValid())
             {
-                depthBuffer = resource;
-                depthBufferAccessFlags = accessFlags;
+                depthAccess = new TextureAccess(resource, accessFlags, mipLevel, depthSlice);
             }
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             else
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
                 throw new InvalidOperationException("You can only set a single depth texture per pass.");
-#endif
             }
+#endif
         }
 
 
@@ -408,22 +408,26 @@ namespace UnityEngine.Rendering.RenderGraphModule
             hash = hash * 23 + (allowGlobalState ? 1 : 0);
             hash = hash * 23 + (enableFoveatedRasterization ? 1 : 0);
 
-            var depthHandle = depthBuffer.handle;
-            if(depthHandle.IsValid())
+            var depthHandle = depthAccess.textureHandle.handle;
+            if (depthHandle.IsValid())
             {
                 hash = hash * 23 + depthHandle.index;
-                hash = hash * 23 + (int)depthBufferAccessFlags;
+                hash = hash * 23 + (int)depthAccess.flags;
+                hash = hash * 23 + depthAccess.mipLevel;
+                hash = hash * 23 + depthAccess.depthSlice;
                 ComputeTextureHash(ref hash, depthHandle, resources);
             }
 
             for (int i = 0; i < colorBufferMaxIndex + 1; ++i)
             {
-                var handle = colorBuffers[i].handle;
-                if(handle.IsValid())
+                var handle = colorBufferAccess[i].textureHandle.handle;
+                if (handle.IsValid())
                 {
                     ComputeTextureHash(ref hash, handle, resources);
                     hash = hash * 23 + handle.index;
-                    hash = hash * 23 + (int)colorBufferAccessFlags[i];
+                    hash = hash * 23 + (int)colorBufferAccess[i].flags;
+                    hash = hash * 23 + colorBufferAccess[i].mipLevel;
+                    hash = hash * 23 + colorBufferAccess[i].depthSlice;
                 }
             }
 
@@ -431,19 +435,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             for (int i = 0; i < fragmentInputMaxIndex + 1; ++i)
             {
-                var handle = fragmentInputs[i].handle;
-                if(handle.IsValid())
+                var handle = fragmentInputAccess[i].textureHandle.handle;
+                if (handle.IsValid())
                 {
                     ComputeTextureHash(ref hash, handle, resources);
                     hash = hash * 23 + handle.index;
-                    hash = hash * 23 + (int)fragmentInputAccessFlags[i];
+                    hash = hash * 23 + (int)fragmentInputAccess[i].flags;
+                    hash = hash * 23 + fragmentInputAccess[i].mipLevel;
+                    hash = hash * 23 + fragmentInputAccess[i].depthSlice;
                 }
             }
 
             for (int i = 0; i < randomAccessResourceMaxIndex + 1; ++i)
             {
                 var rar = randomAccessResource[i];
-                if(rar.h.IsValid())
+                if (rar.h.IsValid())
                 {
                     hash = hash * 23 + rar.h.index;
                     hash = hash * 23 + (rar.preserveCounterValue ? 1 : 0);
@@ -598,7 +604,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public override void Execute(InternalRenderGraphContext renderGraphContext)
         {
             c.FromInternalContext(renderGraphContext);
-           renderFunc(data, c);
+            renderFunc(data, c);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

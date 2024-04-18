@@ -197,6 +197,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         where ResType : class
     {
         public DescType desc;
+        public bool validDesc; // Does the descriptor contain valid data (this is not always the case for imported resources)
         public ResType graphicsResource;
 
         protected RenderGraphResourcePool<ResType> m_Pool;
@@ -211,6 +212,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             base.Reset();
             m_Pool = pool as RenderGraphResourcePool<ResType>;
             graphicsResource = null;
+            validDesc = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

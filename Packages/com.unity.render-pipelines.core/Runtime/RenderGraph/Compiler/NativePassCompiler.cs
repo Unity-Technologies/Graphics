@@ -175,26 +175,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         ctxPass.firstFragment = ctx.fragmentData.Length;
 
                         // Depth attachment is always at index 0
-                        if (inputPass.depthBuffer.handle.IsValid())
+                        if (inputPass.depthAccess.textureHandle.handle.IsValid())
                         {
                             ctxPass.fragmentInfoHasDepth = true;
 
-                            var resource = inputPass.depthBuffer.handle;
-                            if (ctx.AddToFragmentList(resource, inputPass.depthBufferAccessFlags, ctxPass.firstFragment, ctxPass.numFragments))
+                            if (ctx.AddToFragmentList(inputPass.depthAccess, ctxPass.firstFragment, ctxPass.numFragments))
                             {
-                                ctxPass.AddFragment(resource, ctx);
+                                ctxPass.AddFragment(inputPass.depthAccess.textureHandle.handle, ctx);
                             }
                         }
 
                         for (var ci = 0; ci < inputPass.colorBufferMaxIndex + 1; ++ci)
                         {
                             // Skip unused color slots
-                            if (!inputPass.colorBuffers[ci].handle.IsValid()) continue;
+                            if (!inputPass.colorBufferAccess[ci].textureHandle.handle.IsValid()) continue;
 
-                            var resource = inputPass.colorBuffers[ci].handle;
-                            if (ctx.AddToFragmentList(resource, inputPass.colorBufferAccessFlags[ci], ctxPass.firstFragment, ctxPass.numFragments))
+                            if (ctx.AddToFragmentList(inputPass.colorBufferAccess[ci], ctxPass.firstFragment, ctxPass.numFragments))
                             {
-                                ctxPass.AddFragment(resource, ctx);
+                                ctxPass.AddFragment(inputPass.colorBufferAccess[ci].textureHandle.handle, ctx);
                             }
                         }
 
@@ -203,14 +201,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                         for (var ci = 0; ci < inputPass.fragmentInputMaxIndex + 1; ++ci)
                         {
-                            ref var currInpFragment = ref inputPass.fragmentInputs[ci].handle;
                             // Skip unused fragment input slots
-                            if (!currInpFragment.IsValid()) continue;
+                            if (!inputPass.fragmentInputAccess[ci].textureHandle.IsValid()) continue;
 
-                            var resource = inputPass.fragmentInputs[ci].handle;
-                            if (ctx.AddToFragmentList(resource, inputPass.fragmentInputAccessFlags[ci], ctxPass.firstFragmentInput, ctxPass.numFragmentInputs))
+                            var resource = inputPass.fragmentInputAccess[ci].textureHandle;
+                            if (ctx.AddToFragmentList(inputPass.fragmentInputAccess[ci], ctxPass.firstFragmentInput, ctxPass.numFragmentInputs))
                             {
-                                ctxPass.AddFragmentInput(resource, ctx);
+                                ctxPass.AddFragmentInput(inputPass.fragmentInputAccess[ci].textureHandle.handle, ctx);
                             }
                         }
 
@@ -885,6 +882,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var currStoreAudit = ref nativePass.storeAudit[idx];
 #endif
                     currAttachment.handle = fragment.resource;
+                    currAttachment.mipLevel = fragment.mipLevel;
+                    currAttachment.depthSlice = fragment.depthSlice;
 
                     // Don't care by default
                     currAttachment.loadAction = UnityEngine.Rendering.RenderBufferLoadAction.DontCare;
@@ -1212,7 +1211,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         //but that is why we mark this as a hack and future work to fix.
                         //The proper (and planned) solution would be to move away from the render texture duality.
                         RenderTargetIdentifier rtidAllSlices = rtHandle;
-                        currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(rtidAllSlices, 0, CubemapFace.Unknown, -1);
+                        currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(rtidAllSlices, attachments[i].mipLevel, CubemapFace.Unknown, attachments[i].depthSlice);
 
                         if (attachments[i].storeAction == RenderBufferStoreAction.Resolve ||
                             attachments[i].storeAction == RenderBufferStoreAction.StoreAndResolve)
@@ -1231,7 +1230,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         currBeginAttachment.clearColor = Color.red;
                         currBeginAttachment.clearDepth = 1.0f;
                         currBeginAttachment.clearStencil = 0;
-                        var desc = resources.GetTextureResourceDesc(currAttachmentHandle);
+                        var desc = resources.GetTextureResourceDesc(currAttachmentHandle, true);
                         if (i == 0 && nativePass.hasDepth)
                         {
                             // TODO: There seems to be no clear depth specified ?!?!
