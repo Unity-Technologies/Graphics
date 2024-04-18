@@ -197,7 +197,7 @@ half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
     return half4(maxCoC, 0.0, 0.0, 0.0);
 }
 
-half4 FragExtendCoC(VaryingsDefault i) : SV_Target
+half4 FragNeighborCoC(VaryingsDefault i) : SV_Target
 {
     float tx = _MainTex_TexelSize.x;
     float ty = _MainTex_TexelSize.y;
