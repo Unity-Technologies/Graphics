@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 // This example copies the active color texture to a new texture. This example is for API demonstrative purposes,
@@ -9,63 +10,45 @@ public class CopyRenderFeature : ScriptableRendererFeature
 {
     class CopyRenderPass : ScriptableRenderPass
     {
-        // This class stores the data needed by the pass, passed as parameter to the delegate function that executes the pass
-        private class PassData
-        {
-            internal TextureHandle src;
-        }
+        string m_PassName = "Copy To or From Temp Texture";
 
-        // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass
-        static void ExecutePass(PassData data, RasterGraphContext context)
+        public CopyRenderPass()
         {
-            Blitter.BlitTexture(context.cmd, data.src, new Vector4(1, 1, 0, 0), 0, false);
+            //The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
+            //By setting this property, URP will automatically create an intermediate texture. 
+            //It's good practice to set it here and not from the RenderFeature. This way, the pass is selfcontaining and you can use it to directly enqueue the pass from a monobehaviour without a RenderFeature.
+            requiresIntermediateTexture = true;
         }
 
         // This is where the renderGraph handle can be accessed.
         // Each ScriptableRenderPass can use the RenderGraph handle to add multiple render passes to the render graph
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            string passName = "Copy To Debug Texture";
+            // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
+            // The active color and depth textures are the main color and depth buffers that the camera renders into
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-            // This simple pass copies the active color texture to a new texture. This sample is for API demonstrative purposes,
-            // so the new texture is not used anywhere else in the frame, you can use the frame debugger to verify its contents.
+            // The destination texture is created here, 
+            // the texture is created with the same dimensions as the active color texture
+            var source = resourceData.activeColorTexture;
 
-            // add a raster render pass to the render graph, specifying the name and the data type that will be passed to the ExecutePass function
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
+            var destinationDesc = renderGraph.GetTextureDesc(source);
+            destinationDesc.name = $"CameraColor-{m_PassName}";
+            destinationDesc.clearBuffer = false;
+
+            TextureHandle destination = renderGraph.CreateTexture(destinationDesc);  
+           
+            if (RenderGraphUtils.CanAddCopyPassMSAA())
             {
-                // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
-                // The active color and depth textures are the main color and depth buffers that the camera renders into
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                // This simple pass copies the active color texture to a new texture. 
+                renderGraph.AddCopyPass(resourceData.activeColorTexture, destination, passName: m_PassName);
 
-                // Fill up the passData with the data needed by the pass
-
-                // Get the active color texture through the frame data, and set it as the source texture for the blit
-                passData.src = resourceData.activeColorTexture;
-
-                // The destination texture is created here, 
-                // the texture is created with the same dimensions as the active color texture, but with no depth buffer, being a copy of the color texture
-                // we also disable MSAA as we don't need multisampled textures for this sample
-
-                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                RenderTextureDescriptor desc = cameraData.cameraTargetDescriptor;
-                desc.msaaSamples = 1;
-                desc.depthBufferBits = 0;
-
-                TextureHandle destination =
-                    UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "CopyTexture", false);
-
-                // We declare the src texture as an input dependency to this pass, via UseTexture()
-                builder.UseTexture(passData.src);
-
-                // Setup as a render target via UseTextureFragment, which is the equivalent of using the old cmd.SetRenderTarget
-                builder.SetRenderAttachment(destination, 0);
-
-                // We disable culling for this pass for the demonstrative purpose of this sample, as normally this pass would be culled,
-                // since the destination texture is not used anywhere else
-                builder.AllowPassCulling(false);
-
-                // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
+                //Need to copy back otherwise the pass gets culled since the result of the previous copy is not read. This is just for demonstration purposes.
+                renderGraph.AddCopyPass(destination, resourceData.activeColorTexture, passName: m_PassName);
+            }
+            else
+            {
+                Debug.Log("Can't add the copy pass due to MSAA");
             }
         }
     }
