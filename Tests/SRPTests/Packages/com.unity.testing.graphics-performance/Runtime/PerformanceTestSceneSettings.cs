@@ -12,6 +12,7 @@ namespace UnityEngine.TestTools.Graphics.Performance
             R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
             R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+            R8G8B8A8_SRGB = GraphicsFormat.R8G8B8A8_SRGB
         }
 
         [HideInInspector, System.NonSerialized]

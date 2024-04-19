@@ -1,7 +1,7 @@
 {
   "name": "com.unity.testing.graphics-performance",
   "displayName": "Performance Graphics Tests Framework",
-  "version": "17.1.2",
+  "version": "17.2.0",
   "unity": "6000.0",
   "unityRelease": "0b15",
   "rootNamespace": "UnityEngine.TestTools.Graphics.Performance",

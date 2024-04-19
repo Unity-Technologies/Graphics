@@ -3,7 +3,7 @@
     [
         {
              "ValidationTest": "NDA Filename Validation",
-             "PackageVersion": "17.1.1"
+             "PackageVersion": "17.2.0"
         }
     ]
 }

@@ -26,15 +26,7 @@ namespace UnityEngine.TestTools.Graphics.Performance
             // Add all test scenes from the asset to the build settings:
             if (testScenesAsset)
             {
-                var testScenes = testScenesAsset.GetAllTests()
-                                                .Select(test =>
-                                                {
-                                                    var scene = SceneManager.GetSceneByName(test.sceneData.scene);
-                                                    var sceneGUID = AssetDatabase.FindAssets($"t:Scene {test.sceneData.scene}").FirstOrDefault();
-                                                    var scenePath = AssetDatabase.GUIDToAssetPath(sceneGUID);
-                                                    return new EditorBuildSettingsScene(scenePath, true);
-                                                });
-                EditorBuildSettings.scenes = testScenes.ToArray();
+                EditorBuildSettings.scenes = testScenesAsset.ConvertTestDataScenesToBuildSettings();
             }
 
             EditorUserBuildSettings.ps4HardwareTarget = PS4HardwareTarget.BaseOnly;
