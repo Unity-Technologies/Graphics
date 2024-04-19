@@ -101,7 +101,6 @@ Shader "Hidden/PostProcessing/DepthOfField"
                 #pragma target 3.5
                 #pragma vertex VertDefault
                 #pragma fragment FragBlurDynamic
-                #define KERNEL_UNIFIED 4
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
@@ -205,7 +204,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             HLSLPROGRAM
                 #pragma target 3.5
                 #pragma vertex VertDefault
-                #pragma fragment FragExtendCoC
+                #pragma fragment FragNeighborCoC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
@@ -243,7 +242,6 @@ Shader "Hidden/PostProcessing/DepthOfField"
                 #pragma target 3.5
                 #pragma vertex VertDefault
                 #pragma fragment FragBlurDynamic
-                #define KERNEL_UNIFIED 4
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }

@@ -228,8 +228,13 @@ half4 FragNeighborCoC(VaryingsDefault i) : SV_Target
 
 void AccumSample(int si, half4 samp0, float2 texcoord, inout half4 bgAcc, inout half4 fgAcc)
 {
+#if defined(KERNEL_SMALL)
+    half2 disp = kSmallDiskKernel[si].xy * _KernelScale.xy;
+    half dist = kSmallDiskKernel[si].z * _KernelScale.z;
+#else
     half2 disp = kDiskAllKernels[si].xy * _KernelScale.xy;
     half dist = kDiskAllKernels[si].z * _KernelScale.z;
+#endif
     half2 duv = disp;
 
     half4 samp = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, UnityStereoTransformScreenSpaceTex(texcoord + duv));
@@ -252,7 +257,6 @@ void AccumSample(int si, half4 samp0, float2 texcoord, inout half4 bgAcc, inout 
     fgAcc += half4(samp.rgb, 1.0) * fgWeight;
 }
 
-#if defined(KERNEL_SMALL)
 half4 FragBlurSmallBokeh (VaryingsDefault i) : SV_Target
 {
     half4 samp0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
@@ -286,7 +290,7 @@ half4 FragBlurSmallBokeh (VaryingsDefault i) : SV_Target
     bgAcc.a = smoothstep(_MainTex_TexelSize.y, _MainTex_TexelSize.y * 2.0, samp0.a);
 
     // FG: Normalize the total of the weights.
-    fgAcc.a *= PI / kSampleCount;
+    fgAcc.a *= PI / kSmallSampleCount;
 
     // Alpha premultiplying
     half alpha = saturate(fgAcc.a);
@@ -294,7 +298,6 @@ half4 FragBlurSmallBokeh (VaryingsDefault i) : SV_Target
 
     return half4(rgb, alpha);
 }
-#endif
 
 // Bokeh filter with disk-shaped kernels
 half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
