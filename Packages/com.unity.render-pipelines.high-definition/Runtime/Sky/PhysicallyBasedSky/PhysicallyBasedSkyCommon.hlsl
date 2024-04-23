@@ -494,7 +494,7 @@ float3 EvaluateSunColorAttenuation(float cosTheta, float r)
 }
 
 // This function evaluates the sun color attenuation from the physically based sky
-float3 EvaluateSunColorAttenuation(float3 positionPS, float3 sunDirection)
+float3 EvaluateSunColorAttenuation(float3 positionPS, float3 sunDirection, bool estimatePenumbra = false)
 {
     float r        = length(positionPS);
     float cosTheta = dot(positionPS, sunDirection) * rcp(r); // Normalize
@@ -507,7 +507,9 @@ float3 EvaluateSunColorAttenuation(float3 positionPS, float3 sunDirection)
     {
         float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
         float3 opacity = 1 - TransmittanceFromOpticalDepth(oDepth);
-        return 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+        float penumbra = saturate((cosTheta - cosHoriz) / 0.0019f); // very scientific value
+        float3 attenuation = 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
+        return estimatePenumbra ? attenuation * penumbra : attenuation;
     }
     else
     {

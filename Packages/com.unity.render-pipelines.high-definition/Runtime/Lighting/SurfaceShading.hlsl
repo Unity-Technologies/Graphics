@@ -82,12 +82,24 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         float4 lightColor = EvaluateLight_Directional(lightLoopContext, posInput, light);
         lightColor.rgb *= lightColor.a; // Composite
 
+        float cloudShadow = 1.0f;
+#ifndef LIGHT_EVALUATION_NO_CLOUDS_SHADOWS
+        // Apply the volumetric cloud shadow if relevant
+        // We evaluate them here instead of inside EvaluateLight_Directional to be able to apply it on objects
+        // with transmission and still benefit from shadow dimmer and colored shadows
+        if (light.shadowIndex >= 0 && _VolumetricCloudsShadowOriginToggle.w == 1.0)
+        {
+            cloudShadow = EvaluateVolumetricCloudsShadows(light, posInput.positionWS);
+            lightLoopContext.shadowValue *= cloudShadow;
+        }
+#endif
+
 #ifdef MATERIAL_INCLUDE_TRANSMISSION
         if (ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, 0))
         {
             // Transmission through thick objects does not support shadowing
             // from directional lights. It will use the 'baked' transmittance value.
-            lightColor *= _DirectionalTransmissionMultiplier;
+            lightColor *= _DirectionalTransmissionMultiplier * cloudShadow;
         }
         else
 #endif

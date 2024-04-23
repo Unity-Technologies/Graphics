@@ -117,10 +117,11 @@ float4 GetCloudLayerColor(float3 dir, int index)
         cloud = SampleCloudMap(dir, index);
 
     float3 lightColor = _SunLightColor(index);
-    float3 ambient = SampleSH9(_AmbientProbeBuffer, float3(0, -1, 0)) * _AmbientDimmer(index);
+    float3 ambient = max(SampleSH9(_AmbientProbeBuffer, float3(0, -1, 0)), 0) * _AmbientDimmer(index);
 
     #ifdef PHYSICALLY_BASED_SUN
-    lightColor *= EvaluateSunColorAttenuation(position + float3(0,_PlanetaryRadius,0), _SunDirection);
+    float3 positionPS = position + float3(0,_PlanetaryRadius,0);
+    lightColor *= EvaluateSunColorAttenuation(positionPS, _SunDirection, true);
     #endif
 
     return float4(cloud.x * lightColor + ambient * cloud.y, cloud.y) * _Opacity;
