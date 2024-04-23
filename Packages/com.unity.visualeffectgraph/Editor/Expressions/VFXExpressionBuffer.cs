@@ -45,22 +45,15 @@ namespace UnityEditor.VFX
 #pragma warning disable 0659
     class VFXExpressionSampleBuffer : VFXExpression
     {
-        public VFXExpressionSampleBuffer() : this(null, VFXValueType.None, string.Empty, VFXValue<GraphicsBuffer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        public VFXExpressionSampleBuffer() : this(VFXValueType.None, string.Empty, VFXValue<GraphicsBuffer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        private Type m_SampledType;
         private VFXValueType m_FieldType;
         private string m_FieldPath;
 
-        public Type GetSampledType()
+        public VFXExpressionSampleBuffer(VFXValueType fieldType, string path, VFXExpression graphicsBuffer, VFXExpression index, VFXExpression stride, VFXExpression count) : base(Flags.InvalidOnCPU, graphicsBuffer, index, stride, count)
         {
-            return m_SampledType;
-        }
-
-        public VFXExpressionSampleBuffer(Type sampledType, VFXValueType fieldType, string path, VFXExpression graphicsBuffer, VFXExpression index, VFXExpression stride, VFXExpression count) : base(Flags.InvalidOnCPU, graphicsBuffer, index, stride, count)
-        {
-            m_SampledType = sampledType;
             m_FieldType = fieldType;
             m_FieldPath = path;
         }
@@ -74,13 +67,12 @@ namespace UnityEditor.VFX
             if (other == null)
                 return false;
 
-            return m_SampledType.Equals(other.m_SampledType) && m_FieldPath.Equals(other.m_FieldPath) && m_FieldType.Equals(other.m_FieldType);
+            return m_FieldPath.Equals(other.m_FieldPath) && m_FieldType.Equals(other.m_FieldType);
         }
 
         protected override int GetInnerHashCode()
         {
             int hash = base.GetInnerHashCode();
-            hash = (hash * 397) ^ m_SampledType.GetHashCode();
             hash = (hash * 397) ^ m_FieldPath.GetHashCode();
             hash = (hash * 397) ^ m_FieldType.GetHashCode();
             return hash;
@@ -89,7 +81,6 @@ namespace UnityEditor.VFX
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var newExpression = (VFXExpressionSampleBuffer)base.Reduce(reducedParents);
-            newExpression.m_SampledType = m_SampledType;
             newExpression.m_FieldPath = m_FieldPath;
             newExpression.m_FieldType = m_FieldType;
             return newExpression;

@@ -82,17 +82,17 @@ namespace UnityEditor.VFX
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
 
-            var graphicsBufferUsageType = m_GraphicsBufferUsageType
+            var bufferUsage = m_BufferUsage
                 .Concat(expressionContext.GraphicsBufferUsageType)
                 .GroupBy(o => o.Key).ToArray();
 
-            m_GraphicsBufferUsageType.Clear();
-            foreach (var expression in graphicsBufferUsageType)
+            m_BufferUsage.Clear();
+            foreach (var expression in bufferUsage)
             {
                 var types = expression.Select(o => o.Value);
                 if (types.Count() != 1)
                     throw new InvalidOperationException("Diverging type usage for GraphicsBuffer : " + types.Select(o => o.ToString()).Aggregate((a, b) => a + b));
-                m_GraphicsBufferUsageType.Add(expression.Key, types.First());
+                m_BufferUsage.Add(expression.Key, types.First());
             }
 
             if (target == VFXDeviceTarget.GPU)
@@ -294,12 +294,12 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes => m_GlobalEventAttributes;
 
-        public ReadOnlyDictionary<VFXExpression, Type> GraphicsBufferTypeUsage => new ReadOnlyDictionary<VFXExpression, Type>(m_GraphicsBufferUsageType);
+        public ReadOnlyDictionary<VFXExpression, BufferUsage> BufferUsage => new ReadOnlyDictionary<VFXExpression, BufferUsage>(m_BufferUsage);
 
         public IHLSLCodeHolder[] customHLSLExpressions => m_CustomHLSLExpressions;
 
         private IHLSLCodeHolder[] m_CustomHLSLExpressions;
-        private Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
+        private Dictionary<VFXExpression, BufferUsage> m_BufferUsage = new Dictionary<VFXExpression, BufferUsage>();
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();

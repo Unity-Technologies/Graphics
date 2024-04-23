@@ -466,9 +466,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var parameterBuffer = new VFXShaderWriter();
             needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(taskData.uniformMapper);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
+            parameterBuffer.WriteBufferTypeDeclaration(taskData.bufferUsage.Values);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.graphicsBufferUsage);
+            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.bufferUsage);
             parameterBuffer.WriteLine();
             parameterBuffer.WriteTexture(taskData.uniformMapper, filteredOutTextures);
             parameterBufferContent = parameterBuffer.ToString();
@@ -697,7 +697,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var allSourceAttributes = contextData.GetAttributes().Where(a => (contextData.IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
+            globalDeclaration.WriteBufferTypeDeclaration(taskData.bufferUsage.Values);
             globalDeclaration.WriteLine();
             var particleData = (contextData as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
@@ -705,7 +705,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(taskData.uniformMapper);
             globalDeclaration.WriteLine();
 
-            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.graphicsBufferUsage);
+            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.bufferUsage);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteTexture(taskData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "VFXAttributes");
@@ -978,7 +978,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!blockDeclared.Contains(methodName))
             {
                 blockDeclared.Add(methodName);
-                blockFunction.WriteBlockFunction(taskData.gpuMapper,
+                blockFunction.WriteBlockFunction(taskData,
                     methodName,
                     block.source,
                     parameters,

@@ -23,17 +23,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                foreach (var type in VFXLibrary.GetSlotsType())
-                {
-                    if (VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type)))
-                        yield return type;
-                    else
-                    {
-                        var typeAttribute = VFXLibrary.GetAttributeFromSlotType(type);
-                        if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
-                            yield return type;
-                    }
-                }
+                return VFXLibrary.GetGraphicsBufferType();
             }
         }
 
@@ -91,10 +81,15 @@ namespace UnityEditor.VFX.Operator
             index = VFXOperatorUtility.ApplyAddressingMode(index, count, mode);
             var stride = new VFXExpressionBufferStride(buffer);
             var expressions = new List<VFXExpression>();
+
+            var type = (Type)m_Type;
+            var usage = new BufferUsage(BufferUsage.Container.StructuredBuffer, type.Name, type);
+
+            var bufferWithUsage = new VFXExpressionBufferWithType(usage, buffer);
             foreach (var slot in slots)
             {
                 var path = ComputeSlotPath(slot);
-                var current = new VFXExpressionSampleBuffer(m_Type, slot.valueType, path, buffer, index, stride, count);
+                var current = new VFXExpressionSampleBuffer(slot.valueType, path, bufferWithUsage, index, stride, count);
                 expressions.Add(current);
             }
             return expressions.ToArray();

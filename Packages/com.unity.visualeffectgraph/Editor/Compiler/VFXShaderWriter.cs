@@ -303,10 +303,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void WriteBufferTypeDeclaration(IEnumerable<Type> types)
+        public void WriteBufferTypeDeclaration(IEnumerable<BufferUsage> usages)
         {
-            types = types.Select(type =>
+            var types = usages.Select(usage =>
             {
+                var type = usage.actualType;
                 if (IsBufferBuiltinType(type))
                 {
                     //Resolve type which are conflicting behind the same VFXValueType (Vector4 & Color for instance)
@@ -318,26 +319,25 @@ namespace UnityEditor.VFX
 
             var alreadyGeneratedStructure = new HashSet<Type>();
             foreach (var type in types)
+            {
+                if (type == typeof(void))
+                    continue;
+                     
                 WriteBufferTypeDeclaration(type, alreadyGeneratedStructure);
+            }
         }
 
-        public void WriteBuffer(VFXUniformMapper mapper, ReadOnlyDictionary<VFXExpression, Type> usageGraphicsBuffer)
+        public void WriteBuffer(VFXUniformMapper mapper, ReadOnlyDictionary<VFXExpression, BufferUsage> usageBuffer)
         {
             foreach (var buffer in mapper.buffers)
             {
                 var name = mapper.GetName(buffer);
-
-                if (buffer.valueType == VFXValueType.Buffer && usageGraphicsBuffer.TryGetValue(buffer, out var type))
+                if (buffer.valueType == VFXValueType.Buffer && usageBuffer.TryGetValue(buffer, out var type))
                 {
-                    if (type == null)
+                    if (!type.valid)
                         throw new NullReferenceException("Unexpected null type in graphicsBuffer usage");
 
-                    var structureName = GetStructureName(type);
-                    WriteLineFormat("StructuredBuffer<{0}> {1};", structureName, name);
-                }
-                else if (buffer is VFXGraphicsBufferValue graphicsBufferValue && !string.IsNullOrEmpty(graphicsBufferValue.templateType))
-                {
-                    WriteLineFormat("{0} {1};", VFXExpression.TypeToCode(buffer.valueType), name);
+                    WriteLineFormat("{0} {1};", GetBufferDeclaration(type), name);
                 }
                 else
                 {
@@ -494,7 +494,19 @@ namespace UnityEditor.VFX
             return parameters.Count == 0 ? "" : parameters.Aggregate((a, b) => a + ", " + b);
         }
 
-        private static string GetFunctionParameterType(VFXExpression exp)
+        private static string GetBufferDeclaration(BufferUsage bufferUsage)
+        {
+            if (string.IsNullOrEmpty(bufferUsage.verbatimType))
+                return bufferUsage.container.ToString();
+
+            var verbatimType = IsBufferBuiltinType(bufferUsage.actualType)
+                ? VFXExpression.TypeToCode(VFXExpression.GetVFXValueTypeFromType(bufferUsage.actualType))
+                : bufferUsage.verbatimType;
+
+            return $"{bufferUsage.container}<{verbatimType}>";
+        }
+
+        private static string GetFunctionParameterType(VFXExpression exp, ReadOnlyDictionary<VFXExpression, BufferUsage> usages)
         {
             switch (exp.valueType)
             {
@@ -505,8 +517,9 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
                 case VFXValueType.CameraBuffer: return "VFXSamplerCameraBuffer";
                 case VFXValueType.Buffer:
-                    var bufferExpression = (VFXGraphicsBufferValue)exp;
-                    return string.IsNullOrEmpty(bufferExpression.templateType) ? "ByteAddressBuffer" : $"StructuredBuffer<{bufferExpression.templateType}>";
+                    if (!usages.TryGetValue(exp, out var usage))
+                        throw new KeyNotFoundException("Cannot find appropriate usage for " + exp);
+                    return GetBufferDeclaration(usage);
                 default:
                     return VFXExpression.TypeToCode(exp.valueType);
             }
@@ -544,13 +557,13 @@ namespace UnityEditor.VFX
             public VFXAttributeMode mode;
         }
 
-        public void WriteBlockFunction(VFXExpressionMapper mapper, string functionName, string source, IEnumerable<FunctionParameter> parameters, string commentMethod)
+        public void WriteBlockFunction(VFXTaskCompiledData taskData, string functionName, string source, IEnumerable<FunctionParameter> parameters, string commentMethod)
         {
             var parametersCode = new List<string>();
             foreach (var parameter in parameters)
             {
                 var inputModifier = GetInputModifier(parameter.mode);
-                var parameterType = GetFunctionParameterType(parameter.expression);
+                var parameterType = GetFunctionParameterType(parameter.expression, taskData.bufferUsage);
                 parametersCode.Add(string.Format("{0}{1} {2}", inputModifier, parameterType, parameter.name));
             }
 

@@ -121,21 +121,26 @@ namespace UnityEditor.VFX.Block
                 {
                     if (expression.exp is VFXGraphicsBufferValue bufferExpression)
                     {
-                        string templatedType = null;
+                        var usage = new BufferUsage();
                         var property = m_Properties.Find(x => x.property.name == expression.name);
                         foreach (var attribute in property.property.attributes.attributes)
                         {
-                            if (attribute is TemplatedTypeAttribute templatedTypeAttribute)
+                            if (attribute is GraphicsBufferUsageAttribute graphicsBufferUsage)
                             {
-                                templatedType = templatedTypeAttribute.type;
+                                usage = graphicsBufferUsage.usage;
                                 break;
                             }
                         }
 
-                        bufferExpression.templateType = templatedType;
-                    }
+                        if (!usage.valid)
+                            throw new InvalidOperationException($"Unexpected missing GraphicsBufferUsageAttribute at {expression.name}");
 
-                    yield return expression;
+                        var expressionBufferWithType = new VFXExpressionBufferWithType(usage, expression.exp);
+                        yield return new VFXNamedExpression(expressionBufferWithType, expression.name);
+
+                    }
+                    else
+                        yield return expression;
                 }
             }
         }
@@ -344,9 +349,9 @@ namespace UnityEditor.VFX.Block
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
         {
             var propertyAttributes = new List<PropertyAttribute>();
-            if (!string.IsNullOrEmpty(parameter.templatedType))
+            if (parameter.bufferUsage.valid)
             {
-                propertyAttributes.Add(new TemplatedTypeAttribute(parameter.templatedType));
+                propertyAttributes.Add(new GraphicsBufferUsageAttribute(parameter.bufferUsage));
             }
 
             if (!string.IsNullOrEmpty(parameter.tooltip))

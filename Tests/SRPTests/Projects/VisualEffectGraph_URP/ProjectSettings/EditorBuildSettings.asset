@@ -81,6 +81,12 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/025_Flipbook.unity
     guid: 5225b8aba587ba546b0315581715cd5b
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/025_ShaderKeywords.unity
+    guid: e11040b9d33c05d42aa28be2278f0146
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/026_RWBuffer.unity
+    guid: 6ae9549c79226fb458d7fec09ac258df
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1
@@ -146,9 +152,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/Instancing/40_InstancingSplitCompute.unity
     guid: 3cad14ca912fac94c86c2c740e932fc2
-  - enabled: 1
-    path: Packages/com.unity.testing.visualeffectgraph/Scenes/025_ShaderKeywords.unity
-    guid: e11040b9d33c05d42aa28be2278f0146
   - enabled: 1
     path: Assets/GraphicsTests/43_OddNegativeScale/43_OddNegativeScale.unity
     guid: 1b0e8bd450fc8f349b6bbd4f9230b3d9

@@ -169,48 +169,29 @@ namespace UnityEditor.VFX
                             } //else sourceExpression is null, we can't determine usage but it's possible if value is declared but not used.
                             break;
 
-                        case VFXValueType.Buffer:
-                        {
-                            //Save expression usage for later HLSL shader generation
-                            if (targetExpression is VFXExpressionSampleBuffer expressionSampleBuffer)
-                            {
-                                var sampledType = expressionSampleBuffer.GetSampledType();
-                                if (!m_GraphicsBufferUsageType.TryGetValue(input, out var registeredType))
-                                {
-                                    m_GraphicsBufferUsageType.Add(input, sampledType);
-                                }
-                                else if (registeredType != sampledType)
-                                {
-                                    throw new InvalidOperationException(string.Format("Diverging type usage for GraphicsBuffer : {0}, {1}", registeredType, sampledType));
-                                }
-                            }
-                            else if (input is VFXGraphicsBufferValue graphicsBufferValue && !string.IsNullOrEmpty(graphicsBufferValue.templateType))
-                            {
-                                if (!m_GraphicsBufferUsageType.TryGetValue(input, out var _))
-                                {
-                                    m_GraphicsBufferUsageType.Add(input, StringToType(graphicsBufferValue.templateType));
-                                }
-                            }
-                        }
-                        break;
-
                         default:
                             //Nothing to patch on this type
                             break;
                     }
+                }
 
-                    if (input.valueType == VFXValueType.Buffer && targetExpression is VFXExpressionSampleBuffer)
+                if (input.valueType == VFXValueType.Buffer && input is VFXExpressionBufferWithType bufferWithType)
+                {
+                    input = input.parents[0]; //Explicitly skip NoOp expression
+                    var usageType = bufferWithType.usage;
+
+                    if (!m_GraphicsBufferUsageType.TryGetValue(input, out var registeredType))
                     {
-                        if (!m_GraphicsBufferUsageType.ContainsKey(input))
-                        {
-                            m_GraphicsBufferUsageType.Add(input, (targetExpression as VFXExpressionSampleBuffer).GetSampledType());
-                        }
+                        m_GraphicsBufferUsageType.Add(input, usageType);
+                    }
+                    else if (registeredType != usageType)
+                    {
+                        throw new InvalidOperationException($"Diverging type usage for GraphicsBuffer : {registeredType}, {usageType}");
                     }
                 }
 
-                if (patchReadAttributeForSpawn && input is VFXAttributeExpression)
+                if (patchReadAttributeForSpawn && input is VFXAttributeExpression attribute)
                 {
-                    var attribute = input as VFXAttributeExpression;
                     if (attribute.attributeLocation == VFXAttributeLocation.Current)
                     {
                         if (globalEventAttribute == null)
@@ -308,12 +289,12 @@ namespace UnityEditor.VFX
 
             public ReadOnlyCollection<VFXExpression> RegisteredExpressions { get { return m_EndExpressions.ToList().AsReadOnly(); } }
 
-            public IEnumerable<KeyValuePair<VFXExpression, Type>> GraphicsBufferUsageType { get { return m_GraphicsBufferUsageType; } }
+            public IEnumerable<KeyValuePair<VFXExpression, BufferUsage>> GraphicsBufferUsageType { get { return m_GraphicsBufferUsageType; } }
             public IHLSLCodeHolder[] hlslCodeHolders => m_HLSLCollection.ToArray();
 
             private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new Dictionary<VFXExpression, VFXExpression>();
             private HashSet<VFXExpression> m_EndExpressions = new HashSet<VFXExpression>();
-            private Dictionary<VFXExpression, Type> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, Type>();
+            private Dictionary<VFXExpression, BufferUsage> m_GraphicsBufferUsageType = new Dictionary<VFXExpression, BufferUsage>();
 
             private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;
