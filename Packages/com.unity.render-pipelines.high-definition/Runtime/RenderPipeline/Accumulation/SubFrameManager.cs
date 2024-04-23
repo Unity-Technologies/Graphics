@@ -322,7 +322,8 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (time > m_ShutterBeginsClosing)
             {
                 float closingSlope = 1.0f / (1.0f - m_ShutterBeginsClosing);
-                return 1.0f - closingSlope * (time - m_ShutterBeginsClosing);
+                // We are using max to prevent the weight from going negative due to numerical imprecision 
+                return Mathf.Max(0.0f, 1.0f - closingSlope * (time - m_ShutterBeginsClosing));
             }
             else
             {
