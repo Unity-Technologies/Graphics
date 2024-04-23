@@ -346,6 +346,10 @@ void ApplyDecalToSurfaceNormal(DecalSurfaceData decalSurfaceData, inout float3 n
 void ApplyDecalToSurfaceNormal(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout float3 normalTS)
 {
     // Always test the normal as we can have decompression artifact
+    float3 addValue = float3(0.0,0.0,0.0);
     if (decalSurfaceData.normalWS.w < 1.0)
-        normalTS += SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
+    {
+        addValue = SurfaceGradientFromVolumeGradient (vtxNormal, decalSurfaceData.normalWS.xyz);
+    }
+    normalTS += addValue;
 }
