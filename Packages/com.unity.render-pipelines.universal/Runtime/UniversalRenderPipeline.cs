@@ -2333,15 +2333,17 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         static void AdjustUIOverlayOwnership(int cameraCount)
         {
-            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
-            // If there is no camera to render in URP, SS UI overlay has to be rendered in the engine
+            // If rendering to XR device, we don't render Screen Space UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            // If there is no camera to render in URP, SS UI overlay also has to be rendered in the engine
             if (XRSystem.displayActive || cameraCount == 0)
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = false;
             }
-            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            else if (HDROutputForAnyDisplayIsActive())
+            else
             {
+                // Otherwise we enforce SS UI overlay rendering in URP
+                // If needed, users can still request its rendering to be after URP
+                // by setting rendersUIOverlay (public API) to false in a callback added to RenderPipelineManager.beginContextRendering
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
         }
