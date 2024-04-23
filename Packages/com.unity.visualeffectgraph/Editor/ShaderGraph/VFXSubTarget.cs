@@ -140,6 +140,8 @@ namespace UnityEditor.VFX
 
         static void GenerateVFXAdditionalCommands(VFXContext context, VFXSRPBinder srp, VFXSRPBinder.ShaderGraphBinder shaderGraphBinder, VFXTaskCompiledData taskData,
             out AdditionalCommandDescriptor srpCommonInclude,
+            out AdditionalCommandDescriptor perBlockDefines,
+            out AdditionalCommandDescriptor perBlockIncludes,
             out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
@@ -177,7 +179,14 @@ namespace UnityEditor.VFX
 
             // Graph Blocks
             var expressionToName = VFXCodeGenerator.BuildExpressionToName(context, taskData);
-            VFXCodeGenerator.BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction);
+            VFXCodeGenerator.BuildContextBlocks(context, taskData, expressionToName,
+                out var blockFunction,
+                out var blockCallFunction,
+                out var blockIncludes,
+                out var blockDefines);
+
+            perBlockDefines = new AdditionalCommandDescriptor("VFXPerBlockDefines", blockDefines.builder.ToString());
+            perBlockIncludes = new AdditionalCommandDescriptor("VFXPerBlockIncludes", blockIncludes.builder.ToString());
 
             blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction.builder.ToString());
             blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction.builder.ToString());
@@ -452,6 +461,8 @@ namespace UnityEditor.VFX
             GenerateVFXAdditionalCommands(
                 context, srp, shaderGraphSRPInfo, data,
                 out var srpCommonInclude,
+                out var perBlockDefines,
+                out var perBlockIncludes,
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
@@ -512,6 +523,8 @@ namespace UnityEditor.VFX
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
                     srpCommonInclude,
+                    perBlockDefines,
+                    perBlockIncludes,
                     loadAttributeDescriptor,
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,

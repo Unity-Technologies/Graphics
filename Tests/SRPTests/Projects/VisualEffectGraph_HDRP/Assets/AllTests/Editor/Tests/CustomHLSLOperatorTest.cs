@@ -105,6 +105,67 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(expectedGeneratedCode, hlslExpression.customCode);
         }
 
+        [UnityTest, Description("Regression for UUM-69735")]
+        public IEnumerator Check_CustomHLSL_Operator_Use_Shader_File_And_ShaderGraph()
+        {
+            var hlslCode = @"
+float3 GetCustomColor(in float3 vec)
+{
+    return float3(0.1f, 0.2f, 0.3f);
+}";
+            var shaderInclude = CustomHLSLBlockTest.CreateShaderFile(hlslCode, out var shaderIncludePath);
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+            hlslOperator.SetSettingValue("m_ShaderFile", shaderInclude);
+            hlslOperator.SetSettingValue("m_OperatorName", "GetCustomColor");
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            var vfxAsset = graph.GetResource().asset;
+            var outputToReplace = graph.children.OfType<VFXContext>().First(o => o.contextType.HasFlag(VFXContextType.Output));
+            var shaderGraphVariant = VFXLibrary.GetContexts().First(o => o.model is VFXComposedParticleOutput);
+
+            var newShaderGraphOutput = shaderGraphVariant.CreateInstance();
+            graph.AddChild(newShaderGraphOutput);
+            Assert.IsTrue(newShaderGraphOutput.GetSetting("shaderGraph").valid);
+
+            var tracker = "Find_Me_In_Generated_Name";
+            newShaderGraphOutput.label = tracker;
+            newShaderGraphOutput.LinkFrom(outputToReplace.inputFlowSlot[0].link.First().context);
+            outputToReplace.UnlinkAll();
+            graph.RemoveChild(outputToReplace);
+
+            var blockSetColor = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            blockSetColor.SetSettingValue("attribute", "color");
+            newShaderGraphOutput.AddChild(blockSetColor);
+            Assert.IsTrue(hlslOperator.outputSlots[0].Link(blockSetColor.inputSlots[0]));
+
+            var blockOrientCameraPlane = ScriptableObject.CreateInstance<Block.Orient>();
+            blockOrientCameraPlane.SetSettingValue("faceRay", true);
+            blockOrientCameraPlane.SetSettingValue("mode", Block.Orient.Mode.FaceCameraPlane);
+            newShaderGraphOutput.AddChild(blockOrientCameraPlane);
+            var defineToFind = blockOrientCameraPlane.defines.First();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+            yield return null;
+
+            string source = null;
+            for (int shaderIndex = 0; shaderIndex < graph.GetResource().GetShaderSourceCount(); shaderIndex++)
+            {
+                var name = graph.GetResource().GetShaderSourceName(shaderIndex);
+                if (name.Contains(tracker))
+                {
+                    source = graph.GetResource().GetShaderSource(shaderIndex);
+                    break;
+                }
+            }
+            Assert.IsNotNull(source);
+            Assert.IsTrue(source.Contains(shaderIncludePath, StringComparison.Ordinal));
+            Assert.IsTrue(source.Contains(defineToFind, StringComparison.Ordinal));
+
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Check_CustomHLSL_Operator_Return_Type_Is_Void()
         {

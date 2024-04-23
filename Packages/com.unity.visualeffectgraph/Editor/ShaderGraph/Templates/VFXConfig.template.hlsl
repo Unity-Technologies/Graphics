@@ -56,14 +56,17 @@ UNITY_INSTANCING_BUFFER_END(PerInstance)
     #define VFX_GET_INSTANCE_ID(i)      input.instanceID
 #endif
 
+$splice(VFXPerBlockDefines)
+
 $splice(VFXSRPCommonInclude)
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+$splice(VFXPerBlockIncludes)
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"
 
 $splice(VFXParameterBuffer)
 
 $splice(VFXGeneratedBlockFunction)
 
-#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"
 
 struct AttributesElement
 {
