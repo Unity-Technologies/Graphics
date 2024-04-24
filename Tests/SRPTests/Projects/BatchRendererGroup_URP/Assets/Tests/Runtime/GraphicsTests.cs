@@ -16,11 +16,26 @@ public class GraphicsTests
 #endif
     public const string path = "Assets/ReferenceImages";
 
+#if UNITY_WEBGL || UNITY_ANDROID
+    [UnitySetUp]
+    public IEnumerator SetUp()
+    {
+        yield return RuntimeGraphicsTestCaseProvider.EnsureGetReferenceImageBundlesAsync();
+    }
+#endif
+
     [UnityTest, Category("GraphicsTest")]
+#if UNITY_EDITOR
     [PrebuildSetup("SetupGraphicsTestCases")]
+#endif
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+#if UNITY_WEBGL || UNITY_ANDROID
+        RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
+#endif
+        
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
