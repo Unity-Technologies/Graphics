@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
                 if (bakingSet.skyOcclusionShadingDirection)
                     directionResults = new NativeArray<Vector3>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-                // Create acceletation structure
+                // Create acceleration structure
                 m_AccelerationStructure = BuildAccelerationStructure();
                 var skyOcclusionShader = s_TracingContext.shaderSO;
                 bool skyDirection = shadingDirections.IsCreated;

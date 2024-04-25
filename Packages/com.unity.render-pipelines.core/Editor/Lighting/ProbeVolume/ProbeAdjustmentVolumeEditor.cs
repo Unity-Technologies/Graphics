@@ -38,6 +38,8 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent virtualOffsetThreshold = new GUIContent("Validity Threshold", "Override the Virtual Offset Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
             internal static readonly GUIContent s_VODirection = new GUIContent("Direction", "Rotate the axis along which probes will be pushed when applying Virtual Offset.");
             internal static readonly GUIContent s_VODistance = new GUIContent("Distance", "Determines how far probes are pushed in the direction of the Virtual Offset.");
+            internal static readonly GUIContent renderingLayerMaskOperation = new GUIContent("Operation", "The operation to combine the Rendering Layer Mask set by this adjustment volume with the Rendering Layer Mask of the probes covered by this volume.");
+            internal static readonly GUIContent renderingLayerMask = new GUIContent("Rendering Layer Mask", "Sets the Rendering Layer Mask to be combined with the Rendering Layer Mask of the probes covered by this volume.");
             internal static readonly GUIContent s_PreviewLighting = new GUIContent("Preview Probe Adjustments", "Quickly preview the effect of adjustments on probes covered by this volume.");
 
             internal static readonly GUIContent skyOcclusionSampleCount = new GUIContent("Sample Count", "Controls the number of samples per probe for sky occlusion baking.");
@@ -246,6 +248,39 @@ namespace UnityEditor.Rendering
                         {
                             ProbeVolumeLightingTab.OpenBakingSet(bakingSet);
                         });
+                    }
+                }
+                else if (serialized.mode.intValue == (int)ProbeAdjustmentVolume.Mode.OverrideRenderingLayerMask)
+                {
+                    if (bakingSet != null && !bakingSet.useRenderingLayers)
+                    {
+                        CoreEditorUtils.DrawFixMeBox("Override Rendering Layer can be used only if Rendering Layers are enabled for the Baking Set.", MessageType.Warning, "Open", () =>
+                        {
+                            ProbeVolumeLightingTab.OpenBakingSet(bakingSet);
+                        });
+                    }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(serialized.renderingLayerMaskOperation, Styles.renderingLayerMaskOperation);
+
+                        string[] options;
+                        if (bakingSet != null)
+                        {
+                            options = new string[bakingSet.renderingLayerMasks.Length];
+                            for (int i = 0; i < bakingSet.renderingLayerMasks.Length; i++)
+                                options[i] = bakingSet.renderingLayerMasks[i].name;
+                        }
+                        else
+                        {
+                            options = new string[APVDefinitions.probeMaxRegionCount];
+                            for (int i = 0; i < APVDefinitions.probeMaxRegionCount; i++)
+                                options[i] = "Mask " + (i + 1);
+                        }
+
+                        EditorGUI.BeginChangeCheck();
+                        int newMask = EditorGUILayout.MaskField(Styles.renderingLayerMask, serialized.renderingLayerMask.intValue, options);
+                        if (EditorGUI.EndChangeCheck())
+                             serialized.renderingLayerMask.uintValue = (uint)newMask;
                     }
                 }
             }

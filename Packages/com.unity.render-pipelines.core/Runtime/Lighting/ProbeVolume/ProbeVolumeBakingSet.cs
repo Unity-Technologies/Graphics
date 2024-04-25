@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.IO.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine.Serialization;
 
 using CellData = UnityEngine.Rendering.ProbeReferenceVolume.CellData;
@@ -131,18 +132,8 @@ namespace UnityEngine.Rendering
         [SerializeField] internal int bakedSkyOcclusionValue = -1;
         [SerializeField] internal int bakedSkyShadingDirectionValue = -1;
         [SerializeField] internal Vector3 bakedProbeOffset = Vector3.zero;
-
-        internal bool bakedSkyOcclusion
-        {
-            get => bakedSkyOcclusionValue <= 0 ? false : true;
-            set => bakedSkyOcclusionValue = value ? 1 : 0;
-        }
-        internal bool bakedSkyShadingDirection
-        {
-            get => bakedSkyShadingDirectionValue <= 0 ? false : true;
-            set => bakedSkyShadingDirectionValue = value ? 1 : 0;
-        }
-
+        [SerializeField] internal int bakedMaskCount = 1;
+        [SerializeField] internal uint4 bakedLayerMasks;
         [SerializeField] internal int maxSHChunkCount = -1; // Maximum number of SH chunk for a cell in this set.
         [SerializeField] internal int L0ChunkSize;
         [SerializeField] internal int L1ChunkSize;
@@ -154,8 +145,20 @@ namespace UnityEngine.Rendering
         [SerializeField] internal int supportPositionChunkSize;
         [SerializeField] internal int supportValidityChunkSize;
         [SerializeField] internal int supportTouchupChunkSize;
+        [SerializeField] internal int supportLayerMaskChunkSize;
         [SerializeField] internal int supportOffsetsChunkSize;
         [SerializeField] internal int supportDataChunkSize;
+        
+        internal bool bakedSkyOcclusion
+        {
+            get => bakedSkyOcclusionValue <= 0 ? false : true;
+            set => bakedSkyOcclusionValue = value ? 1 : 0;
+        }
+        internal bool bakedSkyShadingDirection
+        {
+            get => bakedSkyShadingDirectionValue <= 0 ? false : true;
+            set => bakedSkyShadingDirectionValue = value ? 1 : 0;
+        }
 
         [SerializeField] internal string lightingScenario = ProbeReferenceVolume.defaultLightingScenario;
         string m_OtherScenario = null;
@@ -257,9 +260,35 @@ namespace UnityEngine.Rendering
         public bool skyOcclusionBackFaceCulling = false;
 
         /// <summary>
-        ///  Bake sky shading direction.
+        /// Bake sky shading direction.
         /// </summary>
         public bool skyOcclusionShadingDirection = false;
+        
+        [Serializable]
+        internal struct ProbeLayerMask
+        {
+            public RenderingLayerMask mask;
+            public string name;
+        }
+
+        [SerializeField]
+        internal bool useRenderingLayers = false;
+        [SerializeField]
+        internal ProbeLayerMask[] renderingLayerMasks;
+
+        internal uint4 ComputeRegionMasks()
+        {
+            uint4 masks = 0;
+            if (!useRenderingLayers || renderingLayerMasks == null)
+                masks.x = 0xFFFFFFFF;
+            else
+            {
+                for (int i = 0; i < renderingLayerMasks.Length; i++)
+                    masks[i] = renderingLayerMasks[i].mask;
+
+            }
+            return masks;
+        }
 
         internal static int GetCellSizeInBricks(int simplificationLevels) => (int)Mathf.Pow(3, simplificationLevels);
         internal static int GetMaxSubdivision(int simplificationLevels) => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
@@ -802,22 +831,29 @@ namespace UnityEngine.Rendering
                 {
                     var sourcePositions = cellSupportData.GetSubArray(supportDataChunkOffset, shChunkCount * supportPositionChunkSize).Reinterpret<Vector3>(1);
                     supportDataChunkOffset += shChunkCount * supportPositionChunkSize;
+                    cellData.probePositions = m_UseStreamingAsset ? new NativeArray<Vector3>(sourcePositions, Allocator.Persistent) : sourcePositions;
+
                     var sourceValidity = cellSupportData.GetSubArray(supportDataChunkOffset, shChunkCount * supportValidityChunkSize).Reinterpret<float>(1);
                     supportDataChunkOffset += shChunkCount * supportValidityChunkSize;
+                    cellData.validity = m_UseStreamingAsset ? new NativeArray<float>(sourceValidity, Allocator.Persistent) : sourceValidity;
+
                     var sourceTouchup = cellSupportData.GetSubArray(supportDataChunkOffset, shChunkCount * supportTouchupChunkSize).Reinterpret<float>(1);
                     supportDataChunkOffset += shChunkCount * supportTouchupChunkSize;
-                    var sourceOffsetVectors = default(NativeArray<Vector3>);
-                    if (supportOffsetsChunkSize != 0)
-                        sourceOffsetVectors = cellSupportData.GetSubArray(supportDataChunkOffset, shChunkCount * supportOffsetsChunkSize).Reinterpret<Vector3>(1);
-                    supportDataChunkOffset += shChunkCount * supportOffsetsChunkSize;
-
-                    cellData.probePositions = m_UseStreamingAsset ? new NativeArray<Vector3>(sourcePositions, Allocator.Persistent) : sourcePositions;
-                    cellData.validity = m_UseStreamingAsset ? new NativeArray<float>(sourceValidity, Allocator.Persistent) : sourceValidity;
                     cellData.touchupVolumeInteraction = m_UseStreamingAsset ? new NativeArray<float>(sourceTouchup, Allocator.Persistent) : sourceTouchup;
+
+                    if (supportLayerMaskChunkSize != 0)
+                    {
+                        var sourceLayer = cellSupportData.GetSubArray(supportDataChunkOffset, shChunkCount * supportLayerMaskChunkSize).Reinterpret<byte>(1);
+                        supportDataChunkOffset += shChunkCount * supportLayerMaskChunkSize;
+                        cellData.layer = m_UseStreamingAsset ? new NativeArray<byte>(sourceLayer, Allocator.Persistent) : sourceLayer;
+                    }
+
                     if (supportOffsetsChunkSize != 0)
+                    {
+                        var sourceOffsetVectors = cellSupportData.GetSubArray(supportDataChunkOffset, shChunkCount * supportOffsetsChunkSize).Reinterpret<Vector3>(1);
+                        supportDataChunkOffset += shChunkCount * supportOffsetsChunkSize;
                         cellData.offsetVectors = m_UseStreamingAsset ? new NativeArray<Vector3>(sourceOffsetVectors, Allocator.Persistent) : sourceOffsetVectors;
-                    else
-                        cellData.offsetVectors = default;
+                    }
                 }
 
                 cellDataMap.Add(cellIndex, cellData);

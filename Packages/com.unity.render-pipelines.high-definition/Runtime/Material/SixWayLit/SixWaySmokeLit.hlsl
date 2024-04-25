@@ -240,7 +240,7 @@ void GatherAPVData(float3 positionRWS, float3x3 tbn, out float4 diffuseGIData[3]
     float3 posWS = GetAbsolutePositionWS(positionRWS);
     float3 V = GetWorldSpaceNormalizeViewDir(positionRWS);
 
-    APVSample apvSample = SampleAPV(posWS, -tbn[2], V);
+    APVSample apvSample = SampleAPV(posWS, -tbn[2], 0xFFFFFFFF, V);
 
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {

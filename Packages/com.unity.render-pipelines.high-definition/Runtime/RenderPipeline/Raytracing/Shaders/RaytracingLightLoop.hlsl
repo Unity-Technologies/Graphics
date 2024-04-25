@@ -139,6 +139,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 R,
                 V,
                 posInput.positionSS,
+                _RaytracingAPVLayerMask,
                 builtinData.bakeDiffuseLighting,
                 builtinData.backBakeDiffuseLighting,
                 lightInReflDir);

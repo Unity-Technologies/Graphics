@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering
             public DiskStreamingRequest cellOptionalDataStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest cellSharedDataStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest brickStreamingRequest = new DiskStreamingRequest(1);
-            public DiskStreamingRequest supportStreamingRequest = new DiskStreamingRequest(4);
+            public DiskStreamingRequest supportStreamingRequest = new DiskStreamingRequest(5);
 
             public int bytesWritten;
 
@@ -1047,7 +1047,7 @@ namespace UnityEngine.Rendering
 
         void CancelStreamingRequest(Cell cell)
         {
-            m_Index.ReleaseChunks(cell.indexInfo);
+            m_Index.RemoveBricks(cell.indexInfo);
             m_Pool.Deallocate(cell.poolInfo.chunkList);
 
             if (cell.streamingInfo.request != null)
@@ -1185,16 +1185,19 @@ namespace UnityEngine.Rendering
                 var positionSize = cellStreamingDesc.elementCount * m_CurrentBakingSet.supportPositionChunkSize;
                 var touchupSize = cellStreamingDesc.elementCount * m_CurrentBakingSet.supportTouchupChunkSize;
                 var offsetsSize = cellStreamingDesc.elementCount * m_CurrentBakingSet.supportOffsetsChunkSize;
+                var layerSize = cellStreamingDesc.elementCount * m_CurrentBakingSet.supportLayerMaskChunkSize;
                 var validitySize = cellStreamingDesc.elementCount * m_CurrentBakingSet.supportValidityChunkSize;
 
                 cellData.probePositions = (new NativeArray<byte>(positionSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory)).Reinterpret<Vector3>(1);
                 cellData.validity = (new NativeArray<byte>(validitySize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory)).Reinterpret<float>(1);
+                cellData.layer = (new NativeArray<byte>(layerSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory)).Reinterpret<byte>(1);
                 cellData.touchupVolumeInteraction = (new NativeArray<byte>(touchupSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory)).Reinterpret<float>(1);
                 cellData.offsetVectors = (new NativeArray<byte>(offsetsSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory)).Reinterpret<Vector3>(1);
 
                 request.supportStreamingRequest.AddReadCommand(supportOffset, positionSize, (byte*)cellData.probePositions.GetUnsafePtr()); supportOffset += positionSize;
                 request.supportStreamingRequest.AddReadCommand(supportOffset, validitySize, (byte*)cellData.validity.GetUnsafePtr()); supportOffset += validitySize;
                 request.supportStreamingRequest.AddReadCommand(supportOffset, touchupSize, (byte*)cellData.touchupVolumeInteraction.GetUnsafePtr()); supportOffset += touchupSize;
+                request.supportStreamingRequest.AddReadCommand(supportOffset, layerSize, (byte*)cellData.layer.GetUnsafePtr()); supportOffset += layerSize;
                 request.supportStreamingRequest.AddReadCommand(supportOffset, offsetsSize, (byte*)cellData.offsetVectors.GetUnsafePtr());
                 request.supportStreamingRequest.RunCommands(supportDataAsset.OpenFile());
             }

@@ -64,7 +64,14 @@ void MissShaderIndirectDiffuse(inout RayIntersection rayIntersection : SV_RayPay
     {
         // Read from the APV
         float3 backBakeDiffuseLighting = 0.0;
-        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(rayOrigin), rayDirection, -rayDirection, 0.0, 0.0, rayIntersection.color, backBakeDiffuseLighting);
+        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(rayOrigin),
+                                    rayDirection,
+                                    -rayDirection,
+                                    0.0,
+                                    0.0,
+                                    _RaytracingAPVLayerMask,
+                                    rayIntersection.color,
+                                    backBakeDiffuseLighting);
         weight = 1.0;
     }
 #endif

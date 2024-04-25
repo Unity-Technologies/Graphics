@@ -133,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int raySteps;
             public int frameIndex;
             public int rayMiss;
+            public UnityEngine.RenderingLayerMask apvLayerMask;
             public float lowResPercentage;
 
             // Compute Shader
@@ -197,6 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.raySteps = giSettings.maxRaySteps;
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 16);
                 passData.rayMiss = (int)giSettings.rayMiss.value;
+                passData.apvLayerMask = giSettings.adaptiveProbeVolumesLayerMask.value;
 
                 // Grab the right kernel
                 passData.ssGICS = runtimeShaders.screenSpaceGlobalIlluminationCS;
@@ -264,6 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs.g_vLightListTile, data.lightList);
                         ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._RayMarchingLowResPercentageInv, 1.0f / data.lowResPercentage);
+                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._SSGILayerMask, (uint)data.apvLayerMask);
 
                         // Do the ray marching
                         ctx.cmd.DispatchCompute(data.ssGICS, data.traceKernel, numTilesXHR, numTilesYHR, data.viewCount);

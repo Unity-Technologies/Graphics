@@ -55,5 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _RayTracingDistantRayBias;
         // Ray Frame Index for reflection signals
         public int _RayTracingReflectionFrameIndex;
+        // Layer Mask to use when sampling APV
+        public uint _RaytracingAPVLayerMask;
     }
 }

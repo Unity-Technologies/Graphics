@@ -6,11 +6,12 @@ namespace UnityEditor.Rendering
         internal SerializedProperty size;
         internal SerializedProperty fillEmptySpaces;
         internal SerializedProperty overridesSubdivision;
-        internal SerializedProperty highestSubdivisionLevelOverride;
-        internal SerializedProperty lowestSubdivisionLevelOverride;
         internal SerializedProperty objectLayerMask;
         internal SerializedProperty minRendererVolumeSize;
         internal SerializedProperty overrideRendererFilters;
+
+        internal SerializedProperty minSubdivisionLevel;
+        internal SerializedProperty maxSubdivisionLevel;
 
         internal SerializedObject serializedObject;
 
@@ -23,8 +24,8 @@ namespace UnityEditor.Rendering
             objectLayerMask = serializedObject.FindProperty("objectLayerMask");
             minRendererVolumeSize = serializedObject.FindProperty("minRendererVolumeSize");
             overrideRendererFilters = serializedObject.FindProperty("overrideRendererFilters");
-            highestSubdivisionLevelOverride = serializedObject.FindProperty("highestSubdivLevelOverride");
-            lowestSubdivisionLevelOverride = serializedObject.FindProperty("lowestSubdivLevelOverride");
+            minSubdivisionLevel = serializedObject.FindProperty("lowestSubdivLevelOverride");
+            maxSubdivisionLevel = serializedObject.FindProperty("highestSubdivLevelOverride");
             overridesSubdivision = serializedObject.FindProperty("overridesSubdivLevels");
             fillEmptySpaces = serializedObject.FindProperty("fillEmptySpaces");
         }

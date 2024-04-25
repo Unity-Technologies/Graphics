@@ -164,14 +164,18 @@ namespace UnityEngine.Rendering
             return hash;
         }
 
-        internal float GetMinSubdivMultiplier(int maxSubdivision)
+        internal void GetSubdivisionOverride(int maxSubdivisionLevel, out int minLevel, out int maxLevel)
         {
-            return overridesSubdivLevels ? Mathf.Clamp(lowestSubdivLevelOverride / (float)(maxSubdivision - 1), 0.0f, 1.0f) : 0.0f;
-        }
-
-        internal float GetMaxSubdivMultiplier(int maxSubdivision)
-        {
-            return overridesSubdivLevels ? Mathf.Clamp(highestSubdivLevelOverride / (float)(maxSubdivision - 1), 0.0f, 1.0f) : 1.0f;
+            if (overridesSubdivLevels)
+            {
+                maxLevel = Mathf.Min(highestSubdivLevelOverride, maxSubdivisionLevel);
+                minLevel = Mathf.Min(lowestSubdivLevelOverride, maxLevel);
+            }
+            else
+            {
+                maxLevel = maxSubdivisionLevel;
+                minLevel = 0;
+            }
         }
 
         // Momentarily moving the gizmo rendering for bricks and cells to Probe Volume itself,

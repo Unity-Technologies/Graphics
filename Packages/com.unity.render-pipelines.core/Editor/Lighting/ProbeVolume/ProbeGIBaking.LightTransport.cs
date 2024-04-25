@@ -484,6 +484,7 @@ namespace UnityEngine.Rendering
 
             static IRayTracingShader m_ShaderVO = null;
             static IRayTracingShader m_ShaderSO = null;
+            static IRayTracingShader m_ShaderRL = null;
 
             internal IRayTracingAccelStruct CreateAccelerationStructure()
             {
@@ -547,6 +548,25 @@ namespace UnityEngine.Rendering
                     }
 
                     return m_ShaderSO;
+                }
+            }
+
+            public IRayTracingShader shaderRL
+            {
+                get
+                {
+                    if (m_ShaderRL == null)
+                    {
+                        var bakingResources = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>();
+                        m_ShaderRL = m_Context.CreateRayTracingShader(m_Backend switch
+                        {
+                            RayTracingBackend.Hardware => bakingResources.renderingLayerRT,
+                            RayTracingBackend.Compute => bakingResources.renderingLayerCS,
+                            _ => null
+                        });
+                    }
+
+                    return m_ShaderRL;
                 }
             }
 
@@ -646,6 +666,7 @@ namespace UnityEngine.Rendering
             bool savedSkyOcclusion = bakingSet.skyOcclusion;
             bool savedSkyDirection  = bakingSet.skyOcclusionShadingDirection;
             bool savedVirtualOffset = bakingSet.settings.virtualOffsetSettings.useVirtualOffset;
+            bool savedRenderingLayers = bakingSet.useRenderingLayers;
             {
                 // Patch baking set as we are not gonna use a mix of baked values and new values
                 bakingSet.simplificationLevels = bakingSet.bakedSimplificationLevels;
@@ -653,6 +674,7 @@ namespace UnityEngine.Rendering
                 bakingSet.skyOcclusion = bakingSet.bakedSkyOcclusion;
                 bakingSet.skyOcclusionShadingDirection = bakingSet.bakedSkyShadingDirection;
                 bakingSet.settings.virtualOffsetSettings.useVirtualOffset = bakingSet.supportOffsetsChunkSize != 0;
+                bakingSet.useRenderingLayers = bakingSet.bakedMaskCount == 1 ? false : true;
 
                 m_BakingSet = bakingSet;
                 m_BakingBatch = new BakingBatch(cellCount);
@@ -766,19 +788,27 @@ namespace UnityEngine.Rendering
                 while (!failed && lightingJob.currentStep < lightingJob.stepCount)
                     failed |= !lightingJob.Step();
 
+                // Bake rendering layers
+                var layerMaskJob = renderingLayerOverride ?? new DefaultRenderingLayer();
+                layerMaskJob.Initialize(bakingSet, uniquePositions.AsArray());
+                while (!failed && layerMaskJob.currentStep < layerMaskJob.stepCount)
+                    failed |= !layerMaskJob.Step();
+
                 // Upload new data in cells
                 foreach ((int uniqueProbeIndex, int cellIndex, int i) in bakedProbes)
                 {
                     ref var cell = ref bakingCells[cellIndex];
                     cell.SetBakedData(m_BakingSet, m_BakingBatch, cellVolumes[cellIndex], i, uniqueProbeIndex,
                         lightingJob.irradiance[uniqueProbeIndex], lightingJob.validity[uniqueProbeIndex],
-                        virtualOffsetJob.offsets, skyOcclusionJob.occlusion, skyOcclusionJob.encodedDirections);
+                        layerMaskJob.renderingLayerMasks, virtualOffsetJob.offsets,
+                        skyOcclusionJob.occlusion, skyOcclusionJob.encodedDirections);
                 }
 
                 skyOcclusionJob.encodedDirections.Dispose();
                 virtualOffsetJob.Dispose();
                 skyOcclusionJob.Dispose();
                 lightingJob.Dispose();
+                layerMaskJob.Dispose();
 
                 if (!failed)
                 {
@@ -820,6 +850,7 @@ namespace UnityEngine.Rendering
                 bakingSet.skyOcclusion = savedSkyOcclusion;
                 bakingSet.skyOcclusionShadingDirection = savedSkyDirection;
                 bakingSet.settings.virtualOffsetSettings.useVirtualOffset = savedVirtualOffset;
+                bakingSet.useRenderingLayers = savedRenderingLayers;
 
                 m_BakingBatch = null;
                 m_BakingSet = null;

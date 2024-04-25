@@ -8,6 +8,7 @@ using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 using Unity.Profiling;
+using Unity.Mathematics;
 
 #if UNITY_EDITOR
 using System.Linq.Expressions;
@@ -118,6 +119,8 @@ namespace UnityEngine.Rendering
         public float reflNormalizationUpperClamp;
         public float skyOcclusionIntensity;
         public bool skyOcclusionShadingDirection;
+        public int regionCount;
+        public uint4 regionLayerMasks;
     }
 
     /// <summary>
@@ -227,6 +230,7 @@ namespace UnityEngine.Rendering
             public NativeArray<float> touchupVolumeInteraction { get; internal set; } // Only used by a specific debug view.
             public NativeArray<Vector3> offsetVectors { get; internal set; }
             public NativeArray<float> validity { get; internal set; }
+            public NativeArray<byte> layer { get; internal set; } // Only used by a specific debug view.
 
             public void CleanupPerScenarioData(in PerScenarioData data)
             {
@@ -290,6 +294,11 @@ namespace UnityEngine.Rendering
                     touchupVolumeInteraction = default;
                     validity.Dispose();
                     validity = default;
+                    if (layer.IsCreated)
+                    {
+                        layer.Dispose();
+                        layer = default;
+                    }
                     if (offsetVectors.IsCreated)
                     {
                         offsetVectors.Dispose();
@@ -706,7 +715,7 @@ namespace UnityEngine.Rendering
 
 
         /// <summary>
-        ///  Whether APV handles sky dynamically (with baked sky occlusion) or fully statically.
+        /// Whether APV handles sky dynamically (with baked sky occlusion) or fully statically.
         /// </summary>
         public bool skyOcclusion
         {
@@ -714,12 +723,15 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        ///  Bake sky shading direction.
+        /// Bake sky shading direction.
         /// </summary>
         public bool skyOcclusionShadingDirection
         {
             get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedSkyShadingDirection : false;
         }
+
+        bool useRenderingLayers => m_CurrentBakingSet.bakedMaskCount != 1;
+
 
         bool m_NeedsIndexRebuild = false;
         bool m_HasChangedIndex = false;
@@ -1446,34 +1458,21 @@ namespace UnityEngine.Rendering
                 return indirectionEntryUpdateInfo.brickCount;
             }
 
-            indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes = Vector3Int.zero;
-            Vector3Int sizeOfValidIndicesAtMaxRes = Vector3Int.one;
+            Vector3 globalBoundsMin = (m_CurrGlobalBounds.min - ProbeOffset()) / MinBrickSize();
+            Vector3 globalBoundsMax = (m_CurrGlobalBounds.max - ProbeOffset()) / MinBrickSize();
 
-            float entrySize = GetEntrySize();
-            var posWS =  ProbeOffset() + new Vector3(entryInfo.positionInBricks.x , entryInfo.positionInBricks.y, entryInfo.positionInBricks.z) * MinBrickSize();
-            Bounds entryBounds = new Bounds();
-            entryBounds.min = posWS;
-            entryBounds.max = posWS + (Vector3.one * entrySize);
+            int entrySize = CellSize(GetEntrySubdivLevel());
+            Vector3Int entry_min = new Vector3Int(entryInfo.positionInBricks.x , entryInfo.positionInBricks.y, entryInfo.positionInBricks.z);
+            Vector3Int entry_max = entry_min + new Vector3Int(entrySize, entrySize, entrySize);
 
-            Bounds intersectBound = new Bounds();
-            intersectBound.min = Vector3.Max(entryBounds.min, m_CurrGlobalBounds.min);
-            intersectBound.max = Vector3.Min(entryBounds.max, m_CurrGlobalBounds.max);
+            Vector3Int intersectBound_min = Vector3Int.Max(entry_min, new Vector3Int(Mathf.CeilToInt(globalBoundsMin.x), Mathf.CeilToInt(globalBoundsMin.y), Mathf.CeilToInt(globalBoundsMin.z)));
+            Vector3Int intersectBound_max = Vector3Int.Min(entry_max, new Vector3Int(Mathf.CeilToInt(globalBoundsMax.x), Mathf.CeilToInt(globalBoundsMax.y), Mathf.CeilToInt(globalBoundsMax.z)));
 
-            var toStart = intersectBound.min - entryBounds.min;
-            indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes.x = Mathf.CeilToInt((toStart.x) / MinBrickSize());
-            indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes.y = Mathf.CeilToInt((toStart.y) / MinBrickSize());
-            indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes.z = Mathf.CeilToInt((toStart.z) / MinBrickSize());
+            indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes = intersectBound_min - entry_min;
+            indirectionEntryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne = intersectBound_max - entry_min + Vector3Int.one;
 
-            var toEnd = intersectBound.max - entryBounds.min;
-            sizeOfValidIndicesAtMaxRes.x = Mathf.CeilToInt((toEnd.x) / MinBrickSize()) - indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes.x + 1;
-            sizeOfValidIndicesAtMaxRes.y = Mathf.CeilToInt((toEnd.y) / MinBrickSize()) - indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes.y + 1;
-            sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes.z + 1;
-
-            Vector3Int bricksForEntry = new Vector3Int();
-            bricksForEntry = sizeOfValidIndicesAtMaxRes / CellSize(entryInfo.minSubdiv);
-
-            indirectionEntryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne = indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes + sizeOfValidIndicesAtMaxRes;
-
+            Vector3Int sizeOfValidIndicesAtMaxRes = indirectionEntryUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne - indirectionEntryUpdateInfo.minValidBrickIndexForCellAtMaxRes;
+            Vector3Int bricksForEntry = sizeOfValidIndicesAtMaxRes / CellSize(entryInfo.minSubdiv);
             indirectionEntryUpdateInfo.brickCount = bricksForEntry.x * bricksForEntry.y * bricksForEntry.z;
 
             return indirectionEntryUpdateInfo.brickCount;
@@ -1516,17 +1515,17 @@ namespace UnityEngine.Rendering
             // If a set without sky occlusion was loaded, and a set with sky occlusion is now loaded,
             // the pools will not have allocated all necessary buffers
             // To support that case, we can force reinit here because we know no scenes are loaded (as we are changing baking set)
-            if (m_ProbeReferenceVolumeInit && !m_Pool.EnsureTextureValidity(skyOcclusion, skyOcclusionShadingDirection))
+            if (m_ProbeReferenceVolumeInit && !m_Pool.EnsureTextureValidity(useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection))
             {
                 m_TemporaryDataLocation.Cleanup();
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
-                    false, true, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
+                    false, true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
             }
 
             if (!m_ProbeReferenceVolumeInit)
             {
                 Profiler.BeginSample("Initialize Reference Volume");
-                m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, skyOcclusion, skyOcclusionShadingDirection);
+                m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection);
                 m_BlendingPool = new ProbeBrickBlendingPool(m_BlendingMemoryBudget, m_SHBands);
 
                 m_Index = new ProbeBrickIndex(m_MemoryBudget);
@@ -1539,7 +1538,7 @@ namespace UnityEngine.Rendering
                 InitializeGlobalIndirection();
 
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
-                    false, true, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
+                    false, true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -1724,7 +1723,12 @@ namespace UnityEngine.Rendering
             if (poolIndex == -1) // shared data that don't need to be updated per scenario
             {
                 if (validityNeighMaskData.Length > 0)
-                    UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+                {
+                    if (m_CurrentBakingSet.bakedMaskCount == 1)
+                        UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+                    else
+                        UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.Reinterpret<uint>(1).GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+                }
 
                 if (skyOcclusion && skyOcclusionL0L1Data.Length > 0)
                     UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionL0L1Data.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
@@ -1756,8 +1760,12 @@ namespace UnityEngine.Rendering
         void UpdateSharedData(List<Chunk> chunkList, NativeArray<byte> validityNeighMaskData, NativeArray<ushort> skyOcclusionData, NativeArray<byte> skyShadingDirectionIndices, int chunkIndex)
         {
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInBrickCount() * ProbeBrickPool.kBrickProbeCountTotal;
+            
+            if (m_CurrentBakingSet.bakedMaskCount == 1)
+                UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+            else
+                UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.Reinterpret<uint>(1).GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
 
-            UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
             if (skyOcclusion && skyOcclusionData.Length > 0)
             {
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexSkyOcclusion, skyOcclusionData.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
@@ -1994,6 +2002,7 @@ namespace UnityEngine.Rendering
         {
             float normalBias = parameters.normalBias;
             float viewBias = parameters.viewBias;
+            var leakReductionMode = parameters.leakReductionMode;
 
             if (parameters.scaleBiasByMinDistanceBetweenProbes)
             {
@@ -2001,9 +2010,12 @@ namespace UnityEngine.Rendering
                 viewBias *= MinDistanceBetweenProbes();
             }
 
+            if (parameters.regionCount != 1 && leakReductionMode == APVLeakReductionMode.None)
+                leakReductionMode = APVLeakReductionMode.ValidityBased;
+
             var indexDim = m_CellIndices.GetGlobalIndirectionDimension();
             var poolDim = m_Pool.GetPoolDimensions();
-            m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int maxEntry);
+            m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int _);
             var entriesPerCell = m_CellIndices.entriesPerCellDimension;
             var enableSkyOccShadingDir = parameters.skyOcclusionShadingDirection ? 1.0f : 0.0f;
             var probeOffset = ProbeOffset();
@@ -2016,8 +2028,9 @@ namespace UnityEngine.Rendering
             shaderVars._MinEntryPos_Noise = new Vector4(minEntry.x, minEntry.y, minEntry.z, parameters.samplingNoise);
             shaderVars._IndicesDim_FrameIndex = new Vector4(indexDim.x, indexDim.y, indexDim.z, parameters.frameIndexForNoise);
             shaderVars._Biases_NormalizationClamp = new Vector4(normalBias, viewBias, parameters.reflNormalizationLowerClamp, parameters.reflNormalizationUpperClamp);
-            shaderVars._LeakReduction_SkyOcclusion = new Vector4((int)parameters.leakReductionMode, parameters.minValidNormalWeight, parameters.skyOcclusionIntensity, enableSkyOccShadingDir);
-            shaderVars._MaxLoadedCellInEntries_Padding = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, 0.0f);
+            shaderVars._LeakReduction_SkyOcclusion = new Vector4((int)leakReductionMode, parameters.minValidNormalWeight, parameters.skyOcclusionIntensity, enableSkyOccShadingDir);
+            shaderVars._MaxLoadedCellInEntries_LayerCount = new Vector4((maxLoadedCellPos.x + 1) * entriesPerCell - 1, (maxLoadedCellPos.y + 1) * entriesPerCell - 1, (maxLoadedCellPos.z + 1) * entriesPerCell - 1, parameters.regionCount);
+			shaderVars._ProbeVolumeLayerMask = parameters.regionLayerMasks;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

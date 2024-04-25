@@ -55,7 +55,7 @@ void GatherDiffuseGIData(float3 positionWS, float3 normalWS, float3 tangentWS, i
         float3x3 tbn = float3x3(tangentWS, cross(-normalWS, tangentWS), -normalWS);
 
         #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-            APVSample apvSample = SampleAPV(positionWS, normalWS, 0);
+            APVSample apvSample = SampleAPV(positionWS, normalWS, 0xFFFFFFFF, 0);
             if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
             {
                 apvSample.Decode();

@@ -903,6 +903,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayMarchingFallbackHierarchy = Shader.PropertyToID("_RayMarchingFallbackHierarchy");
         public static readonly int _RayMarchingLowResPercentageInv = Shader.PropertyToID("_RayMarchingLowResPercentageInv");
         public static readonly int _RayMarchingLowResPercentage = Shader.PropertyToID("_RayMarchingLowResPercentage");
+        public static readonly int _SSGILayerMask = Shader.PropertyToID("_SSGILayerMask");
 
         // Ray binning
         public static readonly int _RayBinResult = Shader.PropertyToID("_RayBinResult");

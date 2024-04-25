@@ -168,6 +168,7 @@ void SampleBakedGI(
             backNormalWS,
             GetWorldSpaceNormalizeViewDir(posInputs.positionWS),
             posInputs.positionSS,
+            renderingLayers,
             bakeDiffuseLighting,
             backBakeDiffuseLighting);
     }

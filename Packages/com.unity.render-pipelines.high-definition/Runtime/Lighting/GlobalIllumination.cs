@@ -36,6 +36,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [FormerlySerializedAs("fallbackHierarchy")]
         [AdditionalProperty]
         public RayMarchingFallbackHierarchyParameter rayMiss = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
+
+        /// <summary>
+        /// Controls the fallback hierarchy for indirect diffuse in case the ray misses.
+        /// </summary>
+        [Tooltip("Rendering Layer Mask to use when sampling the Adaptive Probe Volumes.\nThis is only used if Rendering Layers Masks are enabled for the active Baking Set.")]
+        [AdditionalProperty]
+        public RenderingLayerMaskParameter adaptiveProbeVolumesLayerMask = new RenderingLayerMaskParameter(UnityEngine.RenderingLayerMask.defaultRenderingLayerMask);
         #endregion
 
         #region RayMarching

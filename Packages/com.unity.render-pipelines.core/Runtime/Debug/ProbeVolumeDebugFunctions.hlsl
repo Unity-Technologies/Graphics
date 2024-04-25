@@ -31,9 +31,7 @@
                 float3 normalizedOffset; // normalized offset between sampling position and snappedProbePosition
                 float validityWeight[8];
 
-                FindSamplingData(debugPosition.xyz, debugNormal.xyz, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeight);
-
-                float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+                FindSamplingData(debugPosition.xyz, debugNormal.xyz, _RenderingLayerMask, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeight);
 
                 float samplingFactor = ComputeSamplingFactor(probePosition_WS, snappedProbePosition_WS, normalizedOffset, probeDistance);
 
@@ -60,6 +58,13 @@
                 float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
                 o.vertex = mul(UNITY_MATRIX_VP, wsPos);
                 o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
+
+                if (_ShadingMode == DEBUGPROBESHADINGMODE_RENDERING_LAYER_MASKS)
+                {
+                    o.centerCoordSS = _ScreenSize.xy * ComputeNormalizedDeviceCoordinatesWithZ(probePosition_WS, UNITY_MATRIX_VP).xy;
+                    if (_ProbeLayerCount != 1 & (asuint(UNITY_ACCESS_INSTANCED_PROP(Props, _RenderingLayer)) & _RenderingLayerMask) == 0)
+                        DoCull(o);
+                }
             }
         }
 
@@ -102,6 +107,47 @@
             {
                 return float4(0, 1, 0, 1);
             }
+        }
+        else if (_ShadingMode == DEBUGPROBESHADINGMODE_RENDERING_LAYER_MASKS)
+        {
+            float3 colors[4] = {
+                float3(230, 159, 0) / 255.0f,
+                float3(0, 158, 115) / 255.0f,
+                float3(0, 114, 178) / 255.0f,
+                float3(204, 121, 167) / 255.0f,
+            };
+
+            if (_ProbeLayerCount == 1) return _DebugEmptyProbeData; // Rendering layers are not baked
+            uint renderingLayer = asuint(UNITY_ACCESS_INSTANCED_PROP(Props, _RenderingLayer)) & _RenderingLayerMask;
+
+            uint stripeSize = 8;
+            float3 result = float3(0, 0, 0);
+            uint2 positionSS = i.vertex.xy;
+            uint layerId = 0, layerCount = countbits(renderingLayer);
+
+            int colorIndex = 0;
+            if (layerCount >= 2 && positionSS.y < i.centerCoordSS.y)
+                colorIndex = 1;
+            if (layerCount >= 3 && colorIndex == 1 && positionSS.x < i.centerCoordSS.x)
+                colorIndex = 2;
+            if (layerCount >= 4 && colorIndex == 0 && positionSS.x < i.centerCoordSS.x)
+                colorIndex = 3;
+
+            for (uint l = 0; (l < _ProbeLayerCount) && (layerId < layerCount); l++)
+            {
+                [branch]
+                if (renderingLayer & (1U << l))
+                {
+                    if (colorIndex == 0)
+                        result = colors[l];
+                    colorIndex--;
+                }
+            }
+
+            // NdotV to make the debug view easier to understand
+            float3 N = normalize(i.normal);
+            float3 V = UNITY_MATRIX_V[2].xyz;
+            return float4(result * max(0, dot(N, V)), 1);
         }
         else if (_ShadingMode == DEBUGPROBESHADINGMODE_SIZE)
         {
@@ -209,7 +255,7 @@
         float validityWeights[8];
         float validityWeight = 1.0f;
 
-        FindSamplingData(debugPosition.xyz, debugNormal.xyz, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeights);
+        FindSamplingData(debugPosition.xyz, debugNormal.xyz, _RenderingLayerMask, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeights);
 
         // QUADS to write the sampling factor of each probe
         // each QUAD has an individual ID in vertex color blue channel

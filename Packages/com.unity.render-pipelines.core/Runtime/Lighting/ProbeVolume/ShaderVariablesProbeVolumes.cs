@@ -1,9 +1,21 @@
+using Unity.Mathematics;
+
 namespace UnityEngine.Rendering
 {
     [GenerateHLSL]
     class APVDefinitions
     {
         public static int probeIndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
+        public static int probeMaxRegionCount = 4;
+
+        public static Color32[] layerMaskColors = new Color32[] {
+            new Color32(230, 159, 0, 255),
+            new Color32(0, 158, 115, 255),
+            new Color32(0, 114, 178, 255),
+            new Color32(204, 121, 167, 255),
+        };
+
+        public static Color debugEmptyColor = new Color(0.388f, 0.812f, 0.804f, 1.0f);
     }
 
     /// <summary>
@@ -51,6 +63,7 @@ namespace UnityEngine.Rendering
         public Vector4 _IndicesDim_FrameIndex;
         public Vector4 _Biases_NormalizationClamp;
         public Vector4 _LeakReduction_SkyOcclusion;
-        public Vector4 _MaxLoadedCellInEntries_Padding;
+        public Vector4 _MaxLoadedCellInEntries_LayerCount;
+        public uint4 _ProbeVolumeLayerMask;
     }
 }
