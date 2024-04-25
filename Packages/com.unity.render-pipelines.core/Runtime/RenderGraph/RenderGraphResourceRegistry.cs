@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             else
             {
                 // Managed by rendergraph, it might not be created yet so we look at the desc to find out
-                var desc = GetTextureResourceDesc(res);
+                var desc = GetTextureResourceDesc(res, true); // TODO: remove true, we should throw on invalid desc here
                 var dim = desc.CalculateFinalDimensions();
                 outInfo = new RenderTargetInfo();
                 outInfo.width = dim.x;
@@ -833,11 +833,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[index] as TextureResource;
         }
 
-        internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle, bool noThrowOnInvalidDesc=false)
+        internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle, bool noThrowOnInvalidDesc = false)
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Texture);
             var texture = (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource);
-            if (!texture.validDesc && !noThrowOnInvalidDesc) throw new ArgumentException("The passed in texture handle does not have a valid descriptor. (This is most commonly cause by the handle referencing a built-in texture such as the system back buffer.)", "handle");
+            if (!texture.validDesc && !noThrowOnInvalidDesc)
+                throw new ArgumentException("The passed in texture handle does not have a valid descriptor. (This is most commonly cause by the handle referencing a built-in texture such as the system back buffer.)", "handle");
             return texture.desc;
         }
 
@@ -934,11 +935,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return new BufferHandle(newHandle);
         }
 
-        internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle)
+        internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle, bool noThrowOnInvalidDesc = false)
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Buffer);
             var buffer = (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource);
-            if (!buffer.validDesc) throw new ArgumentException("The passed in buffer handle does not have a valid descriptor. (This is most commonly cause by importing the buffer.)", "handle");
+            if (!buffer.validDesc && !noThrowOnInvalidDesc)
+                throw new ArgumentException("The passed in buffer handle does not have a valid descriptor. (This is most commonly cause by importing the buffer.)", "handle");
             return buffer.desc;
         }
 

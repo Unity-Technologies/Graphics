@@ -2461,7 +2461,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         }
                         else if (resourceType == RenderGraphResourceType.Buffer)
                         {
-                            var bufferDesc = m_Resources.GetBufferResourceDesc(handle);
+                            var bufferDesc = m_Resources.GetBufferResourceDesc(handle, true);
 
                             var bufferData = new DebugData.BufferResourceData();
                             bufferData.count = bufferDesc.count;
