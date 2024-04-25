@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
                 var data = frameData.Create<UniversalRenderingData>();
                 data.cullResults = context.Cull(ref cullingParameters);
 
-                GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd, ambientProbe = RenderSettings.ambientProbe });
+                GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd });
 
                 var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
 

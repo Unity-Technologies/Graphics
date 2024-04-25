@@ -307,11 +307,11 @@ namespace UnityEngine.Rendering
             ChangeInstanceBufferVersion();
         }
 
-        public void UpdateAmbientProbeAndGpuBuffer(SphericalHarmonicsL2 ambientProbe, bool forceUpdate = false)
+        public void UpdateAmbientProbeAndGpuBuffer(bool forceUpdate)
         {
-            if (m_CachedAmbientProbe != ambientProbe || forceUpdate)
+            if (forceUpdate || m_CachedAmbientProbe != RenderSettings.ambientProbe)
             {
-                m_CachedAmbientProbe = ambientProbe;
+                m_CachedAmbientProbe = RenderSettings.ambientProbe;
                 m_InstanceDataSystem.UpdateAllInstanceProbes(m_RenderersParameters, m_InstanceDataBuffer);
                 ChangeInstanceBufferVersion();
             }

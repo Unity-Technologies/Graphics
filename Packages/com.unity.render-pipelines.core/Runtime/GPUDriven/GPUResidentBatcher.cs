@@ -84,6 +84,19 @@ namespace UnityEngine.Rendering
             m_InstanceCullingBatcher.DestroyMeshes(destroyedMeshes);
         }
 
+        internal void FreeRendererGroupInstances(NativeArray<int> rendererGroupIDs)
+        {
+            if (rendererGroupIDs.Length == 0)
+                return;
+
+            var instances = new NativeList<InstanceHandle>(rendererGroupIDs.Length, Allocator.TempJob);
+            m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances).Complete();
+            DestroyInstances(instances.AsArray());
+            instances.Dispose();
+
+            m_BatchersContext.FreeRendererGroupInstances(rendererGroupIDs);
+        }
+
         public void InstanceOcclusionTest(RenderGraph renderGraph, in OcclusionCullingSettings settings, ReadOnlySpan<SubviewOcclusionTest> subviewOcclusionTests)
         {
             if (!m_BatchersContext.hasBoundingSpheres)
@@ -122,13 +135,18 @@ namespace UnityEngine.Rendering
 
         public void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
         {
-            RenderSettings.ambientProbe = context.ambientProbe;
-            m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(context.ambientProbe);
             m_InstanceCullingBatcher.PostCullBeginCameraRendering(context);
+        }
+
+        public void OnSetupAmbientProbe()
+        {
+            m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(forceUpdate: false);
         }
 
         private void UpdateRendererData(in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials)
         {
+            FreeRendererGroupInstances(rendererData.invalidRendererGroupID);
+
             if (rendererData.rendererGroupID.Length == 0)
                 return;
 

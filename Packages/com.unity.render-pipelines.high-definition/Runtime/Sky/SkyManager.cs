@@ -708,6 +708,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSettings.ambientMode = AmbientMode.Custom; // Needed to specify ourselves the ambient probe (this will update internal ambient probe data passed to shaders)
             RenderSettings.ambientProbe = GetAmbientProbe(hdCamera);
 
+            // We need to inform GPUResidentDrawer that the ambient probe has been set up by a camera, so it can refresh the probe instance data on the GPU.
+            GPUResidentDrawer.OnSetupAmbientProbe();
+
             // If a camera just returns from being disabled, sky is not setup yet for it.
             if (hdCamera.lightingSky == null && hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic)
             {
