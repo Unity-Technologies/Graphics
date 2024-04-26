@@ -431,6 +431,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 gBufferEnumIndex = 0;
                 lightingFulscreenDebugModeEnumIndex = 0;
                 renderingFulscreenDebugModeEnumIndex = 0;
+                materialValidatorDebugModeEnumIndex = 0;
                 renderingHistoryBuffersViewEnumIndex = -1;
             }
         }
