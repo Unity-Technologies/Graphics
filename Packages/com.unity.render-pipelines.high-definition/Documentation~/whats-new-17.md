@@ -1,6 +1,6 @@
-# What's new in HDRP version 17 / Unity 2023.3
+# What's new in HDRP version 17 / Unity 6 Preview
 
-This page contains an overview of new features, improvements, and issues resolved in version 17 of the High Definition Render Pipeline (HDRP), embedded in Unity 2023.3.
+This page contains an overview of new features, improvements, and issues resolved in version 17 of the High Definition Render Pipeline (HDRP), embedded in Unity 6 Preview.
 
 ## Added
 
@@ -54,7 +54,7 @@ The HDRP path tracer now offers an option to denoise the volumetric fog effect s
 
 #### GPU Resident Drawer with GPU Occlusion Culling
 
-GPU Resident Drawer Leveraging the power of the [Batch Render Group API](https://docs.unity3d.com/2023.3/Documentation/ScriptReference/Rendering.BatchRendererGroup.html) that allows rigid game objects to be inserted into the BRG leading to significant main thread and render thread performance improvements for rendering. It allows to author your game using game objects and when processed they will be ingested and rendered via a special fast path that handles better instancing. The performance improvements are dependent on the scale of the scenes and the amount of instancing utilize. The more instanceable objects are rendered, the larger the benefits will be. This feature is specifically for standard MeshRenderes. It will not handle skinned mesh renderers, VFX Graphs, particle systems or similar effects renderers.
+GPU Resident Drawer Leveraging the power of the [Batch Render Group API](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Rendering.BatchRendererGroup.html) that allows rigid game objects to be inserted into the BRG leading to significant main thread and render thread performance improvements for rendering. It allows to author your game using game objects and when processed they will be ingested and rendered via a special fast path that handles better instancing. The performance improvements are dependent on the scale of the scenes and the amount of instancing utilize. The more instanceable objects are rendered, the larger the benefits will be. This feature is specifically for standard MeshRenderes. It will not handle skinned mesh renderers, VFX Graphs, particle systems or similar effects renderers.
 
 The extra GPU Culling functionality built on top of GPU Resident drawer allows for GPU-side culling of instances that do not contribute to the final image. This can help to improve GPU performance in scenes with heavy overdraw, and does not require any additional authoring to try out. With Rendering Debugger integration.
 

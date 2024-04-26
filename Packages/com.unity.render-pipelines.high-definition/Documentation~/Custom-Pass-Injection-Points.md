@@ -24,3 +24,5 @@ Unity triggers the following injection points in a frame, in order from top to b
 | BeforePostProcess         | Color (Pyramid \| Read \| Write), Depth (Read \| Write), Normal and roughness (Read), Motion Vectors (Read) | The available buffers for this injection point contain all geometry in the frame that uses High Dynamic Range (HDR). |
 | AfterPostProcess          | Color (Read \| Write), Depth (Read)                          | The available buffers for this injection point contain the final render of the scene, including post-process effects.<br/><br/>This injection point executes the available buffers after Unity applies any post-processing effects.<br/><br/>If you select this injection point, objects that use the depth buffer display jittering artifacts.<br/><br/>When you select this injection point for a [FullscreenCustom Pass](custom-pass-create-gameobject.md#full-screen-custom-pass), Unity assigns the camera color buffer as the target by default. |
 
+The purple boxes correspond to the injection points above in this diagram representing the pass layout in HDRP:
+![](Images/HDRP-frame-graph-diagram.png)
