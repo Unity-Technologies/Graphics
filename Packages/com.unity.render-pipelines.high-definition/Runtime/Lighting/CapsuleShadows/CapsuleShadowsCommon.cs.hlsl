@@ -1,0 +1,48 @@
+//
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
+//
+
+#ifndef CAPSULESHADOWSCOMMON_CS_HLSL
+#define CAPSULESHADOWSCOMMON_CS_HLSL
+//
+// UnityEngine.Rendering.HighDefinition.CapsuleShadowCounterSlot:  static fields
+//
+#define CAPSULESHADOWCOUNTERSLOT_COARSE_TILE_DEPTH_RANGE_BASE (0)
+#define CAPSULESHADOWCOUNTERSLOT_COARSE_TILE_SHADOW_COUNT_BASE (256)
+#define CAPSULESHADOWCOUNTERSLOT_TILE_LIST_DISPATCH_ARG (384)
+#define CAPSULESHADOWCOUNTERSLOT_COUNT (387)
+
+//
+// UnityEngine.Rendering.HighDefinition.CapsuleShadowConstants:  static fields
+//
+#define CAPSULESHADOWCONSTANTS_MAX_SHADOW_CASTER_COUNT (8)
+#define CAPSULESHADOWCONSTANTS_MAX_COARSE_TILE_COUNT_PER_VIEW (64)
+#define CAPSULESHADOWCONSTANTS_MAX_VIEW_COUNT (2)
+#define CAPSULESHADOWCONSTANTS_MAX_COARSE_TILE_COUNT (128)
+
+//
+// UnityEngine.Rendering.HighDefinition.CapsuleShadowFlags:  static fields
+//
+#define CAPSULESHADOWFLAGS_DIRECT_ENABLED (1)
+#define CAPSULESHADOWFLAGS_INDIRECT_ENABLED (2)
+#define CAPSULESHADOWFLAGS_QUARTER_RESOLUTION (4)
+#define CAPSULESHADOWFLAGS_FADE_SELF_SHADOW (8)
+#define CAPSULESHADOWFLAGS_FULL_CAPSULE_OCCLUSION (16)
+#define CAPSULESHADOWFLAGS_FULL_CAPSULE_AMBIENT_OCCLUSION (32)
+#define CAPSULESHADOWFLAGS_LAYER_MASK_ENABLED (64)
+#define CAPSULESHADOWFLAGS_SHOW_RAY_TRACED_REFERENCE (256)
+#define CAPSULESHADOWFLAGS_USE_CHECKERBOARD_DEPTHS (512)
+#define CAPSULESHADOWFLAGS_USE_COARSE_CULLING (1024)
+#define CAPSULESHADOWFLAGS_USE_SPLIT_DEPTH_RANGE (2048)
+#define CAPSULESHADOWFLAGS_USE_SPARSE_TILES (4096)
+
+// Generated from UnityEngine.Rendering.HighDefinition.CapsuleShadowFilterTile
+// PackingRules = Exact
+struct CapsuleShadowFilterTile
+{
+    uint coord;
+    uint bits;
+};
+
+
+#endif

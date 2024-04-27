@@ -1,0 +1,188 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleShadowsCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadowsBuildTiles.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsTiling.hlsl"
+
+RW_TEXTURE2D_X(float4, _CapsuleShadowTileDepthRanges);
+RWBuffer<uint> _CapsuleShadowCounters;
+
+#define TILE_SIZE               CAPSULE_SHADOW_TILE_SIZE
+#define THREADGROUP_SIZE        (TILE_SIZE*TILE_SIZE)
+
+// can only use wave ops when the wave size matches our threadgroup size
+#if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && PLATFORM_LANE_COUNT != THREADGROUP_SIZE
+#define USE_WAVE_OPS
+#endif
+
+#ifndef USE_WAVE_OPS
+groupshared float s_tempMin[THREADGROUP_SIZE];
+groupshared float s_tempMax[THREADGROUP_SIZE];
+#endif
+
+// must be called with all threads of the wave active
+void WaveMinMax(inout float valueMin, inout float valueMax, uint flatThreadIndex)
+{
+#ifdef USE_WAVE_OPS
+    valueMin = WaveActiveMin(valueMin);
+    valueMax = WaveActiveMax(valueMax);
+#else
+    // propagate min/max to towards thread 0
+    [unroll]
+    for (int i = 5; i >= 0; --i)
+    {
+        uint bandIndex = flatThreadIndex >> i;
+        if (bandIndex == 1)
+        {
+            s_tempMin[flatThreadIndex] = valueMin;
+            s_tempMax[flatThreadIndex] = valueMax;
+        }
+	    GroupMemoryBarrierWithGroupSync();
+        if (bandIndex == 0)
+        {
+            valueMin = min(valueMin, s_tempMin[flatThreadIndex | (1U << i)]);
+            valueMax = max(valueMax, s_tempMax[flatThreadIndex | (1U << i)]);
+        }
+	    GroupMemoryBarrierWithGroupSync();
+    }
+
+    // read back thread 0 for all threads
+    if (flatThreadIndex == 0)
+    {
+        s_tempMin[flatThreadIndex] = valueMin;
+        s_tempMax[flatThreadIndex] = valueMax;
+    }
+    GroupMemoryBarrierWithGroupSync();
+    valueMin = s_tempMin[0];
+    valueMax = s_tempMax[0];
+#endif
+}
+
+float LogSpaceAverage(float x, float y)
+{
+    uint signbit = 1U << 31;
+    uint absmask = ~signbit;
+    uint xu = asuint(x);
+    uint yu = asuint(y);
+    uint zu = (((xu & absmask) + (yu & absmask)) >> 1) | (xu & signbit); // log space average, preserve sign bit
+    return asfloat(zu);
+}
+
+float MaxElement(float2 v)
+{
+    return max(v.x, v.y);
+}
+
+float MinElement(float4 v)
+{
+    return Min3(v.x, v.y, min(v.z, v.w));
+}
+float MaxElement(float4 v)
+{
+    return Max3(v.x, v.y, max(v.z, v.w));
+}
+
+// inverse of LinearEyeDepth
+float DeviceEyeDepth(float depth, float4 zBufferParam)
+{
+    return (1.f/depth - zBufferParam.w)/zBufferParam.z;
+}
+
+uint2 CoordInTileByIndex(uint i)
+{
+    // assume i = [yxxyyx]
+    return uint2(
+        (i & 1) | ((i >> 2) & 6),
+        ((i >> 1) & 3) | ((i >> 3) & 4));
+}
+
+[numthreads(THREADGROUP_SIZE,1,1)]
+void Main(uint3 groupId : SV_GroupID, uint flatThreadIndex : SV_GroupIndex)
+{
+    uint2 pixelCoordInTile = CoordInTileByIndex(flatThreadIndex);
+    uint2 tileCoord = groupId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(groupId.z);
+
+    uint2 pixelCoord = (tileCoord << 3) | pixelCoordInTile;
+    uint coarsePixelSize = (_CapsuleShadowFlags & CAPSULESHADOWFLAGS_QUARTER_RESOLUTION) ? 4 : 2;
+
+    // load depths for this tile
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _CapsuleDepthMipOffset + pixelCoord).x;
+
+    // check for missing depth
+    bool is_sky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
+
+    // TODO: handle orthographic/oblique
+    float4x4 invProj = UNITY_MATRIX_I_P;
+    float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
+    float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
+    float2 fullResPixelHalfExtentAtUnitDepth = abs(viewFromClipScale*_CapsuleUpscaledSize.zw);
+    float tileSizeAtUnitDepth = (TILE_SIZE*2*coarsePixelSize)*MaxElement(fullResPixelHalfExtentAtUnitDepth);
+
+    // build full depth range
+    float depth0 = is_sky ? FLT_INF : deviceDepth;
+    float depth3 = is_sky ? (-FLT_INF) : deviceDepth;
+    WaveMinMax(depth0, depth3, flatThreadIndex);
+
+    // convert to linear, choose a midpoint depth
+    float linearDepth0 = LinearEyeDepth(depth0, _ZBufferParams);
+    float linearDepth3 = LinearEyeDepth(depth3, _ZBufferParams);
+    float linearDepthMid = LogSpaceAverage(linearDepth0, linearDepth3);
+    float deviceDepthMid = DeviceEyeDepth(linearDepthMid, _ZBufferParams);
+
+    // build the gap depth range
+    bool isBeforeMid = (deviceDepth < deviceDepthMid);
+    float depth1 = (is_sky || !isBeforeMid) ? (-FLT_INF) : deviceDepth;
+    float depth2 = (is_sky || isBeforeMid) ? FLT_INF : deviceDepth;
+    WaveMinMax(depth2, depth1, flatThreadIndex);
+    if (IsInf(depth1))
+        depth1 = depth0;
+    if (IsInf(depth2))
+        depth2 = depth3;
+
+    // store out results
+    if (flatThreadIndex == 0)
+    {
+        // convert all ranges to linear
+        float linearDepth1 = LinearEyeDepth(depth1, _ZBufferParams);
+        float linearDepth2 = LinearEyeDepth(depth2, _ZBufferParams);
+        float linearDepthMinA = min(linearDepth0, linearDepth1);
+        float linearDepthMaxA = max(linearDepth0, linearDepth1);
+        float linearDepthMinB = min(linearDepth2, linearDepth3);
+        float linearDepthMaxB = max(linearDepth2, linearDepth3);
+
+        // revert back to a single depth range if we don't skip much space (for performance)
+        float skipDistance = abs(linearDepth2 - linearDepth1);
+        float farthestLinearDepth = max(abs(linearDepth0), abs(linearDepth3));
+        float tileSizeAtFarthestDepth = tileSizeAtUnitDepth*farthestLinearDepth;
+        if (skipDistance < 4.f*tileSizeAtFarthestDepth || (_CapsuleShadowFlags & CAPSULESHADOWFLAGS_USE_SPLIT_DEPTH_RANGE) == 0)
+        {
+            depth1 = depth3;
+            depth2 = depth0;
+        }
+
+        // pack ranges and write out
+        float4 depthRanges = float4(depth0, depth1, depth2, depth3);
+        if (IsInf(depth0))
+        {
+            // all pixels are far clip
+            depthRanges = UNITY_RAW_FAR_CLIP_VALUE;
+        }
+        else
+        {
+            // contribute to coarse tile depth range
+            uint2 coarseTileCoord = tileCoord/_CapsuleCoarseTileSizeInFineTiles;
+            uint coarseTileIndex = CoarseTileIndex_X(coarseTileCoord);
+            uint baseIndex = CAPSULE_SHADOW_COARSE_TILE_DEPTH_RANGE_BASE(coarseTileIndex);
+            InterlockedMin(_CapsuleShadowCounters[baseIndex + 0], asuint(depth0));
+            InterlockedMax(_CapsuleShadowCounters[baseIndex + 1], asuint(depth3));
+        }
+        _CapsuleShadowTileDepthRanges[COORD_TEXTURE2D_X(tileCoord)] = depthRanges;
+    }
+}

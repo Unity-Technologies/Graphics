@@ -1,0 +1,182 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadowsRender.hlsl"
+
+RW_TEXTURE2D_ARRAY(float2, _CapsuleShadowVisibilityOutput);
+TEXTURE2D_ARRAY(_CapsuleShadowVisibility);
+TEXTURE2D_X_UINT(_CapsuleShadowTileBits);
+StructuredBuffer<CapsuleShadowFilterTile> _CapsuleShadowFilterTileList;
+
+#define GATHER_SIZE         12
+#define GATHER_PIXEL_COUNT  (GATHER_SIZE*GATHER_SIZE)
+groupshared float s_linearDepths[GATHER_PIXEL_COUNT];
+groupshared float s_signalA[GATHER_PIXEL_COUNT];
+groupshared float s_signalB[GATHER_PIXEL_COUNT];
+
+uint GatherIndexFromCoord(uint2 coord)
+{
+    return coord.y*GATHER_SIZE + coord.x;
+}
+
+uint2 CoordFromRasterIndex(uint index, uint width)
+{
+    uint2 coord;
+    coord.y = index/width;
+    coord.x = index - coord.y*width;
+    return coord;
+}
+
+float2 BlurKernel(uint centerIndex, uint offsetScale)
+{
+    uint d1 = offsetScale;
+    uint d2 = 2*offsetScale;
+    float c0 = 1.f/17.f;
+    float c1 = 4.f/17.f;
+    float c2 = 7.f/17.f;
+    float a
+        = c0*s_signalA[centerIndex - d2]
+        + c1*s_signalA[centerIndex - d1]
+        + c2*s_signalA[centerIndex]
+        + c1*s_signalA[centerIndex + d1]
+        + c0*s_signalA[centerIndex + d2];
+    float b
+        = c0*s_signalB[centerIndex - d2]
+        + c1*s_signalB[centerIndex - d1]
+        + c2*s_signalB[centerIndex]
+        + c1*s_signalB[centerIndex + d1]
+        + c0*s_signalB[centerIndex + d2];
+    return float2(a, b);
+}
+
+float2 BlurredSignal(uint2 pixelCoordInTile, uint flatThreadIndex)
+{
+    // blur horizontally (8x12 region, two passes of 8x6, write back to LDS)
+    {
+        uint2 centerCoord = CoordFromRasterIndex(flatThreadIndex, 8);
+        uint i0 = GatherIndexFromCoord(centerCoord + uint2(2, 0));
+        uint i1 = GatherIndexFromCoord(centerCoord + uint2(2, 6));
+        float2 h0 = 0.f;
+        float2 h1 = 0.f;
+        if (centerCoord.y < 6)
+        {
+            h0 = BlurKernel(i0, 1);
+            h1 = BlurKernel(i1, 1);
+        }
+        GroupMemoryBarrierWithGroupSync();
+        if (centerCoord.y < 6)
+        {
+            s_signalA[i0] = h0.x;
+            s_signalB[i0] = h0.y;
+            s_signalA[i1] = h1.x;
+            s_signalB[i1] = h1.y;
+        }
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // blur vertically (8x8 region)
+    float2 v = BlurKernel(GatherIndexFromCoord(pixelCoordInTile + uint2(2, 2)), GATHER_SIZE);
+    GroupMemoryBarrierWithGroupSync();
+    return v;
+}
+
+[numthreads(8,8,1)]
+void Main(uint2 pixelCoordInTile : SV_GroupThreadID, uint groupID : SV_GroupID, uint flatThreadIndex : SV_GroupIndex)
+{
+    uint entryIndex = groupID;
+
+    CapsuleShadowFilterTile tile = _CapsuleShadowFilterTileList[entryIndex];
+    UNITY_XR_ASSIGN_VIEW_INDEX(GetFilterViewIndex(tile));
+    uint2 outputTileCoord = GetFilterTileCoord(tile);
+
+    int2 outputBase = int2(outputTileCoord*8) - 4;
+    uint2 outputPixelCoord = uint2(outputBase + int2(pixelCoordInTile));
+
+    // upscale only the casters we need for this tile
+    uint outputBits = GetFilterActiveBits(tile);
+    float blurredDepth = 0.f;
+    bool writeDepthStats = (outputBits != 0);
+    if (writeDepthStats)
+    {
+        // coperatively load depths
+        for (uint gatherIndex = flatThreadIndex; gatherIndex < GATHER_PIXEL_COUNT; gatherIndex += 64)
+        {
+            uint2 gatherCoord = CoordFromRasterIndex(gatherIndex, GATHER_SIZE);
+            uint2 loadCoord = uint2(clamp(outputBase + int2(gatherCoord) - 2, 0, int2(_CapsuleRenderSize)));
+
+            float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _CapsuleDepthMipOffset + loadCoord).x;
+            float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
+            s_linearDepths[gatherIndex] = linearDepth;
+            s_signalA[gatherIndex] = linearDepth;
+            s_signalB[gatherIndex] = linearDepth*linearDepth;
+        }
+        GroupMemoryBarrierWithGroupSync();
+
+        // blur depth and depth^2
+        float2 stats = BlurredSignal(pixelCoordInTile, flatThreadIndex);
+        blurredDepth = stats.x;
+
+        // store depth stddev since we would like to use f16 storage, s_d = sqrt(d2 - d*d)
+        stats.y = sqrt(max(stats.y - Sq(stats.x), 0.0f));
+
+        // write out
+        if (all(outputPixelCoord < _CapsuleRenderSize))
+            _CapsuleShadowVisibilityOutput[uint3(outputPixelCoord, INDEX_TEXTURE2D_ARRAY_X(0))] = stats;
+    }
+    while (outputBits != 0)
+    {
+        uint casterIndex = firstbitlow(outputBits);
+        uint casterBit = 1U << casterIndex;
+        outputBits &= ~casterBit;
+
+        // coperatively load visibility
+        for (uint gatherIndex = flatThreadIndex; gatherIndex < GATHER_PIXEL_COUNT; gatherIndex += 64)
+        {
+            uint2 gatherCoord = CoordFromRasterIndex(gatherIndex, GATHER_SIZE);
+            uint2 loadCoord = uint2(clamp(outputBase + int2(gatherCoord) - 2, 0, int2(_CapsuleRenderSize)));
+
+            uint tileBits = LOAD_TEXTURE2D_X(_CapsuleShadowTileBits, loadCoord/8);
+            float packedVisibility = 0.f;
+            if ((tileBits & casterBit) != 0)
+                packedVisibility = LOAD_TEXTURE2D_ARRAY(_CapsuleShadowVisibility, loadCoord, INDEX_TEXTURE2D_ARRAY_X(casterIndex)).x;
+            float visibility = UnpackCapsuleVisibility(packedVisibility);
+
+            float linearDepth = s_linearDepths[gatherIndex];
+
+            s_signalA[gatherIndex] = visibility;
+            s_signalB[gatherIndex] = visibility*linearDepth;
+        }
+        GroupMemoryBarrierWithGroupSync();
+
+        // blur visibility and visibility*depth
+        float2 stats = BlurredSignal(pixelCoordInTile, flatThreadIndex);
+
+        // store correlation since we would like to use f16 storage, s_vd = vd - v*d
+        stats.y = stats.y - stats.x*blurredDepth;
+
+        // write out
+        if (all(outputPixelCoord < _CapsuleRenderSize))
+            _CapsuleShadowVisibilityOutput[uint3(outputPixelCoord, INDEX_TEXTURE2D_ARRAY_X(1 + casterIndex))] = stats;
+    }
+
+    // clear tiles we need for filtering
+    uint clearBits = GetFilterClearBits(tile);
+    if (clearBits != 0 && !writeDepthStats)
+    {
+        if (all(outputPixelCoord < _CapsuleRenderSize))
+            _CapsuleShadowVisibilityOutput[uint3(outputPixelCoord, INDEX_TEXTURE2D_ARRAY_X(0))] = float2(0.f, 0.f);
+    }
+    while (clearBits != 0)
+    {
+        uint casterIndex = firstbitlow(clearBits);
+        uint casterBit = 1U << casterIndex;
+        clearBits &= ~casterBit;
+
+        if (all(outputPixelCoord < _CapsuleRenderSize))
+            _CapsuleShadowVisibilityOutput[uint3(outputPixelCoord, INDEX_TEXTURE2D_ARRAY_X(1 + casterIndex))] = float2(1.f, 0.f);
+    }
+}

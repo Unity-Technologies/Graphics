@@ -1,0 +1,585 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile_local _ ENABLE_CAPSULE_TILE_DEBUG
+#pragma multi_compile_local _ ENABLE_CAPSULE_RAY_TRACED_REFERENCE
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleShadowsCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluderData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadowsRender.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsTiling.hlsl"
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/LightingDebug.cs.hlsl"
+#endif
+
+StructuredBuffer<CapsuleShadowOccluder> _CapsuleShadowOccluders; // TODO: could be constant buffer?
+StructuredBuffer<CapsuleShadowCaster> _CapsuleShadowCasters; // TODO: could be constant buffer?
+StructuredBuffer<CapsuleShadowVolume> _CapsuleShadowVolumes; // TODO: could be constant buffer?
+Buffer<uint> _CapsuleShadowCounters; // TODO: could be constant buffer?
+TEXTURE2D_X(_CapsuleShadowTileDepthRanges);
+RW_TEXTURE2D_ARRAY(float, _CapsuleShadowVisibilityOutput);
+RW_TEXTURE2D_X(uint, _CapsuleShadowTileBitsOutput);
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+RW_TEXTURE2D_X(uint, _CapsuleShadowTileDebug);
+#endif
+TEXTURE3D(_CapsuleShadowsLUT);
+SAMPLER(sampler_CapsuleShadowsLUT);
+
+#define TILE_SIZE               CAPSULE_SHADOW_TILE_SIZE
+#define DEPTH_RANGE_COUNT       CAPSULE_SHADOW_DEPTH_RANGE_COUNT
+groupshared float3 s_tileCenter[DEPTH_RANGE_COUNT];
+groupshared uint s_tileRadiusU[DEPTH_RANGE_COUNT];
+
+// TODO: use WavePrefixCountBits and WaveActiveCountBits when supported
+#define USE_PREFIX_COUNT_BITS 0
+
+groupshared CapsuleShadowVolume s_volumeList[64];
+#if !USE_PREFIX_COUNT_BITS
+groupshared uint s_volumeListLength;
+#endif
+
+// cached per caster, used for shadowing pixels with capsules that pass culling
+struct CasterRenderData
+{
+    float maxCosTheta;
+    float shadowRange;
+    float3 positionWS;      // direction for directional light
+    float radiusWS;         // point/spot only
+};
+
+#define MAX_SLICE_COUNT                                             CAPSULESHADOWCONSTANTS_MAX_SHADOW_CASTER_COUNT
+#define CASTER_CULLING_INDEX(CASTER_INDEX, DEPTH_RANGE_INDEX)       (((CASTER_INDEX) << 1) | (DEPTH_RANGE_INDEX))
+groupshared CasterRenderData s_casterRenderData[MAX_SLICE_COUNT];
+groupshared CasterCullingData s_casterCullingData[MAX_SLICE_COUNT*DEPTH_RANGE_COUNT];
+groupshared uint s_casterValidBits;
+groupshared uint s_casterNonZeroBits;
+
+groupshared uint s_packedVisibility[TILE_SIZE*TILE_SIZE*MAX_SLICE_COUNT/2]; // UNORM16 per slice per pixel
+static uint g_cachedFlags; // low bits: MAX_SLICE_COUNT bits for whether visibility has been written for that caster index, high bits: cached caster index
+static float g_cachedVisibility;
+
+float MaxElement(float2 v)
+{
+    return max(v.x, v.y);
+}
+
+float2 GetTileCornerCS(uint2 tileCoord)
+{
+    uint2 upscaledPosSS = tileCoord*TILE_SIZE;
+    uint upscaleShift = (_CapsuleShadowFlags & CAPSULESHADOWFLAGS_QUARTER_RESOLUTION) ? 2 : 1;
+    return ComputeClipSpacePosition(min(float2(upscaledPosSS << upscaleShift) * _CapsuleUpscaledSize.zw, 1.f), 0.f).xy;
+}
+
+float2 GetPositionCS(uint2 pixelCoord)
+{
+    float2 upscaledPosSS = float2(pixelCoord) + .5f;
+    float upscaleMul = (_CapsuleShadowFlags & CAPSULESHADOWFLAGS_QUARTER_RESOLUTION) ? 4.f : 2.f;
+    return ComputeClipSpacePosition(upscaledPosSS * upscaleMul * _CapsuleUpscaledSize.zw, 0.f).xy;
+}
+
+bool CastersIntersectTile(uint flatThreadIndex, bool useSecondDepthRange)
+{
+    // zero state
+    if (flatThreadIndex == 0)
+    {
+        s_casterValidBits = 0;
+        s_casterNonZeroBits = 0;
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    uint depthRangeIndex = flatThreadIndex & 1;
+    uint casterIndex = flatThreadIndex >> 1;
+    if (casterIndex < _CapsuleCasterCount && (depthRangeIndex == 0 || useSecondDepthRange))
+    {
+        CapsuleShadowCaster caster = _CapsuleShadowCasters[casterIndex];
+        uint casterType = GetCasterType(caster);
+        bool isValid;
+        if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
+        {
+            // no light to intersect, always valid
+            isValid = true;
+        }
+        else
+        {
+            // check direct shadow caster
+            CasterCullingData cullingData;
+            isValid = CapsuleShadowCasterIntersectsTile(
+                caster,
+                s_tileCenter[depthRangeIndex],
+                asfloat(s_tileRadiusU[depthRangeIndex]),
+                cullingData);
+
+            // save for use when rendering capsules
+            s_casterCullingData[CASTER_CULLING_INDEX(casterIndex, depthRangeIndex)] = cullingData;
+            if (depthRangeIndex == 0)
+            {
+                CasterRenderData renderData;
+                renderData.maxCosTheta = caster.maxCosTheta;
+                renderData.shadowRange = caster.shadowRange;
+                if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+                {
+                    renderData.positionWS = caster.directionWS;
+                    renderData.radiusWS = 0.f;
+                }
+                else // CAPSULESHADOWCASTERTYPE_POINT or CAPSULESHADOWCASTERTYPE_SPOT
+                {
+                    renderData.positionWS = caster.positionRWS;
+                    renderData.radiusWS = caster.radiusWS;
+                }
+                s_casterRenderData[casterIndex] = renderData;
+            }
+        }
+        if (isValid)
+            InterlockedOr(s_casterValidBits, 1U << casterIndex);
+    }
+    GroupMemoryBarrierWithGroupSync();
+    return s_casterValidBits != 0;
+}
+
+bool CapsuleIntersectsTile(CapsuleShadowVolume volume, CapsuleShadowOccluder capsuleData, uint depthRangeIndex, float3 tileCenterWS, float tileRadiusWS)
+{
+    float3 tileToCapsuleVec = capsuleData.centerRWS - tileCenterWS;
+    float capsuleSignedDistanceFromTile = CapsuleSignedDistance(tileToCapsuleVec, capsuleData.offset, capsuleData.axisDirWS, capsuleData.radius) - tileRadiusWS;
+
+    uint casterType = GetCasterType(volume);
+    bool intersectsTile;
+    if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
+    {
+        // only check range
+        intersectsTile = (capsuleSignedDistanceFromTile < capsuleData.radius*_CapsuleIndirectRangeFactor);
+    }
+    else
+    {
+        // grab caster data
+        uint casterIndex = GetCasterIndex(volume);
+        intersectsTile = (((s_casterValidBits >> casterIndex) & 1) != 0);
+        if (intersectsTile)
+        {
+            intersectsTile = CapsuleShadowVolumeIntersectsTile(
+                tileToCapsuleVec,
+                tileRadiusWS,
+                capsuleSignedDistanceFromTile,
+                capsuleData.axisDirWS,
+                capsuleData.offset,
+                capsuleData.radius,
+                s_casterCullingData[CASTER_CULLING_INDEX(casterIndex, depthRangeIndex)],
+                s_casterRenderData[casterIndex].shadowRange);
+        }
+    }
+    return intersectsTile;
+}
+
+void InitVisibility()
+{
+    // no visibility is cached, no casters are valid
+    g_cachedFlags = MAX_SLICE_COUNT << MAX_SLICE_COUNT;
+    g_cachedVisibility = 0.f;
+}
+
+uint ReadVisibilityFromGroupShared(uint flatThreadIndex, uint casterIndex)
+{
+    // check valid in groupshared, if not then return the default
+    if ((g_cachedFlags & (1U << casterIndex)) == 0)
+        return 0xffffU;
+
+    uint entryIndex = (casterIndex/2)*TILE_SIZE*TILE_SIZE + flatThreadIndex;
+    uint wordIndex = casterIndex & 1;
+
+    uint packedValue = s_packedVisibility[entryIndex];
+    uint visibilityU;
+    if (wordIndex == 0)
+        visibilityU = packedValue & 0x0000ffff;
+    else
+        visibilityU = packedValue >> 16;
+    return visibilityU;
+}
+
+void WriteVisibilityToGroupShared(uint flatThreadIndex, uint casterIndex, uint visibilityU)
+{
+    uint entryIndex = (casterIndex/2)*TILE_SIZE*TILE_SIZE + flatThreadIndex;
+    uint wordIndex = casterIndex & 1;
+
+    uint packedValue = s_packedVisibility[entryIndex];
+    if (wordIndex == 0)
+        packedValue = (packedValue & 0xffff0000) | visibilityU;
+    else
+        packedValue = (packedValue & 0x0000ffff) | (visibilityU << 16);
+    s_packedVisibility[entryIndex] = packedValue;
+
+    // mark as valid in groupshared
+    g_cachedFlags |= (1U << casterIndex);
+}
+
+void SwitchCachedVisibility(uint flatThreadIndex, uint newCasterIndex)
+{
+    uint cachedCasterIndex = g_cachedFlags >> MAX_SLICE_COUNT;
+    if (cachedCasterIndex != newCasterIndex)
+    {
+        // flush the current value if necessary
+        if (cachedCasterIndex < MAX_SLICE_COUNT)
+        {
+            uint visibilityU = min((uint)(g_cachedVisibility + .5f), 0xffffU);
+            WriteVisibilityToGroupShared(flatThreadIndex, cachedCasterIndex, visibilityU);
+        }
+
+        // cache the new value
+        uint visibilityU = ReadVisibilityFromGroupShared(flatThreadIndex, newCasterIndex);
+        g_cachedVisibility = (float)visibilityU; // keep as 0-65535
+
+        // update flags with the new caster index
+        g_cachedFlags &= ((1U << MAX_SLICE_COUNT) - 1);
+        g_cachedFlags |= (newCasterIndex << MAX_SLICE_COUNT);
+    }
+}
+
+void UpdateVisibility(uint flatThreadIndex, uint casterIndex, float occlusion)
+{
+    SwitchCachedVisibility(flatThreadIndex, casterIndex);
+
+    g_cachedVisibility *= (1.f - occlusion);
+    g_cachedVisibility = round(g_cachedVisibility); // round to integer in 0-65535, to keep deterministic if cached back to groupshared
+}
+
+uint ReadVisibilityU(uint flatThreadIndex, uint casterIndex)
+{
+    uint visibilityU;
+
+    uint cachedCasterIndex = g_cachedFlags >> MAX_SLICE_COUNT;
+    if (cachedCasterIndex == casterIndex)
+        visibilityU = min((uint)(g_cachedVisibility + .5f), 0xffffU);
+    else
+        visibilityU = ReadVisibilityFromGroupShared(flatThreadIndex, casterIndex);
+
+    return visibilityU;
+}
+
+void EvaluateCapsuleShadowPerPixel(
+    CapsuleShadowVolume volume,
+    CapsuleShadowOccluder capsule,
+    float3 positionWS,
+    float3 normalWS,
+    bool isSky,
+    uint flatThreadIndex)
+{
+    uint casterIndex = GetCasterIndex(volume);
+    float occlusion = 0.f;
+    if (!isSky)
+    {
+        uint casterType = GetCasterType(volume);
+        if (casterType == CAPSULESHADOWCASTERTYPE_INDIRECT)
+        {
+            bool useAmbientOcclusion = true;
+            if (useAmbientOcclusion)
+            {
+                occlusion = EvaluateCapsuleAmbientOcclusion(
+                    GetCapsuleAmbientOcclusionFlags(),
+                    capsule.centerRWS - positionWS,
+                    capsule.axisDirWS,
+                    capsule.offset,
+                    capsule.radius,
+                    capsule.radius*_CapsuleIndirectRangeFactor,
+                    normalWS);
+            }
+            else
+            {
+                occlusion = EvaluateCapsuleOcclusion(
+                    GetCapsuleIndirectOcclusionFlags(),
+                    TEXTURE3D_ARGS(_CapsuleShadowsLUT, sampler_CapsuleShadowsLUT),
+                    _CapsuleShadowsLUTCoordScale, _CapsuleShadowsLUTCoordOffset,
+                    capsule.indirectDirWS,
+                    false,
+                    _CapsuleIndirectCosAngle,
+                    capsule.centerRWS - positionWS,
+                    capsule.axisDirWS,
+                    capsule.offset,
+                    capsule.radius,
+                    capsule.radius*_CapsuleIndirectRangeFactor,
+                    normalWS);
+            }
+        }
+        else
+        {
+            CasterRenderData renderData = s_casterRenderData[casterIndex];
+            if (casterType == CAPSULESHADOWCASTERTYPE_DIRECTIONAL)
+            {
+                occlusion = EvaluateCapsuleOcclusion(
+                    GetCapsuleDirectOcclusionFlags(),
+                    TEXTURE3D_ARGS(_CapsuleShadowsLUT, sampler_CapsuleShadowsLUT),
+                    _CapsuleShadowsLUTCoordScale, _CapsuleShadowsLUTCoordOffset,
+                    renderData.positionWS,
+                    false,
+                    renderData.maxCosTheta,
+                    capsule.centerRWS - positionWS,
+                    capsule.axisDirWS,
+                    capsule.offset,
+                    capsule.radius,
+                    renderData.shadowRange,
+                    normalWS);
+            }
+            else // casterType == CAPSULESHADOWCASTERTYPE_POINT
+            {
+                float3 surfaceToLightVec = renderData.positionWS - positionWS;
+                float sinTheta = renderData.radiusWS/length(surfaceToLightVec);
+                float cosTheta = min(renderData.maxCosTheta, MatchingSinCos(sinTheta));
+                occlusion = EvaluateCapsuleOcclusion(
+                    GetCapsuleDirectOcclusionFlags(),
+                    TEXTURE3D_ARGS(_CapsuleShadowsLUT, sampler_CapsuleShadowsLUT),
+                    _CapsuleShadowsLUTCoordScale, _CapsuleShadowsLUTCoordOffset,
+                    surfaceToLightVec,
+                    true,
+                    cosTheta,
+                    capsule.centerRWS - positionWS,
+                    capsule.axisDirWS,
+                    capsule.offset,
+                    capsule.radius,
+                    renderData.shadowRange,
+                    normalWS);
+            }
+        }
+    }
+    UpdateVisibility(flatThreadIndex, casterIndex, occlusion);
+}
+
+void CapsuleShadowLoop(
+    uint2 pixelCoord,
+    uint flatThreadIndex,
+    uint volumeGlobalBase,
+    uint volumeCount,
+    bool useSecondDepthRange,
+    inout uint tileDebugCounter)
+{
+    bool isSky = false;
+    float3 positionWS = 0.f;
+    float3 normalWS = 0.f;
+    bool hasPixelData = false;    
+
+    float3 tileCenterWS0 = s_tileCenter[0];
+    float tileRadiusWS0 = asfloat(s_tileRadiusU[0]);
+
+    // loop over capsules in batches
+    for (uint volumeGroupOffset = 0; volumeGroupOffset < volumeCount; volumeGroupOffset += 64)
+    {
+        // clear state
+#if !USE_PREFIX_COUNT_BITS
+        if (flatThreadIndex == 0)
+            s_volumeListLength = 0;
+#endif
+        GroupMemoryBarrierWithGroupSync();
+
+        // use one thread per capsule to check against tile
+        uint volumeListLength = 0;
+        {
+            uint volumeIndex = volumeGroupOffset + flatThreadIndex;
+            CapsuleShadowVolume volume = makeCapsuleShadowVolume(0, 0, 0);
+            bool intersectsTile = false;
+            if (volumeIndex < volumeCount)
+            {
+                volume = _CapsuleShadowVolumes[volumeGlobalBase + volumeIndex];
+
+                CapsuleShadowOccluder capsule = _CapsuleShadowOccluders[GetOccluderIndex(volume)];
+
+                intersectsTile = CapsuleIntersectsTile(volume, capsule, 0, tileCenterWS0, tileRadiusWS0);
+                if (useSecondDepthRange && !intersectsTile)
+                    intersectsTile = CapsuleIntersectsTile(volume, capsule, 1, s_tileCenter[1], asfloat(s_tileRadiusU[1]));
+            }
+#if USE_PREFIX_COUNT_BITS
+            uint volumeListIndex = WavePrefixCountBits(intersectsTile);
+            if (intersectsTile)
+                s_volumeList[volumeListIndex] = volume;
+            volumeListLength = WaveActiveCountBits(intersectsTile);
+            GroupMemoryBarrierWithGroupSync();
+#else
+            if (intersectsTile)
+            {
+                uint volumeListIndex;
+                InterlockedAdd(s_volumeListLength, 1, volumeListIndex);
+                s_volumeList[volumeListIndex] = volume;
+            }
+            GroupMemoryBarrierWithGroupSync();
+            volumeListLength = s_volumeListLength;        
+#endif
+        }
+
+        // lazily load pixel data
+        if (!hasPixelData && volumeListLength != 0)
+        {
+            float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _CapsuleDepthMipOffset + pixelCoord).x;
+            float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
+            isSky = (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE);
+
+            float2 positionCS = GetPositionCS(pixelCoord);
+
+            // TODO: handle orthographic/oblique
+            float4x4 invProj = UNITY_MATRIX_I_P;
+            float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
+            float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
+            float2 positionVS_XY = viewFromClipScale*positionCS + viewFromClipOffset;
+            positionWS = TransformViewToWorld(ViewspaceFromXY(positionVS_XY, linearDepth));
+
+            uint coarsePixelSize = (_CapsuleShadowFlags & CAPSULESHADOWFLAGS_QUARTER_RESOLUTION) ? 4 : 2;
+            uint2 fullResCoord = pixelCoord;
+            // TODO: offset coordinate properly
+            fullResCoord = fullResCoord*coarsePixelSize + ((asuint(deviceDepth) >> uint2(0, 1)) & 1);
+            float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, fullResCoord);
+
+            NormalData normalData;
+            DecodeFromNormalBuffer(normalBufferData, normalData);
+            normalWS = normalData.normalWS;
+
+            hasPixelData = true;
+        }
+
+        // loop over volume list
+        for (uint volumeListIndex = 0; volumeListIndex < volumeListLength; ++volumeListIndex)
+        {
+            CapsuleShadowVolume volume = s_volumeList[volumeListIndex];
+            CapsuleShadowOccluder capsule = _CapsuleShadowOccluders[GetOccluderIndex(volume)];
+
+            EvaluateCapsuleShadowPerPixel(volume, capsule, positionWS, normalWS, isSky, flatThreadIndex);
+
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+            bool isIndirect = (GetCasterType(volume) == CAPSULESHADOWCASTERTYPE_INDIRECT);
+            if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_FINE_INDIRECT_CAPSULES && isIndirect)
+                ++tileDebugCounter;
+            if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_FINE_DIRECT_CAPSULES && !isIndirect)
+                ++tileDebugCounter;
+            if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_FINE_ACTIVE_LIGHTS)
+                tileDebugCounter |= (1 << GetCasterIndex(volume));
+#endif
+        }
+    }
+}
+
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+#define EARLY_RETURN_WHEN_NOT_DEBUG_IF(CONDITION, TILE_COORD, FLAT_THREAD_INDEX)
+#else
+#define EARLY_RETURN_WHEN_NOT_DEBUG_IF(CONDITION, TILE_COORD, FLAT_THREAD_INDEX)    \
+    if (CONDITION) {                                                                \
+        if ((FLAT_THREAD_INDEX) == 0)                                               \
+            _CapsuleShadowTileBitsOutput[COORD_TEXTURE2D_X(TILE_COORD)] = 0;        \
+        return;                                                                     \
+    }
+#endif
+
+[numthreads(TILE_SIZE,TILE_SIZE,1)]
+void Main(uint2 pixelCoord : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint flatThreadIndex : SV_GroupIndex)
+{
+    uint2 tileCoord = groupId.xy;
+    UNITY_XR_ASSIGN_VIEW_INDEX(groupId.z);
+
+    // check coarse tile list
+    uint2 coarseTileCoord = tileCoord/_CapsuleCoarseTileSizeInFineTiles;
+    uint coarseTileIndex = CoarseTileIndex_X(coarseTileCoord);
+    uint volumeCount = _CapsuleShadowCounters[CAPSULE_SHADOW_COARSE_TILE_SHADOW_COUNT(coarseTileIndex)];
+    EARLY_RETURN_WHEN_NOT_DEBUG_IF(volumeCount == 0, tileCoord, flatThreadIndex);
+    uint volumeGlobalBase = coarseTileIndex*_CapsuleOccluderCount*_CapsuleCasterCount;
+
+    // early out if tile is all far clip
+    float4 deviceDepthRange = LOAD_TEXTURE2D_X(_CapsuleShadowTileDepthRanges, tileCoord);
+    EARLY_RETURN_WHEN_NOT_DEBUG_IF(all(deviceDepthRange.xw == UNITY_RAW_FAR_CLIP_VALUE), tileCoord, flatThreadIndex);
+
+    // TODO: handle orthographic/oblique
+    float4x4 invProj = UNITY_MATRIX_I_P;
+    float2 viewFromClipScale = float2(invProj._m00, invProj._m11);
+    float2 viewFromClipOffset = float2(invProj._m03, invProj._m13);
+
+    float4 linearDepthRange = float4(
+        LinearEyeDepth(deviceDepthRange.x, _ZBufferParams),
+        LinearEyeDepth(deviceDepthRange.y, _ZBufferParams),
+        LinearEyeDepth(deviceDepthRange.z, _ZBufferParams),
+        LinearEyeDepth(deviceDepthRange.w, _ZBufferParams));
+    bool useSecondDepthRange = any(linearDepthRange.xy != linearDepthRange.zw);
+
+    if (flatThreadIndex < DEPTH_RANGE_COUNT)
+        s_tileRadiusU[flatThreadIndex] = 0;
+    GroupMemoryBarrierWithGroupSync();
+
+    // get bounding sphere center and radius
+    {
+        // check one corner on each thread
+        uint depthRangeIndex = flatThreadIndex & 1;
+        uint cornerIndex = flatThreadIndex >> 1;
+
+	    float2 corner0VS_XY = GetTileCornerCS(tileCoord)*viewFromClipScale + viewFromClipOffset;
+	    float2 corner1VS_XY = GetTileCornerCS(tileCoord + 1)*viewFromClipScale + viewFromClipOffset;
+        float linearDepth0 = (depthRangeIndex != 0) ? linearDepthRange.z : linearDepthRange.x;
+        float linearDepth1 = (depthRangeIndex != 0) ? linearDepthRange.w : linearDepthRange.y;
+
+        float3 tileCenterWS = TransformViewToWorld(ViewspaceFromXY(
+            .5f*(corner0VS_XY + corner1VS_XY),
+            .5f*(linearDepth0 + linearDepth1)));
+
+        if (cornerIndex == 0)
+            s_tileCenter[depthRangeIndex] = tileCenterWS;
+
+        if (cornerIndex < 8)
+        {
+            float2 cornerVS_XY = float2(
+                (cornerIndex & 1) != 0 ? corner1VS_XY.x : corner0VS_XY.x,
+                (cornerIndex & 2) != 0 ? corner1VS_XY.y : corner0VS_XY.y);
+            float cornerLinearDepth = ((cornerIndex & 4) != 0 ? linearDepth1 : linearDepth0);
+            float3 offsetWS = TransformViewToWorld(ViewspaceFromXY(cornerVS_XY, cornerLinearDepth)) - tileCenterWS;
+            float tileRadiusWS = length(offsetWS);
+            InterlockedMax(s_tileRadiusU[depthRangeIndex], asuint(tileRadiusWS));
+        }
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // check the casters vs each depth range as a pre-process
+    bool haveAnyCasters = CastersIntersectTile(flatThreadIndex, useSecondDepthRange);
+    EARLY_RETURN_WHEN_NOT_DEBUG_IF(!haveAnyCasters, tileCoord, flatThreadIndex);
+
+    // reset working state
+    InitVisibility();
+
+    uint tileDebugCounter = 0;
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_COARSE_CAPSULES)
+        tileDebugCounter = volumeCount;
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_DEPTH_RANGES)
+        tileDebugCounter = useSecondDepthRange ? 2 : 1;
+#endif
+
+    // optimise the loop separately depending on whether we are using one or two depth ranges
+    [branch]
+    if (useSecondDepthRange)
+        CapsuleShadowLoop(pixelCoord, flatThreadIndex, volumeGlobalBase, volumeCount, true, tileDebugCounter);
+    else
+        CapsuleShadowLoop(pixelCoord, flatThreadIndex, volumeGlobalBase, volumeCount, false, tileDebugCounter);
+
+    // write results
+    uint casterValidBits = s_casterValidBits;
+    while (casterValidBits != 0)
+    {
+        uint casterIndex = firstbitlow(casterValidBits);
+        uint casterBit = 1U << casterIndex;
+        casterValidBits &= ~casterBit;
+
+        uint visibilityU = ReadVisibilityU(flatThreadIndex, casterIndex);
+        bool processTile = ((_CapsuleShadowFlags & CAPSULESHADOWFLAGS_USE_SPARSE_TILES) != 0) ? (visibilityU != 0xffffU) : (flatThreadIndex == 0);
+        if (processTile)
+            InterlockedOr(s_casterNonZeroBits, casterBit);
+        GroupMemoryBarrierWithGroupSync();
+
+        if ((s_casterNonZeroBits & casterBit) != 0)
+            _CapsuleShadowVisibilityOutput[uint3(pixelCoord, INDEX_TEXTURE2D_ARRAY_X(casterIndex))] = PackCapsuleVisibility(visibilityU*(1.f/65535.f));
+    }
+    uint tileBits = s_casterNonZeroBits;
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_FINE_ACTIVE_LIGHTS)
+        tileDebugCounter = countbits(tileDebugCounter);
+    if (_CapsuleTileDebugMode == CAPSULETILEDEBUGMODE_FILTERED_LIGHTS)
+        tileDebugCounter = countbits(tileBits);  
+#endif
+    if (flatThreadIndex == 0)
+    {
+        _CapsuleShadowTileBitsOutput[COORD_TEXTURE2D_X(pixelCoord/8)] = tileBits;
+#ifdef ENABLE_CAPSULE_TILE_DEBUG
+        _CapsuleShadowTileDebug[COORD_TEXTURE2D_X(pixelCoord/8)] = tileDebugCounter;
+#endif
+    }
+}

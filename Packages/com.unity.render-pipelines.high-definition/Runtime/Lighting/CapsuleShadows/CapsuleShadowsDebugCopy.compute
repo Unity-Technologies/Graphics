@@ -1,0 +1,34 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleShadowsCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadowsRender.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsUpscale.hlsl"
+
+RW_TEXTURE2D_X(float, _CapsuleShadowDebugOutput);
+
+[numthreads(8,8,1)]
+void Main(uint2 pixelCoord : SV_DispatchThreadID, uint3 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(groupId.z);
+
+    float deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixelCoord).x;
+    float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
+
+    bool isValidTile = false;
+    float visibility = CapsuleShadowsVisibilityMomentUpscaled(
+        pixelCoord,
+        (_CapsuleShadowFlags & CAPSULESHADOWFLAGS_QUARTER_RESOLUTION) != 0,
+        linearDepth,
+        _CapsuleDebugCasterIndex,
+        isValidTile);
+
+    if (!isValidTile)
+        visibility = ((pixelCoord.x ^ pixelCoord.y) & 8) != 0 ? 0.8f : 0.7f;
+
+    _CapsuleShadowDebugOutput[COORD_TEXTURE2D_X(pixelCoord)] = visibility;
+}

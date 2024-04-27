@@ -1,0 +1,20 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleShadowsLUT.hlsl"
+
+RW_TEXTURE3D(float, _CapsuleShadowsLUT);
+float4 _CapsuleShadowsLUTCoordScale;
+
+[numthreads(4,4,4)]
+void Main(uint3 lutCoord : SV_DispatchThreadID)
+{
+	uint rngState = 0;
+	Hash_Tchou_3_1_uint(lutCoord, rngState);
+
+	_CapsuleShadowsLUT[lutCoord] = ComputeCapsuleShadowLUTFromCoord(lutCoord, _CapsuleShadowsLUTCoordScale.xyz, rngState);
+}

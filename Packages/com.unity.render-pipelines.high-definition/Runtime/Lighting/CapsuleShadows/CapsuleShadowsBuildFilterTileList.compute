@@ -1,0 +1,53 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel Main
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/ShaderVariablesCapsuleShadowsRender.hlsl"
+
+RW_TEXTURE2D_X(uint, _CapsuleShadowTileBitsOutput);
+TEXTURE2D_X_UINT(_CapsuleShadowTileBits);
+RWBuffer<uint> _CapsuleShadowCounters;
+RWStructuredBuffer<CapsuleShadowFilterTile> _CapsuleShadowFilterTileList;
+
+[numthreads(8,8,1)]
+void Main(uint2 tileCoord : SV_DispatchThreadID, uint3 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(groupId.z);
+
+    // intentionally includes extra index equal to the render size
+    if (any(tileCoord > _CapsuleRenderSizeInTiles))
+        return;
+
+    // TODO: use gather (can do gather on UINT portably?)
+    // TODO: cooperatively gather to LDS, use separable filter
+    uint activeBits = 0;
+    uint clearBits = 0;
+    uint i;
+    for (i = 0; i < 16; ++i)
+    {
+        uint2 tileOffset = uint2(i & 0x3, i >> 2);
+        bool isOverlapping = all((tileOffset - 1) < 2);
+        uint2 loadCoord = tileCoord + tileOffset - 2;
+        if (all(loadCoord < _CapsuleRenderSizeInTiles))
+        {
+            uint tileBits = _CapsuleShadowTileBits[COORD_TEXTURE2D_X(loadCoord)];
+            if (isOverlapping)
+                activeBits |= tileBits;
+            else
+                clearBits |= tileBits;
+        }
+    }
+    clearBits &= ~activeBits;
+
+    // write outputs
+    if (activeBits != 0 || clearBits != 0)
+    {
+        uint argIndex;
+        InterlockedAdd(_CapsuleShadowCounters[CAPSULESHADOWCOUNTERSLOT_TILE_LIST_DISPATCH_ARG], 1, argIndex);
+        _CapsuleShadowFilterTileList[argIndex] = makeCapsuleShadowFilterTile(tileCoord, unity_StereoEyeIndex, activeBits, clearBits);
+    }
+    _CapsuleShadowTileBitsOutput[COORD_TEXTURE2D_X(tileCoord)] = activeBits;
+}
