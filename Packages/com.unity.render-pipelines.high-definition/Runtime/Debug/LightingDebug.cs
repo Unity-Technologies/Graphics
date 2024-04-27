@@ -137,6 +137,28 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Shadow Maps Debug Mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum CapsuleTileDebugMode
+    {
+        /// <summary>No capsule tile debug.</summary>
+        None,
+        /// <summary>Show the number of depth ranges for each fine tile.</summary>
+        DepthRanges,
+        /// <summary>Show the number of capsules that pass coarse culling.</summary>
+        CoarseCapsules,
+        /// <summary>Show the number of capsules for direct shadows (over all lights) that pass fine culling.</summary>
+        FineDirectCapsules,
+        /// <summary>Show the number of capsules for indirect shadows that pass fine culling.</summary>
+        FineIndirectCapsules,
+        /// <summary>Show the number of lights with capsules that pass fine culling.</summary>
+        FineActiveLights,
+        /// <summary>Show the number of lights that require filtering after rendering.</summary>
+        FilteredLights,
+    }
+
+    /// <summary>
     /// Exposure debug mode.
     /// </summary>
     [GenerateHLSL]
@@ -250,6 +272,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shadowResolutionScaleFactor = 1.0f;
         /// <summary>Clear shadow atlases each frame.</summary>
         public bool clearShadowAtlas = false;
+
+        /// <summary>True to rebuild the axis occlusion LUT for capsule shadows every frame.</summary>
+        public bool capsuleShadowsRebuildLUT = false;
+        /// <summary>True to show reference ray traced result for capsule shadows.</summary>
+        public bool capsuleShadowsShowRayTracedReference = false;
+        /// <summary>True if checkerboard depths should be used for capsule shadows.</summary>
+        public bool capsuleShadowsUseCheckboardDepths = true;
+        /// <summary>True if coarse culling should be used for capsule shadows.</summary>
+        public bool capsuleShadowsUseCoarseCulling = true;
+        /// <summary>True if split depth ranges should be used for capsule shadows.</summary>
+        public bool capsuleShadowsUseSplitDepthRange = true;
+        /// <summary>True if sparse tiles should be used for capsule shadows.</summary>
+        public bool capsuleShadowsUseSparseTiles = true;
+        /// <summary>True to override the resolution set on the volume component.</summary>
+        public bool capsuleShadowsOverrideResolution = false;
+        /// <summary>The resolution to use instead of the resolution set on the volume component.</summary>
+        public CapsuleShadowResolution capsuleShadowsResolution = CapsuleShadowResolution.Half;
+        /// <summary>Show the number of capsules per tile.</summary>
+        public CapsuleTileDebugMode capsuleTileDebugMode = CapsuleTileDebugMode.None;
 
         /// <summary>Override smoothness of the whole scene for lighting debug.</summary>
         public bool overrideSmoothness = false;

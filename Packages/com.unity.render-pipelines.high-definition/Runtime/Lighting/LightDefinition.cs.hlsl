@@ -114,7 +114,13 @@ struct DirectionalLightData
     float isRayTracedContactShadow;
     float angularDiameter;
     float distanceFromCamera;
+    float __unused__;
+    int capsuleCasterIndex;
+    float capsuleShadowRange;
+    float capsuleShadowMaxCosTheta;
+    float capsulePadding;
 };
+
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
 // PackingRules = Exact
@@ -195,7 +201,11 @@ struct LightData
     int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
-    float __unused__;
+    float __unused;
+    int capsuleCasterIndex;
+    float capsuleShadowRange;
+    float capsuleShadowMaxCosTheta;
+    float capsulePadding;
     float2 padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;

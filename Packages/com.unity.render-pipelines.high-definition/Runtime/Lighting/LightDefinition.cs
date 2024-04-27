@@ -133,6 +133,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3 flareColor;
         public float flareFalloff;
+        public int capsuleCasterIndex; // -1 means no capsule shadows
+        public float capsuleShadowRange; // 0 if no capsule shadows
+        public float capsuleShadowMaxCosTheta;
+        public float capsulePadding; // unused
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
@@ -189,7 +193,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int contactShadowMask;       // negative if unused (TODO: 16 bit)
         public float diffuseDimmer;
         public float specularDimmer;
-        public float __unused__;
+        public float __unused;
+
+        public int capsuleCasterIndex; // -1 means no capsule shadows
+        public float capsuleShadowRange; // 0 if no capsule shadows
+        public float capsuleShadowMaxCosTheta;
+        public float capsulePadding; // unused
 
         public Vector2 padding;
         public float isRayTracedContactShadow;
@@ -295,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public const int s_MaxPlanarReflections = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen;
         public const int s_MaxCubeReflections = HDRenderPipeline.k_MaxCubeReflectionsOnScreen;
-		
+
 		[HLSLArray(s_MaxPlanarReflections, typeof(Matrix4x4))]
         public fixed float _PlanarCaptureVPWL[s_MaxPlanarReflections * 4 * 4];
         [HLSLArray(s_MaxPlanarReflections, typeof(Vector4))]

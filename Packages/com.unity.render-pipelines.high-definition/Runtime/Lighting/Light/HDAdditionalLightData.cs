@@ -1734,6 +1734,64 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_EnableCapsuleShadows = false;
+        /// <summary>
+        /// Controls if we want to cast capsule shadows.
+        /// </summary>
+        public bool enableCapsuleShadows
+        {
+            get => m_EnableCapsuleShadows;
+            set
+            {
+                if (m_EnableCapsuleShadows == value)
+                    return;
+
+                m_EnableCapsuleShadows = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
+            }
+        }
+
+        [Range(0.1f, 90.0f)]
+        [SerializeField]
+        float m_CapsuleShadowMinimumAngle = 0.1f;
+        /// <summary>
+        /// Controls the minimum angular diameter for capsule shadows from this light source.
+        /// </summary>
+        public float capsuleShadowMinimumAngle
+        {
+            get => m_CapsuleShadowMinimumAngle;
+            set
+            {
+                if (m_CapsuleShadowMinimumAngle == value)
+                    return;
+
+                m_CapsuleShadowMinimumAngle = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).capsuleShadowMinimumAngle = m_CapsuleShadowMinimumAngle;
+            }
+        }
+
+        [SerializeField]
+        float m_CapsuleShadowRange = 5.0f;
+        /// <summary>
+        /// Controls the maximum range to cast capsule shadows from this light source.
+        /// </summary>
+        public float capsuleShadowRange
+        {
+            get => m_CapsuleShadowRange;
+            set
+            {
+                if (m_CapsuleShadowRange == value)
+                    return;
+
+                m_CapsuleShadowRange = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
+            }
+        }
+
+        [SerializeField]
         ShadowUpdateMode m_ShadowUpdateMode = ShadowUpdateMode.EveryFrame;
         /// <summary>
         /// Get/Set the shadow update mode.
@@ -2630,7 +2688,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Color EvaluateLightColor()
         {
             Color finalColor = legacyLight.color.linear * legacyLight.intensity;
-            
+
             if (legacyLight.useColorTemperature)
                 finalColor *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
 
@@ -3659,7 +3717,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ? ShadowMapType.PunctualAtlas
                 : ShadowMapType.CascadedDirectional;
         }
-
         internal void UpdateRenderEntity()
         {
             //NOTE: do not add members into HDLighRenderData unless this data is strictly required by the GPU lightData.
@@ -3712,7 +3769,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.penumbraTint = m_PenumbraTint;
             lightRenderData.interactsWithSky = m_InteractsWithSky;
             lightRenderData.shadowTint = m_ShadowTint;
-
+            lightRenderData.capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
+            lightRenderData.capsuleShadowMinimumAngle = m_CapsuleShadowMinimumAngle;
             lightEntities.EditAdditionalLightUpdateDataAsRef(lightEntity).Set(this);
         }
 

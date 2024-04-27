@@ -1,6 +1,23 @@
 #ifndef UNITY_LIGHT_EVALUATION_INCLUDED
 #define UNITY_LIGHT_EVALUATION_INCLUDED
 
+#ifndef LIGHT_EVALUATION_NO_SHADOWS
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleShadowsUpscale.hlsl"
+float ReadPrePassCapsuleShadow(PositionInputs posInput, uint casterIndex)
+{
+    bool isValidTileIgnored;
+    return CapsuleShadowsVisibilityMomentUpscaled(
+        posInput.positionSS,
+        (_CapsuleShadowsGlobalFlags & CAPSULESHADOWFLAGS_QUARTER_RESOLUTION) != 0,
+        posInput.linearDepth,
+        casterIndex,
+        isValidTileIgnored);
+}
+#endif
+#endif
+
 // This files include various function uses to evaluate lights
 // use #define LIGHT_EVALUATION_NO_HEIGHT_FOG to disable Height fog attenuation evaluation
 // use #define LIGHT_EVALUATION_NO_COOKIE to disable cookie evaluation
@@ -354,6 +371,13 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 }
 #endif
 
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
+    if ((_CapsuleShadowsGlobalFlags & CAPSULESHADOWFLAGS_DIRECT_ENABLED) != 0 && light.capsuleCasterIndex != -1)
+    {
+        shadow *= ReadPrePassCapsuleShadow(posInput, light.capsuleCasterIndex);
+    }
+#endif
+
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
         g_DebugShadowAttenuation = shadow;
@@ -551,6 +575,13 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     #endif
 
         shadow = min(shadow, allowContactShadow ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+    }
+#endif
+
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
+    if ((_CapsuleShadowsGlobalFlags & CAPSULESHADOWFLAGS_DIRECT_ENABLED) != 0 && light.capsuleCasterIndex != -1)
+    {
+        shadow *= ReadPrePassCapsuleShadow(posInput, light.capsuleCasterIndex);
     }
 #endif
 

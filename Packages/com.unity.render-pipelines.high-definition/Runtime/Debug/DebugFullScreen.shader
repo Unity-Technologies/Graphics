@@ -35,7 +35,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float _QuadOverdrawMaxQuadCost;
             float _VertexDensityMaxPixelCost;
             uint _DebugContactShadowLightIndex;
-            int _DebugDepthPyramidMip;
+            float4 _DebugDepthPyramidParams; // (mip index, offset_x, offset_y, unused)
             float _MinMotionVector;
             float4 _MotionVecIntensityParams;
             float _FogVolumeOverdrawMaxValue;
@@ -417,6 +417,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(fade.xxx, 0.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CAPSULE_SHADOWS)
+                {
+                    float vis = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).x;
+                    return float4(vis, vis, vis, 1.f);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS ||
                     _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV ||
                     _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM ||
@@ -440,11 +445,14 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
                 {
+                    int debugDepthPyramidMip = _DebugDepthPyramidParams.x;
+                    int2 debugDepthPyramidOffset = int2(_DebugDepthPyramidParams.yz);
+
                     // Reuse depth display function from DebugViewMaterial
                     int2 mipOffset = _DebugDepthPyramidOffsets[_DebugDepthPyramidMip];
-                    uint2 remappedPos = (uint2)(input.texcoord.xy * _DebugViewportSize.xy);
-                    uint2 pixCoord = (uint2)remappedPos.xy >> _DebugDepthPyramidMip;
+                    uint2 pixCoord = (uint2)input.positionCS.xy >> _DebugDepthPyramidMip;
                     float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + mipOffset).r;
+
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                     // We square the factors to have more precision near zero which is where people usually want to visualize depth.

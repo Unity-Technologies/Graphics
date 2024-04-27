@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
+        CapsuleDirectShadow,
+        CapsuleIndirectShadow,
         Count
     }
 
@@ -280,6 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int g_iNumSamplesMSAA;
         public uint _EnvLightIndexShift;
         public uint _DecalIndexShift;
+        public uint _CapsuleDirectShadowIndexShift;
+        public uint _CapsuleIndirectShadowIndexShift;
     }
 
     internal struct ProcessedProbeData
@@ -494,6 +498,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDGpuLightsBuilder gpuLightList => m_GpuLightsBuilder;
 
         int m_TotalLightCount = 0;
+        int m_CapsuleDirectShadowCount = 0;
+        int m_CapsuleIndirectShadowCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader => runtimeShaders.buildScreenAABBCS;
@@ -689,6 +695,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxCubeReflectionsOnScreen = Math.Min(lightLoopSettings.maxCubeReflectionOnScreen, HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
             m_MaxEnvLightsOnScreen = m_MaxPlanarReflectionsOnScreen + m_MaxCubeReflectionsOnScreen;
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
+            m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
 
             // Cluster
             {
@@ -1342,7 +1349,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Compute data that will be used during the light loop for a particular light.
-        void PreprocessVisibleLights(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, in CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
+        void PreprocessVisibleLights(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, in CullingResults cullResults,CapsuleShadowAllocator capsuleShadowAllocator, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProcessVisibleLights)))
             {
@@ -1385,6 +1392,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         ReserveCookieAtlasTexture(additionalLightData, additionalLightData.legacyLight, processedLightEntity.lightType);
+
+                        capsuleShadowAllocator.ReserveCaster(processedLightEntity.lightType, additionalLightData, processedLightEntity.distanceToCamera, lightIndex);
                     }
 
                     if (hdCamera.visualSky.skyRenderer?.GetType() == typeof(PhysicallyBasedSkyRenderer))
@@ -1409,13 +1418,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults)
+        void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, CapsuleShadowAllocator capsuleShadowAllocator)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareGPULightdata)))
             {
                 // 2. Go through all lights, convert them to GPU format.
                 // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, m_CurrentDebugDisplaySettings);
+                m_GpuLightsBuilder.Build(cmd, hdCamera, cullResults, m_ProcessedLightsBuilder, HDLightRenderDatabase.instance, m_ShadowInitParameters, capsuleShadowAllocator, m_CurrentDebugDisplaySettings);
 
                 m_EnableBakeShadowMask = m_EnableBakeShadowMask || m_ProcessedLightsBuilder.bakedShadowsCount > 0;
                 m_CurrentShadowSortedSunLightIndex = m_GpuLightsBuilder.currentShadowSortedSunLightIndex;
@@ -1655,6 +1664,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults,
+            CapsuleShadowAllocator capsuleShadowAllocator,
+            in CapsuleOccluderList capsuleOccluderList,
             DebugDisplaySettings debugDisplaySettings,
             AOVRequestData aovRequest)
         {
@@ -1665,6 +1676,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU)))
             {
+                ResetCapsuleShadowAllocator(hdCamera);
+
                 Camera camera = hdCamera.camera;
                 ClearUnusedProcessedReferences(cullResults, hdProbeCullingResults);
 
@@ -1696,6 +1709,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CurrentScreenSpaceShadowData[i].valid = false;
                 }
 
+                m_CapsuleDirectShadowCount = capsuleOccluderList.directCount;
+                m_CapsuleIndirectShadowCount = capsuleOccluderList.indirectCount;
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
                     cullResults.visibleLights.Length + cullResults.visibleReflectionProbes.Length + hdProbeCullingResults.visibleProbes.Count
@@ -1704,13 +1719,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)
                 {
-                    PreprocessVisibleLights(renderContext, cmd, hdCamera, cullResults, debugDisplaySettings, aovRequest);
+                    PreprocessVisibleLights(cmd, hdCamera, cullResults, capsuleShadowAllocator, debugDisplaySettings, aovRequest);
 
                     // In case ray tracing supported and a light cluster is built, we need to make sure to reserve all the cookie slots we need
                     if (m_RayTracingSupported)
                         ReserveRayTracingCookieAtlasSlots();
 
-                    PrepareGPULightdata(cmd, hdCamera, cullResults);
+                    PrepareGPULightdata(cmd, hdCamera, cullResults, capsuleShadowAllocator);
 
                     // Update the compute buffer with the shadow request datas
                     m_ShadowManager.PrepareGPUShadowDatas(cullResults, hdCamera);
@@ -1756,6 +1771,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PushLightDataGlobalParams(cmd);
                 PushShadowGlobalParams(cmd);
+
+                FinishCapsuleShadowAllocator(hdCamera);
             }
 
             m_ProcessedLightsBuilder.Reset();

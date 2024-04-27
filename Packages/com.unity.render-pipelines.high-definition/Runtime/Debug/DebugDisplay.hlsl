@@ -16,8 +16,6 @@
 // Local shader variables
 static SHADOW_TYPE g_DebugShadowAttenuation = 0;
 
-StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
 // When displaying lux meter we compress the light in order to be able to display value higher than 65504

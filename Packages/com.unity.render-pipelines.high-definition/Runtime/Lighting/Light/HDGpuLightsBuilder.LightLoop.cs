@@ -81,6 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProcessedVisibleLightsBuilder visibleLights,
             HDLightRenderDatabase lightEntities,
             in HDShadowInitParameters shadowInitParams,
+            CapsuleShadowAllocator capsuleShadowAllocator,
             DebugDisplaySettings debugDisplaySettings)
         {
             // Using the same pattern than shadowmaps, light have requested space in the atlas for their
@@ -113,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
                 StartCreateGpuLightDataJob(hdCamera, cullingResult, hdShadowSettings, visibleLights, lightEntities);
                 CompleteGpuLightDataJob();
-                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, debugDisplaySettings);
+                CalculateAllLightDataTextureInfo(cmd, hdCamera, cullingResult, visibleLights, lightEntities, hdShadowSettings, shadowInitParams, capsuleShadowAllocator, debugDisplaySettings);
             }
 
             //Sanity check
@@ -400,6 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightRenderDatabase lightEntities,
             HDShadowSettings hdShadowSettings,
             in HDShadowInitParameters shadowInitParams,
+            CapsuleShadowAllocator capsuleShadowAllocator,
             DebugDisplaySettings debugDisplaySettings)
         {
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset);
@@ -853,6 +855,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetSpotRequestSettings(ref shadowRequest, shadowRequestHandle, spotUpdateInfo.visibleLight, 0f, worldSpaceCameraPos,
                         shadowRequest.cullingSplit.invViewProjection, shadowRequest.cullingSplit.projection, viewportSize,
                         lightIndex, shadowFilteringQuality, updateInfo, shaderConfigCameraRelativeRendering, frustumPlanesStorage);
+                    int lightDataIndex = sortKeyIndex - directionalLightCount;
+                    LightData* lightDataPtr = lightArrayPtr + lightDataIndex;
+                    ref LightData lightData = ref UnsafeUtility.AsRef<LightData>(lightDataPtr);
+                    CalculateLightDataTextureInfo(
+                        ref lightData, cmd, lightComponent, additionalLightData, shadowInitParams,
+                        hdCamera, contactShadowScalableSetting,
+                        lightType, processedEntity.shadowMapFlags, rayTracingEnabled, lightDataIndex, shadowIndex);
+                    lightData.capsuleCasterIndex = capsuleShadowAllocator.AllocateCaster(lightIndex, lightComponent, additionalLightData, hdCamera);
                 }
             }
         }

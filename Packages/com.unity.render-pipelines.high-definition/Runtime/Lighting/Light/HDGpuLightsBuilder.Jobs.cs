@@ -309,6 +309,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.shadowMaskSelector.x = -1.0f;
                     lightData.nonLightMappedOnly = 0;
                 }
+
+                lightData.capsuleCasterIndex = -1;
+                lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
+                lightData.capsuleShadowMaxCosTheta = Mathf.Cos(Mathf.Deg2Rad * lightRenderData.capsuleShadowMinimumAngle * 0.5f);
             }
 
 #if DEBUG
@@ -621,6 +625,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightData.angularDiameter = lightRenderData.angularDiameter * Mathf.Deg2Rad;
                 lightData.distanceFromCamera = (isPbrSkyActive && lightRenderData.interactsWithSky) ? lightRenderData.distance : -1;
+
+                lightData.capsuleCasterIndex = -1;
+                lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
+                lightData.capsuleShadowMaxCosTheta = Mathf.Cos(Mathf.Deg2Rad * Mathf.Max(lightRenderData.angularDiameter, lightRenderData.capsuleShadowMinimumAngle) * 0.5f);
 
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;

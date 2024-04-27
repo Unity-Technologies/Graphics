@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool penumbraTint;
         public bool interactsWithSky;
         public Color shadowTint;
+        public float capsuleShadowRange;
+        public float capsuleShadowMinimumAngle;
     }
 
     internal struct HDAdditionalLightDataUpdateInfo

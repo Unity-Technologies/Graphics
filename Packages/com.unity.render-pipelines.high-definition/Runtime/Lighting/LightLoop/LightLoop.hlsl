@@ -489,6 +489,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         R,
                         V,
                         posInput.positionSS,
+                        builtinData.renderingLayers,
                         tempBuiltinData.bakeDiffuseLighting,
                         tempBuiltinData.backBakeDiffuseLighting,
                         lightInReflDir);
@@ -703,6 +704,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 #endif
+
+    if ((_CapsuleShadowsGlobalFlags & CAPSULESHADOWFLAGS_INDIRECT_ENABLED) != 0)
+    {
+        float visibility = ReadPrePassCapsuleShadow(posInput, 0); // always caster index zero for indirect term
+        aggregateLighting.indirect.shadow = lerp(1.f - _CapsuleIndirectMinimumVisibility, 0.f, visibility);
+    }
 
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
 

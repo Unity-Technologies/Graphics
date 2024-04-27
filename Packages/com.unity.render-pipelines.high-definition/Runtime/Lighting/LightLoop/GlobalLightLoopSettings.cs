@@ -206,8 +206,9 @@ namespace UnityEngine.Rendering.HighDefinition
             maxDecalsOnScreen = 512,
             maxLightsPerClusterCell = 8,
             maxLocalVolumetricFogOnScreen = 256,
+            maxCapsuleDirectShadowsOnScreen = HDRenderPipeline.k_MaxDirectShadowCapsulesOnScreen,
+            maxCapsuleIndirectShadowsOnScreen = HDRenderPipeline.k_MaxIndirectShadowCapsulesOnScreen,
         };
-
         internal static Vector2Int GetReflectionProbeTextureCacheDim(ReflectionProbeTextureCacheResolution resolution)
         {
             if(resolution <= ReflectionProbeTextureCacheResolution.Resolution16384x16384)
@@ -285,6 +286,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxDecalsOnScreen;
         /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
         public int maxLightsPerClusterCell;
+        /// <summary>Maximum number of capsule direct shadows at the same time on screen.</summary>
+        public int maxCapsuleDirectShadowsOnScreen;
+        /// <summary>Maximum number of capsule indirect shadows at the same time on screen.</summary>
+        public int maxCapsuleIndirectShadowsOnScreen;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
         [Obsolete("The texture resolution limit in volumetric fogs have been removed. This field is unused.")]
