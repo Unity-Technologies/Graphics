@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugExposure;
         Material m_DebugHDROutput;
         Material m_DebugViewTilesMaterial;
+        Material m_DebugCapsuleTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
         Material m_DebugLocalVolumetricFogMaterial;
         Material m_DebugBlitMaterial;
@@ -65,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposure                   = CoreUtils.CreateEngineMaterial(runtimeShaders.debugExposurePS);
             m_DebugHDROutput                  = CoreUtils.CreateEngineMaterial(runtimeShaders.debugHDRPS);
             m_DebugViewTilesMaterial          = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewTilesPS);
+            m_DebugCapsuleTilesMaterial       = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugCapsuleTilesPS);
             m_DebugHDShadowMapMaterial        = CoreUtils.CreateEngineMaterial(runtimeShaders.debugHDShadowMapPS);
             m_DebugLocalVolumetricFogMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.debugLocalVolumetricFogAtlasPS);
             m_DebugBlitMaterial               = CoreUtils.CreateEngineMaterial(runtimeShaders.debugBlitQuad);
@@ -73,7 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ClearFullScreenBufferCS        = runtimeShaders.clearDebugBufferCS;
             m_ClearFullScreenBufferKernel    = m_ClearFullScreenBufferCS.FindKernel("clearMain");
-
 #if ENABLE_VIRTUALTEXTURES
             m_VTDebugBlit = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewVirtualTexturingBlit);
 #endif
@@ -89,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugExposure);
             CoreUtils.Destroy(m_DebugHDROutput);
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
+            CoreUtils.Destroy(m_DebugCapsuleTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugLocalVolumetricFogMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
@@ -561,8 +563,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DebugDisplaySettings debugDisplaySettings;
             public Material debugFullScreenMaterial;
             public HDCamera hdCamera;
-            public int depthPyramidMip;
-            public ComputeBuffer depthPyramidOffsets;
+            public Vector4 depthPyramidParams;
             public TextureHandle output;
             public TextureHandle input;
             public TextureHandle depthPyramid;
@@ -588,6 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.thicknessReindex = builder.ReadBuffer(renderGraph.ImportBuffer(HDComputeThickness.Instance.GetReindexMap()));
                 passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
                 passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+
                 // On Vulkan, not binding the Random Write Target will result in an invalid drawcall.
                 // To avoid that, if the compute buffer is invalid, we bind a dummy compute buffer anyway.
                 if (m_DebugFullScreenComputeBuffer.IsValid())
@@ -613,8 +615,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(data.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, data.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, data.hdCamera.camera.nearClipPlane, data.hdCamera.camera.farClipPlane));
                         else // Setup neutral value
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-                        mpb.SetInt(HDShaderIDs._DebugDepthPyramidMip, data.depthPyramidMip);
-                        mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, data.depthPyramidOffsets);
+                        mpb.SetVector(HDShaderIDs._DebugDepthPyramidParams, data.depthPyramidParams);
                         mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, data.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
                         mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)data.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
                         mpb.SetFloat(HDShaderIDs._FogVolumeOverdrawMaxValue, (float)volumetricSliceCount);
@@ -1026,11 +1027,49 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class CapsuleTilesOverlayPassData : DebugOverlayPassData
+        {
+            public Material debugCapsuleTilesMaterial;
+            public TextureHandle capsuleTileDebugTexture;
+            public Vector4 capsuleTileDebugParams;
+            public Vector4 capsuleTileDebugParams2;
+        }
+
+        void RenderCapsuleTilesOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, in CapsuleShadowsTileDebugOutput debugOutput, HDCamera hdCamera)
+        {
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleTileDebugMode == CapsuleTileDebugMode.None)
+                return;
+
+            if (!debugOutput.textureHandle.IsValid())
+                return;
+
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+            using (var builder = renderGraph.AddRenderPass<CapsuleTilesOverlayPassData>("CapsuleTilesOverlay", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugCapsuleTiles)))
+            {
+                passData.debugOverlay = m_DebugOverlay;
+                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
+                passData.debugCapsuleTilesMaterial = m_DebugCapsuleTilesMaterial;
+                passData.capsuleTileDebugTexture = builder.ReadTexture(debugOutput.textureHandle);
+                passData.capsuleTileDebugParams = new Vector4(debugOutput.uvScale.x, debugOutput.uvScale.y, 0.0f, 0.0f);
+                passData.capsuleTileDebugParams2 = new Vector4(debugOutput.tileSize.x, debugOutput.tileSize.y, debugOutput.limit, 0.0f);
+
+                builder.SetRenderFunc(
+                    (CapsuleTilesOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.debugCapsuleTilesMaterial.SetTexture(HDShaderIDs._CapsuleShadowTileDebug, data.capsuleTileDebugTexture);
+                        data.debugCapsuleTilesMaterial.SetVector(HDShaderIDs._CapsuleShadowTileDebugParams, data.capsuleTileDebugParams);
+                        data.debugCapsuleTilesMaterial.SetVector(HDShaderIDs._CapsuleShadowTileDebugParams2, data.capsuleTileDebugParams2);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.debugCapsuleTilesMaterial, data.colorBuffer);
+                    });
+            }
+        }
+
         void RenderDebugOverlays(RenderGraph renderGraph,
             TextureHandle                    colorBuffer,
             TextureHandle                    depthBuffer,
             TextureHandle                    depthPyramidTexture,
             TextureHandle                    rayCountTexture,
+            in CapsuleShadowsTileDebugOutput capsuleShadowsTileDebugOutput,
             in BuildGPULightListOutput       lightLists,
             in ShadowResult                  shadowResult,
             HDCamera                         hdCamera)
@@ -1060,6 +1099,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderOcclusionOverlay(renderGraph, colorBuffer, hdCamera);
             RenderOccluderDebugOverlay(renderGraph, colorBuffer, hdCamera);
+            RenderCapsuleTilesOverlay(renderGraph, colorBuffer, capsuleShadowsTileDebugOutput, hdCamera);
+
         }
 
         void RenderLightVolumes(RenderGraph renderGraph, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
@@ -1365,6 +1406,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle colorPickerDebugTexture,
             TextureHandle rayCountTexture,
             TextureHandle xyBufferMapping,
+            in CapsuleShadowsTileDebugOutput capsuleShadowsTileDebugOutput,
             in BuildGPULightListOutput lightLists,
             in ShadowResult shadowResult,
             CullingResults cullResults,
@@ -1399,7 +1441,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderLightVolumes(renderGraph, output, depthBuffer, cullResults, hdCamera);
 
-            RenderDebugOverlays(renderGraph, output, depthBuffer, depthPyramidTexture, rayCountTexture, lightLists, shadowResult, hdCamera);
+            RenderDebugOverlays(renderGraph, output, depthBuffer, depthPyramidTexture, rayCountTexture, capsuleShadowsTileDebugOutput, lightLists, shadowResult, hdCamera);
 
             return output;
         }

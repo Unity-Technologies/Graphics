@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
-                hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
+                hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize, RequiredCheckerboardMipCountInDepthPyramid(hdCamera));
 
                 // Bind the depth pyramid offset info for the HDSceneDepth node in ShaderGraph. This can be used by users in custom passes.
                 commandBuffer.SetGlobalBuffer(HDShaderIDs._DepthPyramidMipLevelOffsets, hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
@@ -115,6 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Volume components
                 PathTracing pathTracing = hdCamera.volumeStack.GetComponent<PathTracing>();
+                TextureHandle capsuleTileDebugTexture = TextureHandle.nullHandle;
+                CapsuleShadowsTileDebugOutput capsuleShadowsTileDebugOutput = new CapsuleShadowsTileDebugOutput();
+
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -173,8 +176,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Evaluate the history validation buffer that may be required by temporal accumulation based effects
                     TextureHandle historyValidationTexture = EvaluateHistoryValidationBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
-
                     lightingBuffers.ambientOcclusionBuffer = RenderAmbientOcclusion(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, hdCamera.depthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
+                    lightingBuffers.capsuleShadows = RenderCapsuleShadows(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, hdCamera.depthBufferMipChainInfo, ref capsuleShadowsTileDebugOutput);
                     lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1].y);
 
                     TransparentPrepassOutput transparentPrepass = default;
@@ -383,6 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         colorPickerTexture,
                         rayCountTexture,
                         xyMapping,
+                        capsuleShadowsTileDebugOutput,
                         gpuLightListOutput,
                         shadowResult,
                         cullingResults,
@@ -932,6 +936,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         BindDBufferGlobalData(data.dbuffer, context);
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
                         BindGlobalThicknessBuffers(data.thicknessTextureArray, data.thicknessReindexMap, context.cmd);
+                        BindGlobalCapsuleShadowBuffers(context.cmd);
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, true, context.renderContext, context.cmd);
 
@@ -1947,7 +1952,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, ref opticalFogTransmittance);
 
-            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, ref transparentPrepass, ref opticalFogTransmittance);
+            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ref transparentPrepass, ref opticalFogTransmittance);
         }
 
         class GenerateColorPyramidData

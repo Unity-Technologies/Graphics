@@ -226,11 +226,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SliceIndex = Shader.PropertyToID("_SliceIndex");
         public static readonly int _DebugContactShadowLightIndex = Shader.PropertyToID("_DebugContactShadowLightIndex");
 
+        public static readonly int ShaderVariablesCapsuleShadowsRender = Shader.PropertyToID("ShaderVariablesCapsuleShadowsRender");
+        public static readonly int ShaderVariablesCapsuleShadowsBuildTiles = Shader.PropertyToID("ShaderVariablesCapsuleShadowsBuildTiles");
+        public static readonly int _CapsuleShadowsLUT = Shader.PropertyToID("_CapsuleShadowsLUT");
+        public static readonly int _CapsuleShadowsLUTCoordScale = Shader.PropertyToID("_CapsuleShadowsLUTCoordScale");
+        public static readonly int _CapsuleShadowOccluders = Shader.PropertyToID("_CapsuleShadowOccluders");
+        public static readonly int _CapsuleShadowCasters = Shader.PropertyToID("_CapsuleShadowCasters");
+        public static readonly int _CapsuleShadowVolumes = Shader.PropertyToID("_CapsuleShadowVolumes");
+        public static readonly int _CapsuleShadowTileDepthRanges = Shader.PropertyToID("_CapsuleShadowTileDepthRanges");
+        public static readonly int _CapsuleShadowCounters = Shader.PropertyToID("_CapsuleShadowCounters");
+        public static readonly int _CapsuleShadowFilterTileList = Shader.PropertyToID("_CapsuleShadowFilterTileList");
+        public static readonly int _CapsuleShadowVisibility = Shader.PropertyToID("_CapsuleShadowVisibility");
+        public static readonly int _CapsuleShadowVisibilityOutput = Shader.PropertyToID("_CapsuleShadowVisibilityOutput");
+        public static readonly int _CapsuleShadowTileBits = Shader.PropertyToID("_CapsuleShadowTileBits");
+        public static readonly int _CapsuleShadowTileBitsOutput = Shader.PropertyToID("_CapsuleShadowTileBitsOutput");
+        public static readonly int _CapsuleShadowDebugOutput = Shader.PropertyToID("_CapsuleShadowDebugOutput");
+        public static readonly int _CapsuleShadowTileDebug = Shader.PropertyToID("_CapsuleShadowTileDebug");
+        public static readonly int _CapsuleShadowTileDebugParams = Shader.PropertyToID("_CapsuleShadowTileDebugParams");
+        public static readonly int _CapsuleShadowTileDebugParams2 = Shader.PropertyToID("_CapsuleShadowTileDebugParams2");
+        public static readonly int _CapsuleShadowsRenderOutputSize = Shader.PropertyToID("_CapsuleShadowsRenderOutputSize");
+    
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _AmbientOcclusionTextureRW = Shader.PropertyToID("_AmbientOcclusionTextureRW");
         public static readonly int _MultiAmbientOcclusionTexture = Shader.PropertyToID("_MultiAmbientOcclusionTexture");
-        public static readonly int _DebugDepthPyramidMip = Shader.PropertyToID("_DebugDepthPyramidMip");
-        public static readonly int _DebugDepthPyramidOffsets = Shader.PropertyToID("_DebugDepthPyramidOffsets");
+        public static readonly int _DebugDepthPyramidParams = Shader.PropertyToID("_DebugDepthPyramidParams");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
@@ -378,6 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputVal = Shader.PropertyToID("_InputVal");
         public static readonly int _Sizes = Shader.PropertyToID("_Sizes");
         public static readonly int _ScaleBias = Shader.PropertyToID("_ScaleBias");
+        public static readonly int _DstOffset = Shader.PropertyToID("_DstOffset");
 
         // MSAA shader properties
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
@@ -676,8 +696,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcOffsetAndLimit = Shader.PropertyToID("_SrcOffsetAndLimit");
         public static readonly int _SrcScaleBias = Shader.PropertyToID("_SrcScaleBias");
         public static readonly int _SrcUvLimits = Shader.PropertyToID("_SrcUvLimits");
-        public static readonly int _DstOffset = Shader.PropertyToID("_DstOffset");
         public static readonly int _DepthMipChain = Shader.PropertyToID("_DepthMipChain");
+        public static readonly int DepthPyramidConstants = Shader.PropertyToID("DepthPyramidConstants");
 
         public static readonly int _VBufferDensity = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting = Shader.PropertyToID("_VBufferLighting");
@@ -903,6 +923,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayMarchingFallbackHierarchy = Shader.PropertyToID("_RayMarchingFallbackHierarchy");
         public static readonly int _RayMarchingLowResPercentageInv = Shader.PropertyToID("_RayMarchingLowResPercentageInv");
         public static readonly int _RayMarchingLowResPercentage = Shader.PropertyToID("_RayMarchingLowResPercentage");
+        public static readonly int _SSGILayerMask = Shader.PropertyToID("_SSGILayerMask");
 
         // Ray binning
         public static readonly int _RayBinResult = Shader.PropertyToID("_RayBinResult");

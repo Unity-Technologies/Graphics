@@ -16,6 +16,7 @@ struct IndirectLighting
 {
     float3 specularReflected;
     float3 specularTransmitted;
+    real shadow;
 };
 
 struct AggregateLighting

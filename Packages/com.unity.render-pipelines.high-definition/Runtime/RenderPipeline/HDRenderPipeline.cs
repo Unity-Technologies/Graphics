@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
             InitializeLineRendering();
-
+            InitializeCapsuleShadows();
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
@@ -991,6 +991,7 @@ namespace UnityEngine.Rendering.HighDefinition
             XRSystem.Dispose();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
+            CleanupCapsuleShadows();
 
             for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
@@ -1109,6 +1110,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera, cmd);
             UpdateShaderVariableGlobalAmbientOcclusion(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalWater(ref m_ShaderVariablesGlobalCB, hdCamera);
+            UpdateShaderVariablesGlobalCapsuleShadows(ref m_ShaderVariablesGlobalCB, hdCamera);
 
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
@@ -2784,10 +2786,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
                 // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
-                bool enableBakeShadowMask = PrepareLightsForGPU(renderContext, cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CurrentDebugDisplaySettings, aovRequest);
 
                 // Evaluate the shadow region for the volumetric clouds
                 EvaluateShadowRegionData(hdCamera, cmd);
+                ResetCapsuleOccluderDataBeforeLightsPrepared(hdCamera);
+                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, m_CapsuleShadowAllocator, capsuleOccluderList, localVolumetricFog, m_CurrentDebugDisplaySettings, aovRequest);
+
+                WriteCapsuleOccluderDataAfterLightsPrepared(hdCamera);
 
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 
