@@ -104,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BakedShadow = 1 << 7,
             ShadowQuality = 1 << 8,
             CelestialBody = 1 << 9,
+            CapsuleShadow = 1 << 10,
         }
 
         enum AdditionalProperties
@@ -178,21 +179,20 @@ namespace UnityEditor.Rendering.HighDefinition
                                     CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => !isArea(serialized) && HasPunctualShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
-
                                 CED.Conditional((serialized, owner) => !isArea(serialized) && k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasDirectionalShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => !isArea(serialized) && HasDirectionalShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => !isArea(serialized) && HasDirectionalShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
-
                                 CED.Conditional((serialized, owner) => isArea(serialized) && k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasAreaShadowQualitySettingsUI(HDAreaShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => isArea(serialized) && HasAreaShadowQualitySettingsUI(HDAreaShadowFilteringQuality.Medium, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
-
                                 CED.Conditional((serialized, owner) => !isArea(serialized),
                                     CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent))
+                                CED.Conditional((serialized, owner) => !isArea(serialized),
+                                    CED.FoldoutGroup(s_Styles.capsuleShadowsSubHeader, Expandable.CapsuleShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawCapsuleShadowsContent))
                                 ),
                             CED.noop //will only add parameter in first sub header
                             ),
@@ -212,7 +212,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawEmissionContent)),
                 CED.FoldoutGroup(LightUI.Styles.shadowHeader, Expandable.Shadows, k_ExpandedStatePreset, DrawEnableShadowMapInternal)
             );
-
             Type lightMappingType = typeof(Lightmapping);
             var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
             var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
@@ -1537,6 +1536,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.rayTracedContactShadow, s_Styles.rayTracedContactShadow);
                 EditorGUI.indentLevel--;
             }
+        }
+
+        static void DrawCapsuleShadowsContent(SerializedHDLight serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.capsuleShadowRange, s_Styles.capsuleShadowRange);
+            EditorGUILayout.PropertyField(serialized.enableCapsuleShadows, s_Styles.enableCapsuleShadows);
+            EditorGUILayout.PropertyField(serialized.capsuleShadowMinimumAngle, s_Styles.capsuleShadowMinimumAngle);
         }
 
         static void DrawBakedShadowsContent(SerializedHDLight serialized, Editor owner)

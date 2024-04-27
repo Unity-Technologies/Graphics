@@ -80,6 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ShapeWidth = EditorGUIUtility.TrTextContent("Shape Width");
             public static readonly GUIContent VolumeProfile = EditorGUIUtility.TrTextContent("Volume Profile");
             public static readonly GUIContent ColorTemperatureMode = EditorGUIUtility.TrTextContent("Use Color Temperature");
+            public static readonly GUIContent CapsuleShadows = EditorGUIUtility.TrTextContent("Capsule Shadows");
             public static readonly GUIContent AffectDiffuse = EditorGUIUtility.TrTextContent("Affect Diffuse");
             public static readonly GUIContent AffectSpecular = EditorGUIUtility.TrTextContent("Affect Specular");
             public static readonly GUIContent FadeDistance = EditorGUIUtility.TrTextContent("Fade Distance");
@@ -797,7 +798,44 @@ namespace UnityEditor.Rendering.HighDefinition
                             tUseContactShadow.@override = sUseContactShadow.@override;
                         }
                     }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 95, (r, prop, dep) =>         // 19: Affect Diffuse
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.CapsuleShadows, "m_Intensity", 100,         // 17: Capsule Shadows
+                    (r, prop, dep) =>
+                    {
+                        if (!TryGetAdditionalLightData(prop, out var lightData))
+                        {
+                            EditorGUI.LabelField(r, "--");
+                            return;
+                        }
+
+                        var enableCapsuleShadows = lightData.enableCapsuleShadows;
+
+                        EditorGUI.BeginProperty(r, GUIContent.none, prop);
+                        EditorGUI.BeginChangeCheck();
+                        enableCapsuleShadows = EditorGUI.Toggle(r, enableCapsuleShadows);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObjects(new Object[] { prop.serializedObject.targetObject, lightData }, "Changed capsule shadow enable");
+                            lightData.enableCapsuleShadows = enableCapsuleShadows;
+                        }
+                        EditorGUI.EndProperty();
+                    }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalLightData(lprop, out var lLightData);
+                        TryGetAdditionalLightData(rprop, out var rLightData);
+
+                        if (IsNullComparison(lLightData, rLightData, out var order))
+                            return order;
+
+                        return (lLightData.enableCapsuleShadows).CompareTo(rLightData.enableCapsuleShadows);
+                    }, (target, source) =>
+                    {
+                        if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
+                            return;
+
+                        Undo.RecordObjects(new Object[] { target.serializedObject.targetObject, tLightData }, "Changed capsule shadow enable");
+                        tLightData.enableCapsuleShadows = sLightData.enableCapsuleShadows;
+                    }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDiffuse, "m_Intensity", 95, (r, prop, dep) =>         // 17: Affect Diffuse
                 {
                     if (!TryGetAdditionalLightData(prop, out var lightData))
                     {
