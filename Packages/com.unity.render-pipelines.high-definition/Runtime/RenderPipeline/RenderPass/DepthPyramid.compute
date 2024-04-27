@@ -18,6 +18,26 @@ CBUFFER_END
 # define MIN_DEPTH(l, r) min(l, r)
 #endif
 
+float EncodeSourceIndex(float rawDepth, uint index)
+{
+    if (rawDepth != UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        uint bits = asuint(rawDepth);
+        bits = (bits & ~0x3) | index;
+        rawDepth = asfloat(bits);
+    }
+    return rawDepth;
+}
+
+float4 EncodeSourceIndex(float4 rawDepth)
+{
+    return float4(
+        EncodeSourceIndex(rawDepth.x, 0x0),
+        EncodeSourceIndex(rawDepth.y, 0x1),
+        EncodeSourceIndex(rawDepth.z, 0x2),
+        EncodeSourceIndex(rawDepth.w, 0x3));
+}
+
 // Downsample a depth texture by taking the min value of sampled pixels
 // The size of the dispatch is (DstMipSize / KernelSize).
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
@@ -37,6 +57,9 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float p01 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 1u), srcLimit))];
     float p11 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), srcLimit))];
     float4 depths = float4(p00, p10, p01, p11);
+
+    // Use the low 2 bits of the mantissa to encode which pixel this depth belongs to
+    depths = EncodeSourceIndex(depths);
 
     // Select the closest sample
     float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
