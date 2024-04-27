@@ -160,6 +160,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
+    uint _CapsuleShadowsGlobalFlags;
+    float _CapsuleIndirectMinimumVisibility;
+    float _CapsuleShadowsGlobalPad0;
+    float _CapsuleShadowsGlobalPad1;
     float _OffScreenDownsampleFactor;
     uint _OffScreenRendering;
     uint _XRViewCount;
