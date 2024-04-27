@@ -15,30 +15,43 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         /// <summary>Default black 2D texture.</summary>
         public TextureHandle blackTexture { get; private set; }
+
         /// <summary>Default white 2D texture.</summary>
         public TextureHandle whiteTexture { get; private set; }
+
         /// <summary>Default clear color XR 2D texture.</summary>
         public TextureHandle clearTextureXR { get; private set; }
+
         /// <summary>Default magenta XR 2D texture.</summary>
         public TextureHandle magentaTextureXR { get; private set; }
+
         /// <summary>Default black XR 2D texture.</summary>
         public TextureHandle blackTextureXR { get; private set; }
+
         /// <summary>Default black XR 2D Array texture.</summary>
         public TextureHandle blackTextureArrayXR { get; private set; }
+
         /// <summary>Default black (UInt) XR 2D texture.</summary>
         public TextureHandle blackUIntTextureXR { get; private set; }
+
         /// <summary>Default black XR 3D texture.</summary>
         public TextureHandle blackTexture3DXR { get; private set; }
+
         /// <summary>Default white XR 2D texture.</summary>
         public TextureHandle whiteTextureXR { get; private set; }
+
         /// <summary>Default 1x1 shadow texture.</summary>
         public TextureHandle defaultShadowTexture { get; private set; }
+
+        /// <summary>Default black 2D Array texture.</summary>
+        public TextureHandle blackTextureArray { get; private set; }
 
         internal RenderGraphDefaultResources()
         {
             m_BlackTexture2D = RTHandles.Alloc(Texture2D.blackTexture);
             m_WhiteTexture2D = RTHandles.Alloc(Texture2D.whiteTexture);
-            m_ShadowTexture2D = RTHandles.Alloc(1, 1, depthBufferBits: DepthBits.Depth32, isShadowMap: true, name: "DefaultShadowTexture");
+            m_ShadowTexture2D = RTHandles.Alloc(1, 1, depthBufferBits: DepthBits.Depth32, isShadowMap: true,
+                name: "DefaultShadowTexture");
         }
 
         internal void Cleanup()
@@ -53,7 +66,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             blackTexture = renderGraph.ImportTexture(m_BlackTexture2D, true);
             whiteTexture = renderGraph.ImportTexture(m_WhiteTexture2D, true);
             defaultShadowTexture = renderGraph.ImportTexture(m_ShadowTexture2D, true);
-
             clearTextureXR = renderGraph.ImportTexture(TextureXR.GetClearTexture(), true);
             magentaTextureXR = renderGraph.ImportTexture(TextureXR.GetMagentaTexture(), true);
             blackTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), true);
@@ -61,6 +73,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             blackUIntTextureXR = renderGraph.ImportTexture(TextureXR.GetBlackUIntTexture(), true);
             blackTexture3DXR = renderGraph.ImportTexture(TextureXR.GetBlackTexture3D(), true);
             whiteTextureXR = renderGraph.ImportTexture(TextureXR.GetWhiteTexture(), true);
+            blackTextureArray = renderGraph.ImportTexture(TextureXR.GetBlackTextureArray(), true);
         }
     }
 }

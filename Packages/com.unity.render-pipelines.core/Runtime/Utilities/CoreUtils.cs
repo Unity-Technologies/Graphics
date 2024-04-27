@@ -1149,20 +1149,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Set a global keyword using a RasterCommandBuffer
+        /// Set a local keyword on a ComputeShader using a CommandBuffer
         /// </summary>
         /// <param name="cmd">CommandBuffer on which to set the global keyword.</param>
+        /// <param name="cs">Compute Shader on which to set the keyword.</param>
         /// <param name="keyword">Keyword to be set.</param>
         /// <param name="state">Value of the keyword to be set.</param>
-        public static void SetKeyword(BaseCommandBuffer cmd, string keyword, bool state)
+        public static void SetKeyword(CommandBuffer cmd, ComputeShader cs, string keyword, bool state)
         {
+            var kw = new LocalKeyword(cs, keyword);
             if (state)
-                cmd.m_WrappedCommandBuffer.EnableShaderKeyword(keyword);
+                cmd.EnableKeyword(cs, kw);
             else
-                cmd.m_WrappedCommandBuffer.DisableShaderKeyword(keyword);
+                cmd.DisableKeyword(cs, kw);
         }
 
-        // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
+        // Caution: such a call should not be use interleaved with command buffer command, as it is immediate
         /// <summary>
         /// Set a keyword immediately on a Material.
         /// </summary>
@@ -1177,23 +1179,9 @@ namespace UnityEngine.Rendering
                 material.DisableKeyword(keyword);
         }
 
-        // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
+        // Caution: such a call should not be use interleaved with command buffer command, as it is immediate
         /// <summary>
-        /// Set a keyword immediately on a Material.
-        /// </summary>
-        /// <param name="material">Material on which to set the keyword.</param>
-        /// <param name="keyword">Keyword to set on the material.</param>
-        /// <param name="state">Value of the keyword to set on the material.</param>
-        public static void SetKeyword(Material material, LocalKeyword keyword, bool state)
-        {
-            if (state)
-                material.EnableKeyword(keyword);
-            else
-                material.DisableKeyword(keyword);
-        }
-
-        /// <summary>
-        /// Set a keyword to a compute shader
+        /// Set a keyword immediately on a compute shader
         /// </summary>
         /// <param name="cs">Compute Shader on which to set the keyword.</param>
         /// <param name="keyword">Keyword to be set.</param>

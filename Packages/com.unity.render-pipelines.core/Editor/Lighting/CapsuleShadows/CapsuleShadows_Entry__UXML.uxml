@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="VisualElement" style="flex-direction: row; justify-content: space-between; align-self: auto; align-items: flex-end;">
+        <ui:GroupBox style="flex-direction: row; flex-grow: 1; align-items: center; justify-content: space-between;">
+            <ui:Label tabindex="-1" text="ArmatureName" display-tooltip-when-elided="true" name="nameLB" style="justify-content: center;" />
+            <ui:Button text="Delete" display-tooltip-when-elided="true" name="deleteBT" style="align-items: stretch; justify-content: center;" />
+        </ui:GroupBox>
+    </ui:VisualElement>
+</ui:UXML>

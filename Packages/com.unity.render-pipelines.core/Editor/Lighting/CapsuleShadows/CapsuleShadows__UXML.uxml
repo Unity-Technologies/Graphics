@@ -1,0 +1,22 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="helpboxVE" class="unity-help-box">
+        <ui:VisualElement name="VisualElement" class="unity-help-box__icon unity-help-box__icon--info unity-help-box__icon--warning" />
+        <ui:Label tabindex="-1" text="Cannot attach Capsule Shadows if there is no SkinnedMeshRenderer component attached to the GameObject or its children." display-tooltip-when-elided="true" class="unity-help-box__label" />
+    </ui:VisualElement>
+    <ui:VisualElement name="occluderWarningbox" class="unity-help-box">
+        <ui:VisualElement name="VisualElement" class="unity-help-box__icon unity-help-box__icon--info unity-help-box__icon--warning" />
+        <ui:Label tabindex="-1" text="There are too many CapsuleOccluders in the Scene some of this objects Capsules are ignored." display-tooltip-when-elided="true" class="unity-help-box__label" />
+    </ui:VisualElement>
+    <ui:Foldout text="Auto Generation Settings" name="generationFO">
+        <ui:Toggle label="Keep Axis Aligned" binding-path="m_KeepAxisAligned" tooltip="Enable to keep the capsules aligned to a local axis of the bone, instead of allowing capsules to use any orientation." />
+        <ui:FloatField label="MinimumLength" value="0.15" binding-path="m_MinimumLength" tooltip="The minimum length of each capsule. If the capsule for a given bone would be smaller than this size, the bone will be skipped. This can be used to avoid generating capsules for smaller features.  " />
+        <ui:FloatField label="Radius Scale" value="0.8" binding-path="m_RadiusScale" tooltip="How much to scale the radius of the capsule by, to fit the capsule slightly within the bounds of the mesh." />
+        <uie:EnumFlagsField label="Light Layer Masks" type="UnityEngine.Rendering.CapsuleOccluderLightLayer, Unity.RenderPipelines.Core.Runtime" binding-path="m_LightLayerMask" />
+    </ui:Foldout>
+    <ui:GroupBox>
+        <ui:Label tabindex="-1" text="Capsules" display-tooltip-when-elided="true" name="capsulesLB" />
+        <ui:TreeView view-data-key="unity-tree-view" name="capsulesTV" />
+    </ui:GroupBox>
+    <ui:Button text="Generate Capsules" display-tooltip-when-elided="true" name="generateBT" tooltip="Automatically generates capsules for all bones in the armature" />
+    <ui:Button text="Clear All" display-tooltip-when-elided="true" name="clearAllBT" tooltip="Allows you to delete every capsule shadow component that has been placed on this GameObject and its children!" binding-path="m_ClearAll" />
+</ui:UXML>
