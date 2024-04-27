@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty lowResTransparencyMinimumThreshold;
         public SerializedProperty rayTracingHalfResThreshold;
         public SerializedProperty lowResSSGIMinimumThreshold;
+        public SerializedProperty lowResVolumetricCloudsMinimumThreshold;
 
         public SerializedDynamicResolutionSettings(SerializedProperty root)
         {
@@ -48,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lowResTransparencyMinimumThreshold = root.Find((GlobalDynamicResolutionSettings s) => s.lowResTransparencyMinimumThreshold);
             rayTracingHalfResThreshold = root.Find((GlobalDynamicResolutionSettings s) => s.rayTracingHalfResThreshold);
             lowResSSGIMinimumThreshold = root.Find((GlobalDynamicResolutionSettings s) => s.lowResSSGIMinimumThreshold);
+            lowResVolumetricCloudsMinimumThreshold = root.Find((GlobalDynamicResolutionSettings s) => s.lowResVolumetricCloudsMinimumThreshold);
         }
     }
 }

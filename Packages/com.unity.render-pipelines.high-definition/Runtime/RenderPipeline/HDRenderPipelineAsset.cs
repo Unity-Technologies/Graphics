@@ -29,6 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Migrate();
             ///////////////////////////
 
+            // Initialize the low res cloud tracing default value. This is to avoid upgrading the whole hdrp asset
+            if (m_RenderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold == 0.0f)
+                m_RenderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold = 50.0f;
+
             HDRenderPipeline.SetupDLSSFeature(HDRenderPipelineGlobalSettings.instance);
         }
 

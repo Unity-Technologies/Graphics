@@ -121,7 +121,7 @@ CloudRay BuildRay(uint2 intermediateCoord, float integrationNoise)
     if (_RenderForSky)
     {
         // normalize to get the direction
-        ray.direction = GetCloudViewDirWS(_LowResolutionEvaluation ? intermediateCoord * 2 : intermediateCoord);
+        ray.direction = GetCloudViewDirWS(_LowResolutionEvaluation ? intermediateCoord * _IntermediateResolutionScale : intermediateCoord);
 
         // Compute the max cloud ray length
         ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
@@ -242,7 +242,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Compute the set of coordinates we need
     uint2 intermediateCoord = dispatchThreadId.xy;
-    uint2 fullResCoord = intermediateCoord * 2;
+    uint2 fullResCoord = intermediateCoord * _IntermediateResolutionScale;
     uint2 traceCoord = intermediateCoord / 2;
 
 #ifndef WITHOUT_LDS
@@ -335,7 +335,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
     int localIndex = (intermediateCoord.x & 1) + (intermediateCoord.y & 1) * 2;
-    int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
+    int currentIndex = ComputeCheckerBoardIndex(traceCoord, _SubPixelIndex);
     if (localIndex == currentIndex)
     {
         // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)

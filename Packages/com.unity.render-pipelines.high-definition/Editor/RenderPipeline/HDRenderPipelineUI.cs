@@ -650,12 +650,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 {
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues;
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.hasMultipleDifferentValues;
                     float lowResSSGIMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.floatValue;
                     EditorGUI.BeginChangeCheck();
                     lowResSSGIMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResSSGIMinimumThreshold, lowResSSGIMinimumThreshold);
                     if (EditorGUI.EndChangeCheck())
                         serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.floatValue = Mathf.Clamp(lowResSSGIMinimumThreshold, 0.0f, 50.0f);
+                }
+
+                {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold.hasMultipleDifferentValues;
+                    float lowResVolumetricCloudsMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    lowResVolumetricCloudsMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResVolumetricCloudsMinimumThreshold, lowResVolumetricCloudsMinimumThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold.floatValue = Mathf.Clamp(lowResVolumetricCloudsMinimumThreshold, 0.001f, 100.0f);
                 }
 
                 {
