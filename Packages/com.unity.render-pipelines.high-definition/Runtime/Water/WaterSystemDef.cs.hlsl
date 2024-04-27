@@ -24,6 +24,41 @@ struct WaterSurfaceProfile
     float padding;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesWaterRendering)
+    float2 _GridSize;
+    float2 _WaterRotation;
+    float4 _PatchOffset;
+    uint _WaterLODCount;
+    uint _NumWaterPatches;
+    float _FoamIntensity;
+    float _CausticsIntensity;
+    float2 _WaterMaskScale;
+    float2 _WaterMaskOffset;
+    float2 _FoamMaskScale;
+    float2 _FoamMaskOffset;
+    float _CausticsPlaneBlendDistance;
+    int _WaterCausticsEnabled;
+    uint _WaterDecalLayer;
+    int _InfiniteSurface;
+    float _WaterMaxTessellationFactor;
+    float _WaterTessellationFadeStart;
+    float _WaterTessellationFadeRange;
+    int _CameraInUnderwaterRegion;
+CBUFFER_END
+
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesUnderWater
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesUnderWater)
+    float4 _WaterRefractionColor;
+    float4 _WaterScatteringColor;
+    float _MaxViewDistanceMultiplier;
+    float _OutScatteringCoeff;
+    float _WaterTransitionSize;
+    float _PaddingUW;
+CBUFFER_END
+
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesWater)
@@ -72,41 +107,6 @@ CBUFFER_START(ShaderVariablesWater)
     float2 _PaddingW0;
     float _AmbientScattering;
     int _CausticsBandIndex;
-CBUFFER_END
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesWaterRendering)
-    float2 _GridSize;
-    float2 _WaterRotation;
-    float4 _PatchOffset;
-    uint _WaterLODCount;
-    uint _NumWaterPatches;
-    float _FoamIntensity;
-    float _CausticsIntensity;
-    float2 _WaterMaskScale;
-    float2 _WaterMaskOffset;
-    float2 _FoamMaskScale;
-    float2 _FoamMaskOffset;
-    float _CausticsPlaneBlendDistance;
-    int _WaterCausticsEnabled;
-    uint _WaterDecalLayer;
-    int _InfiniteSurface;
-    float _WaterMaxTessellationFactor;
-    float _WaterTessellationFadeStart;
-    float _WaterTessellationFadeRange;
-    int _CameraInUnderwaterRegion;
-CBUFFER_END
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesUnderWater
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesUnderWater)
-    float4 _WaterRefractionColor;
-    float4 _WaterScatteringColor;
-    float _MaxViewDistanceMultiplier;
-    float _OutScatteringCoeff;
-    float _WaterTransitionSize;
-    float _PaddingUW;
 CBUFFER_END
 
 

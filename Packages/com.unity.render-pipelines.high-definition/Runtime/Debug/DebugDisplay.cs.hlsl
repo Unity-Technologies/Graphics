@@ -47,7 +47,6 @@
 #define FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR (37)
 #define FULLSCREENDEBUGMODE_MAX_MATERIAL_FULL_SCREEN_DEBUG (38)
 
-
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesDebugDisplay
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesDebugDisplay)
