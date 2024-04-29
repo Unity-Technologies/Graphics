@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal
                 var data = frameData.Create<UniversalRenderingData>();
                 data.cullResults = context.Cull(ref cullingParameters);
 
-                GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd, ambientProbe = RenderSettings.ambientProbe });
+                GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd });
 
                 var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
 
@@ -1280,7 +1280,7 @@ namespace UnityEngine.Rendering.Universal
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData,
                 cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
 
             uint count = GraphicsFormatUtility.GetAlphaComponentCount(cameraData.cameraTargetDescriptor.graphicsFormat);
@@ -2333,15 +2333,17 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         static void AdjustUIOverlayOwnership(int cameraCount)
         {
-            // If rendering to XR device, we don't render SS UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
-            // If there is no camera to render in URP, SS UI overlay has to be rendered in the engine
+            // If rendering to XR device, we don't render Screen Space UI overlay within SRP as the overlay should not be visible in HMD eyes, only when mirroring (after SRP XR Mirror pass)
+            // If there is no camera to render in URP, SS UI overlay also has to be rendered in the engine
             if (XRSystem.displayActive || cameraCount == 0)
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = false;
             }
-            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            else if (HDROutputForAnyDisplayIsActive())
+            else
             {
+                // Otherwise we enforce SS UI overlay rendering in URP
+                // If needed, users can still request its rendering to be after URP
+                // by setting rendersUIOverlay (public API) to false in a callback added to RenderPipelineManager.beginContextRendering
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
         }

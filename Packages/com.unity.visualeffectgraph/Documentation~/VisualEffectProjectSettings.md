@@ -18,5 +18,6 @@ Visual Effect Graph Project Settings is a section in Unity Project Settings Wind
 | Sort Shader                        | Sets the compute Shader used for Particle Sorting.<br/> Unity sets this value automatically. |
 | Strip Update Shader                | Sets the compute Shader used for Particle Strips update.<br/> Unity sets this value automatically. |
 | Runtime Resources                  | Determines which runtime resources that VFX uses are available in runtime. For example, the [SDF Bake Tool](sdf-bake-tool.md).<br/> Unity sets this value automatically. |
+| Batch Empty Lifetime           | Keeps an empty batch for a specified number of frames after deleting its last instance, allowing the creation of new instances. If no instances are created within this timeframe, the empty batch gets deleted. |
 
 > **Note:** Fixed Delta time works in asynchronous update with `deltaTime = N * FixedTimeStep` (with `deltaTime = min(deltaTime , MaxDeltaTime)`). N is determined by the current framerate. In this mode, `deltaTime` can equal 0 at certain frames.

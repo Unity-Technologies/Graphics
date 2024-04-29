@@ -238,7 +238,7 @@ Shader "Hidden/HDRP/WaterFoam"
 
         Pass
         {
-            Name "Reprojection"
+            Name "Attenuation"
             // This program doesn't require any culling or ztesting
             Cull Off
             ZTest Off

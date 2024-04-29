@@ -210,7 +210,7 @@ namespace UnityEditor.VFX.Test
             blackboard.Update();
             yield return null;
 
-            var descriptorParameter = VFXLibrary.GetParameters().First();
+            var descriptorParameter = VFXLibrary.GetParameters().First(d => d.modelType == typeof(int));
             AddParameter(blackboard, descriptorParameter);
             yield return null;
             blackboard.Focus();

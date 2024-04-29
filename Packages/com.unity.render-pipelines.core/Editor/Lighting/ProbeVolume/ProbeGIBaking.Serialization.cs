@@ -224,7 +224,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void FinalizeCell(int c, NativeArray<int> positionRemap, NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity, NativeArray<Vector3> virtualOffsets, NativeArray<Vector4> skyOcclusion, NativeArray<uint> skyDirection)
+        static void FinalizeCell(int c, NativeArray<int> positionRemap,
+            NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity,
+            NativeArray<uint> renderingLayerMasks,
+            NativeArray<Vector3> virtualOffsets,
+            NativeArray<Vector4> skyOcclusion, NativeArray<uint> skyDirection)
         {
             if (c == 0)
             {
@@ -233,6 +237,7 @@ namespace UnityEngine.Rendering
                 m_CellsToDilate.Clear();
             }
 
+            bool hasRenderingLayers = renderingLayerMasks.IsCreated;
             bool hasVirtualOffset = virtualOffsets.IsCreated;
             bool hasSkyOcclusion = skyOcclusion.IsCreated;
             bool hasSkyDirection = skyDirection.IsCreated;
@@ -245,8 +250,9 @@ namespace UnityEngine.Rendering
             var localTouchupVolumes = cell.SelectIntersectingAdjustmentVolumes(s_AdjustmentVolumes);
 
             cell.sh = new SphericalHarmonicsL2[numProbes];
+            cell.layerValidity = hasRenderingLayers ? new byte[numProbes] : null;
             cell.validity = new float[numProbes];
-            cell.validityNeighbourMask = new byte[numProbes];
+            cell.validityNeighbourMask = new byte[APVDefinitions.probeMaxRegionCount, numProbes];
             cell.skyOcclusionDataL0L1 = new Vector4[hasSkyOcclusion ? numProbes : 0];
             cell.skyShadingDirectionIndices = new byte[hasSkyDirection ? numProbes : 0];
             cell.offsetVectors = new Vector3[hasVirtualOffset ? numProbes : 0];
@@ -262,7 +268,7 @@ namespace UnityEngine.Rendering
 
                 int uniqueProbeIndex = positionRemap[cell.probeIndices[i]];
                 cell.SetBakedData(m_BakingSet, m_BakingBatch, localTouchupVolumes, i, uniqueProbeIndex,
-                    sh[uniqueProbeIndex], validity[uniqueProbeIndex], virtualOffsets, skyOcclusion, skyDirection);
+                    sh[uniqueProbeIndex], validity[uniqueProbeIndex], renderingLayerMasks, virtualOffsets, skyOcclusion, skyDirection);
             }
 
             ComputeValidityMasks(cell);
@@ -446,6 +452,7 @@ namespace UnityEngine.Rendering
                 indirectionEntryInfo = cellDesc.indirectionEntryInfo,
             };
 
+            bool hasRenderingLayers = cellData.layer.Length > 0;
             bool hasVirtualOffsets = cellData.offsetVectors.Length > 0;
             bool hasSkyOcclusion = cellData.skyOcclusionDataL0L1.Length > 0;
             bool hasSkyShadingDirection = cellData.skyShadingDirectionIndices.Length > 0;
@@ -454,9 +461,10 @@ namespace UnityEngine.Rendering
             // so we use the actual probe count for these arrays.
             int probeCount = cellDesc.probeCount;
             bc.probePositions = new Vector3[probeCount];
+            bc.layerValidity = hasRenderingLayers ? new byte[probeCount] : null;
             bc.validity = new float[probeCount];
             bc.touchupVolumeInteraction = new float[probeCount];
-            bc.validityNeighbourMask = new byte[probeCount];
+            bc.validityNeighbourMask = new byte[APVDefinitions.probeMaxRegionCount, probeCount];
             bc.skyOcclusionDataL0L1 = hasSkyOcclusion ? new Vector4[probeCount] : null;
             bc.skyShadingDirectionIndices = hasSkyShadingDirection ? new byte[probeCount] : null;
             bc.offsetVectors = hasVirtualOffsets ? new Vector3[probeCount] : null;
@@ -496,7 +504,8 @@ namespace UnityEngine.Rendering
                                 else
                                     bc.sh[probeIndex] = blackSH;
 
-                                bc.validityNeighbourMask[probeIndex] = cellChunkData.validityNeighMaskData[remappedIndex];
+                                for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
+                                    bc.validityNeighbourMask[l, probeIndex] = cellChunkData.validityNeighMaskData[remappedIndex];
                                 if (hasSkyOcclusion)
                                     ReadFromShaderCoeffsSkyOcclusion(ref bc.skyOcclusionDataL0L1[probeIndex], cellChunkData.skyOcclusionDataL0L1, remappedIndex);
                                 if (hasSkyShadingDirection)
@@ -508,6 +517,8 @@ namespace UnityEngine.Rendering
                                 bc.probePositions[probeIndex] = cellData.probePositions[remappedIndex];
                                 bc.validity[probeIndex] = cellData.validity[remappedIndex];
                                 bc.touchupVolumeInteraction[probeIndex] = cellData.touchupVolumeInteraction[remappedIndex];
+                                if (hasRenderingLayers)
+                                    bc.layerValidity[probeIndex] = cellData.layer[remappedIndex];
                                 if (hasVirtualOffsets)
                                     bc.offsetVectors[probeIndex] = cellData.offsetVectors[remappedIndex];
 
@@ -527,6 +538,7 @@ namespace UnityEngine.Rendering
         static BakingCell MergeCells(BakingCell dst, BakingCell srcCell)
         {
             int maxSubdiv = Math.Max(dst.bricks[0].subdivisionLevel, srcCell.bricks[0].subdivisionLevel);
+            bool hasRenderingLayers = m_BakingSet.useRenderingLayers;
             bool hasVirtualOffsets = s_BakeData.virtualOffsetJob.offsets.IsCreated;
             bool hasSkyOcclusion = s_BakeData.skyOcclusionJob.occlusion.IsCreated;
             bool hasSkyShadingDirection = s_BakeData.skyOcclusionJob.shadingDirections.IsCreated;
@@ -576,8 +588,9 @@ namespace UnityEngine.Rendering
             outCell.probePositions = new Vector3[numberOfProbes];
             outCell.minSubdiv = Math.Min(dst.minSubdiv, srcCell.minSubdiv);
             outCell.sh = new SphericalHarmonicsL2[numberOfProbes];
+            outCell.layerValidity = hasRenderingLayers ? new byte[numberOfProbes] : null;
             outCell.validity = new float[numberOfProbes];
-            outCell.validityNeighbourMask = new byte[numberOfProbes];
+            outCell.validityNeighbourMask = new byte[APVDefinitions.probeMaxRegionCount, numberOfProbes];
             outCell.skyOcclusionDataL0L1 = hasSkyOcclusion ? new Vector4[numberOfProbes] : null;
             outCell.skyShadingDirectionIndices = hasSkyShadingDirection ? new byte[numberOfProbes] : null;
             outCell.offsetVectors = hasVirtualOffsets ? new Vector3[numberOfProbes] : null;
@@ -602,7 +615,10 @@ namespace UnityEngine.Rendering
                     outCell.probePositions[outIdx] = consideredCells[b.Item3].probePositions[srcIdx];
                     outCell.sh[outIdx] = consideredCells[b.Item3].sh[srcIdx];
                     outCell.validity[outIdx] = consideredCells[b.Item3].validity[srcIdx];
-                    outCell.validityNeighbourMask[outIdx] = consideredCells[b.Item3].validityNeighbourMask[srcIdx];
+                    for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
+                        outCell.validityNeighbourMask[l, outIdx] = consideredCells[b.Item3].validityNeighbourMask[l, srcIdx];
+                    if (hasRenderingLayers)
+                        outCell.layerValidity[outIdx] = consideredCells[b.Item3].layerValidity[srcIdx];
                     if (hasSkyOcclusion)
                         outCell.skyOcclusionDataL0L1[outIdx] = consideredCells[b.Item3].skyOcclusionDataL0L1[srcIdx];
                     if (hasSkyShadingDirection)
@@ -694,6 +710,8 @@ namespace UnityEngine.Rendering
             m_BakingSet.bakedProbeOffset = m_ProfileInfo.probeOffset;
             m_BakingSet.bakedSkyOcclusion = m_BakingSet.skyOcclusion;
             m_BakingSet.bakedSkyShadingDirection = m_BakingSet.bakedSkyOcclusion && m_BakingSet.skyOcclusionShadingDirection;
+            m_BakingSet.bakedMaskCount = m_BakingSet.useRenderingLayers ? APVDefinitions.probeMaxRegionCount : 1;
+            m_BakingSet.bakedLayerMasks = m_BakingSet.ComputeRegionMasks();
 
             var cellSharedDataDescs = new SerializedDictionary<int, StreamableCellDesc>();
             var cellL0L1DataDescs = new SerializedDictionary<int, StreamableCellDesc>();
@@ -705,6 +723,8 @@ namespace UnityEngine.Rendering
             bool hasVirtualOffsets = voSettings.useVirtualOffset;
             bool handlesSkyOcclusion = m_BakingSet.bakedSkyOcclusion;
             bool handlesSkyShading = m_BakingSet.bakedSkyShadingDirection && m_BakingSet.bakedSkyShadingDirection;
+            bool hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            int validityRegionCount = m_BakingSet.bakedMaskCount;
 
             for (var i = 0; i < bakingCells.Length; ++i)
             {
@@ -759,7 +779,7 @@ namespace UnityEngine.Rendering
 
 
             // CellSharedData
-            m_BakingSet.sharedValidityMaskChunkSize = sizeof(byte) * chunkSizeInProbes;
+            m_BakingSet.sharedValidityMaskChunkSize = sizeof(byte) * validityRegionCount * chunkSizeInProbes;
             m_BakingSet.sharedSkyOcclusionL0L1ChunkSize = handlesSkyOcclusion ? sizeof(ushort) * 4 * chunkSizeInProbes : 0;
             m_BakingSet.sharedSkyShadingDirectionIndicesChunkSize = handlesSkyShading ? sizeof(byte) * chunkSizeInProbes : 0;
             m_BakingSet.sharedDataChunkSize = m_BakingSet.sharedValidityMaskChunkSize + m_BakingSet.sharedSkyOcclusionL0L1ChunkSize + m_BakingSet.sharedSkyShadingDirectionIndicesChunkSize;
@@ -775,8 +795,9 @@ namespace UnityEngine.Rendering
             m_BakingSet.supportValidityChunkSize = sizeof(float) * chunkSizeInProbes;
             m_BakingSet.supportOffsetsChunkSize = hasVirtualOffsets ? sizeof(Vector3) * chunkSizeInProbes : 0;
             m_BakingSet.supportTouchupChunkSize = sizeof(float) * chunkSizeInProbes;
+            m_BakingSet.supportLayerMaskChunkSize = hasRenderingLayers ? sizeof(byte) * chunkSizeInProbes : 0;
 
-            m_BakingSet.supportDataChunkSize = m_BakingSet.supportPositionChunkSize + m_BakingSet.supportValidityChunkSize + m_BakingSet.supportOffsetsChunkSize + m_BakingSet.supportTouchupChunkSize;
+            m_BakingSet.supportDataChunkSize = m_BakingSet.supportPositionChunkSize + m_BakingSet.supportValidityChunkSize + m_BakingSet.supportOffsetsChunkSize + m_BakingSet.supportLayerMaskChunkSize + m_BakingSet.supportTouchupChunkSize;
             var supportDataTotalSize = m_TotalCellCounts.chunksCount * m_BakingSet.supportDataChunkSize;
             using var supportData = new NativeArray<byte>(supportDataTotalSize, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
@@ -824,7 +845,8 @@ namespace UnityEngine.Rendering
                 int positionOffset = supportChunkOffset;
                 int validityOffset = positionOffset + chunksCount * m_BakingSet.supportPositionChunkSize;
                 int touchupOffset = validityOffset + chunksCount * m_BakingSet.supportValidityChunkSize;
-                int offsetsOffset = touchupOffset + chunksCount * m_BakingSet.supportTouchupChunkSize; // Keep last as it's optional.
+                int layerOffset = touchupOffset + chunksCount * m_BakingSet.supportTouchupChunkSize; // This is optional
+                int offsetsOffset = layerOffset + chunksCount * m_BakingSet.supportLayerMaskChunkSize; // Keep last as it's optional.
 
                 // Here we directly map each chunk to the layout of the 3D textures in order to be able to copy the data directly to the GPU.
                 // The granularity at runtime is one chunk at a time currently so the temporary data loc used is sized accordingly.
@@ -842,6 +864,7 @@ namespace UnityEngine.Rendering
                     NativeArray<Vector3> positionsChunkTarget = supportData.GetSubArray(positionOffset + chunkIndex * m_BakingSet.supportPositionChunkSize, m_BakingSet.supportPositionChunkSize).Reinterpret<Vector3>(1);
                     NativeArray<float> validityChunkTarget = supportData.GetSubArray(validityOffset + chunkIndex * m_BakingSet.supportValidityChunkSize, m_BakingSet.supportValidityChunkSize).Reinterpret<float>(1);
                     NativeArray<float> touchupVolumeInteractionChunkTarget = supportData.GetSubArray(touchupOffset + chunkIndex * m_BakingSet.supportTouchupChunkSize, m_BakingSet.supportTouchupChunkSize).Reinterpret<float>(1);
+                    NativeArray<byte> regionChunkTarget = supportData.GetSubArray(layerOffset + chunkIndex * m_BakingSet.supportLayerMaskChunkSize, m_BakingSet.supportLayerMaskChunkSize).Reinterpret<byte>(1);
                     NativeArray<Vector3> offsetChunkTarget = supportData.GetSubArray(offsetsOffset + chunkIndex * m_BakingSet.supportOffsetsChunkSize, m_BakingSet.supportOffsetsChunkSize).Reinterpret<Vector3>(1);
 
                     NativeArray<byte> probesTargetL2_0 = probesL2.GetSubArray(shL2ChunkOffset + chunksCount * L2TextureChunkSize * 0 + chunkIndex * L2TextureChunkSize, L2TextureChunkSize);
@@ -866,6 +889,9 @@ namespace UnityEngine.Rendering
                                     {
                                         WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
                                         WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+
+                                        for (int l = 0; l < validityRegionCount; l++)
+                                            validityNeighboorMaskChunkTarget[index * validityRegionCount + l] = 0;
                                         if (m_BakingSet.bakedSkyOcclusion)
                                         {
                                             WriteToShaderSkyOcclusion(Vector4.zero, skyOcclusionL0L1ChunkTarget, index * 4);
@@ -875,10 +901,11 @@ namespace UnityEngine.Rendering
                                             }
                                         }
 
-                                        validityNeighboorMaskChunkTarget[index] = 0;
                                         validityChunkTarget[index] = 0.0f;
                                         positionsChunkTarget[index] = Vector3.zero;
                                         touchupVolumeInteractionChunkTarget[index] = 0.0f;
+                                        if (hasRenderingLayers)
+                                            regionChunkTarget[index] = 0xFF;
                                         if (hasVirtualOffsets)
                                             offsetChunkTarget[index] = Vector3.zero;
                                     }
@@ -888,19 +915,23 @@ namespace UnityEngine.Rendering
 
                                         WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index * 4);
                                         WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index * 4);
+
+                                        for (int l = 0; l < validityRegionCount; l++)
+                                            validityNeighboorMaskChunkTarget[index * validityRegionCount + l] = bakingCell.validityNeighbourMask[l, shidx];
                                         if (m_BakingSet.bakedSkyOcclusion)
                                         {
                                             WriteToShaderSkyOcclusion(bakingCell.skyOcclusionDataL0L1[shidx], skyOcclusionL0L1ChunkTarget, index * 4);
                                             if (m_BakingSet.bakedSkyShadingDirection)
                                             {
-                                                skyShadingIndicesChunkTarget[index] = (byte)(bakingCell.skyShadingDirectionIndices[shidx]);
+                                                skyShadingIndicesChunkTarget[index] = bakingCell.skyShadingDirectionIndices[shidx];
                                             }
                                         }
 
                                         validityChunkTarget[index] = bakingCell.validity[shidx];
-                                        validityNeighboorMaskChunkTarget[index] = bakingCell.validityNeighbourMask[shidx];
                                         positionsChunkTarget[index] = bakingCell.probePositions[shidx];
                                         touchupVolumeInteractionChunkTarget[index] = bakingCell.touchupVolumeInteraction[shidx];
+                                        if (hasRenderingLayers)
+                                            regionChunkTarget[index] = bakingCell.layerValidity[shidx];
                                         if (hasVirtualOffsets)
                                             offsetChunkTarget[index] = bakingCell.offsetVectors[shidx];
                                     }
@@ -937,23 +968,23 @@ namespace UnityEngine.Rendering
 
             unsafe
             {
-                using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, probesL0L1);
                 }
-                using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, probesL2);
                 }
-                using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, sharedData);
                 }
-                using (var fs = new System.IO.FileStream(cellBricksDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellBricksDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, bricks);
                 }
-                using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, supportData);
                 }
@@ -1073,15 +1104,15 @@ namespace UnityEngine.Rendering
 
             unsafe
             {
-                using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, probesL0L1);
                 }
-                using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, probesL2);
                 }
-                using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
                     WriteNativeArray(fs, sharedData);
                 }

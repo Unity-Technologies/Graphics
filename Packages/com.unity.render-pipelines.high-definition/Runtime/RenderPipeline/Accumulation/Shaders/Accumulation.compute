@@ -73,11 +73,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef INPUT_FROM_FRAME_TEXTURE
         float4 color = _FrameTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #else
-        float4 color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+        float4 color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] * _AccumulationWeights.x;
 #endif
 
-        if (sampleCount++)
-            color = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * _AccumulationWeights.y + _AccumulationWeights.x * color) * _AccumulationWeights.z;
+        if (sampleCount > 0)
+            color = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * _AccumulationWeights.y + color);
+
+        color *= _AccumulationWeights.z;
 
         _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = color;
 
@@ -86,7 +88,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         color *= exposureMultiplier;
 
         // Add a little convergence cue to our result
-        AddConvergenceCue(currentPixelCoord, sampleCount, color.xyz);
+        AddConvergenceCue(currentPixelCoord, sampleCount + 1, color.xyz);
 
         _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color;
 #endif

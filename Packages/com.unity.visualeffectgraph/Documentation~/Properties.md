@@ -1,10 +1,10 @@
-# Properties
+## Properties
 
 Properties are editable fields that you can connect to graph elements using [Property workflow](GraphLogicAndPhilosophy.md). They can be found on graph elements such as  [Contexts](Contexts.md),  [Blocks](Blocks.md) and [Operators](Operators.md).
 
 ## Using Properties
 
-Properties are displayed on graph elements and will change their value accordingly to their actual value in the graph : Connecting another property to a property slot will display the computed value of the connected property.
+Properties appear on graph elements, and change their value according to their actual value in the graph. When you connect another property to a property port, the graph element displays the computed value of the connected property.
 
 After disconnecting a connected property, the field reverts to the previously set property value.
 

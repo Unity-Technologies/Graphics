@@ -51,9 +51,22 @@ namespace UnityEngine.Rendering
             OverrideSkyDirection,
             /// <summary>Override the Lightmapper sample count for the probes within the adjustment volume.</summary>
             OverrideSampleCount,
+            /// <summary>Control the rendering layer masks for the probes within the adjustment volume.</summary>
+            OverrideRenderingLayerMask,
 
             /// <summary>Scale probe intensity.</summary>
             IntensityScale = 99, // make sure this appears last
+        };
+        
+        /// <summary>The mode that adjustment volume will operate in. It determines what probes falling within the volume will do. </summary>
+        public enum RenderingLayerMaskOperation
+        {
+            /// <summary>Overrides the rendering layer mask for the probes within the adjustment volume.</summary>
+            Override,
+            /// <summary>Add a rendering layer to the probes within the adjustment volume.</summary>
+            Add,
+            /// <summary>Removes a rendering layer to the probes within the adjustment volume.</summary>
+            Remove,
         };
 
         /// <summary>Choose what to do with probes falling inside this volume</summary>
@@ -120,6 +133,12 @@ namespace UnityEngine.Rendering
         [Range(0, 5)]
         public int skyOcclusionMaxBounces = 2;
 
+        /// <summary>Rendering Layer Mask operation.</summary>
+        public RenderingLayerMaskOperation renderingLayerMaskOperation;
+
+        /// <summary>Rendering layer mask used for the combine operation with the probes inside the volume.</summary>
+        public byte renderingLayerMask;
+
 #if UNITY_EDITOR
         [SerializeField] internal int cachedHashCode = 0;
 
@@ -176,6 +195,14 @@ namespace UnityEngine.Rendering
                 volume = default;
                 bounds = new Bounds(transform.position, radius * Vector3.up);
             }
+        }
+
+        internal float ComputeVolume(in ProbeReferenceVolume.Volume touchupOBB)
+        {
+            if (shape == Shape.Box)
+                return touchupOBB.X.magnitude * touchupOBB.Y.magnitude * touchupOBB.Z.magnitude;
+            else
+                return (4.0f / 3.0f) * Mathf.PI * radius * radius * radius;
         }
 
         internal bool IntersectsVolume(in ProbeReferenceVolume.Volume touchupOBB, in Bounds touchupBounds, Bounds volumeBounds)

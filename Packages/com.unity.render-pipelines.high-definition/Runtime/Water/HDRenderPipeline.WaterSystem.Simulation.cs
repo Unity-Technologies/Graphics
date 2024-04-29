@@ -245,13 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return (simulationRes == simulationResolution)
             && (nbBands == numActiveBands)
-            && AllocatedTextures();
-        }
-
-        // Function that makes sure that all the textures are allocated
-        public bool AllocatedTextures()
-        {
-            return (gpuBuffers != null);
+            && (gpuBuffers != null);
         }
 
         public void CheckCausticsResources(bool used, int causticsResolution)

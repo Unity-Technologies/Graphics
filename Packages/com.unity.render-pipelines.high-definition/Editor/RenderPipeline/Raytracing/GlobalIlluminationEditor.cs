@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Tracing;
         SerializedDataParameter m_RayMiss;
+        SerializedDataParameter m_APVMask;
 
         // Screen space global illumination parameters
         SerializedDataParameter m_FullResolutionSS;
@@ -61,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Enable = Unpack(o.Find(x => x.enable));
             m_Tracing = Unpack(o.Find(x => x.tracing));
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));
+            m_APVMask = Unpack(o.Find(x => x.adaptiveProbeVolumesLayerMask));
 
             // SSGI Parameters
             m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
@@ -267,6 +269,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
                     PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                 }
+
+                if (currentAsset?.currentPlatformRenderPipelineSettings.lightProbeSystem == RenderPipelineSettings.LightProbeSystem.AdaptiveProbeVolumes)
+                    PropertyField(m_APVMask);
             }
         }
 

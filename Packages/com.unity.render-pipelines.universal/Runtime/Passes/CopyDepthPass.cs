@@ -271,7 +271,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if UNITY_EDITOR
                     // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
-                    if (cameraData.isSceneViewCamera)
+                    // Also required for preview camera rendering for grid drawn with builtin RP (UUM-55171).
+                    if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera)
                         builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
 #endif
                 }

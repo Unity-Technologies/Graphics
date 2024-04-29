@@ -2,16 +2,16 @@
 
 ## Description
 
-Provides a dynamic branch to the shader. If input **Predicate** is true the return output will be equal to input **True**, otherwise it will be equal to input **False**. This is determined per vertex or per pixel depending on shader stage. Both sides of the branch will be evaluated in the shader, and the branch not used will be discarded.
+Provides a dynamic branch to the shader. If input **Predicate** is true, this node returns input **True**, otherwise it returns input **False**. The **Branch Node** evaluates the **Predicate** per vertex or per pixel depending on shader stage. Both sides of the branch are evaluated in the shader, and the branch not used is discarded.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
-|:------------ |:-------------|:-----|:---|:---|
-| Predicate      | Input | Boolean | None | Determines which input to returned |
-| True     | Input | Dynamic Vector | None | Returned if **Predicate** is true |
-| False      | Input | Dynamic Vector | None | Returned if **Predicate** is false |
-| Out | Output      |    Boolean | None | Output value |
+| Name      | Direction | Type           | Binding | Description |
+|:----------|:----------|:---------------|:--------|:------------|
+| Predicate | Input     | Boolean        | None    | Determines which input to return. |
+| True      | Input     | Dynamic Vector | None    | Returned if **Predicate** is true. |
+| False     | Input     | Dynamic Vector | None    | Returned if **Predicate** is false. |
+| Out       | Output    | Dynamic Vector | None    | Output value |
 
 ## Generated Code Example
 

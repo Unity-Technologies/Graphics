@@ -153,8 +153,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
 
     #ifdef PHYSICALLY_BASED_SUN
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
-    lighting.sunColor0 *= EvaluateSunColorAttenuation(entryEvaluationPointPS, lighting.sunDirection);
-    lighting.sunColor1 *= EvaluateSunColorAttenuation(exitEvaluationPointPS, lighting.sunDirection);
+    lighting.sunColor0 *= EvaluateSunColorAttenuation(entryEvaluationPointPS, lighting.sunDirection, true);
+    lighting.sunColor1 *= EvaluateSunColorAttenuation(exitEvaluationPointPS, lighting.sunDirection, false);
     #endif
 
     // Evaluate cos of the theta angle between the view and light vectors
@@ -405,7 +405,7 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
     float3 luminance = float3(0.0, 0.0, 0.0);
 
     // If we early out, this means we've hit the earth itself
-    if (ExitCloudVolume(ConvertToPS (positionWS), sunDirection, _HighestCloudAltitude, totalLightDistance))
+    if (ExitCloudVolume(ConvertToPS(positionWS), sunDirection, _HighestCloudAltitude, totalLightDistance))
     {
         // Because of the very limited numebr of light steps and the potential humongous distance to cover, we decide to potnetially cover less and make it more useful
         totalLightDistance = clamp(totalLightDistance, 0, _NumLightSteps * LIGHT_STEP_MAXIMAL_SIZE);

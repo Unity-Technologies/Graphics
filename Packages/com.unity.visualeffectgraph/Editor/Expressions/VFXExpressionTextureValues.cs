@@ -145,14 +145,107 @@ namespace UnityEditor.VFX
         public VFXGraphicsBufferValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Buffer)
         {
         }
-
-        public string templateType { get; set; }
-
         public sealed override VFXValue CopyExpression(Mode mode)
         {
             var copy = new VFXGraphicsBufferValue(Get(), mode);
-            copy.templateType = templateType;
             return copy;
         }
     }
+
+    struct BufferUsage : IEquatable<BufferUsage>
+    {
+        public enum Container
+        {
+            StructuredBuffer,
+            RWStructuredBuffer,
+            ByteAddressBuffer,
+            RWByteAddressBuffer,
+            Buffer,
+            RWBuffer,
+            AppendStructuredBuffer,
+            ConsumeStructuredBuffer
+
+            //Can be extended to integrate RWTexture2D here
+        }
+
+        public Container container { get; private set; }
+        public Type actualType { get; private set; }
+        public string verbatimType { get; private set; }
+        public bool valid => actualType != null;
+
+        public BufferUsage(Container container, string verbatimType, Type actualType)
+        {
+            this.container = container;
+            this.actualType = actualType;
+            this.verbatimType = verbatimType;
+        }
+
+        public bool Equals(BufferUsage other)
+        {
+            return container == other.container && actualType == other.actualType && verbatimType == other.verbatimType;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is BufferUsage other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(container, actualType, verbatimType);
+        }
+
+        public static bool operator ==(BufferUsage lhs, BufferUsage rhs) => lhs.Equals(rhs);
+        public static bool operator !=(BufferUsage lhs, BufferUsage rhs) => !(lhs == rhs);
+    }
+
+#pragma warning disable 0659
+    sealed class VFXExpressionBufferWithType : VFXExpression
+    {
+        public VFXExpressionBufferWithType() : this(new BufferUsage(), VFXValue<GraphicsBuffer>.Default)
+        {
+        }
+
+        public VFXExpressionBufferWithType(BufferUsage usage, VFXExpression graphicsBuffer) : base(Flags.None, new[] { graphicsBuffer })
+        {
+            this.usage = usage;
+        }
+
+        public override VFXExpressionOperation operation => VFXExpressionOperation.None;
+
+        public override VFXValueType valueType => parents[0].valueType;
+
+        protected override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var reduced = (VFXExpressionBufferWithType)base.Reduce(reducedParents);
+            reduced.usage = usage;
+            return reduced;
+        }
+
+        protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            //Can be invoked from VFXViewControllerExpressions
+            return constParents[0];
+        }
+
+        protected override int GetInnerHashCode()
+        {
+            return HashCode.Combine(base.GetInnerHashCode(), usage.GetHashCode());
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!base.Equals(obj))
+                return false;
+
+            var other = obj as VFXExpressionBufferWithType;
+            if (other == null)
+                return false;
+
+            return other.usage == usage;
+        }
+
+        public BufferUsage usage { get; private set; }
+    }
+#pragma warning restore 0659
 }

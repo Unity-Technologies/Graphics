@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering
                 if (bakingSet.skyOcclusionShadingDirection)
                     directionResults = new NativeArray<Vector3>(probeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
-                // Create acceletation structure
+                // Create acceleration structure
                 m_AccelerationStructure = BuildAccelerationStructure();
                 var skyOcclusionShader = s_TracingContext.shaderSO;
                 bool skyDirection = shadingDirections.IsCreated;
@@ -215,13 +215,7 @@ namespace UnityEngine.Rendering
 
                 foreach (var renderer in contributors.renderers)
                 {
-                    if (renderer.component.isPartOfStaticBatch)
-                    {
-                        Debug.LogError("Static batching should be disabled when using sky occlusion support.");
-                    }
-
-                    var mesh = renderer.component.GetComponent<MeshFilter>().sharedMesh;
-                    if (mesh == null)
+                    if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
                     var matIndices = GetMaterialIndices(renderer.component);

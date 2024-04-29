@@ -100,8 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _EnableIntegration;
         // Flag that allows us to know if the scene depth is available
         public int _ValidSceneDepth;
-        // Padding
-        public int _PaddingVC1;
+        // Defines the ratio between intermediate res and output res
+        public uint _IntermediateResolutionScale;
 
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;

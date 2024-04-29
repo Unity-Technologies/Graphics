@@ -26,6 +26,9 @@ namespace UnityEditor.Rendering
         internal SerializedProperty skyOcclusionSampleCount;
         internal SerializedProperty skyOcclusionMaxBounces;
 
+        internal SerializedProperty renderingLayerMaskOperation;
+        internal SerializedProperty renderingLayerMask;
+
         internal SerializedProbeAdjustmentVolume(SerializedObject obj)
         {
             var o = new PropertyFetcher<ProbeAdjustmentVolume>(obj);
@@ -51,6 +54,9 @@ namespace UnityEditor.Rendering
 
             skyOcclusionSampleCount = o.Find(x => x.skyOcclusionSampleCount);
             skyOcclusionMaxBounces = o.Find(x => x.skyOcclusionMaxBounces);
+
+            renderingLayerMaskOperation = o.Find(x => x.renderingLayerMaskOperation);
+            renderingLayerMask = o.Find(x => x.renderingLayerMask);
         }
     }
 }

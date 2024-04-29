@@ -136,18 +136,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<SubPassDescriptor> nativeSubPassData; //Tighty packed list of per nrp subpasses
 
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
-        public bool AddToFragmentList(ResourceHandle h, AccessFlags accessFlags, int listFirstIndex, int numItems)
+        public bool AddToFragmentList(TextureAccess access, int listFirstIndex, int numItems)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");
+            if (access.textureHandle.handle.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");
 #endif
             for (var i = listFirstIndex; i < listFirstIndex + numItems; ++i)
             {
                 ref var fragment = ref fragmentData.ElementAt(i);
-                if (fragment.resource.index == h.index)
+                if (fragment.resource.index == access.textureHandle.handle.index)
                 {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    if (fragment.resource.version != h.version)
+                    if (fragment.resource.version != access.textureHandle.handle.version)
                     {
                         //this would mean you're trying to attach say both v1 and v2 of a resource to the same pass as an attachment
                         //this is not allowed
@@ -164,8 +164,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             fragmentData.Add(new PassFragmentData()
             {
-                resource = h,
-                accessFlags = accessFlags
+                resource = access.textureHandle.handle,
+                accessFlags = access.flags,
+                mipLevel = access.mipLevel,
+                depthSlice = access.depthSlice,
             });
             return true;
         }

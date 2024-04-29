@@ -84,7 +84,7 @@ ParallaxOcclusionMapping
 
         delta = intersectionHeight - currHeight;
 
-        if (abs(delta) <= 0.01)
+        if ((delta >= -0.01) && (delta <= 0.01))
             break;
 
         // intersectionHeight < currHeight => new lower bounds

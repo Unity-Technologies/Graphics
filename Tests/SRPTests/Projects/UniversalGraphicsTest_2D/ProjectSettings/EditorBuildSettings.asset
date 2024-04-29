@@ -165,6 +165,9 @@ EditorBuildSettings:
     path: Assets/Scenes/014_Layer_Batching_GlobalLightWithShadows.unity
     guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3
   - enabled: 1
+    path: Assets/Scenes/016_Shadergraph_Colors.unity
+    guid: e41db3beb44cb774db3b1b67d7ccc323
+  - enabled: 1
     path: Assets/Scenes/020_ShadowInterOp_Sprite_DrawMode_NoFlip.unity
     guid: a133f2a1dea07a742a524313aff76538
   - enabled: 1

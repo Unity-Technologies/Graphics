@@ -48,5 +48,6 @@ You can use the following to configure an Adaptive Probe Volume:
 ## Additional resources
 
 - [Bake multiple scenes together with Baking Sets](probevolumes-usebakingsets.md)
+- [Change lighting at runtime](probe-volumes-change-lighting-at-runtime.md)
 - [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md)
 - [Work with multiple Scenes in Unity](https://docs.unity3d.com/Documentation/Manual/MultiSceneEditing.html)

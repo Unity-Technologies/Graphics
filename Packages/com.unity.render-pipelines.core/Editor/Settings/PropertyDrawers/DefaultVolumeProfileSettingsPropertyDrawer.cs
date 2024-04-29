@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering
 
             return m_Root;
         }
-        
+
         /// <summary>
         /// Creates the header for the Volume Profile editor.
         /// </summary>

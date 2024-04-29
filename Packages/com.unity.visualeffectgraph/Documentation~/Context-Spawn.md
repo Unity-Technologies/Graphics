@@ -55,6 +55,6 @@ The lifecycle of the looping phases is split up into [states](https://docs.unity
 
 ### Linking Spawn Contexts
 
-The standard way to turn a Spawn Context on and off is to use an input event. When there isn’t an input to a Spawn Context's **Start** input flow slot, the Visual Effect Graph implicitly connects the “OnPlay” event. Also, when there isn't an input to a Spawn Context's **Stop** input flow slot, the Visual Effect Graph implicitly connects the “OnStop” event.
+The standard way to turn a Spawn Context on and off is to use an input event. When there isn’t an input to a Spawn Context's **Start** input flow port, the Visual Effect Graph implicitly connects the “OnPlay” event. When there isn't an input to a Spawn Context's **Stop** input flow port, the Visual Effect Graph implicitly connects the “OnStop” event.
 
-Another way to turn a Spawn Context on and off is to link it to another Spawn Context. To do this, link a Spawn Context's, **SpawnEvent** output flow slot to another Spawn Context's **Start** input flow slot. In that case, the event attributes state is automatically transferred from the first Spawn Context to the second. You can then connect to the first Spawn Context's **Start** and **Stop** input flow slots to turn the connected Contexts on and off.
+Another way to turn a Spawn Context on and off is to link it to another Spawn Context. To do this, link a Spawn Context's **SpawnEvent** output flow port to another Spawn Context's **Start** input flow port. The event attributes state then automatically transfers from the first Spawn Context to the second, and you can connect to the first Spawn Context's **Start** and **Stop** input flow ports to turn the connected Contexts on and off.

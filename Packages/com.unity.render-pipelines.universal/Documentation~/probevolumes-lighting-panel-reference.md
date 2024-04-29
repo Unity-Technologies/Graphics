@@ -52,6 +52,14 @@ To open Baking Set properties, either select the Baking Set asset in the Project
       <td rowspan="3"><strong>Probe Positions</strong></td>
     </tr>
     <tr>
+      <td><strong>Recalculate</strong></td>
+      <td>Recalculate probe positions during baking, to accommodate changes in scene geometry. Refer to <a href="probevolumes-bakedifferentlightingsetups.md">Bake different lighting setups with Lighting Scenarios</a> for more information.</td>
+    </tr>
+    <tr>
+      <td><strong>Don't Recalculate</strong></td>
+      <td>Don't recalculate probe positions during baking. This keeps the probe positions the same as the last successful bake, which means URP can blend probes in different Lighting Scenarios. Refer to <a href="probevolumes-bakedifferentlightingsetups.md">Bake different lighting setups with Lighting Scenarios</a> for more information.</td>
+    </tr>    
+    <tr>
       <td rowspan="1"><strong>Min Probe Spacing</strong></td>
       <td colspan="2"><a name="minprobespacing"></a>The minimum distance between probes, in meters. Refer to <a href="probevolumes-changedensity.md">Configure the size and density of Adaptive Probe Volumes</a> for more information.</td>
     </tr>
@@ -72,6 +80,29 @@ To open Baking Set properties, either select the Baking Set asset in the Project
     </tr>
   </tbody>
 </table>
+
+### Lighting Scenarios
+
+This section appears only if you enable **Lighting Scenarios** under **Light Probe Lighting** in the [URP Asset](universalrp-asset.md).
+
+| **Property** ||| **Description** |
+|-|-|-|-|
+| **Scenarios** ||| Lists the Lighting Scenarios in the Baking Set. To rename a Lighting Scenario, double-click its name. |
+|| **Active** || Set the currently loaded Lighting Scenario, which URP writes to when you select **Generate Lighting**. |
+|| **Status** || Indicates the status of the active Lighting Scenario. |
+||| **Invalid Scenario** | A warning icon appears if the active Lighting Scenario is baked but URP can't load it anymore, for example if another Lighting Scenario has been baked that caused changes in the probe subdivision. |
+||| **Not Baked** | An information icon appears if you haven't baked any lighting data for the active Lighting Scenario.|
+||| **Not Loaded** | An information icon appears if scenes in the Baking Set aren't currently loaded in the Hierarchy window, so URP can't determine the Lighting Scenario status. |
+
+## Sky Occlusion Settings
+
+| **Property** | **Description** |
+|-|-|
+| **Sky Occlusion** | Enable [sky occlusion](probevolumes-skyocclusion.md) |
+| **Samples** | Set the number of samples Unity uses to calculate the light each probe receives from the sky. Higher values increase the accuracy of the sky occlusion data, but increasing baking time. The default value is 2048. |
+| **Bounces** | The number of times Unity bounces light from the sky off objects when calculating the sky occlusion data. Higher values increase the accuracy of the sky occlusion data, but increase baking time. Use higher values if objects block the direct view from probes to the sky. The default value is 2. |
+| **Albedo Override** | Set the brightness of the single color Unity uses to represent objects the sky light bounces off, instead of the actual color of the objects. Higher values brighten the baked sky occlusion lighting. The default value is 0.6. |
+| **Sky Direction** | Enable Unity storing and using more accurate data about the directions from probes towards the sky. Refer to [Add dynamic color and shadows from the sky](probevolumes-skyocclusion.md#enable-more-accurate-sky-direction-data) for more information. |
 
 ## Probe Invalidity Settings
 
@@ -141,4 +172,4 @@ To open Baking Set properties, either select the Baking Set asset in the Project
 | **Property** | **Description** |
 |-|-|
 | **Scenario Size** | Indicates how much space on disk is used by the baked Light Probe data. |
-| **Baking Set Size** | Indicates how much space on disk is used by all the baked Light Probe data for the currently selected Baking Set.
+| **Baking Set Size** | Indicates how much space on disk is used by all the baked Light Probe data for the currently selected Baking Set. This includes the data for all Lighting Scenarios, and the data shared by all Lighting Scenarios.

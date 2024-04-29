@@ -1,8 +1,8 @@
 using NUnit.Framework;
+using System;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using System;
 using System.Collections.Generic;
 
 #if UNITY_EDITOR
@@ -868,6 +868,67 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(hash0, hash1);
         }
 
+        [Test]
+        public void GetDescAndInfoForImportedTextureWorks()
+        {
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(37, 53, GraphicsFormat.R16G16_SNorm, GraphicsFormat.None, 4);
+            RenderTexture renderTexture = new RenderTexture(desc);
+            RTHandle renderTextureHandle = RTHandles.Alloc(renderTexture);
+
+            var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle);
+            var renderGraphDesc = m_RenderGraph.GetTextureDesc(importedTexture);
+
+            Assert.AreEqual(desc.width, renderGraphDesc.width);
+            Assert.AreEqual(desc.height, renderGraphDesc.height);
+            Assert.AreEqual(desc.graphicsFormat, renderGraphDesc.colorFormat);
+            Assert.AreEqual(DepthBits.None, renderGraphDesc.depthBufferBits);
+
+
+            var renderTargetInfo = m_RenderGraph.GetRenderTargetInfo(importedTexture);
+            Assert.AreEqual(desc.width, renderTargetInfo.width);
+            Assert.AreEqual(desc.height, renderTargetInfo.height);
+            Assert.AreEqual(desc.graphicsFormat, renderTargetInfo.format);
+
+            CoreUtils.Destroy(renderTexture);
+        }
+
+        [Test]
+        public void ImportingBuiltinRenderTextureTypeWithNoInfoThrows()
+        {
+            RenderTargetIdentifier renderTargetIdentifier = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+            RTHandle renderTextureHandle = RTHandles.Alloc(renderTargetIdentifier);
+
+            Assert.Throws<Exception>(() =>
+            {
+                var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle);
+            });
+
+        }
+
+        [Test]
+        public void ImportingBuiltinRenderTextureTypeWithInfoHasNoDesc()
+        {
+            RenderTargetIdentifier renderTargetIdentifier = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+            RTHandle renderTextureHandle = RTHandles.Alloc(renderTargetIdentifier);
+
+            var importedInfo = new RenderTargetInfo();
+            importedInfo.width = 128;
+            importedInfo.height = 128;
+            importedInfo.volumeDepth = 1;
+            importedInfo.msaaSamples = 1;
+            importedInfo.format = GraphicsFormat.B8G8R8A8_SNorm;
+            var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle, importedInfo);
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var renderGraphDesc = m_RenderGraph.GetTextureDesc(importedTexture);
+            });
+
+            var renderTargetInfo = m_RenderGraph.GetRenderTargetInfo(importedTexture);
+
+            // It just needs to return what was fed in.
+            Assert.AreEqual(importedInfo, renderTargetInfo);
+        }
 
         [Test]
         public void CreateLegacyRendererLists()

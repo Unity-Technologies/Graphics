@@ -51,20 +51,20 @@ You may want to write some helper function that you don't want to be exposed in 
 
 | **HLSL Type**         | **Port Type**  | **Description**                                       |
 |-----------------------|----------------|-------------------------------------------------------|
-| **bool**              | bool           | Simple scalar value represented as a boolean.         |
-| **uint**              | uint           | Simple scalar value represented as an uint.           |
-| **int**               | int            | Simple scalar value represented as a int.             |
-| **float**             | float          | Simple scalar value represented as a float.           |
+| **bool**              | bool           | A scalar value represented as a boolean.         |
+| **uint**              | uint           | A scalar value represented as an unsigned integer.           |
+| **int**               | int            | A scalar value represented as a integer.             |
+| **float**             | float          | A scalar value represented as a float.           |
 | **float2**            | Vector2        | A structure containing two float.                     |
 | **float3**            | Vector3        | A structure containing three float.                   |
 | **float4**            | Vector4        | A structure containing four float.                    |
 | **float4x4**          | Matrix4x4      | A structure representing a matrix.                    |
-| **VFXSampler2D**      | Texture2D      | A two dimensions texture.                             |
-| **VFXSampler3D**      | Texture3D      | A three dimensions texture.                           |
-| **VFXGradient**       | Gradient       | A three dimensions texture.                           |
-| **VFXCurve**          | AnimationCurve | A structure that describe a curve that can be sampled |
-| **StructuredBuffer**  | GraphicsBuffer | A structure that describe a curve that can be sampled |
-| **ByteAddressBuffer** | GraphicsBuffer | A structure that describe a curve that can be sampled |
+| **VFXSampler2D**      | Texture2D      | A two-dimensional texture.                             |
+| **VFXSampler3D**      | Texture3D      | A three-dimensional texture.                           |
+| **VFXGradient**       | Gradient       | A structure that describes a gradient that can be sampled.                           |
+| **VFXCurve**          | AnimationCurve | A structure that describes a curve that can be sampled. |
+| **StructuredBuffer**  | GraphicsBuffer | A read-only buffer for storing an array of structures or basic HLSL data types. |
+| **ByteAddressBuffer** | GraphicsBuffer | A read-only raw buffer. |
 
 ## Sampling
 

@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, autoName: VolumetricClouds, customOrderInGroup: 50, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
         VolumetricClouds = 79,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.</summary>
-        [FrameSettingsField(1, autoName: FullResolutionCloudsForSky, customOrderInGroup: 51, positiveDependencies: new[] { VolumetricClouds }, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.")]
+        [FrameSettingsField(1, autoName: FullResolutionCloudsForSky, customOrderInGroup: 52, positiveDependencies: new[] { VolumetricClouds }, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.")]
         FullResolutionCloudsForSky = 98,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>

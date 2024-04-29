@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual("buffer", input.name, "Wrong parameter name");
             Assert.AreEqual("StructuredBuffer", input.rawType, "Wrong parameter hlsl type");
             Assert.AreEqual(typeof(GraphicsBuffer), input.type, "Wrong parameter csharp type");
-            Assert.AreEqual(templateType, input.templatedType, "Wrong Structured buffer template parameter type");
+            Assert.AreEqual(templateType, input.bufferUsage.verbatimType, "Wrong Structured buffer template parameter type");
             Assert.IsNull(input.errors, "There was errors when parsing parameters");
         }
 
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.Test
             Assert.NotNull(input);
             Assert.AreEqual("ByteAddressBuffer", input.rawType, "Wrong parameter hlsl type");
             Assert.AreEqual(typeof(GraphicsBuffer), input.type, "Wrong parameter csharp type");
-            Assert.IsEmpty(input.templatedType, "ByteAddressBuffer must not have a template type");
+            Assert.AreEqual(input.bufferUsage.actualType, typeof(void), "ByteAddressBuffer must not have a template type");
             Assert.IsNull(input.errors, "There was errors when parsing parameters");
         }
 

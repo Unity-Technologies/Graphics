@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering
 
         ProbeVolumeSHBands m_SHBands;
         bool m_ContainsValidity;
+        bool m_ContainsRenderingLayers;
         bool m_ContainsSkyOcclusion;
         bool m_ContainsSkyShadingDirection;
 
@@ -147,13 +148,14 @@ namespace UnityEngine.Rendering
             return m_Pool.TexSkyShadingDirectionIndices;
         }
 
-        internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands, bool allocateValidityData = false, bool allocateSkyOcclusion = false, bool allocateSkyShadingData = false)
+        internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands, bool allocateValidityData = false, bool allocateRenderingLayerData = false, bool allocateSkyOcclusion = false, bool allocateSkyShadingData = false)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
             m_SHBands = shBands;
             m_ContainsValidity = allocateValidityData;
+            m_ContainsRenderingLayers = allocateRenderingLayerData;
             m_ContainsSkyOcclusion = allocateSkyOcclusion;
             m_ContainsSkyShadingDirection = allocateSkyShadingData;
 
@@ -170,7 +172,7 @@ namespace UnityEngine.Rendering
         internal void AllocatePool(int width, int height, int depth)
         {
             m_Pool = CreateDataLocation(width * height * depth, false, m_SHBands, "APV", true,
-                m_ContainsValidity, m_ContainsSkyOcclusion, m_ContainsSkyShadingDirection, out int estimatedCost);
+                m_ContainsValidity, m_ContainsRenderingLayers, m_ContainsSkyOcclusion, m_ContainsSkyShadingDirection, out int estimatedCost);
             estimatedVMemCost = estimatedCost;
         }
 
@@ -189,12 +191,13 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal bool EnsureTextureValidity(bool skyOcclusion, bool skyDirection)
+        internal bool EnsureTextureValidity(bool renderingLayers, bool skyOcclusion, bool skyDirection)
         {
-            if (m_ContainsSkyOcclusion != skyOcclusion || m_ContainsSkyShadingDirection != skyDirection)
+            if (m_ContainsRenderingLayers != renderingLayers || m_ContainsSkyOcclusion != skyOcclusion || m_ContainsSkyShadingDirection != skyDirection)
             {
                 m_Pool.Cleanup();
 
+                m_ContainsRenderingLayers = renderingLayers;
                 m_ContainsSkyOcclusion = skyOcclusion;
                 m_ContainsSkyShadingDirection = skyDirection;
                 AllocatePool(m_Pool.width, m_Pool.height, m_Pool.depth);
@@ -440,6 +443,7 @@ namespace UnityEngine.Rendering
             return (width * height * depth) * elementSize;
         }
 
+        // Only computes the cost of textures allocated by the blending pool
         internal static int EstimateMemoryCostForBlending(ProbeVolumeTextureMemoryBudget memoryBudget, bool compressed, ProbeVolumeSHBands bands)
         {
             if (memoryBudget == 0)
@@ -495,7 +499,7 @@ namespace UnityEngine.Rendering
         }
 
         public static DataLocation CreateDataLocation(int numProbes, bool compressed, ProbeVolumeSHBands bands, string name, bool allocateRendertexture,
-            bool allocateValidityData, bool allocateSkyOcclusionData, bool allocateSkyShadingDirectionData, out int allocatedBytes)
+            bool allocateValidityData, bool allocateRenderingLayers, bool allocateSkyOcclusionData, bool allocateSkyShadingDirectionData, out int allocatedBytes)
         {
             Vector3Int locSize = ProbeCountToDataLocSize(numProbes);
             int width = locSize.x;
@@ -512,7 +516,11 @@ namespace UnityEngine.Rendering
             loc.TexL1_B_rz = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_B_rz", allocateRendertexture, ref allocatedBytes);
 
             if (allocateValidityData)
-                loc.TexValidity = CreateDataTexture(width, height, depth, GraphicsFormat.R8_UNorm, $"{name}_Validity", allocateRendertexture, ref allocatedBytes);
+            {
+                // for 32 bits we use a float format but it's an uint
+                var format = allocateRenderingLayers ? GraphicsFormat.R32_SFloat : GraphicsFormat.R8_UNorm;
+                loc.TexValidity = CreateDataTexture(width, height, depth, format, $"{name}_Validity", allocateRendertexture, ref allocatedBytes);
+            }
             else
                 loc.TexValidity = null;
 

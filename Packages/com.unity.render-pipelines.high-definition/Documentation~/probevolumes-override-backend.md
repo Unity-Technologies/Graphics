@@ -14,7 +14,7 @@ The Lighting data baker bakes the incoming irradiance as spherical harmonics, an
 To override the default Lighting data baker:
 
 1. Create a class that inherits from [LightingBaker](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.AdaptiveProbeVolumes.LightingBaker.html), and provide an implementation for all abstract methods. In the HDRP Graphics repo, refer to [ProbeGIBaking.LightTransport.cs](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeGIBaking.LightTransport.cs#L57) for reference implementation.
-2: Use [SetLightingBakerOverride](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.AdaptiveProbeVolumes.html#UnityEngine_Rendering_AdaptiveProbeVolumes_SetLightingBakerOverride_UnityEngine_Rendering_AdaptiveProbeVolumes_LightingBaker_) and set your new `LightingBaker` class as the parameter.
+2. Use [SetLightingBakerOverride](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.AdaptiveProbeVolumes.html#UnityEngine_Rendering_AdaptiveProbeVolumes_SetLightingBakerOverride_UnityEngine_Rendering_AdaptiveProbeVolumes_LightingBaker_) and set your new `LightingBaker` class as the parameter.
 
 ### Virtual Offset data
 	

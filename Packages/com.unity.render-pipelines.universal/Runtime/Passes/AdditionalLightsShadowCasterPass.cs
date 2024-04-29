@@ -172,13 +172,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // We can see that the guard angle is roughly proportional to the inverse of resolution https://docs.google.com/spreadsheets/d/1QrIZJn18LxVKq2-K1XS4EFRZcZdZOJTTKKhDN8Z1b_s
             if (shadowSliceResolution <= ShadowUtils.kMinimumPunctualLightHardShadowResolution)
             {
-                #if DEVELOPMENT_BUILD
                 if (!m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall)
                 {
                     Debug.LogWarning("Too many additional punctual lights shadows, increase shadow atlas size or remove some shadowed lights");
                     m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall = true; // Only output this once per shadow requests configuration
                 }
-                #endif
             }
             else if (shadowSliceResolution <= 16)
                 fovBias = 43.0f;
@@ -201,14 +199,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (shadowSliceResolution <= ShadowUtils.kMinimumPunctualLightSoftShadowResolution)
                 {
-                    #if DEVELOPMENT_BUILD
                     if (!m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall)
                     {
                         Debug.LogWarning("Too many additional punctual lights shadows to use Soft Shadows. Increase shadow atlas size, remove some shadowed lights or use Hard Shadows.");
                         // With such small resolutions no fovBias can give good visual results
                         m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall = true; // Only output this once per shadow requests configuration
                     }
-                    #endif
                 }
                 else if (shadowSliceResolution <= 32)
                     fovBias += 9.35f;
@@ -232,14 +228,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             return fovBias;
         }
 
-        #if DEVELOPMENT_BUILD
         private bool m_IssuedMessageAboutShadowSlicesTooMany = false;
         private bool m_IssuedMessageAboutShadowMapsRescale = false;
         private bool m_IssuedMessageAboutShadowMapsTooBig = false;
         private bool m_IssuedMessageAboutRemovedShadowSlices = false;
         private static bool m_IssuedMessageAboutPointLightHardShadowResolutionTooSmall = false;
         private static bool m_IssuedMessageAboutPointLightSoftShadowResolutionTooSmall = false;
-        #endif
 
         Dictionary<int, ulong> m_ShadowRequestsHashes = new Dictionary<int, ulong>();  // used to keep track of changes in the shadow requests and shadow atlas configuration (per camera)
 
@@ -342,7 +336,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var visibleLights = lightData.visibleLights;
             ref AdditionalLightsShadowAtlasLayout atlasLayout = ref shadowData.shadowAtlasLayout;
 
-            #if DEVELOPMENT_BUILD
             // Check changes in the shadow requests and shadow atlas configuration - compute shadow request/configuration hash
             if (!cameraData.isPreviewCamera)
             {
@@ -362,7 +355,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_IssuedMessageAboutRemovedShadowSlices = false;
                 }
             }
-            #endif
 
             if (m_VisibleLightIndexToAdditionalLightIndex.Length < visibleLights.Length)
             {
@@ -386,7 +378,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool hasTooManyShadowMaps = atlasLayout.HasTooManyShadowMaps();
             int atlasSize = atlasLayout.GetAtlasSize();
 
-            #if DEVELOPMENT_BUILD
             if (totalShadowSlicesCount < totalShadowResolutionRequestCount)
             {
                 if (!m_IssuedMessageAboutRemovedShadowSlices)
@@ -407,7 +398,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.Log($"Reduced additional punctual light shadows resolution by {shadowSlicesScaleFactor} to make {totalShadowSlicesCount} shadow maps fit in the {atlasSize}x{atlasSize} shadow atlas. To avoid this, increase shadow atlas size, decrease big shadow resolutions, or reduce the number of shadow maps active in the same frame");
                 m_IssuedMessageAboutShadowMapsRescale = true; // Only output this once per shadow requests configuration
             }
-            #endif
 
             if (m_AdditionalLightsShadowSlices == null || m_AdditionalLightsShadowSlices.Length < totalShadowSlicesCount)
                 m_AdditionalLightsShadowSlices = new ShadowSliceData[totalShadowSlicesCount];
@@ -450,14 +440,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if ((m_ShadowSliceToAdditionalLightIndex.Count + perLightShadowSlicesCount) > totalShadowSlicesCount && ShadowUtils.IsValidShadowCastingLight(lightData, visibleLightIndex))
                 {
-                    #if DEVELOPMENT_BUILD
                     if (!m_IssuedMessageAboutShadowSlicesTooMany)
                     {
                         // This case can especially happen in Deferred, where there can be a high number of visibleLights
                         Debug.Log($"There are too many shadowed additional punctual lights active at the same time, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
                         m_IssuedMessageAboutShadowSlicesTooMany = true; // Only output this once
                     }
-                    #endif
                     break;
                 }
 

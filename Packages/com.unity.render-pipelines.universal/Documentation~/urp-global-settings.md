@@ -6,10 +6,6 @@ The section contains the following settings that let you define project-wide set
 
 You can also add your own settings. Refer to [Add custom settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/add-custom-graphics-settings.md) in the Scriptable Render Pipeline (SRP) Core manual for more information.
 
-## Rendering Layers (3D)
-
-Use this section to define the names of Rendering Layers. Rendering Layers only work with 3D Renderers.
-
 ## Shader Stripping
 
 The check boxes in this section define which shader variants Unity strips when you build the Player.

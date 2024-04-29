@@ -750,6 +750,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Gets the descriptor of the specified Texture resource.
+        /// </summary>
+        /// <param name="texture">Texture resource from which the descriptor is requested.</param>
+        /// <returns>The input texture descriptor.</returns>
+        public RenderTargetInfo GetRenderTargetInfo(TextureHandle texture)
+        {
+            RenderTargetInfo info;
+            m_Resources.GetRenderTargetInfo(texture.handle, out info);
+            return info;
+        }
+
+
+        /// <summary>
         /// Creates a new Renderer List Render Graph resource.
         /// </summary>
         /// <param name="desc">Renderer List descriptor.</param>
@@ -2132,11 +2145,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, RenderGraphPass pass, InternalRenderGraphContext rgContext)
         {
-            var depthBufferIsValid = pass.depthBuffer.IsValid();
+            var depthBufferIsValid = pass.depthAccess.textureHandle.IsValid();
             if (depthBufferIsValid || pass.colorBufferMaxIndex != -1)
             {
-                var colorBuffers = pass.colorBuffers;
-
+                var colorBufferAccess = pass.colorBufferAccess;
                 if (pass.colorBufferMaxIndex > 0)
                 {
                     var mrtArray = m_TempMRTArrays[pass.colorBufferMaxIndex];
@@ -2144,15 +2156,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     for (int i = 0; i <= pass.colorBufferMaxIndex; ++i)
                     {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        if (!colorBuffers[i].IsValid())
+                        if (!colorBufferAccess[i].textureHandle.IsValid())
                             throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
 #endif
-                        mrtArray[i] = m_Resources.GetTexture(colorBuffers[i]);
+                        mrtArray[i] = m_Resources.GetTexture(colorBufferAccess[i].textureHandle);
                     }
 
                     if (depthBufferIsValid)
                     {
-                        CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, m_Resources.GetTexture(pass.depthBuffer));
+                        CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, m_Resources.GetTexture(pass.depthAccess.textureHandle));
                     }
                     else
                     {
@@ -2164,14 +2176,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     if (depthBufferIsValid)
                     {
                         if (pass.colorBufferMaxIndex > -1)
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]), m_Resources.GetTexture(pass.depthBuffer));
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle),
+                                m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                        }
                         else
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthBuffer));
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                        }
                     }
                     else
                     {
-                        if (pass.colorBuffers[0].IsValid())
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
+                        if (pass.colorBufferAccess[0].textureHandle.IsValid())
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                        }
                         else
                             throw new InvalidOperationException("Neither Depth nor color render targets are correctly setup at pass " + pass.name + ".");
                     }
@@ -2442,7 +2461,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         }
                         else if (resourceType == RenderGraphResourceType.Buffer)
                         {
-                            var bufferDesc = m_Resources.GetBufferResourceDesc(handle);
+                            var bufferDesc = m_Resources.GetBufferResourceDesc(handle, true);
 
                             var bufferData = new DebugData.BufferResourceData();
                             bufferData.count = bufferDesc.count;

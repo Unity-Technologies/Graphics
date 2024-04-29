@@ -12,7 +12,11 @@ To enable streaming, do the following:
 2. Select a Quality Level.
 3. Double-click the **Render Pipeline Asset** to open it in the Inspector.
 4. Expand **Lighting**.
-5. Enable **Enable Streaming** to stream from CPU memory to GPU memory.
+
+You can now enable two types of streaming:
+
+- Enable **Enable Disk Streaming** to stream from disk to CPU memory.
+- Enable **Enable GPU Streaming** to stream from CPU memory to GPU memory. You must enable **Enable Disk Streaming** first.
 
 You can configure streaming settings in the same window. Refer to [URP Asset](universalrp-asset.md) for more information.
 

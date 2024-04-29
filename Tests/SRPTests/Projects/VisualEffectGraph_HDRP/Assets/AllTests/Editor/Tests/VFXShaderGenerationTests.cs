@@ -149,7 +149,7 @@ namespace UnityEditor.VFX.Test
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
-                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
+                bufferUsage = new ReadOnlyDictionary<VFXExpression, BufferUsage>(new Dictionary<VFXExpression, BufferUsage>()),
                 linkedEventOut = Array.Empty<(VFXSlot slot, VFXData data)>(),
                 hlslCodeHolders = Array.Empty<IHLSLCodeHolder>()
             };
@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.Test
             {
                 gpuMapper = new VFXExpressionMapper(),
                 uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true, true),
-                graphicsBufferUsage = new ReadOnlyDictionary<VFXExpression, Type>(new Dictionary<VFXExpression, Type>()),
+                bufferUsage = new ReadOnlyDictionary<VFXExpression, BufferUsage>(new Dictionary<VFXExpression, BufferUsage>()),
                 linkedEventOut = new (VFXSlot slot, VFXData data)[] { },
                 hlslCodeHolders = Array.Empty<IHLSLCodeHolder>()
 

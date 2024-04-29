@@ -401,12 +401,19 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
 
         internal static void BuildContextBlocks(VFXContext context, VFXTaskCompiledData taskData, Dictionary<VFXExpression, string> expressionToName,
             out VFXShaderWriter blockFunction,
-            out VFXShaderWriter blockCallFunction)
+            out VFXShaderWriter blockCallFunction,
+            out VFXShaderWriter blockIncludes,
+            out VFXShaderWriter blockDefines)
         {
             //< Block processor
             blockFunction = new VFXShaderWriter();
             blockCallFunction = new VFXShaderWriter();
+            blockIncludes = new VFXShaderWriter();
+            blockDefines = new VFXShaderWriter();
+
             var blockDeclared = new HashSet<string>();
+            var includesProcessed = new HashSet<string>();
+            var defineProcessed = new HashSet<string>();
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
@@ -415,14 +422,42 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 if (current is IHLSLCodeHolder hlslCodeHolder)
                 {
                     blockFunction.Write(hlslCodeHolder.customCode);
+                    foreach (var includePath in hlslCodeHolder.includes)
+                    {
+                        if (includesProcessed.Add(includePath))
+                        {
+                            blockIncludes.WriteLine($"#include \"{includePath}\"");
+                        }
+                    }
+                }
+
+                foreach (var define in current.defines)
+                {
+                    if (defineProcessed.Add(define))
+                    {
+                        blockDefines.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
+                    }
                 }
                 BuildBlock(taskData, blockFunction, blockCallFunction, blockDeclared, expressionToName, current, ref cpt);
             }
 
             // Custom HLSL Operators
-            foreach (var group in taskData.hlslCodeHolders.GroupBy(x => x.customCode.GetHashCode()))
+            var customCodeProcessed = new HashSet<string>();
+            foreach (var hlslCodeHolder in taskData.hlslCodeHolders)
             {
-                blockFunction.Write(group.First().customCode);
+                var customCode = hlslCodeHolder.customCode;
+                if (customCodeProcessed.Add(customCode))
+                {
+                    blockFunction.Write(customCode);
+                }
+
+                foreach (var includePath in hlslCodeHolder.includes)
+                {
+                    if (includesProcessed.Add(includePath))
+                    {
+                        blockIncludes.WriteLine($"#include \"{includePath}\"");
+                    }
+                }
             }
         }
 
@@ -431,9 +466,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var parameterBuffer = new VFXShaderWriter();
             needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(taskData.uniformMapper);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
+            parameterBuffer.WriteBufferTypeDeclaration(taskData.bufferUsage.Values);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.graphicsBufferUsage);
+            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.bufferUsage);
             parameterBuffer.WriteLine();
             parameterBuffer.WriteTexture(taskData.uniformMapper, filteredOutTextures);
             parameterBufferContent = parameterBuffer.ToString();
@@ -662,7 +697,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var allSourceAttributes = contextData.GetAttributes().Where(a => (contextData.IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(taskData.graphicsBufferUsage.Values);
+            globalDeclaration.WriteBufferTypeDeclaration(taskData.bufferUsage.Values);
             globalDeclaration.WriteLine();
             var particleData = (contextData as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
@@ -670,7 +705,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(taskData.uniformMapper);
             globalDeclaration.WriteLine();
 
-            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.graphicsBufferUsage);
+            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.bufferUsage);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteTexture(taskData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "VFXAttributes");
@@ -681,7 +716,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteEventBuffers(eventListOutName, taskData.linkedEventOut.Length);
 
             var expressionToName = BuildExpressionToName(context, taskData);
-            BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction);
+            BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction, out var blockIncludes, out var blockDefines);
 
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
@@ -743,25 +778,8 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             {
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
-
-            // Per-block defines
-            var defines = Enumerable.Empty<string>();
-            foreach (var block in context.activeFlattenedChildrenWithImplicit)
-                defines = defines.Concat(block.defines);
-            var uniqueDefines = new HashSet<string>(defines);
-            foreach (var define in uniqueDefines)
-                globalIncludeContent.WriteLineFormat("#define {0}{1}", define, define.Contains(' ') ? "" : " 1");
-
-            // Per-block includes
-            var includes = Enumerable.Empty<string>();
-            foreach (var block in context.activeFlattenedChildrenWithImplicit.OfType<IHLSLCodeHolder>())
-                includes = includes.Concat(block.includes);
-            foreach (var hlslHolder in taskData.hlslCodeHolders)
-                includes = includes.Concat(hlslHolder.includes);
-            var uniqueIncludes = new HashSet<string>(includes);
-            foreach (var includePath in uniqueIncludes)
-                perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
-
+            globalIncludeContent.Write(blockDefines.builder.ToString());
+            perPassIncludeContent.Write(blockIncludes.builder.ToString());
 
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
@@ -960,7 +978,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (!blockDeclared.Contains(methodName))
             {
                 blockDeclared.Add(methodName);
-                blockFunction.WriteBlockFunction(taskData.gpuMapper,
+                blockFunction.WriteBlockFunction(taskData,
                     methodName,
                     block.source,
                     parameters,

@@ -1,13 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
-using UnityEditor.Compilation;
 using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
-using System;
-using System.Linq;
-using System.IO;
-
+using UnityEditor.Compilation;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using static UnityEngine.TestTools.Graphics.Performance.PerformanceMetricNames;
 
 namespace UnityEngine.TestTools.Graphics.Performance.Editor
@@ -15,237 +12,238 @@ namespace UnityEngine.TestTools.Graphics.Performance.Editor
     [CustomEditor(typeof(TestSceneAsset))]
     class TestSceneAssetEditor : UnityEditor.Editor
     {
-        ReorderableList m_CounterSceneList;
-        ReorderableList m_CounterSRPAssets;
-        ReorderableList m_MemorySceneList;
-        ReorderableList m_MemorySRPAssets;
-        ReorderableList m_BuildSceneList;
-        ReorderableList m_BuildSRPAssets;
-
-        ReorderableList srpAssetAliasesList;
-
-        static float fieldHeight => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
         static class Styles
         {
-            public static readonly string countersText = "Performance Counters Tests";
-            public static readonly string memoryText = "Memory Tests";
-            public static readonly string buildTimeText = "Build Time Tests";
-            public static readonly string refreshTestRunner = "Refresh Test Runner List (can take up to ~20s)";
+            public const string countersText = "Performance Counters Tests";
+            public const string memoryText = "Memory Tests";
+            public const string buildTimeText = "Build Time Tests";
+            public const string refreshTestRunner = "Refresh Test Runner List (can take up to ~20s)";
+            public const string replaceBuildSceneList = "Update build scene list (Replace with Scenes from this asset)";
+            public const string additionalInfosText = "Additional Informations";
+            public const string scenesText = "Scenes";
+            public const string srpAssetsText = "SRP Assets";
+            public const string srpAssetAliaseText = "SRP Asset Aliases (Used in the performance Database)";
+            public const string additionalLoadableScenesText =
+                "Additional Loadable Scene (Additional scenes to include in build)";
         }
 
-        public void OnEnable()
+        SerializedProperty counterSuiteProperty;
+        SerializedProperty memorySuiteProperty;
+        SerializedProperty buildSuiteProperty;
+        SerializedProperty srpAssetAliasProperty;
+        SerializedProperty additionalScenesProperty;
+
+        public override VisualElement CreateInspectorGUI()
         {
-            SerializedProperty counterProperty = serializedObject.FindProperty(nameof(TestSceneAsset.counterTestSuite));
-            SerializedProperty memoryProperty = serializedObject.FindProperty(nameof(TestSceneAsset.memoryTestSuite));
-            SerializedProperty buildProperty = serializedObject.FindProperty(nameof(TestSceneAsset.buildTestSuite));
+            counterSuiteProperty = serializedObject.FindProperty(nameof(TestSceneAsset.counterTestSuite));
+            memorySuiteProperty = serializedObject.FindProperty(nameof(TestSceneAsset.memoryTestSuite));
+            buildSuiteProperty = serializedObject.FindProperty(nameof(TestSceneAsset.buildTestSuite));
+            srpAssetAliasProperty = serializedObject.FindProperty(nameof(TestSceneAsset.srpAssetAliases));
+            additionalScenesProperty = serializedObject.FindProperty(nameof(TestSceneAsset.additionalLoadableScenes));
 
-            InitReorderableListFromProperty(counterProperty, out m_CounterSceneList, out m_CounterSRPAssets);
-            InitReorderableListFromProperty(memoryProperty, out m_MemorySceneList, out m_MemorySRPAssets);
-            InitReorderableListFromProperty(buildProperty, out m_BuildSceneList, out m_BuildSRPAssets);
-
-            void InitReorderableListFromProperty(SerializedProperty testSuite, out ReorderableList sceneList, out ReorderableList srpAssetList)
-            {
-                sceneList = new ReorderableList(serializedObject, testSuite.FindPropertyRelative(nameof(TestSceneAsset.TestSuiteData.scenes)));
-                srpAssetList = new ReorderableList(serializedObject, testSuite.FindPropertyRelative(nameof(TestSceneAsset.TestSuiteData.srpAssets)));
-                InitSceneDataReorderableList(sceneList, "Scenes");
-                InitSRPAssetReorderableList(srpAssetList, "SRP Assets");
-            }
-
-            srpAssetAliasesList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(TestSceneAsset.srpAssetAliases)));
-            InitSRPAssetAliasesReorderableList(srpAssetAliasesList, "SRP Asset Aliases");
+            VisualElement root = new();
+            root.Add(new Boxed(Styles.countersText, counterSuiteProperty));
+            root.Add(new Boxed(Styles.memoryText, memorySuiteProperty));
+            root.Add(new Boxed(Styles.buildTimeText, buildSuiteProperty));
+            root.Add(new Button(RefreshTestRunner) { text = Styles.refreshTestRunner });
+            root.Add(new Button(ReplaceBuildSceneList) { text = Styles.replaceBuildSceneList });
+            root.Add(new Boxed(Styles.additionalInfosText,
+                new List<SerializedProperty>() { additionalScenesProperty, srpAssetAliasProperty }));
+            return root;
         }
 
-        void InitSceneDataReorderableList(ReorderableList list, string title)
+        void RefreshTestRunner() => CompilationPipeline.RequestScriptCompilation();
+
+        void ReplaceBuildSceneList() =>  UnityEditor.EditorBuildSettings.scenes = (target as TestSceneAsset).ConvertTestDataScenesToBuildSettings();
+    }
+
+    [CustomPropertyDrawer(typeof(TestSceneAsset.SceneData))]
+    class SceneDataPropertyDrawer : PropertyDrawer
+    {
+        static class Styles
         {
-            list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
-
-            list.drawElementCallback = (rect, index, isActive, isFocused) => {
-                serializedObject.Update();
-                EditorGUI.BeginChangeCheck();
-                var elem = list.serializedProperty.GetArrayElementAtIndex(index);
-                var sceneName = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scene));
-                var scenePath = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scenePath));
-                var sceneLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.sceneLabels));
-                var enabled = elem.FindPropertyRelative(nameof(TestSceneAsset.SceneData.enabled));
-                rect.height = EditorGUIUtility.singleLineHeight;
-
-                // Scene field
-                var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets", "Packages"})
-                    .FirstOrDefault(guid => Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid)) == sceneName.stringValue);
-                SceneAsset sceneAsset = null;
-                if (!String.IsNullOrEmpty(sceneGUID))
-                {
-                    string path = AssetDatabase.GUIDToAssetPath(sceneGUID);
-
-                    // Only if the scene we found is the correct one, we assign it correctly
-                    if (Path.GetFileNameWithoutExtension(path) == sceneName.stringValue)
-                    {
-                        sceneAsset = String.IsNullOrEmpty(sceneGUID) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(AssetDatabase.GUIDToAssetPath(sceneGUID));
-                    }
-                }
-
-                EditorGUI.BeginChangeCheck();
-                sceneAsset = EditorGUI.ObjectField(rect, "Test Scene", sceneAsset, typeof(SceneAsset), false) as SceneAsset;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    sceneName.stringValue = sceneAsset != null && !sceneAsset.Equals(null) ? sceneAsset.name : null;
-                    scenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
-                    sceneLabels.stringValue = GetLabelForAsset(sceneAsset);
-                }
-
-                // Enabled field
-                rect.y += fieldHeight;
-                EditorGUI.PropertyField(rect, enabled);
-
-                if (EditorGUI.EndChangeCheck())
-                    serializedObject.ApplyModifiedProperties();
-            };
-
-            list.elementHeight = fieldHeight * 2;
-
-            list.onAddCallback = DefaultListAdd;
-            list.onRemoveCallback = DefaultListDelete;
+            public const string name = "scene-data";
+            public const string sceneFieldLabel = "Test Scene";
         }
 
-        void InitSRPAssetReorderableList(ReorderableList list, string title)
+        SerializedProperty sceneName;
+        SerializedProperty scenePath;
+        SerializedProperty labels;
+        SerializedProperty enabled;
+
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
+            sceneName = property.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scene));
+            scenePath = property.FindPropertyRelative(nameof(TestSceneAsset.SceneData.scenePath));
+            labels = property.FindPropertyRelative(nameof(TestSceneAsset.SceneData.sceneLabels));
+            enabled = property.FindPropertyRelative(nameof(TestSceneAsset.SceneData.enabled));
 
-            list.drawElementCallback = (rect, index, isActive, isFocused) => {
-                serializedObject.Update();
-                rect.height = EditorGUIUtility.singleLineHeight;
-                var elem = list.serializedProperty.GetArrayElementAtIndex(index);
-                var srpAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
-                var assetLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.assetLabels));
-                var alias = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.alias));
+            VisualElement root = new() { name = Styles.name };
 
-                EditorGUI.BeginChangeCheck();
+            ObjectField sceneField = new(Styles.sceneFieldLabel);
+            sceneField.objectType = typeof(SceneAsset);
+            sceneField.RegisterValueChangedCallback(OnChangeSceneAsset);
+            sceneField.SetValueWithoutNotify(string.IsNullOrEmpty(scenePath.stringValue)
+                ? null
+                : AssetDatabase.LoadMainAssetAtPath(scenePath.stringValue));
+            sceneField.AddToClassList(Helper.inspectorAlignmentClass);
+            root.Add(sceneField);
 
-                EditorGUI.PropertyField(rect, srpAsset, new GUIContent("SRP Asset"));
-                assetLabels.stringValue = GetLabelForAsset(srpAsset.objectReferenceValue);
-                alias.stringValue = srpAsset?.objectReferenceValue == null ? "Empty" : PerformanceTestUtils.testScenesAsset?.GetSRPAssetAlias(srpAsset.objectReferenceValue as RenderPipelineAsset);
-
-                if (EditorGUI.EndChangeCheck())
-                    serializedObject.ApplyModifiedProperties();
-            };
-            list.onAddCallback = DefaultListAdd;
-            list.onRemoveCallback = DefaultListDelete;
+            root.Add(new PropertyField(enabled));
+            return root;
         }
 
-        void InitSRPAssetAliasesReorderableList(ReorderableList list, string title)
+        void OnChangeSceneAsset(ChangeEvent<UnityEngine.Object> evt)
         {
-            list.drawHeaderCallback = (r) => EditorGUI.LabelField(r, title, EditorStyles.boldLabel);
+            var sceneAsset = evt.newValue as SceneAsset;
+            sceneName.stringValue = sceneAsset?.name;
+            scenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
+            labels.stringValue = Helper.GetLabelForAsset(sceneAsset);
+            sceneName.serializedObject.ApplyModifiedProperties();
+        }
+    }
 
-            list.drawElementCallback = (rect, index, isActive, isFocused) => {
-                serializedObject.Update();
-                rect.height = EditorGUIUtility.singleLineHeight;
-                var elem = list.serializedProperty.GetArrayElementAtIndex(index);
-                var srpAsset = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
-                var assetLabels = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.assetLabels));
-                var alias = elem.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.alias));
-
-                EditorGUI.BeginChangeCheck();
-
-                EditorGUI.PropertyField(rect, srpAsset, new GUIContent("SRP Asset"));
-                rect.y += fieldHeight;
-                EditorGUI.PropertyField(rect, alias, new GUIContent("Alias"));
-                assetLabels.stringValue = GetLabelForAsset(srpAsset.objectReferenceValue);
-
-                if (EditorGUI.EndChangeCheck())
-                    serializedObject.ApplyModifiedProperties();
-            };
-            list.onAddCallback = DefaultListAdd;
-            list.onRemoveCallback = DefaultListDelete;
-            list.elementHeight = fieldHeight * 2;
+    [CustomPropertyDrawer(typeof(TestSceneAsset.SRPAssetData))]
+    class SRPAssetDataPropertyDrawer : PropertyDrawer
+    {
+        protected static class Styles
+        {
+            public const string name = "srp-asset-data";
+            public const string assetFieldLabel = "SRP Asset";
+            public const string empty = "Empty";
+            public const string alias = "Alias";
         }
 
-        static string GetLabelForAsset(Object asset)
+        SerializedProperty srpAsset;
+        SerializedProperty labels;
+        protected SerializedProperty alias;
+
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            srpAsset = property.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.asset));
+            labels = property.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.assetLabels));
+            alias = property.FindPropertyRelative(nameof(TestSceneAsset.SRPAssetData.alias));
+
+            VisualElement root = new() { name = Styles.name };
+            PropertyField assetField = new(srpAsset, Styles.assetFieldLabel);
+            assetField.RegisterValueChangeCallback(OnChangeSRPAsset);
+            root.Add(assetField);
+            return root;
+        }
+
+        void OnChangeSRPAsset(SerializedPropertyChangeEvent evt)
+        {
+            var srpAsset = evt.changedProperty.objectReferenceValue as RenderPipelineAsset;
+            labels.stringValue = Helper.GetLabelForAsset(srpAsset);
+            AutoUpdateAlias(srpAsset);
+            labels.serializedObject.ApplyModifiedProperties();
+        }
+
+        protected virtual void AutoUpdateAlias(RenderPipelineAsset srpAsset)
+            => alias.stringValue = srpAsset == null
+                ? Styles.empty
+                : PerformanceTestUtils.testScenesAsset?.GetSRPAssetAlias(srpAsset);
+    }
+
+    [CustomPropertyDrawer(typeof(TestSceneAsset.SRPAssetDataAliasByHand))]
+    class SRPAssetDataAliasByHandPropertyDrawer : SRPAssetDataPropertyDrawer
+    {
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            var root = base.CreatePropertyGUI(property);
+            PropertyField aliasField = new(alias, Styles.alias);
+            root.Add(aliasField);
+            return root;
+        }
+
+        protected override void AutoUpdateAlias(RenderPipelineAsset srpAsset)
+        {
+        }
+    }
+
+    static class Helper
+    {
+        public const string inspectorAlignmentClass = "unity-base-field__aligned";
+        public const string boxFouldoutClass = "box";
+
+        public static string GetLabelForAsset(Object asset)
         {
             if (asset == null)
                 return k_Default;
 
             var labels = AssetDatabase.GetLabels(asset);
             if (labels.Length > 0)
-                return String.Join("_", labels);
+                return string.Join("_", labels);
             else
                 return k_Default;
         }
+    }
 
-        void DefaultListAdd(ReorderableList list)
+    class Boxed : Foldout
+    {
+        const string k_Stylesheet = "Packages/com.unity.testing.graphics-performance/Editor/Common/Boxed.uss";
+
+        public Boxed(string title, List<SerializedProperty> contentList) : base()
         {
-            serializedObject.Update();
-            ReorderableList.defaultBehaviours.DoAddButton(list);
-
-            // Enable the scene by default
-            var element = list.serializedProperty.GetArrayElementAtIndex(list.count - 1);
-            var enable = element.FindPropertyRelative(nameof(TestSceneAsset.SceneData.enabled));
-            if (enable != null)
-                enable.boolValue = true;
-
-            serializedObject.ApplyModifiedProperties();
+            Initialize(title, contentList);
         }
 
-        void DefaultListDelete(ReorderableList list)
+        public Boxed(string title, SerializedProperty parentProperty) : base()
         {
-            serializedObject.Update();
-            list.serializedProperty.DeleteArrayElementAtIndex(list.index);
-            serializedObject.ApplyModifiedProperties();
-        }
-
-        public override void OnInspectorGUI()
-        {
-            if (PerformanceTestSettings.GetTestSceneDescriptionAsset() == null)
-                EditorGUILayout.HelpBox($"Test Scene Asset is null, please set it in Project Settings / Performance Tests", MessageType.Error);
-
-            EditorGUIUtility.labelWidth = 100;
-
-            DrawTestBlock(m_CounterSceneList, m_CounterSRPAssets, Styles.countersText);
-            DrawTestBlock(m_MemorySceneList, m_MemorySRPAssets, Styles.memoryText);
-            DrawTestBlock(m_BuildSceneList, m_BuildSRPAssets, Styles.buildTimeText);
-
-            EditorGUILayout.Space();
-
-            if (GUILayout.Button(Styles.refreshTestRunner))
-                CompilationPipeline.RequestScriptCompilation();
-
-            EditorGUILayout.Space();
-
-            DrawSRPAssetAliasList();
-        }
-
-        GUIStyle windowStyle => new GUIStyle("Window"){
-            fontStyle = FontStyle.Bold,
-            fontSize = 15,
-            margin = new RectOffset(0, 0, 20, 10)
-        };
-
-        void DrawTestBlock(ReorderableList sceneList, ReorderableList srpAssetList, string title)
-        {
-            GUILayout.BeginHorizontal(title, windowStyle);
+            List<SerializedProperty> contentList = new();
+            SerializedProperty iterator = parentProperty.Copy();
+            SerializedProperty endIterator = iterator.GetEndProperty();
+            iterator.Next(enterChildren: true);
+            while (!SerializedProperty.EqualContents(iterator, endIterator))
             {
-                GUILayout.BeginVertical();
-                EditorGUILayout.Space();
-                sceneList.DoLayoutList();
-                GUILayout.EndVertical();
-                GUILayout.Space(10);
-                GUILayout.BeginVertical();
-                EditorGUILayout.Space();
-                srpAssetList.DoLayoutList();
-                GUILayout.EndVertical();
+                contentList.Add(iterator.Copy());
+                iterator.Next(enterChildren: false);
             }
-            GUILayout.EndHorizontal();
+
+            Initialize(title, contentList);
         }
 
-        void DrawSRPAssetAliasList()
+        void Initialize(string title, List<SerializedProperty> contentList)
         {
-            GUILayout.BeginHorizontal("SRP Asset Aliases (Used in the performance Database)", windowStyle);
+            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(k_Stylesheet));
+            text = title;
+            foreach (var property in contentList)
+                contentContainer.Add(new PropertyField(property));
+        }
+    }
+
+    class ScenePathUpdater : AssetPostprocessor
+    {
+        static TestSceneAsset testSceneAsset = null;
+
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
+            string[] movedFromAssetPaths, bool didDomainReload)
+        {
+            for (int i = 0; i < movedAssets.Length; i++)
             {
-                GUILayout.BeginVertical();
-                srpAssetAliasesList.DoLayoutList();
-                GUILayout.EndVertical();
+                if (!movedFromAssetPaths[i].EndsWith(".unity"))
+                    continue;
+
+                string oldPath = movedFromAssetPaths[i];
+                string newPath = movedAssets[i];
+                testSceneAsset ??= PerformanceTestSettings.GetTestSceneDescriptionAsset();
+
+                void UpdateScenePathInSceneList(ref List<TestSceneAsset.SceneData> sceneList)
+                {
+                    var index = sceneList.FindIndex(s => s.scenePath == oldPath);
+                    if (index < 0)
+                        return;
+
+                    sceneList[index].scenePath = newPath;
+                    var pos = newPath.LastIndexOf('/') + 1;
+                    sceneList[index].scene = newPath.Substring(pos, newPath.Length - pos - ".unity".Length);
+                }
+
+                UpdateScenePathInSceneList(ref testSceneAsset.counterTestSuite.scenes);
+                UpdateScenePathInSceneList(ref testSceneAsset.memoryTestSuite.scenes);
+                UpdateScenePathInSceneList(ref testSceneAsset.buildTestSuite.scenes);
+                UpdateScenePathInSceneList(ref testSceneAsset.additionalLoadableScenes);
             }
-            GUILayout.EndHorizontal();
         }
     }
 }

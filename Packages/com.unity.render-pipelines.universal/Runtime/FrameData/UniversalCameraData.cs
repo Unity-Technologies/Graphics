@@ -145,6 +145,20 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Camera camera;
 
+        /// <summary>
+        /// Returns the scaled width of the Camera
+        /// By obtaining the pixelWidth of the camera and taking into account the render scale
+        /// The min dimension is 1.
+        /// </summary>
+        public int scaledWidth => Mathf.Max(1, (int)(camera.pixelWidth * renderScale));
+
+        /// <summary>
+        /// Returns the scaled height of the Camera
+        /// By obtaining the pixelHeight of the camera and taking into account the render scale
+        /// The min dimension is 1.
+        /// </summary>
+        public int scaledHeight => Mathf.Max(1, (int)(camera.pixelHeight * renderScale));
+
 
         // NOTE: This is internal instead of private to allow ref return in the old CameraData compatibility property.
         // We can make this private when it is removed.

@@ -26,7 +26,7 @@ CloudRay BuildRay(uint2 intermediateCoord)
 {
     CloudRay ray;
     ZERO_INITIALIZE(CloudRay, ray);
-    float2 positionCS = _LowResolutionEvaluation ? intermediateCoord * 2 : intermediateCoord;
+    float2 positionCS = _LowResolutionEvaluation ? intermediateCoord * _IntermediateResolutionScale : intermediateCoord;
 
     // Compute the position of the point from which the ray will start
     ray.originWS = GetCameraPositionWS();
@@ -70,14 +70,14 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
     uint2 intermediateCoord = traceCoord.xy; // Full resolution case
     if (_LowResolutionEvaluation)
     {
+        intermediateCoord = traceCoord.xy * 2;
+
         if (_EnableIntegration)
         {
             // Compute the half res coordinate that matches this thread (as we virtually do the computation in half res space)
             int checkerBoardIndex = ComputeCheckerBoardIndex(traceCoord.xy, _SubPixelIndex);
-            intermediateCoord = traceCoord.xy * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
+            intermediateCoord += HalfResolutionIndexToOffset(checkerBoardIndex);
         }
-        else
-            intermediateCoord = traceCoord.xy * 2;
     }
 
     // Given that the rendering resolution is not guaranteed to be an even number, we need to clamp to the intermediate resolution in this case

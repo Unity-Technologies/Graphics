@@ -5,7 +5,6 @@ Select a [Probe Adjustment Volume Component](probevolumes-fixissues.md#add-a-pro
 Refer to the following for more information about using the Probe Adjustment Volume component:
 
 - [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md)
-- [Configure the size and density of Adaptive Probe Volumes](probevolumes-changedensity.md)
 
 <table>
     <thead>

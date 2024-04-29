@@ -73,6 +73,11 @@ namespace UnityEngine.Rendering
         public ComputeShader skyOcclusionCS;
         [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.raytrace")]
         public RayTracingShader skyOcclusionRT;
+
+        [ResourcePath("Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.compute")]
+        public ComputeShader renderingLayerCS;
+        [ResourcePath("Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.raytrace")]
+        public RayTracingShader renderingLayerRT;
     }
 
     [Serializable]

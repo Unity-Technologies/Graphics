@@ -669,9 +669,8 @@ namespace UnityEngine.Rendering.Universal
             return CreateRenderPassHash(desc.w, desc.h, desc.depthID, desc.samples, hashIndex);
         }
 
-        private RenderPassDescriptor InitializeRenderPassDescriptor(UniversalCameraData cameraData, ScriptableRenderPass renderPass)
+        internal static void GetRenderTextureDescriptor(UniversalCameraData cameraData, ScriptableRenderPass renderPass, out RenderTextureDescriptor targetRT)
         {
-            RenderTextureDescriptor targetRT;
             if (!renderPass.overrideCameraTarget || (renderPass.colorAttachmentHandle.rt == null && renderPass.depthAttachmentHandle.rt == null))
             {
                 targetRT = cameraData.cameraTargetDescriptor;
@@ -680,8 +679,8 @@ namespace UnityEngine.Rendering.Universal
                 // and it's new dimensions might not be reflected on the targetTexture. This also applies to camera stacks rendering to a target texture.
                 if (cameraData.targetTexture != null)
                 {
-                    targetRT.width = cameraData.pixelWidth;
-                    targetRT.height = cameraData.pixelHeight;
+                    targetRT.width = cameraData.scaledWidth;
+                    targetRT.height = cameraData.scaledHeight;
                 }
             }
             else
@@ -689,6 +688,11 @@ namespace UnityEngine.Rendering.Universal
                 var handle = GetFirstAllocatedRTHandle(renderPass);
                 targetRT = handle.rt != null ? handle.rt.descriptor : renderPass.depthAttachmentHandle.rt.descriptor;
             }
+        }
+
+        private RenderPassDescriptor InitializeRenderPassDescriptor(UniversalCameraData cameraData, ScriptableRenderPass renderPass)
+        {
+            GetRenderTextureDescriptor(cameraData, renderPass, out RenderTextureDescriptor targetRT);
 
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618

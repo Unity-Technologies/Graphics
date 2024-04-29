@@ -45,15 +45,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
         {
-            return (HasVolumetricClouds(hdCamera, in settings)
-                && GetMainLight() != null
-                && settings.shadows.value);
-        }
-
-        bool HasVolumetricCloudsShadows(HDCamera hdCamera)
-        {
-            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            return HasVolumetricCloudsShadows(hdCamera, settings);
+            return HasVolumetricClouds(hdCamera, settings) &&
+                settings.shadows.value &&
+                m_CurrentSunLight != null &&
+                m_CurrentSunLight.shadows != LightShadows.None &&
+                m_CurrentSunLightAdditionalLightData.shadowDimmer != 0.0f;
         }
 
         void EvaluateShadowRegionData(HDCamera hdCamera, CommandBuffer cmd)
@@ -63,8 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // Grab the light and make sure it is valid
-            Light targetLight = GetMainLight();
-            if (!HasVolumetricClouds(hdCamera, in settings) || targetLight == null || !settings.shadows.value)
+            if (!HasVolumetricCloudsShadows(hdCamera, in settings))
             {
                 // Bind the invalid volumetric clouds shadow texture
                 cmd.SetGlobalTexture(HDShaderIDs._VolumetricCloudsShadowsTexture, Texture2D.blackTexture);
@@ -72,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Grab the volume profile of the volumetric clouds
+            Light targetLight = GetMainLight();
             Matrix4x4 wsToLSMat = targetLight.transform.worldToLocalMatrix;
             Matrix4x4 lsToWSMat = targetLight.transform.localToWorldMatrix;
 

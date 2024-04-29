@@ -4,7 +4,7 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
+using System.Text;
 using NUnit.Framework;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI.Internal;
@@ -213,6 +213,28 @@ namespace UnityEditor.VFX.Test
             var expectedAttributes = new[] { "lifetime", "scaleX", "scaleY", "scaleZ", "angleX", "angleY", "angleZ", "pivotX", "pivotY", /*"AngularVelocityX", "AngularVelocityY"*/ };
             CollectionAssert.AreEquivalent(expectedAttributes, hlslBlock.attributes.Select(x => x.attrib.name));
             Assert.IsTrue(hlslBlock.attributes.All(x => x.mode == VFXAttributeMode.ReadWrite));
+        }
+
+        public static readonly CustomHLSLOperatorTest.BufferCase[] kSampleBufferCase = CustomHLSLOperatorTest.kSampleBufferCase;
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Block_Buffer([ValueSource(nameof(kSampleBufferCase))] CustomHLSLOperatorTest.BufferCase bufferCase)
+        {
+            var hlslCode = new StringBuilder();
+            hlslCode.AppendLine($"void Check_Sample_Buffer(inout VFXAttributes attributes, in {bufferCase.declaration} inputBuffer)");
+            hlslCode.AppendLine("{");
+            hlslCode.AppendLine("    float3 localValue = (float3)0.0f;");
+            hlslCode.AppendLine($"    {bufferCase.implementation}");
+            hlslCode.AppendLine("    attributes.position = localValue;");
+            hlslCode.AppendLine("}");
+
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode.ToString());
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            for (int i = 0; i < 4; ++i)
+                yield return null;
         }
 
         [UnityTest]

@@ -64,6 +64,15 @@ namespace UnityEngine.Rendering
             s_Instance?.batcher.PostCullBeginCameraRendering(context);
         }
 
+
+        /// <summary>
+        /// Utility function for updating probe data after global ambient probe is set up
+        /// </summary>
+        public static void OnSetupAmbientProbe()
+        {
+            s_Instance?.batcher.OnSetupAmbientProbe();
+        }
+
         /// <summary>
         /// Utility function to run an occlusion test in compute to update indirect draws.
         /// This function will dispatch compute shaders to run the given occlusion test and
@@ -445,8 +454,9 @@ namespace UnityEngine.Rendering
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            // Loaded scene might contain light probes that would affect existing objects. Hence we have to update all probes data.
             if(mode == LoadSceneMode.Additive)
-                m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(RenderSettings.ambientProbe, true);
+                m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(forceUpdate: true);
         }
 
         private static void PostPostLateUpdateStatic()
@@ -540,22 +550,24 @@ namespace UnityEngine.Rendering
 
         private void PostPostLateUpdate()
         {
+            m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(forceUpdate: false);
+
             Profiler.BeginSample("GPUResidentDrawer.DispatchChanges");
             var lodGroupTransformData = m_Dispatcher.GetTransformChangesAndClear<LODGroup>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
             var lodGroupData = m_Dispatcher.GetTypeChangesAndClear<LODGroup>(Allocator.TempJob, noScriptingArray: true);
             var meshDataSorted = m_Dispatcher.GetTypeChangesAndClear<Mesh>(Allocator.TempJob, sortByInstanceID: true, noScriptingArray: true);
-            var materialData = m_Dispatcher.GetTypeChangesAndClear<Material>(Allocator.TempJob);
+            var materialData = m_Dispatcher.GetTypeChangesAndClear<Material>(Allocator.TempJob, noScriptingArray: true);
             Profiler.EndSample();
 
-            Profiler.BeginSample("GPUResindentDrawer.ProcessMaterials");
+            Profiler.BeginSample("GPUResidentDrawer.ProcessMaterials");
             ProcessMaterials(materialData.destroyedID);
             Profiler.EndSample();
 
-            Profiler.BeginSample("GPUResindentDrawer.ProcessMeshes");
+            Profiler.BeginSample("GPUResidentDrawer.ProcessMeshes");
             ProcessMeshes(meshDataSorted.destroyedID);
             Profiler.EndSample();
 
-            Profiler.BeginSample("GPUResindentDrawer.ProcessLODGroups");
+            Profiler.BeginSample("GPUResidentDrawer.ProcessLODGroups");
             ProcessLODGroups(lodGroupData.changedID, lodGroupData.destroyedID, lodGroupTransformData.transformedID);
             Profiler.EndSample();
 
@@ -564,12 +576,11 @@ namespace UnityEngine.Rendering
             meshDataSorted.Dispose();
             materialData.Dispose();
 
-            Profiler.BeginSample("GPUResindentDrawer.ProcessDraws");
+            Profiler.BeginSample("GPUResidentDrawer.ProcessDraws");
             m_MeshRendererDrawer.ProcessDraws();
             // Add more drawers here ...
             Profiler.EndSample();
 
-            m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(RenderSettings.ambientProbe);
             m_BatchersContext.UpdateInstanceMotions();
 
             m_Batcher.UpdateFrame();
@@ -610,7 +621,7 @@ namespace UnityEngine.Rendering
 
         internal void ProcessRenderers(NativeArray<int> rendererGroupsID)
         {
-            Profiler.BeginSample("GPUResindentDrawer.ProcessMeshRenderers");
+            Profiler.BeginSample("GPUResidentDrawer.ProcessMeshRenderers");
 
             var changedInstances = new NativeArray<InstanceHandle>(rendererGroupsID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             ScheduleQueryRendererGroupInstancesJob(rendererGroupsID, changedInstances).Complete();
@@ -624,7 +635,7 @@ namespace UnityEngine.Rendering
 
         internal void TransformInstances(NativeArray<InstanceHandle> instances, NativeArray<Matrix4x4> localToWorldMatrices)
         {
-            Profiler.BeginSample("GPUResindentDrawer.TransformInstances");
+            Profiler.BeginSample("GPUResidentDrawer.TransformInstances");
 
             m_BatchersContext.UpdateInstanceTransforms(instances, localToWorldMatrices);
 
@@ -633,7 +644,7 @@ namespace UnityEngine.Rendering
 
         internal void FreeInstances(NativeArray<InstanceHandle> instances)
         {
-            Profiler.BeginSample("GPUResindentDrawer.FreeInstances");
+            Profiler.BeginSample("GPUResidentDrawer.FreeInstances");
 
             m_Batcher.DestroyInstances(instances);
             m_BatchersContext.FreeInstances(instances);
@@ -643,17 +654,9 @@ namespace UnityEngine.Rendering
 
         internal void FreeRendererGroupInstances(NativeArray<int> rendererGroupIDs)
         {
-            if(rendererGroupIDs.Length == 0)
-                return;
+            Profiler.BeginSample("GPUResidentDrawer.FreeRendererGroupInstances");
 
-            Profiler.BeginSample("GPUResindentDrawer.FreeRendererGroupInstances");
-
-            var instances = new NativeList<InstanceHandle>(rendererGroupIDs.Length, Allocator.TempJob);
-            ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances).Complete();
-            m_Batcher.DestroyInstances(instances.AsArray());
-            instances.Dispose();
-
-            m_BatchersContext.FreeRendererGroupInstances(rendererGroupIDs);
+            m_Batcher.FreeRendererGroupInstances(rendererGroupIDs);
 
             Profiler.EndSample();
         }

@@ -110,6 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int volumetricValidFrames = 0;
         internal int colorPyramidHistoryValidFrames = 0;
 
+        internal float intermediateDownscaling = 0.5f;
+        internal bool volumetricCloudsFullscaleHistory = false;
+
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int actualWidth { get; private set; }
         /// <summary>Height actually used for rendering after dynamic resolution and XR is applied.</summary>

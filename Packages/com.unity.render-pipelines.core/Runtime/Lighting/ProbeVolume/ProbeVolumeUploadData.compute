@@ -45,7 +45,8 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     // We extract 4 probes at a time.
     // This is driven by the minimum amount of data that we can load at once with a ByteAddressBuffer
-    // Shared data is currently 1 byte per probe so we can load at minimum 4 probes at a time with one ByteAddressBuffer.Load(uint)
+    // Minimal data is 1 byte per probe so we can load at minimum 4 probes at a time with one ByteAddressBuffer.Load(uint)
+    // (either due to sky direction, of validity if rendering layers are not used)
 
     // Extract L0L1Rx (fp16 encoded)
     // 1 probe == 8 bytes => 2x2 probes encoded in 2x4 uint
@@ -61,9 +62,24 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
     ExtractByte(_ScratchBuffer.Load4(offsetL1B_L1Rz), L1B_L1Rz_probe_0, L1B_L1Rz_probe_1, L1B_L1Rz_probe_2, L1B_L1Rz_probe_3);
 
 #ifdef PROBE_VOLUMES_SHARED_DATA
-    // Extract Shared Data. 1 probe == 1 byte => 4 probes encoded in 1 uint == 4 bytes
     float4 shared_probe_0_3;
-    ExtractByte(_ScratchBuffer.Load(offsetValidity), shared_probe_0_3);
+    if (_ValidityProbeSize == 1)
+    {
+        // Extract Shared Data. 1 probe == 1 byte => 4 probes encoded in 1 uint == 4 bytes
+        ExtractByte(_ScratchBuffer.Load(offsetValidity), shared_probe_0_3);
+    }
+    else if (_ValidityProbeSize == 4)
+    {
+        // When layers are on, 1 probe == 4 byte => 1 probe encoded in 1 uint
+        // See LoadValidityMask()
+        uint4 validityAsUint = _ScratchBuffer.Load4(offsetValidity);
+        shared_probe_0_3 = float4(
+            asfloat(validityAsUint.x),
+            asfloat(validityAsUint.y),
+            asfloat(validityAsUint.z),
+            asfloat(validityAsUint.w)
+        );
+    }
 
 #ifdef PROBE_VOLUMES_SKY_OCCLUSION
     float4 SkyOcclusionL0L1_probe_0, SkyOcclusionL0L1_probe_1, SkyOcclusionL0L1_probe_2, SkyOcclusionL0L1_probe_3;

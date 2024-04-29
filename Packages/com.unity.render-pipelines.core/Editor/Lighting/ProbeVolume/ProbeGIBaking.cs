@@ -21,10 +21,11 @@ namespace UnityEngine.Rendering
         public Brick[] bricks;
         public Vector3[] probePositions;
         public SphericalHarmonicsL2[] sh;
-        public byte[] validityNeighbourMask;
+        public byte[,] validityNeighbourMask;
         public Vector4[] skyOcclusionDataL0L1;
         public byte[] skyShadingDirectionIndices;
         public float[] validity;
+        public byte[] layerValidity;
         public Vector3[] offsetVectors;
         public float[] touchupVolumeInteraction;
 
@@ -122,7 +123,7 @@ namespace UnityEngine.Rendering
         }
 
         void ReadAdjustmentVolumes(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, float validity,
-            out bool invalidatedProbe, out float intensityScale, out uint? skyShadingDirectionOverride)
+            ref byte validityMask, out bool invalidatedProbe, out float intensityScale, out uint? skyShadingDirectionOverride)
         {
             invalidatedProbe = false;
             intensityScale = 1.0f;
@@ -158,7 +159,24 @@ namespace UnityEngine.Rendering
                         bakingBatch.customDilationThresh[(index, i)] = thresh;
                     }
                     else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideSkyDirection && bakingSet.skyOcclusion && bakingSet.skyOcclusionShadingDirection)
+                    {
                         skyShadingDirectionOverride = AdaptiveProbeVolumes.SkyOcclusionBaker.EncodeSkyShadingDirection(touchupVolume.skyDirection);
+                    }
+                    else if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.OverrideRenderingLayerMask && bakingSet.useRenderingLayers)
+                    {
+                        switch (touchupVolume.renderingLayerMaskOperation)
+                        {
+                            case ProbeAdjustmentVolume.RenderingLayerMaskOperation.Override:
+                                validityMask = touchupVolume.renderingLayerMask;
+                                break;
+                            case ProbeAdjustmentVolume.RenderingLayerMaskOperation.Add:
+                                validityMask |= touchupVolume.renderingLayerMask;
+                                break;
+                            case ProbeAdjustmentVolume.RenderingLayerMaskOperation.Remove:
+                                validityMask &= (byte)(~touchupVolume.renderingLayerMask);
+                                break;
+                        }
+                    }
 
                     if (touchupVolume.mode == ProbeAdjustmentVolume.Mode.IntensityScale)
                         intensityScale = touchupVolume.intensityScale;
@@ -177,9 +195,11 @@ namespace UnityEngine.Rendering
         }
 
         internal void SetBakedData(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, int probeIndex,
-            in SphericalHarmonicsL2 sh, float validity, NativeArray<Vector3> virtualOffsets, NativeArray<Vector4> skyOcclusion, NativeArray<uint> skyDirection)
+            in SphericalHarmonicsL2 sh, float validity, NativeArray<uint> renderingLayerMasks, NativeArray<Vector3> virtualOffsets, NativeArray<Vector4> skyOcclusion, NativeArray<uint> skyDirection)
         {
-            ReadAdjustmentVolumes(bakingSet, bakingBatch, localTouchupVolumes, i, validity, out var invalidatedProbe, out var intensityScale, out var skyShadingDirectionOverride);
+            byte layerValidityMask = (byte)(renderingLayerMasks.IsCreated ? renderingLayerMasks[probeIndex] : 0);
+
+            ReadAdjustmentVolumes(bakingSet, bakingBatch, localTouchupVolumes, i, validity, ref layerValidityMask, out var invalidatedProbe, out var intensityScale, out var skyShadingDirectionOverride);
             SetSHCoefficients(i, sh, intensityScale, validity, bakingSet.settings.dilationSettings);
 
             if (virtualOffsets.IsCreated)
@@ -193,10 +213,14 @@ namespace UnityEngine.Rendering
                     skyShadingDirectionIndices[i] = (byte)(skyShadingDirectionOverride ?? skyDirection[probeIndex]);
             }
 
+            if (renderingLayerMasks.IsCreated)
+                layerValidity[i] = layerValidityMask;
+
             float currValidity = invalidatedProbe ? 1.0f : validity;
             byte currValidityNeighbourMask = 255;
             this.validity[i] = currValidity;
-            validityNeighbourMask[i] = currValidityNeighbourMask;
+            for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
+                validityNeighbourMask[l, i] = currValidityNeighbourMask;
         }
 
         internal int GetBakingHashCode()
@@ -390,6 +414,7 @@ namespace UnityEngine.Rendering
             public VirtualOffsetBaker virtualOffsetJob;
             public SkyOcclusionBaker skyOcclusionJob;
             public LightingBaker lightingJob;
+            public RenderingLayerBaker layerMaskJob;
             public int cellIndex;
 
             // Progress reporting
@@ -419,6 +444,9 @@ namespace UnityEngine.Rendering
                 lightingJob.Initialize(sortedPositions);
                 if (lightingJob is DefaultLightTransport defaultLightingJob)
                     defaultLightingJob.jobs = jobs;
+
+                layerMaskJob = renderingLayerOverride ?? new DefaultRenderingLayer();
+                layerMaskJob.Initialize(bakingSet, sortedPositions.GetSubArray(0, probeCount));
 
                 cellIndex = 0;
 
@@ -458,7 +486,7 @@ namespace UnityEngine.Rendering
                     }
 
                     // Sort by volume to give priority to smaller volumes
-                    touchupVolumesAndBounds.Sort((a, b) => (a.aabb.size.x * a.aabb.size.y * a.aabb.size.z).CompareTo(b.aabb.size.x * b.aabb.size.y * b.aabb.size.z));
+                    touchupVolumesAndBounds.Sort((a, b) => (a.volume.ComputeVolume(a.obb).CompareTo(b.volume.ComputeVolume(b.obb))));
                 }
 
                 var lightingSettings = ProbeVolumeLightingTab.GetLightingSettings();
@@ -567,6 +595,7 @@ namespace UnityEngine.Rendering
                 virtualOffsetJob.Dispose();
                 skyOcclusionJob.Dispose();
                 lightingJob.Dispose();
+                layerMaskJob.Dispose();
 
                 // clear references to managed data
                 this = default;
@@ -783,20 +812,9 @@ namespace UnityEngine.Rendering
 
         static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters, Vector3 worldOffset)
         {
-            minCellPositionXYZ = Vector3Int.zero;
-            maxCellPositionXYZ = Vector3Int.zero;
-
-            var centeredMin = globalBounds.min - worldOffset;
-            var centeredMax = globalBounds.max - worldOffset;
-
-
-            minCellPositionXYZ.x = Mathf.FloorToInt(centeredMin.x / cellSizeInMeters);
-            minCellPositionXYZ.y = Mathf.FloorToInt(centeredMin.y / cellSizeInMeters);
-            minCellPositionXYZ.z = Mathf.FloorToInt(centeredMin.z / cellSizeInMeters);
-
-            maxCellPositionXYZ.x = Mathf.CeilToInt(centeredMax.x / cellSizeInMeters) - 1;
-            maxCellPositionXYZ.y = Mathf.CeilToInt(centeredMax.y / cellSizeInMeters) - 1;
-            maxCellPositionXYZ.z = Mathf.CeilToInt(centeredMax.z / cellSizeInMeters) - 1;
+            // Sync with ProbeVolumeProfileInfo.PositionToCell
+            minCellPositionXYZ = Vector3Int.FloorToInt((globalBounds.min - worldOffset) / cellSizeInMeters);
+            maxCellPositionXYZ = Vector3Int.FloorToInt((globalBounds.max - worldOffset) / cellSizeInMeters);
         }
 
         static TouchupVolumeWithBoundsList GetAdjustementVolumes()
@@ -814,6 +832,9 @@ namespace UnityEngine.Rendering
                     touchup.skyDirection.Normalize();
                 }
             }
+            
+            // Sort by volume to give priority to bigger volumes so smaller volumes are applied last
+            touchupVolumesAndBounds.Sort((a, b) => (b.volume.ComputeVolume(b.obb).CompareTo(a.volume.ComputeVolume(a.obb))));
 
             return touchupVolumesAndBounds;
         }
@@ -826,6 +847,7 @@ namespace UnityEngine.Rendering
             LaunchThread,
             SkyOcclusion,
             Integration,
+            RenderingLayerMask,
             FinalizeCells,
 
             Last = FinalizeCells + 1
@@ -983,10 +1005,19 @@ namespace UnityEngine.Rendering
                 }
             }
 
+            if (s_BakeData.step == BakingStep.RenderingLayerMask)
+            {
+                if (!s_BakeData.layerMaskJob.Step())
+                    s_BakeData.failed = true;
+                if (s_BakeData.layerMaskJob.currentStep >= s_BakeData.layerMaskJob.stepCount)
+                    s_BakeData.step++;
+            }
+
             if (s_BakeData.step == BakingStep.FinalizeCells)
             {
                 FinalizeCell(s_BakeData.cellIndex++, s_BakeData.positionRemap,
                     s_BakeData.lightingJob.irradiance, s_BakeData.lightingJob.validity,
+                    s_BakeData.layerMaskJob.renderingLayerMasks,
                     s_BakeData.virtualOffsetJob.offsets,
                     s_BakeData.skyOcclusionJob.occlusion, s_BakeData.skyOcclusionJob.encodedDirections);
 
@@ -1253,9 +1284,10 @@ namespace UnityEngine.Rendering
             BakeAdditionalRequests(probeInstanceIDs);
         }
 
+        static RenderingLayerBaker renderingLayerOverride = null;
         static VirtualOffsetBaker virtualOffsetOverride = null;
-        static LightingBaker lightingOverride = null;
         static SkyOcclusionBaker skyOcclusionOverride = null;
+        static LightingBaker lightingOverride = null;
 
         /// <summary>Used to override the virtual offset baking system.</summary>
         /// <param name="baker">The baker override or null to use the default system.</param>

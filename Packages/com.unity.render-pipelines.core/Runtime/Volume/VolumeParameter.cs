@@ -401,6 +401,21 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <c>LayerMask</c> value.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class RenderingLayerMaskParameter : VolumeParameter<RenderingLayerMask>
+    {
+        /// <summary>
+        /// Creates a new <see cref="LayerMaskParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public RenderingLayerMaskParameter(RenderingLayerMask value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A <see cref="VolumeParameter"/> that holds an <c>int</c> value.
     /// </summary>
     /// <seealso cref="MinIntParameter"/>

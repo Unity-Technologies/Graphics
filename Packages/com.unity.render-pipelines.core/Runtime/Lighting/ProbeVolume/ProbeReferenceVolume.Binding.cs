@@ -114,8 +114,9 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">A command buffer used to perform the data update.</param>
         /// <param name="probeVolumeOptions">probe volume options from the active volume stack</param>
         /// <param name="taaFrameIndex">TAA frame index</param>
+        /// <param name="supportRenderingLayers">Are rendering layers supported</param>
         /// <returns>True if successful</returns>
-        public bool UpdateShaderVariablesProbeVolumes(CommandBuffer cmd, ProbeVolumesOptions probeVolumeOptions, int taaFrameIndex)
+        public bool UpdateShaderVariablesProbeVolumes(CommandBuffer cmd, ProbeVolumesOptions probeVolumeOptions, int taaFrameIndex, bool supportRenderingLayers = false)
         {
             bool enableProbeVolumes = DataHasBeenLoaded();
 
@@ -135,6 +136,8 @@ namespace UnityEngine.Rendering
                 parameters.minValidNormalWeight = probeVolumeOptions.minValidDotProductValue.value;
                 parameters.skyOcclusionIntensity = skyOcclusion ? probeVolumeOptions.skyOcclusionIntensityMultiplier.value : 0.0f;
                 parameters.skyOcclusionShadingDirection = skyOcclusion && skyOcclusionShadingDirection;
+                parameters.regionCount = m_CurrentBakingSet.bakedMaskCount;
+                parameters.regionLayerMasks = supportRenderingLayers ? m_CurrentBakingSet.bakedLayerMasks : 0xFFFFFFFF;
                 UpdateConstantBuffer(cmd, parameters);
             }
 

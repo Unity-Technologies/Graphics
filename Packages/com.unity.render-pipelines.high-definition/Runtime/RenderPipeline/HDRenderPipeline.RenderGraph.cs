@@ -1947,7 +1947,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, ref opticalFogTransmittance);
 
-            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, ref transparentPrepass, ref opticalFogTransmittance);
+            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ref transparentPrepass, ref opticalFogTransmittance);
         }
 
         class GenerateColorPyramidData

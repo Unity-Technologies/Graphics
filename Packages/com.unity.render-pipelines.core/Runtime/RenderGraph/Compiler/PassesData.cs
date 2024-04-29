@@ -27,12 +27,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     {
         public ResourceHandle resource;
         public AccessFlags accessFlags;
+        public int mipLevel;
+        public int depthSlice;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode()
         {
             var hash = resource.GetHashCode();
             hash = hash * 23 + accessFlags.GetHashCode();
+            hash = hash * 23 + mipLevel.GetHashCode();
+            hash = hash * 23 + depthSlice.GetHashCode();
             return hash;
         }
 
@@ -40,7 +44,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             // We ignore the version for now we assume if one pass writes version x and the next y they can
             // be merged in the same native render pass
-            return x.resource.index == y.resource.index && x.accessFlags == y.accessFlags;
+            return x.resource.index == y.resource.index && x.accessFlags == y.accessFlags && x.mipLevel == y.mipLevel && x.depthSlice == y.depthSlice;
         }
     }
 
@@ -366,6 +370,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public UnityEngine.Rendering.RenderBufferLoadAction loadAction;
         public UnityEngine.Rendering.RenderBufferStoreAction storeAction;
         public bool memoryless;
+        public int mipLevel;
+        public int depthSlice;
     }
 
     internal enum LoadReason

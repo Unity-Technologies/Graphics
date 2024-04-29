@@ -16,7 +16,7 @@
   * [High Definition Render Pipeline Wizard](Render-Pipeline-Wizard.md) 
   * [Upgrade guides](upgrade-guides.md)
     * [Material Upgrade](Material-Upgrade.md)
-    * [Upgrade from HDRP 16.x to 17.x](Upgrading-from-2023.2-to-2023.3.md)
+    * [Upgrade from HDRP 16.x to 17.x](Upgrading-from-2023.2-to-unity-6-preview.md)
     * [Upgrade from HDRP 15.x to 16.x](Upgrading-from-2023.1-to-2023.2.md)
     * [Upgrade from HDRP 14.x to 15.x](Upgrading-from-2022.2-to-2023.1.md)
     * [Upgrade from HDRP 13.x to 14.x](Upgrading-from-2022.1-to-2022.2.md)

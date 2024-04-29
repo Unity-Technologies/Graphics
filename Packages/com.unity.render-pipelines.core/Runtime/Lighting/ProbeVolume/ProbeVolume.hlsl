@@ -24,7 +24,8 @@
 #define _ViewBias _Biases_NormalizationClamp.y
 #define _Weight _Weight_MinLoadedCellInEntries.x
 #define _MinLoadedCellInEntries _Weight_MinLoadedCellInEntries.yzw
-#define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_Padding.xyz
+#define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_LayerCount.xyz
+#define _ProbeLayerCount (int)(_MaxLoadedCellInEntries_LayerCount.w)
 #define _MinReflProbeNormalizationFactor _Biases_NormalizationClamp.z
 #define _MaxReflProbeNormalizationFactor _Biases_NormalizationClamp.w
 #define _LeakReductionMode _LeakReduction_SkyOcclusion.x
@@ -257,7 +258,7 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
     if (metaData.x != 0xFFFFFFFF)
     {
         chunkIndex = metaData.x & 0x1FFFFFFF;
-        stepSize = pow(3, (metaData.x >> 29) & 0x7);
+        stepSize = round(pow(3, (metaData.x >> 29) & 0x7));
 
         minRelativeIdx.x = metaData.y & 0x3FF;
         minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
@@ -364,7 +365,6 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out fl
     // unpack pool idx
     // size is encoded in the upper 4 bits
     subdiv = (packed_pool_idx >> 28) & 15;
-    float  cellSize = pow(3.0, subdiv);
 
     float   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
     float3 pool_idx;
@@ -374,8 +374,8 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out fl
     pool_idx.x = floor(flattened_pool_idx - (pool_idx.y * _PoolDim.x));
 
     // calculate uv offset and scale
-    float3 posRS = posWSForSample.xyz / _MinBrickSize;
-    float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
+    float brickSizeWS = pow(3.0, subdiv) * _MinBrickSize;
+    float3 offset = frac(posWSForSample.xyz / brickSizeWS);  // [0;1] in brick space
     //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
 
     uvw = (pool_idx + 0.5 + (3.0 * offset)) * _RcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
@@ -500,7 +500,37 @@ void AccumulateSamples(inout APVSample dst, APVSample other, half weight)
 #endif // PROBE_VOLUMES_L2
 }
 
-APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, float3 uvw)
+uint LoadValidityMask(APVResources apvRes, uint renderingLayer, int3 coord)
+{
+    float rawValidity = LOAD_TEXTURE3D(apvRes.Validity, coord).x;
+
+    uint validityMask;
+    if (_ProbeLayerCount == 1)
+    {
+        validityMask = rawValidity * 255.0;
+    }
+    else
+    {
+        // If the object is on none of the masks, enable all layers to still sample validity correctly
+        uint globalLayer = _ProbeVolumeLayerMask[0] | _ProbeVolumeLayerMask[1] | _ProbeVolumeLayerMask[2] | _ProbeVolumeLayerMask[3];
+        if ((renderingLayer & globalLayer) == 0) renderingLayer = 0xFFFFFFFF;
+
+        validityMask = 0;
+        if ((renderingLayer & _ProbeVolumeLayerMask[0]) != 0)
+            validityMask = asuint(rawValidity);
+        if ((renderingLayer & _ProbeVolumeLayerMask[1]) != 0)
+            validityMask |= asuint(rawValidity) >> 8;
+        if ((renderingLayer & _ProbeVolumeLayerMask[2]) != 0)
+            validityMask |= asuint(rawValidity) >> 16;
+        if ((renderingLayer & _ProbeVolumeLayerMask[3]) != 0)
+            validityMask |= asuint(rawValidity) >> 24;
+        validityMask = validityMask & 0xFF;
+    }
+
+    return validityMask;
+}
+
+APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 normalWS, uint renderingLayer, int subdiv, float3 biasedPosWS, float3 uvw)
 {
     float3 texCoordFloat = uvw * _PoolDim - .5f;
     int3 texCoordInt = texCoordFloat;
@@ -516,7 +546,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
 
     ZERO_INITIALIZE(APVSample, baseSample);
 
-    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255.0;
+    uint validityMask = LoadValidityMask(apvRes, renderingLayer, texCoordInt);
     for (uint i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
@@ -543,20 +573,21 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
     return baseSample;
 }
 
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint subdiv, float3 biasedPosWS, inout float3 uvw, out float3 normalizedOffset, out float validityWeights[8])
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint renderingLayer, uint subdiv, float3 biasedPosWS, inout float3 uvw, out float3 normalizedOffset, out float validityWeights[8])
 {
     float3 texCoordFloat = uvw * _PoolDim - 0.5f;
     int3 texCoordInt = texCoordFloat;
     half3 texFrac = half3(frac(texCoordFloat));
-    half3 oneMinTexFrac = 1.0 - texFrac;
-    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255.0;
+    uint validityMask = LoadValidityMask(apvRes, renderingLayer, texCoordInt);
 
     if (_LeakReductionMode == APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED || validityMask != 0xFF)
     {
-        uint i = 0;
         half4 weights[2];
         half totalW = 0.0;
+
         float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
+        half3 oneMinTexFrac = 1.0 - texFrac;
+        uint i = 0;
 
         UNITY_UNROLL
         for (i = 0; i < 8; ++i)
@@ -606,14 +637,14 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, ui
     normalizedOffset = (float3)(uvw * _PoolDim - (texCoordInt + 0.5));
 }
 
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint subdiv, float3 biasedPosWS, inout float3 uvw)
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint renderingLayer, uint subdiv, float3 biasedPosWS, inout float3 uvw)
 {
     float3 normalizedOffset;
     float validityWeights[8];
-    WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
+    WarpUVWLeakReduction(apvRes, posWS, normalWS, renderingLayer, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
 }
 
-APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, float3 viewDir)
+APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, uint renderingLayer, float3 viewDir)
 {
     APVSample outSample;
 
@@ -626,13 +657,13 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
     {
 #if MANUAL_FILTERING == 1
         if (_LeakReductionMode != 0)
-            outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
+            outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, renderingLayer, subdiv, biasedPosWS, pool_uvw);
         else
             outSample = SampleAPV(apvRes, pool_uvw);
 #else
         if (_LeakReductionMode != 0)
         {
-            WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
+            WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, renderingLayer, subdiv, biasedPosWS, pool_uvw);
         }
         outSample = SampleAPV(apvRes, pool_uvw);
 #endif
@@ -647,10 +678,10 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
 }
 
 
-APVSample SampleAPV(float3 posWS, float3 biasNormalWS, float3 viewDir)
+APVSample SampleAPV(float3 posWS, float3 biasNormalWS, uint renderingLayer, float3 viewDir)
 {
     APVResources apvRes = FillAPVResources();
-    return SampleAPV(apvRes, posWS, biasNormalWS, viewDir);
+    return SampleAPV(apvRes, posWS, biasNormalWS, renderingLayer, viewDir);
 }
 
 // -------------------------------------------------------------
@@ -775,13 +806,13 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 reflDir, in float3 viewDir,
-    in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
+    in float2 positionSS, in uint renderingLayer, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
 {
     APVResources apvRes = FillAPVResources();
 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
-    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    APVSample apvSample = SampleAPV(posWS, normalWS, renderingLayer, viewDir);
 
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {
@@ -824,25 +855,25 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
-    in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+    in float2 positionSS, in uint renderingLayer, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
-    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    APVSample apvSample = SampleAPV(posWS, normalWS, renderingLayer, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS,
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS, in uint renderingLayer,
     out float3 bakeDiffuseLighting)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
-    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    APVSample apvSample = SampleAPV(posWS, normalWS, renderingLayer, viewDir);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, bakeDiffuseLighting);
 }
 
@@ -863,6 +894,15 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
         bakeDiffuseLighting = EvaluateAmbientProbe(0);
     }
 }
+
+// public APIs for backward compatibility
+// to be removed after Unity 6
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 reflDir, in float3 viewDir, in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
+{ EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, reflDir, viewDir, positionSS, 0xFFFFFFFF, bakeDiffuseLighting, backBakeDiffuseLighting, lightingInReflDir); }
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir, in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+{ EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, viewDir, positionSS, 0xFFFFFFFF, bakeDiffuseLighting, backBakeDiffuseLighting); }
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS, out float3 bakeDiffuseLighting)
+{ EvaluateAdaptiveProbeVolume(posWS, normalWS, viewDir, positionSS, 0xFFFFFFFF, bakeDiffuseLighting); }
 
 // -------------------------------------------------------------
 // Reflection Probe Normalization functions

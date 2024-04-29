@@ -12,9 +12,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 {
     /// <summary>
     /// Basic properties of a RTHandle needed by the render graph compiler. It is not always possible to derive these
-    /// given an RTHandle to the user needs to pass these in.
-    ///
-    /// We don't use a full RenderTargetDescriptor here as filling out a full descriptor may not be trivial and not all
+    /// given an RTHandle so the user needs to pass these in.
+    /// 
+    /// We don't use a full RenderTargetDescriptor here as filling out a full descriptor may not be trivial for users and not all
     /// members of the descriptor are actually used by the render graph. This struct is the minimum set of info needed by the render graph.
     /// If you want to develop some utility framework to work with render textures, etc. it's probably better to use RenderTargetDescriptor.
     /// </summary>
@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
                 else if (rt.m_ExternalTexture != null)
                 {
-                    // RTHandle wrapping a  regular 2D texture we can't render to that
+                    // RTHandle wrapping a regular 2D texture we can't render to that
                 }
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 else if (rt.m_NameID != emptyId)
@@ -504,6 +504,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.graphicsResource = rt;
             texResource.imported = true;
+
+            RenderTexture renderTexture = (rt != null) ? ((rt.m_RT != null) ? rt.m_RT : (rt.m_ExternalTexture as RenderTexture)) : null;
+            if (renderTexture)
+            {
+                texResource.desc = new TextureDesc(renderTexture);
+                texResource.validDesc = true;
+            }
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
@@ -546,6 +553,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     texResource.desc.clearBuffer = importParams.clearOnFirstUse;
                     texResource.desc.clearColor = importParams.clearColor;
                     texResource.desc.discardBuffer = importParams.discardOnLastUse;
+                    texResource.validDesc = false; // The desc above just contains enough info to make RenderTargetInfo not a full descriptor.
+                                                   // This means GetRenderTargetInfo will work for the handle but GetTextureResourceDesc will throw
                 }
                 // Anything else is an error and should take the overload not taking a RenderTargetInfo
                 else
@@ -603,6 +612,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.shared = true;
             texResource.sharedExplicitRelease = explicitRelease;
             texResource.desc = desc;
+            texResource.validDesc = true;
 
             return new TextureHandle(textureIndex, shared: true);
         }
@@ -658,6 +668,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
+            texResource.validDesc = false;// The desc above just contains enough info to make RenderTargetInfo not a full descriptor.
+                                          // This means GetRenderTargetInfo will work for the handle but GetTextureResourceDesc will throw
 
             var texHandle = new TextureHandle(newHandle);
 
@@ -742,7 +754,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     // we can't know from the size/format/... from the enum. It's implicitly defined by the current camera,
                     // screen resolution,.... we can't even hope to know or replicate the size calculation here
                     // so we just say we don't know what this rt is and rely on the user passing in the info to us.
-                    var desc = GetTextureResourceDesc(res);
+                    var desc = GetTextureResourceDesc(res, true);
                     outInfo = new RenderTargetInfo();
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.colorFormat == GraphicsFormat.None)
@@ -766,7 +778,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             else
             {
                 // Managed by rendergraph, it might not be created yet so we look at the desc to find out
-                var desc = GetTextureResourceDesc(res);
+                var desc = GetTextureResourceDesc(res, true); // TODO: remove true, we should throw on invalid desc here
                 var dim = desc.CalculateFinalDimensions();
                 outInfo = new RenderTargetInfo();
                 outInfo.width = dim.x;
@@ -794,6 +806,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out TextureResource texResource);
             texResource.desc = desc;
+            texResource.validDesc = true;
             texResource.transientPassIndex = transientPassIndex;
             texResource.requestFallBack = desc.fallBackToBlackTexture;
             return new TextureHandle(newHandle);
@@ -820,10 +833,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[index] as TextureResource;
         }
 
-        internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
+        internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle, bool noThrowOnInvalidDesc = false)
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Texture);
-            return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource).desc;
+            var texture = (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle.index] as TextureResource);
+            if (!texture.validDesc && !noThrowOnInvalidDesc)
+                throw new ArgumentException("The passed in texture handle does not have a valid descriptor. (This is most commonly cause by the handle referencing a built-in texture such as the system back buffer.)", "handle");
+            return texture.desc;
         }
 
         internal RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
@@ -902,6 +918,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             bufferResource.graphicsResource = graphicsBuffer;
             bufferResource.imported = true;
             bufferResource.forceRelease = forceRelease;
+            bufferResource.validDesc = false;
 
             return new BufferHandle(newHandle);
         }
@@ -912,15 +929,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
             bufferResource.desc = desc;
+            bufferResource.validDesc = true;
             bufferResource.transientPassIndex = transientPassIndex;
 
             return new BufferHandle(newHandle);
         }
 
-        internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle)
+        internal BufferDesc GetBufferResourceDesc(in ResourceHandle handle, bool noThrowOnInvalidDesc = false)
         {
             Debug.Assert(handle.type == RenderGraphResourceType.Buffer);
-            return (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource).desc;
+            var buffer = (m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].resourceArray[handle.index] as BufferResource);
+            if (!buffer.validDesc && !noThrowOnInvalidDesc)
+                throw new ArgumentException("The passed in buffer handle does not have a valid descriptor. (This is most commonly cause by importing the buffer.)", "handle");
+            return buffer.desc;
         }
 
         internal int GetBufferResourceCount()

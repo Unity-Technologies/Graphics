@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
         public VFXUniformMapper uniformMapper;
         public VFXSGInputs SGInputs;
         public List<uint> instancingSplitValues;
-        public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
+        public ReadOnlyDictionary<VFXExpression, BufferUsage> bufferUsage;
         public VFXMapping[] parameters;
         public (VFXSlot slot, VFXData data)[] linkedEventOut;
         public IHLSLCodeHolder[] hlslCodeHolders;
@@ -842,7 +842,7 @@ namespace UnityEditor.VFX
                         var contextData = compiledData.taskToCompiledData[task];
                         contextData.gpuMapper = gpuMapper;
                         contextData.uniformMapper = uniformMapper;
-                        contextData.graphicsBufferUsage = graph.GraphicsBufferTypeUsage;
+                        contextData.bufferUsage = graph.BufferUsage;
 
                         if (task.doesGenerateShader)
                         {

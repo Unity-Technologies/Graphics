@@ -179,6 +179,22 @@ namespace UnityEditor.VFX
         public static IEnumerable<VFXModelDescriptor<VFXOperator>> GetOperators() { LoadIfNeeded(); return VFXViewPreference.displayExperimentalOperator ? m_OperatorDescs : m_OperatorDescs.Where(o => !o.infoAttribute.experimental); }
         public static IEnumerable<VFXModelDescriptor<VFXSlot>> GetSlots() { LoadSlotsIfNeeded(); return m_SlotDescs.Values; }
         public static IEnumerable<Type> GetSlotsType() { LoadSlotsIfNeeded(); return m_SlotDescs.Keys; }
+
+        public static IEnumerable<Type> GetGraphicsBufferType()
+        {
+            foreach (var type in VFXLibrary.GetSlotsType())
+            {
+                if (VFXExpression.IsUniform(VFXExpression.GetVFXValueTypeFromType(type)))
+                    yield return type;
+                else
+                {
+                    var typeAttribute = VFXLibrary.GetAttributeFromSlotType(type);
+                    if (typeAttribute != null && typeAttribute.usages.HasFlag(VFXTypeAttribute.Usage.GraphicsBuffer))
+                        yield return type;
+                }
+            }
+        }
+
         public static bool IsSpaceableSlotType(Type type) { LoadSlotsIfNeeded(); return m_SlotSpaceable.Contains(type); }
         public static VFXTypeAttribute GetAttributeFromSlotType(Type type)
         {

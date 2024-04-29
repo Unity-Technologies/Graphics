@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
         {
             Initial,
             LocalMode,
+            InvertOverrideLevels,
 
             Count
         }
@@ -20,7 +21,7 @@ namespace UnityEngine.Rendering
             if (version == Version.Count)
                 return;
 
-            if (version == Version.Initial)
+            if (version == Version.LocalMode - 1)
             {
 #pragma warning disable 618 // Type or member is obsolete
                 mode = globalVolume ? Mode.Scene : Mode.Local;
@@ -28,6 +29,24 @@ namespace UnityEngine.Rendering
 
                 version++;
             }
+            if (version == Version.InvertOverrideLevels - 1)
+            {
+                #if UNITY_EDITOR
+                ProbeVolumeBakingSet.SyncBakingSets();
+                ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet);
+
+                int maxSubdiv = bakingSet != null ? bakingSet.simplificationLevels : 5;
+                int tmpLowest = lowestSubdivLevelOverride;
+                lowestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - highestSubdivLevelOverride, 0, 5);
+                highestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - tmpLowest, 0, 5);
+                #endif
+
+                version++;
+            }
+
+            #if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+            #endif
         }
 
         /// <summary>

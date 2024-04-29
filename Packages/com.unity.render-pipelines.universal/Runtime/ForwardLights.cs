@@ -463,7 +463,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool enableProbeVolumes = ProbeReferenceVolume.instance.UpdateShaderVariablesProbeVolumes(
                     CommandBufferHelpers.GetNativeCommandBuffer(cmd),
                     stack.GetComponent<ProbeVolumesOptions>(),
-                    cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0);
+                    cameraData.IsTemporalAAEnabled() ? Time.frameCount : 0,
+                    lightData.supportsLightLayers);
 
                 cmd.SetGlobalInt("_EnableProbeVolumes", enableProbeVolumes ? 1 : 0);
                 cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, lightData.supportsLightLayers && !CoreUtils.IsSceneLightingDisabled(cameraData.camera));

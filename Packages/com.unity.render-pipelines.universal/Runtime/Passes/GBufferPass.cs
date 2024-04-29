@@ -134,6 +134,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, s_ProfilingSampler))
             {
+                #if UNITY_EDITOR
+                // Need to clear the bounded targets to get scene-view filtering working.
+                if (CoreUtils.IsSceneFilteringEnabled() && cameraData.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
+                    cmd.ClearRenderTarget(RTClearFlags.Color, Color.clear);
+                #endif
+
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList);
 
                 // If any sub-system needs camera normal texture, make it available.

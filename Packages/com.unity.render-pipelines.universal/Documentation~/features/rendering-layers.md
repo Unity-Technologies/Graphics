@@ -36,11 +36,9 @@ When you enable Rendering Layers for Decals, Unity shows the **Rendering Layers*
 
 To edit the names of Rendering Layers:
 
-1. Go to **Project Settings** > **Graphics** > **URP Global Settings**.
+1. Go to **Project Settings** > **Tags and Layers**.
 
-2. Edit the Rendering Layer names in the **Rendering Layers (3D)** section.
-
-    ![Graphics > URP Global Settings > Rendering Layers (3D)](../Images/Inspectors/global-settings.png)<br/>*Graphics > URP Global Settings > Rendering Layers (3D)*
+2. Edit the Rendering Layer names in the **Rendering Layers** section.
 
 ## <a name="how-to-rendering-layers"></a>How to use Rendering Layers with Lights
 
@@ -60,9 +58,7 @@ To implement the example:
 
 2. Create two Point Lights (call them `A`, and `B`) and two Spheres (call them `C`, and `D`). Position the objects so that both Spheres are within the emission range of Lights.
 
-3. Go to **Project Settings > Graphics > URP Global Settings**. Rename Rendering Layer 1 to `Red`, and Layer 2 to `Green`.
-
-    ![URP Global Settings](../Images/lighting/rendering-layers/rendering-layers-urp-global-settings.png)
+3. Go to **Project Settings** > **Tags and Layers**. Rename Rendering Layer 1 to `Red`, and Layer 2 to `Green`.
 
 4. Select Light `A`, change its color to green. Select Light `B`, change its color to red. With this setup, both Lights affect both Spheres.
 
@@ -120,9 +116,7 @@ To implement the example:
 
 2. [Create a Decal Projector](../renderer-feature-decal.md#how-to-use-the-feature) in the scene.
 
-3. Go to **Project Settings > Graphics > URP Global Settings**. Add a Rendering Layer called `Receive decals`.
-
-    ![URP Global Settings](../Images/lighting/rendering-layers/rendering-layers-global-settings-decals.png)
+3. Go to **Project Settings** > **Tags and Layers**. Add a Rendering Layer called `Receive decals`.
 
 4. Select the Decal Projector. In the Rendering Layers property, select `Receive decals`.
 

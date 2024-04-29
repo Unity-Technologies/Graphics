@@ -33,6 +33,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         ValidityOverDilationThreshold,
         /// <summary>
+        /// Based on rendering layer masks
+        /// </summary>
+        RenderingLayerMasks,
+        /// <summary>
         /// Show in red probes that have been made invalid by adjustment volumes. Important to note that this debug view will only show result for volumes still present in the scene.
         /// </summary>
         InvalidatedByAdjustmentVolumes,
@@ -67,7 +71,6 @@ namespace UnityEngine.Rendering
         public GraphicsBuffer positionNormalBuffer; // buffer storing position and normal
     }
 
-
     class ProbeVolumeDebug : IDebugData
     {
         public bool drawProbes;
@@ -86,6 +89,7 @@ namespace UnityEngine.Rendering
         public bool drawProbeSamplingDebug = false;
         public float probeSamplingDebugSize = 0.3f;
         public bool debugWithSamplingNoise = false;
+        public uint samplingRenderingLayer;
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
@@ -96,6 +100,7 @@ namespace UnityEngine.Rendering
         public bool debugStreaming = false;
         public bool autoDrawProbes = true;
         public bool isolationProbeDebug = true;
+        public byte visibleLayers;
 
         static internal int s_ActiveAdjustmentVolumes = 0;
 
@@ -129,6 +134,7 @@ namespace UnityEngine.Rendering
             otherStateIndex = 0;
             autoDrawProbes = true;
             isolationProbeDebug = true;
+            visibleLayers = 0xFF;
         }
 
         public Action GetReset() => () => Init();
@@ -258,6 +264,9 @@ namespace UnityEngine.Rendering
             resultBuffer = probeSamplingDebugData.positionNormalBuffer;
             coords = probeSamplingDebugData.coordinates;
 
+            if (!probeVolumeDebug.drawProbeSamplingDebug)
+                return false;
+
 #if UNITY_EDITOR
             if (probeSamplingDebugData.camera != camera)
                 return false;
@@ -312,6 +321,13 @@ namespace UnityEngine.Rendering
 
             ProbeReferenceVolume.probeSamplingDebugData.camera = sceneView.camera;
             ProbeReferenceVolume.probeSamplingDebugData.coordinates = screenCoordinates;
+
+            if (e.type != EventType.Repaint && e.type != EventType.Layout)
+            {
+                var go = HandleUtility.PickGameObject(e.mousePosition, false);
+                if (go != null && go.TryGetComponent<MeshRenderer>(out var renderer))
+                    instance.probeVolumeDebug.samplingRenderingLayer = renderer.renderingLayerMask;
+            }
 
             SceneView.currentDrawingSceneView.Repaint(); // useful when 'Always Refresh' is not toggled
         }
@@ -478,7 +494,6 @@ namespace UnityEngine.Rendering
             };
 
             probeContainer.children.Add(new DebugUI.BoolField { displayName = "Display Probes", tooltip = "Render the debug view showing probe positions. Use the shading mode to determine which type of lighting data to visualize.", getter = () => probeVolumeDebug.drawProbes, setter = value => probeVolumeDebug.drawProbes = value, onValueChanged = RefreshDebug });
-            if (probeVolumeDebug.drawProbes)
             {
                 var probeContainerChildren = new DebugUI.Container()
                 {
@@ -935,11 +950,12 @@ namespace UnityEngine.Rendering
             m_ProbeSamplingDebugMaterial.renderQueue = (int)RenderQueue.Transparent;
             m_ProbeSamplingDebugMaterial02.renderQueue = (int)RenderQueue.Transparent;
 
-            m_DebugMaterial.SetVector("_DebugEmptyProbeData", new Vector4(0.388f, 0.812f, 0.804f, 1.0f));
+            m_DebugMaterial.SetVector("_DebugEmptyProbeData", APVDefinitions.debugEmptyColor);
 
             if (probeVolumeDebug.drawProbeSamplingDebug)
             {
                 m_ProbeSamplingDebugMaterial.SetInt("_ShadingMode", (int)probeVolumeDebug.probeShading);
+                m_ProbeSamplingDebugMaterial.SetInt("_RenderingLayerMask", (int)probeVolumeDebug.samplingRenderingLayer);
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugArrowColor", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator01Color", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
                 m_ProbeSamplingDebugMaterial.SetVector("_DebugLocator02Color", new Vector4(0.3f, 0.3f, 0.3f, 1.0f));
@@ -989,6 +1005,7 @@ namespace UnityEngine.Rendering
                     props.SetInt("_MaxAllowedSubdiv", maxSubdivToVisualize);
                     props.SetInt("_MinAllowedSubdiv", minSubdivToVisualize);
                     props.SetFloat("_ValidityThreshold", m_CurrentBakingSet.settings.dilationSettings.dilationValidityThreshold);
+                    props.SetInt("_RenderingLayerMask", probeVolumeDebug.visibleLayers);
                     props.SetFloat("_OffsetSize", probeVolumeDebug.offsetSize);
                     props.SetTexture("_ExposureTexture", exposureTexture);
 
@@ -996,6 +1013,7 @@ namespace UnityEngine.Rendering
                     {
                         m_DebugMaterial.SetVectorArray("_TouchupVolumeBounds", adjustmentVolumeBounds);
                         m_DebugMaterial.SetInt("_AdjustmentVolumeCount", probeVolumeDebug.isolationProbeDebug ? adjustmentVolumeCount : 0);
+                        m_DebugMaterial.SetVector("_ScreenSize", new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f/camera.pixelWidth, 1.0f/camera.pixelHeight));
 
                         var probeBuffer = debug.probeBuffers[i];
                         m_DebugMaterial.SetInt("_DebugProbeVolumeSampling", 0);
@@ -1007,8 +1025,10 @@ namespace UnityEngine.Rendering
                     {
                         var probeBuffer = debug.probeBuffers[i];
                         m_ProbeSamplingDebugMaterial02.SetInt("_DebugProbeVolumeSampling", 1);
+                        props.SetInt("_ShadingMode", (int)DebugProbeShadingMode.SH);
                         props.SetFloat("_ProbeSize", probeVolumeDebug.probeSamplingDebugSize);
                         props.SetInt("_DebugSamplingNoise", Convert.ToInt32(probeVolumeDebug.debugWithSamplingNoise));
+                        props.SetInt("_RenderingLayerMask", (int)probeVolumeDebug.samplingRenderingLayer);
                         m_ProbeSamplingDebugMaterial02.SetBuffer("_positionNormalBuffer", probeSamplingDebugData.positionNormalBuffer);
                         Graphics.DrawMeshInstanced(debugMesh, 0, m_ProbeSamplingDebugMaterial02, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
@@ -1052,6 +1072,7 @@ namespace UnityEngine.Rendering
             var chunks = cell.poolInfo.chunkList;
 
             Vector4[] texels = new Vector4[kProbesPerBatch];
+            float[] layer = new float[kProbesPerBatch];
             float[] validity = new float[kProbesPerBatch];
             float[] dilationThreshold = new float[kProbesPerBatch];
             float[] relativeSize = new float[kProbesPerBatch];
@@ -1100,6 +1121,8 @@ namespace UnityEngine.Rendering
                             texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                             relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
 
+                            layer[idxInBatch] = Unity.Mathematics.math.asfloat(cell.data.layer.Length > 0 ? cell.data.layer[probeFlatIndex] : 0xFFFFFFFF);
+
                             if (touchupUpVolumeAction != null)
                             {
                                 touchupUpVolumeAction[idxInBatch] = cell.data.touchupVolumeInteraction[probeFlatIndex];
@@ -1133,6 +1156,7 @@ namespace UnityEngine.Rendering
                                 MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
                                 prop.SetFloatArray("_Validity", validity);
+                                prop.SetFloatArray("_RenderingLayer", layer);
                                 prop.SetFloatArray("_DilationThreshold", dilationThreshold);
                                 prop.SetFloatArray("_TouchupedByVolume", touchupUpVolumeAction);
                                 prop.SetFloatArray("_RelativeSize", relativeSize);

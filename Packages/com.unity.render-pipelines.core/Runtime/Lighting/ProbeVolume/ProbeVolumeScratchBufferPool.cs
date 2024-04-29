@@ -47,6 +47,7 @@ namespace UnityEngine.Rendering
         int m_L0Size;
         int m_L1Size;
         int m_ValiditySize;
+        int m_ValidityLayerCount;
         int m_L2Size;
         int m_SkyOcclusionSize;
         int m_SkyShadingDirectionSize;
@@ -65,6 +66,7 @@ namespace UnityEngine.Rendering
             m_L0Size = bakingSet.L0ChunkSize;
             m_L1Size = bakingSet.L1ChunkSize;
             m_ValiditySize = bakingSet.sharedValidityMaskChunkSize;
+            m_ValidityLayerCount = bakingSet.bakedMaskCount;
             m_SkyOcclusionSize = bakingSet.sharedSkyOcclusionL0L1ChunkSize;
             m_SkyShadingDirectionSize = bakingSet.sharedSkyShadingDirectionIndicesChunkSize;
             m_L2Size = bakingSet.L2TextureChunkSize;
@@ -82,7 +84,7 @@ namespace UnityEngine.Rendering
                 bufferLayout._L0Size = m_L0Size;
                 bufferLayout._L1Size = m_L1Size;
                 bufferLayout._ValiditySize = m_ValiditySize;
-                bufferLayout._ValidityProbeSize = 1; // 1xbyte => 4 probes at a time.
+                bufferLayout._ValidityProbeSize = m_ValidityLayerCount; // 1layer => 1xbyte => 4 probes at a time.
                 if (m_SkyOcclusionSize != 0)
                 {
                     bufferLayout._SkyOcclusionSize = m_SkyOcclusionSize;

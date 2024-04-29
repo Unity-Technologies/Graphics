@@ -7,6 +7,23 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
+    internal struct TextureAccess
+    {
+        public TextureHandle textureHandle;
+        public int mipLevel;
+        public int depthSlice;
+        public AccessFlags flags;
+
+        public TextureAccess(TextureHandle handle, AccessFlags flags, int mipLevel, int depthSlice)
+        {
+            this.textureHandle = handle;
+            this.flags = flags;
+            this.mipLevel = mipLevel;
+            this.depthSlice = depthSlice;
+        }
+    }
+
+
     /// <summary>
     /// An abstract handle representing a texture resource as known by one particular record + execute of the render graph.
     /// TextureHandles should not be used outside of the context of a render graph execution.
@@ -97,6 +114,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>True if the handle is a builtin handle.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsBuiltin() => this.builtin;
+
+        /// <summary>
+        /// Get the Descriptor of the texture. This simply calls RenderGraph.GetTextureDesc but is more easily discoverable through auto complete.
+        /// </summary>
+        /// <param name="renderGraph">The rendergraph instance that was used to create the texture on. Texture handles are a lightweight object, all information is stored on the RenderGraph itself.</param>
+        /// <returns>The texture descriptor for the given texture handle.</returns>
+        public TextureDesc GetDescriptor(RenderGraph renderGraph) { return renderGraph.GetTextureDesc(this); }
     }
 
     /// <summary>
@@ -282,6 +306,61 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public TextureDesc(TextureDesc input)
         {
             this = input;
+        }
+
+        /// <summary>
+        /// Do a best effort conversion from a RenderTextureDescriptor to a TextureDesc. This tries to initialize a descriptor to be as close as possible to the given render texture descriptor but there might be subtle differences when creating
+        /// render graph textures using this TextureDesc due to the underlying RTHandle system.
+        /// Some parameters of the TextureDesc (like name and filtering modes) are not present in the RenderTextureDescriptor for these the returned TextureDesc will contain plausible default values.
+        /// </summary>
+        /// <param name="input">The texture descriptor to create a TextureDesc from</param>
+        public TextureDesc(RenderTextureDescriptor input)
+        {
+            sizeMode = TextureSizeMode.Explicit;
+            width = input.width;
+            height = input.height;
+            slices = input.volumeDepth;
+            scale = Vector2.one;
+            func = null;
+            depthBufferBits = (DepthBits)input.depthBufferBits;
+            colorFormat = input.graphicsFormat;
+            filterMode = FilterMode.Bilinear;
+            wrapMode = TextureWrapMode.Clamp;
+            dimension = input.dimension;
+            enableRandomWrite = input.enableRandomWrite;
+            useMipMap = input.useMipMap;
+            autoGenerateMips = input.autoGenerateMips;
+            isShadowMap = (input.shadowSamplingMode != ShadowSamplingMode.None);
+            anisoLevel = 1;
+            mipMapBias = 0;
+            msaaSamples = (MSAASamples)input.msaaSamples;
+            bindTextureMS = input.bindMS;
+            useDynamicScale = input.useDynamicScale;
+            useDynamicScaleExplicit = false;
+            memoryless = input.memoryless;
+            vrUsage = input.vrUsage;
+            name = "UnNamedFromRenderTextureDescriptor";
+            fastMemoryDesc = new FastMemoryDesc();
+            fastMemoryDesc.inFastMemory = false;
+            fallBackToBlackTexture = false;
+            disableFallBackToImportedTexture = true;
+            clearBuffer = true;
+            clearColor = Color.black;
+            discardBuffer = false;
+        }
+
+        /// <summary>
+        /// Do a best effort conversion from a RenderTexture to a TextureDesc. This tries to initialize a descriptor to be as close as possible to the given render texture but there might be subtle differences when creating
+        /// render graph textures using this TextureDesc due to the underlying RTHandle system.
+        /// </summary>
+        /// <param name="input">The texture to create a TextureDesc from</param>
+        public TextureDesc(RenderTexture input) : this(input.descriptor)
+        {
+            filterMode = input.filterMode;
+            wrapMode = input.wrapMode;
+            anisoLevel = input.anisoLevel;
+            mipMapBias = input.mipMapBias;
+            this.name = "UnNamedFromRenderTextureDescriptor";
         }
 
         /// <summary>

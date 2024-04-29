@@ -422,9 +422,9 @@ namespace UnityEngine.Rendering
         {
             float maxSizedDim = Mathf.Max(volumeSize.x, Mathf.Max(volumeSize.y, volumeSize.z));
             float maxSideInBricks = maxSizedDim / ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-            int absoluteMaxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
-            int subdivLevel = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3)) - 1;
-            return Mathf.Max(subdivLevel, absoluteMaxSubdiv - maxSubdiv);
+            int subdiv = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3)) - 1;
+
+            return Mathf.Min(subdiv, maxSubdiv);
         }
 
         static void InflateBound(ref Bounds bounds, ProbeVolume pv)
@@ -446,7 +446,9 @@ namespace UnityEngine.Rendering
             maxPadding = cellSizeVector - new Vector3(Mathf.Abs(maxPadding.x), Mathf.Abs(maxPadding.y), Mathf.Abs(maxPadding.z));
 
             // Find the size of the brick we can put for every axis given the padding size
-            int maxSubdiv = (pv.overridesSubdivLevels ? pv.highestSubdivLevelOverride : 0);
+            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
+            if (pv.overridesSubdivLevels) maxSubdiv = Mathf.Min(pv.highestSubdivLevelOverride, maxSubdiv);
+
             float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z), maxSubdiv));
             float leftPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(minPadding.x, originalBounds.size.y, originalBounds.size.z), maxSubdiv));
             float topPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(originalBounds.size.x, maxPadding.y, originalBounds.size.z), maxSubdiv));

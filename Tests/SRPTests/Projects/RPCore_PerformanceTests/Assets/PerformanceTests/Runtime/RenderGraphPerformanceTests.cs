@@ -66,6 +66,20 @@ namespace PerformanceTests.Runtime
                 .Run();
         }
 
+        IEnumerable<ProfilingSampler> GetAllMarkers()
+        {
+            // High level profiling markers for Render Graph
+            foreach (var val in Enum.GetValues(typeof(RenderGraphProfileId)))
+                yield return ProfilingSampler.Get((RenderGraphProfileId)val);
+
+            if (m_Compiler == Compiler.NativeRenderGraph)
+            {
+                // Low level profiling markers for Native Render Pass Compiler
+                foreach (var val in Enum.GetValues(typeof(NativePassCompiler.NativeCompilerProfileId)))
+                    yield return ProfilingSampler.Get((NativePassCompiler.NativeCompilerProfileId)val);
+            }
+        }
+
         // This is a [UnityTest] because Profiling.Recorder requires frame tick to happen.
         [UnityTest, Performance]
         public IEnumerator RecordAndExecute_MeasureProfileIds([Values] TestCase testCase, [Values(1, 5, 15)] int numPasses)
@@ -80,20 +94,8 @@ namespace PerformanceTests.Runtime
 
             List<(SampleGroup, ProfilingSampler)> samplers = new();
 
-            ProfilingSampler GetSampler(object profilerId) => m_Compiler switch
+            foreach (var sampler in GetAllMarkers())
             {
-                Compiler.NativeRenderGraph => ProfilingSampler.Get((NativePassCompiler.NativeCompilerProfileId) profilerId),
-                Compiler.RenderGraph => ProfilingSampler.Get((RenderGraphProfileId) profilerId),
-                _ => throw new NotImplementedException()
-            };
-
-            Type profileIdEnumType = m_Compiler == Compiler.NativeRenderGraph
-                ? typeof(NativePassCompiler.NativeCompilerProfileId)
-                : typeof(RenderGraphProfileId);
-
-            foreach (var profilerId in Enum.GetValues(profileIdEnumType))
-            {
-                var sampler = GetSampler(profilerId);
                 samplers.Add((new SampleGroup(sampler.name), sampler));
                 sampler.enableRecording = true;
             }

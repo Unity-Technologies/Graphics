@@ -103,7 +103,6 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         // Try the APV if enabled
         if(_EnableProbeVolumes && _RayTracingAPVRayMiss)
         {
-
             BuiltinData apvBuiltinData;
             ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
 
@@ -112,6 +111,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
                 normalData.normalWS, -normalData.normalWS,
                 GetWorldSpaceNormalizeViewDir(sourcePosInput.positionWS),
                 sourcePosInput.positionSS,
+                _RaytracingAPVLayerMask,
                 apvBuiltinData.bakeDiffuseLighting,
                 apvBuiltinData.backBakeDiffuseLighting); // Not used
 

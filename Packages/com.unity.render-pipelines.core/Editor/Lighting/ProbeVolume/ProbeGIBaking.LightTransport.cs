@@ -484,6 +484,7 @@ namespace UnityEngine.Rendering
 
             static IRayTracingShader m_ShaderVO = null;
             static IRayTracingShader m_ShaderSO = null;
+            static IRayTracingShader m_ShaderRL = null;
 
             internal IRayTracingAccelStruct CreateAccelerationStructure()
             {
@@ -550,6 +551,25 @@ namespace UnityEngine.Rendering
                 }
             }
 
+            public IRayTracingShader shaderRL
+            {
+                get
+                {
+                    if (m_ShaderRL == null)
+                    {
+                        var bakingResources = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>();
+                        m_ShaderRL = m_Context.CreateRayTracingShader(m_Backend switch
+                        {
+                            RayTracingBackend.Hardware => bakingResources.renderingLayerRT,
+                            RayTracingBackend.Compute => bakingResources.renderingLayerCS,
+                            _ => null
+                        });
+                    }
+
+                    return m_ShaderRL;
+                }
+            }
+
             public void BindSamplingTextures(CommandBuffer cmd)
             {
                 if (m_SamplingResources == null)
@@ -559,6 +579,26 @@ namespace UnityEngine.Rendering
                 }
 
                 SamplingResources.BindSamplingTextures(cmd, m_SamplingResources);
+            }
+
+            public bool TryGetMeshForAccelerationStructure(Renderer renderer, out Mesh mesh)
+            {
+                mesh = null;
+                if (renderer.isPartOfStaticBatch)
+                {
+                    Debug.LogError("Static batching is not supported when baking APV.");
+                    return false;
+                }
+
+                mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                if (mesh == null)
+                    return false;
+
+                // This would error out later in LoadIndexBuffer in LightTransport package
+                if ((mesh.indexBufferTarget & GraphicsBuffer.Target.Raw) == 0 && (mesh.GetIndices(0) == null || mesh.GetIndices(0).Length == 0))
+                    return false;
+
+                return true;
             }
 
             public void Dispose()
@@ -626,6 +666,7 @@ namespace UnityEngine.Rendering
             bool savedSkyOcclusion = bakingSet.skyOcclusion;
             bool savedSkyDirection  = bakingSet.skyOcclusionShadingDirection;
             bool savedVirtualOffset = bakingSet.settings.virtualOffsetSettings.useVirtualOffset;
+            bool savedRenderingLayers = bakingSet.useRenderingLayers;
             {
                 // Patch baking set as we are not gonna use a mix of baked values and new values
                 bakingSet.simplificationLevels = bakingSet.bakedSimplificationLevels;
@@ -633,6 +674,7 @@ namespace UnityEngine.Rendering
                 bakingSet.skyOcclusion = bakingSet.bakedSkyOcclusion;
                 bakingSet.skyOcclusionShadingDirection = bakingSet.bakedSkyShadingDirection;
                 bakingSet.settings.virtualOffsetSettings.useVirtualOffset = bakingSet.supportOffsetsChunkSize != 0;
+                bakingSet.useRenderingLayers = bakingSet.bakedMaskCount == 1 ? false : true;
 
                 m_BakingSet = bakingSet;
                 m_BakingBatch = new BakingBatch(cellCount);
@@ -746,19 +788,27 @@ namespace UnityEngine.Rendering
                 while (!failed && lightingJob.currentStep < lightingJob.stepCount)
                     failed |= !lightingJob.Step();
 
+                // Bake rendering layers
+                var layerMaskJob = renderingLayerOverride ?? new DefaultRenderingLayer();
+                layerMaskJob.Initialize(bakingSet, uniquePositions.AsArray());
+                while (!failed && layerMaskJob.currentStep < layerMaskJob.stepCount)
+                    failed |= !layerMaskJob.Step();
+
                 // Upload new data in cells
                 foreach ((int uniqueProbeIndex, int cellIndex, int i) in bakedProbes)
                 {
                     ref var cell = ref bakingCells[cellIndex];
                     cell.SetBakedData(m_BakingSet, m_BakingBatch, cellVolumes[cellIndex], i, uniqueProbeIndex,
                         lightingJob.irradiance[uniqueProbeIndex], lightingJob.validity[uniqueProbeIndex],
-                        virtualOffsetJob.offsets, skyOcclusionJob.occlusion, skyOcclusionJob.encodedDirections);
+                        layerMaskJob.renderingLayerMasks, virtualOffsetJob.offsets,
+                        skyOcclusionJob.occlusion, skyOcclusionJob.encodedDirections);
                 }
 
                 skyOcclusionJob.encodedDirections.Dispose();
                 virtualOffsetJob.Dispose();
                 skyOcclusionJob.Dispose();
                 lightingJob.Dispose();
+                layerMaskJob.Dispose();
 
                 if (!failed)
                 {
@@ -800,6 +850,7 @@ namespace UnityEngine.Rendering
                 bakingSet.skyOcclusion = savedSkyOcclusion;
                 bakingSet.skyOcclusionShadingDirection = savedSkyDirection;
                 bakingSet.settings.virtualOffsetSettings.useVirtualOffset = savedVirtualOffset;
+                bakingSet.useRenderingLayers = savedRenderingLayers;
 
                 m_BakingBatch = null;
                 m_BakingSet = null;

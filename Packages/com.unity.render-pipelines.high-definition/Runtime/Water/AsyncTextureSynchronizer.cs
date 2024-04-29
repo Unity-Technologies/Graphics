@@ -185,6 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_InternalRT.Release();
 
             m_CurrentResolution = 0;
+            m_TargetTextureHash = 0;
         }
     }
 }

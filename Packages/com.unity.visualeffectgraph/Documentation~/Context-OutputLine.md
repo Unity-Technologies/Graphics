@@ -9,7 +9,7 @@ Two modes are available to set the end point of the line. The first point is alw
 *   Using target offset in particle space. Specifies the second point via an offset defined in the particle space.
 *   Using target position attribute. Specifies the second point with the target position attribute.
 
-This output does not support texturing or [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest).
+This output does not support texturing.
 
 Below is a list of settings and properties specific to the Output Particle Line Context. For information about the generic output settings this Context shares with all other Contexts, see [Global Output Settings and Properties](Context-OutputSharedSettings.md).
 

@@ -165,4 +165,27 @@ namespace UnityEditor.Rendering
             return true;
         }
     }
+
+    [VolumeParameterDrawer(typeof(RenderingLayerMaskParameter))]
+    sealed class RenderingLayerMaskParameterDrawer : VolumeParameterDrawer
+    {
+        public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
+        {
+            var value = parameter.value;
+
+            if (value.propertyType != SerializedPropertyType.RenderingLayerMask)
+                return false;
+
+            var names = RenderingLayerMask.GetDefinedRenderingLayerNames();
+
+            var lineRect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(lineRect, title, value);
+            EditorGUI.BeginChangeCheck();
+            var newVal= EditorGUI.RenderingLayerMaskField(lineRect, title, value.uintValue);
+            if (EditorGUI.EndChangeCheck())
+                value.uintValue = newVal;
+            EditorGUI.EndProperty();
+            return true;
+        }
+    }
 }

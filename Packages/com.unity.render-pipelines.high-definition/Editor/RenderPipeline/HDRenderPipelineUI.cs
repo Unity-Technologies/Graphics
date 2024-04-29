@@ -801,58 +801,60 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage, Styles.forceScreenPercentage);
-
-                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
-                    && serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
-                {
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.hasMultipleDifferentValues;
-                    float forcePercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    forcePercentage = EditorGUILayout.DelayedFloatField(Styles.forcedScreenPercentage, forcePercentage);
-                    if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue = Mathf.Clamp(forcePercentage, 0.0f, 100.0f);
-                    EditorGUI.showMixedValue = false;
-                }
-
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues)
                 {
                     using (new EditorGUI.DisabledGroupScope(true))
                         EditorGUILayout.LabelField(Styles.multipleDifferenteValueMessage);
                 }
 
-                if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
-                    && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
+                using (new EditorGUI.IndentLevelScope())
                 {
-#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                    if (dlssDetected && containsDLSS && serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue)
+                    if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
+                        && serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
                     {
-                        EditorGUILayout.HelpBox(Styles.DLSSIgnorePercentages, MessageType.Info);
+                        EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.hasMultipleDifferentValues;
+                        float forcePercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue;
+                        EditorGUI.BeginChangeCheck();
+                        forcePercentage = EditorGUILayout.DelayedFloatField(Styles.forcedScreenPercentage, forcePercentage);
+                        if (EditorGUI.EndChangeCheck())
+                            serialized.renderPipelineSettings.dynamicResolutionSettings.forcedPercentage.floatValue = Mathf.Clamp(forcePercentage, 0.0f, 100.0f);
+                        EditorGUI.showMixedValue = false;
                     }
+
+                    if (!serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues
+                        && !serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.boolValue)
+                    {
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                        if (dlssDetected && containsDLSS && serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings.boolValue)
+                        {
+                            EditorGUILayout.HelpBox(Styles.DLSSIgnorePercentages, MessageType.Info);
+                        }
 #endif
 
-                    // Show a warning if STP is selected with software DRS and a dynamic scaling range
-                    bool containsSTP = ((1 << (int)AdvancedUpscalers.STP) & advancedUpscalersEnabledMask) != 0;
-                    if (containsSTP && (!isHwDrs || !gfxDeviceSupportsHwDrs))
-                    {
-                        EditorGUILayout.HelpBox($"{Styles.STPSwDrsWarningMsg}", MessageType.Warning, wide: true);
+                        // Show a warning if STP is selected with software DRS and a dynamic scaling range
+                        bool containsSTP = ((1 << (int)AdvancedUpscalers.STP) & advancedUpscalersEnabledMask) != 0;
+                        if (containsSTP && (!isHwDrs || !gfxDeviceSupportsHwDrs))
+                        {
+                            EditorGUILayout.HelpBox($"{Styles.STPSwDrsWarningMsg}", MessageType.Warning, wide: true);
+                        }
+
+                        float minPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
+                        float maxPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue;
+
+                        EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.hasMultipleDifferentValues;
+                        EditorGUI.BeginChangeCheck();
+                        minPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.minPercentage, minPercentage);
+                        if (EditorGUI.EndChangeCheck())
+                            serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue = Mathf.Clamp(minPercentage, 0.0f, maxPercentage);
+
+                        EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.hasMultipleDifferentValues;
+                        EditorGUI.BeginChangeCheck();
+                        maxPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.maxPercentage, maxPercentage);
+                        if (EditorGUI.EndChangeCheck())
+                            serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, minPercentage, 100.0f);
+
+                        EditorGUI.showMixedValue = false;
                     }
-
-                    float minPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;
-                    float maxPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue;
-
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.hasMultipleDifferentValues;
-                    EditorGUI.BeginChangeCheck();
-                    minPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.minPercentage, minPercentage);
-                    if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue = Mathf.Clamp(minPercentage, 0.0f, maxPercentage);
-
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.hasMultipleDifferentValues;
-                    EditorGUI.BeginChangeCheck();
-                    maxPercentage = EditorGUILayout.DelayedFloatField(HDRenderPipelineUI.Styles.maxPercentage, maxPercentage);
-                    if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.maxPercentage.floatValue = Mathf.Clamp(maxPercentage, minPercentage, 100.0f);
-
-                    EditorGUI.showMixedValue = false;
                 }
 
                 {
@@ -867,12 +869,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 {
-                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.hasMultipleDifferentValues;
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.hasMultipleDifferentValues;
                     float lowResSSGIMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.floatValue;
                     EditorGUI.BeginChangeCheck();
                     lowResSSGIMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResSSGIMinimumThreshold, lowResSSGIMinimumThreshold);
                     if (EditorGUI.EndChangeCheck())
                         serialized.renderPipelineSettings.dynamicResolutionSettings.lowResSSGIMinimumThreshold.floatValue = Mathf.Clamp(lowResSSGIMinimumThreshold, 0.0f, 50.0f);
+                }
+
+                {
+                    EditorGUI.showMixedValue = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold.hasMultipleDifferentValues;
+                    float lowResVolumetricCloudsMinimumThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    lowResVolumetricCloudsMinimumThreshold = EditorGUILayout.DelayedFloatField(Styles.lowResVolumetricCloudsMinimumThreshold, lowResVolumetricCloudsMinimumThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold.floatValue = Mathf.Clamp(lowResVolumetricCloudsMinimumThreshold, 0.001f, 100.0f);
                 }
 
                 {

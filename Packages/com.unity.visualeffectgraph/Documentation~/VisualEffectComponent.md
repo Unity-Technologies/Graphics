@@ -46,6 +46,14 @@ Rendering properties control how the visual effect instance will render and rece
 | Sorting Layer         | Specifies the Renderer's group among other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components.                                                                           |
 | Order in Layer        | Specifies the Renderer's order with a sorting layer relative to other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. See also [Renderer.sortingOrder](https://docs.unity3d.com/ScriptReference/Renderer-sortingOrder.html).     |
 
+#### Instancing properties
+
+Instancing properties control how the visual effect instance is used by the [Instancing](Instancing.md) feature.
+
+| Item               | Description                                                  |
+| ------------------ | ------------------------------------------------------------ |
+| Allow instancing   | Allow the Instancing feature to group this instance with others as a batch, to improve performance. Defaults to *true*. |
+
 #### Properties
 
 The properties category display any Property that is defined in the Visual Effect Graph Blackboard as an **Exposed Property**. Every property can be overridden from its default value in order to customize the Visual Effect instance in the scene. Some properties can also be edited using Gizmos directly in the scene.

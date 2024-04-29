@@ -235,7 +235,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public BufferHandle UseBuffer(in BufferHandle input, AccessFlags flags)
         {
-            return new BufferHandle(UseResource(input.handle, flags).index);
+            UseResource(input.handle, flags);
+            return input;
         }
 
         // UseTexture and SetRenderAttachment are currently forced to be mutually exclusive in the same pass
@@ -249,12 +250,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if(RenderGraph.enableValidityChecks)
             {
                 bool usedAsFragment = false;
-                usedAsFragment = (m_RenderPass.depthBuffer.IsValid() && m_RenderPass.depthBuffer.handle.index == tex.handle.index);
+                usedAsFragment = (m_RenderPass.depthAccess.textureHandle.IsValid() && m_RenderPass.depthAccess.textureHandle.handle.index == tex.handle.index);
                 if (!usedAsFragment)
                 {
                     for (int i = 0; i <= m_RenderPass.colorBufferMaxIndex; i++)
                     {
-                        if (m_RenderPass.colorBuffers[i].IsValid() && m_RenderPass.colorBuffers[i].handle.index == tex.handle.index)
+                        if (m_RenderPass.colorBufferAccess[i].textureHandle.IsValid() && m_RenderPass.colorBufferAccess[i].textureHandle.handle.index == tex.handle.index)
                         {
                             usedAsFragment = true;
                             break;
@@ -370,7 +371,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        public void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags)
+        public void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
             CheckUseFragment(tex, false);
             ResourceHandle result = UseResource(tex.handle, flags);
@@ -379,10 +380,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // This is just to keep track of the handle->mrt index mapping
             var th = new TextureHandle();
             th.handle = result;
-            m_RenderPass.SetColorBufferRaw(th, index, flags);
+            m_RenderPass.SetColorBufferRaw(th, index, flags, mipLevel, depthSlice);
         }
 
-        public void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags)
+        public void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
             CheckUseFragment(tex, false);
             ResourceHandle result = UseResource(tex.handle, flags);
@@ -391,10 +392,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // This is just to keep track of the handle->mrt index mapping
             var th = new TextureHandle();
             th.handle = result;
-            m_RenderPass.SetFragmentInputRaw(th, index, flags);
+            m_RenderPass.SetFragmentInputRaw(th, index, flags, mipLevel, depthSlice);
         }
 
-        public void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags)
+        public void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags, int mipLevel, int depthSlice)
         {
             CheckUseFragment(tex, true);
             ResourceHandle result = UseResource(tex.handle, flags);
@@ -403,20 +404,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // This is just to keep track to bind this handle as a depth texture.
             var th = new TextureHandle();
             th.handle = result;
-            m_RenderPass.SetDepthBufferRaw(th, flags);
+            m_RenderPass.SetDepthBufferRaw(th, flags, mipLevel, depthSlice);
         }
 
         public TextureHandle SetRandomAccessAttachment(TextureHandle input, int index, AccessFlags flags = AccessFlags.Read)
         {
             CheckNotUseFragment(input);
-            TextureHandle h = new TextureHandle();
-            h.handle = UseResource(input.handle, flags);
+            ResourceHandle result = UseResource(input.handle, flags);
 
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
             // it doesn't really matter as it's really the Read/Write lists that determine that
             // This is just to keep track of the resources to bind before execution
-            m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, false, flags);
-            return h;
+            var th = new TextureHandle();
+            th.handle = result;
+            m_RenderPass.SetRandomWriteResourceRaw(th.handle, index, false, flags);
+            return input;
         }
 
         public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, AccessFlags flags = AccessFlags.Read)
@@ -427,7 +429,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // it doesn't really matter as it's really the Read/Write lists that determine that
             // This is just to keep track of the resources to bind before execution
             m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, true, flags);
-            return h;
+            return input;
         }
 
         public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read)
@@ -438,7 +440,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // it doesn't really matter as it's really the Read/Write lists that determine that
             // This is just to keep track of the resources to bind before execution
             m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, preserveCounterValue, flags);
-            return h;
+            return input;
         }
 
         public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ComputeGraphContext> renderFunc) where PassData : class, new()

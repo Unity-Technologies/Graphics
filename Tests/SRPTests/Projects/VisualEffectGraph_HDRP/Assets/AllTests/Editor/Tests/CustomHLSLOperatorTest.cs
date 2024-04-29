@@ -4,7 +4,8 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
+using System.Text;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 
 using UnityEditor.VFX.UI;
@@ -15,8 +16,15 @@ using CustomHLSL = UnityEditor.VFX.Operator.CustomHLSL;
 
 namespace UnityEditor.VFX.Test
 {
+    [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+    public struct CustomHLSLOperatorTestType
+    {
+        public uint test;
+        public Vector3 position;
+    }
+
     [TestFixture]
-    class CustomHLSLOperatorTest
+    public class CustomHLSLOperatorTest
     {
         private const string defaultHlslCode =
             "float3 Transform(in float4x4 mat, in float3 vec)" + "\n" +
@@ -103,6 +111,67 @@ namespace UnityEditor.VFX.Test
                                         "\treturn var_2;\r\n" +
                                         "}\r\n";
             Assert.AreEqual(expectedGeneratedCode, hlslExpression.customCode);
+        }
+
+        [UnityTest, Description("Regression for UUM-69735")]
+        public IEnumerator Check_CustomHLSL_Operator_Use_Shader_File_And_ShaderGraph()
+        {
+            var hlslCode = @"
+float3 GetCustomColor(in float3 vec)
+{
+    return float3(0.1f, 0.2f, 0.3f);
+}";
+            var shaderInclude = CustomHLSLBlockTest.CreateShaderFile(hlslCode, out var shaderIncludePath);
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+            hlslOperator.SetSettingValue("m_ShaderFile", shaderInclude);
+            hlslOperator.SetSettingValue("m_OperatorName", "GetCustomColor");
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            var vfxAsset = graph.GetResource().asset;
+            var outputToReplace = graph.children.OfType<VFXContext>().First(o => o.contextType.HasFlag(VFXContextType.Output));
+            var shaderGraphVariant = VFXLibrary.GetContexts().First(o => o.model is VFXComposedParticleOutput);
+
+            var newShaderGraphOutput = shaderGraphVariant.CreateInstance();
+            graph.AddChild(newShaderGraphOutput);
+            Assert.IsTrue(newShaderGraphOutput.GetSetting("shaderGraph").valid);
+
+            var tracker = "Find_Me_In_Generated_Name";
+            newShaderGraphOutput.label = tracker;
+            newShaderGraphOutput.LinkFrom(outputToReplace.inputFlowSlot[0].link.First().context);
+            outputToReplace.UnlinkAll();
+            graph.RemoveChild(outputToReplace);
+
+            var blockSetColor = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            blockSetColor.SetSettingValue("attribute", "color");
+            newShaderGraphOutput.AddChild(blockSetColor);
+            Assert.IsTrue(hlslOperator.outputSlots[0].Link(blockSetColor.inputSlots[0]));
+
+            var blockOrientCameraPlane = ScriptableObject.CreateInstance<Block.Orient>();
+            blockOrientCameraPlane.SetSettingValue("faceRay", true);
+            blockOrientCameraPlane.SetSettingValue("mode", Block.Orient.Mode.FaceCameraPlane);
+            newShaderGraphOutput.AddChild(blockOrientCameraPlane);
+            var defineToFind = blockOrientCameraPlane.defines.First();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
+            yield return null;
+
+            string source = null;
+            for (int shaderIndex = 0; shaderIndex < graph.GetResource().GetShaderSourceCount(); shaderIndex++)
+            {
+                var name = graph.GetResource().GetShaderSourceName(shaderIndex);
+                if (name.Contains(tracker))
+                {
+                    source = graph.GetResource().GetShaderSource(shaderIndex);
+                    break;
+                }
+            }
+            Assert.IsNotNull(source);
+            Assert.IsTrue(source.Contains(shaderIncludePath, StringComparison.Ordinal));
+            Assert.IsTrue(source.Contains(defineToFind, StringComparison.Ordinal));
+
+            yield return null;
         }
 
         [UnityTest]
@@ -456,6 +525,104 @@ float3 DecodeMorton(in uint code)
                 }
             }
             Assert.IsTrue(foundCustomFunction);
+            yield return null;
+        }
+
+        public struct BufferCase
+        {
+            public string declaration;
+            public string implementation;
+
+            public override string ToString()
+            {
+                return declaration;
+            }
+        }
+
+        public static readonly BufferCase[] kSampleBufferCase =
+        {
+            new() { declaration = "AppendStructuredBuffer<uint>", implementation = "inputBuffer.Append(0u); localValue = 0.1f;" },
+            new() { declaration = "ConsumeStructuredBuffer<float3>", implementation = "localValue = inputBuffer.Consume();" },
+            new() { declaration = "RWByteAddressBuffer", implementation = "inputBuffer.Store3(0, (float3)1.0f); localValue = asfloat(inputBuffer.Load3(0));" },
+            new() { declaration = "ByteAddressBuffer", implementation = "localValue = asfloat(inputBuffer.Load3(0));" },
+            new() { declaration = $"StructuredBuffer<{nameof(CustomHLSLOperatorTestType)}>", implementation = "localValue = inputBuffer[0].position;" },
+            new() { declaration = "StructuredBuffer<uint3>", implementation = "localValue = asfloat(inputBuffer[0]);" },
+            new() { declaration = "StructuredBuffer<float3>", implementation = "localValue = inputBuffer[0];" },
+            new() { declaration = "RWStructuredBuffer<float3>", implementation = "inputBuffer[0].x += 0.0f; localValue = inputBuffer[0];" }
+        };
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_Buffer([ValueSource(nameof(kSampleBufferCase))] BufferCase bufferCase)
+        {
+            var hlslCode = new StringBuilder();
+            hlslCode.AppendLine($"float3 Check_Sample_Buffer(in {bufferCase.declaration} inputBuffer)");
+            hlslCode.AppendLine("{");
+            hlslCode.AppendLine("    float3 localValue = (float3)0.0f;");
+            hlslCode.AppendLine($"    {bufferCase.implementation}");
+            hlslCode.AppendLine("    return localValue;");
+            hlslCode.AppendLine("}");
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode.ToString());
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            var vfxTargetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Update);
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            Assert.IsNotNull(blockAttributeDesc);
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance() as Block.SetAttribute;
+            blockAttribute.SetSettingValue("attribute", "position");
+            vfxTargetContext.AddChild(blockAttribute);
+            Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            yield return null;
+        }
+
+        [UnityTest, Description("Repro case UUM-66018")]
+        public IEnumerator Check_Multiple_Usage_Buffer()
+        {
+            string Check_Multiple_Usage_Buffer_Get_Source(VisualEffectResource vfx)
+            {
+                var sourceCount = vfx.GetShaderSourceCount();
+                Assert.AreNotEqual(0, sourceCount);
+                for (int index = 0; index < sourceCount; index++)
+                {
+                    if (vfx.GetShaderSourceName(index).Contains("Find_Me"))
+                        return vfx.GetShaderSource(index);
+                }
+                return null;
+            }
+
+            void Check_Multiple_Usage_Buffer_Sanity_Check(string source)
+            {
+                Assert.IsTrue(source.Contains("ByteAddressBuffer buffer_a;"));
+                Assert.IsTrue(source.Contains("StructuredBuffer<uint> buffer_b;"));
+                Assert.IsTrue(Regex.IsMatch(source, "void mySamplingOfUAV_In_Block_.*\\(inout VFXAttributes attributes, in ByteAddressBuffer buffer\\)"));
+                Assert.IsTrue(Regex.IsMatch(source, "void myOtherSamplingOfStructured_In_Block_.*\\(inout VFXAttributes attributes, in StructuredBuffer<uint> buffer\\)"));
+                Assert.IsTrue(Regex.IsMatch(source, "float mySamplingOfUAV_In_Operator_.*\\(in ByteAddressBuffer buffer\\)"));
+            }
+
+            string vfxPath = "Assets/AllTests/Editor/Tests/Repro_UUM_66018.vfx";
+            Assert.IsTrue(AssetDatabase.AssetPathExists(vfxPath));
+
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
+
+            vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Edition);
+            yield return null;
+
+            var sourceEdition = Check_Multiple_Usage_Buffer_Get_Source(vfx);
+            Assert.IsNotNull(sourceEdition);
+
+            vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
+            yield return null; 
+
+            var sourceRuntime = Check_Multiple_Usage_Buffer_Get_Source(vfx);
+            Assert.IsNotNull(sourceRuntime);
+
+            Assert.AreNotEqual(sourceRuntime, sourceEdition);
+
+            Check_Multiple_Usage_Buffer_Sanity_Check(sourceRuntime);
+            Check_Multiple_Usage_Buffer_Sanity_Check(sourceEdition);
             yield return null;
         }
 

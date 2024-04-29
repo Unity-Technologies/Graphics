@@ -295,11 +295,20 @@ namespace UnityEditor.VFX.Operator
                 {
                     foreach (var attribute in m_InputProperties[i].property.attributes.attributes)
                     {
-                        if (attribute is TemplatedTypeAttribute templatedTypeAttribute)
+                        if (attribute is GraphicsBufferUsageAttribute graphicsBufferUsageAttribute)
                         {
-                            bufferExpression.templateType = templatedTypeAttribute.type;
+                            if (!graphicsBufferUsageAttribute.usage.valid)
+                                throw new InvalidOperationException("Unexpected invalid GraphicsBufferUsageAttribute");
+
+                            var expressionBufferWithType = new VFXExpressionBufferWithType(graphicsBufferUsageAttribute.usage, bufferExpression);
+                            inputExpression[i] = expressionBufferWithType;
                             break;
                         }
+                    }
+
+                    if (!(inputExpression[i] is VFXExpressionBufferWithType))
+                    {
+                        throw new InvalidOperationException("Unexpected missing GraphicsBufferUsageAttribute");
                     }
                 }
             }
@@ -439,9 +448,9 @@ namespace UnityEditor.VFX.Operator
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
         {
             var propertyAttributes = new List<object>();
-            if (!string.IsNullOrEmpty(parameter.templatedType))
+            if (parameter.bufferUsage.valid)
             {
-                propertyAttributes.Add(new TemplatedTypeAttribute(parameter.templatedType));
+                propertyAttributes.Add(new GraphicsBufferUsageAttribute(parameter.bufferUsage));
             }
 
             if (!string.IsNullOrEmpty(parameter.tooltip))

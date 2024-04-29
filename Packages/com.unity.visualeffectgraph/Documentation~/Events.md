@@ -1,15 +1,15 @@
-# Events
+## Events
 
-Events define the inputs for a Visual Effect Graph's [**processing** workflow](GraphLogicAndPhilosophy.md#processing-workflow-(vertical-logic)). The Spawn and Initialize [Contexts](Contexts.md) use Events as their inputs. Through Events, a Visual Effect Graph can :
+Events define the inputs for a Visual Effect Graph's [**processing** workflow](GraphLogicAndPhilosophy.md#processing-workflow-(vertical-logic)). The Spawn and Initialize [Contexts](Contexts.md) use Events as their inputs. Through Events, a Visual Effect Graph can:
 
 * Start and stop spawning particles.
-* Read [Event Attribute payloads](#eventattribute-payloads) sent from C# scripts.
+* Read [Event Attribute payloads](#event-attribute-payloads) sent from C# scripts.
 
 ## Creating Events
 
 ![](Images/EventContexts.png)
 
-In general, an Event is just a string that represents the Event's name. To receive an Event in the Visual Effect Graph, create an Event [Context](Contexts.md) and type the name of the Event you want to receive in the **Event Name** property. Event Contexts have no input flow slots and can only connect their output flow slot to Spawn or Initialize Contexts.
+In general, an Event is just a string that represents the Event's name. To receive an Event in the Visual Effect Graph, create an Event [Context](Contexts.md) and type the name of the Event you want to receive in the **Event Name** property. Event Contexts have no input flow ports and can only connect their output flow port to Spawn or Initialize Contexts.
 
 To create an Event Context:
 
@@ -20,12 +20,12 @@ To create an Event Context:
 
 ## Default Events
 
-The Visual Effect Graph provide two default Events:
+The Visual Effect Graph provides two default Events:
 
-* **OnPlay**: To enable the spawning of particles. If you do not assign an Event to a Spawn Context's **Start** input flow slot, the Visual Effect Graph implicitly binds this Event to that input flow slot instead.
-* **OnStop**: To disable the spawning of particles. If you do not assign an Event to a Spawn Context's **Stop** input flow slot, the Visual Effect Graph implicitly binds this Event to that input flow slot instead.
+* **OnPlay**: Enables the spawning of particles when Unity sends the `Play` Event to the Visual Effect. If you do not assign an Event to a Spawn Context's **Start** input flow port, the Visual Effect Graph implicitly binds this Event to that input flow port instead.
+* **OnStop**: Disables the spawning of particles when Unity sends the `Stop` Event to the Visual Effect. If you do not assign an Event to a Spawn Context's **Stop** input flow port, the Visual Effect Graph implicitly binds this Event to that input flow port instead.
 
-If you connect an Event Context to a Spawn Context's **Start** or **Stop** input flow slot, this removes the implicit binding to the **OnPlay** and **OnStop** Events respectively.
+If you connect an Event Context to a Spawn Context's **Start** or **Stop** input flow port, this removes the implicit binding to the **OnPlay** and **OnStop** Events respectively.
 
 ## Custom Events
 
@@ -49,7 +49,7 @@ You can define the default Visual Effect Event for each [Visual Effect Graph Ass
 
 ## GPU Events
 
-GPU Events are an **Experimental feature** of the Visual Effect Graph. They allow you to spawn particles based on other particles. To enable this option, enable the **Experimental Operators/Blocks** checkbox in the [Visual Effect Preferences](VisualEffectPreferences.md) .
+GPU Events are an **Experimental feature** of the Visual Effect Graph. They allow you to spawn particles based on other particles. To enable GPU Events, enable the **Experimental Operators/Blocks** checkbox in the [Visual Effect Preferences](VisualEffectPreferences.md).
 
 GPU Events are Event Contexts that rely on data sent from other systems, for example, when a particle dies. The following Update Blocks can send GPU Event Data:
 

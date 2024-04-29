@@ -69,7 +69,7 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
     float2 positionSS = float2(0, 0);
     if (_EnableProbeVolumes)
     {
-        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI);
     }
     else
     {
@@ -92,7 +92,7 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
     half3 bakedGI;
     if (_EnableProbeVolumes)
     {
-        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, bakedGI);
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI);
     }
     else
     {

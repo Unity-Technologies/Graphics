@@ -61,7 +61,7 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseFrameIndex;
     int _ObjectMotionStencilBit;
     float _RayMarchingLowResPercentageInv;
-    int _SSGIUnused0;
+    int _SSGILayerMask;
 CBUFFER_END
 
 // Must be included after the declaration of variables
@@ -294,6 +294,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
                                     -normalData.normalWS, // Not used
                                     GetWorldSpaceNormalizeViewDir(posInput.positionWS),
                                     posInput.positionSS,
+                                    _SSGILayerMask,
                                     apvBuiltinData.bakeDiffuseLighting,
                                     apvBuiltinData.backBakeDiffuseLighting); // Not used
         color = apvBuiltinData.bakeDiffuseLighting;

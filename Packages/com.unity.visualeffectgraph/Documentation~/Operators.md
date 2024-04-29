@@ -31,7 +31,7 @@ Uniform Operators are Nodes that you can use with a single input of a Variable T
 
 The output type of any Uniform Operator is always the same as its input Type. Connecting a new input with a different type will change automatically the output type of the operator. If you want to manually set the Node to a specific type, see **Configuring Uniform Operators**.
 
-##### Configuring Uniform Operators
+#### Configuring Uniform Operators
 
 ![](Images/OperatorsUniformOptions.png)
 
@@ -61,7 +61,7 @@ For example, the Add Node allows you to add many inputs of different types using
 
 ![](Images/OperatorsCascaded.png)
 
-You can connect many inputs to a Cascaded Operator. To add a new item to the list, connect an edge to the last gray input at the bottom of the Nod. This creates a new input that uses the property type you connected.
+You can connect many inputs to a Cascaded Operator. To add a new item to the list, connect an edge to the last gray input at the bottom of the Node. This creates a new input that uses the property type you connected.
 
 When you delete a connection, Unity also removes the input property from the list. However you can also delete an input property manually using the Configuration Mode.
 
@@ -69,10 +69,10 @@ When you delete a connection, Unity also removes the input property from the lis
 
 ![](Images/OperatorsCascadedOptions.png)
 
-Press the Options icon in the top-right corner to switch the Node view to Configuration mod. In this mode you can:
+Press the Options icon in the top-right corner to switch the Node view to Configuration mode. In this mode you can:
 
 * Rename Inputs using their Text Field.
-* Change Input Types using the type Popup.
+* Change Input Types using the type Dropdown.
 * Reorder Inputs by dragging the Handle on the left of each input line.
-* Manually Add Inputs using the ''+'' button.
-* Delete Selected Input using the ''-'' button.
+* Manually Add Inputs using the "+" button.
+* Delete Selected Input using the "-" button.

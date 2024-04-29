@@ -620,10 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Try to to fill the search data and run the evaluation.
             WaterSimSearchData wsd = new WaterSimSearchData();
             if (FillWaterSearchData(ref wsd))
-            {
-                HDRenderPipeline.ProjectPointOnWaterSurface(wsd, wsp, ref wsr);
-                return true;
-            }
+                return HDRenderPipeline.ProjectPointOnWaterSurface(wsd, wsp, ref wsr);
             return false;
         }
 

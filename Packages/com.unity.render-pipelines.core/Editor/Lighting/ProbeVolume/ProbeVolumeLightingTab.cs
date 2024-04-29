@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering
             PlacementFilters = 1 << 4,
             InvaliditySettings = 1 << 5,
             SettingsSkyOcclusion = 1 << 8,
+            SettingsRenderingLayers = 1 << 9,
         };
 
         static readonly Expandable k_ExpandableDefault = Expandable.Baking | Expandable.BakingWarnings | Expandable.Scenarios | Expandable.Placement | Expandable.InvaliditySettings;
@@ -1075,14 +1076,14 @@ namespace UnityEngine.Rendering
             return click1 ? 1 : click2 ? 2 : 0;
         }
 
-        internal static void DrawListWithIndent(ReorderableList list, int indentLevel = 1)
+        internal static void DrawListWithIndent(ReorderableList list)
         {
             EditorGUILayout.Space();
 
             int level = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
             GUILayout.BeginHorizontal();
-            EditorGUILayout.Space(15 * indentLevel, false);
+            EditorGUILayout.Space(15 * level, false);
             {
                 list.DoLayoutList();
             }
@@ -1143,11 +1144,14 @@ namespace UnityEngine.Rendering
 
         [Overlay(typeof(SceneView), k_OverlayID)]
         [Icon("Packages/com.unity.render-pipelines.core/Editor/Resources/Gizmos/ProbeVolume.png")]
-        class ProbeVolumeOverlay : Overlay, ITransientOverlay
+        internal class ProbeVolumeOverlay : Overlay, ITransientOverlay
         {
             const string k_OverlayID = "APV Overlay";
 
-            Label[] m_Labels = null;
+            VisualElement m_Disabled = null;
+            Toggle[] m_LayerToggles = null;
+            Label[] m_BrickLabels = null;
+            GroupBox layerMasksGroupBox = null;
             GroupBox probeDistanceGroupBox = null;
             GroupBox probeSamplingGroupBox = null;
             TextElement vertexSamplingWarning = null;
@@ -1176,31 +1180,64 @@ namespace UnityEngine.Rendering
             bool IsVisible()
             {
                 // Include some state tracking here because it's the only function called at each repaint
-                if (!ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks && !ProbeReferenceVolume.instance.probeVolumeDebug.drawProbeSamplingDebug)
-                {
-                    m_Labels = null;
+                var debug = ProbeReferenceVolume.instance.probeVolumeDebug;
+                var bakingSet = ProbeReferenceVolume.instance.currentBakingSet;
+
+                bool debugLayers = debug.drawProbes && debug.probeShading == DebugProbeShadingMode.RenderingLayerMasks && bakingSet != null;
+                if (!debug.drawBricks && !debug.drawProbeSamplingDebug && !debugLayers)
                     return false;
-                }
 
-                EnableGroupBox(probeDistanceGroupBox, ProbeReferenceVolume.instance.probeVolumeDebug.drawBricks);
-                EnableGroupBox(probeSamplingGroupBox, ProbeReferenceVolume.instance.probeVolumeDebug.drawProbeSamplingDebug);
+                EnableGroupBox(layerMasksGroupBox, debugLayers);
+                EnableGroupBox(probeDistanceGroupBox, debug.drawBricks);
+                EnableGroupBox(probeSamplingGroupBox, debug.drawProbeSamplingDebug);
                 EnableTextArea(vertexSamplingWarning, ProbeReferenceVolume.instance.vertexSampling);
-
-                if (m_Labels == null) return true;
-
-                (int max, float min) = GetSettings();
-                if (maxSubdiv != max)
+                
+                if (debugLayers && m_LayerToggles != null)
                 {
-                    maxSubdiv = max;
-                    for (int i = 0; i < m_Labels.Length; i++)
-                        m_Labels[i].parent.EnableInClassList("unity-pbr-validation-hidden", i >= maxSubdiv);
+                    if (bakingSet.bakedMaskCount != 1)
+                    {
+                        debug.visibleLayers = 0;
+                        m_Disabled.style.display = DisplayStyle.None;
+                        for (int i = 0; i < APVDefinitions.probeMaxRegionCount; i++)
+                        {
+                            int visibility = m_LayerToggles[i].value ? 1 << i : 0;
+                            if (i >= bakingSet.renderingLayerMasks.Length)
+                            {
+                                debug.visibleLayers &= (byte)~visibility;
+                                m_LayerToggles[i].parent.style.display = DisplayStyle.None;
+                            }
+                            else
+                            {
+                                debug.visibleLayers |= (byte)visibility;
+                                m_LayerToggles[i].parent.style.display = DisplayStyle.Flex;
+                                m_LayerToggles[i].label = bakingSet.renderingLayerMasks[i].name;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < APVDefinitions.probeMaxRegionCount; i++)
+                            m_LayerToggles[i].parent.style.display = DisplayStyle.None;
+                        m_Disabled.style.display = DisplayStyle.Flex;
+                    }
                 }
-                if (minDistance != min)
+                if (debug.drawBricks && m_BrickLabels != null)
                 {
-                    minDistance = min;
-                    for (int i = 0; i < m_Labels.Length; i++)
-                        m_Labels[i].text = (minDistance * ProbeReferenceVolume.CellSize(i)) + " meters";
+                    (int max, float min) = GetSettings();
+                    if (maxSubdiv != max)
+                    {
+                        maxSubdiv = max;
+                        for (int i = 0; i < m_BrickLabels.Length; i++)
+                            m_BrickLabels[i].parent.EnableInClassList("unity-pbr-validation-hidden", i >= maxSubdiv);
+                    }
+                    if (minDistance != min)
+                    {
+                        minDistance = min;
+                        for (int i = 0; i < m_BrickLabels.Length; i++)
+                            m_BrickLabels[i].text = (minDistance * ProbeReferenceVolume.CellSize(i)) + " meters";
+                    }
                 }
+
                 return true;
             }
 
@@ -1247,21 +1284,50 @@ namespace UnityEngine.Rendering
 
                 var root = new VisualElement();
 
+                // Layer mask
+                layerMasksGroupBox = new GroupBox();
+                layerMasksGroupBox.text = "Rendering Layer Masks";
+
+                m_LayerToggles = new Toggle[APVDefinitions.probeMaxRegionCount];
+                for (int i = 0; i < APVDefinitions.probeMaxRegionCount; i++)
+                {
+                    var row = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
+                    layerMasksGroupBox.Add(row);
+
+                    row.Add(CreateColorSwatch(APVDefinitions.layerMaskColors[i]));
+
+                    m_LayerToggles[i] = new Toggle("Mask " + i) { name = "color-label" };
+                    m_LayerToggles[i].AddToClassList("unity-base-field__label");
+                    m_LayerToggles[i].value = true;
+                    row.Add(m_LayerToggles[i]);
+                }
+                {
+                    m_Disabled = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
+                    layerMasksGroupBox.Add(m_Disabled);
+
+                    m_Disabled.Add(CreateColorSwatch(APVDefinitions.debugEmptyColor));
+
+                    var label = new Label("Disabled") { name = "color-label" };
+                    label.AddToClassList("unity-base-field__label");
+                    m_Disabled.Add(label);
+                    m_Disabled.style.display = DisplayStyle.None;
+                }
+
                 // Distance Between Probes
                 probeDistanceGroupBox = new GroupBox();
                 probeDistanceGroupBox.text = "Distance Between probes";
 
-                m_Labels = new Label[6];
-                for (int i = 0; i < m_Labels.Length; i++)
+                m_BrickLabels = new Label[6];
+                for (int i = 0; i < m_BrickLabels.Length; i++)
                 {
                     var row = new VisualElement() { style = { flexDirection = FlexDirection.Row } };
                     probeDistanceGroupBox.Add(row);
 
                     row.Add(CreateColorSwatch(ProbeReferenceVolume.instance.subdivisionDebugColors[i]));
 
-                    m_Labels[i] = new Label() { name = "color-label" };
-                    m_Labels[i].AddToClassList("unity-base-field__label");
-                    row.Add(m_Labels[i]);
+                    m_BrickLabels[i] = new Label() { name = "color-label" };
+                    m_BrickLabels[i].AddToClassList("unity-base-field__label");
+                    row.Add(m_BrickLabels[i]);
                 }
 
                 // Probe Sampling Select Pixel
@@ -1297,9 +1363,11 @@ namespace UnityEngine.Rendering
 
                 probeSampling_row.Add(vertexSamplingWarning);
 
+                layerMasksGroupBox.style.display = DisplayStyle.None;
                 probeDistanceGroupBox.style.display = DisplayStyle.None;
                 probeSamplingGroupBox.style.display = DisplayStyle.None;
 
+                root.Add(layerMasksGroupBox);
                 root.Add(probeDistanceGroupBox);
                 root.Add(probeSamplingGroupBox);
 

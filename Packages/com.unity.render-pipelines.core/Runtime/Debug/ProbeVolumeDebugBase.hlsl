@@ -13,6 +13,7 @@ CBUFFER_START(ShaderVariablesProbeVolumeDebug)
 float4x4 unity_MatrixVP;        // Sent by builtin
 float4x4 unity_MatrixInvV;      // Sent by builtin
 float4x4 unity_ObjectToWorld;   // Sent by builtin
+float4x4 unity_MatrixV;         // Sent by builtin
 float4 _ScreenSize;
 float3 _WorldSpaceCameraPos;    // Sent by builtin
 CBUFFER_END
@@ -49,6 +50,7 @@ uniform float _CullDistance;
 uniform int _MaxAllowedSubdiv;
 uniform int _MinAllowedSubdiv;
 uniform float _ValidityThreshold;
+uniform uint _RenderingLayerMask;
 uniform float _OffsetSize;
 
 // Sampling Position Debug
@@ -64,6 +66,7 @@ uniform sampler2D _NumbersTex;
 
 UNITY_INSTANCING_BUFFER_START(Props)
     UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
+    UNITY_DEFINE_INSTANCED_PROP(float, _RenderingLayer)
     UNITY_DEFINE_INSTANCED_PROP(float, _DilationThreshold)
     UNITY_DEFINE_INSTANCED_PROP(float, _TouchupedByVolume)
     UNITY_DEFINE_INSTANCED_PROP(float4, _IndexInAtlas)
@@ -87,6 +90,7 @@ struct v2f
     float4 color  : COLOR0;
     float2 texCoord : TEXCOORD0;
     float2 samplingFactor_ValidityWeight : TEXCOORD2; // stores sampling factor (for Probe Sampling Debug view) and validity weight
+    float2 centerCoordSS : TEXCOORD3;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -99,7 +103,7 @@ void DoCull(inout v2f o)
 // snappedProbePosition_WS : worldspace position of main probe (a corner of the 8 probes cube)
 // samplingPosition_WS : worldspace sampling position after applying 'NormalBias' and 'ViewBias' and 'ValidityAndNormalBased Leak Reduction'
 // normalizedOffset : normalized offset between sampling position and snappedProbePosition
-void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosition_WS, out float3 samplingPosition_WS, out float3 samplingPositionNoAntiLeak_WS, out float probeDistance, out float3 normalizedOffset, out float validityWeights[8])
+void FindSamplingData(float3 posWS, float3 normalWS, uint renderingLayer, out float3 snappedProbePosition_WS, out float3 samplingPosition_WS, out float3 samplingPositionNoAntiLeak_WS, out float probeDistance, out float3 normalizedOffset, out float validityWeights[8])
 {
     float3 cameraPosition_WS = _WorldSpaceCameraPos;
     float3 viewDir_WS = normalize(cameraPosition_WS - posWS);
@@ -122,7 +126,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, out float3 snappedProbePosi
     probeDistance = ProbeDistance(subdiv);
     snappedProbePosition_WS = GetSnappedProbePosition(biasedPosWS, subdiv);
 
-    WarpUVWLeakReduction(apvRes, posWS, normalWS, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
+    WarpUVWLeakReduction(apvRes, posWS, normalWS, renderingLayer, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
 
     biasedPosWS += _WorldOffset;
     snappedProbePosition_WS += _WorldOffset;

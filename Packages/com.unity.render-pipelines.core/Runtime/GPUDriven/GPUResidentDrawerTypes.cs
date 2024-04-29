@@ -15,11 +15,6 @@ namespace UnityEngine.Rendering
         /// CommandBuffer that will be used for resulting commands
         /// </summary>
         public CommandBuffer commandBuffer;
-
-        /// <summary>
-        /// Ambient probe to be set
-        /// </summary>
-        public SphericalHarmonicsL2 ambientProbe;
     }
 
     /// <summary>

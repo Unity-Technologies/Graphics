@@ -336,6 +336,8 @@ namespace UnityEngine.Rendering
             parameters.reflNormalizationUpperClamp = 1.0f;
             parameters.skyOcclusionIntensity = 0.0f;
             parameters.skyOcclusionShadingDirection = false;
+            parameters.regionCount = 1;
+            parameters.regionLayerMasks = 1;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

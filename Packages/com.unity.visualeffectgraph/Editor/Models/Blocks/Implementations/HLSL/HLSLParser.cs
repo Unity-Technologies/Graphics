@@ -173,7 +173,7 @@ namespace UnityEditor.VFX.Block
         public string rawType { get; }
         public string name { get; }
         public string tooltip { get; }
-        public string templatedType { get; }
+        public BufferUsage bufferUsage { get; }
         public string templatedRawType { get; }
         public HLSLAccess access { get; }
         public IReadOnlyCollection<IHLSMessage> errors { get; }
@@ -199,7 +199,28 @@ namespace UnityEditor.VFX.Block
             this.tooltip = tooltip;
             this.rawType = type;
             this.type = HLSLParser.HLSLToUnityType(this.rawType);
-            this.templatedType = template;
+
+            if (this.type == typeof(GraphicsBuffer))
+            {
+                if (!Enum.TryParse<BufferUsage.Container>(rawType, out var container))
+                    throw new InvalidOperationException("Unknown container type: " + rawType);
+
+                var actualTemplateType = typeof(void);
+                if (!string.IsNullOrEmpty(template))
+                {
+                    foreach (var validType in VFXLibrary.GetGraphicsBufferType())
+                    {
+                        if (template == validType.Name)
+                        {
+                            actualTemplateType = validType;
+                            break;
+                        }
+                    }
+                }
+
+                this.bufferUsage = new BufferUsage(container, template, actualTemplateType);
+            }
+
             this.access = HLSLParser.HLSLAccessToEnum(access);
             this.templatedRawType = string.IsNullOrEmpty(template) ? this.rawType : $"{type}<{template}>";
             this.m_RawCode = $"{access} {this.templatedRawType} {name}";
@@ -436,29 +457,39 @@ namespace UnityEditor.VFX.Block
 
     static class HLSLParser
     {
-        public static readonly Dictionary<string, Type> s_KnownTypes = new()
+        public static readonly Dictionary<string, Type> s_KnownTypes = ComputeKnownTypes();
+
+        private static Dictionary<string, Type> ComputeKnownTypes()
         {
-            { "void", typeof(void) },
-            { "float", typeof(float) },
-            { "float2", typeof(Vector2) },
-            { "float3", typeof(Vector3) },
-            { "float4", typeof(Vector4) },
-            { "float4x4", typeof(Matrix4x4) },
-            { "Texture2D", typeof(Texture2D) },
-            { "VFXSampler2D", typeof(Texture2D) },
-            { "VFXSampler3D", typeof(Texture3D) },
-            { "VFXSampler2DArray", typeof(Texture2DArray) },
-            { "VFXSamplerCube", typeof(Cubemap) },
-            //{ "VFXSamplerCubeArray", typeof(CubemapArray) },
-            { "VFXGradient", typeof(Gradient) },
-            { "VFXCurve", typeof(AnimationCurve) },
-            { "bool", typeof(bool) },
-            { "uint", typeof(uint) },
-            { "int", typeof(int) },
-            { "StructuredBuffer", typeof(GraphicsBuffer) },
-            { "ByteAddressBuffer", typeof(GraphicsBuffer) },
-            { "VFXAttributes", typeof(VFXAttribute) },
-        };
+            var knownTypes = new Dictionary<string, Type>()
+            {
+                { "void", typeof(void) },
+                { "float", typeof(float) },
+                { "float2", typeof(Vector2) },
+                { "float3", typeof(Vector3) },
+                { "float4", typeof(Vector4) },
+                { "float4x4", typeof(Matrix4x4) },
+                { "Texture2D", typeof(Texture2D) },
+                { "VFXSampler2D", typeof(Texture2D) },
+                { "VFXSampler3D", typeof(Texture3D) },
+                { "VFXSampler2DArray", typeof(Texture2DArray) },
+                { "VFXSamplerCube", typeof(Cubemap) },
+                //{ "VFXSamplerCubeArray", typeof(CubemapArray) },
+                { "VFXGradient", typeof(Gradient) },
+                { "VFXCurve", typeof(AnimationCurve) },
+                { "bool", typeof(bool) },
+                { "uint", typeof(uint) },
+                { "int", typeof(int) },
+                { "VFXAttributes", typeof(VFXAttribute) },
+            };
+
+            foreach (var graphicsBufferContainer in Enum.GetNames(typeof(BufferUsage.Container)))
+            {
+                knownTypes.Add(graphicsBufferContainer, typeof(GraphicsBuffer));
+            }
+
+            return knownTypes;
+        }
 
         static readonly Dictionary<string, HLSLAccess> s_AccessMap = new()
         {

@@ -27,7 +27,7 @@ StructuredBuffer<GPUProbeVolumeOBB> _ProbeVolumes;
 
 CBUFFER_START(cb0)
 float4 _Size;
-float4 _MaxBrickSize;
+float4 _MaxBrickCount;
 float4 _VolumeSizeInBricks;
 float4 _VolumeOffsetInBricks;
 float4 _VolumeWorldOffset;
@@ -207,11 +207,7 @@ bool PointInsideOBB(GPUProbeVolumeOBB obbA, GPUProbeVolumeOBB obbB)
 [numthreads(8, 8, 1)]
 void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 {
-    float2 subdivisionLimits = float2(0, 0);
-    float fillEmptySpaces = 0;
-    float maxSubdivLevelInsideVolume = 0;
-
-    if (any(id >= uint3(_MaxBrickSize.xyz)))
+    if (any(id >= uint3(_MaxBrickCount.xyz)))
         return;
 
     // Calculate the brick
@@ -221,54 +217,58 @@ void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
     brickOBB.Y = float3(0, _BrickSize, 0);
     brickOBB.Z = float3(0, 0, _BrickSize);
 
+    bool generate = false;
+    int ignoreSDF = INT_MAX;
+
     for (int i = 0; i < _ProbeVolumeCount; i++)
     {
         GPUProbeVolumeOBB obb = _ProbeVolumes[i];
 
-        if (PointInsideOBB(obb, brickOBB))
-        {
-            subdivisionLimits.x = max(subdivisionLimits.x, obb.minControllerSubdivLevel);
-            subdivisionLimits.y = max(subdivisionLimits.y, obb.maxControllerSubdivLevel);
-            fillEmptySpaces = max(fillEmptySpaces, obb.fillEmptySpaces);
-            maxSubdivLevelInsideVolume = max(maxSubdivLevelInsideVolume, obb.maxSubdivLevelInsideVolume);
-        }
+        if (_SubdivisionLevel < obb.minControllerSubdivLevel || _SubdivisionLevel > obb.maxControllerSubdivLevel)
+            continue;
+
+        if (!PointInsideOBB(obb, brickOBB))
+            continue;
+
+        generate = true;
+        if (obb.fillEmptySpaces)
+            ignoreSDF = min(ignoreSDF, obb.maxControllerSubdivLevel);
     }
 
-    _Output[id] = float4(subdivisionLimits, fillEmptySpaces, maxSubdivLevelInsideVolume);
+    _Output[id] = float4(generate, ignoreSDF, 0, 0);
 }
 
 [numthreads(8, 8, 1)]
 void Subdivide(uint3 id : SV_DispatchThreadID)
 {
-    if (any(id >= uint3(_MaxBrickSize.xyz)))
+    if (any(id >= uint3(_MaxBrickCount.xyz)))
         return;
 
     // Compute the position at the center of the voxel
-    float3 position01 = (float3(id) + 0.5) / _MaxBrickSize.xyz;
+    float3 position01 = (float3(id) + 0.5) / _MaxBrickCount.xyz;
 
     // Get the local min and max subdivision levels
     float4 subdivisionLevelData = _ProbeVolumeData.Load(uint4(id, _SubdivisionLevel));
-
-    // Discard bricks that are below the max subdiv level of the probe volume
-    int minControllerSubdivLevel = _MaxSubdivisionLevel - subdivisionLevelData.x;
-    int maxControllerSubdivLevel = _MaxSubdivisionLevel - subdivisionLevelData.y;
-    int maxSubdivLevelInsideVolume = subdivisionLevelData.w;
-    if (minControllerSubdivLevel < _SubdivisionLevel || _SubdivisionLevel < maxControllerSubdivLevel || _SubdivisionLevel > maxSubdivLevelInsideVolume)
+    if (subdivisionLevelData.x == 0.0f)
         return;
 
-    uint3 sdfId = floor(position01 * _SDFSize.xyz);
+    bool generateBrick = _SubdivisionLevel == subdivisionLevelData.y; // fill empty space option
+    if (!generateBrick)
+    {
+        uint3 sdfId = floor(position01 * _SDFSize.xyz);
+        float dist = _Input[sdfId].r;
 
-    float dist = _Input[sdfId].r;
+        float voxelDetectionDistance = rcp(_MaxBrickCount.x);
+        voxelDetectionDistance *= voxelDetectionDistance;
+        voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
-    float voxelDetectionDistance = rcp(_MaxBrickSize.x);
-    voxelDetectionDistance *= voxelDetectionDistance;
-    voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
+        generateBrick = dist <= voxelDetectionDistance;
+    }
 
-    bool fillEmptySpaces = subdivisionLevelData.z;
-    if (dist <= voxelDetectionDistance || (fillEmptySpaces && _SubdivisionLevel == minControllerSubdivLevel))
+    if (generateBrick)
     {
         // transform id to world position
-        float3 positionInCell = _VolumeOffsetInBricks.xyz + (id / _MaxBrickSize.xyz) * _VolumeSizeInBricks.xyz;
+        float3 positionInCell = _VolumeOffsetInBricks.xyz + (id / _MaxBrickCount.xyz) * _VolumeSizeInBricks.xyz;
         uint brickIndex;
         InterlockedAdd(_BrickCountBuffer[_SubdivisionLevel], 1, brickIndex);
         _Bricks[brickIndex] = float4(positionInCell, 0.0f);
