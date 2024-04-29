@@ -51,16 +51,16 @@ Shader "Custom/075_Material"
                 SHAPE_LIGHT(0)
                 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
                 CBUFFER_START(UnityPerMaterial)
-                TEXTURE2D(_MainTex);
-                SAMPLER(sampler_MainTex);
-                TEXTURE2D(_MaskTex);
-                SAMPLER(sampler_MaskTex);
                 half4 _WindDir;
                 half4 _WindOffset;
                 half4 _MainTex_ST;
                 half4 _MaskTex_ST;
                 CBUFFER_END
-               
+
+                TEXTURE2D(_MainTex);
+                SAMPLER(sampler_MainTex);
+                TEXTURE2D(_MaskTex);
+                SAMPLER(sampler_MaskTex);
 
                 Varyings CombinedShapeLightVertex(Attributes v)
                 {
