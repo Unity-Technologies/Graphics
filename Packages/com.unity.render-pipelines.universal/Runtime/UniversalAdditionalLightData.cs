@@ -108,6 +108,25 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public static readonly int AdditionalLightsShadowDefaultCustomResolution = 128;
 
+        [NonSerialized] private Light m_Light;
+
+        /// <summary>
+        /// Returns the cached light component associated with the game object that owns this light data.
+        /// </summary>
+#if UNITY_EDITOR
+        internal new Light light
+#else
+        internal Light light
+#endif
+        {
+            get
+            {
+                if (!m_Light)
+                    TryGetComponent(out m_Light);
+                return m_Light;
+            }
+        }
+
         /// <summary>
         /// The minimum shadow resolution for additional lights.
         /// </summary>
@@ -145,8 +164,18 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public uint renderingLayers
         {
-            get { return m_RenderingLayers; }
-            set { m_RenderingLayers = value; }
+            get
+            {
+                return m_RenderingLayers;
+            }
+            set
+            {
+                if (m_RenderingLayers != value)
+                {
+                    m_RenderingLayers = value;
+                    SyncLightAndShadowLayers();
+                }
+            }
         }
 
         [SerializeField] bool m_CustomShadowLayers = false;
@@ -157,8 +186,18 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool customShadowLayers
         {
-            get { return m_CustomShadowLayers; }
-            set { m_CustomShadowLayers = value; }
+            get
+            {
+                return m_CustomShadowLayers;
+            }
+            set
+            {
+                if (m_CustomShadowLayers != value)
+                {
+                    m_CustomShadowLayers = value;
+                    SyncLightAndShadowLayers();
+                }
+            }
         }
 
         // The layer(s) used for shadow casting.
@@ -180,8 +219,18 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public uint shadowRenderingLayers
         {
-            get { return m_ShadowRenderingLayers; }
-            set { m_ShadowRenderingLayers = value; }
+            get
+            {
+                return m_ShadowRenderingLayers;
+            }
+            set
+            {
+                if (value != m_ShadowRenderingLayers)
+                {
+                    m_ShadowRenderingLayers = value;
+                    SyncLightAndShadowLayers();
+                }
+            }
         }
 
         /// <summary>
@@ -240,6 +289,12 @@ namespace UnityEngine.Rendering.Universal
                 m_SoftShadowQuality = (SoftShadowQuality)(Math.Clamp((int)m_SoftShadowQuality + 1, 0, (int)SoftShadowQuality.High));
                 m_Version = 3;
             }
+        }
+
+        private void SyncLightAndShadowLayers()
+        {
+            if (light)
+                light.renderingLayerMask = m_CustomShadowLayers ? (int)m_ShadowRenderingLayers : (int)m_RenderingLayers;
         }
     }
 }

@@ -11,5 +11,6 @@ The section contains the following topics:
 * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
 * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
 * [Reconstruct the world space positions](writing-shaders-urp-reconstruct-world-position.md)
+* [Built-in shader methods in URP](use-built-in-shader-methods.md)
 
 Each example covers some extra information compared to the basic shader example. If you are new to writing shaders using Unity's ShaderLab language, consider going through the sections in the order of appearance on this page.

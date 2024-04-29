@@ -96,6 +96,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int volumetricValidFrames = 0;
         internal int colorPyramidHistoryValidFrames = 0;
 
+        internal float intermediateDownscaling = 0.5f;
+        internal bool volumetricCloudsFullscaleHistory = false;
+
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int actualWidth { get; private set; }
         /// <summary>Height actually used for rendering after dynamic resolution and XR is applied.</summary>
@@ -945,6 +948,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_PrevUpsamplerSchedule = DynamicResolutionHandler.instance.upsamplerSchedule;
                 }
 
+                // If view count changes, release all history buffers, they will get reallocated when needed
+                if (viewCount != m_HistoryViewCount)
+                {
+                    forceReallocHistorySystem = true;
+                    m_HistoryViewCount = viewCount;
+                }
+
                 // Handle the color buffers
                 if (numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocHistorySystem)
                 {
@@ -1496,6 +1506,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDAdditionalCameraData m_AdditionalCameraData = null; // Init in Update
         BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
+        int m_HistoryViewCount = 0; // Used to track view count change if XR is enabled/disabled
         int m_NumVolumetricBuffersAllocated = 0;
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution

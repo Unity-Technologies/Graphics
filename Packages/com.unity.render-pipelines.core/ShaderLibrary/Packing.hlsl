@@ -579,9 +579,8 @@ float2 Unpack888ToFloat2(float3 x)
 // Pack 2 float values from the [0, 1] range, to an 8 bits float from the [0, 1] range
 float PackFloat2To8(float2 f)
 {
-    float x_expanded = f.x * 15.0;                        // f.x encoded over 4 bits, can have 2^4 = 16 distinct values mapped to [0, 1, ..., 15]
-    float y_expanded = f.y * 15.0;                        // f.y encoded over 4 bits, can have 2^4 = 16 distinct values mapped to [0, 1, ..., 15]
-    float x_y_expanded = x_expanded * 16.0 + y_expanded;  // f.x encoded over higher bits, f.y encoded over the lower bits - x_y values in range [0, 1, ..., 255]
+    float2 i = floor(f * 15.0);                                         // f.x & f.y encoded over 4 bits, can have 2^4 = 16 distinct values mapped to [0, 1, ..., 15]
+    float x_y_expanded = i.x * 16.0 + i.y;                       // f.x encoded over higher bits, f.y encoded over the lower bits - x_y values in range [0, 1, ..., 255]
     return x_y_expanded / 255.0;
 
     // above 4 lines equivalent to:

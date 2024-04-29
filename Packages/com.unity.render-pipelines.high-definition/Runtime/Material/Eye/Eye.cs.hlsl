@@ -5,13 +5,6 @@
 #ifndef EYE_CS_HLSL
 #define EYE_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.Eye+MaterialFeatureFlags:  static fields
-//
-#define MATERIALFEATUREFLAGS_EYE_CINEMATIC (1)
-#define MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING (2)
-#define MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT (4)
-
-//
 // UnityEngine.Rendering.HighDefinition.Eye+SurfaceData:  static fields
 //
 #define DEBUGVIEW_EYE_SURFACEDATA_MATERIAL_FEATURES (1500)
@@ -33,6 +26,13 @@
 #define DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS (1516)
 #define DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER (1517)
 #define DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_CINEMATIC_DIFFUSE (1518)
+
+//
+// UnityEngine.Rendering.HighDefinition.Eye+MaterialFeatureFlags:  static fields
+//
+#define MATERIALFEATUREFLAGS_EYE_CINEMATIC (1)
+#define MATERIALFEATUREFLAGS_EYE_SUBSURFACE_SCATTERING (2)
+#define MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.Eye+BSDFData:  static fields

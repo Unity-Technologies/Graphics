@@ -103,8 +103,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(expected, result);
 
             m_NodeA.slot1.value = 6;
-            result = m_NodeA.slot1.GetDefaultValue(GenerationMode.ForReals);
-            Assert.AreEqual("6", result);
+            result = m_NodeA.slot1.GetDefaultValue(GenerationMode.ForReals, ConcretePrecision.Half);
+            Assert.AreEqual("half(6)", result);
 
             m_NodeA.slot2.value = new Vector4(6, 6, 6, 1);
             result = m_NodeA.slot2.GetDefaultValue(GenerationMode.ForReals, ConcretePrecision.Half);

@@ -159,7 +159,13 @@ void SampleBakedGI(
 #elif (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     if (needToIncludeAPV)
     {
-        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInputs.positionWS), normalWS, backNormalWS, GetWorldSpaceNormalizeViewDir(posInputs.positionWS), 0.0, bakeDiffuseLighting, backBakeDiffuseLighting);
+        EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInputs.positionWS),
+            normalWS,
+            backNormalWS,
+            GetWorldSpaceNormalizeViewDir(posInputs.positionWS),
+            posInputs.positionSS,
+            bakeDiffuseLighting,
+            backBakeDiffuseLighting);
     }
 #elif !(defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) // With APV if we aren't a lightmap we do nothing. We will default to Ambient Probe in lightloop code if APV is disabled
     EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
@@ -187,14 +193,15 @@ void SampleBakedGI(
     SampleBakedGI(posInputs, normalWS, backNormalWS, renderingLayers, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV, bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
-float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool needToIncludeAPV = false)
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, uint2 positionSS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool needToIncludeAPV = false)
 {
-    // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
+    // Need PositionInputs for indexing probe volume clusters, but they are not available from the current SampleBakedGI() function signature.
     // Reconstruct.
     uint renderingLayers = 0;
     PositionInputs posInputs;
     ZERO_INITIALIZE(PositionInputs, posInputs);
     posInputs.positionWS = positionRWS;
+    posInputs.positionSS = positionSS;
 
     const float3 backNormalWSUnused = 0.0;
     float3 bakeDiffuseLighting;

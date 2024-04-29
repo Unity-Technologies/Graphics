@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
         public float _CloudHistoryInvalidation;
-        public float _PaddingVC0;
+        public uint _IntermediateResolutionScale;
 
         // World Camera Position used as the constant buffer has not been injected yet when this data is required, last channel is unused.
         public Vector4 _WorldSpaceShadowCenter;

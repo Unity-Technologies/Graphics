@@ -42,11 +42,11 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
     return float3(0, 0, 0);
 }
 
-float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
+float3 shadergraph_HDBakedGI(float3 positionRWS, float3 normalWS, uint2 positionSS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
 #if defined(__BUILTINGIUTILITIES_HLSL__)
     bool needToIncludeAPV = true;
-    return SampleBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV);
+    return SampleBakedGI(positionRWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, needToIncludeAPV);
 #else
     return 0;
 #endif
@@ -89,7 +89,7 @@ float3 shadergraph_HDMainLightDirection()
 #ifdef SHADERGRAPH_BAKED_GI
 #undef SHADERGRAPH_BAKED_GI
 #endif
-#define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+#define SHADERGRAPH_BAKED_GI(positionWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 
 
 #ifdef SHADERGRAPH_MAIN_LIGHT_DIRECTION

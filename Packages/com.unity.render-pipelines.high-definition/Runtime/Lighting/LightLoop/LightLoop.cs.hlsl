@@ -16,6 +16,23 @@
 #define LIGHTFEATUREFLAGS_SSREFLECTION (262144)
 
 //
+// UnityEngine.Rendering.HighDefinition.LightVolumeType:  static fields
+//
+#define LIGHTVOLUMETYPE_CONE (0)
+#define LIGHTVOLUMETYPE_SPHERE (1)
+#define LIGHTVOLUMETYPE_BOX (2)
+#define LIGHTVOLUMETYPE_COUNT (3)
+
+//
+// UnityEngine.Rendering.HighDefinition.LightCategory:  static fields
+//
+#define LIGHTCATEGORY_PUNCTUAL (0)
+#define LIGHTCATEGORY_AREA (1)
+#define LIGHTCATEGORY_ENV (2)
+#define LIGHTCATEGORY_DECAL (3)
+#define LIGHTCATEGORY_COUNT (4)
+
+//
 // UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields
 //
 #define VIEWPORT_SCALE_Z (1)
@@ -42,38 +59,27 @@
 #define CONTACT_SHADOW_MASK_MASK (16777215)
 
 //
-// UnityEngine.Rendering.HighDefinition.LightVolumeType:  static fields
-//
-#define LIGHTVOLUMETYPE_CONE (0)
-#define LIGHTVOLUMETYPE_SPHERE (1)
-#define LIGHTVOLUMETYPE_BOX (2)
-#define LIGHTVOLUMETYPE_COUNT (3)
-
-//
-// UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
-//
-#define LIGHTFEATUREFLAGS_PUNCTUAL (4096)
-#define LIGHTFEATUREFLAGS_AREA (8192)
-#define LIGHTFEATUREFLAGS_DIRECTIONAL (16384)
-#define LIGHTFEATUREFLAGS_ENV (32768)
-#define LIGHTFEATUREFLAGS_SKY (65536)
-#define LIGHTFEATUREFLAGS_SSREFRACTION (131072)
-#define LIGHTFEATUREFLAGS_SSREFLECTION (262144)
-
-//
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields
 //
 #define CLUSTERDEBUGMODE_VISUALIZE_OPAQUE (0)
 #define CLUSTERDEBUGMODE_VISUALIZE_SLICE (1)
 
-//
-// UnityEngine.Rendering.HighDefinition.LightCategory:  static fields
-//
-#define LIGHTCATEGORY_PUNCTUAL (0)
-#define LIGHTCATEGORY_AREA (1)
-#define LIGHTCATEGORY_ENV (2)
-#define LIGHTCATEGORY_DECAL (3)
-#define LIGHTCATEGORY_COUNT (4)
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesLightList
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesLightList)
+    float4x4 g_mInvScrProjectionArr[2];
+    float4x4 g_mScrProjectionArr[2];
+    float4x4 g_mInvProjectionArr[2];
+    float4x4 g_mProjectionArr[2];
+    float4 g_screenSize;
+    int2 g_viDimensions;
+    int g_iNrVisibLights;
+    uint g_isOrthographic;
+    uint g_BaseFeatureFlags;
+    int g_iNumSamplesMSAA;
+    uint _EnvLightIndexShift;
+    uint _DecalIndexShift;
+CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
 // PackingRules = Exact
@@ -104,23 +110,6 @@ struct LightVolumeData
     float3 boxInvRange;
     float unused2;
 };
-
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesLightList
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesLightList)
-    float4x4 g_mInvScrProjectionArr[2];
-    float4x4 g_mScrProjectionArr[2];
-    float4x4 g_mInvProjectionArr[2];
-    float4x4 g_mProjectionArr[2];
-    float4 g_screenSize;
-    int2 g_viDimensions;
-    int g_iNrVisibLights;
-    uint g_isOrthographic;
-    uint g_BaseFeatureFlags;
-    int g_iNumSamplesMSAA;
-    uint _EnvLightIndexShift;
-    uint _DecalIndexShift;
-CBUFFER_END
 
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound
