@@ -422,9 +422,9 @@ namespace UnityEngine.Rendering
         {
             float maxSizedDim = Mathf.Max(volumeSize.x, Mathf.Max(volumeSize.y, volumeSize.z));
             float maxSideInBricks = maxSizedDim / ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-            int subdiv = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3)) - 1;
+            int subdiv = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3));
 
-            return Mathf.Min(subdiv, maxSubdiv);
+            return Mathf.Max(subdiv, maxSubdiv) - 1;
         }
 
         static void InflateBound(ref Bounds bounds, ProbeVolume pv)

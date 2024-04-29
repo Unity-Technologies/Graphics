@@ -1129,7 +1129,13 @@ namespace UnityEditor.Rendering
                             name = name.Substring(2);
                         }
                         string defineName = name.ToUpper();
-                        m_Statics[defineName] = field.GetValue(null).ToString();
+                        string value;
+                        if (fieldType == typeof(float))
+                            value = ((float)field.GetValue(null)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        else
+                            value = field.GetValue(null).ToString();
+
+                        m_Statics[defineName] = value;
                     }
                     continue;
                 }

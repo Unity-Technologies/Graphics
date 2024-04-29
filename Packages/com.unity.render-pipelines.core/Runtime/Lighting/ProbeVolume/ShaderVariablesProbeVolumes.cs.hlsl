@@ -15,6 +15,7 @@
 // UnityEngine.Rendering.APVDefinitions:  static fields
 //
 #define PROBE_INDEX_CHUNK_SIZE (243)
+#define PROBE_VALIDITY_THRESHOLD (0.05)
 #define PROBE_MAX_REGION_COUNT (4)
 
 // Generated from UnityEngine.Rendering.ShaderVariablesProbeVolumes

@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public static Brick[] SubdivideCell(Bounds cellBounds, ProbeSubdivisionContext subdivisionCtx, GPUSubdivisionContext ctx, GIContributors contributors, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes)
+        public static Brick[] SubdivideCell(Vector3Int cellPosition, Bounds cellBounds, ProbeSubdivisionContext subdivisionCtx, GPUSubdivisionContext ctx, GIContributors contributors, List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes)
         {
             Brick[] finalBricks;
             HashSet<Brick> brickSet = new HashSet<Brick>();
@@ -279,6 +279,7 @@ namespace UnityEngine.Rendering
                         // In case there is at least one brick in the sub-cell, we need to spawn the parent brick.
                         if (hasMaxSizedBricks)
                         {
+                            int cellSizeInBricks = ProbeReferenceVolume.CellSize(ctx.maxSubdivisionLevel);
                             float minBrickSize = subdivisionCtx.profile.minBrickSize;
                             Vector3 cellID = cellBounds.min / minBrickSize;
                             float parentSubdivLevel = 3.0f;
@@ -288,7 +289,7 @@ namespace UnityEngine.Rendering
                                 // Add the sub-cell offset:
                                 int brickSize = (int)Mathf.Pow(3, i + 1);
                                 Vector3Int subCellPosInt = new Vector3Int(Mathf.FloorToInt(subCellPos.x), Mathf.FloorToInt(subCellPos.y), Mathf.FloorToInt(subCellPos.z)) * brickSize;
-                                Vector3Int parentSubCellPos = new Vector3Int(Mathf.RoundToInt(cellID.x), Mathf.RoundToInt(cellID.y), Mathf.RoundToInt(cellID.z)) + subCellPosInt;
+                                Vector3Int parentSubCellPos = cellPosition * cellSizeInBricks + subCellPosInt;
 
                                 // Find the corner in bricks of the parent volume:
                                 brickSet.Add(new Brick(parentSubCellPos, i + 1));

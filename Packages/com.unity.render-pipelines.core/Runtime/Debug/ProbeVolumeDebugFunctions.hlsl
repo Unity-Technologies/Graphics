@@ -93,7 +93,8 @@
         else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
         {
             float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
-            return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity);
+            float threshold = PROBE_VALIDITY_THRESHOLD;
+            return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity > threshold);
         }
         else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
         {

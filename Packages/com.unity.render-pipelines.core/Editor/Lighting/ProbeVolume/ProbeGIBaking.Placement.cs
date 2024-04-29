@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering
                     if (filteredContributors.Count == 0 && !overlappingProbeVolumes.Any(v => v.component.fillEmptySpaces))
                         continue;
 
-                    var bricks = ProbePlacement.SubdivideCell(cell.bounds, ctx, gpuResources, filteredContributors, overlappingProbeVolumes);
+                    var bricks = ProbePlacement.SubdivideCell(cell.position, cell.bounds, ctx, gpuResources, filteredContributors, overlappingProbeVolumes);
                     if (bricks.Length == 0)
                         continue;
 

@@ -6,8 +6,9 @@ namespace UnityEngine.Rendering
     class APVDefinitions
     {
         public static int probeIndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
-        public static int probeMaxRegionCount = 4;
+        public const float probeValidityThreshold = 0.05f;
 
+        public static int probeMaxRegionCount = 4;
         public static Color32[] layerMaskColors = new Color32[] {
             new Color32(230, 159, 0, 255),
             new Color32(0, 158, 115, 255),

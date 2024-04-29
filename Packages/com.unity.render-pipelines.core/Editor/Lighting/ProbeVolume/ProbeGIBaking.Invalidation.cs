@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering
             return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
         }
 
-        const float k_MinValidityForLeaking = 0.05f;
+        const float k_MinValidityForLeaking = APVDefinitions.probeValidityThreshold;
 
         internal static uint PackValidity(float[] validity)
         {
