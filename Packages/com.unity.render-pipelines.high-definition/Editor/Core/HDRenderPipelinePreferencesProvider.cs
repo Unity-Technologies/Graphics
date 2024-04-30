@@ -15,11 +15,11 @@ namespace UnityEditor.Rendering.HighDefinition.Core
         {
             public static readonly GUIContent matcapLabel = EditorGUIUtility.TrTextContent("MatCap Mode Default Values");
             public static readonly GUIContent matcapViewMixAlbedoLabel = EditorGUIUtility.TrTextContent("Mix Albedo", "Enable to make HDRP mix the albedo of the Material with its material capture.");
-            public static readonly GUIContent matcapViewScaleLabel = EditorGUIUtility.TrTextContent("Intensity scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.");
+            public static readonly GUIContent matcapViewScaleLabel = EditorGUIUtility.TrTextContent("Intensity Scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.");
         }
 
         static List<string> s_SearchKeywords = new() { "MatCap Mode", "Intensity scale", "Mix Albedo" };
-        
+
         /// <summary>
         /// Keyworks for the preferences
         /// </summary>
