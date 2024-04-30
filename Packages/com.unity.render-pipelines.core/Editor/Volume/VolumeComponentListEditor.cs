@@ -448,12 +448,8 @@ namespace UnityEditor.Rendering
             menu.AddSeparator(string.Empty);
 
             if (targetEditor.hasAdditionalProperties)
-                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"),
-                    targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
-            else
-                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false,
-                () => CoreRenderPipelinePreferences.Open());
+                menu.AddAdvancedPropertiesBoolMenuItem(() => targetEditor.showAdditionalProperties,
+                                                       () => targetEditor.showAdditionalProperties ^= true);
 
             menu.AddSeparator(string.Empty);
             targetEditor.AddDefaultProfileContextMenuEntries(menu, VolumeManager.instance.globalDefaultProfile,

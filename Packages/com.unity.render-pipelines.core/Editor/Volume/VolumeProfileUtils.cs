@@ -19,8 +19,6 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent expandAll = EditorGUIUtility.TrTextContent("Expand All");
             public static readonly GUIContent reset = EditorGUIUtility.TrTextContent("Reset");
             public static readonly GUIContent resetAll = EditorGUIUtility.TrTextContent("Reset All");
-            public static readonly GUIContent showAdditionalProperties = EditorGUIUtility.TrTextContent("Show Additional Properties");
-            public static readonly GUIContent showAllAdditionalProperties = EditorGUIUtility.TrTextContent("Show All Additional Properties...");
             public static readonly GUIContent openInRenderingDebugger = EditorGUIUtility.TrTextContent("Open In Rendering Debugger");
             public static readonly GUIContent copySettings = EditorGUIUtility.TrTextContent("Copy Settings");
             public static readonly GUIContent copyAllSettings = EditorGUIUtility.TrTextContent("Copy All Settings");
@@ -313,8 +311,7 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.showAllAdditionalProperties, false,
-                CoreRenderPipelinePreferences.Open);
+            menu.AddAdvancedPropertiesBoolMenuItem();
 
             menu.AddSeparator(string.Empty);
 
@@ -400,8 +397,7 @@ namespace UnityEditor.Rendering
 
             menu.AddSeparator(string.Empty);
 
-            menu.AddItem(Styles.showAllAdditionalProperties, false,
-                CoreRenderPipelinePreferences.Open);
+            menu.AddAdvancedPropertiesBoolMenuItem();
 
             menu.AddSeparator(string.Empty);
 

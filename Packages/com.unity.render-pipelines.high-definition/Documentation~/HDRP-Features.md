@@ -351,7 +351,7 @@ To apply a tint to the shadow or the penumbra of the shadow:
 1. Open the Light's Inspector window.
 2. Go to the Shadows section.
 3. Open the **More** (⋮) menu.
-4. Select **Show Additional Properties**.
+4. Select *Advanced Properties**.
 
 ### Ray tracing
 

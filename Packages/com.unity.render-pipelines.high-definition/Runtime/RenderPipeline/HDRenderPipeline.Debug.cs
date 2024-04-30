@@ -145,7 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // However debug mode like colorPickerModes and false color don't need DEBUG_DISPLAY and must work with the lighting.
             // So we will enabled DEBUG_DISPLAY independently
 
-            bool debugDisplayEnabledOrSceneLightingDisabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
+            bool isSceneLightingDisabled = CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
+            bool debugDisplayEnabledOrSceneLightingDisabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || isSceneLightingDisabled;
+
             // Enable globally the keyword DEBUG_DISPLAY on shader that support it with multi-compile
             CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
@@ -173,12 +175,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var debugEmissiveColor = new Vector4(lightingDebugSettings.overrideEmissiveColor ? 1.0f : 0.0f, lightingDebugSettings.overrideEmissiveColorValue.r, lightingDebugSettings.overrideEmissiveColorValue.g, lightingDebugSettings.overrideEmissiveColorValue.b);
                 var debugTrueMetalColor = new Vector4(materialDebugSettings.materialValidateTrueMetal ? 1.0f : 0.0f, materialDebugSettings.materialValidateTrueMetalColor.r, materialDebugSettings.materialValidateTrueMetalColor.g, materialDebugSettings.materialValidateTrueMetalColor.b);
 
-                DebugLightingMode debugLightingMode = m_CurrentDebugDisplaySettings.GetDebugLightingMode();
-                if (CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
-                {
-                    debugLightingMode = DebugLightingMode.MatcapView;
-                }
-
                 ref var cb = ref m_ShaderVariablesDebugDisplayCB;
 
                 var debugMaterialIndices = m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes();
@@ -202,6 +198,31 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                DebugLightingMode debugLightingMode = m_CurrentDebugDisplaySettings.GetDebugLightingMode();
+
+                // Mat Cap Mode Logic
+                {
+                    bool matCapMixAlbedo = false;
+                    float matCapMixScale = 1.0f;
+
+                    if (debugLightingMode == DebugLightingMode.MatcapView)
+                    {
+                        matCapMixAlbedo = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.matCapMixAlbedo;
+                        matCapMixScale = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.matCapMixScale;
+                    }
+#if UNITY_EDITOR
+                    else if (isSceneLightingDisabled)
+                    {
+                        // Forcing the MatCap Mode when scene view lighting is disabled. Also use the default values
+                        debugLightingMode = DebugLightingMode.MatcapView;
+                        matCapMixAlbedo = HDRenderPipelinePreferences.matCapMode.mixAlbedo.value;
+                        matCapMixScale = HDRenderPipelinePreferences.matCapMode.viewScale.value;
+                    }
+#endif
+                    cb._MatcapMixAlbedo = matCapMixAlbedo ? 1 : 0;
+                    cb._MatcapViewScale = matCapMixScale;
+                }
+
                 cb._DebugLightingMode = (int)debugLightingMode;
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
@@ -215,13 +236,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
                 cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
 
-#if UNITY_EDITOR
-                cb._MatcapMixAlbedo = HDRenderPipelinePreferences.matcapViewMixAlbedo ? 1 : 0;
-                cb._MatcapViewScale = HDRenderPipelinePreferences.matcapViewScale;
-#else
-                cb._MatcapMixAlbedo = 0;
-                cb._MatcapViewScale = 1.0f;
-#endif
                 cb._DebugViewportSize = hdCamera.screenSize;
                 cb._DebugLightingAlbedo = debugAlbedo;
                 cb._DebugLightingSmoothness = debugSmoothness;

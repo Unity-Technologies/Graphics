@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -16,7 +18,15 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// The header of the panel
         /// </summary>
-        GUIContent header { get; }
+        GUIContent header
+        {
+            get
+            {
+                var type = GetType();
+                var displayTypeInfoAttribute = type.GetCustomAttribute<DisplayInfoAttribute>();
+                return EditorGUIUtility.TrTextContent(displayTypeInfoAttribute != null ? displayTypeInfoAttribute.name : type.Name);
+            }
+        }
 
         /// <summary>
         /// Renders the Preferences UI for this provider

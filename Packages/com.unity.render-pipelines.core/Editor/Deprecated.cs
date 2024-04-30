@@ -6,6 +6,15 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering
 {
     /// <summary>
+    /// Callback method that will be called when the Global Preferences for Additional Properties is changed
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+    [Obsolete("This attribute is not handled anymore. Use Advanced Properties. #from(6000.0)", false)]
+    public sealed class SetAdditionalPropertiesVisibilityAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// This attributes tells a <see cref="VolumeComponentEditor"/> class which type of
     /// <see cref="VolumeComponent"/> it's an editor for.
     /// When you make a custom editor for a component, you need put this attribute on the editor

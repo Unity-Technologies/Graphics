@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.Universal
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
 
             if(rendererFeatureObject?.GetType() == typeof(FullScreenPassRendererFeature))
-                AddShowAdditionalPropertiesMenuItem(rendererFeatureObject as FullScreenPassRendererFeature, ref menu, id);
+                menu.AddAdvancedPropertiesBoolMenuItem();
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
@@ -230,10 +230,6 @@ namespace UnityEditor.Rendering.Universal
             menu.DropDown(new Rect(position, Vector2.zero));
         }
 
-        private void AddShowAdditionalPropertiesMenuItem(FullScreenPassRendererFeature fullScreenFeature, ref GenericMenu menu, int id)
-        {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), fullScreenFeature.showAdditionalProperties, () => fullScreenFeature.showAdditionalProperties = !fullScreenFeature.showAdditionalProperties);
-        }
 
         internal void AddComponent(Type type)
         {

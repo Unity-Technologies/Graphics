@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.EnsureFolderTreeInAssetFilePath(folderName);
             return folderName;
         }
-        
+
         internal static Material CreateNewWaterMaterialAndShader(MonoBehaviour component)
         {
             string directory = GetWaterResourcesPath(component);
@@ -277,8 +277,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     EditorGUILayout.PropertyField(serialized.m_CausticsVirtualPlaneDistance, k_CausticsVirtualPlaneDistance);
                     EditorGUILayout.PropertyField(serialized.m_CausticsTilingFactor, k_CausticsTilingFactor);
-                    
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+
+                    if (AdvancedProperties.BeginGroup())
                     {
                         EditorGUILayout.PropertyField(serialized.m_CausticsIntensity, k_CausticsInstensity);
                         EditorGUILayout.PropertyField(serialized.m_CausticsPlaneBlendDistance);
@@ -290,6 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 EditorGUILayout.PropertyField(serialized.m_CausticsDirectionalShadowDimmer, k_CausticsDirectionalShadowDimmer);
                         }
                     }
+                    AdvancedProperties.EndGroup();
 
                     // Display an info box if the wind speed is null for the target band
                     if (!WaterBandHasAgitation(serialized, owner, HDRenderPipeline.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount)))

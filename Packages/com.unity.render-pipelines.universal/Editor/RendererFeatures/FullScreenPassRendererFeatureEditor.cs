@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 /// <summary>
@@ -49,8 +50,11 @@ public class FullScreenPassRendererFeatureEditor : Editor
         EditorGUILayout.PropertyField(m_BindDepthStencilAttachmentProperty, k_BindDepthStencilAttachmentGuiContent);
         EditorGUILayout.PropertyField(m_PassMaterialProperty, k_PassMaterialGuiContent);
 
-        if (currentFeature.showAdditionalProperties)
+        if (AdvancedProperties.BeginGroup())
+        {
             DrawMaterialPassProperty(currentFeature);
+        }
+        AdvancedProperties.EndGroup();
 
         serializedObject.ApplyModifiedProperties();
     }

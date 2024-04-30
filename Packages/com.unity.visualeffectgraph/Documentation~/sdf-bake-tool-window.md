@@ -33,10 +33,10 @@ Note: To use the SDF asset with the [Collide With Signed Distance Field](Block-C
 
 ## Properties
 
-The SDF Bake Tool window includes default properties, which should suit most use cases, and additional properties that further tweak the baking process. The additional properties are invisible by default. To show them:
+The SDF Bake Tool window includes default properties, which should suit most use cases, and additional properties that further tweak the baking process. The [advanced properties](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/manual/advanced-properties.html) are invisible by default. To show them:
 
 1. To the right of the window's header, select the **More** menu (&#8942;).
-2. Enable **Show Additional Properties**.
+2. Enable **Advanced Properties**.
 
 ![](Images/sdf-bake-tool-additional-properties.png)
 

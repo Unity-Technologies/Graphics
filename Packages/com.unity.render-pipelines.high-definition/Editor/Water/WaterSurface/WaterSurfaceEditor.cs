@@ -208,11 +208,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(serialized.m_MaxTessellationFactor);
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    if (AdvancedProperties.BeginGroup())
                     {
                         EditorGUILayout.PropertyField(serialized.m_TessellationFactorFadeStart);
                         EditorGUILayout.PropertyField(serialized.m_TessellationFactorFadeRange);
                     }
+                    AdvancedProperties.EndGroup();
                 }
             }
         }
@@ -325,12 +326,12 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static readonly CED.IDrawer Inspector;
 
-        public static readonly string generalHeader = "General";
-        public static readonly string simulationHeader = "Simulation";
-        public static readonly string deformationHeader = "Deformation";
-        public static readonly string appearanceHeader = "Appearance";
-        public static readonly string foamHeader = "Foam";
-        public static readonly string miscellaneousHeader = "Miscellaneous";
+        public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
+        public static readonly GUIContent simulationHeader = EditorGUIUtility.TrTextContent("Simulation");
+        public static readonly GUIContent deformationHeader = EditorGUIUtility.TrTextContent("Deformation");
+        public static readonly GUIContent appearanceHeader = EditorGUIUtility.TrTextContent("Appearance");
+        public static readonly GUIContent foamHeader = EditorGUIUtility.TrTextContent("Foam");
+        public static readonly GUIContent miscellaneousHeader = EditorGUIUtility.TrTextContent("Miscellaneous");
 
         enum Expandable
         {
@@ -344,37 +345,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal enum AdditionalProperties
         {
-            Global = 1 << 0,
+            General = 1 << 0,
+            Simulation = 1 << 1,
+            Appearance = 1 << 3,
         }
 
         readonly static ExpandedState<Expandable, WaterSurface> k_ExpandedState = new ExpandedState<Expandable, WaterSurface>(0, "HDRP");
         readonly internal static AdditionalPropertiesState<AdditionalProperties, WaterSurface> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, WaterSurface>(0, "HDRP");
 
-        internal static void RegisterEditor(HDLightEditor editor)
-        {
-            k_AdditionalPropertiesState.RegisterEditor(editor);
-        }
-
-        internal static void UnregisterEditor(HDLightEditor editor)
-        {
-            k_AdditionalPropertiesState.UnregisterEditor(editor);
-        }
-
-        [SetAdditionalPropertiesVisibility]
-        internal static void SetAdditionalPropertiesVisibility(bool value)
-        {
-            if (value)
-                k_AdditionalPropertiesState.ShowAll();
-            else
-                k_AdditionalPropertiesState.HideAll();
-        }
-
-        internal static bool ShowAdditionalProperties()
-        {
-            return k_AdditionalPropertiesState[WaterSurfaceUI.AdditionalProperties.Global];
-        }
-
-        [MenuItem("CONTEXT/WaterSurface/Show All Additional Properties...", false, 100)]
+        [MenuItem("CONTEXT/WaterSurface/Open Preferences > Graphics...", false, 100)]
         static void ShowAllAdditionalProperties(MenuCommand menuCommand)
         {
             CoreRenderPipelinePreferences.Open();
@@ -407,14 +386,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static WaterSurfaceUI()
         {
+            var emptyDrawer =
+            CED.Group(
+                (s, e) => { });
+
             Inspector = CED.Group(
-                CED.FoldoutGroup(generalHeader, Expandable.General, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceGeneralSection),
-                CED.FoldoutGroup(simulationHeader, Expandable.Simulation, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceSimulationSection),
+                CED.AdditionalPropertiesFoldoutGroup(generalHeader, Expandable.General, k_ExpandedState,
+                    AdditionalProperties.General, k_AdditionalPropertiesState, CED.Group(WaterSurfaceEditor.WaterSurfaceGeneralSection), emptyDrawer),
+                CED.AdditionalPropertiesFoldoutGroup(simulationHeader, Expandable.Simulation, k_ExpandedState,
+                    AdditionalProperties.Simulation, k_AdditionalPropertiesState, CED.Group(WaterSurfaceEditor.WaterSurfaceSimulationSection), emptyDrawer),
                 CED.FoldoutGroup(deformationHeader, Expandable.Deformation, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceDeformationSection),
-                CED.FoldoutGroup(appearanceHeader, Expandable.Appearance, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceAppearanceSection),
+                CED.AdditionalPropertiesFoldoutGroup(appearanceHeader, Expandable.Appearance, k_ExpandedState,
+                    AdditionalProperties.Appearance, k_AdditionalPropertiesState, CED.Group(WaterSurfaceEditor.WaterSurfaceAppearanceSection), emptyDrawer),
                 CED.FoldoutGroup(foamHeader, Expandable.Foam, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceFoamSection),
                 CED.FoldoutGroup(miscellaneousHeader, Expandable.Miscellaneous, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceMiscellaneousSection)
-            );
+                );
         }
     }
 }

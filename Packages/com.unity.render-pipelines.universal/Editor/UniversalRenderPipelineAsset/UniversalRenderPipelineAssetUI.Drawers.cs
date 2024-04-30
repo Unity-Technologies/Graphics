@@ -41,15 +41,6 @@ namespace UnityEditor.Rendering.Universal
             k_AdditionalPropertiesState.UnregisterEditor(editor);
         }
 
-        [SetAdditionalPropertiesVisibility]
-        internal static void SetAdditionalPropertiesVisibility(bool value)
-        {
-            if (value)
-                k_AdditionalPropertiesState.ShowAll();
-            else
-                k_AdditionalPropertiesState.HideAll();
-        }
-
         static bool ValidateRendererGraphicsAPIsForLightLayers(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
         {
             unsupportedGraphicsApisMessage = null;

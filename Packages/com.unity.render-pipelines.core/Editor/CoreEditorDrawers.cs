@@ -180,20 +180,12 @@ namespace UnityEditor.Rendering
                 if (m_Enabler != null && !m_Enabler(data, owner))
                     return;
 
-                if (m_Anim != null)
-                    CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_Anim);
-
-                for (var i = 0; i < m_ActionDrawers.Length; i++)
-                    m_ActionDrawers[i](data, owner);
-
-                if (m_Anim != null)
+                if (AdvancedProperties.BeginGroup(m_Anim))
                 {
-                    CoreEditorUtils.EndAdditionalPropertiesHighlight();
-
-                    // While the highlight is being changed, force the Repaint of the editor
-                    if (m_Anim.value > 0.0f)
-                        owner?.Repaint();
+                    for (var i = 0; i < m_ActionDrawers.Length; i++)
+                        m_ActionDrawers[i](data, owner);
                 }
+                AdvancedProperties.EndGroup();
             }
 
             bool IDrawer.Expand(int mask) => DefaultExpand(m_ActionDrawers, mask);
@@ -888,6 +880,7 @@ namespace UnityEditor.Rendering
             where TEnum : struct, IConvertible
             where TAPEnum : struct, IConvertible
         {
+            additionalContent ??= Group((s, o) => { });
             return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, additionalPropertiesMask, additionalPropertiesState, normalContent.Draw, additionalContent.Draw, options, customMenuContextAction, otherDocumentation);
         }
 
@@ -972,7 +965,10 @@ namespace UnityEditor.Rendering
 
             return FoldoutGroup(foldoutTitle, foldoutMask, foldoutState, options, customMenuContextAction, Enabler, SwitchEnabler,
                 otherDocumentation, normalContent,
-                ConditionalWithAdditionalProperties((serialized, owner) => additionalPropertiesState[additionalPropertiesMask] && foldoutState[foldoutMask], additionalPropertiesState.GetAnimation(additionalPropertiesMask), additionalContent).Draw
+                ConditionalWithAdditionalProperties(
+                    (serialized, owner) => additionalPropertiesState[additionalPropertiesMask] && foldoutState[foldoutMask],
+                    AdvancedProperties.s_AnimFloat,
+                    additionalContent).Draw
             );
         }
     }

@@ -100,7 +100,7 @@ Refer to [Create an HDRI sky](create-an-HDRI-sky.md) for more information.
 
 ![](Images/Override-HDRISky2.png)
 
-These properties only appear if you enable [more options](expose-all-additional-properties.md) and then enable **Backplate**.
+These properties only appear if you enable [advanced properties](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/manual/advanced-properties.html) and then enable **Backplate**.
 
 <table>
 <thead>

@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Universal
         static Color s_LastColor;
         static void UpdateColorsInHandlesIfRequired()
         {
-            Color c = new Color(1f, 1f, 1f, 0.2f);
+            Color c = DecalPreferences.decalGizmoColor;
             if (c != s_LastColor)
             {
                 if (s_BoxHandle != null && !s_BoxHandle.Equals(null))

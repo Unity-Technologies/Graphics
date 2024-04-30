@@ -14,10 +14,15 @@ MatCap mode preserves the normal maps and you can use the original Material albe
 
 ## Properties
 
-| **Property**                  | **Description**                                              |
-| ----------------------------- | ------------------------------------------------------------ |
-| **Mix Albedo in MatCap Mode** | Enable to make HDRP mix the albedo of the Material with its material capture. |
-| **MatCap Intensity Scale**    | Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably. |
+1. Open the **Graphics** tab in the **Preferences** window (menu: **Edit > Preferences > Graphics**).
+2. Under **High Definition Render Pipeline** and **MatCap Mode**:
+
+![](Images/MatCap_Settings.png)
+
+| **Property**              | **Description**                                              |
+| ------------------------- | ------------------------------------------------------------ |
+| **Mix Albedo** | Enable to make HDRP mix the albedo of the Material with its material capture. |
+| **Intensity Scale** | Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably. |
 
 ## Default material captures
 

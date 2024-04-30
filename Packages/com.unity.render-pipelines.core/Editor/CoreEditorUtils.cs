@@ -822,14 +822,14 @@ namespace UnityEditor.Rendering
         {
             if (contextAction == null && (hasMoreOptions != null || customMenuContextAction != null))
             {
-                // If no contextual menu add one for the additional properties.
+                // If no contextual menu add one for the advanced properties.
                 contextAction = pos =>
                 {
                     var menu = new GenericMenu();
                     if (customMenuContextAction != null)
                         customMenuContextAction(menu);
                     if (hasMoreOptions != null)
-                        AddAdditionalPropertiesContext(menu, hasMoreOptions, toggleMoreOptions);
+                        menu.AddAdvancedPropertiesBoolMenuItem(hasMoreOptions, toggleMoreOptions);
                     menu.DropDown(new Rect(pos, Vector2.zero));
                 };
             }
@@ -875,12 +875,6 @@ namespace UnityEditor.Rendering
 
             if (GUI.Button(documentationRect, documentationIcon, CoreEditorStyles.iconHelpStyle))
                 Help.BrowseURL(documentationURL);
-        }
-
-        static void AddAdditionalPropertiesContext(GenericMenu menu, Func<bool> hasMoreOptions, Action toggleMoreOptions)
-        {
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
         }
 
         /// <summary>
@@ -1386,19 +1380,6 @@ namespace UnityEditor.Rendering
         }
 
         #endregion
-
-        internal static void BeginAdditionalPropertiesHighlight(AnimFloat animation)
-        {
-            var oldColor = GUI.color;
-            GUI.color = Color.Lerp(CoreEditorStyles.backgroundColor * oldColor, CoreEditorStyles.backgroundHighlightColor, animation.value);
-            EditorGUILayout.BeginVertical(CoreEditorStyles.additionalPropertiesHighlightStyle);
-            GUI.color = oldColor;
-        }
-
-        internal static void EndAdditionalPropertiesHighlight()
-        {
-            EditorGUILayout.EndVertical();
-        }
 
         internal static T CreateAssetAt<T>(Scene scene, string targetName) where T : ScriptableObject
         {

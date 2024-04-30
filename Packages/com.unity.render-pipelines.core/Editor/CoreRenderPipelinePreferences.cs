@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -12,7 +13,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Path to the Render Pipeline Preferences
         /// </summary>
-        public static readonly string corePreferencePath = "Preferences/Core Render Pipeline";
+        public static readonly string corePreferencePath = "Preferences/Graphics";
 
         private static readonly List<ICoreRenderPipelinePreferencesProvider> s_Providers = new();
 
@@ -25,6 +26,14 @@ namespace UnityEditor.Rendering
                     continue;
                 s_Providers.Add(Activator.CreateInstance(provider) as ICoreRenderPipelinePreferencesProvider);
             }
+
+            s_Providers.Sort((x, y) => GetDisplayInfoOrder(x.GetType()).CompareTo(GetDisplayInfoOrder(y.GetType())));
+        }
+
+        static int GetDisplayInfoOrder(Type type)
+        {
+            var attribute = type.GetCustomAttribute<DisplayInfoAttribute>();
+            return attribute?.order ?? int.MaxValue;
         }
 
         [SettingsProvider]
@@ -38,8 +47,11 @@ namespace UnityEditor.Rendering
                     {
                         foreach (var providers in s_Providers)
                         {
-                            EditorGUILayout.LabelField(providers.header, EditorStyles.boldLabel);
-                            providers.PreferenceGUI();
+                            if (providers.header != null)
+                            {
+                                EditorGUILayout.LabelField(providers.header, EditorStyles.boldLabel);
+                                providers.PreferenceGUI();
+                            }
                         }
                     }
                 }

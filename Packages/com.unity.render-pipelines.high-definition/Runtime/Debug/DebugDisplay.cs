@@ -1204,6 +1204,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip AreaLights = new() { name = "Area Lights", tooltip = "Temporarily enables or disables Area Lights in your Scene." };
             public static readonly NameAndTooltip ReflectionProbes = new() { name = "Reflection Probes", tooltip = "Temporarily enables or disables Reflection Probes in your Scene." };
 
+            // Lighting - Mat Cap
+            public static readonly NameAndTooltip MatCapHeader = new() { name = "Mat Cap Mode", tooltip = "Settings for Scene View MatCap" };
+            public static readonly NameAndTooltip MatCapViewMixAlbedoLabel = new() { name = "Mix Albedo", tooltip = "Enable to make HDRP mix the albedo of the Material with its material capture." };
+            public static readonly NameAndTooltip MatCapIntensityScaleLabel = new() { name = "Intensity scale", tooltip = "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably." };
+
             public static readonly NameAndTooltip Exposure = new() { name = "Exposure", tooltip = "Allows the selection of an Exposure debug mode to use." };
             public static readonly NameAndTooltip HDROutput = new() { name = "HDR", tooltip = "Allows the selection of an HDR debug mode to use." };
             public static readonly NameAndTooltip HDROutputDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode for HDR Output." };
@@ -1434,6 +1439,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 lighting.children.Add(hdrFoldout);
 
                 lighting.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightingDebugMode, getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
+
+                lighting.children.Add(new DebugUI.Container()
+                {
+                    children =
+                    {
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = LightingStrings.MatCapViewMixAlbedoLabel,
+                            getter = () => data.lightingDebugSettings.matCapMixAlbedo,
+                            setter = value => data.lightingDebugSettings.matCapMixAlbedo = value
+                        },
+                        new DebugUI.FloatField
+                        {
+                            nameAndTooltip = LightingStrings.MatCapIntensityScaleLabel,
+                            getter = () => data.lightingDebugSettings.matCapMixScale,
+                            setter = value => data.lightingDebugSettings.matCapMixScale = value,
+                            isHiddenCallback = () => !data.lightingDebugSettings.matCapMixAlbedo
+                        },
+                    },
+                    isHiddenCallback = () => data.lightingDebugSettings.debugLightingMode != DebugLightingMode.MatcapView
+                });
+
+
                 lighting.children.Add(new DebugUI.BitField { nameAndTooltip = LightingStrings.LightHierarchyDebugMode, getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode)});
 
                 list.Add(lighting);

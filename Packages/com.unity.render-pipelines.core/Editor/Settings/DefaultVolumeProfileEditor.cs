@@ -233,11 +233,7 @@ namespace UnityEditor.Rendering
             menu.AddSeparator(string.Empty);
 
             if (targetEditor.hasAdditionalProperties)
-                menu.AddItem(VolumeProfileUtils.Styles.showAdditionalProperties, targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
-            else
-                menu.AddDisabledItem(VolumeProfileUtils.Styles.showAdditionalProperties);
-
-            menu.AddItem(VolumeProfileUtils.Styles.showAllAdditionalProperties, false, () => CoreRenderPipelinePreferences.Open());
+                menu.AddAdvancedPropertiesBoolMenuItem(() => targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
 
             menu.AddSeparator(string.Empty);
             menu.AddItem(VolumeProfileUtils.Styles.openInRenderingDebugger, false, DebugDisplaySettingsVolume.OpenInRenderingDebugger);
