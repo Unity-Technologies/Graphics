@@ -1013,9 +1013,20 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 // Partial writes will register themselves as readers so this should be adequate
                                 foreach (ref readonly var reader in contextData.Readers(fragment.resource))
                                 {
-                                    bool isFragment = contextData.passData.ElementAt(reader.passId).IsUsedAsFragment(fragment.resource, contextData);
+                                    ref var readerPass = ref contextData.passData.ElementAt(reader.passId);
+                                    bool isFragment = readerPass.IsUsedAsFragment(fragment.resource, contextData);
+
+                                    // Unsafe pass - we cannot know how it is used, so we need to both store and resolve
+                                    if (readerPass.type == RenderGraphPassType.Unsafe)
+                                    {
+                                        needsMSAASamples = true;
+                                        needsResolvedData = true;
+                                        msaaUserPassID = reader.passId;
+                                        userPassID = reader.passId;
+                                        break;
+                                    }
                                     // A fragment attachment use we need the msaa samples
-                                    if (isFragment)
+                                    else if (isFragment)
                                     {
                                         needsMSAASamples = true;
                                         msaaUserPassID = reader.passId;
