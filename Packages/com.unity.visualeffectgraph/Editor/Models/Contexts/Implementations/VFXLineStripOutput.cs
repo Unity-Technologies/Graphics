@@ -4,11 +4,11 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(name = "Output ParticleStrip Line", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output ParticleStrip|Line", category = "#5Output Debug", experimental = true)]
     class VFXLineStripOutput : VFXAbstractParticleOutput
     {
         protected VFXLineStripOutput() : base(true) { }
-        public override string name { get { return "Output ParticleStrip Line"; } }
+        public override string name => "Output ParticleStrip\nLine";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLinesHW"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }
         public override bool implementsMotionVector { get { return true; } }

@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Test
             var updateContextDesc = allContexts.First(t => t.modelType == typeof(VFXBasicUpdate));
             var updateContext = viewController.AddVFXContext(new Vector2(300, 1000), updateContextDesc.variant);
 
-            var outputContextDesc = allContexts.First(t => t.modelType == typeof(VFXPlanarPrimitiveOutput));
+            var outputContextDesc = allContexts.First(t => t.modelType == typeof(VFXComposedParticleOutput));
             var outputContext = viewController.AddVFXContext(new Vector2(300, 2000), outputContextDesc.variant);
 
             viewController.ApplyChanges();
@@ -594,7 +594,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Get Set Lifetime node and convert it to subgraph block
-            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
 
@@ -627,7 +627,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Get Set Lifetime node and convert it to subgraph block
-            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
 
@@ -655,7 +655,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Get Set Lifetime node and convert it to subgraph block
-            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
 
@@ -693,7 +693,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Get Set Lifetime node and convert it to subgraph block
-            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
 
@@ -735,7 +735,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Get Set Lifetime node and convert it to subgraph block
-            var controllers = GetBlocks(window, "Set Lifetime").Take(1);
+            var controllers = GetBlocks(window, "Set".Label(false).AppendLiteral("Lifetime")).Take(1);
             var subgraphFileName = TempDirectoryName + $"/subgraph_{GUID.Generate()}.vfxblock";
             VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, controllers, Rect.zero, subgraphFileName);
 
@@ -954,7 +954,7 @@ namespace UnityEditor.VFX.Test
             EditorWindow.GetWindow<ProjectBrowser>(); // Show the project browser to select asset (so that the selection is not empty)
 
             var window = CreateSimpleVFXGraph();
-            var setAgeOperatorDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name == "Set age");
+            var setAgeOperatorDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.name == "|Set|_Age");
             var setAgeBlock = setAgeOperatorDesc.CreateInstance();
             window.graphView.controller.contexts.Single(x => x.model is VFXBasicUpdate).model.AddChild(setAgeBlock);
             window.graphView.controller.ApplyChanges();

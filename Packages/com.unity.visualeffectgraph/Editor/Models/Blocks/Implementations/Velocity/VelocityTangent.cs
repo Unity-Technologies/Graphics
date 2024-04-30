@@ -34,8 +34,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
                 yield return new Variant(
-                    $"Set Tangential Velocity from Direction & Speed",
-                    "Attribute/From Direction & Speed",
+                    "Set".Label().AppendLiteral("Velocity from Direction & Speed").AppendLabel("Tangent"),
+                    VelocityBase.Category,
                     typeof(VelocityTangent),
                     new[]
                     {
@@ -48,8 +48,8 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(experimental = true, variantProvider = typeof(VelocityTangentProvider))]
     class VelocityTangent : VelocityBase
     {
-        public override string name { get { return string.Format(base.name, "Tangent"); } }
-        protected override bool altersDirection { get { return true; } }
+        public override string name => base.name.AppendLabel("Tangent");
+        protected override bool altersDirection => true;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

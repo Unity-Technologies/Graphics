@@ -3,10 +3,10 @@ using System.Collections.Generic;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-UpdateRotation")]
-    [VFXInfo(name = "Integration: Update Rotation", category = "Implicit")]
+    [VFXInfo(name = "Integration Update|Rotation", category = "Implicit")]
     class AngularEulerIntegration : VFXBlock
     {
-        public override string name => "Integration: Update Rotation";
+        public override string name => "Integration Update".AppendLabel("Rotation");
         public override VFXContextType compatibleContexts => VFXContextType.Update;
         public override VFXDataType compatibleData => VFXDataType.Particle;
 

@@ -6,18 +6,41 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.URP
 {
+    class VFXURPPlanarPrimitiveOutputSubVariantProvider : VariantProvider
+    {
+        private readonly VFXPrimitiveType mainVariantType;
+
+        public VFXURPPlanarPrimitiveOutputSubVariantProvider(VFXPrimitiveType type)
+        {
+            this.mainVariantType = type;
+        }
+
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)).Cast<VFXPrimitiveType>())
+            {
+                if (primitive == this.mainVariantType)
+                    continue;
+
+                yield return new Variant(
+                    "Output Particle".AppendLabel("URP Lit", false).AppendLabel(primitive.ToString()),
+                    null,
+                    typeof(VFXURPLitPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
+            }
+        }
+    }
+
     class VFXURPPlanarPrimitiveOutputProvider : VariantProvider
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
-            {
-                yield return new Variant(
-                    $"Output Particle URP Lit {primitive}",
-                    "Output",
-                    typeof(VFXURPLitPlanarPrimitiveOutput),
-                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
-            }
+            yield return new Variant(
+                "Output Particle".AppendLabel("URP Lit", false).AppendLabel("Quad", false),
+                VFXLibraryStringHelper.Separator("Output Basic", 2),
+                typeof(VFXURPLitPlanarPrimitiveOutput),
+                new[] {new KeyValuePair<string, object>("primitiveType", VFXPrimitiveType.Quad)},
+                () => new VFXURPPlanarPrimitiveOutputSubVariantProvider(VFXPrimitiveType.Quad));
         }
     }
 
@@ -25,13 +48,7 @@ namespace UnityEditor.VFX.URP
     [VFXInfo(variantProvider = typeof(VFXURPPlanarPrimitiveOutputProvider))]
     class VFXURPLitPlanarPrimitiveOutput : VFXAbstractParticleURPLitOutput
     {
-        public override string name
-        {
-            get
-            {
-                return "Output Particle URP Lit " + primitiveType.ToString();
-            }
-        }
+        public override string name => "Output Particle".AppendLabel("URP Lit").AppendLabel(primitiveType.ToString());
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

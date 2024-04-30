@@ -47,10 +47,24 @@ namespace UnityEditor.VFX.Block
                         if (composition == AttributeCompositionMode.Overwrite && source == SetAttribute.ValueSource.Slot && random == RandomMode.Off)
                             continue;
 
+                        string name;
                         var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                        var synonyms = VFXBlockUtility.GetCompositionSynonym(composition);
+                        if (source != SetAttribute.ValueSource.Source)
+                        {
+                            name = compositionString.Label().AppendLiteral(m_Attribute);
+                            if (random != RandomMode.Off)
+                                name = name.AppendLabel($"Random {random}");
+                        }
+                        else
+                        {
+                            name = compositionString.Label().AppendLiteral(m_Attribute).AppendLabel("From Source");
+                            synonyms = synonyms.Concat(new [] { "Inherit" }).ToArray();
+                        }
+
                         yield return new Variant(
-                            source != SetAttribute.ValueSource.Source ? $"{compositionString} {m_Attribute} | Random {random}" : $"Inherit source {m_Attribute}",
-                            m_Attribute != VFXAttribute.Alive.name ? compositionString : null,
+                            name,
+                            m_Attribute != VFXAttribute.Alive.name ? VFXLibraryStringHelper.Separator(compositionString, 1) : null,
                             typeof(SetAttribute),
                             new[]
                             {
@@ -58,7 +72,9 @@ namespace UnityEditor.VFX.Block
                                 new KeyValuePair<string, object>("Random", random),
                                 new KeyValuePair<string, object>("Source", source),
                                 new KeyValuePair<string, object>("Composition", composition)
-                            });
+                            },
+                            null,
+                            synonyms);
                     }
                 }
             }
@@ -69,22 +85,30 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, true);
+            var groups = VFXAttributesManager
+                .GetBuiltInAttributesOrCombination(true, false, false, true)
+                .Except(new []{ VFXAttribute.EventCount })
+                .GroupBy(x => x.category);
 
-            foreach (var attribute in attributes)
+            var setSynonyms = VFXBlockUtility.GetCompositionSynonym(AttributeCompositionMode.Overwrite);
+            foreach (var group in groups)
             {
-                yield return new Variant(
-                    $"Set {attribute}",
-                    "Attribute",
-                    typeof(SetAttribute),
-                    new[]
-                    {
-                        new KeyValuePair<string, object>("attribute", attribute),
-                        new KeyValuePair<string, object>("Random", RandomMode.Off),
-                        new KeyValuePair<string, object>("Source", SetAttribute.ValueSource.Slot),
-                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite)
-                    },
-                    () => new AttributeVariantProvider(attribute));
+                foreach (var attribute in group)
+                {
+                    yield return new Variant(
+                        "Set".Label(false).AppendLiteral(attribute.name),
+                        $"Attribute/{attribute.category}", // If the category starts with # it's interpreted as a separator. Then the # character is followed by a number for sorting purpose
+                        typeof(SetAttribute),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("attribute", attribute.name),
+                            new KeyValuePair<string, object>("Random", RandomMode.Off),
+                            new KeyValuePair<string, object>("Source", SetAttribute.ValueSource.Slot),
+                            new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite)
+                        },
+                        () => new AttributeVariantProvider(attribute.name),
+                        setSynonyms);
+                }
             }
         }
     }
@@ -135,18 +159,24 @@ namespace UnityEditor.VFX.Block
 
             var builder = new StringBuilder(24);
             if (Source == ValueSource.Slot)
-                builder.AppendFormat("{0} ", VFXBlockUtility.GetNameString(Composition));
+                builder.Append(VFXBlockUtility.GetNameString(Composition).Label(false));
             else
-                builder.Append("Inherit Source ");
+            {
+                builder.Append(VFXBlockUtility.GetNameString(Composition).Label(false).AppendLiteral(attribute));
+                if (vfxAttribute.variadic == VFXVariadic.True)
+                    builder.AppendFormat(".{0}", channels.ToString());
+                builder.Append("From Source".Label());
+                return builder.ToString();
+            }
 
-            builder.Append(ObjectNames.NicifyVariableName(attribute));
+            builder.Append(attribute.Literal());
             if (vfxAttribute.variadic == VFXVariadic.True)
                 builder.AppendFormat(".{0}", channels.ToString());
 
             if (Source == ValueSource.Slot)
             {
                 if (Random != RandomMode.Off)
-                    builder.AppendFormat(" {0}", VFXBlockUtility.GetNameString(Random));
+                    builder.Append($"Random {Random}".Label());
             }
             else
                 builder.AppendFormat(" ({0})", VFXBlockUtility.GetNameString(Composition));

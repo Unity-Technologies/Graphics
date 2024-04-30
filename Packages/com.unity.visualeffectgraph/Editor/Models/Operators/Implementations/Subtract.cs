@@ -1,13 +1,13 @@
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Subtract")]
-    [VFXInfo(category = "Math/Arithmetic")]
+    [VFXInfo(category = "Math/Arithmetic", synonyms = new []{ "minus" })]
     class Subtract : VFXOperatorNumericCascadedUnified
     {
-        protected override sealed string operatorName { get { return "Subtract"; } }
-        protected override sealed double defaultValueDouble { get { return 0.0; } }
+        protected sealed override string operatorName => "Subtract";
+        protected sealed override double defaultValueDouble => 0.0;
 
-        protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
+        protected sealed override VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
             return a - b;
         }

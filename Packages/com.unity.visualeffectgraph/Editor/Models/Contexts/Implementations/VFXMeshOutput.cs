@@ -6,16 +6,10 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputParticleMesh")]
-    [VFXInfo(name = "Output Particle Mesh", category = "Output")]
+    [VFXInfo(name = "Output Particle|Unlit|Mesh", category = "#2Output Basic")]
     class VFXMeshOutput : VFXShaderGraphParticleOutput, IVFXMultiMeshOutput
     {
-        public override string name
-        {
-            get
-            {
-                return "Output Particle Mesh";
-            }
-        }
+        public override string name => "Output Particle".AppendLabel("Unlit", false) + "\nMesh";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(name = "Output Particle Cube", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output Particle|Cube", category = "#5Output Debug", experimental = true, synonyms = new []{ "Box" })]
     class VFXBasicCubeOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Output Particle Cube"; } }
+        public override string name => "Output Particle\nCube";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleBasicCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 

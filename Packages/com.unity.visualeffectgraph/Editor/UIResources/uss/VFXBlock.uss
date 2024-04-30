@@ -81,6 +81,10 @@ VFXContextUI .VFXNodeUI.node.block-disabled #node-border #title, VFXContextUI #b
     flex-direction:row;
 }
 
+VFXBlockUI.node.cannot-expand.nosettings #collapse-button {
+    display: none;
+}
+
 .VFXNodeUI.node > #node-border
 {
     flex:1 1 auto;

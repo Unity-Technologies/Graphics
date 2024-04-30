@@ -35,6 +35,8 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Can't mix spaceable and variadic attributes : " + name);
             }
+
+            category = "No Category";
         }
 
         public string GetNameInCode(VFXAttributeLocation location)
@@ -48,6 +50,7 @@ namespace UnityEditor.VFX
         public VFXVariadic variadic;
         public SpaceableType space;
         public string description;
+        public string category { get; set; }
 
         public VFXValueType type => value.valueType;
 

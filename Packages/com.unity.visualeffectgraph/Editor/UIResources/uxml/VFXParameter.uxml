@@ -2,8 +2,8 @@
   <ui:VisualElement name="node-border" pickingMode="Ignore" >
     <ui:VisualElement name="title" pickingMode="Ignore" >
       <ui:VisualElement name="pill" >
-        <ui:Image name="exposed-icon" pickingMode="Ignore"/>
-        <ui:Label name="title-label" text=""  pickingMode="Ignore"/>
+        <ui:Image name="exposed-icon" pickingMode="Ignore" />
+        <ui:Label name="title-label" pickingMode="Ignore" />
         <ui:VisualElement name="collapse-button" text="" />
       </ui:VisualElement>
     </ui:VisualElement>

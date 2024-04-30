@@ -8,7 +8,9 @@
                          orientation="Horizontal">
         <ui:VisualElement name="ListOfNodesPanel">
             <ui:VisualElement name="Header">
-                <uie:ToolbarSearchField name="SearchField" />
+                <uie:ToolbarSearchField name="SearchField"
+                                        tooltip="Start with a '+' character to temporarily include sub-variants in search results"
+                                        />
                 <ui:Toggle name="ListVariantToggle"
                            tooltip="Toggle sub-variants visibility in search results and favorites"
                            />
@@ -24,7 +26,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="DetailsPanel">
             <ui:VisualElement name="TitleAndDoc">
-                <uie:ToolbarBreadcrumbs name="Breadcrumbs" />
+                <ui:Label name="Title" />
                 <ui:Button name="HelpButton"
                            tooltip="Open node documentation in a browser"
                            />
@@ -34,13 +36,10 @@
                          virtualizationMethod="FixedHeight"
                          fixedItemHeight = "24"
                          />
-            <ui:Label name="CategoryLabel"
-                      text="Pick a color to customize the category folder icon"
-                      />
             <ui:VisualElement name="ColorFieldRow">
                 <uie:ColorField name="CategoryColorField"
-                                label="Set Custom color"
                                 show-eye-dropper="false"
+                                label="Set Category Color"
                                 value="#FFFFFF"
                                 />
                 <ui:Button name="ResetButton"

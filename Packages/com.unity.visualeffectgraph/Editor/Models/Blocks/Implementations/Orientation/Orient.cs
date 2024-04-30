@@ -6,17 +6,45 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class OrientationModeSubVariantProvider : VariantProvider
+    {
+        private readonly Orient.Mode[] mainVariantModes;
+
+        public OrientationModeSubVariantProvider(Orient.Mode[] modes)
+        {
+            mainVariantModes = modes;
+        }
+
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (Orient.Mode mode in Enum.GetValues(typeof(Orient.Mode)))
+            {
+                if (mainVariantModes.Contains(mode))
+                    continue;
+
+                yield return new Variant(
+                    "Orient".AppendLabel(ObjectNames.NicifyVariableName(mode.ToString())),
+                    string.Empty,
+                    typeof(Orient),
+                    new[] {new KeyValuePair<string, object>("mode", mode)});
+            }
+        }
+    }
+
     class OrientationModeProvider : VariantProvider
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var mode in Enum.GetValues(typeof(Orient.Mode)))
+            var mainVariantModes = new[] { Orient.Mode.FaceCameraPlane, Orient.Mode.AlongVelocity, Orient.Mode.Advanced };
+            for (var i = 0; i < mainVariantModes.Length; i++)
             {
+                var mode = mainVariantModes[i];
                 yield return new Variant(
-                    $"Orient {ObjectNames.NicifyVariableName(mode.ToString())}",
-                    "Attribute/orientation",
+                    "Orient".AppendLabel(ObjectNames.NicifyVariableName(mode.ToString())),
+                    "Orientation",
                     typeof(Orient),
-                    new[] {new KeyValuePair<string, object>("mode", mode)});
+                    new[] { new KeyValuePair<string, object>("mode", mode) },
+                    i == 0 ? () => new OrientationModeSubVariantProvider(mainVariantModes) : null);
             }
         }
     }

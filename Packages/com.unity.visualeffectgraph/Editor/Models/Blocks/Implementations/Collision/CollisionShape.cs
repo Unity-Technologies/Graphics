@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -87,22 +86,26 @@ namespace UnityEditor.VFX.Block
 
     class CollisionShapeSubVariants : VariantProvider
     {
-        private CollisionBase.Behavior behavior;
+        private readonly CollisionBase.Behavior behavior;
+        private readonly CollisionShapeBase.Type mainShape;
 
-        public CollisionShapeSubVariants(CollisionBase.Behavior behavior)
+        public CollisionShapeSubVariants(CollisionBase.Behavior behavior, CollisionShapeBase.Type mainShape)
         {
             this.behavior = behavior;
+            this.mainShape = mainShape;
         }
 
         public override IEnumerable<Variant> GetVariants()
         {
             foreach (CollisionShapeBase.Type shape in Enum.GetValues(typeof(CollisionShapeBase.Type)))
             {
-                if (shape == CollisionShapeBase.Type.SignedDistanceField) // defined as a main variant
+                if (shape == this.mainShape) // defined as a main variant
+                    continue;
+                if (shape == CollisionShapeBase.Type.SignedDistanceField) // Also listed independently
                     continue;
 
                 yield return new Variant(
-                    CollisionBase.GetNamePrefix(behavior) + CollisionShapeBase.GetName(shape),
+                    $"{CollisionBase.GetNamePrefix(behavior)} Shape".AppendLabel(CollisionShapeBase.GetName(shape)),
                     string.Empty,
                     typeof(CollisionShape),
                     new[]
@@ -118,28 +121,33 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var v in CollisionBase.preVariants)
+            var mainVariants = new Dictionary<CollisionBase.Behavior, CollisionShapeBase.Type[]>()
             {
-                yield return new Variant(
-                    CollisionBase.GetNamePrefix(v.behavior) + "Shape",
-                    v.category,
-                    typeof(CollisionShape),
-                    new[]
-                    {
-                            new KeyValuePair<string, object>("behavior", v.behavior),
-                            new KeyValuePair<string, object>("shape", CollisionShapeBase.Type.Sphere),
-                    },
-                    () => new CollisionShapeSubVariants(v.behavior));
+                { CollisionBase.Behavior.Collision, new [] {CollisionShapeBase.Type.Plane, CollisionShapeBase.Type.SignedDistanceField }},
+                { CollisionBase.Behavior.Kill, new [] {CollisionShapeBase.Type.Plane, CollisionShapeBase.Type.SignedDistanceField }},
+                { CollisionBase.Behavior.None, new [] {CollisionShapeBase.Type.OrientedBox, CollisionShapeBase.Type.SignedDistanceField }},
+            };
 
-                yield return new Variant(
-                    CollisionBase.GetNamePrefix(v.behavior) + "Signed Distance Field",
-                    v.category,
-                    typeof(CollisionShape),
-                    new[]
-                    {
-                            new KeyValuePair<string, object>("behavior", v.behavior),
-                            new KeyValuePair<string, object>("shape", CollisionShapeBase.Type.SignedDistanceField),
-                    });
+            foreach (var variant in mainVariants)
+            {
+                var isFirst = true;
+                var baseName = CollisionBase.GetNamePrefix(variant.Key);
+                var literal = $"{baseName} Shape";
+                var category = variant.Key == CollisionBase.Behavior.Collision ? "Collision" : "Collision/".AppendSeparator(baseName, 0);
+                foreach (var shape in variant.Value)
+                {
+                    yield return new Variant(
+                        literal.AppendLabel(CollisionShapeBase.GetName(shape)),
+                        category,
+                        typeof(CollisionShape),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("behavior", variant.Key),
+                            new KeyValuePair<string, object>("shape", shape),
+                        },
+                        isFirst ? () => new CollisionShapeSubVariants(variant.Key, shape) : null);
+                    isFirst = false;
+                }
             }
         }
     }
@@ -148,7 +156,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision", variantProvider = typeof(CollisionShapeVariants))]
     sealed class CollisionShape : CollisionBase
     {
-        public override string name => GetNamePrefix(behavior) + CollisionShapeBase.GetName(shape);
+        public override string name => $"{GetNamePrefix(behavior)} Shape".AppendLabel(CollisionShapeBase.GetName(shape));
 
         [SerializeField, VFXSetting]
         CollisionShapeBase.Type shape = CollisionShapeBase.Type.Plane;

@@ -420,7 +420,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Create a set position from map
-            var setPositionBlock = VFXLibrary.GetBlocks().Single(x => x.name == "Set position | Sample Random").CreateInstance() as AttributeFromMap;
+            var setPositionBlock = VFXLibrary.GetBlocks().Single(x => x.name == "Set".Label(false).AppendLiteral("Position from Map").AppendLabel("2D")).CreateInstance() as AttributeFromMap;
             var initializeContext = m_ViewController.contexts.Single(x => x.model is VFXBasicInitialize);
             initializeContext.model.LinkFrom(spawner, 0, 0);
             initializeContext.AddBlock(0, setPositionBlock);

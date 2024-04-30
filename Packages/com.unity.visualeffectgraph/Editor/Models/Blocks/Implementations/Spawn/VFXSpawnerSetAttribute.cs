@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Block
         static AttributeProviderSpawner()
         {
             kSupportedAttributesFromSpawnContext = VFXAttributesManager
-                    .GetBuiltInNamesOrCombination(false, true, false, false)
+                    .GetBuiltInNamesOrCombination(true, false, false, false)
                     .Concat(new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name })
                     .ToArray();
         }
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Block
             foreach (var attribute in kSupportedAttributesFromSpawnContext)
             {
                 yield return new Variant(
-                    $"Set {attribute} SpawnEvent)",
+                    $"Set SpawnEvent {ObjectNames.NicifyVariableName(attribute)}",
                     "Attribute",
                     typeof(VFXSpawnerSetAttribute),
                     new[] {new KeyValuePair<string, object>("attribute", attribute)});

@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Switch")]
-    [VFXInfo(category = "Logic")]
+    [VFXInfo(category = "Logic", synonyms = new []{ "Select" })]
     class Switch : VFXOperatorDynamicBranch
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField, Tooltip("Sets the number of switch cases.")]

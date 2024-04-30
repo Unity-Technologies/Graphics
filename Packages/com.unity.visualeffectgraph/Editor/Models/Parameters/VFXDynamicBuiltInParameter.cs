@@ -6,43 +6,37 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class DynamicBuiltInSubVariantProvider : VariantProvider
-    {
-        public override IEnumerable<Variant> GetVariants()
-        {
-            var builtInFlag =
-                Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
-                    .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
-                    .Where(o => o != VFXDynamicBuiltInParameter.BuiltInFlag.None && o != VFXDynamicBuiltInParameter.BuiltInFlag.VfxTotalTime)
-                    .Concat(
-                        new[]
-                        {
-                            VFXDynamicBuiltInParameter.s_allVFXTime,
-                            VFXDynamicBuiltInParameter.s_allGameTime
-                        });
-
-                    foreach (var flag in builtInFlag)
-                    {
-                        yield return new Variant(
-                            VFXDynamicBuiltInParameter.BuildName(flag),
-                            null,
-                            typeof(VFXDynamicBuiltInParameter),
-                            new[] {new KeyValuePair<string, object>("m_BuiltInParameters", flag)});
-                    }
-        }
-    }
-
     class DynamicBuiltInVariantProvider : VariantProvider
     {
+        private static readonly Dictionary<string, string[]> s_BuiltInParameterCategoryMap = new Dictionary<string, string[]>
+        {
+            { "Time", new[] { "time", "rate" } },
+            { "Math/Geometry", new[] { "world" } },
+        };
+
         public override IEnumerable<Variant> GetVariants()
         {
-            const VFXDynamicBuiltInParameter.BuiltInFlag mainVariantFlag = VFXDynamicBuiltInParameter.BuiltInFlag.VfxTotalTime;
-            yield return new Variant(
-                VFXDynamicBuiltInParameter.BuildName(mainVariantFlag),
-                "Time",
-                typeof(VFXDynamicBuiltInParameter),
-                new[] {new KeyValuePair<string, object>("m_BuiltInParameters", mainVariantFlag)},
-                () => new DynamicBuiltInSubVariantProvider());
+            var builtInFlags = Enum.GetValues(typeof(VFXDynamicBuiltInParameter.BuiltInFlag))
+                .Cast<VFXDynamicBuiltInParameter.BuiltInFlag>()
+                .Where(x => x != VFXDynamicBuiltInParameter.BuiltInFlag.None)
+                .Concat(
+                    new[]
+                    {
+                        VFXDynamicBuiltInParameter.s_allVFXTime,
+                        VFXDynamicBuiltInParameter.s_allGameTime
+                    });
+
+            foreach (var flag in builtInFlags)
+            {
+                var name = flag.ToString();
+                var category = s_BuiltInParameterCategoryMap.FirstOrDefault(x => x.Value.Any(y => name.Contains(y, StringComparison.OrdinalIgnoreCase))).Key;
+
+                yield return new Variant(
+                    VFXDynamicBuiltInParameter.BuildName(flag),
+                    string.IsNullOrEmpty(category) ? "Utility" : category,
+                    typeof(VFXDynamicBuiltInParameter),
+                    new[] {new KeyValuePair<string, object>("m_BuiltInParameters", flag)});
+            }
         }
     }
 
@@ -177,7 +171,7 @@ namespace UnityEditor.VFX
         {
             if (flag == BuiltInFlag.None)
                 return "Built-In Properties (None)";
-            if (SplitFlags(flag).ToArray() is { } flags && flags.Length == 1)
+            if (SplitFlags(flag).ToArray() is { Length: 1 } flags)
                 return s_BuiltInInfo[flags[0]].operatorName;
             if ((flag & ~s_allVFXTime) == 0)
                 return "VFX Time";

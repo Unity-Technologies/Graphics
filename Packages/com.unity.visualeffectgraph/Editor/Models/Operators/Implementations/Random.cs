@@ -18,12 +18,14 @@ namespace UnityEditor.VFX.Operator
     class RandomProvider : VariantProvider
     {
         readonly Type[] m_SupportedType;
+        bool isSubvariant;
 
         public RandomProvider() : this(false) { }
 
         public RandomProvider(bool subVariant)
         {
-            if (subVariant)
+            isSubvariant = subVariant;
+            if (isSubvariant)
             {
                 m_SupportedType = new[]
                 {
@@ -50,13 +52,14 @@ namespace UnityEditor.VFX.Operator
             foreach (var type in m_SupportedType)
             {
                 yield return new Variant(
-                    $"Random {((Type)type).UserFriendlyName()}",
-                    "Random",
+                    "Random".AppendLabel(type.UserFriendlyName()),
+                    isSubvariant ? null : "Random",
                     typeof(Random),
                     new[]
                     {
                         new KeyValuePair<string, object>("m_Type", (SerializableType)type)
-                    }, type == typeof(float) ? () => new RandomProvider(true) : null);
+                    },
+                    type == typeof(float) ? () => new RandomProvider(true) : null);
             }
         }
     }
@@ -85,7 +88,7 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, you can customize Seed per channel, otherwise Seed is randomly generated for each channel.")]
         public bool independentSeed = false;
 
-        public override string name => $"Random {((Type)m_Type).UserFriendlyName()}";
+        public override string name => $"Random".AppendLabel(((Type)m_Type).UserFriendlyName());
 
         public override IEnumerable<Type> validTypes => kSupportedTypes;
 

@@ -7,18 +7,38 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
+    class VFXPlanarPrimitiveOutputSubVariantProvider : VariantProvider
+    {
+        private VFXPrimitiveType mainVariantType;
+
+        public VFXPlanarPrimitiveOutputSubVariantProvider(VFXPrimitiveType type) => this.mainVariantType = type;
+
+        public override IEnumerable<Variant> GetVariants()
+        {
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)).Cast<VFXPrimitiveType>())
+            {
+                if (primitive == this.mainVariantType)
+                    continue;
+
+                yield return new Variant(
+                    "Output Particle".AppendLabel("Unlit", false).AppendLabel(primitive.ToString(), false),
+                    null,
+                    typeof(VFXPlanarPrimitiveOutput),
+                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
+            }
+        }
+    }
+
     class VFXPlanarPrimitiveOutputProvider : VariantProvider
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
-            {
-                yield return new Variant(
-                    $"Output Particle {primitive}",
-                    "Output",
-                    typeof(VFXPlanarPrimitiveOutput),
-                    new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
-            }
+            yield return new Variant(
+                "Output Particle".AppendLabel("Unlit", false).AppendLabel(VFXPrimitiveType.Quad.ToString(), false),
+                VFXLibraryStringHelper.Separator("Output Basic", 2),
+                typeof(VFXPlanarPrimitiveOutput),
+                new[] {new KeyValuePair<string, object>("primitiveType", VFXPrimitiveType.Quad)},
+                () => new VFXPlanarPrimitiveOutputSubVariantProvider(VFXPrimitiveType.Quad));
         }
     }
 
@@ -32,13 +52,7 @@ namespace UnityEditor.VFX
         //[VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool useGeometryShader = false;
 
-        public override string name
-        {
-            get
-            {
-                return $"Output Particle {primitiveType.ToString()}";
-            }
-        }
+        public override string name => $"Output Particle".AppendLabel("Unlit", false) + $"\n{ObjectNames.NicifyVariableName(primitiveType.ToString())}";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType
         {

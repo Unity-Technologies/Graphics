@@ -11,8 +11,8 @@ namespace UnityEditor.VFX.Block
         {
             return new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional }
                 .Select(x => new Variant(
-                    $"Position On {x}",
-                    "Position/Sequential",
+                    "Set".Label(false).AppendLiteral("Position Sequential", false).AppendLabel(x.ToString()),
+                    "Position Shape/Sequential",
                     typeof(PositionSequential),
                     new[]
                     {
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.Block
         [Tooltip("Specifies how the sequence should behave at the end. It can either wrap back to the beginning, clamp, or continue in a mirrored direction.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        public override string name { get { return string.Format("{0} Position Sequential On {1}", VFXBlockUtility.GetNameString(compositionPosition), shape); } }
+        public override string name => VFXBlockUtility.GetNameString(compositionPosition).Label(false).AppendLiteral("Position Sequential", false).AppendLabel(shape.ToString());
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 

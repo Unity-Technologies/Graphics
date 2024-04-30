@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Operator
     }
 
     [VFXHelpURL("Operator-ProbabilitySampling")]
-    [VFXInfo(category = "Random", synonyms = new [] { "Probability Sampling" }, variantProvider = typeof(RandomSelectorProvider))]
+    [VFXInfo(category = "Random", synonyms = new [] { "probability", "sampling" }, variantProvider = typeof(RandomSelectorProvider))]
     class RandomSelector : VFXOperatorDynamicBranch
     {
         enum Mode
@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.Operator
             {
                 var type = (Type)GetOperandType();
                 var defaultValue = GetDefaultValueForType(type);
-                
+
                 for (uint i = 0; i < m_EntryCount; ++i)
                 {
                     var prefix = i.ToString();
@@ -256,7 +256,7 @@ namespace UnityEditor.VFX.Operator
             {
                 compare[i] = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.GreaterOrEqual, prefixedProbabilities[i], rand);
             }
-            
+
             var startValueIndex = new int[m_EntryCount];
             for (int i = 0; i < m_EntryCount; ++i)
             {

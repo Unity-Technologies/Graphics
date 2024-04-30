@@ -34,8 +34,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                $"Set Spherical Velocity from Direction & Speed",
-                "Attribute/From Direction & Speed",
+                "Set".Label().AppendLiteral("Velocity from Direction & Speed").AppendLabel("Spherical"),
+                VelocityBase.Category,
                 typeof(VelocitySpherical),
                 new[]
                 {
@@ -48,8 +48,8 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(experimental = true, variantProvider = typeof(VelocitySphericalProvider))]
     class VelocitySpherical : VelocityBase
     {
-        public override string name { get { return string.Format(base.name, "Spherical"); } }
-        protected override bool altersDirection { get { return true; } }
+        public override string name => base.name.AppendLabel("Spherical");
+        protected override bool altersDirection => true;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

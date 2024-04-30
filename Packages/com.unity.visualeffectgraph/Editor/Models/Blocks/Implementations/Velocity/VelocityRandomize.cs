@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Block
                 var composition = VFXBlockUtility.GetNameString(mode);
 
                 yield return new Variant(
-                    $"{composition} Random Velocity from Direction & Speed",
+                    composition.Label().AppendLiteral("Random Velocity from Direction & Speed"),
                     null,
                     typeof(VelocityRandomize),
                     new[]
@@ -33,8 +33,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                "Set Random Velocity from Direction & Speed",
-                "Attribute/From Direction & Speed",
+                "Set".Label().AppendLiteral("Velocity from Direction & Speed").AppendLabel("Random Direction"),
+                VelocityBase.Category,
                 typeof(VelocityRandomize),
                 new[]
                 {
@@ -47,8 +47,8 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(experimental = true, variantProvider = typeof(VelocityRandomProvider))]
     class VelocityRandomize : VelocityBase
     {
-        public override string name { get { return string.Format(base.name, "Random Direction"); } }
-        protected override bool altersDirection { get { return true; } }
+        public override string name => base.name.AppendLabel("Random Direction");
+        protected override bool altersDirection => true;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

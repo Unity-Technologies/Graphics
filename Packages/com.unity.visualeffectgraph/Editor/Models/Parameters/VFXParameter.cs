@@ -258,17 +258,20 @@ namespace UnityEditor.VFX
             public Node(int id)
             {
                 m_Id = id;
+                expanded = true;
+                supecollapsed = false;
             }
 
             [SerializeField]
             private int m_Id;
 
-            public int id { get { return m_Id; } }
+            public int id => m_Id;
 
             public List<NodeLinkedSlot> linkedSlots;
             public Vector2 position;
             public List<VFXSlot> expandedSlots;
             public bool expanded;
+            public bool supecollapsed;
 
 
             //Should only be called by ValidateNodes if something very wrong happened with serialization

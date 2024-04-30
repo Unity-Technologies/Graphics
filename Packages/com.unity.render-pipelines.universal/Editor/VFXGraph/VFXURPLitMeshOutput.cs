@@ -7,10 +7,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.URP
 {
     [VFXHelpURL("Context-OutputPrimitive")]
-    [VFXInfo(name = "Output Particle URP Lit Mesh", category = "Output")]
+    [VFXInfo(name = "Output Particle|URP Lit|Mesh", category = "#2Output Basic")]
     class VFXURPLitMeshOutput : VFXAbstractParticleURPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name => "Output Particle URP Lit Mesh";
+        public override string name => "Output Particle".AppendLabel("URP Lit").AppendLabel("Mesh");
         public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleLitMesh");
         public override VFXTaskType taskType => VFXTaskType.ParticleMeshOutput;
         public override bool supportsUV => GetOrRefreshShaderGraphObject() == null;

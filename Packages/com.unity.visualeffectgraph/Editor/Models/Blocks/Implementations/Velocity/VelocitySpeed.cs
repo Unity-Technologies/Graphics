@@ -33,8 +33,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                $"Set Velocity from Direction & Speed",
-                "Attribute/From Direction & Speed",
+                "Set".Label().AppendLiteral("Velocity from Direction & Speed").AppendLabel("Change Speed"),
+                VelocityBase.Category,
                 typeof(VelocitySpeed),
                 new[]
                 {
@@ -47,8 +47,8 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(experimental = true, variantProvider = typeof(VelocitySpeedProvider))]
     class VelocitySpeed : VelocityBase
     {
-        public override string name { get { return string.Format(base.name, "Change Speed"); } }
-        protected override bool altersDirection { get { return false; } }
+        public override string name => base.name.AppendLabel("Change Speed");
+        protected override bool altersDirection => false;
 
         public override string source
         {

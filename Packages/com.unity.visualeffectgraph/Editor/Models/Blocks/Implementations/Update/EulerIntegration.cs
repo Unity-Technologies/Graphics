@@ -3,10 +3,10 @@ using System.Collections.Generic;
 namespace UnityEditor.VFX.Block
 {
     [VFXHelpURL("Block-UpdatePosition")]
-    [VFXInfo(name = "Integration: Update Position", category = "Implicit")]
+    [VFXInfo(name = "Integration Update|Position", category = "Implicit")]
     class EulerIntegration : VFXBlock
     {
-        public override string name => "Integration: Update Position";
+        public override string name => "Integration Update".AppendLabel("Position");
         public override VFXContextType compatibleContexts => VFXContextType.Update;
         public override VFXDataType compatibleData => VFXDataType.Particle;
 

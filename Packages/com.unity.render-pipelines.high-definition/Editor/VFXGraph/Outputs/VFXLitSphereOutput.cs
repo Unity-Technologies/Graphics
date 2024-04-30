@@ -4,10 +4,10 @@ using UnityEditor.VFX.Block;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Particle HDRP Lit Sphere", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output Particle|HDRP Lit|Sphere", category = "#5Output Debug", experimental = true)]
     class VFXLitSphereOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name => "Output Particle HDRP Lit Sphere";
+        public override string name => "Output Particle".AppendLabel("HDRP Lit", false) + "\nSphere";
         public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleSphere");
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
 

@@ -8,32 +8,13 @@ namespace UnityEditor.VFX.Block
 {
     abstract class CollisionBase : VFXBlock
     {
-        public struct PreVariant
-        {
-            public Behavior behavior;
-            public string category;
-        }
-
-        public static readonly PreVariant[] preVariants = new[] {
-            new PreVariant
-            {
-                behavior = Behavior.Collision,
-                category = "Collision",
-            },
-            new PreVariant
-            {
-                behavior = Behavior.Kill,
-                category = "Kill",
-            }
-        };
-
         public static string GetNamePrefix(Behavior b)
         {
             switch(b)
             {
-                case Behavior.None:         return "Trigger In ";
-                case Behavior.Collision:    return "Collide With ";
-                case Behavior.Kill:         return "Kill In ";
+                case Behavior.None:         return "Trigger";
+                case Behavior.Collision:    return "Collision";
+                case Behavior.Kill:         return "Kill";
 
                 default: throw new NotImplementedException();
             }

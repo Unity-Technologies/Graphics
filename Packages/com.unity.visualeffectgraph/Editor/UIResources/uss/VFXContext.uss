@@ -169,11 +169,37 @@ VFXContextUI #title #icon
 VFXContextUI #header-space
 {
     position:absolute;
-    right: 5px;
-    top: 5px;
-    width: 48px;
-    height: 16px;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    border-width: 0.5px;
+    border-radius: 4px;
+    border-color: #3F3F3F;
+    padding: 0 4px 0 20px;
+    right: 0;
+    top: 4px;
+    width: 54px;
+    height: 18px;
+    background-size: 14px 14px;
+    background-position-x: 4px;
 }
+
+VFXContextUI #header-space.World {
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_WorldSpace@2x.png");
+}
+
+VFXContextUI #header-space.Local {
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_LocalSpace@2x.png");
+}
+
+VFXContextUI #header-space.None {
+    display: none;
+}
+
+VFXContextUI #header-space:hover {
+    border-color: var(--unity-colors-default-text);
+    background-color: #3F3F3F;
+}
+
 VFXContextUI > #node-border > #inside > #contents
 {
     margin-top : 0;
@@ -187,16 +213,6 @@ VFXContextUI > #node-border > #inside > #contents
 VFXContextUI > #node-border > #inside > #contents > #settings
 {
     background-color: rgba(0,0,0,0);
-}
-
-VFXContextUI #header-space.spaceLocal
-{
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/title-local.png");
-}
-
-VFXContextUI #header-space.spaceWorld
-{
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/title-world.png");
 }
 
 VFXContextUI #block-container {
@@ -345,6 +361,10 @@ VFXContextUI .subtitle
 VFXContextUI .subtitle.empty
 {
     display:None;
+}
+
+#title.extremity #spacer {
+    display: none;
 }
 
 #settings {

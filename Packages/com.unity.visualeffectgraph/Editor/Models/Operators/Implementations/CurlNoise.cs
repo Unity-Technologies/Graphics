@@ -1,36 +1,64 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.VFX.Block;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class CurlNoiseVariantProvider : VariantProvider
+    class CurlNoiseSubVariantProvider : VariantProvider
     {
+        private readonly NoiseBase.NoiseType m_MainVariantNoiseType;
+        private readonly CurlNoise.DimensionCount m_MainVariantDimensionCount;
+
+        public CurlNoiseSubVariantProvider(NoiseBase.NoiseType mainVariantNoiseType, CurlNoise.DimensionCount mainVariantDimensionCount)
+        {
+            m_MainVariantNoiseType = mainVariantNoiseType;
+            m_MainVariantDimensionCount = mainVariantDimensionCount;
+        }
+
         public override IEnumerable<Variant> GetVariants()
         {
-            var types = Enum.GetValues(typeof(NoiseBase.NoiseType))
-                .Cast<NoiseBase.NoiseType>()
-                .Where(o => o != NoiseBase.NoiseType.Cellular);
-            var dimensions = Enum.GetValues(typeof(CurlNoise.DimensionCount))
-                .Cast<CurlNoise.DimensionCount>()
-                .ToArray();
-            foreach (var type in types)
+            foreach (NoiseBase.NoiseType type in Enum.GetValues(typeof(NoiseBase.NoiseType)))
             {
-                foreach (var dimension in dimensions)
+                if (type == NoiseBase.NoiseType.Cellular)
+                    continue;
+                var category = VFXLibraryStringHelper.Separator(type.ToString(), 0);
+                foreach (CurlNoise.DimensionCount dimension in Enum.GetValues(typeof(CurlNoise.DimensionCount)))
                 {
+                    if (type == m_MainVariantNoiseType && dimension == m_MainVariantDimensionCount)
+                        continue;
                     yield return new Variant(
-                        $"{type} Curl Noise {dimension+2}D",
-                        "Noise",
-                        typeof(CurlNoise),
-                        new []
+                        type.ToString().Label().AppendLiteral("Curl Noise").AppendLabel(VFXBlockUtility.GetNameString(dimension)),
+                        category,
+                        typeof(Noise),
+                        new[]
                         {
                             new KeyValuePair<string, object>("type", type),
                             new KeyValuePair<string, object>("dimensions", dimension)
                         });
                 }
-
             }
+        }
+    }
+
+    class CurlNoiseVariantProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            var mainNoiseType = Noise.NoiseType.Perlin;
+            var mainNoiseDimension = CurlNoise.DimensionCount.Three;
+
+            yield return new Variant(
+                mainNoiseType.ToString().Label().AppendLiteral("Curl Noise").AppendLabel(VFXBlockUtility.GetNameString(mainNoiseDimension), false),
+                "Noise",
+                typeof(CurlNoise),
+                new []
+                {
+                    new KeyValuePair<string, object>("type", mainNoiseType),
+                    new KeyValuePair<string, object>("dimensions", mainNoiseDimension)
+                },
+                () => new CurlNoiseSubVariantProvider(mainNoiseType, mainNoiseDimension));
         }
     }
 
@@ -65,13 +93,7 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting, Tooltip("Specifies whether the noise is output in one, two, or three dimensions.")]
         public DimensionCount dimensions = DimensionCount.Two;
 
-        override public string name
-        {
-            get
-            {
-                return type.ToString() + " Curl Noise " + (((int)dimensions) + 2) + "D";
-            }
-        }
+        public override string name => type.ToString().Label(false).AppendLiteral("Curl Noise").AppendLabel( VFXBlockUtility.GetNameString(dimensions));
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

@@ -117,7 +117,7 @@ namespace UnityEditor.VFX
     }
 
     [VFXHelpURL("Context-Update")]
-    [VFXInfo(name = "Update Particle")]
+    [VFXInfo(name = "Update Particle", category = "#0Common")]
     class VFXBasicUpdate : VFXContext
     {
         public enum VFXIntegrationMode

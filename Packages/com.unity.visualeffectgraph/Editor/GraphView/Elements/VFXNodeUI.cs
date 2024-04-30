@@ -52,6 +52,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override string title
+        {
+            get => controller?.name;
+            set { }
+        }
+
         protected float defaultLabelWidth { get; set; } = DefaultLabelWidth;
         protected bool hasSettings { get; private set; }
         Controller IControlledElement.controller => m_Controller;
@@ -224,8 +230,8 @@ namespace UnityEditor.VFX.UI
         bool SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-            var hasResync = SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
-            hasResync |= SyncAnchors(controller.outputPorts, outputContainer, false);
+            var hasResync = SyncAnchors(controller.outputPorts, outputContainer, false);
+            hasResync |= SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
             Profiler.EndSample();
 
             return hasResync;
@@ -287,7 +293,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            UpdateActivationPortPositionIfAny(); // Needed to account for expanded state change in case of undo/redo
+            if (hasActivationPort)
+                UpdateActivationPortPositionIfAny(); // Needed to account for expanded state change in case of undo/redo
             return needsResync;
         }
 
@@ -344,6 +351,15 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveFromClassList("superCollapsed");
             }
+
+            if (controller.inputPorts.Count == (controller.HasActivationAnchor ? 1 : 0) && controller.outputPorts.Count == 0)
+            {
+                AddToClassList("cannot-expand");
+            }
+            else
+            {
+                RemoveFromClassList("cannot-expand");
+            }
         }
 
         public void AssetMoved()
@@ -358,13 +374,38 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        protected virtual void UpdateTitleUI()
+        {
+            titleContainer
+                .Children()
+                .OfType<Label>()
+                .Where(x => x.name != "header-space")
+                .ToList()
+                .ForEach(titleContainer.Remove);
+            var index = 0;
+            foreach (var label in controller.title.SplitTextIntoLabels("setting"))
+            {
+                if (index == 0)
+                    label.AddToClassList("first");
+                titleContainer.Insert(index++, label);
+            }
+            titleContainer.Query<Label>().Last().AddToClassList("last");
+
+
+            var spacer = titleContainer.Q<VisualElement>("spacer");
+            if (spacer == null)
+            {
+                titleContainer.Insert(index, new VisualElement { name = "spacer" });
+            }
+        }
+
         protected virtual void SelfChange()
         {
             Profiler.BeginSample("VFXNodeUI.SelfChange");
             if (controller == null)
                 return;
 
-            title = controller.title;
+            UpdateTitleUI();
 
             if (HasPosition())
             {
@@ -430,7 +471,7 @@ namespace UnityEditor.VFX.UI
 
         private void GetPreferredWidths(ref float labelWidth, ref float controlWidth)
         {
-            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            foreach (var port in GetPorts(true, false).OfType<VFXEditableDataAnchor>())
             {
                 float portLabelWidth = port.GetPreferredLabelWidth();
                 float portControlWidth = port.GetPreferredControlWidth();
@@ -448,7 +489,7 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void ApplyWidths(float labelWidth, float controlWidth)
         {
-            foreach (var port in GetPorts(true, false).Cast<VFXEditableDataAnchor>())
+            foreach (var port in GetPorts(true, false).OfType<VFXEditableDataAnchor>())
             {
                 port.SetLabelWidth(labelWidth);
             }

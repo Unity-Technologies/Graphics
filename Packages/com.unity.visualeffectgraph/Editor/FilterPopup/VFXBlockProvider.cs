@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.UI
             {
                 yield return new VFXModelDescriptor<VFXBlock>(new Variant(
                     $"Set {customAttribute.name}",
-                    "Attribute",
+                    "Attribute/".AppendSeparator("Custom", 0),
                     typeof(SetAttribute),
                     new[] { new KeyValuePair<string, object>(nameof(SetAttribute.attribute), customAttribute.name) }), null);
             }
