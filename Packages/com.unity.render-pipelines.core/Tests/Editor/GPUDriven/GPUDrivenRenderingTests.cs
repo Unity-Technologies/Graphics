@@ -230,6 +230,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        [Ignore("Disabled for Instability https://jira.unity3d.com/browse/UUM-71039")]
         public void TestSceneViewHiddenRenderersCullingTier0()
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
