@@ -277,7 +277,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 type == HLSLType._Texture2D ||
                 type == HLSLType._Texture3D ||
                 type == HLSLType._TextureCube ||
-                type == HLSLType._Texture2DArray;
+                type == HLSLType._Texture2DArray ||
+                type == HLSLType._CUSTOM;
         }
 
         public string GetValueTypeString()

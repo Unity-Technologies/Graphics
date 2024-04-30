@@ -297,5 +297,29 @@ namespace UnityEditor.VFX.Test
                 yield return yield;
             }
         }
+
+        [UnityTest, Description("UUM-69751")]
+        public IEnumerator ShaderGraph_With_Gradient_In_Blackboard()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSG_Gradient_Repro_69751.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var scenePath = VFXTestCommon.tempBasePath + "Repro_69751.unity";
+            SceneManagement.EditorSceneManager.OpenScene(scenePath);
+            for (int i = 0; i < 4; i++)
+                yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "Repro_69751.vfx";
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            Assert.AreEqual(2u, shaders.Length);
+            foreach (var shader in shaders)
+            {
+                Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
+            }
+        }
     }
 }
