@@ -11,7 +11,7 @@
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.testframework.graphics",
-    "com.unity.testing.graphics-performance": "file:../../../Packages/com.unity.testing.graphics-performance",
+    "com.unity.test-framework.graphics.performance": "file:../../../Packages/com.unity.test-framework.graphics.performance",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
     "com.unity.modules.ai": "1.0.0",
