@@ -213,7 +213,7 @@ Fragment GetFragment(Segment segment, float2 coord)
         // Unfortunately need a NaN guard here.
         fragment.colorAndAlpha = max(fragment.colorAndAlpha, 0);
 
-        fragment.colorAndAlpha.a = fragment.coverage;
+        fragment.colorAndAlpha.a *= fragment.coverage;
     }
 
     #if COMPILING_SHADER
