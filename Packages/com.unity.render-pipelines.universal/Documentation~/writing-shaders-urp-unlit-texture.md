@@ -9,7 +9,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
     ```c++
     Properties
     {
-        [MainTexture] _BaseMap("Base Map", 2D) = "white"
+        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
     }
     ```
 
@@ -78,7 +78,7 @@ Shader "Example/URPUnlitShaderTexture"
     // called Base Map.
     Properties
     {
-        [MainTexture] _BaseMap("Base Map", 2D) = "white"
+        [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
     }
 
     SubShader

@@ -18,9 +18,8 @@ If you have a Camera that is rendering to a Render Texture, you must have a seco
 
 The first Camera now renders its view to the Render Texture. The second Camera renders the scene including the Render Texture to the screen.
 
-You can set the Output Target for a Camera in a script by setting the `cameraOutput` property of the Camera's  [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
+You can set the output target for a camera in a script by setting the `targetTexture` property of the camera:
 
 ```c#
-myUniversalAdditionalCameraData.cameraOutput = CameraOutput.Texture;
 myCamera.targetTexture = myRenderTexture;
 ```
