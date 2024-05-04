@@ -203,11 +203,15 @@ namespace UnityEditor.Rendering.Universal
 
 
             EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.RenderPassSectionLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
-            EditorGUI.indentLevel--;
+            var renderGraphSettings = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
+            if (renderGraphSettings.enableRenderCompatibilityMode)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(Styles.RenderPassSectionLabel, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
+                EditorGUI.indentLevel--;
+            }
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.ShadowsSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
