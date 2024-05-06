@@ -20,9 +20,8 @@ Place the Quad within the view of the new Base Camera.
 
 The first Camera renders its view to the Render Texture. The second Camera renders the Scene including the Render Texture to the screen.
 
-You can set the Output Target for a Camera in a script by setting the `cameraOutput` property of the Camera's  [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
+You can set the output target for a camera in a script by setting the `targetTexture` property of the camera:
 
-```
-myUniversalAdditionalCameraData.cameraOutput = CameraOutput.Texture;
+```c#
 myCamera.targetTexture = myRenderTexture;
 ```

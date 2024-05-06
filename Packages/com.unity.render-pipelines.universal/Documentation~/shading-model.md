@@ -51,7 +51,7 @@ The URP Baked Lit shader is the only shader that uses the Baked Lit shading mode
 
 ## Shaders with no lighting
 
-URP comes with some Shaders that are Unlit. This means that they have no directional lights and no baked lighting. Because there are no light calculations, these shaders compile faster than Shaders with lighting. If you know in advance that your GameObject or visual doesn’t need lighting, choose an Unlit shader to save calculation and build time in your final product.
+URP comes with some unlit-type shaders. Materials with unlit-type shaders are not affected by neither real-time, nor baked lighting. Unlit shaders let you create unique visual look of the objects in your scene. Unlit shaders have significantly faster compilation speed compared with lit shaders.
 
 The following URP Shaders have no lighting:
 - [Unlit](unlit-shader.md)
