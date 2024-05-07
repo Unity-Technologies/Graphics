@@ -34,8 +34,8 @@ public class BlitRendererFeature : ScriptableRendererFeature
             // Checks if the texture name is valid and puts in default value if not.
             var texName = String.IsNullOrEmpty(textureName) ? "_BlitTextureData" : textureName;
             // Reallocate if the RTHandles are being initialized for the first time or if the targetDescriptor has changed since last frame.
-            RenderingUtils.ReAllocateIfNeeded(ref m_TextureFront, targetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: texName + "Front");
-            RenderingUtils.ReAllocateIfNeeded(ref m_TextureBack, targetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: texName + "Back");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_TextureFront, targetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: texName + "Front");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_TextureBack, targetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: texName + "Back");
             // Create the texture handles inside render graph by importing the RTHandles in render graph.
             m_TextureHandleFront = renderGraph.ImportTexture(m_TextureFront);
             m_TextureHandleBack = renderGraph.ImportTexture(m_TextureBack);

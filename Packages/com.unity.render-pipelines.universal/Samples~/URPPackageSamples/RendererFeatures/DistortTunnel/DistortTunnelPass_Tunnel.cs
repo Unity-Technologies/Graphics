@@ -11,7 +11,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
         public Renderer tunnelObject;
         public Material tunnelMaterial;
     }
-    
+
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DistortTunnelPass_Tunnel");
     private RTHandle m_OutputHandle;
     private Renderer m_TunnelObject;
@@ -23,37 +23,39 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
 
     private void SetTunnelObject()
     {
-        if (m_TunnelObject != null) 
+        if (m_TunnelObject != null)
             return;
-        
+
         var tunnelGO = GameObject.Find("Tunnel");
         if (tunnelGO != null)
             m_TunnelObject = tunnelGO.GetComponent<Renderer>();
     }
-    
+
     public void SetRTHandles(ref RTHandle dest)
     {
         m_OutputHandle = dest;
     }
+
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
     // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
     {
         ConfigureTarget(m_OutputHandle);
     }
-    
+
     // Unity calls the Execute method in the Compatibility mode
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var cameraData = renderingData.cameraData;
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         // Get the "Tunnel" renderer object from the scene (example-specific code)
         SetTunnelObject();
         if (!m_TunnelObject)
             return;
-        
+
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
@@ -63,7 +65,9 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
         cmd.Clear();
         CommandBufferPool.Release(cmd);
     }
-    
+
+#pragma warning restore 618, 672
+
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
@@ -72,7 +76,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
 
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         // Get the "Tunnel" renderer object from the scene (example-specific code)
         SetTunnelObject();
         if (!m_TunnelObject)
@@ -83,7 +87,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
             // Set RTHandle as a texture resource used by this render graph instance
             TextureHandle destination = renderGraph.ImportTexture(m_OutputHandle);
             texRefData.tunnelTexHandle = destination;
-            
+
             if (!destination.IsValid())
                 return;
 

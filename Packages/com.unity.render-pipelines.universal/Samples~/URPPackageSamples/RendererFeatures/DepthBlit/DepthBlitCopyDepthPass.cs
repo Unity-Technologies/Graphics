@@ -17,7 +17,7 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
     private GlobalKeyword m_Keyword_DepthMsaa4;
     private GlobalKeyword m_Keyword_DepthMsaa8;
     private GlobalKeyword m_Keyword_OutputDepth;
-    
+
     class PassData
     {
         public Material copyDepthMaterial;
@@ -25,7 +25,7 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
         public Vector4 scaleBias;
         public int depthBufferId;
     }
-    
+
     public DepthBlitCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, RTHandle destination)
     {
         renderPassEvent = evt;
@@ -36,20 +36,22 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
         m_Keyword_DepthMsaa8 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa8);
         m_Keyword_OutputDepth = GlobalKeyword.Create(ShaderKeywordStrings._OUTPUT_DEPTH);
     }
-    
+
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
+
     // Set the RTHandle as the output target in the Compatibility mode.
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
         ConfigureTarget(m_DestRT);
     }
-    
+
     // Unity calls the Execute method in the Compatibility mode
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var cameraData = renderingData.cameraData;
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         // Bind the depth buffer to material
         RTHandle source = cameraData.renderer.cameraDepthTargetHandle;
         m_CopyDepthMaterial.SetTexture(m_DepthBufferId, source);
@@ -62,7 +64,7 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
             cmd.SetKeyword(m_Keyword_DepthMsaa2, cameraSamples == 2);
             cmd.SetKeyword(m_Keyword_DepthMsaa4, cameraSamples == 4);
             cmd.SetKeyword(m_Keyword_DepthMsaa8, cameraSamples == 8);
-            
+
             // This example does not copy the depth values back to the depth buffer, so we disable this keyword.
             cmd.SetKeyword(m_Keyword_OutputDepth, false);
 
@@ -74,32 +76,34 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
 
         CommandBufferPool.Release(cmd);
     }
-    
+
+#pragma warning restore 618, 672
+
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
         UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
         DepthBlitFeature.TexRefData texRefData = frameData.GetOrCreate<DepthBlitFeature.TexRefData>();
-            
+
         // Avoid blitting from the backbuffer
         if (resourceData.isActiveTargetBackBuffer)
             return;
-            
+
         // Set the texture resources for this render graph instance.
         TextureHandle src = resourceData.cameraDepth;
         TextureHandle dest = renderGraph.ImportTexture(m_DestRT);
         texRefData.depthTextureHandle = dest;
-        
+
         if(!src.IsValid() || !dest.IsValid())
             return;
-            
+
         using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_PassName, out var passData, m_ProfilingSampler))
         {
             passData.copyDepthMaterial = m_CopyDepthMaterial;
             passData.source = src;
             passData.scaleBias = m_ScaleBias;
             passData.depthBufferId = m_DepthBufferId;
-            
+
             builder.UseTexture(src, AccessFlags.Read);
             builder.SetRenderAttachment(dest, 0, AccessFlags.Write);
             builder.AllowGlobalStateModification(true);
@@ -113,10 +117,10 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
                 context.cmd.SetKeyword(m_Keyword_DepthMsaa2, cameraSamples == 2);
                 context.cmd.SetKeyword(m_Keyword_DepthMsaa4, cameraSamples == 4);
                 context.cmd.SetKeyword(m_Keyword_DepthMsaa8, cameraSamples == 8);
-            
+
                 // This example does not copy the depth values back to the depth buffer, so we disable this keyword.
                 context.cmd.SetKeyword(m_Keyword_OutputDepth, false);
-                
+
                 // Bind the depth buffer to the material
                 data.copyDepthMaterial.SetTexture(data.depthBufferId, data.source);
 
@@ -125,7 +129,7 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
             });
         }
     }
-    
+
     public void Dispose()
     {
         CoreUtils.Destroy(m_CopyDepthMaterial);
