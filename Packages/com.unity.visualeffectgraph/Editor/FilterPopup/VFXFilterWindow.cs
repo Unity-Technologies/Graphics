@@ -318,7 +318,7 @@ namespace UnityEditor.VFX.UI
             var descriptor = (Descriptor)m_Treeview.selectedItem;
             settings.ResetCategoryColor(descriptor.name);
             var element = m_Treeview.GetRootElementForIndex(m_Treeview.selectedIndex);
-            var label = element.Q<Label>("descriptorLabel");
+            var label = element.Q<Label>("categoryLabel");
             label.style.unityBackgroundImageTintColor = new StyleColor(StyleKeyword.Null);
             m_CategoryColorField.value = label.resolvedStyle.unityBackgroundImageTintColor;
         }
