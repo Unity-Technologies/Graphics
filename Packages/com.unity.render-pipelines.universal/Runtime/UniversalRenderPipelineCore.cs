@@ -320,6 +320,20 @@ namespace UnityEngine.Rendering.Universal
         public Camera camera;
 
         /// <summary>
+        /// Returns the scaled width of the Camera
+        /// By obtaining the pixelWidth of the camera and taking into account the render scale
+        /// The min dimension is 1.
+        /// </summary>
+        public int scaledWidth => Mathf.Max(1, (int)(camera.pixelWidth * renderScale));
+
+        /// <summary>
+        /// Returns the scaled height of the Camera
+        /// By obtaining the pixelHeight of the camera and taking into account the render scale
+        /// The min dimension is 1.
+        /// </summary>
+        public int scaledHeight => Mathf.Max(1, (int)(camera.pixelHeight * renderScale));
+
+        /// <summary>
         /// The camera render type used for camera stacking.
         /// <see cref="CameraRenderType"/>
         /// </summary>
@@ -1425,19 +1439,14 @@ namespace UnityEngine.Rendering.Universal
                 return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
+        internal static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, ref CameraData cameraData,
             bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
-            int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
-            int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
-
             RenderTextureDescriptor desc;
 
             if (camera.targetTexture == null)
             {
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = scaledWidth;
-                desc.height = scaledHeight;
+                desc = new RenderTextureDescriptor(cameraData.scaledWidth, cameraData.scaledHeight);
                 desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
@@ -1447,8 +1456,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 desc = camera.targetTexture.descriptor;
                 desc.msaaSamples = msaaSamples;
-                desc.width = scaledWidth;
-                desc.height = scaledHeight;
+                desc.width = cameraData.scaledWidth;
+                desc.height = cameraData.scaledHeight;
 
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
@@ -1460,10 +1469,6 @@ namespace UnityEngine.Rendering.Universal
                 // RenderTextureFormats available resolves in a black render texture when no warning or error
                 // is given.
             }
-
-            // Make sure dimension is non zero
-            desc.width = Mathf.Max(1, desc.width);
-            desc.height = Mathf.Max(1, desc.height);
 
             desc.enableRandomWrite = false;
             desc.bindMS = false;
