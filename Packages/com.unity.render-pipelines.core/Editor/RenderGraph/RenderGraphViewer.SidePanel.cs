@@ -34,7 +34,8 @@ namespace UnityEditor.Rendering
             public const string kPanelResourceListItem = "panel-resource-list__item";
             public const string kPanelPassListItem = "panel-pass-list__item";
             public const string kSubHeaderText = "sub-header-text";
-            public const string kAttachmentInfoItem = "attachment-info__item";
+            public const string kInfoFoldout = "info-foldout";
+            public const string kInfoFoldoutSecondaryText = "info-foldout__secondary-text";
             public const string kCustomFoldoutArrow = "custom-foldout-arrow";
         }
 
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering
         bool m_PassListExpanded = true;
         float m_SidePanelVerticalAspectRatio = 0.5f;
         float m_SidePanelFixedPaneHeight = 0;
+        float m_ContentSplitViewFixedPaneWidth = 280;
 
         Dictionary<VisualElement, List<TextElement>> m_ResourceDescendantCache = new ();
         Dictionary<VisualElement, List<TextElement>> m_PassDescendantCache = new ();
@@ -60,8 +62,19 @@ namespace UnityEditor.Rendering
                 UpdatePanelHeights();
             });
 
+            var contentSplitView = rootVisualElement.Q<TwoPaneSplitView>(Names.kContentContainer);
+            contentSplitView.fixedPaneInitialDimension = m_ContentSplitViewFixedPaneWidth;
+            contentSplitView.fixedPaneIndex = 1;
+            contentSplitView.fixedPane?.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                float? w = contentSplitView.fixedPane?.resolvedStyle?.width;
+                if (w.HasValue)
+                    m_ContentSplitViewFixedPaneWidth = w.Value;
+            });
+
             // Callbacks for dynamic height allocation between resource & pass lists
             HeaderFoldout resourceListFoldout = rootVisualElement.Q<HeaderFoldout>(Names.kResourceListFoldout);
+            resourceListFoldout.value = m_ResourceListExpanded;
             resourceListFoldout.RegisterValueChangedCallback(evt =>
             {
                 if (m_ResourceListExpanded)
@@ -74,6 +87,7 @@ namespace UnityEditor.Rendering
             resourceListFoldout.contextMenuGenerator = () => CreateContextMenu(resourceListFoldout.Q<ScrollView>());
 
             HeaderFoldout passListFoldout = rootVisualElement.Q<HeaderFoldout>(Names.kPassListFoldout);
+            passListFoldout.value = m_PassListExpanded;
             passListFoldout.RegisterValueChangedCallback(evt =>
             {
                 if (m_PassListExpanded)
@@ -185,13 +199,14 @@ namespace UnityEditor.Rendering
                 var foldoutCheckmark = resourceItem.Q("unity-checkmark");
                 // Add resource type icon before the label
                 foldoutCheckmark.parent.Insert(1, CreateResourceTypeIcon(visibleResourceElement.type));
+                foldoutCheckmark.parent.Add(iconContainer);
                 foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
 
                 // Add imported icon to the right of the foldout checkmark
                 var toggleContainer = resourceItem.Q<Toggle>();
                 toggleContainer.tooltip = resourceData.name;
-                toggleContainer.Add(iconContainer);
-                RenderGraphResourceType type = (RenderGraphResourceType)visibleResourceElement.type;
+
+                RenderGraphResourceType type = visibleResourceElement.type;
                 if (type == RenderGraphResourceType.Texture && resourceData.textureData != null)
                 {
                     var lineBreak = new VisualElement();
@@ -302,11 +317,27 @@ namespace UnityEditor.Rendering
                     {
                         var pass = m_CurrentDebugData.passList[passId];
                         Debug.Assert(pass.nrpInfo != null); // This overlay currently assumes NRP compiler
+
                         var passFoldout = new Foldout();
-                        passFoldout.text = $"{pass.name} ({k_PassTypeNames[(int) pass.type]})";
-                        passFoldout.AddToClassList(Classes.kAttachmentInfoItem);
+                        passFoldout.text = $"<b>{pass.name}</b> ({k_PassTypeNames[(int) pass.type]})";
+
+                        var foldoutTextElement = passFoldout.Q<TextElement>(className: Foldout.textUssClassName);
+                        foldoutTextElement.displayTooltipWhenElided = false; // no tooltip override when ellipsis is active
+
+                        bool hasSubpassIndex = pass.nativeSubPassIndex != -1;
+                        if (hasSubpassIndex)
+                        {
+                            // Abuse Foldout to allow two-line header: add line break <br> at the end of the actual foldout text to increase height,
+                            // then inject a second label into the hierarchy starting with a line break to offset it to the second line.
+                            passFoldout.text += "<br>";
+                            Label subpassIndexLabel = new Label($"<br>Subpass #{pass.nativeSubPassIndex}");
+                            subpassIndexLabel.AddToClassList(Classes.kInfoFoldoutSecondaryText);
+                            foldoutTextElement.Add(subpassIndexLabel);
+                        }
+
+                        passFoldout.AddToClassList(Classes.kInfoFoldout);
                         passFoldout.AddToClassList(Classes.kCustomFoldoutArrow);
-                        passFoldout.Q<Toggle>().tooltip = passFoldout.text;
+                        passFoldout.Q<Toggle>().tooltip = $"The {k_PassTypeNames[(int) pass.type]} <b>{pass.name}</b> belongs to native subpass {pass.nativeSubPassIndex}.";
 
                         var foldoutCheckmark = passFoldout.Q("unity-checkmark");
                         foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
@@ -330,10 +361,19 @@ namespace UnityEditor.Rendering
                         foreach (var attachmentInfo in nativePassInfo.attachmentInfos)
                         {
                             var attachmentFoldout = new Foldout();
-                            attachmentFoldout.text = attachmentInfo.resourceName;
-                            attachmentFoldout.AddToClassList(Classes.kAttachmentInfoItem);
+
+                            // Abuse Foldout to allow two-line header (same as above)
+                            attachmentFoldout.text = $"<b>{attachmentInfo.resourceName}</b><br>";
+                            Label attachmentIndexLabel = new Label($"<br>Attachment #{attachmentInfo.attachmentIndex}");
+                            attachmentIndexLabel.AddToClassList(Classes.kInfoFoldoutSecondaryText);
+
+                            var foldoutTextElement = attachmentFoldout.Q<TextElement>(className: Foldout.textUssClassName);
+                            foldoutTextElement.displayTooltipWhenElided = false; // no tooltip override when ellipsis is active
+                            foldoutTextElement.Add(attachmentIndexLabel);
+
+                            attachmentFoldout.AddToClassList(Classes.kInfoFoldout);
                             attachmentFoldout.AddToClassList(Classes.kCustomFoldoutArrow);
-                            attachmentFoldout.Q<Toggle>().tooltip = attachmentFoldout.text;
+                            attachmentFoldout.Q<Toggle>().tooltip = $"Texture <b>{attachmentInfo.resourceName}</b> is bound at attachment index {attachmentInfo.attachmentIndex}.";
 
                             var foldoutCheckmark = attachmentFoldout.Q("unity-checkmark");
                             foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
@@ -385,9 +425,16 @@ namespace UnityEditor.Rendering
         {
             bool passListExpanded = m_PassListExpanded && (m_CurrentDebugData != null && m_CurrentDebugData.isNRPCompiler);
             const int kFoldoutHeaderHeightPx = 18;
+            const int kFoldoutHeaderExpandedMinHeightPx = 50;
             const int kWindowExtraMarginPx = 6;
 
-            float panelHeightPx = focusedWindow.position.height - kHeaderContainerHeightPx - kWindowExtraMarginPx;
+            var resourceList = rootVisualElement.Q<HeaderFoldout>(Names.kResourceListFoldout);
+            var passList = rootVisualElement.Q<HeaderFoldout>(Names.kPassListFoldout);
+
+            resourceList.style.minHeight = kFoldoutHeaderHeightPx;
+            passList.style.minHeight = kFoldoutHeaderHeightPx;
+
+            float panelHeightPx = position.height - kHeaderContainerHeightPx - kWindowExtraMarginPx;
             if (!m_ResourceListExpanded)
             {
                 m_SidePanelSplitView.fixedPaneInitialDimension = kFoldoutHeaderHeightPx;
@@ -404,7 +451,13 @@ namespace UnityEditor.Rendering
                     m_SidePanelVerticalAspectRatio = m_SidePanelFixedPaneHeight / panelHeightPx;
                 }
                 m_SidePanelSplitView.fixedPaneInitialDimension = panelHeightPx * m_SidePanelVerticalAspectRatio;
+
+                resourceList.style.minHeight = kFoldoutHeaderExpandedMinHeightPx;
+                passList.style.minHeight = kFoldoutHeaderExpandedMinHeightPx;
             }
+
+            // Ensure fixed pane initial dimension gets applied in case it has already been set
+            m_SidePanelSplitView.fixedPane.style.height = m_SidePanelSplitView.fixedPaneInitialDimension;
 
             // Disable drag line when one of the foldouts is collapsed
             var dragLine = m_SidePanelSplitView.Q("unity-dragline");

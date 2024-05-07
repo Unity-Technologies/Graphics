@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return new RenderGraph.DebugData.PassData.NRPInfo.NativeRenderPassInfo.AttachmentInfo
             {
                 resourceName = pointTo.GetName(ctx, attachment.handle),
+                attachmentIndex = attachmentIndex,
                 loadAction = attachment.loadAction.ToString(),
                 loadReason = loadReason,
                 storeAction = attachment.storeAction.ToString(),
@@ -78,7 +79,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     message += "The next pass reads one of the outputs as a regular texture, the pass needs to break.";
                     break;
                 case PassBreakReason.NonRasterPass:
-                    message += $"{prevPassName} is type {pass.type}. Only Raster passes can be merged.";
+                    message += $"{prevPassName} is type {prevPass.type}. Only Raster passes can be merged.";
                     break;
                 case PassBreakReason.DifferentDepthTextures:
                     message += $"{prevPassName} uses a different depth buffer than {passName}.";
@@ -210,6 +211,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.type = passData.type;
                 debugPass.culled = passData.culled;
                 debugPass.async = passData.asyncCompute;
+                debugPass.nativeSubPassIndex = passData.nativeSubPassIndex;
                 debugPass.generateDebugData = graphPass.generateDebugData;
                 debugPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
                 debugPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];

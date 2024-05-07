@@ -18,6 +18,7 @@
     --main-background-color: #313131;
     --side-panel-background-color: #383838;
     --side-panel-item-border-color: #666666;
+    --side-panel-secondary-text-color: #808080;
 }
 
 #capture-button {
@@ -58,6 +59,10 @@
 
 .resource-icon--fbfetch {
     background-image: url("../Icons/RenderGraphViewer/FramebufferFetch@2x.png");
+}
+
+.resource-icon--multiple-usage {
+    background-image: url("../Icons/RenderGraphViewer/d_MultipleUsage.png");
 }
 
 .pass-block.pass-block-script-link {
