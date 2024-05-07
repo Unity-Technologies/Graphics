@@ -297,7 +297,11 @@
         * [Understand and fix Not a Number (NAN) and Infinite (Inf) values](Post-Processing-Propagating-NaNs.md)
         * [Known issues](Known-Issues.md)
   * [Stencil Buffer Usage](Stencil-Usage.md)
-
+* [Optimization](Optimization.md)
+  * [Reduce rendering work on the CPU](reduce-rendering-work-on-cpu.md)
+    * [Use the GPU Resident Drawer](gpu-resident-drawer.md)
+    * [Make a GameObject compatible with the GPU Resident Drawer](make-object-compatible-gpu-rendering.md)
+    * [Use GPU occlusion culling](gpu-culling.md)
 
 * [Reference](Reference.md)  
   * [Menu Items](Menu-Items.md)
