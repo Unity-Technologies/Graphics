@@ -14,12 +14,7 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXAdditionalPackageTest
     {
-        public static string[] kAdditionalSampleMatches = new [] {"Additions", "Helpers"
-//See UUM-66783
-#if !VFX_TESTS_HAS_HDRP
-            , "Learning"
-#endif                                                             
-};
+        public static string[] kAdditionalSampleMatches = new [] {"Additions", "Helpers", "Learning"};
 
         private static readonly string kSampleExpectedPath = "Assets/Samples";
 

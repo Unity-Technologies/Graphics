@@ -5,8 +5,6 @@
   "unity": "6000.0",
   "displayName": "Universal RP",
   "dependencies": {
-    "com.unity.mathematics": "1.2.1",
-    "com.unity.burst": "1.8.9",
     "com.unity.render-pipelines.core": "17.0.3",
     "com.unity.shadergraph": "17.0.3",
     "com.unity.render-pipelines.universal-config": "17.0.3"
