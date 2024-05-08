@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         RenderGraphCompilationCache m_CompilationCache;
 
         internal const int k_EstimatedPassCount = 100;
-        internal const int k_EstimatedResourceCountPerType = 50;
         internal const int k_MaxSubpass = 8; // Needs to match with RenderPassSetup.h
 
         NativeList<AttachmentDescriptor> m_BeginRenderPassAttachments;
@@ -34,7 +33,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativePassCompiler(RenderGraphCompilationCache cache)
         {
             m_CompilationCache = cache;
-            defaultContextData = new CompilerContextData(k_EstimatedPassCount, k_EstimatedResourceCountPerType);
+            defaultContextData = new CompilerContextData(k_EstimatedPassCount);
             toVisitPassIds = new Stack<int>(k_EstimatedPassCount);
             m_BeginRenderPassAttachments = new NativeList<AttachmentDescriptor>(FixedAttachmentArray<AttachmentDescriptor>.MaxAttachments, Allocator.Persistent);
         }

@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         public DynamicArray<Name>[] resourceNames;
 
-        public ResourcesData(int estimatedNumResourcesPerType)
+        public ResourcesData()
         {
             unversionedData = new NativeList<ResourceUnversionedData>[(int)RenderGraphResourceType.Count];
             versionedData = new NativeList<ResourceVersionedData>[(int)RenderGraphResourceType.Count];
@@ -207,10 +207,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                versionedData[t] = new NativeList<ResourceVersionedData>(MaxVersions * estimatedNumResourcesPerType, AllocatorManager.Persistent);
-                unversionedData[t] = new NativeList<ResourceUnversionedData>(estimatedNumResourcesPerType, AllocatorManager.Persistent);
-                readerData[t] = new NativeList<ResourceReaderData>(MaxVersions * estimatedNumResourcesPerType * MaxReaders, AllocatorManager.Persistent);
-                resourceNames[t] = new DynamicArray<Name>(estimatedNumResourcesPerType); // T in NativeList<T> cannot contain managed types, so the names are stored separately
+                // Note: All these lists are allocated with zero capacity, they will be resized in Initialize when
+                // the amount of resources is known.
+                versionedData[t] = new NativeList<ResourceVersionedData>(0, AllocatorManager.Persistent);
+                unversionedData[t] = new NativeList<ResourceUnversionedData>(0, AllocatorManager.Persistent);
+                readerData[t] = new NativeList<ResourceReaderData>(0, AllocatorManager.Persistent);
+                resourceNames[t] = new DynamicArray<Name>(0); // T in NativeList<T> cannot contain managed types, so the names are stored separately
             }
         }
 

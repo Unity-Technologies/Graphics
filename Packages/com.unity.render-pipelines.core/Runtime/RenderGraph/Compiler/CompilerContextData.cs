@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     // Datastructure that contains passes and dependencies and allow you to iterate and reason on them more like a graph
     internal class CompilerContextData : IDisposable, RenderGraph.ICompiledGraph
     {
-        public CompilerContextData(int estimatedNumPasses, int estimatedNumResourcesPerType)
+        public CompilerContextData(int estimatedNumPasses)
         {
             passData = new NativeList<PassData>(estimatedNumPasses, AllocatorManager.Persistent);
             fences = new Dictionary<int, GraphicsFence>();
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
             fragmentData = new NativeList<PassFragmentData>(estimatedNumPasses * 4, AllocatorManager.Persistent);
             randomAccessResourceData = new NativeList<PassRandomWriteData>(4, AllocatorManager.Persistent); // We assume not a lot of passes use random write
-            resources = new ResourcesData(estimatedNumResourcesPerType);
+            resources = new ResourcesData();
             nativePassData = new NativeList<NativePassData>(estimatedNumPasses, AllocatorManager.Persistent);// assume nothing gets merged
             nativeSubPassData = new NativeList<SubPassDescriptor>(estimatedNumPasses, AllocatorManager.Persistent);// there should "never" be more subpasses than graph passes
             createData = new NativeList<ResourceHandle>(estimatedNumPasses * 2, AllocatorManager.Persistent);    // assume every pass creates two resources
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetResourceVersionedName(ResourceHandle h) => GetResourceName(h) + " V" + h.version;
-        
+
         // resources can be added as fragment both as input and output so make sure not to add them twice (return true upon new addition)
         public bool AddToRandomAccessResourceList(ResourceHandle h, int randomWriteSlotIndex, bool preserveCounterValue, int listFirstIndex, int numItems)
         {
