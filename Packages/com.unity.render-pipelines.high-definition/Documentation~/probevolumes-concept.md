@@ -21,7 +21,7 @@ Adaptive Probe Volumes have the following advantages:
 - Because Adaptive Probe Volumes can cover a whole scene, screen space effects can fall back to Light Probes to get lighting data from GameObjects that are off-screen or occluded. Refer to [Screen Space Global Illumination](Override-Screen-Space-GI.md) for more information.
 - Unity can use the data in Adaptive Probe Volumes to adjust lighting from Reflection Probes so it more closely matches the local environment, which reduces the number of Reflection Probes you need. Refer to [Frame Settings properties](frame-settings-reference.md).
 - Adaptive Probe Volumes include [streaming](probevolumes-streaming.md) functionality to support large open worlds.
-- Adaptive Probe Volumes support [Sky Occlusion](probevolumes-skyocclusion.md) for dynamic sky relighting at runtime.
+- You can use Adaptive Probe Volumes to [update light from the sky at runtime with sky occlusion](probevolumes-skyocclusion.md).
 
 ![](Images/probevolumes-per-pixel.png)<br/>
 The car model is made up of separate GameObjects. The left scene uses Light Probe Groups, which use per-object lighting, so each part of the car samples a single blended probe value. The right scene uses Adaptive Probe Volumes, which use per-pixel lighting, so each part of the car samples its nearest probes. This image uses the ArchVizPRO Photostudio HDRP asset from the Unity Asset Store.

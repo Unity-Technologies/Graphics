@@ -1,70 +1,61 @@
-# Sky Occlusion
+# Update light from the sky at runtime with sky occlusion
 
-Sky Occlusion stores the amount of lighting from the Sky affecting probes in an Adaptive Probe Volume. During run-time, this data can be combined with lighting from the Scene’s Ambient Probe to dynamically relight the Scene based on changes to the Sky. See [Visual Environment Volume override](Override-Visual-Environment.md).
+You can enable sky occlusion when you use Adaptive Probe Volumes. Sky occlusion means that when a GameObject samples a color from the sky, Unity dims the color if the light can't reach the GameObject.
 
-When Sky Occlusion is enabled for Adaptive Probe Volumes, an additional directional visibility factor is calculated for each probe during bake time. This gray value - stored as a spherical harmonic - is used during shading to attenuate the lighting contribution from the Sky. As multiple bounces can be used, the Sky’s effect upon probes with indirect paths to the Sky can also be calculated.
+Sky occlusion in Unity uses the sky color from the [ambient probe](https://docs.unity3d.com/2023.3/Documentation/ScriptReference/RenderSettings-ambientProbe.html), which updates at runtime. This means you can dynamically light GameObjects as the sky color changes. For example, you can change the sky color from light to dark, to simulate the effect of a day-night cycle.
 
-Static and dynamic objects can both receive lighting with Sky Occlusion. However, only static objects can affect the baked result. Enabling Sky Occlusion can lengthen the time required to bake lighting and uses additional memory at run-time.
+If you enable sky occlusion, Adaptive Probe Volumes might take longer to bake, and Unity might use more memory at runtime.
 
-## Enable Sky Occlusion
+## How sky occlusion works
 
-Sky Occlusion is enabled from the **Sky Occlusion** section of the **Adaptive Probe Volumes** tab within the **Lighting Window**.
+When you enable sky occlusion, Unity bakes an additional static sky occlusion value into each probe in an Adaptive Probe Volume. The sky occlusion value is the amount of indirect light the probe receives from the sky, including light that bounced off static GamesObjects.
 
-Note that lighting data must be recalculated if Sky Occlusion is enabled for the first time, or is disabled following a bake.
+At runtime, when a static or dynamic GameObject samples an Adaptive Probe Volume probe, Unity approximates the light from the sky using two values:
 
-## Modifying Sky Occlusion properties
+- A sky color from the ambient probe, which updates when the sky color changes.
+- The sky occlusion value, which is static.
 
-It is possible to affect the visual quality and appearance of Sky Occlusion using these properties:
+## Enable sky occlusion
 
-<table>
-    <thead>
-        <tr>
-            <th><strong>Property</strong></th>
-            <th colspan="2"><strong>Description</strong></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><strong>Samples</strong></td>
-            <td>Determines the number of samples used when calculating the sky contribution for each probe. Increasing this value improves the accuracy of lighting data at the cost of the time required to bake Adaptive Probe Volumes.</td>
-        </tr>
-        <tr>
-            <td><b>Bounces</b></td>
-            <td>The number of bounces used when calculating the sky’s contribution on probes. Increasing the number of bounces can be useful in Scenes where probes may have very indirect routes to the Sky. This will also affect the time required to bake Adaptive Probe Volumes.</td>
-        </tr>
-        <tr>
-            <td><strong>Albedo Override</strong></td>
-            <td>Sky Occlusion does not consider the albedo (color) of Materials used throughout the Scene when calculating bounced lighting. Instead a single color is a used throughout the Scene. Albedo Override allows this color to be modified. Lower values darken and higher values will brighten the intensity of this value.</td>
-        </tr>
-        <tr>
-            <td><b>Sky Direction</b></td>
-            <td>Whether probes should store the dominant direction of incoming light from the Sky. Sky Direction increases memory usage but produces more accurate lighting. Without Sky Direction, the surface normals of objects are used instead and in some Scenes this can produce visual inaccuracies.</td>
-        </tr>
-    </tbody>
-</table>
+First, enable the GPU lightmapper. Unity doesn't support sky occlusion if you use **Progressive CPU** instead.
 
-## Sky Direction
+1. Go to **Window** &gt; **Rendering** &gt; **Lighting**.
+2. Go to the **Scene** panel.
+3. Set **Lightmapper** to **Progressive GPU**.
 
-By default, Sky Direction is disabled and the surface normals of objects lit by probes are used to sample the Ambient Probe generated from the Sky.
-When Sky Direction is enabled, Unity calculates - for each probe - the most appropriate incoming sky lighting direction. Where desirable, this can be locally overridden in specific areas of the Scene using a [Probe Adjustment Volume](probevolumes-concept.md#volume).
+To enable sky occlusion, follow these steps: 
 
-Enabling Sky Direction can improve visual results, especially in cave-like scenarios where the sky lighting needs to bounce several times on surfaces before reaching a surface. However the additional data required increases the time needed to bakelighting data. It also increases memory usage during run-time.
+1. Go to the **Adaptive Probe Volumes** panel.
+2. Enable **Sky Occlusion**.
 
-## Debugging Sky Occlusion
+To update the lighting data, you must also [bake the Adaptive Probe Volume](probevolumes-use.md#add-and-bake-an-adaptive-probe-volume) after you enable or disable sky occlusion.
 
-You can inspect the Sky Occlusion value using the **Display Probes** option in the [Rendering Debugger](rendering-debugger-window-reference.md#probe-volume-panel). Two views are provided in the **Probe Shading Mode** dropdown:
-1. **Sky Occlusion SH**: Display the gray value (scalar) used to attenuate Sky lighting.
-2. **Sky Direction**: Displays a green dot corresponding to the direction used to sample the Ambient Probe. If **Sky Direction** was not enabled or could not be computed this displays a red probe.
+## Update light at runtime
 
-## Limitations
+To update the light from the sky at runtime, follow these steps to make sure the ambient probe updates when the sky updates. 
 
-1. Currently Sky Occlusion does not work if the **Progressive CPU Lightmapper** is selected.
-2. If Sky Occlusion is enabled or disabled, the Scene must be rebaked to update lighting data.
-3. Sky Direction is not interpolated between probes. This may result in harsh lighting transitions where neighboring probes are storing very different results.
+1. In the **Hierarchy** window, select the volume that affects the current camera.
+2. In the **Inspector** window, double-click the Volume Profile Asset to open the asset.
+3. In the **Visual Environment** &gt; **Sky** section, set **Ambient Mode** to **Dynamic**.
 
-# Additional resources
+Refer to [Environment lighting](environment-lighting.md) for more information.
 
+## Enable more accurate sky direction data
 
+When an object samples the ambient probe, by default Unity uses the surface normal of the object as the direction to the sky. This direction might not match the direction the light comes from, for example if the object is inside and the sky light bounces off other objects to reach it.
 
-* [Understand Adaptive Probe Volumes](probevolumes-concept.md)
-* [Visual Environment Volume override](Override-Visual-Environment.md)
+Unity can instead calculate, store, and use an accurate direction from each Adaptive Probe Volume probe, and take bounce lighting into account. This makes sky occlusion more accurate, especially in areas like caves where probes don't have a direct line of sight to the sky, or when the sky has contrasting colors and the light comes from a specific direction such as through a window.
+
+To enable this feature, in the **Adaptive Probe Volumes** of the Lighting window, enable **Sky Direction**.
+
+If you enable **Sky Direction**, the following applies:
+
+- Baking takes longer and Unity uses more memory at runtime.
+- There might be visible seams, because Unity doesn't interpolate sky direction data between probes.
+
+To override the directions Unity uses, use a [Probe Adjustment Volume component](probevolumes-adjustment-volume-component-reference.md).
+
+## Additional resources
+
+- [Adaptive Probe Volumes panel properties](probevolumes-lighting-panel-reference.md#sky-occlusion-settings) for more information about sky occlusion settings
+- [Rendering Debugger](rendering-debugger-window-reference.md#probe-volume-panel) for information about displaying baked sky occlusion data

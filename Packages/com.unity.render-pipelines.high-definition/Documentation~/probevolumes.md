@@ -9,9 +9,8 @@ Adaptive Probe Volumes (APV) make [Light Probes](https://docs.unity3d.com/Manual
 | [Display Adaptive Probe Volumes](probevolumes-showandadjust.md) | Visualize the structure of Adaptive Probe Volumes. |
 | [Configure the size and density of Adaptive Probe Volumes](probevolumes-changedensity.md) | Change the size of an Adaptive Probe Volume, or increase the density of Light Probes. |
 | [Bake multiple scenes together with Baking Sets](probevolumes-usebakingsets.md) | Add scenes to a Baking Set so you can bake the lighting for all the scenes together. |
-| [Bake different lighting setups with Lighting Scenarios](probevolumes-bakedifferentlightingsetups.md) | Use multiple Lighting Scenarios to store baking results for different scene setups, and switch between them at runtime. |
+| [Change lighting at runtime](change-lighting-at-runtime.md) | Use Lighting Scenarios or sky occlusion to change how objects use the data in Adaptive Probe Volumes at runtime. |
 | [Streaming Adaptive Probe Volumes](probevolumes-streaming.md) | How Adaptive Probe Volumes stream lighting data to provide lighting for large open worlds. |
-| [Sky Occlusion](probevolumes-skyocclusion.md)   | How to use Sky Occlusion with Adaptive Probe Volumes for dynamic sky lighting. |
 | [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md) | Reduce light leaks and seams in your lighting result. |
 | [Adaptive Probe Volume Inspector window reference](probevolumes-inspector-reference.md) | Reference for the Adaptive Probe Volume Inspector window. |
 | [Adaptive Probe Volumes panel reference](probevolumes-lighting-panel-reference.md) | Reference for the Adaptive Probe Volumes panel in the Lighting settings. |
