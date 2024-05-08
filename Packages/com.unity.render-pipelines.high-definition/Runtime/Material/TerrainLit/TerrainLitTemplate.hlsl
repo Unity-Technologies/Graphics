@@ -27,6 +27,10 @@
 #endif
 #ifdef SCENESELECTIONPASS
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+#elif SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+    // Use Unity's built-in matrices for meta pass rendering
+    #define SCENEPICKINGPASS
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
 #endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
