@@ -7,6 +7,7 @@ Shader Graph can display colors on nodes in your graph to improve readability. T
 ![](images/Shader-Graph-Toolbar.png)
 
 ## Modes
+
 | Name | Description |
 |:-----|:------------|
 | None | Does not display colors on the nodes. All nodes use the default gray. |
@@ -15,6 +16,7 @@ Shader Graph can display colors on nodes in your graph to improve readability. T
 | User Defined | Lets you set the display colors on a per-node basis. These are custom colors for your graph. See **User Defined Colors** below. |
 
 ### Category Colors
+
 This mode displays colors on the nodes based on their category. See the [Node Library](Node-Library.md) to learn about the different categories available.
 
 ![](images/Color-Mode-Category.png)
@@ -31,13 +33,14 @@ The table below lists current categories and their corresponding colors.
 | Utility | ![#AEAEAE](https://placehold.it/15/AEAEAE/000000?text=+) | #AEAEAE |
 | UV | ![#08D78B](https://placehold.it/15/08D78B/000000?text=+) | #08D78B |
 
-**Note:** [Sub Graph](Sub-Graph.md) nodes in a main [Shader Graph](Shader-Graph.md) fall in the Utility category. If you select **Category** mode, all Sub Graphs use the Utility color.
+**Note:** [Sub Graph](Sub-Graph.md) nodes in a main [Shader Graph](index.md) fall in the Utility category. If you select **Category** mode, all Sub Graphs use the Utility color.
 
 ### Precision Colors
+
 This mode displays colors on the nodes based on their current precision. If you set a node to **Inherit Precision**, the display color reflects the currently active precision. See [Precision Modes](Precision-Modes.md) for more information about inheritance.
 
-
 ### User Defined Colors
+
 This mode displays colors on the nodes based on user preferences. In this mode, the user defines colors for each node. If a custom color is not set, the node displays in the default gray.
 
 To set a custom color for a node, right-click on the target node to bring up the the context menu, and select **Color**.
@@ -50,6 +53,7 @@ To set a custom color for a node, right-click on the target node to bring up the
 ![](images/Color-Mode-User-Defined.png)
 
 ## Overriding Default Colors
+
 For each project, you can override preset colors in the **Category** and **Precision** modes. Unity uses a `.uss` style sheet and Hex color codes to set colors. The default style sheet in your project is  `Packages/com.unity.shadergraph/Editor/Resources/Styles/ColorMode.uss`.
 
 The best practice is to create a copy of this file to override the presets. Under your project's **Assets** folder, create a new `Editor/Resources/Styles` folder structure, and place a copy of `ColorMode.uss` in the `Styles` folder. Change the Hex color codes in this `.uss` file to override the presets and use your own custom colors for the **Category** and **Precision** modes.
