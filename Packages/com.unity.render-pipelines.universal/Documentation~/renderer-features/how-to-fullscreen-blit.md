@@ -1,6 +1,8 @@
-# Perform a full screen blit in URP
+# Perform a full screen blit in URP in Compatibility Mode
 
 The example on this page describes how to create a custom Renderer Feature that performs a full screen blit.
+
+[!include[](../snippets/note-compatibility-mode.md)]
 
 ## Example overview
 
@@ -195,3 +197,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     > **Note**: To visualize the example in XR, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
 
 The example is complete.
+
+## Additional resources
+
+For more information on performing the blit operation in Compatibility Mode, refer to the [Using textures section in the URP 14 (Unity 2022) documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/manual/working-with-textures.html).
