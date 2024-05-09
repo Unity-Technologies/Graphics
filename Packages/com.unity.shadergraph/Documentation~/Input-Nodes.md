@@ -63,7 +63,7 @@
 | [Compute Deformation Node](Compute-Deformation-Node)         | [Linear Blend Skinning Node](Linear-Blend-Skinning-Node)     |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | ![Image](images/ComputeDeformationNodeThumb.png)             | ![Image](images/LinearBlendSkinningNodeThumb.png)            |
-| Passes compute deformed vertex data to a vertex shader. Only works with the [DOTS Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@latest/). | Applies Linear Blend Vertex Skinning. Only works with the [DOTS Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@latest/). |
+| Passes compute deformed vertex data to a vertex shader. Only works with the [Entities Graphics package](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/). | Applies Linear Blend Vertex Skinning. Only works with the [Entities Graphics package](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/). |
 
 ## PBR
 
