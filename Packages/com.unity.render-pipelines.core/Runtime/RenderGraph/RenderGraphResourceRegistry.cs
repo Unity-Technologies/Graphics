@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             else
             {
                 // Managed by rendergraph, it might not be created yet so we look at the desc to find out
-                var desc = GetTextureResourceDesc(res, true); // TODO: remove true, we should throw on invalid desc here
+                var desc = GetTextureResourceDesc(res);
                 var dim = desc.CalculateFinalDimensions();
                 outInfo = new RenderTargetInfo();
                 outInfo.width = dim.x;
