@@ -12,3 +12,10 @@ From left to right, the test renders:
 4. Transparent
 
 The only visible differences between the MSAA and non-MSAA scenes should be on the holes in the Opaque & Alpha Clip spheres. (and all geometry edges of course)
+
+At the bottom of the test image, there's another row of four cubes. All are expected to be visible except the second from the left.
+These primitives are testing the edge cases where alpha and cutoff are set to either exactly one or exactly zero.
+These cases typically don't happen when alpha is being used in traditional ways, but are easy to trigger with editor UI sliders.
+
+There's also a sphere that uses a negative alpha cutoff value in the place of the clipped cube second from the left.
+This situation is possible to create via shader graph, so we have to test that it's handled properly.
