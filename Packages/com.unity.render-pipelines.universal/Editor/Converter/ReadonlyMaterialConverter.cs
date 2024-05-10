@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -46,40 +47,43 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
-            var context = Search.SearchService.CreateContext("asset", "urp=convert-readonly a=URPConverterIndex");
-
-            Search.SearchService.Request(context, (c, items) =>
-            {
-                // we're going to do this step twice in order to get them ordered, but it should be fast
-                var orderedRequest = items.OrderBy(req =>
+            Search.SearchService.Request
+            (
+                Search.SearchService.CreateContext("asset", "urp=convert-readonly a=URPConverterIndex"),
+                (searchContext, items) =>
                 {
-                    GlobalObjectId.TryParse(req.id, out var gid);
-                    return gid.assetGUID;
-                });
-
-                foreach (var r in orderedRequest)
-                {
-                    if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                    // we're going to do this step twice in order to get them ordered, but it should be fast
+                    var orderedRequest = items.OrderBy(req =>
                     {
-                        continue;
+                        GlobalObjectId.TryParse(req.id, out var gid);
+                        return gid.assetGUID;
+                    });
+
+                    foreach (var r in orderedRequest)
+                    {
+                        if (string.IsNullOrEmpty(r?.id) ||
+                            !GlobalObjectId.TryParse(r.id, out var gid))
+                        {
+                            continue;
+                        }
+
+                        var label = r.provider.fetchLabel(r, r.context);
+                        var description = r.provider.fetchDescription(r, r.context);
+
+                        var item = new ConverterItemDescriptor()
+                        {
+                            name = description.Split('/').Last().Split('.').First(),
+                            info = $"{label}",
+                        };
+                        guids.Add(gid.ToString());
+
+                        ctx.AddAssetToConvert(item);
                     }
 
-                    var label = r.provider.fetchLabel(r, r.context);
-                    var description = r.provider.fetchDescription(r, r.context);
-
-                    var item = new ConverterItemDescriptor()
-                    {
-                        name = description.Split('/').Last().Split('.').First(),
-                        info = $"{label}",
-                    };
-                    guids.Add(gid.ToString());
-
-                    ctx.AddAssetToConvert(item);
+                    callback.Invoke();
+                    searchContext?.Dispose();
                 }
-
-                callback.Invoke();
-            });
-            context?.Dispose();
+            );
         }
 
         public override void OnRun(ref RunItemContext ctx)

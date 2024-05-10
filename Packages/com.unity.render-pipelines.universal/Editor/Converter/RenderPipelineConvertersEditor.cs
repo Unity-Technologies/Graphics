@@ -355,6 +355,15 @@ namespace UnityEditor.Rendering.Universal
         }
         void ToggleAllNone(ClickEvent evt, int index, bool value, VisualElement item)
         {
+            void ToggleSelection(Label labelSelected, Label labelNotSelected)
+            {
+                labelSelected.AddToClassList("selected");
+                labelSelected.RemoveFromClassList("not_selected");
+
+                labelNotSelected.AddToClassList("not_selected");
+                labelNotSelected.RemoveFromClassList("selected");
+            }
+
             var conv = m_ConverterStates[index];
             if (conv.items.Count > 0)
             {
@@ -363,22 +372,18 @@ namespace UnityEditor.Rendering.Universal
                     convItem.isActive = value;
                 }
                 UpdateSelectedConverterItems(index, item);
+
+                var allLabel = item.Q<Label>("all");
+                var noneLabel = item.Q<Label>("none");
+
                 // Changing the look of the labels
                 if (value)
                 {
-                    item.Q<Label>("all").AddToClassList("selected");
-                    item.Q<Label>("all").RemoveFromClassList("not_selected");
-
-                    item.Q<Label>("none").AddToClassList("not_selected");
-                    item.Q<Label>("none").RemoveFromClassList("selected");
+                    ToggleSelection(allLabel, noneLabel);
                 }
                 else
                 {
-                    item.Q<Label>("none").AddToClassList("selected");
-                    item.Q<Label>("none").RemoveFromClassList("not_selected");
-
-                    item.Q<Label>("all").AddToClassList("not_selected");
-                    item.Q<Label>("all").RemoveFromClassList("selected");
+                    ToggleSelection(noneLabel, allLabel);
                 }
             }
         }
