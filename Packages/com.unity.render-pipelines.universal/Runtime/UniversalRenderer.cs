@@ -453,6 +453,8 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetupFinalPassDebug(UniversalCameraData cameraData)
         {
+            //NOTE: See SetupRenderGraphFinalPassDebug for RG.
+
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
                 if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent) &&
@@ -466,46 +468,68 @@ namespace UnityEngine.Rendering.Universal
                     var height = relativeSize * screenHeight;
                     var width = relativeSize * screenWidth;
 
+                    RenderTexture tex = null;
                     if (fullScreenDebugMode == DebugFullScreenMode.ReflectionProbeAtlas)
                     {
-                        // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
-                        var texture = m_ForwardLights.reflectionProbeManager.atlasRT;
-                        var targetWidth = height * texture.width / texture.height;
-                        if (targetWidth > width)
-                        {
-                            height = width * texture.height / texture.width;
-                        }
-                        else
-                        {
-                            width = targetWidth;
-                        }
+                        tex = m_ForwardLights.reflectionProbeManager.atlasRT;
                     }
+                    else if (fullScreenDebugMode == DebugFullScreenMode.MainLightShadowMap)
+                    {
+                        tex = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture.rt;
+                    }
+                    else if (fullScreenDebugMode == DebugFullScreenMode.AdditionalLightsShadowMap)
+                    {
+                        tex = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapHandle.rt;
+                    }
+                    else if (fullScreenDebugMode == DebugFullScreenMode.AdditionalLightsCookieAtlas && m_LightCookieManager != null)
+                    {
+                        tex = m_LightCookieManager?.AdditionalLightsCookieAtlasTexture?.rt;
+                    }
+
+                    if(tex != null) CorrectForTextureAspectRatio(ref width, ref height, tex.width, tex.height);
 
                     float normalizedSizeX = width / screenWidth;
                     float normalizedSizeY = height / screenHeight;
 
                     Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
+                    Vector4 dataRangeRemap = Vector4.zero; // zero = off, .x = old min, .y = old max, .z = new min, .w = new max
 
                     switch (fullScreenDebugMode)
                     {
                         case DebugFullScreenMode.Depth:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_DepthTexture, normalizedRect, true);
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture, normalizedRect, true, dataRangeRemap);
+                            break;
+                        }
+                        case DebugFullScreenMode.MotionVector:
+                        {
+                            // Motion vectors are in signed UV space, zoom in for visualization. (note: another option is to use (dir.xy, mag) visualization)
+                            const float zoom = 0.01f;
+                            dataRangeRemap.x = -zoom;
+                            dataRangeRemap.y = zoom;
+                            dataRangeRemap.z = 0;
+                            dataRangeRemap.w = 1.0f;
+                            DebugHandler.SetDebugRenderTarget(m_MotionVectorColor, normalizedRect, true, dataRangeRemap);
                             break;
                         }
                         case DebugFullScreenMode.AdditionalLightsShadowMap:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapHandle, normalizedRect, false);
+                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapHandle, normalizedRect, false, dataRangeRemap);
                             break;
                         }
                         case DebugFullScreenMode.MainLightShadowMap:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect, false);
+                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect, false, dataRangeRemap);
+                            break;
+                        }
+                        case DebugFullScreenMode.AdditionalLightsCookieAtlas:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_LightCookieManager?.AdditionalLightsCookieAtlasTexture, normalizedRect, false, dataRangeRemap);
                             break;
                         }
                         case DebugFullScreenMode.ReflectionProbeAtlas:
                         {
-                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRTHandle, normalizedRect, false);
+                            DebugHandler.SetDebugRenderTarget(m_ForwardLights.reflectionProbeManager.atlasRTHandle, normalizedRect, false, dataRangeRemap);
                             break;
                         }
                         default:

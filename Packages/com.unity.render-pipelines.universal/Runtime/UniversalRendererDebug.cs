@@ -1,3 +1,4 @@
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal.Internal;
 
@@ -44,6 +45,23 @@ namespace UnityEngine.Rendering.Universal
             return CalculateUVRect(cameraData, width, height);
         }
 
+        private void CorrectForTextureAspectRatio(ref float width, ref float height, float sourceWidth, float sourceHeight)
+        {
+            if (sourceWidth != 0 && sourceHeight != 0)
+            {
+                // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
+                var targetWidth = height * sourceWidth / sourceHeight;
+                if (targetWidth > width)
+                {
+                    height = width * sourceHeight / sourceWidth;
+                }
+                else
+                {
+                    width = targetWidth;
+                }
+            }
+        }
+
         private void SetupRenderGraphFinalPassDebug(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -63,29 +81,21 @@ namespace UnityEngine.Rendering.Universal
                     var width = relativeSize * screenWidth;
 
                     bool supportsStereo = false;
+                    Vector4 dataRangeRemap = Vector4.zero; // zero = off, .x = old min, .y = old max, .z = new min, .w = new max
 
-                    if (fullScreenDebugMode == DebugFullScreenMode.ReflectionProbeAtlas)
-                    {
-                        // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
-                        var texture = m_ForwardLights.reflectionProbeManager.atlasRT;
-                        var targetWidth = height * texture.width / texture.height;
-                        if (targetWidth > width)
-                        {
-                            height = width * texture.height / texture.width;
-                        }
-                        else
-                        {
-                            width = targetWidth;
-                        }
-
-                        m_RenderGraphDebugTextureHandle = RTHandles.Alloc(m_ForwardLights.reflectionProbeManager.atlasRT, transferOwnership: true);
-                    }
-                    else // visualize RG internal resources
+                    // visualize RG internal resources
                     {
                         // if we want to visualize RG internal resources, we need to create an RTHandle external to RG and copy to it the textures to visualize
                         // this is required because the lifetime of these resources is limited to the RenderGraph execution, and we cannot access the actual resources here
 
-                        CreateDebugTexture(cameraData.cameraTargetDescriptor);
+                        // we also copy external resources to make them "read only". CreateDebugTexture() can lead to (external) texture reallocation.
+
+                        var debugDescriptor = cameraData.cameraTargetDescriptor;
+                        // Ensure target can hold all source values. Source can be signed for example.
+                        if(SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Linear | GraphicsFormatUsage.Render))
+                            debugDescriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+
+                        CreateDebugTexture(debugDescriptor);
 
                         ImportResourceParams importParams = new ImportResourceParams();
                         importParams.clearOnFirstUse = false;
@@ -101,16 +111,48 @@ namespace UnityEngine.Rendering.Universal
 
                                 break;
                             }
+                            case DebugFullScreenMode.MotionVector:
+                            {
+                                CopyToDebugTexture(renderGraph, resourceData.motionVectorColor, debugDepthTexture);
+                                supportsStereo = true;
+                                // Motion vectors are in signed UV space, zoom in and normalize for visualization. (note: maybe add an option to use (angle, mag) visualization)
+                                const float zoom = 0.01f;
+                                dataRangeRemap.x = -zoom;
+                                dataRangeRemap.y = zoom;
+                                dataRangeRemap.z = 0;
+                                dataRangeRemap.w = 1.0f;
+                                break;
+                            }
                             case DebugFullScreenMode.AdditionalLightsShadowMap:
                             {
                                 CopyToDebugTexture(renderGraph, resourceData.additionalShadowsTexture, debugDepthTexture);
-
                                 break;
                             }
                             case DebugFullScreenMode.MainLightShadowMap:
                             {
                                 CopyToDebugTexture(renderGraph, resourceData.mainShadowsTexture, debugDepthTexture);
 
+                                break;
+                            }
+                            case DebugFullScreenMode.AdditionalLightsCookieAtlas:
+                            {
+                                if (m_LightCookieManager != null)
+                                {
+                                    // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
+                                    var texHdl = renderGraph.ImportTexture(m_LightCookieManager.AdditionalLightsCookieAtlasTexture);
+                                    CopyToDebugTexture(renderGraph, texHdl, debugDepthTexture);
+                                }
+                                break;
+                            }
+
+                            case DebugFullScreenMode.ReflectionProbeAtlas:
+                            {
+                                if (m_ForwardLights.reflectionProbeManager.atlasRT != null)
+                                {
+                                    // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
+                                    var texHdl = renderGraph.ImportTexture(RTHandles.Alloc(m_ForwardLights.reflectionProbeManager.atlasRT, transferOwnership: true));
+                                    CopyToDebugTexture(renderGraph, texHdl, debugDepthTexture);
+                                }
                                 break;
                             }
                             default:
@@ -120,8 +162,27 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
 
+                    // Textures that are not in screen aspect ration need to be corrected
+                    {
+                        RenderTexture source = null;
+                        switch (fullScreenDebugMode)
+                        {
+                            case DebugFullScreenMode.AdditionalLightsShadowMap: source = m_AdditionalLightsShadowCasterPass?.m_AdditionalLightsShadowmapHandle?.rt; break;
+                            case DebugFullScreenMode.MainLightShadowMap: source = m_MainLightShadowCasterPass?.m_MainLightShadowmapTexture?.rt; break;
+                            case DebugFullScreenMode.AdditionalLightsCookieAtlas: source = m_LightCookieManager?.AdditionalLightsCookieAtlasTexture?.rt; break;
+                            case DebugFullScreenMode.ReflectionProbeAtlas: source = m_ForwardLights?.reflectionProbeManager.atlasRT; break;
+                            default:
+                                break;
+                        }
+
+                        // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
+                        if (source != null)
+                            CorrectForTextureAspectRatio(ref width, ref height, source.width, source.height);
+                    }
+
+
                     Rect uvRect = CalculateUVRect(cameraData, width, height);
-                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, supportsStereo);
+                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, supportsStereo, dataRangeRemap);
                 }
                 else
                 {
@@ -165,8 +226,8 @@ namespace UnityEngine.Rendering.Universal
                     CopyToDebugTexture(renderGraph, resourceData.stpDebugView, debugTexture);
 
                     Rect uvRect = CalculateUVRect(cameraData, textureHeightPercent);
-
-                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, true);
+                    Vector4 rangeRemap = Vector4.zero; // Off
+                    DebugHandler.SetDebugRenderTarget(m_RenderGraphDebugTextureHandle, uvRect, true, rangeRemap);
                 }
             }
         }

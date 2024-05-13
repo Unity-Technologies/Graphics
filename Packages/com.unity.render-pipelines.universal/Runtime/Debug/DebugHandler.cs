@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.Universal
         static readonly int k_DebugTextureNoStereoPropertyId = Shader.PropertyToID("_DebugTextureNoStereo");
         static readonly int k_DebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
         static readonly int k_DebugRenderTargetSupportsStereo = Shader.PropertyToID("_DebugRenderTargetSupportsStereo");
+        static readonly int k_DebugRenderTargetRangeRemap = Shader.PropertyToID("_DebugRenderTargetRangeRemap");
 
         // Material settings...
         static readonly int k_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -83,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_HasDebugRenderTarget;
         bool m_DebugRenderTargetSupportsStereo;
         Vector4 m_DebugRenderTargetPixelRect;
+        Vector4 m_DebugRenderTargetRangeRemap;
         RTHandle m_DebugRenderTarget;
 
         RTHandle m_DebugFontTexture;
@@ -295,12 +297,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo)
+        internal void SetDebugRenderTarget(RTHandle renderTarget, Rect displayRect, bool supportsStereo, Vector4 dataRangeRemap)
         {
             m_HasDebugRenderTarget = true;
             m_DebugRenderTargetSupportsStereo = supportsStereo;
             m_DebugRenderTarget = renderTarget;
             m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
+            m_DebugRenderTargetRangeRemap = dataRangeRemap;
         }
 
         internal void ResetDebugRenderTarget()
@@ -320,6 +323,7 @@ namespace UnityEngine.Rendering.Universal
 
             public Vector4 debugRenderTargetPixelRect;
             public int debugRenderTargetSupportsStereo;
+            public Vector4 debugRenderTargetRangeRemap;
 
             public TextureHandle debugFontTextureHandle;
 
@@ -341,6 +345,7 @@ namespace UnityEngine.Rendering.Universal
 
             passData.debugRenderTargetPixelRect = m_DebugRenderTargetPixelRect;
             passData.debugRenderTargetSupportsStereo = m_DebugRenderTargetSupportsStereo ? 1 : 0;
+            passData.debugRenderTargetRangeRemap = m_DebugRenderTargetRangeRemap;
 
             passData.debugFontTextureHandle = TextureHandle.nullHandle;
 
@@ -375,6 +380,7 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.SetGlobalVector(k_DebugTextureDisplayRect, data.debugRenderTargetPixelRect);
                 cmd.SetGlobalInteger(k_DebugRenderTargetSupportsStereo, data.debugRenderTargetSupportsStereo);
+                cmd.SetGlobalVector(k_DebugRenderTargetRangeRemap, data.debugRenderTargetRangeRemap);
             }
 
             var renderingSettings = data.renderingSettings;

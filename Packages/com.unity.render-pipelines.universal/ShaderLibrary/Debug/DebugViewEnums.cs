@@ -89,14 +89,24 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Display depth buffer contents.</summary>
         Depth,
 
+        // NOTE: we could also add (dir, mag) format.
+        /// <summary>Display depth buffer contents.</summary>
+        [InspectorName("Motion Vector (100x, normalized)")]
+        MotionVector,
+
         /// <summary>Display the shadow map from additional lights.</summary>
         AdditionalLightsShadowMap,
         /// <summary>Display the main shadow map.</summary>
         MainLightShadowMap,
+
+        /// <summary> Display the light cookie atlas for additional lights.</summary>
+        AdditionalLightsCookieAtlas,
+
         /// <summary>
         /// Display the reflection probe atlas used for the Forward+ rendering path.
         /// </summary>
         ReflectionProbeAtlas,
+
         /// <summary>
         /// Displays the active STP debug view.
         /// </summary>

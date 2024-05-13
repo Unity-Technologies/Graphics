@@ -17,6 +17,20 @@ TEXTURE2D(_DebugTextureNoStereo);
 
 half4 _DebugTextureDisplayRect;
 int _DebugRenderTargetSupportsStereo;
+float4 _DebugRenderTargetRangeRemap;
+
+// CPU parametrized, non-clamping, range remap. (RangeRemap in common.hlsl saturates!)
+half4 RemapSourceRange(half4 source)
+{
+    float4 r = _DebugRenderTargetRangeRemap;
+    float4 s = source;
+    // Remap(float origFrom, float origTo, float targetFrom, float targetTo, float value)
+    s.r = Remap(r.x, r.y, r.z, r.w, s.r);
+    s.g = Remap(r.x, r.y, r.z, r.w, s.g);
+    s.b = Remap(r.x, r.y, r.z, r.w, s.b);
+    s.a = Remap(r.x, r.y, r.z, r.w, s.a);
+    return half4(s);
+}
 
 bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 debugColor)
 {
@@ -64,8 +78,10 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
     switch(_DebugFullScreenMode)
     {
         case DEBUGFULLSCREENMODE_DEPTH:
+        case DEBUGFULLSCREENMODE_MOTION_VECTOR:
         case DEBUGFULLSCREENMODE_MAIN_LIGHT_SHADOW_MAP:
         case DEBUGFULLSCREENMODE_ADDITIONAL_LIGHTS_SHADOW_MAP:
+        case DEBUGFULLSCREENMODE_ADDITIONAL_LIGHTS_COOKIE_ATLAS:
         case DEBUGFULLSCREENMODE_REFLECTION_PROBE_ATLAS:
         case DEBUGFULLSCREENMODE_STP:
         {
@@ -82,9 +98,20 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
                 else
                     sampleColor = SAMPLE_TEXTURE2D(_DebugTextureNoStereo, sampler_DebugTexture, debugTextureUv);
 
+                // Optionally remap source to valid visualization range.
+                if(any(_DebugRenderTargetRangeRemap != 0))
+                {
+                    sampleColor.rgb = RemapSourceRange(sampleColor).rgb;
+                }
+
                 if (_DebugFullScreenMode == DEBUGFULLSCREENMODE_DEPTH)
                 {
                     debugColor = half4(sampleColor.rrr, 1);
+                }
+                else if (_DebugFullScreenMode == DEBUGFULLSCREENMODE_MOTION_VECTOR)
+                {
+                    // Motion vector is RG only.
+                    debugColor = half4(sampleColor.rg, 0, 1);
                 }
                 else if (_DebugFullScreenMode == DEBUGFULLSCREENMODE_STP)
                 {
