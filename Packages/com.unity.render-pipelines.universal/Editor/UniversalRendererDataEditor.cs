@@ -203,8 +203,8 @@ namespace UnityEditor.Rendering.Universal
 
 
             EditorGUI.indentLevel--;
-            var renderGraphSettings = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
-            if (renderGraphSettings.enableRenderCompatibilityMode)
+            if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings)
+                && renderGraphSettings.enableRenderCompatibilityMode)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField(Styles.RenderPassSectionLabel, EditorStyles.boldLabel);
