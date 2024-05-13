@@ -6,10 +6,7 @@ VisualEffectImporter:
   template:
     name: Simple Burst
     category: Built-in
-    description: This system loops infinitely and creates a burst of particles in
-      a randomized sphere direction. It's a useful starting point for creating explosive
-      effects, and can be adjusted to create effects like hits, impacts, explosions,
-      and sparks.
+    description: A system that loops infinitely, creating a burst of particles in a randomized sphere direction. This starting template can be adjusted to create effects such as hits, impacts, explosions, sparks, etc.
     icon: {fileID: 2800000, guid: 521a2f1ecfc48fe41bb234842f8c93cc, type: 3}
     thumbnail: {fileID: 2800000, guid: edc22bdb6d4484a4e87b7ff5a619008b, type: 3}
   userData: 

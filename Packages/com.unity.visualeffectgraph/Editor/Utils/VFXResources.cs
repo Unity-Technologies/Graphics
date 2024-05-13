@@ -172,12 +172,7 @@ namespace UnityEditor.VFX
 
             defaultShader = Shader.Find("Shader Graphs/VFXDefault");
 
-            defaultAnimationCurve = new AnimationCurve(new Keyframe[]
-            {
-                new Keyframe(0.0f, 0.0f, 0.0f, 0.0f),
-                new Keyframe(0.25f, 0.25f, 0.0f, 0.0f),
-                new Keyframe(1.0f, 0.0f, 0.0f, 0.0f),
-            });
+            defaultAnimationCurve = AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f);
 
             defaultGradient = new Gradient();
             defaultGradient.colorKeys = new GradientColorKey[]
@@ -216,7 +211,7 @@ namespace UnityEditor.VFX
             get
             {
                 if (m_DefaultParticleTexture == null)
-                    m_DefaultParticleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
+                    m_DefaultParticleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultDot.tga");
                 return m_DefaultParticleTexture;
             }
         }
@@ -271,7 +266,7 @@ namespace UnityEditor.VFX
             get
             {
                 if (m_DefaultMesh == null)
-                    m_DefaultMesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
+                    m_DefaultMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
                 return m_DefaultMesh;
             }
         }
