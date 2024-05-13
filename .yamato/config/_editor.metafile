@@ -41,7 +41,3 @@ editor_pinning_config:
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
     - cd gfx-sdet-tools && git rev-parse HEAD
     - python3 gfx-sdet-tools/scripts/update_revisions.py --track trunk --unity-branch $ONO_BRANCH_TRUNK --api-key $CDS_GITHUB_SERVICE_TOKEN --commit-and-push --nr-commits-to-retrieve 1 --vcs git
-  triggers:
-    recurring:
-      - branch: 2023.2/staging
-        frequency: 21 ? * 7 # At 9pm every Saturday - must happen before the ABV (abv.metafile). 2hrs before is arbitrary
