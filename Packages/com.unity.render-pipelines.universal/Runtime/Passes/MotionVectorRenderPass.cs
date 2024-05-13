@@ -16,7 +16,8 @@ namespace UnityEngine.Rendering.Universal
         public const string k_MotionVectorsLightModeTag = "MotionVectors";
         static readonly string[] s_ShaderTags = new string[] { k_MotionVectorsLightModeTag };
 
-        private static readonly ProfilingSampler s_SetMotionMatrixProfilingSampler = new ProfilingSampler("SetMotionVectorGlobalMatrices");
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+        static readonly ProfilingSampler s_SetMotionMatrixProfilingSampler = new ProfilingSampler("SetMotionVectorGlobalMatrices");
 
         RTHandle m_Color;
         RTHandle m_Depth;
@@ -239,6 +240,9 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
+                    if (data.cameraMaterial != null)
+                        data.cameraMaterial.SetTexture(s_CameraDepthTextureID, data.cameraDepth);
+
                     ExecutePass(context.cmd, data, data.rendererListHdl);
                 });
             }
