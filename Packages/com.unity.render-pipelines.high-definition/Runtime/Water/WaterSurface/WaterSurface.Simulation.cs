@@ -148,6 +148,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>Current simulation time in seconds.</summary>
+        public float simulationTime
+        {
+            get
+            {
+                return simulation?.simulationTime ?? 0.0f;
+            }
+            set
+            {
+                if (simulation != null)
+                    simulation.simulationTime = value;
+            }
+        }
+
         internal int numActiveBands => HDRenderPipeline.EvaluateBandCount(surfaceType, ripples);
 
         // Optional CPU simulation data

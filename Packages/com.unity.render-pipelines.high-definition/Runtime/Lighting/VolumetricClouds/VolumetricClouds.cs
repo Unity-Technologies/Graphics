@@ -12,6 +12,26 @@ namespace UnityEngine.Rendering.HighDefinition
     public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
+        /// Struct holding animation data for volumetric clouds.
+        /// Animation data is shared for all cameras, but only updated by the main camera.
+        /// </summary>
+        public struct AnimationData
+        {
+            internal Vector2 cloudOffset;
+            internal float verticalShapeOffset;
+            internal float verticalErosionOffset;
+        }
+
+        /// <summary>
+        /// Override current clouds animation data. Can be used to synchronize clouds over the network.
+        /// </summary>
+        public static AnimationData animationData
+        {
+            get => HDRenderPipeline.currentPipeline.m_CloudsAnimationData;
+            set { HDRenderPipeline.currentPipeline.m_CloudsAnimationData = value; }
+        }
+
+        /// <summary>
         /// Control mode for the volumetric clouds.
         /// </summary>
         public enum CloudControl

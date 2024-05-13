@@ -45,17 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CloudCombinePass;
 
         LocalKeyword m_OutputFogTransmittanceKeyword;
-
-        // Animation time is shared for all cameras, but only updated by the main camera
-        internal struct VolumetricCloudsAnimationData
-        {
-            internal float time;
-            public Vector2 cloudOffset;
-            public float verticalShapeOffset;
-            public float verticalErosionOffset;
-        }
-
-        internal VolumetricCloudsAnimationData m_CloudsAnimationData;
+        
+        float m_CloudsAnimationLastTime;
+        internal VolumetricClouds.AnimationData m_CloudsAnimationData;
 
         struct VolumetricCloudsCameraData
         {
@@ -108,9 +100,9 @@ namespace UnityEngine.Rendering.HighDefinition
             AllocatePresetTextures();
 
             // Initialize cloud animation
+            m_CloudsAnimationLastTime = -1.0f;
             m_CloudsAnimationData = new()
             {
-                time = -1.0f,
                 cloudOffset = new Vector2(0.0f, 0.0f),
                 verticalShapeOffset = 0.0f,
                 verticalErosionOffset = 0.0f,
@@ -515,8 +507,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (EvaluateVolumetricCloudsHistoryValidity(hdCamera))
             {
                 float totalTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
-                float deltaTime = totalTime - m_CloudsAnimationData.time;
-                if (m_CloudsAnimationData.time == -1.0f)
+                float deltaTime = totalTime - m_CloudsAnimationLastTime;
+                if (m_CloudsAnimationLastTime == -1.0f)
                     deltaTime = 0.0f;
 
                 #if UNITY_EDITOR
@@ -533,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
 
                 // Animate the offsets
-                m_CloudsAnimationData.time = totalTime;
+                m_CloudsAnimationLastTime = totalTime;
                 m_CloudsAnimationData.cloudOffset += deltaTime * settings.globalWindSpeed.GetValue(hdCamera) * windDirection;
                 m_CloudsAnimationData.verticalShapeOffset += deltaTime * settings.verticalShapeWindSpeed.value;
                 m_CloudsAnimationData.verticalErosionOffset += deltaTime * settings.verticalErosionWindSpeed.value;

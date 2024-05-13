@@ -33,3 +33,33 @@ When **Rendering Space** is set to **Camera**, the clouds are always located abo
 
 [!include[](snippets/volume-override-api.md)]
 
+By default, animation data for clouds gets incremented automatically depending on the wind parameters.
+In some cases, it can be useful to manually set the animation time, which can be done by using the following script on a Camera:
+
+```cs
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+
+public class CloudSync : MonoBehaviour
+{
+    VolumetricClouds.AnimationData data;
+
+    void Update()
+    {
+        // Save animation data
+        if (Input.GetKeyDown(KeyCode.A))
+            data = VolumetricClouds.animationData;
+
+        // Set animation data
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            var camera = this.GetComponent<Camera>();
+            var hdCamera = HDCamera.GetOrCreate(camera);
+            VolumetricClouds.animationData = data;
+            // We reset the camera to discard the history buffer manually 
+            hdCamera.Reset(); 
+        }
+    }
+}
+```
