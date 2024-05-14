@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Exposure_03
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Automatic Histogram Exposure
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,15 +37,15 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Automatic Histogram Exposure
+        m_Untranslated: 
       Text:
         m_Untranslated: "Let's now switch the Exposure Mode to another one that can
-          automatically adpat to the Scene's lighting.\n\r\n1. In the <i>Hierarchy,</i>
-          select the <b>Global Volume</b> created at the previous step.\n\r\n2. In
-          its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\r\n\r\nExplore
+          automatically adapt to the Scene's lighting.\n\n1. In the <i>Hierarchy,</i>
+          select the <b>Global Volume</b> created at the previous step.\n\n2. In
+          its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\n\nExplore
           the Scene and notice how the camera now imitates the human eye adaptation
           or the automatic exposure system of a camera. Dark areas may become brighter,
-          and bright ones may turn darker, automatically.\r\n\n\n<b>Expert tips</b>\n\n\u2022
+          and bright ones may turn darker, automatically.\n\n\n<b>Expert tips</b>\n\n\u2022
           Use the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how
           much the Automatic Exposure can fluctuate within a fixed range of values,
           to prevent it from displaying too dark or too bright images.\n\n\u2022

@@ -52,7 +52,7 @@ MonoBehaviour:
           system.\n\n\nTo understand how the <b>ShadowProxy</b> is excluded from
           the Probe Placement calculation, follow these steps:\n\n1. Enable the Probe
           Volumes debug visualization in <b>Window</b> > <b>Analysis</b> > <b>Rendering
-          Debugger</b> > <b>Probe Volume</b> > <b>Probe Visualization</b> > <b>Display
+          Debugger</b> > <b>Probe Volumes</b> > <b>Probe Visualization</b> > <b>Display
           Probes.</b>\n\n2. Take a look at the probe count currently visible on the
           screen. Unlike in the image above, probes do not fill entirely the space
           within <b>ShadowProxy.</b>\n\n3. In the <i>Hierarchy</i> window, select
