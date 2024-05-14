@@ -72,16 +72,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            var isDepth = (destination.rt && destination.rt.graphicsFormat == GraphicsFormat.None);
-            descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
-            descriptor.msaaSamples = 1;
-
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
-
-            // This is a temporary workaround for Editor as not setting any depth here
-            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
 #if UNITY_EDITOR
             // This is a temporary workaround for Editor as not setting any depth here
             // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
