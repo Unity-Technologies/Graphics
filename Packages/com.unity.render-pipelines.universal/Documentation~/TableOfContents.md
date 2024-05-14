@@ -100,6 +100,7 @@
     * [Render a camera's output to a Render Texture](rendering-to-a-render-texture.md)
   * [Customize a camera](universal-additional-camera-data.md)
   * [Camera component properties](camera-component-reference.md)
+    * [Physical Camera properties](cameras/physical-camera-reference.md)
   * [Render Requests](User-Render-Requests.md)
 * [Post-processing](integration-with-post-processing.md)
   * [How to configure](integration-with-post-processing.md#post-proc-how-to)
