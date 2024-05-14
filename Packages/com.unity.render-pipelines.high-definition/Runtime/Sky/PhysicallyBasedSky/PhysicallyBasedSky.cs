@@ -168,11 +168,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary> Horizon tint. Does not affect the precomputation. </summary>
         [Tooltip("Specifies a color that HDRP uses to tint the sky at the horizon. Does not affect the precomputation.")]
-        public ColorParameter horizonTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
+        public ColorParameter horizonTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: true);
 
         /// <summary> Zenith tint. Does not affect the precomputation. </summary>
         [Tooltip("Specifies a color that HDRP uses to tint the point in the sky directly above the observer (the zenith). Does not affect the precomputation.")]
-        public ColorParameter zenithTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
+        public ColorParameter zenithTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: true);
 
         /// <summary> Horizon-zenith shift. Does not affect the precomputation. </summary>
         [Tooltip("Controls how HDRP blends between the Horizon Tint and Zenith Tint. Does not affect the precomputation.")]

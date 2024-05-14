@@ -311,6 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static PrecomputationCache s_PrecomputationCache = new PrecomputationCache();
 
+        const int k_MaxCelestialBodies = 16;
         static GraphicsBuffer s_CelestialBodyBuffer;
         static CelestialBodyData[] s_CelestialBodyData;
         static int s_DataFrameUpdate = -1;
@@ -408,7 +409,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (s_CelestialBodyBuffer == null)
             {
-                int k_MaxCelestialBodies = 16;
                 int stride = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CelestialBodyData));
                 s_CelestialBodyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, k_MaxCelestialBodies, stride);
                 s_CelestialBodyData = new CelestialBodyData[k_MaxCelestialBodies];
@@ -428,12 +428,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         FillCelestialBodyData(cmd, light, ref s_CelestialBodyData[lightCount++]);
                         exposure = Mathf.Max(light.legacyLight.intensity * -light.transform.forward.y, exposure);
+                        if (lightCount >= k_MaxCelestialBodies) break;
                     }
                 }
 
                 uint bodyCount = lightCount;
                 foreach (var light in directionalLights)
                 {
+                    if (bodyCount >= k_MaxCelestialBodies) break;
                     if (light.legacyLight.enabled && light.interactsWithSky && light.legacyLight.intensity == 0.0f)
                         FillCelestialBodyData(cmd, light, ref s_CelestialBodyData[bodyCount++]);
                 }
