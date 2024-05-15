@@ -216,10 +216,11 @@ namespace UnityEngine.Rendering
 
         public struct IndirectionEntryUpdateInfo
         {
+            public int brickCount;
             public int firstChunkIndex;
             public int numberOfChunks;
             public int minSubdivInCell;
-            // IMPORTANT, These values should be at max resolution, independent of minSubdivInCell. This means that
+            // IMPORTANT, These values should be at max resolution. This means that
             // The map to the lower possible resolution is done after.  However they are still in local space.
             public Vector3Int minValidBrickIndexForCellAtMaxRes;
             public Vector3Int maxValidBrickIndexForCellAtMaxResPlusOne;
@@ -343,7 +344,7 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        static internal bool BrickOverlapEntry(Vector3Int brickMin, Vector3Int brickMax, Vector3Int entryMin, Vector3Int entryMax)
+        static bool BrickOverlapEntry(Vector3Int brickMin, Vector3Int brickMax, Vector3Int entryMin, Vector3Int entryMax)
         {
             return brickMax.x > entryMin.x && entryMax.x > brickMin.x &&
                    brickMax.y > entryMin.y && entryMax.y > brickMin.y &&

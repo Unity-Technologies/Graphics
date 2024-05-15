@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
                 if (cellChunkData.skyShadingDirectionIndices.Length != 0)
                 {
                     int id = cellChunkData.skyShadingDirectionIndices[index];
-                    var directions = ProbeVolumeConstantRuntimeResources.GetSkySamplingDirections();
+                    var directions = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
                     SO_Direction = id == 255 ? Vector3.zero : directions[id];
                 }
             }
@@ -171,6 +171,7 @@ namespace UnityEngine.Rendering
         static readonly int _ProbePositionsBuffer = Shader.PropertyToID("_ProbePositionsBuffer");
         static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
+        static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
 
         // Can definitively be optimized later on.
@@ -295,7 +296,8 @@ namespace UnityEngine.Rendering
             // There's an upper limit on the number of bricks supported inside a single cell
             int probeCount = Mathf.Min(cell.data.probePositions.Length, ushort.MaxValue * ProbeBrickPool.kBrickProbeCountTotal);
 
-            cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, settings.squaredDistWeighting ? 1 : 0));
+            cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, ProbeReferenceVolume.instance.MinBrickSize()));
+            cmd.SetComputeVectorParam(dilationShader, _DilationParameters2, new Vector4(settings.squaredDistWeighting ? 1 : 0, bakingSet.skyOcclusion ? 1 : 0, bakingSet.skyOcclusionShadingDirection ? 1 : 0, 0));
 
             var refVolume = ProbeReferenceVolume.instance;
             ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
@@ -328,11 +330,12 @@ namespace UnityEngine.Rendering
             parameters.samplingNoise = 0;
             parameters.weight = 1f;
             parameters.leakReductionMode = APVLeakReductionMode.None;
+            parameters.minValidNormalWeight = 0.0f;
             parameters.frameIndexForNoise = 0;
             parameters.reflNormalizationLowerClamp = 0.1f;
             parameters.reflNormalizationUpperClamp = 1.0f;
-            parameters.skyOcclusionIntensity = bakingSet.skyOcclusion ? 1 : 0;
-            parameters.skyOcclusionShadingDirection = bakingSet.skyOcclusionShadingDirection ? true : false;
+            parameters.skyOcclusionIntensity = 0.0f;
+            parameters.skyOcclusionShadingDirection = false;
             parameters.regionCount = 1;
             parameters.regionLayerMasks = 1;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);

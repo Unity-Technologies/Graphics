@@ -33,13 +33,13 @@ namespace UnityEngine.Rendering
         /// The overridden normal bias to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.
         /// </summary>
         [Tooltip("The overridden normal bias to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.")]
-        public ClampedFloatParameter normalBias = new ClampedFloatParameter(0.05f, 0.0f, 2.0f);
+        public ClampedFloatParameter normalBias = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);
 
         /// <summary>
         /// A bias alongside the view vector to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.
         /// </summary>
         [Tooltip("A bias alongside the view vector to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.")]
-        public ClampedFloatParameter viewBias = new ClampedFloatParameter(0.1f, 0.0f, 2.0f);
+        public ClampedFloatParameter viewBias = new ClampedFloatParameter(0.0f, 0.0f, 2.0f);
 
         /// <summary>
         /// Whether to scale the bias for Adaptive Probe Volumes by the minimum distance between probes.
@@ -64,12 +64,12 @@ namespace UnityEngine.Rendering
         /// Method used to reduce leaks.
         /// </summary>
         [Tooltip("Method used to reduce leaks. Currently available modes are crude, but cheap methods.")]
-        public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.Quality);
+        public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.ValidityAndNormalBased);
 
         /// <summary>
-        /// This parameter isn't used anymore.
+        /// The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.
         /// </summary>
-        [Obsolete("This parameter isn't used anymore.")]
+        [Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
         public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
 
         /// <summary>

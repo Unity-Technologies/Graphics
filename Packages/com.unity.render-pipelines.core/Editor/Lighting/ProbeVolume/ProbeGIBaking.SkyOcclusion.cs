@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering
                 var cs = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeBakingResources>().skyOcclusionCS;
                 int kernel = cs.FindKernel("EncodeShadingDirection");
 
-                ProbeVolumeConstantRuntimeResources.Initialize();
+                DynamicSkyPrecomputedDirections.Initialize();
                 var precomputedShadingDirections = ProbeReferenceVolume.instance.GetRuntimeResources().SkyPrecomputedDirections;
 
                 int probeCount = directions.Length;
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering
 
             internal static uint EncodeSkyShadingDirection(Vector3 direction)
             {
-                var precomputedDirections = ProbeVolumeConstantRuntimeResources.GetSkySamplingDirections();
+                var precomputedDirections = DynamicSkyPrecomputedDirections.GetPrecomputedDirections();
 
                 uint indexMax = 255;
                 float bestDot = -10.0f;
