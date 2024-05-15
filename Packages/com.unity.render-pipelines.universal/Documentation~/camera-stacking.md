@@ -1,77 +1,33 @@
-# Camera Stacking
-In the Universal Render Pipeline (URP), you use Camera Stacking to layer the output of multiple Cameras and create a single combined output. Camera Stacking allows you to create effects such as a 3D model in a 2D UI, or the cockpit of a vehicle.
+# Set up a camera stack
 
-![Camera Stacking in URP](Images/camera-stacking-example.png)
+This page describes how to use a camera stack to layer outputs from multiple cameras to the same render target. For more information on camera stacking, refer to [Understand camera stacking](cameras/camera-stacking-concepts.md).
 
-A Camera Stack consists of a [Base Camera](camera-types-and-render-type.md#base-camera) and one or more [Overlay Cameras](camera-types-and-render-type.md#overlay-camera). A Camera Stack overrides the output of the Base Camera with the combined output of all the Cameras in the Camera Stack. As such, anything that you can do with the output of a Base Camera, you can do with the output of a Camera Stack. For example, you can render a Camera Stack to a given render target, apply post-process effects, and so on.
+![A red capsule with a post-processing effect, and a blue capsule with no post-processing](Images/camera-stacking-blur-background.png)<br/>*An example of a scene that uses camera stacking to render a red capsule with a post-processing effect, and a blue capsule with no post-processing.*
 
- URP performs several optimizations within a Camera, including rendering order optimizations to reduce overdraw. However, when you use a Camera Stack, you effectively define the order in which those Cameras are rendered. You must therefore be careful not to order the Cameras in a way that causes excessive overdraw. For more information on overdraw in URP, see [Advanced information](cameras-advanced.md).
+Follow these steps to set up a camera stack:
 
-For examples of how to use Camera Stacking, see the [Camera Stacking samples in URP Package Samples](package-sample-urp-package-samples.md#camera-stacking).
+1. [Create a camera stack](#create-a-camera-stack).
+2. [Set up layers and culling masks](#set-up-layers-and-culling-masks).
 
-<a name="adding-a-camera-to-a-camera-stack"></a>
-## Adding a Camera to a Camera Stack
+## Create a camera stack
 
-![Adding a Camera to a Camera Stack](Images/camera-stack-add-camera.png)
+Create a camera stack with a Base Camera and one or more Overlay Cameras.
 
-1. Create a Camera in your Scene. Its **Render Type** defaults to **Base**, making it a Base Camera.
-2. Create another Camera in your Scene, and select it.
-3. In the Camera Inspector, change the Camera’s  **Render Type** to **Overlay**.
-4. Select the Base Camera again. In the Camera Inspector, scroll to the Stack section, click the **plus (+)** button, and click the name of the Overlay Camera.
+For more information on how to do this, refer to [Add a camera to a camera stack](cameras/add-and-remove-cameras-in-a-stack.md#add-a-camera-to-a-camera-stack).
 
-The Overlay Camera is now part of the Base Camera's Camera Stack. Unity renders the Overlay Camera's output on top of the Base Camera's output.
+## Set up layers and culling masks
 
-You can add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
+Once you create your camera stack, you must assign any GameObjects the Overlay Cameras need to render to a [layer](xref:Layers), then set the **Culling Mask** of each camera to match the layer.
 
-```
-var cameraData = camera.GetUniversalAdditionalCameraData();
-cameraData.cameraStack.Add(myOverlayCamera);
-```
+To do this use the following steps:
 
-## Removing a Camera from a Camera Stack
+1. Add as many layers as your project requires. For information on how to do this, refer to [Add a new layer](xref:create-layers).
+2. For each GameObject you want an Overlay Camera to render, assign the GameObject to the appropriate layer.
+3. Select the Base Camera of your camera stack and navigate to **Rendering** > **Culling Mask** in the Inspector Window.
+4. Remove any layers you don't want the Base Camera to render, such as layers that contain objects only an Overlay Camera should render.
+5. Select the first Overlay Camera in the camera stack and navigate to **Rendering** > **Culling Mask** in the Inspector window.
+6. Remove all layers except for the layers that contain GameObjects you want this camera to render.
+7. Repeat Step 5 and Step 6 for each Overlay Camera in the camera stack.
 
-![Removing a Camera from a Camera Stack](Images/camera-stack-remove-camera.png)
-
-1. Create a Camera Stack that contains at least one Overlay Camera. For instructions, see [Adding a Camera to a Camera Stack](#adding-a-camera-to-a-camera-stack).
-2. Select the Camera Stack's Base Camera.
-3. In the Camera Inspector, scroll to the Stack section, click the name of the Overlay Camera you want to remove, and then click the **minus (-)** button.
-
-The Overlay Camera remains in the Scene, but is no longer part of the Camera Stack.
-
-You can remove a Camera from a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
-
-```
-var cameraData = camera.GetUniversalAdditionalCameraData();
-cameraData.cameraStack.Remove(myOverlayCamera);
-```
-
-## Changing the order of Cameras in a Camera Stack
-
-![Removing a Camera from a Camera Stack](Images/camera-stack-reorder.png)
-
-1. Create a Camera Stack that contains more than one Overlay Camera. For instructions, see [Adding a Camera to a Camera Stack](#adding-a-camera-to-a-camera-stack).
-2. Select the Base Camera in the Camera Stack.
-3. In the Camera Inspector, scroll to the Stack section.
-4. Use the handles next to the names of the Overlay Cameras to reorder the list of Overlay Cameras.
-
-The Base Camera renders the base layer of the Camera Stack, and the Overlay Cameras in the stack render on top of this in the order that they are listed, from top to bottom.
-
-You can reorder a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component.
-
-## Adding the same Overlay Camera to multiple stacks
-
-To add an Overlay Camera to multiple Camera Stacks:
-
-1. Create a Camera Stack that contains at least one Overlay Camera. For instructions, see [Adding a Camera to a Camera Stack](#adding-a-camera-to-a-camera-stack).
-2. Create a Camera in your Scene. Its **Render Type** defaults to **Base**, making it a Base Camera.
-3. Select the new Base Camera.
-4. In the Camera Inspector, scroll to the Stack section, click the *plus (+)* button, and click the name of the Overlay Camera that you want to use in both Camera Stacks.
-
-The Overlay Camera is now rendering in both Camera Stacks.
-
-You can also add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
-
-```
-var cameraData = camera.GetUniversalAdditionalCameraData();
-cameraData.cameraStack.Add(myOverlayCamera);
-```
+> [!NOTE]
+> You don't need to configure the **Culling Mask** property of the cameras. However, cameras in URP render all layers by default, so rendering is faster if you remove layers that contain unneeded GameObjects.
