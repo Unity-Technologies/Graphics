@@ -649,7 +649,7 @@ namespace UnityEngine.Rendering.Universal
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
         /// by this render
         /// pass that need to be cleanup once camera has finished rendering.
-        /// This method be called for all cameras in a camera stack.
+        /// This method should be called for all cameras in a camera stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void OnCameraCleanup(CommandBuffer cmd)
