@@ -39,7 +39,7 @@ Overlay cameras expose the following properties:
 
 ### Physical Camera
 
-The **Physical Camera** property adds additional properties to the camera to simulate a real-world camera. For more information, refer to the [Physical Camera reference](/cameras/physical-camera-reference.md).
+The **Physical Camera** property adds additional properties to the camera to simulate a real-world camera. For more information, refer to the [Physical Camera reference](cameras/physical-camera-reference.md).
 
 <a name="Rendering"></a>
 
@@ -63,7 +63,7 @@ The **Physical Camera** property adds additional properties to the camera to sim
 | **Render Shadows** | Enable shadow rendering. |
 | **Priority** | A camera with a higher priority is drawn on top of a camera with a lower priority. Priority has a range from -100 to 100.<br/><br/>This property is only visible when **Render Type** is set to **Base**. |
 | **Opaque Texture** | Control whether the camera creates a CameraOpaqueTexture, which is a copy of the rendered view.<br/><br/>Available options:<ul><li>**Off**: Camera does not create a CameraOpaqueTexture.</li><li>**On**: Camera creates a CameraOpaqueTexture.</li><li>**Use Pipeline Settings**: The Render Pipeline Asset determines the value of this setting.</li></ul>This property is only visible when **Render Type** is set to **Base**. |
-| **Depth Texture** | Control whether the camera creates `_CameraDepthTexture`, which is a copy of the rendered depth values.<br/><br/>Available options:<ul><li>**Off**: Camera does not create a CameraDepthTexture.</li><li>**On**: Camera creates a CameraDepthTexture.</li><li>**Use Pipeline Settings**: The Render Pipeline Asset determines the value of this setting.</li></ul>**Note**: `_CameraDepthTexture` is set between the `AfterRenderingSkybox` and `BeforeRenderingTransparents` events, or at the `BeforeRenderingOpaques` event if you use a depth prepass. For more information on the order of events in the rendering loop, refer to [Injection points](/customize/custom-pass-injection-points.md). |
+| **Depth Texture** | Control whether the camera creates `_CameraDepthTexture`, which is a copy of the rendered depth values.<br/><br/>Available options:<ul><li>**Off**: Camera does not create a CameraDepthTexture.</li><li>**On**: Camera creates a CameraDepthTexture.</li><li>**Use Pipeline Settings**: The Render Pipeline Asset determines the value of this setting.</li></ul>**Note**: `_CameraDepthTexture` is set between the `AfterRenderingSkybox` and `BeforeRenderingTransparents` events, or at the `BeforeRenderingOpaques` event if you use a depth prepass. For more information on the order of events in the rendering loop, refer to [Injection points](customize/custom-pass-injection-points.md). |
 | **Culling Mask** | Select which Layers the camera renders to. |
 | **Occlusion Culling** | Enable Occlusion Culling. |
 
@@ -117,8 +117,8 @@ This section is only available if you set the **Render Type** to **Base**
 | **Viewport Rect** | Four values that indicate where on the screen this camera view is drawn. Measured in Viewport Coordinates (values 0-1). |
 | &#160;&#160;&#160;&#160;**X** | The beginning horizontal position Unity uses to draw the camera view. |
 | &#160;&#160;&#160;&#160;**Y** | The beginning vertical position Unity uses to draw the camera view. |
-| &#160;&#160;&#160;&#160;**W** (Width) | Width of the camera output on the screen. |
-| &#160;&#160;&#160;&#160;**H** (Height) | Height of the camera output on the screen. |
+| &#160;&#160;&#160;&#160;**W** | Width of the camera output on the screen. |
+| &#160;&#160;&#160;&#160;**H** | Height of the camera output on the screen. |
 | **HDR Rendering** | Enable High Dynamic Range rendering for this camera. |
 | **MSAA** | Enable [Multisample Anti-aliasing](anti-aliasing.md#msaa) for this camera. |
 | **Allow Dynamic Resolution** | Enable Dynamic Resolution rendering for this camera. |

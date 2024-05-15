@@ -2,8 +2,6 @@
 
 Volumes components contain properties that control how they affect Cameras and how they interact with other Volumes.
 
-![](/Images/Inspectors/Volume1.png)
-
 | Property           | Description                                                  |
 | :----------------- | :----------------------------------------------------------- |
 | **Mode**           | Use the drop-down to select the method that URP uses to calculate whether this Volume can affect a Camera:<br />&#8226; **Global**: Makes the Volume have no boundaries and allow it to affect every Camera in the scene.<br />&#8226; **Local**: Allows you to specify boundaries for the Volume so that the Volume only affects Cameras inside the boundaries. Add a Collider to the Volume's GameObject and use that to set the boundaries. |
