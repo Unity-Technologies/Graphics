@@ -1801,9 +1801,13 @@ namespace UnityEngine.Rendering.Universal
                 tempRtDesc.graphicsFormat = UniversalRenderPipeline.MakeUnormRenderTextureGraphicsFormat();
 
             var scalingSetupTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, tempRtDesc, "scalingSetupTarget", true, FilterMode.Point);
-            var upscaleRtDesc = tempRtDesc;
+
+            var upscaleRtDesc = cameraData.cameraTargetDescriptor;
+            upscaleRtDesc.msaaSamples = 1;
+            upscaleRtDesc.depthBufferBits = 0;
             upscaleRtDesc.width = cameraData.pixelWidth;
             upscaleRtDesc.height = cameraData.pixelHeight;
+
             var upScaleTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, upscaleRtDesc, "_UpscaledTexture", true, FilterMode.Point);
 
             var currentSource = source;

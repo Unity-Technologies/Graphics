@@ -1769,7 +1769,9 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 m_Materials.easu.shaderKeywords = null;
 
-                                var upscaleRtDesc = tempRtDesc;
+                                var upscaleRtDesc = cameraData.cameraTargetDescriptor;
+                                upscaleRtDesc.msaaSamples = 1;
+                                upscaleRtDesc.depthBufferBits = 0;
                                 upscaleRtDesc.width = cameraData.pixelWidth;
                                 upscaleRtDesc.height = cameraData.pixelHeight;
 
