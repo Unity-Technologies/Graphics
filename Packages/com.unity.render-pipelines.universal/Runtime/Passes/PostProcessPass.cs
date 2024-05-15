@@ -1689,6 +1689,7 @@ namespace UnityEngine.Rendering.Universal
 
             // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
             bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+            bool isSgsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.SGSR));
 
             // Reuse RCAS pass as an optional standalone post sharpening pass for TAA.
             // This avoids the cost of EASU and is available for other upscaling options.
@@ -1704,7 +1705,7 @@ namespace UnityEngine.Rendering.Universal
                 // NOTE: An ideal implementation could inline this color conversion logic into the UberPost pass, but the current code structure would make
                 //       this process very complex. Specifically, we'd need to guarantee that the uber post output is always written to a UNORM format render
                 //       target in order to preserve the precision of specially encoded color data.
-                bool isSetupRequired = (isFxaaEnabled || isFsrEnabled);
+                bool isSetupRequired = (isFxaaEnabled || isFsrEnabled || isSgsrEnabled);
 
                 // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
                 var tempRtDesc = cameraData.cameraTargetDescriptor;
@@ -1797,6 +1798,12 @@ namespace UnityEngine.Rendering.Universal
                                 sourceTex = m_UpscaledTarget;
                                 PostProcessUtils.SetSourceSize(cmd, m_UpscaledTarget);
 
+                                break;
+                            }
+
+                            case ImageUpscalingFilter.SGSR:
+                            {
+                                material.EnableKeyword(ShaderKeywordStrings.Sgsr);
                                 break;
                             }
                         }
