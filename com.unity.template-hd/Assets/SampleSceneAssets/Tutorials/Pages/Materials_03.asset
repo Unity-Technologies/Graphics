@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Materials_03
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Refraction
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,18 +37,18 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Refraction
+        m_Untranslated: 
       Text:
         m_Untranslated: "The High Definition Render Pipeline (HDRP) can simulate
-          the refraction of the light inside materials.\r\n\r\n1. In the <i>Hierarchy,</i>
-          expand <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\r\n\r\n2.
-          Select the <b>RoundTable_GLass_01_LOD00</b> GameObject.\r\n\r\n3. In the
-          <i>Inspector,</i> expand the <i>Glass Dark_Mat Material.</i>\r\n\r\n4.
-          In the <b>Transparency Inputs</b> section, set the <b>Refraction Model</b>
-          to None to disable the refraction entirely. \r\n\r\n5. Undo your change
-          and experiment with the <b>Index Of Refraction</b> slider.\n\r\nRefraction
-          also allows us to create a frosted glass effect, which you can adjust by
-          tuning the <b>Smoothness</b> of the material.\r"
+          the refraction of the light inside materials.\n\n1. In the <i>Hierarchy,</i>
+          expand <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\n\n2.
+          Select the <b>RoundTable_Glass_01_LOD00</b> GameObject.\n\n3. In the <i>Inspector,</i>
+          expand the <i>Glass Dark_Mat Material.</i>\n\n4. In the <b>Transparency
+          Inputs</b> section, set the <b>Refraction Model</b> to None to disable
+          the refraction entirely. \n\n5. Undo your change and experiment with the
+          <b>Index Of Refraction</b> slider.\n\nRefraction also allows us to create
+          a frosted glass effect, which you can adjust by tuning the <b>Smoothness</b>
+          of the material."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

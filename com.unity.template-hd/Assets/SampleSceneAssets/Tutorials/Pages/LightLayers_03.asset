@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: LightLayers_03
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Set up Light Layers
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,7 +37,7 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Set up Light Layers
+        m_Untranslated: 
       Text:
         m_Untranslated: 'Let''s see how you can assign Light Layers to objects and
           Lights.
@@ -55,16 +57,16 @@ MonoBehaviour:
 
 
           Notice
-          that the <b>Light Layer</b> is set to <b>Mixed...</b> and once the dropdown
-          is expanded, see that the <b>Lamp Only</b> layer is disabled. If the property
-          is not visible, enable Show Additional Properties using the 3 dots in the
-          General section.
+          that the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> and once
+          the dropdown is expanded, see that the <b>Lamp Only</b> layer is disabled.
+          If the property is not visible, enable Show Additional Properties using
+          the 3 dots in the General section.
 
 
-          Because the spotlights in the light fixture
-          are unable to affect the <b>Lamp Only</b> layer, the pieces of glass placed
-          on the <b>Lamps Only</b> layer cannot receive lighting nor shadowing from
-          said spotlights. Thus, no unwanted shadows are produced.
+          Because the spotlights in
+          the light fixture are unable to affect the <b>Lamp Only</b> layer, the
+          pieces of glass placed on the <b>Lamps Only</b> layer cannot receive lighting
+          nor shadowing from said spotlights. Thus, no unwanted shadows are produced.
 
 
 

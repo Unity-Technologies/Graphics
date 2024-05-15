@@ -49,7 +49,7 @@ MonoBehaviour:
           valid data from neighboring probes, to prevent unwanted light leaking.\n\n\nTo
           reproduce the issue in the image above, let's disable the <b>Dilation</b>
           and rebake the lighting.\n\n1. Add a Cube at the following location: <b>X:17
-          Y:2 Z:-2</b>\n\n2. Open <b>Windows</b> > <b>Rendering</b> > <b>Lighting.</b>\n\n3.
+          Y:2 Z:-2</b>\n\n2. Open <b>Window</b> > <b>Rendering</b> > <b>Lighting.</b>\n\n3.
           At the top of the <i>Lighting</i> window, select the <b>Probe Volumes</b>
           tab, and under <b>Probe Invalidity Settings,</b> uncheck <b>Enable Dilation.</b>\n\n4.
           Optionally, to speed up the rebaking of the lighting, choose a \"Draft\"

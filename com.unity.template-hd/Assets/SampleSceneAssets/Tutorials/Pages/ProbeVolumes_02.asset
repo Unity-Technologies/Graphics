@@ -44,8 +44,8 @@ MonoBehaviour:
 
 
           1. Disable
-          them via <b>Edit</b> > <b>Project Settings</b> > <b>HDRP Global Settings</b>
-          > <b>Frame Settings</b> > <b>Camera</b> > <b>Lighting</b> > <b>Probe Volumes.</b>
+          them via <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>Frame
+          Settings</b> > <b>Camera</b> > <b>Lighting</b> > <b>Adaptive Probe Volumes.</b>
 
 
           Note

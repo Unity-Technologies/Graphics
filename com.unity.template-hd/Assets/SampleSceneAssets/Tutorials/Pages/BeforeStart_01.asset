@@ -52,7 +52,7 @@ MonoBehaviour:
 
           Finally, for the best image
           quality without noticeable aliasing, enable <b>Temporal Anti-aliasing</b>(camera
-          icon) and <b>Always Refresh</b>(layers icon) in the <a href="https://docs.unity3d.com/2021.2/Documentation/Manual/ViewModes.html">Scene
+          icon) and <b>Always Refresh</b>(layers icon) in the <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/ViewModes.html">Scene
           View Options toolbar</a> by default located at the top right corner of
           the Scene view Window.'
       m_Tutorial: {fileID: 0}

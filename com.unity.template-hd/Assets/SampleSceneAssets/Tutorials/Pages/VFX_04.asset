@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: VFX_04
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Explore the Butterflies VFX Graph
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,15 +37,31 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Explore the Butterflies VFX Graph
+        m_Untranslated: 
       Text:
-        m_Untranslated: "Let's open the VFX asset used to control the Butterflies
-          VFX.\n\r\n1. In the <i>Project</i> window, go to <b>Art</b> > <b>Particles</b>
-          and open <b>Butterflies.vfx.</b>\r\n\r\n2. Find the <b>Spawn</b> block
-          at the top of the graph and delete the <b>Count</b> node.\r\n\r\n3. In
-          the <b>Spawn</b> block, increase the <b>Count</b> to 50.\r\n\r\n4. Select
-          <b>Compile</b> at the top left of the window to refresh the VFX.\r\n\r\nNotice
-          that many more butterflies are flying in the tree cage.\r"
+        m_Untranslated: 'Let''s open the VFX asset used to control the Butterflies
+          VFX.
+
+
+          1. In the <i>Project</i> window, go to <b>SampleSceneAssets</b>
+          > <b>Particles</b> and open <b>Butterflies.vfx.</b>
+
+
+          2. Find
+          the <b>Spawn</b> block at the top of the graph and disconnect the <b>Count</b>
+          node.
+
+
+          3. In the <b>Spawn</b> block, increase the <b>Count</b>
+          to 50.
+
+
+          4. Select <b>Compile</b> at the top left of the window
+          to refresh the VFX.
+
+
+          Notice that many more butterflies are flying
+          in the tree cage.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
