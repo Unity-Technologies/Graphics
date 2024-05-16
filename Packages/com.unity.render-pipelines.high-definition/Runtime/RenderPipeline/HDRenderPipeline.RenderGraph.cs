@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
-                hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
+                hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize, RequiredCheckerboardMipCountInDepthPyramid(hdCamera));
 
                 // Bind the depth pyramid offset info for the HDSceneDepth node in ShaderGraph. This can be used by users in custom passes.
                 commandBuffer.SetGlobalBuffer(HDShaderIDs._DepthPyramidMipLevelOffsets, hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     colorBuffer = RenderOpaqueFog(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, msaa, in prepassOutput, in transparentPrepass, ref opticalFogTransmittance);
 
-                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, volumetricLighting, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
+                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, opticalFogTransmittance,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
@@ -1940,14 +1940,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_SkyManager.RenderOpaqueAtmosphericScattering(renderGraph, hdCamera, in refractionOutput, colorBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.normalBuffer, ref opticalFogTransmittance);
         }
 
-        void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle volumetricLighting, in PrepassOutput prepassOutput, ref TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
+        void RenderClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, in PrepassOutput prepassOutput, ref TransparentPrepassOutput transparentPrepass, ref TextureHandle opticalFogTransmittance)
         {
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
 
             m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, ref opticalFogTransmittance);
 
-            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ref transparentPrepass, ref opticalFogTransmittance);
+            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, ref transparentPrepass, ref opticalFogTransmittance);
         }
 
         class GenerateColorPyramidData

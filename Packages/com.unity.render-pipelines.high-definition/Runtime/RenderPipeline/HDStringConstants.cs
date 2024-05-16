@@ -229,8 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
         public static readonly int _AmbientOcclusionTextureRW = Shader.PropertyToID("_AmbientOcclusionTextureRW");
         public static readonly int _MultiAmbientOcclusionTexture = Shader.PropertyToID("_MultiAmbientOcclusionTexture");
-        public static readonly int _DebugDepthPyramidMip = Shader.PropertyToID("_DebugDepthPyramidMip");
-        public static readonly int _DebugDepthPyramidOffsets = Shader.PropertyToID("_DebugDepthPyramidOffsets");
+        public static readonly int _DebugDepthPyramidParams = Shader.PropertyToID("_DebugDepthPyramidParams");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
@@ -378,6 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputVal = Shader.PropertyToID("_InputVal");
         public static readonly int _Sizes = Shader.PropertyToID("_Sizes");
         public static readonly int _ScaleBias = Shader.PropertyToID("_ScaleBias");
+        public static readonly int _DstOffset = Shader.PropertyToID("_DstOffset");
 
         // MSAA shader properties
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
@@ -520,7 +520,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ComputeThicknessScale = Shader.PropertyToID("_ComputeThicknessScale");
         public static readonly int _ComputeThicknessShowOverlapCount = Shader.PropertyToID("_ComputeThicknessShowOverlapCount");
         public static readonly int _VolumetricCloudsDebugMode = Shader.PropertyToID("_VolumetricCloudsDebugMode");
-        public static readonly int _SourceDownsampleDepth = Shader.PropertyToID("_SourceDownsampleDepth");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
@@ -556,7 +555,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         // Clouds
-        public static readonly int _VolumetricCloudsSourceDepth = Shader.PropertyToID("_VolumetricCloudsSourceDepth");
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
         public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
@@ -676,8 +674,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcOffsetAndLimit = Shader.PropertyToID("_SrcOffsetAndLimit");
         public static readonly int _SrcScaleBias = Shader.PropertyToID("_SrcScaleBias");
         public static readonly int _SrcUvLimits = Shader.PropertyToID("_SrcUvLimits");
-        public static readonly int _DstOffset = Shader.PropertyToID("_DstOffset");
         public static readonly int _DepthMipChain = Shader.PropertyToID("_DepthMipChain");
+        public static readonly int _DepthPyramidConstants = Shader.PropertyToID("DepthPyramidConstants");
 
         public static readonly int _VBufferDensity = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting = Shader.PropertyToID("_VBufferLighting");

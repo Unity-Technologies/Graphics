@@ -57,7 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.SharedRenderingSpace, (VolumetricClouds c) =>
             {
-                c.perceptualBlending.value = 0.0f;
                 if (c.active == false || c.enable.value == false)
                     return;
 

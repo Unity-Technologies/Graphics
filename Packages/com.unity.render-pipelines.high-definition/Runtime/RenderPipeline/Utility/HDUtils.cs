@@ -630,44 +630,70 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
-            public int mipLevelCount;
+            public int mipLevelCount; // mips contain min (closest) depth
+            public int mipLevelCountCheckerboard;
             public Vector2Int[] mipLevelSizes;
-            public Vector2Int[] mipLevelOffsets;
+            public Vector2Int[] mipLevelOffsets; // mips contain min (closest) depth
+            public Vector2Int[] mipLevelOffsetsCheckerboard;
 
             private Vector2 cachedTextureScale;
             private Vector2Int cachedHardwareTextureSize;
+            private int cachedCheckerboardMipCount;
 
             private bool m_OffsetBufferWillNeedUpdate;
 
             public void Allocate()
             {
                 mipLevelOffsets = new Vector2Int[15];
+                mipLevelOffsetsCheckerboard = new Vector2Int[15];
                 mipLevelSizes = new Vector2Int[15];
                 m_OffsetBufferWillNeedUpdate = true;
+            }
+
+            enum PackDirection
+            {
+                Right,
+                Down,
+            }
+
+            static Vector2Int NextMipBegin(Vector2Int prevMipBegin, Vector2Int prevMipSize, PackDirection dir)
+            {
+                Vector2Int mipBegin = prevMipBegin;
+                if (dir == PackDirection.Right)
+                    mipBegin.x += prevMipSize.x;
+                else
+                    mipBegin.y += prevMipSize.y;
+                return mipBegin;
             }
 
             // We pack all MIP levels into the top MIP level to avoid the Pow2 MIP chain restriction.
             // We compute the required size iteratively.
             // This function is NOT fast, but it is illustrative, and can be optimized later.
-            public void ComputePackedMipChainInfo(Vector2Int viewportSize)
+            public void ComputePackedMipChainInfo(Vector2Int viewportSize, int checkerboardMipCount)
             {
+                // only support up to 2 mips of checkerboard data being created
+                checkerboardMipCount = Mathf.Clamp(checkerboardMipCount, 0, 2);
+
                 bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
                 Vector2Int hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
                 Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
 
                 // No work needed.
-                if (cachedHardwareTextureSize == hardwareTextureSize && cachedTextureScale == textureScale)
+                if (cachedHardwareTextureSize == hardwareTextureSize && cachedTextureScale == textureScale && cachedCheckerboardMipCount == checkerboardMipCount)
                     return;
 
                 cachedHardwareTextureSize = hardwareTextureSize;
                 cachedTextureScale = textureScale;
+                cachedCheckerboardMipCount = checkerboardMipCount;
 
                 mipLevelSizes[0] = hardwareTextureSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
+                mipLevelOffsetsCheckerboard[0] = mipLevelOffsets[0];
 
                 int mipLevel = 0;
                 Vector2Int mipSize = hardwareTextureSize;
-
+                bool hasCheckerboard = (checkerboardMipCount != 0);
+                int maxCheckboardLevelCount = hasCheckerboard ? (1 + checkerboardMipCount) : 0;
                 do
                 {
                     mipLevel++;
@@ -678,26 +704,40 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     mipLevelSizes[mipLevel] = mipSize;
 
+                    Vector2Int prevMipSize = mipLevelSizes[mipLevel - 1];
                     Vector2Int prevMipBegin = mipLevelOffsets[mipLevel - 1];
-                    Vector2Int prevMipEnd = prevMipBegin + mipLevelSizes[mipLevel - 1];
+                    Vector2Int prevMipBeginCheckerboard = mipLevelOffsetsCheckerboard[mipLevel - 1];
 
-                    Vector2Int mipBegin = new Vector2Int();
-
-                    if ((mipLevel & 1) != 0) // Odd
+                    Vector2Int mipBegin = prevMipBegin;
+                    Vector2Int mipBeginCheckerboard = prevMipBeginCheckerboard;
+                    if (mipLevel == 1)
                     {
-                        mipBegin.x = prevMipBegin.x;
-                        mipBegin.y = prevMipEnd.y;
+                        // first mip always below full resolution
+                        mipBegin = NextMipBegin(prevMipBegin, prevMipSize, PackDirection.Down);
+
+                        // pack checkerboard next to it if present
+                        if (hasCheckerboard)
+                            mipBeginCheckerboard = NextMipBegin(mipBegin, mipSize, PackDirection.Right);
+                        else
+                            mipBeginCheckerboard = mipBegin;
                     }
-                    else // Even
+                    else
                     {
-                        mipBegin.x = prevMipEnd.x;
-                        mipBegin.y = prevMipBegin.y;
+                        // alternate directions, mip 2 starts with down if checkerboard, right if not
+                        bool isOdd = ((mipLevel & 1) != 0);
+                        PackDirection dir = (isOdd ^ hasCheckerboard) ? PackDirection.Down : PackDirection.Right;
+
+                        mipBegin = NextMipBegin(prevMipBegin, prevMipSize, dir);
+                        mipBeginCheckerboard = NextMipBegin(prevMipBeginCheckerboard, prevMipSize, dir);
                     }
 
                     mipLevelOffsets[mipLevel] = mipBegin;
+                    mipLevelOffsetsCheckerboard[mipLevel] = mipBeginCheckerboard;
 
                     hardwareTextureSize.x = Math.Max(hardwareTextureSize.x, mipBegin.x + mipSize.x);
                     hardwareTextureSize.y = Math.Max(hardwareTextureSize.y, mipBegin.y + mipSize.y);
+                    hardwareTextureSize.x = Math.Max(hardwareTextureSize.x, mipBeginCheckerboard.x + mipSize.x);
+                    hardwareTextureSize.y = Math.Max(hardwareTextureSize.y, mipBeginCheckerboard.y + mipSize.y);
                 }
                 while ((mipSize.x > 1) || (mipSize.y > 1));
 
@@ -705,6 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (int)Mathf.Ceil((float)hardwareTextureSize.x * textureScale.x), (int)Mathf.Ceil((float)hardwareTextureSize.y * textureScale.y));
 
                 mipLevelCount = mipLevel + 1;
+                mipLevelCountCheckerboard = hasCheckerboard ? (1 + checkerboardMipCount) : 0;
                 m_OffsetBufferWillNeedUpdate = true;
             }
 
@@ -721,6 +762,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static int DivRoundUp(int x, int y) => (x + y - 1) / y;
+
+        internal static Vector2Int DivRoundUp(Vector2Int n, int d) => new Vector2Int(HDUtils.DivRoundUp(n.x, d), HDUtils.DivRoundUp(n.y, d));
+        internal static Vector2Int DivRoundUp(Vector2Int n, Vector2Int d) => new Vector2Int(HDUtils.DivRoundUp(n.x, d.x), HDUtils.DivRoundUp(n.y, d.y));
+        internal static Vector3Int DivRoundUp(Vector3Int n, int d) => new Vector3Int(HDUtils.DivRoundUp(n.x, d), HDUtils.DivRoundUp(n.y, d), HDUtils.DivRoundUp(n.z, d));
 
         internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;

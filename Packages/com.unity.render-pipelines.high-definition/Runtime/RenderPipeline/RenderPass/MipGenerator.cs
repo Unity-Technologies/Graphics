@@ -19,9 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ColorDownsampleKernel;
         int m_ColorGaussianKernel;
 
-        int[] m_SrcOffset;
-        int[] m_DstOffset;
-
         public MipGenerator(HDRenderPipeline renderPipeline)
         {
             m_TempColorTargets = new RTHandle[xrMaxSliceCount];
@@ -33,8 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ColorDownsampleKernel = m_ColorPyramidCS.FindKernel("KColorDownsample");
             m_ColorGaussianKernel = m_ColorPyramidCS.FindKernel("KColorGaussian");
 
-            m_SrcOffset = new int[4];
-            m_DstOffset = new int[4];
             m_ColorPyramidPS = renderPipeline.runtimeShaders.colorPyramidPS;
             m_ColorPyramidPSMat = CoreUtils.CreateEngineMaterial(m_ColorPyramidPS);
             m_PropertyBlock = new MaterialPropertyBlock();
@@ -66,41 +61,60 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Generates an in-place depth pyramid
         // TODO: Mip-mapping depth is problematic for precision at lower mips, generate a packed atlas instead
-        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info, bool mip1AlreadyComputed)
+        public void RenderMinDepthPyramid(CommandBuffer cmd, RenderTexture texture, HDUtils.PackedMipChainInfo info)
         {
             HDUtils.CheckRTCreated(texture);
 
             var cs = m_DepthPyramidCS;
             int kernel = m_DepthDownsampleKernel;
 
-            // TODO: Do it 1x MIP at a time for now. In the future, do 4x MIPs per pass, or even use a single pass.
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain, texture);
+
             // Note: Gather() doesn't take a LOD parameter and we cannot bind an SRV of a MIP level,
             // and we don't support Min samplers either. So we are forced to perform 4x loads.
-            for (int i = 1; i < info.mipLevelCount; i++)
+            for (int dstIndex0 = 1; dstIndex0 < info.mipLevelCount;)
             {
-                if (mip1AlreadyComputed && i == 1) continue;
+                int minCount = Mathf.Min(info.mipLevelCount - dstIndex0, 4);
+                int cbCount = 0;
+                if (dstIndex0 < info.mipLevelCountCheckerboard)
+                { 
+                    cbCount = info.mipLevelCountCheckerboard - dstIndex0;
+                    Debug.Assert(dstIndex0 == 1, "expected to make checkerboard mips on the first pass");
+                    Debug.Assert(cbCount <= minCount, "expected fewer checkerboard mips than min mips");
+                    Debug.Assert(cbCount <= 2, "expected 2 or fewer checkerboard mips for now");
+                }
 
-                Vector2Int dstSize = info.mipLevelSizes[i];
-                Vector2Int dstOffset = info.mipLevelOffsets[i];
-                Vector2Int srcSize = info.mipLevelSizes[i - 1];
-                Vector2Int srcOffset = info.mipLevelOffsets[i - 1];
-                Vector2Int srcLimit = srcOffset + srcSize - Vector2Int.one;
+                Vector2Int srcOffset = info.mipLevelOffsets[dstIndex0 - 1];
+                Vector2Int srcSize = info.mipLevelSizes[dstIndex0 - 1];
+                int dstIndex1 = Mathf.Min(dstIndex0 + 1, info.mipLevelCount - 1);
+                int dstIndex2 = Mathf.Min(dstIndex0 + 2, info.mipLevelCount - 1);
+                int dstIndex3 = Mathf.Min(dstIndex0 + 3, info.mipLevelCount - 1);
 
-                m_SrcOffset[0] = srcOffset.x;
-                m_SrcOffset[1] = srcOffset.y;
-                m_SrcOffset[2] = srcLimit.x;
-                m_SrcOffset[3] = srcLimit.y;
+                DepthPyramidConstants cb = new DepthPyramidConstants
+                {
+                    _MinDstCount = (uint)minCount,
+                    _CbDstCount = (uint)cbCount,
+                    _SrcOffset = srcOffset,
+                    _SrcLimit = srcSize - Vector2Int.one,
+                    _DstSize0 = info.mipLevelSizes[dstIndex0],
+                    _DstSize1 = info.mipLevelSizes[dstIndex1],
+                    _DstSize2 = info.mipLevelSizes[dstIndex2],
+                    _DstSize3 = info.mipLevelSizes[dstIndex3],
+                    _MinDstOffset0 = info.mipLevelOffsets[dstIndex0],
+                    _MinDstOffset1 = info.mipLevelOffsets[dstIndex1],
+                    _MinDstOffset2 = info.mipLevelOffsets[dstIndex2],
+                    _MinDstOffset3 = info.mipLevelOffsets[dstIndex3],
+                    _CbDstOffset0 = info.mipLevelOffsetsCheckerboard[dstIndex0],
+                    _CbDstOffset1 = info.mipLevelOffsetsCheckerboard[dstIndex1],
+                };
+                ConstantBuffer.Push(cmd, cb, cs, HDShaderIDs._DepthPyramidConstants);
 
-                m_DstOffset[0] = dstOffset.x;
-                m_DstOffset[1] = dstOffset.y;
-                m_DstOffset[2] = 0;
-                m_DstOffset[3] = 0;
+                CoreUtils.SetKeyword(cmd, cs, "ENABLE_CHECKERBOARD", cbCount != 0);
 
-                cmd.SetComputeIntParams(cs, HDShaderIDs._SrcOffsetAndLimit, m_SrcOffset);
-                cmd.SetComputeIntParams(cs, HDShaderIDs._DstOffset, m_DstOffset);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMipChain, texture);
-
+                Vector2Int dstSize = info.mipLevelSizes[dstIndex0];
                 cmd.DispatchCompute(cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), texture.volumeDepth);
+
+                dstIndex0 += minCount;
             }
         }
 

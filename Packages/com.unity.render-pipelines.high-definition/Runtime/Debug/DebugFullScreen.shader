@@ -35,7 +35,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float _QuadOverdrawMaxQuadCost;
             float _VertexDensityMaxPixelCost;
             uint _DebugContactShadowLightIndex;
-            int _DebugDepthPyramidMip;
+            float4 _DebugDepthPyramidParams; // (mip index, offset_x, offset_y, unused)
             float _MinMotionVector;
             float4 _MotionVecIntensityParams;
             float _FogVolumeOverdrawMaxValue;
@@ -440,11 +440,13 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_PYRAMID)
                 {
+                    int debugDepthPyramidMip = _DebugDepthPyramidParams.x;
+                    int2 debugDepthPyramidOffset = int2(_DebugDepthPyramidParams.yz);
+
                     // Reuse depth display function from DebugViewMaterial
-                    int2 mipOffset = _DebugDepthPyramidOffsets[_DebugDepthPyramidMip];
-                    uint2 remappedPos = (uint2)(input.texcoord.xy * _DebugViewportSize.xy);
-                    uint2 pixCoord = (uint2)remappedPos.xy >> _DebugDepthPyramidMip;
-                    float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + mipOffset).r;
+                    uint2 samplePosition = (uint2)((input.texcoord.xy / _RTHandleScale.xy) * _DebugViewportSize.xy);
+                    uint2 pixCoord = (uint2)samplePosition >> debugDepthPyramidMip;
+                    float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + debugDepthPyramidOffset).r;
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                     // We square the factors to have more precision near zero which is where people usually want to visualize depth.

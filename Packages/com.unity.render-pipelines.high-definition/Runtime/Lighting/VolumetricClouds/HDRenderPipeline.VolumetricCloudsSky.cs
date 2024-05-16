@@ -9,14 +9,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             return new TextureDesc(skyResolution, skyResolution, false, true)
-            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true };
+            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true };
         }
 
         TextureDesc GetVolumetricCloudsIntermediateDepthBufferDesc()
         {
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             return new TextureDesc(skyResolution, skyResolution, false, true)
-            { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true };
+            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true };
         }
 
         TextureDesc GetVolumetricCloudsIntermediateCubeTextureDesc()
@@ -24,6 +24,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             return new TextureDesc(skyResolution, skyResolution, false, false)
             { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
+        }
+
+        TextureDesc GetVolumetricCloudsMetalCopyBufferDesc()
+        {
+            int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
+            return new TextureDesc(skyResolution, skyResolution, false, true)
+            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = false };
         }
 
         class VolumetricCloudsSkyLowPassData
@@ -116,10 +123,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, traceTX, traceTY, 1, in passData.commonData,
-                TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTexture(), passData.ambientProbeBuffer,
+                passData.ambientProbeBuffer, TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTextureArray(),
                 passData.intermediateLightingBuffer, passData.intermediateDepthBuffer);
 
             mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer);
+            mpb.SetTexture(HDShaderIDs._VolumetricCloudsDepthTexture, passData.intermediateDepthBuffer);
             CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, miplevel: 2, cubemapFace: passData.cubemapFace);
             CoreUtils.DrawFullScreen(cmd, passData.cloudCombinePass, mpb, 3);
         }
@@ -140,8 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Matrix4x4[] pixelCoordToViewDir;
 
-            public TextureHandle intermediateLightingBuffer0;
-            public TextureHandle intermediateLightingBuffer1;
+            public TextureHandle intermediateLightingBuffer;
+            public TextureHandle cameraColorCopy;
             public TextureHandle intermediateDepthBuffer;
             public TextureHandle output;
             public BufferHandle ambientProbeBuffer;
@@ -183,11 +191,11 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesClouds(ref data.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-            data.intermediateLightingBuffer0 = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
+            data.intermediateLightingBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
             data.intermediateDepthBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateDepthBufferDesc());
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                data.intermediateLightingBuffer1 = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
+                data.cameraColorCopy = builder.CreateTransientTexture(GetVolumetricCloudsMetalCopyBufferDesc());
                 data.output = builder.ReadWriteTexture(output);
             }
             else
@@ -211,26 +219,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, finalTX, finalTY, 1, in passData.commonData,
-                TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTexture(), passData.ambientProbeBuffer,
-                passData.intermediateLightingBuffer0, passData.intermediateDepthBuffer);
+                passData.ambientProbeBuffer, TextureXR.GetBlackTextureArray(), TextureXR.GetBlackTextureArray(),
+                passData.intermediateLightingBuffer, passData.intermediateDepthBuffer);
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
                 // On Intel GPUs on OSX, due to the fact that we cannot always rely on pre-exposure the hardware blending fails and turns into Nans when
                 // the values are close to the max fp16 value. We do the blending manually on metal to avoid that behavior.
                 // Copy the target face of the cubemap into a temporary texture
-                cmd.CopyTexture(passData.output, (int)passData.cubemapFace, 0, passData.intermediateLightingBuffer1, 0, 0);
+                cmd.CopyTexture(passData.output, (int)passData.cubemapFace, 0, passData.cameraColorCopy, 0, 0);
 
                 // Output the result into the output buffer
-                mpb.SetTexture(HDShaderIDs._CameraColorTexture, passData.intermediateLightingBuffer1);
-                mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer0);
+                mpb.SetTexture(HDShaderIDs._CameraColorTexture, passData.cameraColorCopy);
+                mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer);
+                mpb.SetTexture(HDShaderIDs._VolumetricCloudsDepthTexture, passData.intermediateDepthBuffer);
                 CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, 0, passData.cubemapFace);
                 CoreUtils.DrawFullScreen(cmd, passData.cloudCombinePass, mpb, 1);
             }
             else
             {
                 // Output the result into the output buffer
-                mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer0);
+                mpb.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, passData.intermediateLightingBuffer);
+                mpb.SetTexture(HDShaderIDs._VolumetricCloudsDepthTexture, passData.intermediateDepthBuffer);
                 CoreUtils.SetRenderTarget(cmd, passData.output, ClearFlag.None, 0, passData.cubemapFace);
                 CoreUtils.DrawFullScreen(cmd, passData.cloudCombinePass, mpb, 2);
             }
@@ -346,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.input = builder.ReadTexture(intermediateCubemap);
                     if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                     {
-                        passData.intermediateBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
+                        passData.intermediateBuffer = builder.CreateTransientTexture(GetVolumetricCloudsMetalCopyBufferDesc());
                         passData.output = builder.ReadWriteTexture(skyboxCubemap);
                     }
                     else

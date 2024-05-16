@@ -1336,7 +1336,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
 
-            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport);
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(nonScaledViewport, hdrp.RequiredCheckerboardMipCountInDepthPyramid(this));
 
             historyLowResScale = resetPostProcessingHistory ? 0.5f : lowResScale;
             historyLowResScaleForScreenSpaceLighting = resetPostProcessingHistory ? 0.5f : lowResScaleForScreenSpaceLighting;

@@ -74,6 +74,7 @@ Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant8, keyw
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON
 Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords <no keywords>
+Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords ENABLE_CHECKERBOARD
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterSingle, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: GatherColor, keywords <no keywords>

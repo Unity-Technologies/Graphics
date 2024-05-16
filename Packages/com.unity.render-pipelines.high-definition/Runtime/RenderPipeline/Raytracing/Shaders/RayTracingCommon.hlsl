@@ -61,9 +61,19 @@ struct StandardBSDFData
     uint isUnlit;
 };
 
+uint2 ComputeCheckerBoardOffset(uint2 traceCoord, uint subPixelIndex)
+{
+    uint checker = (traceCoord.x & 1) ^ (traceCoord.y & 1);
+    subPixelIndex = (subPixelIndex + checker) & 0x3;
+    return uint2(((subPixelIndex >> 1) ^ subPixelIndex) & 1, subPixelIndex >> 1);
+}
+
 // This function compute the checkerboard undersampling position
+// Warning: This function is broken, but keeping it to not break anything
+// Use ComputeCheckerBoardOffset instead
 uint ComputeCheckerBoardIndex(uint2 traceCoord, uint subPixelIndex)
 {
+    // TODO: missing parenthesis around the & operations
     uint localOffset = (traceCoord.x & 1 + traceCoord.y & 1) & 1;
     uint checkerBoardLocation = (subPixelIndex + localOffset) & 0x3;
     return checkerBoardLocation;

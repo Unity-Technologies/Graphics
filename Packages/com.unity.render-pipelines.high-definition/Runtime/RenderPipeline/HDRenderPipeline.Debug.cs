@@ -575,8 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DebugDisplaySettings debugDisplaySettings;
             public Material debugFullScreenMaterial;
             public HDCamera hdCamera;
-            public int depthPyramidMip;
-            public ComputeBuffer depthPyramidOffsets;
+            public Vector4 depthPyramidParams;
             public TextureHandle output;
             public TextureHandle input;
             public TextureHandle depthPyramid;
@@ -594,14 +593,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                {
+                    int mipCount = hdCamera.depthBufferMipChainInfo.mipLevelCount;
+                    int mipIndex = Mathf.Min(Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * mipCount), mipCount - 1);
+                    Vector2Int mipOffset = hdCamera.depthBufferMipChainInfo.mipLevelOffsets[mipIndex];
+                    if (m_CurrentDebugDisplaySettings.data.depthPyramidView == DepthPyramidDebugView.CheckerboardDepth && hdCamera.depthBufferMipChainInfo.mipLevelCountCheckerboard != 0)
+                    {
+                        mipIndex = Mathf.Min(mipIndex, hdCamera.depthBufferMipChainInfo.mipLevelCountCheckerboard - 1);
+                        mipOffset = hdCamera.depthBufferMipChainInfo.mipLevelOffsetsCheckerboard[mipIndex];
+                    }
+                    passData.depthPyramidParams = new Vector4(mipIndex, mipOffset.x, mipOffset.y, 0.0f);
+                }
+
                 if (IsComputeThicknessNeeded(hdCamera))
                     passData.thickness = builder.ReadTexture(HDComputeThickness.Instance.GetThicknessTextureArray());
                 else
                     passData.thickness = builder.ReadTexture(renderGraph.defaultResources.blackTextureArrayXR);
-
                 passData.thicknessReindex = builder.ReadBuffer(renderGraph.ImportBuffer(HDComputeThickness.Instance.GetReindexMap()));
-                passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
-                passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+
                 // On Vulkan, not binding the Random Write Target will result in an invalid drawcall.
                 // To avoid that, if the compute buffer is invalid, we bind a dummy compute buffer anyway.
                 if (m_DebugFullScreenComputeBuffer.IsValid())
@@ -627,8 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(data.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, data.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, data.hdCamera.camera.nearClipPlane, data.hdCamera.camera.farClipPlane));
                         else // Setup neutral value
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-                        mpb.SetInt(HDShaderIDs._DebugDepthPyramidMip, data.depthPyramidMip);
-                        mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, data.depthPyramidOffsets);
+                        mpb.SetVector(HDShaderIDs._DebugDepthPyramidParams, data.depthPyramidParams);
                         mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, data.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
                         mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)data.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
                         mpb.SetFloat(HDShaderIDs._FogVolumeOverdrawMaxValue, (float)volumetricSliceCount);

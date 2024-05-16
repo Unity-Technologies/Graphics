@@ -457,13 +457,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.")]
-        public BoolParameter ghostingReduction = new BoolParameter(false);
+        public BoolParameter ghostingReduction = new BoolParameter(true);
 
         /// <summary>
         /// Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.
         /// </summary>
         [Tooltip("Specifies the strength of the perceptual blending for the volumetric clouds. This value should be treated as flag and only be set to 0.0 or 1.0.")]
-        public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter perceptualBlending = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// When enabled, HDRP evaluates the Volumetric Clouds' shadows. The Volumetric Clouds shadow is rendered independently of the shadow map toggle of the directional light.
