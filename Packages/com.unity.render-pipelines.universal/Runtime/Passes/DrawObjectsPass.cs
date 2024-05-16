@@ -304,7 +304,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
-                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
+
+                if (cameraData.xr.enabled)
+                {
+                    bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+                }
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -451,7 +456,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties
                 builder.AllowGlobalStateModification(true);
-                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
+
+                if (cameraData.xr.enabled)
+                {
+                    bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+                }
 
                 builder.SetRenderFunc((RenderingLayersPassData data, RasterGraphContext context) =>
                 {

@@ -988,6 +988,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     xrActive = true;
                     UpdateCameraStereoMatrices(baseCamera, xrPass);
+
+                    // Apply XR display's viewport scale to URP's dynamic resolution solution
+                    float xrViewportScale = XRSystem.GetRenderViewportScale();
+                    ScalableBufferManager.ResizeBuffers(xrViewportScale, xrViewportScale);
                 }
 
                 bool finalOutputHDR = false;
