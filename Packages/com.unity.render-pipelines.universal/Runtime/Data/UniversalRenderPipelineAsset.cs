@@ -777,18 +777,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Unity calls this function when it loads the asset or when the asset is changed with the Inspector.
-        /// </summary>
-        protected override void OnValidate()
-        {
-            DestroyRenderers();
-
-            // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
-            // assign pipeline asset reference to null
-            base.OnValidate();
-        }
-
-        /// <summary>
         /// Unity calls this function when the asset is disabled.
         /// </summary>
         protected override void OnDisable()

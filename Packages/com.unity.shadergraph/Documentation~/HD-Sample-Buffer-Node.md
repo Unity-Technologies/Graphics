@@ -30,10 +30,7 @@ The following example code represents one possible outcome of this node:
 
 ```c#
 float4 Unity_HDRP_SampleBuffer_float(float2 uv, SamplerState samplerState)
-
 {
-
-return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);
-
+    return SAMPLE_TEXTURE2D_X_LOD(_CustomPostProcessInput, samplerState, uv * _RTHandlePostProcessScale.xy, 0);
 }
 ```

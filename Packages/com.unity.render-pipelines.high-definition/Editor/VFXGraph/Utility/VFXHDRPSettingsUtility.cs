@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.HDRP
             {
                 foreach (var vfxWindow in VFXViewWindow.GetAllWindows())
                 {
-                    if (vfxWindow != null)
+                    if (vfxWindow != null && vfxWindow.graphView != null)
                     {
                         var vfxGraph = vfxWindow.graphView.controller.graph;
                         foreach (var output in vfxGraph.children.OfType<VFXDecalHDRPOutput>())

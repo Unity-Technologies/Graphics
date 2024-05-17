@@ -248,6 +248,19 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns the panel display name
+        /// </summary>
+        /// <param name="panelIndex">The panelIndex for the panel to get the name</param>
+        /// <returns>The display name of the panel, or empty string otherwise</returns>
+        public string PanelDiplayName([DisallowNull] int panelIndex)
+        {
+            if (panelIndex < 0 || panelIndex > m_Panels.Count - 1)
+                return string.Empty;
+
+            return m_Panels[panelIndex].displayName;
+        }
+
+        /// <summary>
         /// Request DebugWindow to open the specified panel.
         /// </summary>
         /// <param name="index">Index of the debug window panel to activate.</param>

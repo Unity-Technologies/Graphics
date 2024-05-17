@@ -207,16 +207,18 @@ namespace UnityEditor.VFX
                 {
                     Vector4 vVal = valueProperty.vector4Value;
                     Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
+                    EditorGUI.BeginChangeCheck();
                     c = EditorGUI.ColorField(rect, nameContent, c, true, true, true);
 
-                    if (GUI.changed)
+                    if (EditorGUI.EndChangeCheck())
                         valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
                 }
                 else if (parameter.realType == typeof(Gradient).Name)
                 {
+                    EditorGUI.BeginChangeCheck();
                     Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true, ColorSpace.Linear);
 
-                    if (GUI.changed)
+                    if (EditorGUI.EndChangeCheck())
                         valueProperty.gradientValue = newGradient;
                 }
                 else if (valueProperty.propertyType == SerializedPropertyType.Vector4)
@@ -263,9 +265,10 @@ namespace UnityEditor.VFX
                         {
                             Vector4 vVal = valueProperty.vector4Value;
                             Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
+                            EditorGUI.BeginChangeCheck();
                             c = EditorGUI.ColorField(rect, nameContent, c, true, true, true);
 
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
                                 changed = true;
@@ -273,8 +276,9 @@ namespace UnityEditor.VFX
                         }
                         else
                         {
+                            EditorGUI.BeginChangeCheck();
                             Vector4 result = EditorGUI.Vector4Field(rect, nameContent, Vector4.zero);
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.vector4Value = result;
                                 changed = true;
@@ -283,8 +287,9 @@ namespace UnityEditor.VFX
                         break;
                     case SerializedPropertyType.Vector3:
                     {
+                        EditorGUI.BeginChangeCheck();
                         Vector3 result = EditorGUI.Vector3Field(rect, nameContent, Vector3.zero);
-                        if (GUI.changed)
+                        if (EditorGUI.EndChangeCheck())
                         {
                             valueProperty.vector3Value = result;
                             changed = true;
@@ -293,14 +298,26 @@ namespace UnityEditor.VFX
                     break;
                     case SerializedPropertyType.Vector2:
                     {
+                        EditorGUI.BeginChangeCheck();
                         Vector2 result = EditorGUI.Vector2Field(rect, nameContent, Vector2.zero);
-                        if (GUI.changed)
+                        if (EditorGUI.EndChangeCheck())
                         {
                             valueProperty.vector2Value = result;
                             changed = true;
                         }
                     }
                     break;
+                    case SerializedPropertyType.Boolean:
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            bool result = EditorGUI.Toggle(rect, nameContent, false);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                valueProperty.boolValue = result;
+                                changed = true;
+                            }
+                        }
+                        break;
                     case SerializedPropertyType.ObjectReference:
                     {
                         Type objTyp = typeof(UnityObject);
@@ -315,8 +332,9 @@ namespace UnityEditor.VFX
                                 objTyp = typeof(Mesh);
                             }
                         }
+                        EditorGUI.BeginChangeCheck();
                         UnityObject result = EditorGUI.ObjectField(rect, nameContent, null, objTyp, false);
-                        if (GUI.changed)
+                        if (EditorGUI.EndChangeCheck())
                         {
                             valueProperty.objectReferenceValue = result;
                             changed = true;
@@ -326,8 +344,9 @@ namespace UnityEditor.VFX
                     case SerializedPropertyType.Float:
                         if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
                         {
+                            EditorGUI.BeginChangeCheck();
                             float value = EditorGUI.Slider(rect, nameContent, 0, parameter.min, parameter.max);
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.floatValue = value;
                                 changed = true;
@@ -335,8 +354,9 @@ namespace UnityEditor.VFX
                         }
                         else
                         {
+                            EditorGUI.BeginChangeCheck();
                             float value = EditorGUI.FloatField(rect, nameContent, 0);
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.floatValue = value;
                                 changed = true;
@@ -346,8 +366,9 @@ namespace UnityEditor.VFX
                     case SerializedPropertyType.Integer:
                         if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
                         {
+                            EditorGUI.BeginChangeCheck();
                             int value = EditorGUI.IntSlider(rect, nameContent, 0, (int)parameter.min, (int)parameter.max);
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.intValue = value;
                                 changed = true;
@@ -355,8 +376,9 @@ namespace UnityEditor.VFX
                         }
                         else if (parameter.enumValues != null && parameter.enumValues.Count > 0)
                         {
+                            EditorGUI.BeginChangeCheck();
                             int newIndex = EditorGUI.Popup(rect, nameContent, (int)0, parameter.enumValues.ToArray());
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.intValue = newIndex;
                                 changed = true;
@@ -364,25 +386,35 @@ namespace UnityEditor.VFX
                         }
                         else
                         {
+                            EditorGUI.BeginChangeCheck();
                             int value = EditorGUI.IntField(rect, nameContent, 0);
-                            if (GUI.changed)
+                            if (EditorGUI.EndChangeCheck())
                             {
                                 valueProperty.intValue = value;
                                 changed = true;
                             }
                         }
                         break;
-                    default:
-                        if (parameter.realType == typeof(Gradient).Name)
+                    case SerializedPropertyType.AnimationCurve:
+                        EditorGUI.BeginChangeCheck();
+                        AnimationCurve animationCurve = EditorGUI.CurveField(rect, nameContent, new AnimationCurve());
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            Gradient newGradient = EditorGUI.GradientField(rect, nameContent, s_DefaultGradient, true);
-
-                            if (GUI.changed)
-                            {
-                                valueProperty.gradientValue = newGradient;
-                                changed = true;
-                            }
+                            valueProperty.animationCurveValue = animationCurve;
+                            changed = true;
                         }
+                        break;
+                    case SerializedPropertyType.Gradient:
+                        EditorGUI.BeginChangeCheck();
+                        Gradient newGradient = EditorGUI.GradientField(rect, nameContent, s_DefaultGradient, true);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            valueProperty.gradientValue = newGradient;
+                            changed = true;
+                        }
+                        break;
+                    default:
+                        Debug.Assert(parameter.realType != typeof(Gradient).Name);
                         break;
                 }
                 EditorGUI.showMixedValue = false;
@@ -516,9 +548,11 @@ namespace UnityEditor.VFX
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, Contents.playRateWidth);
             EditorGUI.showMixedValue = mixedValues;
+            EditorGUI.BeginChangeCheck();
             var newPlayRateVal = EditorGUILayout.PowerSlider("", (float)Math.Round(playRateValue), VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, Contents.powerSliderWidth);
             EditorGUI.showMixedValue = false;
-            if (playRate >= 0 && GUI.changed)
+            bool playRateChanged = EditorGUI.EndChangeCheck();
+            if (playRateChanged && playRate >= 0)
             {
                 effects.ForEach(x => x.playRate = newPlayRateVal * VisualEffectControl.valueToPlayRate);
             }

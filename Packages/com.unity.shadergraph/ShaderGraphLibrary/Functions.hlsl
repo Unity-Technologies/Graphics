@@ -60,7 +60,7 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
 #endif
 
 #ifndef SHADERGRAPH_BAKED_GI
-    #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+    #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #endif
 
 #ifndef SHADERGRAPH_REFLECTION_PROBE
@@ -109,7 +109,7 @@ float3 shadergraph_SampleSceneNormal(float2 uv)
     return 0;
 }
 
-float3 shadergraph_BakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
+float3 shadergraph_BakedGI(float3 positionWS, float3 normalWS, uint2 positionSS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
     return 0;
 }

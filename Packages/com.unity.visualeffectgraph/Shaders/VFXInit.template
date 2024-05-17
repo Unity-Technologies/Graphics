@@ -152,6 +152,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if VFX_USE_SPAWNINDEX_CURRENT
         attributes.spawnIndex = id;
 #endif
+
+#if VFX_USE_SPAWNER_FROM_GPU && VFX_USE_SPAWNCOUNT_SOURCE
+    //Fix previously incorrectly read or initialized source spawnCount
+    sourceAttributes.spawnCount = (float)elementCount;
+#endif
+
 #if HAS_STRIPS
 #if !VFX_USE_SPAWNER_FROM_GPU
 		${VFXLoadParameter:{stripIndex}}

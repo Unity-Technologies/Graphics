@@ -23,7 +23,19 @@ namespace UnityEditor.Rendering
         // Keep these settings in a separate scriptable object so we can handle undo/redo on them
         // without the rest of the debug window interfering
         public int currentStateHash;
-        public int selectedPanel;
+
+        public int selectedPanel
+        {
+            get => Mathf.Max(0, DebugManager.instance.PanelIndex(selectedPanelDisplayName));
+            set
+            {
+                var displayName = DebugManager.instance.PanelDiplayName(value);
+                if (!string.IsNullOrEmpty(displayName))
+                    selectedPanelDisplayName = displayName;
+            }
+        }
+
+        public string selectedPanelDisplayName;
 
         void OnEnable()
         {

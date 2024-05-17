@@ -85,7 +85,9 @@ SAMPLER(sampler_TerrainHolesTexture);
 void ClipHoles(float2 uv)
 {
     float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-    clip(hole == 0.0f ? -1 : 1);
+    // Fixes bug where compression is enabled and 0 isn't actually 0 but low like 1/2047. (UUM-61913)
+    float epsilon = 0.0005f;
+    clip(hole < epsilon ? -1 : 1);
 }
 #endif
 
