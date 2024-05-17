@@ -117,6 +117,9 @@ namespace UnityEngine.Rendering
                     context.Dispose();
                 }
 
+                // Fixup lighting for probes part of bricks with different subdivision levels
+                FixSeams(s_BakeData.positionRemap, positions, irradiance, validity);
+
                 return true;
             }
 

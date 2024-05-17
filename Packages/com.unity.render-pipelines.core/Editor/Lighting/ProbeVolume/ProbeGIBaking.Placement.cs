@@ -170,7 +170,6 @@ namespace UnityEngine.Rendering
             BakingSetupProfiling.GetProgressRange(out float progress0, out float progress1);
 
             var positions = new NativeList<Vector3>(Allocator.Persistent);
-            Dictionary<int, int> positionToIndex = new();
             foreach ((var position, var bounds, var bricks) in results.cells)
             {
                 if (++cellIdx % freq == 0)
@@ -179,7 +178,7 @@ namespace UnityEngine.Rendering
                 int positionStart = positions.Length;
 
                 ConvertBricksToPositions(bricks, out var probePositions, out var brickSubdivLevels);
-                DeduplicateProbePositions(in probePositions, in brickSubdivLevels, positionToIndex, m_BakingBatch, positions, out var probeIndices);
+                DeduplicateProbePositions(in probePositions, in brickSubdivLevels, m_BakingBatch, positions, out var probeIndices);
 
                 BakingCell cell = new BakingCell()
                 {
@@ -198,11 +197,11 @@ namespace UnityEngine.Rendering
             return positions;
         }
 
-        private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<int, int> positionToIndex, BakingBatch batch,
+        private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, BakingBatch batch,
             NativeList<Vector3> uniquePositions, out int[] indices)
         {
             indices = new int[probePositions.Length];
-            int uniqueIndex = positionToIndex.Count;
+            int uniqueIndex = batch.positionToIndex.Count;
 
             for (int i = 0; i < probePositions.Length; i++)
             {
@@ -210,7 +209,7 @@ namespace UnityEngine.Rendering
                 var brickSubdiv = brickSubdivLevel[i];
                 int probeHash = batch.GetProbePositionHash(pos);
 
-                if (positionToIndex.TryGetValue(probeHash, out var index))
+                if (batch.positionToIndex.TryGetValue(probeHash, out var index))
                 {
                     indices[i] = index;
                     int oldBrickLevel = batch.uniqueBrickSubdiv[probeHash];
@@ -219,7 +218,7 @@ namespace UnityEngine.Rendering
                 }
                 else
                 {
-                    positionToIndex[probeHash] = uniqueIndex;
+                    batch.positionToIndex[probeHash] = uniqueIndex;
                     indices[i] = uniqueIndex;
                     batch.uniqueBrickSubdiv[probeHash] = brickSubdiv;
                     uniquePositions.Add(pos);
