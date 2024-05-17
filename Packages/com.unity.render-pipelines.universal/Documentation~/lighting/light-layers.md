@@ -6,7 +6,7 @@ For example, in the following illustration, Light `A` affects Sphere `D`, but no
 
 ![Light A affects Sphere D, but not Sphere C. Light B affects Sphere C, but not Sphere D.](../Images/lighting/light-layers/light-layers-example.png)
 
-To read how to implement this example, see section [How to use Light Layers](#how-to-light-layers).
+To read how to implement this example, refer to [How to use Light Layers](#how-to-light-layers).
 
 ## <a name="enable"></a>How to enable Light Layers
 

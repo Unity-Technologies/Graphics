@@ -88,7 +88,7 @@ If you disable some of these settings, the relevant [keywords](https://docs.unit
 | **Cast Shadows**      | Check this box to make the main light cast shadows in your Scene. On lower-end platforms, you can disable this setting to reduce how much memory URP uses, and reduce processing time on the CPU and the GPU. |
 | **Shadow Resolution** | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
 | **Mixed Lighting**    | When [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) is enabled, Unity includes mixed lighting shader variants in the build.|
-| **Light Layers**      | Select the Light Layers feature to configure certain Lights to affect only specific GameObjects. For more information on Light Layers and how to use them, see the page [Light Layers](lighting/light-layers.md)
+| **Light Layers**      | Select the Light Layers feature to configure certain Lights to affect only specific GameObjects. For more information on Light Layers and how to use them, refer to the page [Light Layers](lighting/light-layers.md)
 | **Additional Lights** | Here, you can choose to have additional lights to supplement your main light. Choose between [Per Vertex](https://docs.unity3d.com/Manual/LightPerformance.html), [Per Pixel](https://docs.unity3d.com/Manual/LightPerformance.html), or **Disabled**. |
 | **Per Object Limit**  | This slider sets the limit for how many additional lights can affect each GameObject. |
 | **Cast Shadows**      | Check this box to make the additional lights cast shadows in your Scene. |
@@ -106,7 +106,7 @@ The **Shadows** section has the following properties.
 | ---------------- | ----------- |
 | **Max Distance** | The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance. Increasing the distance reduces the performance. <br/>**Note:** This property is in metric units regardless of the value in the **Working Unit** property. |
 | **Working Unit** | The unit in which Unity measures the shadow cascade distances. |
-| **Cascade Count** | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, see the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
+| **Cascade Count** | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, refer to the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
 | &#160;&#160;&#160;&#160;Split&#160;1 | The distance where cascade 1 ends and cascade 2 starts. |
 | &#160;&#160;&#160;&#160;Split&#160;2 | The distance where cascade 2 ends and cascade 3 starts. |
 | &#160;&#160;&#160;&#160;Split&#160;3 | The distance where cascade 3 ends and cascade 4 starts. |

@@ -2,7 +2,7 @@
 
 Lights determine the shading of an object and the shadows it casts.
 
-This page contains information on Light components in the Universal Render Pipeline (URP). For a general introduction to lighting in Unity and examples of common lighting workflows, see [the Lighting section of the Unity Manual](https://docs.unity3d.com/Manual/LightingOverview.html).
+This page contains information on Light components in the Universal Render Pipeline (URP). For a general introduction to lighting in Unity and examples of common lighting workflows, refer to [the Lighting section of the Unity Manual](https://docs.unity3d.com/Manual/LightingOverview.html).
 
 ## Properties
 The Light Inspector includes the following groups of properties:
@@ -36,7 +36,7 @@ The Light Inspector includes the following groups of properties:
 | __Intensity__| Set the brightness of the light. The default value for a __Directional__ light is 0.5. The default value for a __Point__, __Spot__ or __Area__ light is 1.  |
 | __Indirect Multiplier__| Use this value to vary the intensity of indirect light. Indirect light is light that has bounced from one object to another. The __Indirect Multiplier__ defines the brightness of bounced light calculated by the global illumination (GI) system. If you set __Indirect Multiplier__ to a value lower than __1,__ the bounced light becomes dimmer with every bounce. A value higher than __1__ makes light brighter with each bounce. This is useful, for example, when a dark surface in shadow (such as the interior of a cave) needs to be brighter in order to make detail visible. |
 | __Range__| Define how far the light emitted from the center of the object travels (__Point__ and __Spot__ lights only). |
-| **Cookie** | The RGB texture this Light projects into the scene. Use cookies to create silhouettes or patterned illumination. The texture format to use depends on the type of Light:<br/> &#8226; Directional: 2D texture<br/> &#8226; Spot: 2D texture<br/> &#8226; Point: [cubemap texture](https://docs.unity3d.com/Manual/class-Cubemap.html)<br/><br/>If you enable cookies, URP uses more memory.<br/><br/>**Note**: URP doesn't support light cookies for Area lights.<br/><br/>For more information about light cookies, see [Cookies](https://docs.unity3d.com/Manual/Cookies.html). |
+| **Cookie** | The RGB texture this Light projects into the scene. Use cookies to create silhouettes or patterned illumination. The texture format to use depends on the type of Light:<br/> &#8226; Directional: 2D texture<br/> &#8226; Spot: 2D texture<br/> &#8226; Point: [cubemap texture](https://docs.unity3d.com/Manual/class-Cubemap.html)<br/><br/>If you enable cookies, URP uses more memory.<br/><br/>**Note**: URP doesn't support light cookies for Area lights.<br/><br/>For more information about light cookies, refer to [Cookies](https://docs.unity3d.com/Manual/Cookies.html). |
 | &nbsp;&nbsp;**Cookie Size** | The per-axis scale Unity applies to the cookie texture. Use this property to set the size of the cookie.<br/><br/>This property is available only if you set **Type** to **Directional** and assign a texture to **Cookie**. |
 | &nbsp;&nbsp;**Cookie Offset** | The per-axis offset Unity applies to the cookie texture. Use this property to move the cookie without moving the light itself. You can also animate this property to scroll the cookie. <br/><br/>This property is available only if you set **Type** to **Directional** and assign a texture to **Cookie**. |
 
@@ -44,18 +44,18 @@ The Light Inspector includes the following groups of properties:
 
 | Property:| Function: |
 |:---|:---|
-| __Render Mode__| Use this drop-down to set the rendering priority of the selected Light. This can affect lighting fidelity and performance (see *Performance Considerations,* below). |
+| __Render Mode__| Use this drop-down to set the rendering priority of the selected Light. This can affect lighting fidelity and performance (refer to *Performance Considerations,* below). |
 |&nbsp;&nbsp;&nbsp;&nbsp;Auto| The rendering method is determined at run time, depending on the brightness of nearby lights and the current [Quality](https://docs.unity3d.com/Manual/class-QualitySettings.html) settings. |
 |&nbsp;&nbsp;&nbsp;&nbsp;Important| The light is always rendered at per-pixel quality. Use __Important__ mode only for the most noticeable visual effects (for example, the headlights of a player’s car). |
 |&nbsp;&nbsp;&nbsp;&nbsp;Not Important| The light is always rendered in a faster, vertex/object light mode.  |
-| __Culling Mask__| Use this to selectively exclude groups of objects from being affected by the Light. For more information, see [Layers](https://docs.unity3d.com/Manual/Layers.html).|
+| __Culling Mask__| Use this to selectively exclude groups of objects from being affected by the Light. For more information, refer to [Layers](https://docs.unity3d.com/Manual/Layers.html).|
 
 
 ## <a name="Shadows"></a>Shadows
 
 | Property:| Function: |
 |:---|:---|
-| __Shadow Type__| Determine whether this Light casts Hard Shadows, Soft Shadows, or no shadows at all. See the page [Lights](https://docs.unity3d.com/Manual/class-Light.html) for information on hard and soft shadows. |
+| __Shadow Type__| Determine whether this Light casts Hard Shadows, Soft Shadows, or no shadows at all. Refer to the page [Lights](https://docs.unity3d.com/Manual/class-Light.html) for information on hard and soft shadows. |
 |&nbsp;&nbsp;&nbsp;&nbsp;Baked Shadow Angle| If __Type__ is set to __Directional__ and __Shadow Type__ is set to __Soft Shadows__, this property adds some artificial softening to the edges of shadows and gives them a more natural look. |
 |&nbsp;&nbsp;&nbsp;&nbsp;Baked Shadow Radius| If __Type__ is set to __Point__ or __Spot__ and __Shadow Type__ is set to __Soft Shadows__, this property adds some artificial softening to the edges of shadows and gives them a more natural look. |
 |&nbsp;&nbsp;&nbsp;&nbsp;Realtime Shadows| These properties are available when __Shadow Type__ is set to __Hard Shadows__ or __Soft Shadows__. Use these properties to control real-time shadow rendering settings. |

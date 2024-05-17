@@ -2,7 +2,7 @@
 
 In the Universal Render Pipeline (URP), a Camera can render to the screen or to a [Render Texture](https://docs.unity3d.com/Manual/class-RenderTexture.html). Rendering to a screen is the default and is the most common use case, but rendering to a Render Texture allows you to create effects such as CCTV camera monitors.
 
-If you have a Camera that is rendering to a Render Texture, you must have a second Camera that then renders that Render Texture to the screen. In URP, all Cameras that render to Render Textures perform their render loops before all Cameras that render to the screen. This ensures that the Render Textures are ready to render to the screen. For more information on Camera rendering order in URP, see [Rendering order and overdraw](cameras-advanced.md).
+If you have a Camera that is rendering to a Render Texture, you must have a second Camera that then renders that Render Texture to the screen. In URP, all Cameras that render to Render Textures perform their render loops before all Cameras that render to the screen. This ensures that the Render Textures are ready to render to the screen. For more information on Camera rendering order in URP, refer to [Rendering order and overdraw](cameras-advanced.md).
 
 ## Render to a Render Texture that renders to the screen
 

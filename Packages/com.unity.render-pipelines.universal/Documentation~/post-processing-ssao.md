@@ -55,7 +55,7 @@ Available options:
 
 When switching between the options **Depth Normals** and **Depth**, there might be a variation in performance, which depends on the target platform and the application. In a wide range of applications the difference in performance is small. In most cases, **Depth Normals** produces better visual look.
 
-For more information on the Source property, see the section [Implementation details](#implementation-details).
+For more information on the Source property, refer to [Implementation details](#implementation-details).
 
 ### Normal Quality
 
@@ -85,7 +85,7 @@ In some scenarios, the **Depth** option produces results comparable with the **D
 ![Source: Depth Normals.](Images/post-proc/ssao/ssao-depth-normals.png)
 <br>_Source: Depth Normals._
 
-For more information, see the section [Implementation details](#implementation-details).
+For more information, refer to [Implementation details](#implementation-details).
 
 ### Intensity
 

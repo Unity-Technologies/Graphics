@@ -1,6 +1,6 @@
 # URP Package Samples
 
-URP Package Samples is a [package sample](package-samples.md) for the Universal Render Pipeline (URP). It contains example shaders, C# scripts, and other assets you can build upon, use to learn how to use a feature, or use directly in your application. For information on how to import URP Package Samples into your project, see [Importing package samples](package-samples.md#importing-package-samples).
+URP Package Samples is a [package sample](package-samples.md) for the Universal Render Pipeline (URP). It contains example shaders, C# scripts, and other assets you can build upon, use to learn how to use a feature, or use directly in your application. For information on how to import URP Package Samples into your project, refer to [Importing package samples](package-samples.md#importing-package-samples).
 
 Each example uses its own [URP Asset](universalrp-asset.md) so, if you want to build an example scene, [add the example's URP Asset to your Graphics settings](InstallURPIntoAProject.md#set-urp-active). If you don't do this, Unity might strip shaders or render passes that the example uses.
 
@@ -43,8 +43,8 @@ The `URP Package Samples/RendererFeatures` folder contains examples for [Rendere
 
 | **Example**           | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
-| **Ambient occlusion** | The example in `RendererFeatures/AmbientOcclusion` uses a Renderer Feature to add [screen space ambient occlusion (SSAO)](post-processing-ssao.md) to URP. See the `SSAO_Renderer` asset for an example of how to set up this effect. |
-| **Glitch effect**     | The example in `RendererFeatures/GlitchEffect` uses the [Render Objects](renderer-features/renderer-feature-render-objects.md) Render Feature and the [Scene Color](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Scene-Color-Node.html) Shader Graph node to draw some GameObjects with a glitchy effect. See the `Glitch_Renderer` asset for an example of how to set up this effect. |
+| **Ambient occlusion** | The example in `RendererFeatures/AmbientOcclusion` uses a Renderer Feature to add [screen space ambient occlusion (SSAO)](post-processing-ssao.md) to URP. Refer to the `SSAO_Renderer` asset for an example of how to set up this effect. |
+| **Glitch effect**     | The example in `RendererFeatures/GlitchEffect` uses the [Render Objects](renderer-features/renderer-feature-render-objects.md) Render Feature and the [Scene Color](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Scene-Color-Node.html) Shader Graph node to draw some GameObjects with a glitchy effect. Refer to the `Glitch_Renderer` asset for an example of how to set up this effect. |
 | **Keep frame**        | The example in `RendererFeatures/KeepFrame` uses a custom Renderer Feature to preserve frame color between frames. The example uses this to create a swirl effect from a simple particle system.<br/>**Note**: The effect is only visible in Play Mode. |
 | **Occlusion effect**  | The example in `RendererFeatures/OcclusionEffect` uses the Render Objects Renderer Feature to draw occluded geometry. The example achieves this effect without any code and sets everything up in the `OcclusionEffect_Renderer` asset. |
 | **Trail effect**      | The example in `RendererFeatures/TrailEffect` uses the Renderer Feature from the **Keep frame** example on an additional camera to create a trail map. To do this, the additional camera draws depth to a RenderTexture. The `Sand_Graph` shader samples the map and displaces vertices on the ground. |

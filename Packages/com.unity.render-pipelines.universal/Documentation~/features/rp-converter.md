@@ -20,7 +20,7 @@ To convert project assets:
 
     ![Select converters](../Images/rp-converter/select-converters.png)
 
-    For the list of available converters, see the section [Converters](#converters).
+    For the list of available converters, refer to [Converters](#converters).
 
 4. Click **Initialize Converters**. The Render Pipeline Converter preprocesses the assets in the project and shows the list of elements to convert. Select or clear check boxes next to assets to include or exclude them from the conversion process.
 
