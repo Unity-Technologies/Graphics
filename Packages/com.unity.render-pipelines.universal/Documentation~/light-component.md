@@ -36,7 +36,7 @@ The Light Inspector includes the following groups of properties:
 
 | Property:| Function: |
 |:---|:---|
-| **Light Appearance** |  |
+| **Light Appearance** | Select the method used to create the color of the light.<br/><br/>Available options:<ul><li>**Color**</li><li>**Filter and Temperature**</li></ul> |
 | &#160;&#160;&#160;&#160;**Color**| The color of the emitted light. Set this property with the color slider.<br/><br/>**Note**: This property is only available if **Light Apperance** is set to **Color**. |
 | &#160;&#160;&#160;&#160;**Filter**| The color of the tint for the light source. Set this property with the color slider.<br/><br/>**Note**: This property is only available if **Light Apperance** is set to **Filter and Temperature**. |
 | &#160;&#160;&#160;&#160;**Temperature**| The temperature (in Kelvin) of the light. Set this property with the slider or enter a specific value.<br/><br/>**Note**: This property is only available if **Light Apperance** is set to **Filter and Temperature**. |
