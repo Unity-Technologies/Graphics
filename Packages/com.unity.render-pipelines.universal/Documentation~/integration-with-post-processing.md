@@ -44,17 +44,14 @@ To configure post-processing in a new Scene:
 
     ![Create new Profile.](Images/post-proc/volume-new-scene-new-profile.png)
 
+4. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md#volume-add-override) to the Volume component.
 
-3. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md#volume-add-override) to the Volume component.
+Now you can use the Volume Override to enable and adjust the settings for the post-processing effect.
 
-    ![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-new-scene-add-override.png)
+> [!NOTE]
+> The GameObject which contains the volume and the camera you wish to apply post-processing to must be on the same Layer.
 
-
-Now you can adjust post-processing effect settings in Overrides in the Volume component.
-
-![Editing post-processing effects using Overrides.](Images/post-proc/volume-new-scene-post-proc-from-scratch.png)
-
-To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
+Refer to [Understand Volumes](Volumes.md) for more information.
 
 ## Post-processing in URP for mobile devices
 
@@ -71,4 +68,5 @@ Post-processing effects can take up a lot of frame time. If you’re using URP f
 **Note:** For anti-aliasing on mobile platforms, Unity recommends that you use FXAA.
 
 ## Post-processing in URP for VR
+
 In VR apps and games, certain post-processing effects can cause nausea and disorientation. To reduce motion sickness in fast-paced or high-speed apps, use the Vignette effect for VR, and avoid the effects Lens Distortion, Chromatic Aberration, and Motion Blur for VR.

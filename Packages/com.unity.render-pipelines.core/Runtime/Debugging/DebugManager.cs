@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.UI;
 using UnityEngine.UI;
@@ -214,7 +216,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Get hashcode state of the Debug Window.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The calculated hashcode for the current state of the Debug Window.</returns>
         public int GetState()
         {
             int hash = 17;
@@ -286,6 +288,37 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns the panel index
+        /// </summary>
+        /// <param name="displayName">The displayname for the panel</param>
+        /// <returns>The index for the panel or -1 if not found.</returns>
+        public int PanelIndex([DisallowNull] string displayName)
+        {
+            displayName ??= string.Empty;
+
+            for (int i = 0; i < m_Panels.Count; ++i)
+            {
+                if (displayName.Equals(m_Panels[i].displayName, StringComparison.InvariantCultureIgnoreCase))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Returns the panel display name
+        /// </summary>
+        /// <param name="panelIndex">The panelIndex for the panel to get the name</param>
+        /// <returns>The display name of the panel, or empty string otherwise</returns>
+        public string PanelDiplayName([DisallowNull] int panelIndex)
+        {
+            if (panelIndex < 0 || panelIndex > m_Panels.Count - 1)
+                return string.Empty;
+
+            return m_Panels[panelIndex].displayName;
+        }
+
+        /// <summary>
         /// Request DebugWindow to open the specified panel.
         /// </summary>
         /// <param name="index">Index of the debug window panel to activate.</param>
@@ -312,19 +345,11 @@ namespace UnityEngine.Rendering
         /// <param name="createIfNull">Create the panel if it does not exists.</param>
         /// <param name="groupIndex">Group index.</param>
         /// <param name="overrideIfExist">Replace an existing panel.</param>
-        /// <returns></returns>
+        /// <returns>The requested debug panel or null if it does not exist and createIfNull is set to false</returns>
         public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0, bool overrideIfExist = false)
         {
-            DebugUI.Panel p = null;
-
-            foreach (var panel in m_Panels)
-            {
-                if (panel.displayName == displayName)
-                {
-                    p = panel;
-                    break;
-                }
-            }
+            int panelIndex = PanelIndex(displayName);
+            DebugUI.Panel p = panelIndex >= 0 ? m_Panels[panelIndex] : null;
 
             if (p != null)
             {
@@ -348,6 +373,14 @@ namespace UnityEngine.Rendering
 
             return p;
         }
+
+        /// <summary>
+        /// Find the index of the panel from it's display name.
+        /// </summary>
+        /// <param name="displayName">The display name of the panel to find.</param>
+        /// <returns>The index of the panel in the list. -1 if not found.</returns>
+        public int FindPanelIndex(string displayName)
+            => m_Panels.FindIndex(p => p.displayName == displayName);
 
         // TODO: Use a query path here as well instead of a display name
         /// <summary>
@@ -414,8 +447,7 @@ namespace UnityEngine.Rendering
                 if (child.queryPath == queryPath)
                     return child;
 
-                var containerChild = child as DebugUI.IContainer;
-                if (containerChild != null)
+                if (child is DebugUI.IContainer containerChild)
                 {
                     var w = GetItem(queryPath, containerChild);
                     if (w != null)

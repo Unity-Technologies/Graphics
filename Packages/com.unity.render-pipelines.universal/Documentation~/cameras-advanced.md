@@ -1,6 +1,14 @@
-# Clearing, rendering order and overdraw
-<a name="clearing"></a>
-## Clearing
+# Understand camera render order
+
+This page describes when a Universal Render Pipeline (URP) camera performs the following operations:
+
+* [Clearing the color and depth buffers](#clearing-the-color-and-depth-buffers)
+  * [Base Camera](#base-camera)
+  * [Overlay Camera](#overlay-camera)
+* [Culling and rendering](#culling-and-rendering)
+* [Rendering order optimizations.](#rendering-order-optimizations)
+
+## Clearing the color and depth buffers
 
 In the Universal Render Pipeline (URP), Camera clearing behavior depends on the Camera's [Render Type](camera-types-and-render-type.md).
 
@@ -16,7 +24,7 @@ Note that the contents of the uninitialized color buffer vary by platform. On so
 
 A Base Camera always clears its depth buffer at the start of each render loop.
 
-## Overlay Camera
+### Overlay Camera
 
 #### Color buffer
 
@@ -28,10 +36,9 @@ At the start of its render loop, an Overlay Camera receives a depth buffer conta
 
 When __Clear Depth__ is set to true, the Overlay Camera clears the depth buffer and draws its view to the color buffer on top of any existing color data. When __Clear Depth__ is set to false, the Overlay Camera tests against the depth buffer before drawing its view to the color buffer.
 
-<a name="rendering-order"></a>
+## Culling and rendering
 
-## Camera culling and rendering order
-If your URP Scene contains multiple Cameras, Unity performs their culling and rendering operations in a predictable order.
+If your URP scene contains multiple Cameras, Unity performs their culling and rendering operations in a predictable order.
 
 Once per frame, Unity performs the following operations:
 
@@ -54,12 +61,13 @@ Once per frame, Unity performs the following operations:
 
 Unity can render an Overlay Camera’s view multiple times during a frame - either because the Overlay Camera appears in more than one Camera Stack, or because the Overlay Camera appears in the same Camera Stack more than once. When this happens, Unity does not reuse any element of the culling or rendering operation. The operations are repeated in full, in the order detailed above.
 
-__Important note:__ In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer. Overlay Cameras will not perform any part of their rendering loop if using the 2D Renderer.
-<a name="overdraw"></a>
-## Overdraw
+> [!NOTE]
+> In this version of URP, Overlay Cameras and Camera Stacking are supported only when using the Universal Renderer. Overlay Cameras will not perform any part of their rendering loop if using the 2D Renderer.
+
+## Rendering order optimizations
 
 URP performs several optimizations within a Camera, including rendering order optimizations to reduce overdraw. However, when you use a Camera Stack, you effectively define the order in which those Cameras are rendered. You must therefore be careful not to order the Cameras in a way that causes excessive overdraw.
 
 When multiple Cameras in a Camera Stack render to the same render target, Unity draws each pixel in the render target for each Camera in the Camera Stack. Additionally, if more than one Base Camera or Camera Stack renders to the same area of the same render target, Unity draws any pixels in the overlapping area again, as many times as required by each Base Camera or Camera Stack.
 
-You can use Unity's [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger.html), or platform-specific frame capture and debugging tools, to understand where excessive overdraw occurs in your Scene. You can then optimize your Camera Stacks accordingly.
+You can use Unity's [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger.html), or platform-specific frame capture and debugging tools, to understand where excessive overdraw occurs in your scene. You can then optimize your Camera Stacks accordingly.

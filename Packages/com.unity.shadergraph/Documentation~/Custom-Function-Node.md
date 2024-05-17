@@ -39,11 +39,12 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 ```
 
 ### Defining the Function via file
+
 If you select `File` mode, the graph does not automatically generate the shader function. This mode injects an include reference in the final generated shader, and uses a function from within the referenced file. The `Name` field must match the name of the function you wish to call. The `Source` field contains a reference to the HLSL file that includes the function.
 
 ![06](images/Custom-Function-Node-File-wFunction.png)
 
-When you use `File` mode for the Custom Function node, you must manually format the functions properly. One thing to note when creating custom functions for [Shader Graph](Shader-Graph.md) is the precision suffixes. The generated code appends a precision suffix to function names. Your include file function must also append your desired precision suffix (shown below with `_float`), or contain multiple functions with both `_float` and `_half` suffixes, but your `Name` field **must not include the precision suffix**.
+When you use `File` mode for the Custom Function node, you must manually format the functions properly. One thing to note when creating custom functions for [Shader Graph](index.md) is the precision suffixes. The generated code appends a precision suffix to function names. Your include file function must also append your desired precision suffix (shown below with `_float`), or contain multiple functions with both `_float` and `_half` suffixes, but your `Name` field **must not include the precision suffix**.
 
 ```
 //UNITY_SHADER_NO_UPGRADE
@@ -107,6 +108,7 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 ```
 
 ### Reusing Custom Function Nodes
+
 The Custom Function node, on its own, is a single node instance. If you wish to re-use the same custom functions without re-creating the inputs, outputs, and function referencing, use [Sub Graphs](Sub-graph.md). Sub Graphs appear in the [Create Node Menu](Create-Node-Menu.md), and they enable you to share or re-use your custom functions.
 
 ![11](images/Custom-Function-Node-Subgraph.png)
@@ -114,9 +116,11 @@ The Custom Function node, on its own, is a single node instance. If you wish to 
 Create your custom function either directly in a Sub Graph, or right-click the existing Custom Function node and select `Convert to Sub Graph`. To add the appropriate input and output ports, use the [Graph Inspector](Internal-Inspector.md) and [Custom Port Menu](Custom-Port-Menu.md). After this, you can reuse your custom function as many times as needed, even within other Sub Graphs.
 
 ### Working with texture wires
+
 From version 10.3, Shader Graph has five new data structures to ensure that Custom Function Nodes (CFNs) and SubGraphs input and output data from texture wires in a consistent way. The new structures also make it possible for SamplerState to compile on [GLES2](https://en.wikipedia.org/wiki/OpenGL_ES#OpenGL_ES_2.0) platforms and  access data associated with textures via `myInputTex.samplerstate` and `myInputTex.texelSize`.
 
 Four structures are for the texture types, and one is for the sampler state:
+
 * UnityTexture2D
 * UnityTexture2DArray
 * UnityTexture3D
