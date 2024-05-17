@@ -10,28 +10,28 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Unpack variables
-#define _WorldOffset _Offset_IndirectionEntryDim.xyz
-#define _GlobalIndirectionEntryDim _Offset_IndirectionEntryDim.w
-#define _MinBrickSize _PoolDim_MinBrickSize.w
-#define _PoolDim _PoolDim_MinBrickSize.xyz
-#define _RcpPoolDim _RcpPoolDim_XY.xyz
-#define _RcpPoolDimXY _RcpPoolDim_XY.w
-#define _MinEntryPosition _MinEntryPos_Noise.xyz
-#define _PVSamplingNoise _MinEntryPos_Noise.w
-#define _GlobalIndirectionDimension _IndicesDim_FrameIndex.xyz
-#define _NoiseFrameIndex _IndicesDim_FrameIndex.w
-#define _NormalBias _Biases_NormalizationClamp.x
-#define _ViewBias _Biases_NormalizationClamp.y
-#define _Weight _Weight_MinLoadedCellInEntries.x
-#define _MinLoadedCellInEntries _Weight_MinLoadedCellInEntries.yzw
-#define _MaxLoadedCellInEntries _MaxLoadedCellInEntries_LayerCount.xyz
-#define _ProbeLayerCount (int)(_MaxLoadedCellInEntries_LayerCount.w)
-#define _MinReflProbeNormalizationFactor _Biases_NormalizationClamp.z
-#define _MaxReflProbeNormalizationFactor _Biases_NormalizationClamp.w
-#define _LeakReductionMode _LeakReduction_SkyOcclusion.x
-#define _MinValidNormalWeight _LeakReduction_SkyOcclusion.y
-#define _SkyOcclusionIntensity _LeakReduction_SkyOcclusion.z
-#define _EnableSkyOcclusionShadingDirection _LeakReduction_SkyOcclusion.w
+#define _APVWorldOffset _Offset_LayerCount.xyz
+#define _APVIndirectionEntryDim _MinLoadedCellInEntries_IndirectionEntryDim.w
+#define _APVRcpIndirectionEntryDim _MaxLoadedCellInEntries_RcpIndirectionEntryDim.w
+#define _APVMinBrickSize _PoolDim_MinBrickSize.w
+#define _APVPoolDim _PoolDim_MinBrickSize.xyz
+#define _APVRcpPoolDim _RcpPoolDim_XY.xyz
+#define _APVRcpPoolDimXY _RcpPoolDim_XY.w
+#define _APVMinEntryPosition _MinEntryPos_Noise.xyz
+#define _APVSamplingNoise _MinEntryPos_Noise.w
+#define _APVEntryCount _EntryCount_X_XY_LeakReduction.xy
+#define _APVLeakReductionMode _EntryCount_X_XY_LeakReduction.z
+#define _APVNormalBias _Biases_NormalizationClamp.x
+#define _APVViewBias _Biases_NormalizationClamp.y
+#define _APVMinLoadedCellInEntries _MinLoadedCellInEntries_IndirectionEntryDim.xyz
+#define _APVMaxLoadedCellInEntries _MaxLoadedCellInEntries_RcpIndirectionEntryDim.xyz
+#define _APVLayerCount (uint)(_Offset_LayerCount.w)
+#define _APVMinReflProbeNormalizationFactor _Biases_NormalizationClamp.z
+#define _APVMaxReflProbeNormalizationFactor _Biases_NormalizationClamp.w
+#define _APVFrameIndex _FrameIndex_Weights.x
+#define _APVWeight _FrameIndex_Weights.y
+#define _APVSkyOcclusionWeight _FrameIndex_Weights.z
+#define _APVSkyDirectionWeight _FrameIndex_Weights.w
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
@@ -48,9 +48,6 @@ float3 EvaluateAmbientProbe(float3 normalWS)
 SAMPLER(s_linear_clamp_sampler);
 SAMPLER(s_point_clamp_sampler);
 #endif
-
-// TODO: Remove define when we are sure about what to do with this.
-#define MANUAL_FILTERING 0
 
 #ifdef USE_APV_TEXTURE_HALF
 #define TEXTURE3D_APV TEXTURE3D_HALF
@@ -164,6 +161,7 @@ struct APVSample
 StructuredBuffer<int> _APVResIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
 StructuredBuffer<float3> _SkyPrecomputedDirections;
+StructuredBuffer<uint> _AntiLeakData;
 
 TEXTURE3D_APV(_APVResL0_L1Rx);
 
@@ -188,11 +186,11 @@ float3 AddNoiseToSamplingPosition(float3 posWS, float2 positionSS, float3 direct
 #ifdef UNITY_SPACE_TRANSFORMS_INCLUDED
     float3 right = mul((float3x3)GetViewToWorldMatrix(), float3(1.0, 0.0, 0.0));
     float3 top = mul((float3x3)GetViewToWorldMatrix(), float3(0.0, 1.0, 0.0));
-    float noise01 = InterleavedGradientNoise(positionSS, _NoiseFrameIndex);
+    float noise01 = InterleavedGradientNoise(positionSS, _APVFrameIndex);
     float noise02 = frac(noise01 * 100.0);
     float noise03 = frac(noise01 * 1000.0);
     direction += top * (noise02 - 0.5) + right * (noise03 - 0.5);
-    return _PVSamplingNoise > 0 ? posWS + noise01 * _PVSamplingNoise * direction : posWS;
+    return _APVSamplingNoise > 0 ? posWS + noise01 * _APVSamplingNoise * direction : posWS;
 #else
     return posWS;
 #endif
@@ -213,12 +211,12 @@ half GetValidityWeight(uint offset, uint validityMask)
 
 float ProbeDistance(uint subdiv)
 {
-    return pow(3, subdiv) * _MinBrickSize / 3.0f;
+    return pow(3, subdiv) * _APVMinBrickSize / 3.0f;
 }
 
 half ProbeDistanceHalf(uint subdiv)
 {
-    return pow(half(3), half(subdiv)) * half(_MinBrickSize) / 3.0;
+    return pow(half(3), half(subdiv)) * half(_APVMinBrickSize) / 3.0;
 }
 
 float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
@@ -228,103 +226,63 @@ float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
     return (dividedPos - frac(dividedPos)) * distBetweenProbes;
 }
 
-float GetNormalWeight(uint3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, uint subdiv)
-{
-    // TODO: This can be optimized.
-    float3 samplePos = (sample0Pos - posWS) + (float3)offset * ProbeDistance(subdiv);
-    float3 vecToProbe = normalize(samplePos);
-    float weight = saturate(dot(vecToProbe, normalWS) - _MinValidNormalWeight);
-    return weight;
-}
-
-half GetNormalWeightHalf(uint3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, uint subdiv)
-{
-    // TODO: This can be optimized.
-    half3 samplePos = (half3)(sample0Pos - posWS) + (half3)offset * ProbeDistanceHalf(subdiv);
-    half3 vecToProbe = normalize(samplePos);
-    half weight = saturate(dot(vecToProbe, (half3)normalWS) - (half)_MinValidNormalWeight);
-    return weight;
-}
-
 // -------------------------------------------------------------
 // Indexing functions
 // -------------------------------------------------------------
 
-bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdxPlusOne)
+bool LoadCellIndexMetaData(uint cellFlatIdx, out uint chunkIndex, out int stepSize, out int3 minRelativeIdx, out uint3 sizeOfValid)
 {
-    bool cellIsLoaded = false;
     uint3 metaData = _APVResCellIndices[cellFlatIdx];
 
-    if (metaData.x != 0xFFFFFFFF)
-    {
-        chunkIndex = metaData.x & 0x1FFFFFFF;
-        stepSize = round(pow(3, (metaData.x >> 29) & 0x7));
+    // See ProbeIndexOfIndices.cs for packing
+    chunkIndex = metaData.x & 0x1FFFFFFF;
+    stepSize = round(pow(3, (metaData.x >> 29) & 0x7));
 
-        minRelativeIdx.x = metaData.y & 0x3FF;
-        minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
-        minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
+    minRelativeIdx.x = metaData.y & 0x3FF;
+    minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
+    minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
 
-        maxRelativeIdxPlusOne.x = metaData.z & 0x3FF;
-        maxRelativeIdxPlusOne.y = (metaData.z >> 10) & 0x3FF;
-        maxRelativeIdxPlusOne.z = (metaData.z >> 20) & 0x3FF;
-        cellIsLoaded = true;
-    }
-    else
-    {
-        chunkIndex = -1;
-        stepSize = -1;
-        minRelativeIdx = -1;
-        maxRelativeIdxPlusOne = -1;
-    }
+    sizeOfValid.x = metaData.z & 0x3FF;
+    sizeOfValid.y = (metaData.z >> 10) & 0x3FF;
+    sizeOfValid.z = (metaData.z >> 20) & 0x3FF;
 
-    return cellIsLoaded;
+    return metaData.x != 0xFFFFFFFF;
 }
 
 uint GetIndexData(APVResources apvRes, float3 posWS)
 {
-    float3 entryPos = floor(posWS / _GlobalIndirectionEntryDim);
-    float3 topLeftEntryWS = entryPos * _GlobalIndirectionEntryDim;
+    float3 entryPos = floor(posWS * _APVRcpIndirectionEntryDim);
+    float3 topLeftEntryWS = entryPos * _APVIndirectionEntryDim;
 
-    bool isALoadedCell = all(entryPos >= _MinLoadedCellInEntries) && all(entryPos <= _MaxLoadedCellInEntries);
+    bool isALoadedCell = all(entryPos >= _APVMinLoadedCellInEntries) && all(entryPos <= _APVMaxLoadedCellInEntries);
 
     // Make sure we start from 0
-    int3 entryPosInt = (int3)(entryPos - _MinEntryPosition);
-
-    int flatIdx = dot(entryPosInt, int3(1, (int)_GlobalIndirectionDimension.x, ((int)_GlobalIndirectionDimension.x * (int)_GlobalIndirectionDimension.y)));
-
-    int stepSize = 0;
-    int3 minRelativeIdx, maxRelativeIdxPlusOne;
-    int chunkIdx = -1;
-    bool isValidBrick = false;
-    int locationInPhysicalBuffer = 0;
+    uint3 entryPosInt = (uint3)(entryPos - _APVMinEntryPosition);
+    uint flatIdx = dot(entryPosInt, uint3(1, _APVEntryCount.x, _APVEntryCount.y));
 
     // Dynamic branch must be enforced to avoid out-of-bounds memory access in LoadCellIndexMetaData
+    uint result = 0xffffffff;
     UNITY_BRANCH if (isALoadedCell)
     {
-        if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdxPlusOne))
+        int stepSize;
+        int3 minRelativeIdx;
+        uint3 sizeOfValid;
+        uint chunkIdx;
+        if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, sizeOfValid))
         {
             float3 residualPosWS = posWS - topLeftEntryWS;
-            int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
-            localBrickIndex = min(localBrickIndex, (int3)(3 * 3 * 3 - 1)); // due to floating point issue, we may query an invalid brick
+            uint3 localBrickIndex = floor(residualPosWS / (_APVMinBrickSize * stepSize));
+            localBrickIndex = min(localBrickIndex, (uint3)(3 * 3 * 3 - 1)); // due to floating point issue, we may query an invalid brick
+            localBrickIndex -= minRelativeIdx; // Relative to valid region
 
-            // Out of bounds.
-            isValidBrick = all(localBrickIndex >= minRelativeIdx) && all(localBrickIndex < maxRelativeIdxPlusOne);
-
-            int3 sizeOfValid = maxRelativeIdxPlusOne - minRelativeIdx;
-            // Relative to valid region
-            int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
-            int flattenedLocationInCell = dot(localRelativeIndexLoc, int3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
-
-            locationInPhysicalBuffer = chunkIdx * (int)PROBE_INDEX_CHUNK_SIZE + flattenedLocationInCell;
+            UNITY_BRANCH
+            if (all(localBrickIndex < sizeOfValid))
+            {
+                uint flattenedLocationInCell = dot(localBrickIndex, uint3(sizeOfValid.y, 1, sizeOfValid.x * sizeOfValid.y));
+                uint locationInPhysicalBuffer = chunkIdx * (uint)PROBE_INDEX_CHUNK_SIZE + flattenedLocationInCell;
+                result = apvRes.index[locationInPhysicalBuffer];
+            }
         }
-    }
-
-    uint result = 0xffffffff;
-
-    // Dynamic branch must be enforced to avoid out-of-bounds memory access in the physical APV buffer
-    UNITY_BRANCH if (isValidBrick)
-    {
-        result = apvRes.index[locationInPhysicalBuffer];
     }
 
     return result;
@@ -368,17 +326,17 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out fl
 
     float   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
     float3 pool_idx;
-    pool_idx.z = floor(flattened_pool_idx * _RcpPoolDimXY);
-    flattened_pool_idx -= (pool_idx.z * (_PoolDim.x * _PoolDim.y));
-    pool_idx.y = floor(flattened_pool_idx * _RcpPoolDim.x);
-    pool_idx.x = floor(flattened_pool_idx - (pool_idx.y * _PoolDim.x));
+    pool_idx.z = floor(flattened_pool_idx * _APVRcpPoolDimXY);
+    flattened_pool_idx -= (pool_idx.z * (_APVPoolDim.x * _APVPoolDim.y));
+    pool_idx.y = floor(flattened_pool_idx * _APVRcpPoolDim.x);
+    pool_idx.x = floor(flattened_pool_idx - (pool_idx.y * _APVPoolDim.x));
 
     // calculate uv offset and scale
-    float brickSizeWS = pow(3.0, subdiv) * _MinBrickSize;
+    float brickSizeWS = pow(3.0, subdiv) * _APVMinBrickSize;
     float3 offset = frac(posWSForSample.xyz / brickSizeWS);  // [0;1] in brick space
     //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
 
-    uvw = (pool_idx + 0.5 + (3.0 * offset)) * _RcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
+    uvw = (pool_idx + 0.5 + (3.0 * offset)) * _APVRcpPoolDim; // add offset with brick footprint converted to text footprint in pool texel space
 
     // no valid brick loaded for this index, fallback to ambient probe
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
@@ -387,7 +345,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWSForSample, out fl
 
 bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS)
 {
-    biasedPosWS = (posWS + normalWS * _NormalBias) + viewDirWS * _ViewBias;
+    biasedPosWS = (posWS + normalWS * _APVNormalBias) + viewDirWS * _APVViewBias;
     return TryToGetPoolUVWAndSubdiv(apvRes, biasedPosWS, uvw, subdiv);
 }
 
@@ -418,17 +376,16 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_C = half3(SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb);
 #endif // PROBE_VOLUMES_L2
 
-    if (_SkyOcclusionIntensity > 0)
+    if (_APVSkyOcclusionWeight > 0)
         apvSample.skyOcclusionL0L1 = SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).rgba;
     else
         apvSample.skyOcclusionL0L1 = float4(0, 0, 0, 0);
 
-    if (_EnableSkyOcclusionShadingDirection > 0)
+    if (_APVSkyDirectionWeight > 0)
     {
         // No interpolation for sky shading indices
-        float3 texCoordFloat = uvw * _PoolDim - 0.5f;
-        int3 texCoordInt = texCoordFloat;
-        uint index = LOAD_TEXTURE3D(apvRes.SkyShadingDirectionIndices, texCoordInt).x * 255.0;
+        int3 texCoord = uvw * _APVPoolDim - 0.5f;
+        uint index = LOAD_TEXTURE3D(apvRes.SkyShadingDirectionIndices, texCoord).x * 255.0;
 
         if (index == 255)
             apvSample.skyShadingDirection = float3(0, 0, 0);
@@ -482,6 +439,8 @@ void WeightSample(inout APVSample apvSample, half weight)
     apvSample.L2_B *= weight;
     apvSample.L2_C *= weight;
 #endif // PROBE_VOLUMES_L2
+
+    apvSample.skyOcclusionL0L1 *= weight;
 }
 
 void AccumulateSamples(inout APVSample dst, APVSample other, half weight)
@@ -498,6 +457,8 @@ void AccumulateSamples(inout APVSample dst, APVSample other, half weight)
     dst.L2_B += other.L2_B;
     dst.L2_C += other.L2_C;
 #endif // PROBE_VOLUMES_L2
+
+    dst.skyOcclusionL0L1 += other.skyOcclusionL0L1;
 }
 
 uint LoadValidityMask(APVResources apvRes, uint renderingLayer, int3 coord)
@@ -505,7 +466,7 @@ uint LoadValidityMask(APVResources apvRes, uint renderingLayer, int3 coord)
     float rawValidity = LOAD_TEXTURE3D(apvRes.Validity, coord).x;
 
     uint validityMask;
-    if (_ProbeLayerCount == 1)
+    if (_APVLayerCount == 1)
     {
         validityMask = rawValidity * 255.0;
     }
@@ -530,143 +491,133 @@ uint LoadValidityMask(APVResources apvRes, uint renderingLayer, int3 coord)
     return validityMask;
 }
 
-APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 normalWS, uint renderingLayer, int subdiv, float3 biasedPosWS, float3 uvw)
+float UnpackSamplingWeight(uint mask, float3 texFrac)
 {
-    float3 texCoordFloat = uvw * _PoolDim - .5f;
-    int3 texCoordInt = texCoordFloat;
-    float3 texFrac = frac(texCoordFloat);
-    float3 oneMinTexFrac = 1.0f - texFrac;
+    int3 dir = 0;
+    dir.x = (int)(mask >> 1) & 3;
+    dir.y = (int)(mask >> 4) & 3;
+    dir.z = (int)(mask >> 7) & 3;
 
-    bool sampled = false;
-    float totalW = 0.0f;
+    float3 weights;
+    weights.x = saturate(mask & 1)  + (dir.x - 1) * texFrac.x;
+    weights.y = saturate(mask & 8)  + (dir.y - 1) * texFrac.y;
+    weights.z = saturate(mask & 64) + (dir.z - 1) * texFrac.z;
 
-    APVSample baseSample;
+    return weights.x * weights.y * weights.z;
+}
 
-    float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
+void UnpackSamplingOffset(uint mask, float3 texFrac, out float3 uvwOffset)
+{
+    uvwOffset.x = saturate(mask & 4)   + (saturate(mask & 2) * texFrac.x - texFrac.x);
+    uvwOffset.y = saturate(mask & 32)  + (saturate(mask & 16) * texFrac.y - texFrac.y);
+    uvwOffset.z = saturate(mask & 256) + (saturate(mask & 128) * texFrac.z - texFrac.z);
+}
 
-    ZERO_INITIALIZE(APVSample, baseSample);
+APVSample QualityLeakReduction(APVResources apvRes, uint renderingLayer, inout float3 uvw)
+{
+    float3 texCoord = uvw * _APVPoolDim - .5f;
+    float3 texFrac = frac(texCoord);
 
-    uint validityMask = LoadValidityMask(apvRes, renderingLayer, texCoordInt);
-    for (uint i = 0; i < 8; ++i)
+    half3 offset;
+
+    uint validityMask = LoadValidityMask(apvRes, renderingLayer, texCoord);
+    uint antileak = _AntiLeakData[validityMask];
+
+    UnpackSamplingOffset(antileak >> 0, texFrac, offset);
+    APVSample apvSample = SampleAPV(apvRes, uvw + offset * _APVRcpPoolDim);
+
+    // Optional additional samples for quality leak reduction
+    if (validityMask != 0xFF)
     {
-        uint3 offset = GetSampleOffset(i);
-        float trilinearW =
-            ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
-            ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
-            ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+        float3 weights;
+        weights.x = UnpackSamplingWeight(antileak >> 0, texFrac);
+        weights.y = UnpackSamplingWeight(antileak >> 9, texFrac);
+        weights.z = UnpackSamplingWeight(antileak >> 18, texFrac);
 
-        half validityWeight = GetValidityWeight(i, validityMask);
+        weights *= rcp(max(0.0001, weights.x+weights.y+weights.z));
+        WeightSample(apvSample, weights.x);
 
-        if (validityWeight > 0)
+        UNITY_BRANCH if (weights.y != 0)
         {
-            APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
-            half geoW = GetNormalWeightHalf(offset, posWS, positionCentralProbe, normalWS, subdiv);
+            UnpackSamplingOffset(antileak >> 9, texFrac, offset);
+            APVSample partialSample = SampleAPV(apvRes, uvw + offset * _APVRcpPoolDim);
+            AccumulateSamples(apvSample, partialSample, weights.y);
+        }
 
-            half finalW = half(geoW * trilinearW);
-            AccumulateSamples(baseSample, apvSample, finalW);
-            totalW += finalW;
+        UNITY_BRANCH if (weights.z != 0)
+        {
+            UnpackSamplingOffset(antileak >> 18, texFrac, offset);
+            APVSample partialSample = SampleAPV(apvRes, uvw + offset * _APVRcpPoolDim);
+            AccumulateSamples(apvSample, partialSample, weights.z);
         }
     }
 
-    WeightSample(baseSample, half(rcp(totalW)));
-
-    return baseSample;
+    return apvSample;
 }
 
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint renderingLayer, uint subdiv, float3 biasedPosWS, inout float3 uvw, out float3 normalizedOffset, out float validityWeights[8])
+void WarpUVWLeakReduction(APVResources apvRes, uint renderingLayer, inout float3 uvw)
 {
-    float3 texCoordFloat = uvw * _PoolDim - 0.5f;
-    int3 texCoordInt = texCoordFloat;
-    half3 texFrac = half3(frac(texCoordFloat));
-    uint validityMask = LoadValidityMask(apvRes, renderingLayer, texCoordInt);
+    float3 texCoord = uvw * _APVPoolDim - 0.5f;
+    half3 texFrac = half3(frac(texCoord));
 
-    if (_LeakReductionMode == APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED || validityMask != 0xFF)
+    uint validityMask = LoadValidityMask(apvRes, renderingLayer, texCoord);
+    if (validityMask != 0xFF)
     {
-        half4 weights[2];
+        half weights[8];
         half totalW = 0.0;
-
-        float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
-        half3 oneMinTexFrac = 1.0 - texFrac;
-        uint i = 0;
+        half3 offset = 0;
+        uint i;
 
         UNITY_UNROLL
         for (i = 0; i < 8; ++i)
         {
-            uint3 offset = GetSampleOffset(i);
+            uint3 probeOffset = GetSampleOffset(i);
             half validityWeight =
-                ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
-                ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
-                ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+                ((probeOffset.x == 1) ? texFrac.x : 1.0f - texFrac.x) *
+                ((probeOffset.y == 1) ? texFrac.y : 1.0f - texFrac.y) *
+                ((probeOffset.z == 1) ? texFrac.z : 1.0f - texFrac.z);
 
             validityWeight *= GetValidityWeight(i, validityMask);
-
-            if (_LeakReductionMode == APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED)
-                validityWeight *= GetNormalWeightHalf(offset, posWS, positionCentralProbe, normalWS, subdiv);
-
             half weight = saturate(validityWeight);
-
-            weights[i/4][i%4] = weight;
+            weights[i] = weight;
             totalW += weight;
         }
 
+        offset = -texFrac;
         half rcpTotalW = rcp(max(0.0001, totalW));
-        weights[0] *= rcpTotalW;
-        weights[1] *= rcpTotalW;
-
-        half3 fracOffset = -texFrac;
 
         UNITY_UNROLL
         for (i = 0; i < 8; ++i)
         {
-            uint3 offset = GetSampleOffset(i);
-            fracOffset += (half3)offset * weights[i/4][i%4];
+            uint3 probeOffset = GetSampleOffset(i);
+            offset += (half3)probeOffset * (weights[i] * rcpTotalW);
         }
 
-        uvw = uvw + (float3)fracOffset * _RcpPoolDim;
+        uvw += (float3)offset * _APVRcpPoolDim;
     }
-
-    // Output values used for debug only
-    UNITY_UNROLL
-    for (uint i = 0; i < 8; i++)
-    {
-        int3 probeCoord = GetSampleOffset(i);
-        half validityWeight = GetValidityWeight(i, validityMask);
-        validityWeights[i] = validityWeight;
-    }
-
-    normalizedOffset = (float3)(uvw * _PoolDim - (texCoordInt + 0.5));
-}
-
-void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, uint renderingLayer, uint subdiv, float3 biasedPosWS, inout float3 uvw)
-{
-    float3 normalizedOffset;
-    float validityWeights[8];
-    WarpUVWLeakReduction(apvRes, posWS, normalWS, renderingLayer, subdiv, biasedPosWS, uvw, normalizedOffset, validityWeights);
 }
 
 APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, uint renderingLayer, float3 viewDir)
 {
     APVSample outSample;
 
-    posWS -= _WorldOffset;
+    posWS -= _APVWorldOffset;
 
-    float3 pool_uvw;
     uint subdiv;
+    float3 pool_uvw;
     float3 biasedPosWS;
     if (TryToGetPoolUVWAndSubdiv(apvRes, posWS, biasNormalWS, viewDir, pool_uvw, subdiv, biasedPosWS))
     {
-#if MANUAL_FILTERING == 1
-        if (_LeakReductionMode != 0)
-            outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, renderingLayer, subdiv, biasedPosWS, pool_uvw);
-        else
-            outSample = SampleAPV(apvRes, pool_uvw);
-#else
-        if (_LeakReductionMode != 0)
+        UNITY_BRANCH if (_APVLeakReductionMode == APVLEAKREDUCTIONMODE_QUALITY)
         {
-            WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, renderingLayer, subdiv, biasedPosWS, pool_uvw);
+            outSample = QualityLeakReduction(apvRes, renderingLayer, pool_uvw);
         }
-        outSample = SampleAPV(apvRes, pool_uvw);
-#endif
+        else
+        {
+            if (_APVLeakReductionMode == APVLEAKREDUCTIONMODE_PERFORMANCE)
+                WarpUVWLeakReduction(apvRes, renderingLayer, pool_uvw);
+            outSample = SampleAPV(apvRes, pool_uvw);
+        }
     }
     else
     {
@@ -694,7 +645,7 @@ float EvalSHSkyOcclusion(float3 dir, APVSample apvSample)
 {
     // L0 L1
     float4 temp = float4(kSHBasis0, kSHBasis1 * dir.x, kSHBasis1 * dir.y, kSHBasis1 * dir.z);
-    return _SkyOcclusionIntensity * dot(temp, apvSample.skyOcclusionL0L1);
+    return _APVSkyOcclusionWeight * dot(temp, apvSample.skyOcclusionL0L1);
 }
 
 float3 EvaluateOccludedSky(APVSample apvSample, float3 N)
@@ -702,7 +653,7 @@ float3 EvaluateOccludedSky(APVSample apvSample, float3 N)
     float occValue = EvalSHSkyOcclusion(N, apvSample);
     float3 shadingNormal = N;
 
-    if (_EnableSkyOcclusionShadingDirection > 0)
+    if (_APVSkyDirectionWeight > 0)
     {
         shadingNormal = apvSample.skyShadingDirection;
         float normSquared = dot(shadingNormal, shadingNormal);
@@ -754,12 +705,12 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, out float
 #endif
 
         bakeDiffuseLighting += apvSample.L0;
-        if (_SkyOcclusionIntensity > 0)
+        if (_APVSkyOcclusionWeight > 0)
             bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
 
-        //if (_Weight < 1.f)
+        //if (_APVWeight < 1.f)
         {
-            bakeDiffuseLighting = bakeDiffuseLighting * _Weight;
+            bakeDiffuseLighting = bakeDiffuseLighting * _APVWeight;
         }
     }
     else
@@ -785,16 +736,16 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
-        if (_SkyOcclusionIntensity > 0)
+        if (_APVSkyOcclusionWeight > 0)
         {
             bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
             backBakeDiffuseLighting += EvaluateOccludedSky(apvSample, backNormalWS);
         }
 
-        //if (_Weight < 1.f)
+        //if (_APVWeight < 1.f)
         {
-            bakeDiffuseLighting = bakeDiffuseLighting * _Weight;
-            backBakeDiffuseLighting = backBakeDiffuseLighting * _Weight;
+            bakeDiffuseLighting = bakeDiffuseLighting * _APVWeight;
+            backBakeDiffuseLighting = backBakeDiffuseLighting * _APVWeight;
         }
     }
     else
@@ -816,9 +767,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {
-#if MANUAL_FILTERING == 0
         apvSample.Decode();
-#endif
 
 #ifdef PROBE_VOLUMES_L1
         EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
@@ -833,17 +782,17 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
         lightingInReflDir += apvSample.L0;
-        if (_SkyOcclusionIntensity > 0)
+        if (_APVSkyOcclusionWeight > 0)
         {
             bakeDiffuseLighting += EvaluateOccludedSky(apvSample, normalWS);
             backBakeDiffuseLighting += EvaluateOccludedSky(apvSample, backNormalWS);
             lightingInReflDir += EvaluateOccludedSky(apvSample, reflDir);
         }
 
-        //if (_Weight < 1.f)
+        //if (_APVWeight < 1.f)
         {
-            bakeDiffuseLighting = bakeDiffuseLighting * _Weight;
-            backBakeDiffuseLighting = backBakeDiffuseLighting * _Weight;
+            bakeDiffuseLighting = bakeDiffuseLighting * _APVWeight;
+            backBakeDiffuseLighting = backBakeDiffuseLighting * _APVWeight;
         }
     }
     else
@@ -882,7 +831,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
     APVResources apvRes = FillAPVResources();
 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, 1);
-    posWS -= _WorldOffset;
+    posWS -= _APVWorldOffset;
 
     float3 uvw;
     if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))
@@ -938,7 +887,7 @@ float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sam
     float refProbeNormalization = EvaluateReflectionProbeSH(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
 
     float localNormalization = Luminance(real3(lightingInReflDir));
-    return lerp(1.f, clamp(SafeDiv(localNormalization, refProbeNormalization), _MinReflProbeNormalizationFactor, _MaxReflProbeNormalizationFactor), _Weight);
+    return lerp(1.f, clamp(SafeDiv(localNormalization, refProbeNormalization), _APVMinReflProbeNormalizationFactor, _APVMaxReflProbeNormalizationFactor), _APVWeight);
 
 }
 

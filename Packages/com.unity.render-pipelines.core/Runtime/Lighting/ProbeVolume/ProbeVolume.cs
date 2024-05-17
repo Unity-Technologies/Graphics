@@ -73,9 +73,9 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
 
-        /// <summary>Whether spaces with no renderers need to be filled with bricks at lowest subdivision level.</summary>
+        /// <summary>Whether spaces with no renderers need to be filled with bricks at highest subdivision level.</summary>
         [HideInInspector]
-        [Tooltip("Whether Unity should fill empty space between renderers with bricks at the lowest subdivision level.")]
+        [Tooltip("Whether Unity should fill empty space between renderers with bricks at the highest subdivision level.")]
         public bool fillEmptySpaces = false;
 
 #if UNITY_EDITOR

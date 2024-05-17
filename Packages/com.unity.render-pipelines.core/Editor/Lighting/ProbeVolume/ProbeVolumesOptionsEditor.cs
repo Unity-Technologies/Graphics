@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering
         SerializedDataParameter m_ScaleBiasMinProbeDistance;
         SerializedDataParameter m_SamplingNoise;
         SerializedDataParameter m_LeakReductionMode;
-        SerializedDataParameter m_MinValidDotProdValue;
         SerializedDataParameter m_AnimateNoise;
         SerializedDataParameter m_OcclusionOnlyNormalization;
 
@@ -26,7 +25,6 @@ namespace UnityEditor.Rendering
             m_ScaleBiasMinProbeDistance = Unpack(o.Find(x => x.scaleBiasWithMinProbeDistance));
             m_SamplingNoise = Unpack(o.Find(x => x.samplingNoise));
             m_LeakReductionMode = Unpack(o.Find(x => x.leakReductionMode));
-            m_MinValidDotProdValue = Unpack(o.Find(x => x.minValidDotProductValue));
             m_AnimateNoise = Unpack(o.Find(x => x.animateSamplingNoise));
             m_OcclusionOnlyNormalization = Unpack(o.Find(x => x.occlusionOnlyReflectionNormalization));
 
@@ -44,15 +42,6 @@ namespace UnityEditor.Rendering
             PropertyField(m_SamplingNoise);
             PropertyField(m_AnimateNoise);
             PropertyField(m_LeakReductionMode);
-            if (m_LeakReductionMode.value.intValue == (int)APVLeakReductionMode.ValidityBased)
-            {
-            }
-            else if (m_LeakReductionMode.value.intValue == (int)APVLeakReductionMode.ValidityAndNormalBased)
-            {
-                using (new IndentLevelScope())
-                    PropertyField(m_MinValidDotProdValue);
-            }
-
             PropertyField(m_OcclusionOnlyNormalization);
 
             PropertyField(m_IntensityMultiplier);
