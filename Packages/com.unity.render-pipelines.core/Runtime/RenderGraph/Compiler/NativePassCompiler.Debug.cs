@@ -87,6 +87,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 case PassBreakReason.AttachmentLimitReached:
                     message += $"Merging the passes would use more than {FixedAttachmentArray<PassFragmentData>.MaxAttachments} attachments.";
                     break;
+                case PassBreakReason.SubPassLimitReached:
+                    message += $"Merging the passes would use more than {k_MaxSubpass} native subpasses.";
+                    break;
                 case PassBreakReason.EndOfGraph:
                     message += "The pass is the last pass in the graph.";
                     break;
