@@ -4,21 +4,18 @@ To use the Universal Render Pipeline (URP), you have to [create a URP Asset and 
 
 The URP Asset controls several graphical features and quality settings for the Universal Render Pipeline. It is a scriptable object that inherits from ‘RenderPipelineAsset’. When you assign the asset in the Graphics settings, Unity switches from the built-in render pipeline to the URP. You can then adjust the corresponding settings directly in the URP, instead of looking for them elsewhere.
 
-You can have multiple URP assets and switch between them. For example, you can have one with Shadows on and one with Shadows off. If you switch between the assets to see the effects, you don’t have to manually toggle the corresponding settings for shadows every time. You cannot, however, switch between HDRP/SRP and URP assets, as the
- render pipelines are incompatible.
-
+You can have multiple URP assets and switch between them. For example, you can have one with Shadows on and one with Shadows off. If you switch between the assets to see the effects, you don’t have to manually toggle the corresponding settings for shadows every time. You cannot, however, switch between HDRP/SRP and URP assets, as the render pipelines are incompatible.
 
 ## UI overview
 
 In the URP, you can configure settings for:
 
-- [**Rendering**](#rendering)
-- [**Quality**](#quality)
-- [**Lighting**](#lighting)
-- [**Shadows**](#shadows)
-- [**Post-processing**](#post-processing)
-- [**Adaptive Performance**](#adaptive-performance)
-
+* [**Rendering**](#rendering)
+* [**Quality**](#quality)
+* [**Lighting**](#lighting)
+* [**Shadows**](#shadows)
+* [**Post-processing**](#post-processing)
+* [**Adaptive Performance**](#adaptive-performance)
 
 **Note:** If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the URP Asset don't have any impact on your final app or game.
 
@@ -84,15 +81,21 @@ If you disable some of these settings, the relevant [keywords](https://docs.unit
 
 | Property              | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
-| **Main Light**        | These settings affect the main [Directional Light](https://docs.unity3d.com/Manual/Lighting.html) in your Scene. You can select this by assigning it as a [Sun Source](https://docs.unity3d.com/Manual/GlobalIllumination.html) in the Lighting Inspector. If you don’t assign a sun source, the URP treats the brightest directional light in the Scene as the main light. You can choose between [Pixel Lighting](https://docs.unity3d.com/Manual/LightPerformance.html) and _None_. If you choose None, URP doesn’t render a main light,  even if you’ve set a sun source. |
-| **Cast Shadows**      | Check this box to make the main light cast shadows in your Scene. On lower-end platforms, you can disable this setting to reduce how much memory URP uses, and reduce processing time on the CPU and the GPU. |
-| **Shadow Resolution** | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
-| **Mixed Lighting**    | When [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) is enabled, Unity includes mixed lighting shader variants in the build.|
-| **Light Layers**      | Select the Light Layers feature to configure certain Lights to affect only specific GameObjects. For more information on Light Layers and how to use them, refer to the page [Light Layers](lighting/light-layers.md)
+| **Main Light**        | These settings affect the main [Directional Light](https://docs.unity3d.com/Manual/Lighting.html) in your scene. You can select this by assigning it as a [Sun Source](https://docs.unity3d.com/Manual/GlobalIllumination.html) in the Lighting Inspector. If you don’t assign a sun source, the URP treats the brightest directional light in the scene as the main light. You can choose between [Pixel Lighting](https://docs.unity3d.com/Manual/LightPerformance.html) and **None**. If you choose None, URP doesn’t render a main light,  even if you’ve set a sun source. |
+| &#160;&#160;&#160;&#160;**Cast Shadows** | Check this box to make the main light cast shadows in your scene. |
+| &#160;&#160;&#160;&#160;**Shadow Resolution** | This controls how large the shadow map texture for the main light is. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
 | **Additional Lights** | Here, you can choose to have additional lights to supplement your main light. Choose between [Per Vertex](https://docs.unity3d.com/Manual/LightPerformance.html), [Per Pixel](https://docs.unity3d.com/Manual/LightPerformance.html), or **Disabled**. |
-| **Per Object Limit**  | This slider sets the limit for how many additional lights can affect each GameObject. |
-| **Cast Shadows**      | Check this box to make the additional lights cast shadows in your Scene. |
-| **Shadow Resolution** | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
+| &#160;&#160;&#160;&#160;**Per Object Limit** | This slider sets the limit for how many additional lights can affect each GameObject. |
+| &#160;&#160;&#160;&#160;**Cast Shadows** | Check this box to make the additional lights cast shadows in your scene. |
+| &#160;&#160;&#160;&#160;**Shadow Atlas Resolution** | This controls the size of the textures that cast directional shadows for the additional lights. This is a sprite atlas that packs up to 16 shadow maps. High resolutions give sharper, more detailed shadows. If memory or rendering time is an issue, try a lower resolution. |
+| &#160;&#160;&#160;&#160;**Shadow Resolution Tiers** |  Set the resolution of the shadows cast by additional lights at various tiers.<br/><br/>Resolutions must have a value of 128 or greater, and are rounded to the next power of two.<br/><br/>**Note**: This property is only visible when the **Cast Shadows** property is enabled for Additional Lights. |
+| &#160;&#160;&#160;&#160;**Cookie Atlas Resolution** | The size of the cookie atlas the additional lights use. All additional lights are packed into a single cookie atlas.<br/><br/>This property is only visible when the **Light Cookies** property is enabled. |
+| &#160;&#160;&#160;&#160;**Cookie Atlas Format** | The format of the cookie atlas for additional lights. All additional lights are packed into a single cookie atlas.<br/><br/>Available options:<ul><li>**Grayscale Low**</li><li>**Grayscale High**</li><li>**Color Low**</li><li>**Color High**</li><li>**Color HDR**</li></ul>This property is only visible when the **Light Cookies** property is enabled. |
+| **Reflection Probes** |  |
+| &#160;&#160;&#160;&#160;**Probe Blending** | Smooth the transitions between Reflection Probes. For more information, refer to [Reflection Probe Blending](lighting/reflection-probes.md#reflection-probe-blending). |
+| &#160;&#160;&#160;&#160;**Box Projection** | Create reflections on objects based on their position within the probe's box, while still using a single probe as the reflection source. For more information, refer to [Advanced Reflection Probe features](xref:AdvancedRefProbe). |
+| **Mixed Lighting** | Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html) to configure the pipeline to include mixed lighting shader variants in the build. |
+| **Light Layers** | With this option selected, you can configure certain Lights to affect only specific GameObjects. For more information on Rendering Layers and how to use them, refer to the documentation on [Rendering Layers](features/rendering-layers.md). |
 
 ### Shadows
 
@@ -106,15 +109,15 @@ The **Shadows** section has the following properties.
 | ---------------- | ----------- |
 | **Max Distance** | The maximum distance from the Camera at which Unity renders the shadows. Unity does not render shadows farther than this distance. Increasing the distance reduces the performance. <br/>**Note:** This property is in metric units regardless of the value in the **Working Unit** property. |
 | **Working Unit** | The unit in which Unity measures the shadow cascade distances. |
-| **Cascade Count** | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, refer to the page [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
-| &#160;&#160;&#160;&#160;Split&#160;1 | The distance where cascade 1 ends and cascade 2 starts. |
-| &#160;&#160;&#160;&#160;Split&#160;2 | The distance where cascade 2 ends and cascade 3 starts. |
-| &#160;&#160;&#160;&#160;Split&#160;3 | The distance where cascade 3 ends and cascade 4 starts. |
-| &#160;&#160;&#160;&#160;Last&#160;Border | The size of the area where Unity fades out the shadows. Unity starts fading out shadows at the distance **Max Distance**&#160;-&#160;**Last Border**, at **Max Distance** the shadows fade to zero. |
+| **Cascade Count** | The number of [shadow cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). With shadow cascades, you can avoid crude shadows close to the Camera and keep the Shadow Resolution reasonably low. For more information, refer to the documentation on [Shadow Cascades](https://docs.unity3d.com/Manual/shadow-cascades.html). Increasing the number of cascades reduces the performance. Cascade settings only affects the main light. |
+| &#160;&#160;&#160;&#160;**Split**&#160;**1** | The distance where cascade 1 ends and cascade 2 starts. |
+| &#160;&#160;&#160;&#160;**Split**&#160;**2** | The distance where cascade 2 ends and cascade 3 starts. |
+| &#160;&#160;&#160;&#160;**Split**&#160;**3** | The distance where cascade 3 ends and cascade 4 starts. |
+| &#160;&#160;&#160;&#160;**Last**&#160;**Border** | The size of the area where Unity fades out the shadows. Unity starts fading out shadows at the distance **Max Distance**&#160;-&#160;**Last Border**, at **Max Distance** the shadows fade to zero. |
 | **Depth Bias** | Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
 | **Normal Bias** | Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
-| **Soft Shadows** | Select this check box to enable extra processing of the shadow maps to give them a smoother look.<br/>When enabled, Unity uses the following shadow map filtering method:<br/>Desktop platforms: 5x5 tent filter, mobile platforms: 4 tap filter.<br/>**Performance impact**: high.<br/>When this option is disabled, Unity samples the shadow map once with the default hardware filtering. |
-| **Conservative Enclosing Sphere** | Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades.<br/>Disable this option only for compatibility purposes of existing projects created in previous Unity versions.<br/>If you enable this option in an existing project, you might need to adjust the shadows cascade distances because the shadow culling enclosing spheres change their size and position.<br/>**Performance impact**: enabling this option is likely to improve performance, because the option minimizes the overlap of shadow cascades, which reduces the number of redundant static shadow casters. |
+| <a name="soft-shadows"></a>**Soft Shadows** | Select this check box to enable extra processing of the shadow maps to give them a smoother look.<br/><br/>**Performance impact**: high.<br/><br/>When this option is disabled, Unity samples the shadow map once with the default hardware filtering. |
+| **Conservative Enclosing Sphere** | Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades.<br/><br/>Disable this option only for compatibility purposes of existing projects created in previous Unity versions.<br/><br/>If you enable this option in an existing project, you might need to adjust the shadows cascade distances because the shadow culling enclosing spheres change their size and position.<br/><br/>**Performance impact**: enabling this option is likely to improve performance, because the option minimizes the overlap of shadow cascades, which reduces the number of redundant static shadow casters. |
 
 ### Post-processing
 
@@ -122,15 +125,11 @@ This section allows you to fine-tune global post-processing settings.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
-| **Post Processing** | This check box turns post-processing on (check box selected) or off (check box cleared) for the current URP asset.<br/>If you clear this check box, Unity excludes post-processing shaders and textures from the build, unless one of the following conditions is true:<ul><li>Other assets in the build refer to the assets related to post-processing.</li><li>A different URP asset has the Post Processing property enabled.</li></ul> |
-| **Post Process Data** | The asset containing references to shaders and Textures that the Renderer uses for post-processing.<br/>**Note:** Changes to this property are necessary only for advanced customization use cases. |
 | **Grading Mode** | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<ul><li>**High Dynamic Range**: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.</li><li>**Low Dynamic Range**: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.</li></ul> |
 | **LUT Size**     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 | **Fast sRGB/Linear Conversions** | Select this option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.|
+| **Data Driven Lens Flare** | Allocate the shader variants and memory URP needs for [lens flares](shared/lens-flare/lens-flare-srp-reference.md) effect. |
 | **Volume Update Mode** | Select how Unity updates Volumes: every frame or when triggered via scripting. If you select **Every Frame**, URP requires more processing time on the CPU. In the Editor, Unity updates Volumes every frame when not in the Play mode. |
-
-
-
 
 ### Adaptive Performance
 
