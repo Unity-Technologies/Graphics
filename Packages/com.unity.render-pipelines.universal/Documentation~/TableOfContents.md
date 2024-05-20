@@ -12,6 +12,7 @@
   * [Scene Templates](scene-templates.md)
   * [Quality Settings in URP](birp-onboarding/quality-settings-location.md)
   * [Change Quality settings with code](quality/quality-settings-through-code.md)
+  * [Configure settings with the URP Config package](URP-Config-Package.md)
   * [Understand performance](understand-performance.md)
   * [Configure for better performance](configure-for-better-performance.md)
 * [Render Pipeline Concepts](urp-concepts.md)

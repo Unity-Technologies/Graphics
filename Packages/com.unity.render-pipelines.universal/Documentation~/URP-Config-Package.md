@@ -1,31 +1,42 @@
-# The Universal Render Pipeline Config package
+# Configure settings with the URP Config package
 
-The Universal Render Pipeline (URP) uses a separate [package](https://docs.unity3d.com/Manual/Packages.html) to control the settings of some of its features.
+You can use the Universal Render Pipeline (URP) Config package to control some of the settings of URP. Unity automatically adds the package files in the package cache as they are a dependency of URP, but you must make a copy of them in your project before you can use the package.
 
-For example, you can use it to:
+The URP Config Package currently only changes one setting which is the maximum number of visible lights URP renders when you use the Forward+ Rendering Path. For more information, refer to [Change the maximum number of visible lights](rendering/forward-plus-rendering-path.md#change-the-maximum-number-of-visible-lights).
 
-* Change the max number of visible light.
+## Set up the URP Config package
 
-## Using the URP Config package
+To create a usable copy of the URP Config package in your project, do the following:
 
-To use the URP Config package in your URP Project, you need to create a local copy of it and make your Project's package manifest reference it like so:
+1. In the **Project** window, right-click **Assets** and select **Show in Explorer** (MacOS: **Reveal in Finder**).
+2. Go to `/Library/PackageCache/`.
+3. Copy the `com.unity.render-pipelines.universal-config@[versionnumber]` folder to the `Packages` folder.
+4. Rename the copied folder to `com.unity.render-pipelines.universal-config`.
 
-* In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.universal-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.universal-config**".
+The URP Config package is now ready for use in your project.
 
-**Note**: Using the Package Manager to upgrade your URP package does not automatically upgrade the local config package. To manually upgrade the local config package:
+## Configure URP with the URP Config package
 
-1. Make a copy of your current config package.
-2. Delete the **com.unity.render-pipelines.universal-config** folder in your **Packages/** folder.
-3. Copy again the folder from the **Library/PackageCache/** like mentionned above.
-4. Apply your modifications by hand to the new config package.
+You can edit the `ShaderConfig.cs` file to configure the properties of your URP project. If you edit this file, you must also update the equivalent `ShaderConfig.cs.hlsl` header file so that it mirrors the definitions you set in `ShaderConfig.cs`.
 
-## Configuring URP using the config package
+You can update the `ShaderConfig.cs.hlsl` file in two ways:
 
-You can edit the **ShaderConfig.cs** file to configure the properties of your URP Project. If you edit this file, you must also update the equivalent **ShaderConfig.cs.hlsl** header file (which URP Shaders use) so that it mirrors the definitions that you set in **ShaderConfig.cs**. You can update the **ShaderConfig.cs.hlsl** file in two ways. You can either make Unity generate the **ShaderConfig.cs.hlsl** file from the **ShaderConfig.cs** file, which makes sure that the two files are synchronized, or edit the **ShaderConfig.cs.hlsl** file directly, which is faster but it is up to you to synchronize the files when you make changes.
+* Manually edit the `ShaderConfig.cs.hlsl` file to mirror the `ShaderConfig.cs` file. This method is faster but more likely to result in an error due to a mistake.
+* Use the Editor to generate the `ShaderConfig.cs.hlsl` file from the `ShaderConfig.cs` file, which might take longer than a manual edit but ensures that the two files are synchronized.
 
-To ensure that the two files are synchronized, you should follow the first method. To do this:
+To use the Editor to generate the `ShaderConfig.cs.hlsl` file, follow these steps:
 
-1. Go to **Packages > com.unity.render-pipelines.universal-config > Runtime** and open **ShaderConfig.cs**.
-2. Edit the values of the properties that you want to change and then save the file.
-3. Back in Unity, select **Edit > RenderPipeline > Generate Include Files**.
-4. Unity automatically configures your Project and Shaders to use the new configuration.
+1. In the **Project** window, go to **Packages** > **Universal RP Config** > **Runtime** and open **ShaderConfig.cs**.
+2. Edit the values of the properties you want to change and then save and close the file.
+3. In the Editor, select **Edit** > **Rendering** > **Generate Shader Includes**.
+4. Unity automatically configures your project and shaders to use the new configuration.
+
+### Update the URP Config package
+
+When you use the Package Manager to update your URP package, the Package Manager downloads the latest version of the URP Config package to the `/Library/PackageCache/` folder, but doesn't automatically update the files of the URP Config package in your `Packages` folder. Instead, you need to manually update your copy of the URP Config package in your `Packages` folder and reapply your changes. To do this, use the following steps:
+
+1. Make a copy of the `com.unity.render-pipelines.universal-config` from your `Packages` folder. You can reference this later when you reapply your changes.
+2. Delete the `com.unity.render-pipelines.universal-config` folder in your `Packages` folder.
+3. Copy the `com.unity.render-pipelines.universal-config@[versionnumber]` folder again from the `/Library/PackageCache/` folder to your `Packages` folder, as shown above in the [Set up the URP Config package](#set-up-the-urp-config-package) section.
+4. Rename the copied folder to `com.unity.render-pipelines.universal-config`.
+5. Manually reapply your modifications to the updated copy of the URP Config package.
