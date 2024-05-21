@@ -1038,6 +1038,11 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.xr.enabled)
                 return;
 
+            bool isDefaultXRViewport = XRSystem.GetRenderViewportScale() == 1.0f;
+            // For untethered XR, intermediate pass' foveation is currenlty unsupported with non-default viewport.
+            // Must be configured during the recording timeline before adding other XR intermediate passes.
+            cameraData.xrUniversal.canFoveateIntermediatePasses = !PlatformAutoDetect.isXRMobile || isDefaultXRViewport;
+
             using (var builder = renderGraph.AddRasterRenderPass<BeginXRPassData>("BeginXRRendering", out var passData,
                 Profiling.beginXRRendering))
             {

@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
         public virtual void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            Debug.LogWarning("RecordRenderGraph is not implemented, the pass " + this.ToString() + " won't be recorded in the current RenderGraph.");
+            Debug.LogWarning("The render pass " + this.ToString() + " does not have an implementation of the RecordRenderGraph method. Please implement this method, or consider turning on Compatibility Mode (RenderGraph disabled) in the menu Edit > Project Settings > Graphics > URP. Otherwise the render pass will have no effect. For more information, refer to https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/customizing-urp.html.");
         }
 
         /// <summary>

@@ -275,6 +275,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsKeywordLightCookieEnabled { get; private set; }
 
+        internal RTHandle AdditionalLightsCookieAtlasTexture => m_AdditionalLightsCookieAtlas?.AtlasTexture;
+
         public LightCookieManager(ref Settings settings)
         {
             m_Settings = settings;

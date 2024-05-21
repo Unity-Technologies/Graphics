@@ -98,7 +98,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Volumetric clouds
         VolumetricClouds,
-        VolumetricCloudsDepthDownscale,
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
         VolumetricCloudsPreUpscale,

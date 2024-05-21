@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering
     public static class XRSystem
     {
         // Keep track of only one XR layout
-        static XRLayout s_Layout = new XRLayout();
+        static XRLayoutStack s_Layout = new ();
 
         // Delegate allocations of XRPass to the render pipeline
         static Func<XRPassCreateInfo, XRPass> s_PassAllocator = null;
@@ -226,6 +226,22 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
+
+        /// <summary>
+        /// Used by the render pipeline to retrieve the renderViewportScale value from the XR display.
+        /// One use case for retriving this value is that render pipeline can properly sync some SRP owned textures to scale accordingly
+        /// </summary>
+        /// <returns> Returns current scaleOfAllViewports value from the XRDisplaySubsystem. </returns>
+        public static float GetRenderViewportScale()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+
+            return s_Display.scaleOfAllViewports;
+#else
+            return 1.0f;
+#endif
+        }
+
         /// <summary>
         /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
@@ -233,14 +249,7 @@ namespace UnityEngine.Experimental.Rendering
         public static XRLayout NewLayout()
         {
             RefreshDeviceInfo();
-
-            if (s_Layout.GetActivePasses().Count > 0)
-            {
-                Debug.LogWarning("Render Pipeline error : the XR layout still contains active passes. Executing XRSystem.EndLayout() right now.");
-                EndLayout();
-            }
-
-            return s_Layout;
+            return s_Layout.New();
         }
 
         /// <summary>
@@ -249,9 +258,9 @@ namespace UnityEngine.Experimental.Rendering
         public static void EndLayout()
         {
             if (dumpDebugInfo)
-                s_Layout.LogDebugInfo();
+                s_Layout.top.LogDebugInfo();
 
-            s_Layout.Clear();
+            s_Layout.Release();
         }
 
         /// <summary>
@@ -340,45 +349,49 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Setup the layout to use multi-pass or single-pass based on the runtime caps
-        internal static void CreateDefaultLayout(Camera camera)
+        internal static void CreateDefaultLayout(Camera camera, XRLayout layout)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (s_Display == null)
                 throw new NullReferenceException(nameof(s_Display));
+
+            void AddViewToPass(XRPass xrPass, XRDisplaySubsystem.XRRenderPass renderPass, int renderParamIndex)
+            {
+                renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
+                xrPass.AddView(BuildView(renderPass, renderParam));
+            }
 
             for (int renderPassIndex = 0; renderPassIndex < s_Display.GetRenderPassCount(); ++renderPassIndex)
             {
                 s_Display.GetRenderPass(renderPassIndex, out var renderPass);
                 s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
+                int renderParameterCount = renderPass.GetRenderParameterCount();
                 if (CanUseSinglePass(camera, renderPass))
                 {
-                    var xrPass = s_PassAllocator(BuildPass(renderPass, cullingParams));
+                    var createInfo = BuildPass(renderPass, cullingParams, layout);
+                    var xrPass = s_PassAllocator(createInfo);
 
-                    for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
+                    for (int renderParamIndex = 0; renderParamIndex < renderParameterCount; ++renderParamIndex)
                     {
-                        renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
-                        xrPass.AddView(BuildView(renderPass, renderParam));
+                        AddViewToPass(xrPass, renderPass, renderParamIndex);
                     }
 
-                    s_Layout.AddPass(camera, xrPass);
+                    layout.AddPass(camera, xrPass);
                 }
                 else
                 {
-                    for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
+                    for (int renderParamIndex = 0; renderParamIndex < renderParameterCount; ++renderParamIndex)
                     {
-                        renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
-
-                        var xrPass = s_PassAllocator(BuildPass(renderPass, cullingParams));
-                        xrPass.AddView(BuildView(renderPass, renderParam));
-
-                        s_Layout.AddPass(camera, xrPass);
+                        var createInfo = BuildPass(renderPass, cullingParams, layout);
+                        var xrPass = s_PassAllocator(createInfo);
+                        AddViewToPass(xrPass, renderPass, renderParamIndex);
+                        layout.AddPass(camera, xrPass);
                     }
                 }
             }
 
-            if (s_LayoutOverride != null)
-                s_LayoutOverride.Invoke(s_Layout, camera);
+            s_LayoutOverride?.Invoke(layout, camera);
 #endif
         }
 
@@ -400,8 +413,7 @@ namespace UnityEngine.Experimental.Rendering
                     xrPass.AssignView(renderParamIndex, BuildView(renderPass, renderParam));
                 }
 
-                if (s_LayoutOverride != null)
-                    s_LayoutOverride.Invoke(s_Layout, camera);
+                s_LayoutOverride?.Invoke(s_Layout.top, camera);
             }
 #endif
         }
@@ -445,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering
             return new XRView(renderParameter.projection, renderParameter.view, viewport, occlusionMesh, renderParameter.textureArraySlice);
         }
 
-        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters)
+        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout)
         {
             // We can't use descriptor directly because y-flip is forced
             // XRTODO : fix root problem
@@ -455,7 +467,7 @@ namespace UnityEngine.Experimental.Rendering
             rtDesc.volumeDepth  = xrRenderPass.renderTargetDesc.volumeDepth;
             rtDesc.vrUsage      = xrRenderPass.renderTargetDesc.vrUsage;
             rtDesc.sRGB         = xrRenderPass.renderTargetDesc.sRGB;
-
+            
             XRPassCreateInfo passInfo = new XRPassCreateInfo
             {
                 renderTarget            = xrRenderPass.renderTarget,
@@ -464,7 +476,7 @@ namespace UnityEngine.Experimental.Rendering
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
                 occlusionMeshScale      = GetOcclusionMeshScale(),
                 foveatedRenderingInfo   = xrRenderPass.foveatedRenderingInfo,
-                multipassId             = s_Layout.GetActivePasses().Count,
+                multipassId             = layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
                 xrSdkRenderPass         = xrRenderPass

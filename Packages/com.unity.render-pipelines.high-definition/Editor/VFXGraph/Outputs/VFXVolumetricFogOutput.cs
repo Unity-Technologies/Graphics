@@ -7,10 +7,10 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Particle HDRP Volumetric Fog", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output Particle|HDRP Volumetric Fog", category = "#4Output Advanced", experimental = true)]
     class VFXVolumetricFogOutput : VFXAbstractParticleOutput
     {
-        public override string name => "Output Particle HDRP Volumetric Fog";
+        public override string name => "Output Particle".AppendLabel("HDRP Lit", false) + "\nVolumetric Fog";
         public override string codeGeneratorTemplate => RenderPipeTemplate("VFXVolumetricFogOutput");
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
 

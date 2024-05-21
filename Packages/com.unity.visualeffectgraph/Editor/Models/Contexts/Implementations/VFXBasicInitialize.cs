@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
             {
                 yield return new Variant(
                     "Initialize " + ObjectNames.NicifyVariableName(dataType.ToString()),
-                    null,
+                    VFXLibraryStringHelper.Separator("Common", 0),
                     typeof(VFXBasicInitialize),
                     new[] {new KeyValuePair<string, object>("dataType", dataType)}
                 );

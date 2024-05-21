@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         readonly CustomStyleProperty<Color> RectColorProperty = new CustomStyleProperty<Color>("--rect-color");
 
         Image m_HeaderIcon;
-        Image m_HeaderSpace;
+        Label m_HeaderSpace;
         Label m_Subtitle;
         Label m_Footer;
 
@@ -119,6 +119,7 @@ namespace UnityEditor.VFX.UI
 
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
             m_HeaderIcon.visible = m_HeaderIcon.image != null;
+            m_HeaderIcon.SendToBack(); // Actually move it as first child so it's before the title label
 
             var subTitle = controller.subtitle;
             m_Subtitle.text = controller.subtitle;
@@ -170,13 +171,11 @@ namespace UnityEditor.VFX.UI
             AddToClassList("type" + ContextEnumToClassName(type.ToString()));
 
             var space = controller.model.space;
-            foreach (VFXSpace val in System.Enum.GetValues(typeof(VFXSpace)))
-            {
-                if (val != space || !controller.model.spaceable)
-                    m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
-            }
-            if (controller.model.spaceable)
-                m_HeaderSpace.AddToClassList("space" + (controller.model.space).ToString());
+            m_HeaderSpace.text = space.ToString();
+            m_HeaderSpace.tooltip = $"{space.ToString()} Space";
+            m_HeaderSpace.RemoveFromClassList(VFXSpace.World.ToString());
+            m_HeaderSpace.RemoveFromClassList(VFXSpace.Local.ToString());
+            m_HeaderSpace.AddToClassList(space.ToString());
 
             Profiler.EndSample();
             if (controller.model.outputType == VFXDataType.None)
@@ -284,7 +283,7 @@ namespace UnityEditor.VFX.UI
             m_FlowOutputConnectorContainer = this.Q("flow-outputs");
 
             m_HeaderIcon = titleContainer.Q<Image>("icon");
-            m_HeaderSpace = titleContainer.Q<Image>("header-space");
+            m_HeaderSpace = titleContainer.Q<Label>("header-space");
             m_HeaderSpace.AddManipulator(new Clickable(OnSpace));
             m_Subtitle = this.Q<Label>("subtitle");
 
@@ -781,7 +780,7 @@ namespace UnityEditor.VFX.UI
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            VFXFilterWindow.Show(view, referencePosition, screenPosition, m_BlockProvider);
+            VFXFilterWindow.Show(referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
@@ -848,7 +847,7 @@ namespace UnityEditor.VFX.UI
         void OnConvertContext(DropdownMenuAction action)
         {
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXFilterWindow.Show(view, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+            VFXFilterWindow.Show(action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
         }
 
         void ConvertContext(Variant variant, Vector2 mPos)

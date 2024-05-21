@@ -9,18 +9,8 @@ namespace UnityEditor.VFX.UI
     class SpaceablePropertyRM<T> : PropertyRM<T>
     {
         static readonly bool s_UseDropDownMenu = true;
-        static readonly bool s_UseHovering = true;
 
-        void OnMouseHover(EventBase evt)
-        {
-            if (m_Button == null || !m_Button.enabledSelf)
-                return;
-
-            if (evt.eventTypeId == MouseEnterEvent.TypeId())
-                m_Button.AddToClassList("hovered");
-            else
-                m_Button.RemoveFromClassList("hovered");
-        }
+        Label m_Button;
 
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -30,16 +20,10 @@ namespace UnityEditor.VFX.UI
                 label.AddToClassList("label");
                 Add(label);
             }
-            m_Button = new VisualElement { name = "spacebutton" };
+            m_Button = new Label("\u25bc") { name = "spacebutton" };
             m_Button.AddManipulator(new Clickable(OnButtonClick));
             Add(m_Button);
             AddToClassList("spaceablepropertyrm");
-
-            if (s_UseHovering)
-            {
-                RegisterCallback<MouseEnterEvent>(OnMouseHover);
-                RegisterCallback<MouseLeaveEvent>(OnMouseHover);
-            }
         }
 
         public override float GetPreferredControlWidth() => 40;
@@ -84,16 +68,12 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            foreach (string name in Enum.GetNames(typeof(VFXSpace)))
-            {
-                if (space.ToString() != name)
-                    m_Button.RemoveFromClassList("space" + name);
-            }
-
-            m_Button.AddToClassList("space" + space.ToString());
+            m_Button.RemoveFromClassList(VFXSpace.World.ToString());
+            m_Button.RemoveFromClassList(VFXSpace.Local.ToString());
+            m_Button.RemoveFromClassList(VFXSpace.None.ToString());
+            m_Button.AddToClassList(space.ToString());
+            m_Button.tooltip = $"{space.ToString()} Space";
         }
-
-        VisualElement m_Button;
 
         protected override void UpdateEnabled()
         {

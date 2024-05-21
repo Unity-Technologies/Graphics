@@ -90,9 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Quarter/Trace resolution
         public Vector4 _TraceScreenSize;
         // Resolution of the history buffer size
-        public Vector2 _HistoryViewportSize;
-        // Resolution of the history depth buffer
-        public Vector2 _HistoryBufferSize;
+        public Vector2 _HistoryViewportScale;
+        // Offset in depth pyramid
+        public Vector2Int _ReprojDepthMipOffset;
 
         // Flag that defines if the clouds should be evaluated at full resolution
         public int _LowResolutionEvaluation;
@@ -131,8 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _FadeInDistance;
         // Flag that allows to know if we should be using the improved transmittance blending
         public float _ImprovedTransmittanceBlend;
-        // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
-        public float _CubicTransmittance;
+        public float _PaddingVC0;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

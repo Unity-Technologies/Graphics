@@ -19,29 +19,31 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
-            var sampleModes = Enum.GetValues(typeof(AttributeFromMap.AttributeMapSampleMode)).OfType<AttributeFromMap.AttributeMapSampleMode>().ToArray();
+            var sampleModes = new [] { AttributeFromMap.AttributeMapSampleMode.Index, AttributeFromMap.AttributeMapSampleMode.Random, AttributeFromMap.AttributeMapSampleMode.Sample3DLOD, AttributeFromMap.AttributeMapSampleMode.Sequential};
 
             foreach (var composition in compositions)
             {
                 foreach (var sampleMode in sampleModes)
                 {
                     // This is the main variant settings
-                    if (composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromMap.AttributeMapSampleMode.Random)
+                    if (composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromMap.AttributeMapSampleMode.Sample2DLOD)
                     {
                         continue;
                     }
 
-                    var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                    var compositionString = VFXBlockUtility.GetNameString(composition);
                     yield return new Variant(
-                        $"{compositionString} {m_Attribute} | Sample {sampleMode}",
-                        compositionString,
+                        compositionString.Label(false).AppendLiteral(m_Attribute + " from Map").AppendLabel(VFXBlockUtility.GetNameString(sampleMode), false),
+                        VFXLibraryStringHelper.Separator(compositionString, 0),
                         typeof(AttributeFromMap),
                         new[]
                         {
                             new KeyValuePair<string, object>("attribute", m_Attribute),
                             new KeyValuePair<string, object>("Composition", composition),
                             new KeyValuePair<string, object>("SampleMode", sampleMode)
-                        });
+                        },
+                        null,
+                        VFXBlockUtility.GetCompositionSynonym(composition));
                 }
             }
         }
@@ -51,20 +53,28 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
-            foreach (var attribute in attributes)
+            var setSynonyms = VFXBlockUtility.GetCompositionSynonym(AttributeCompositionMode.Overwrite);
+            var groups = VFXAttributesManager
+                .GetBuiltInAttributesOrCombination(true, false, false, false)
+                .GroupBy(x => x.category);
+
+            foreach (var group in groups)
             {
-                yield return new Variant(
-                    $"Set {attribute} | Sample Random",
-                    "Attribute from map",
-                    typeof(AttributeFromMap),
-                    new[]
-                    {
-                        new KeyValuePair<string, object>("attribute", attribute),
-                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
-                        new KeyValuePair<string, object>("SampleMode", AttributeFromMap.AttributeMapSampleMode.Random)
-                    },
-                    () => new AttributeFromMapVariantProvider(attribute));
+                foreach (var attribute in group)
+                {
+                    yield return new Variant(
+                        "Set".Label(false).AppendLiteral(attribute.name + " from Map").AppendLabel("2D", false),
+                        $"Attribute from Map/{attribute.category}",
+                        typeof(AttributeFromMap),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("attribute", attribute.name),
+                            new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
+                            new KeyValuePair<string, object>("SampleMode", AttributeFromMap.AttributeMapSampleMode.Sample2DLOD)
+                        },
+                        () => new AttributeFromMapVariantProvider(attribute.name),
+                        setSynonyms);
+                }
             }
         }
     }
@@ -108,8 +118,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels : "";
-                return $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute) + variadicName} from Map";
+                var variadicName = (currentAttribute.variadic == VFXVariadic.True) ? "." + channels : "";
+                return VFXBlockUtility.GetNameString(Composition).Label(false).AppendLiteral(attribute + variadicName + " from Map").AppendLabel(VFXBlockUtility.GetNameString(SampleMode), false);
             }
         }
 

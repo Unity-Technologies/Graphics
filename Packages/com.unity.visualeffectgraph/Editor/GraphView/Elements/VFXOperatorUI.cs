@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UIElements;
@@ -16,7 +17,6 @@ namespace UnityEditor.VFX.UI
         {
             defaultLabelWidth = defaultOperatorLabelWidth;
             this.AddStyleSheetPath("VFXOperator");
-
             this.AddManipulator(new SuperCollapser());
 
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
@@ -122,6 +122,46 @@ namespace UnityEditor.VFX.UI
         public override bool superCollapsed
         {
             get { return base.superCollapsed && (m_EditContainer == null || m_EditContainer.parent == null); }
+        }
+
+        protected override void SelfChange()
+        {
+            base.SelfChange();
+
+            if (isEditable)
+            {
+                if (m_EditButton == null)
+                {
+                    m_EditButton = new VisualElement { name = "edit" };
+                    m_EditButton.Add(new VisualElement { name = "icon" });
+                    m_EditButton.AddManipulator(new Clickable(OnEdit));
+                }
+
+                if (m_EditButton.parent == null)
+                {
+                    var index = Math.Max(0, titleContainer.childCount - 1);
+                    titleContainer.Insert(index, m_EditButton);
+                }
+
+                if (m_EditContainer == null)
+                {
+                    m_EditContainer = GetControllerEditor();
+                    if (m_EditContainer != null)
+                        m_EditContainer.name = "edit-container";
+                }
+            }
+            else
+            {
+                if (m_EditContainer != null && m_EditContainer.parent != null)
+                    m_EditContainer.RemoveFromHierarchy();
+
+                m_EditContainer = null;
+                if (m_EditButton?.parent != null)
+                    m_EditButton.RemoveFromHierarchy();
+            }
+
+            if (!expanded && m_EditContainer != null && m_EditContainer.parent != null)
+                m_EditContainer.RemoveFromHierarchy();
         }
 
         protected override void OnPostLayout(GeometryChangedEvent e)

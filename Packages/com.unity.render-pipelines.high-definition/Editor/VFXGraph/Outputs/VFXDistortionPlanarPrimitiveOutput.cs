@@ -1,24 +1,47 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    internal class VFXDistortionPlanarPrimitiveOutputProvider : VariantProvider
+    internal class VFXDistortionPlanarPrimitiveOutputSubvariantProvider : VariantProvider
     {
+        private readonly VFXPrimitiveType mainPrimitiveType;
+
+        public VFXDistortionPlanarPrimitiveOutputSubvariantProvider(VFXPrimitiveType type)
+        {
+            mainPrimitiveType = type;
+        }
+
         public override IEnumerable<Variant> GetVariants()
         {
             foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)).Cast<VFXPrimitiveType>())
             {
+                if (primitive == mainPrimitiveType)
+                    continue;
+
                 yield return new Variant(
-                    $"Output Particle HDRP Distortion {primitive}",
-                    "Output",
+                    "Output Particle|HDRP Distortion".AppendLabel(primitive.ToString()),
+                    VFXLibraryStringHelper.Separator("Output Advanced", 4),
                     typeof(VFXDistortionPlanarPrimitiveOutput),
                     new[] {new KeyValuePair<string, object>("primitiveType", primitive)}
                 );
             }
+        }
+    }
+
+    internal class VFXDistortionPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                "Output Particle|HDRP Distortion".AppendLabel(VFXPrimitiveType.Quad.ToString()),
+                VFXLibraryStringHelper.Separator("Output Advanced", 4),
+                typeof(VFXDistortionPlanarPrimitiveOutput),
+                new[] {new KeyValuePair<string, object>("primitiveType", VFXPrimitiveType.Quad)},
+                () => new VFXDistortionPlanarPrimitiveOutputSubvariantProvider(VFXPrimitiveType.Quad));
         }
     }
 
@@ -31,7 +54,7 @@ namespace UnityEditor.VFX.HDRP
         //[VFXSetting] // tmp dont expose as settings atm
         public bool useGeometryShader = false;
 
-        public override string name { get { return "Output Particle HDRP Distortion " + primitiveType.ToString(); } }
+        public override string name => "Output Particle".AppendLabel("HDRP Distortion", false) + $"\n{primitiveType.ToString()}";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionPlanarPrimitive"); } }
         public override VFXTaskType taskType
         {

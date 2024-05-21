@@ -74,6 +74,7 @@ Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant8, keyw
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON
 Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords <no keywords>
+Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords ENABLE_CHECKERBOARD
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterSingle, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: GatherColor, keywords <no keywords>
@@ -1042,136 +1043,136 @@ Uploaded shader variant to the GPU driver: Hidden/ScriptableRenderPipeline/Shado
 Uploaded shader variant to the GPU driver: Hidden/ScriptableRenderPipeline/ShadowClear, pass: ClearShadow, stage: vertex, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Hidden/TextCore/Distance Field SSD, pass: <Unnamed Pass 0>, stage: pixel, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Hidden/TextCore/Distance Field SSD, pass: <Unnamed Pass 0>, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: DepthOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: DepthOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: ForwardOnly, stage: vertex, keywords USE_FPTL_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: GBuffer, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: GBuffer, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: MotionVectors, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: MotionVectors, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle HDRP Lit Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: ForwardOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: ForwardOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: MotionVectors, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: MotionVectors, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: Forward, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: ForwardOnly, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle HDRP Lit Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle Octagon, pass: ForwardOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle Octagon, pass: ForwardOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: DepthOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: DepthOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: ForwardOnly, stage: vertex, keywords USE_FPTL_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: GBuffer, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: GBuffer, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: MotionVectors, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: MotionVectors, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle HDRP Lit Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: ForwardOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: ForwardOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: MotionVectors, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: MotionVectors, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: Forward, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: ForwardOnly, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle HDRP Lit Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle Quad, pass: ForwardOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle Quad, pass: ForwardOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_3RT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: Forward, stage: vertex, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: IndirectDXR, stage: raytracing, keywords DECALS_3RT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: ShadowCaster, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: ShadowCaster, stage: vertex, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: TransparentDepthPrepass, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: TransparentDepthPrepass, stage: vertex, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle ShaderGraph Quad - Lit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: DepthOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: DepthOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: ForwardOnly, stage: vertex, keywords USE_FPTL_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: GBuffer, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: GBuffer, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: MotionVectors, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: MotionVectors, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle HDRP Lit Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: ForwardOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: ForwardOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: MotionVectors, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: MotionVectors, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: Forward, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: ForwardOnly, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle HDRP Lit Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle Triangle, pass: ForwardOnly, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle Triangle, pass: ForwardOnly, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: DepthOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: DepthOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: ForwardOnly, stage: vertex, keywords USE_FPTL_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: GBuffer, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: GBuffer, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: MotionVectors, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: MotionVectors, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|HDRP Lit Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: ForwardOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: ForwardOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: MotionVectors, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: MotionVectors, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonOpaque/System/Output Particle|Unlit Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: Forward, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: ForwardOnly, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|HDRP Lit Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|Unlit Octagon, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|Unlit Octagon, pass: ForwardOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|Unlit Octagon, pass: ForwardOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|Unlit Octagon, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|Unlit Octagon, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/OctagonTransparent/System/Output Particle|Unlit Octagon, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: DepthOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: DepthOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: ForwardOnly, stage: vertex, keywords USE_FPTL_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: GBuffer, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: GBuffer, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: MotionVectors, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: MotionVectors, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|HDRP Lit Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: ForwardOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: ForwardOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: MotionVectors, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: MotionVectors, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadOpaque/System/Output Particle|Unlit Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: Forward, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: ForwardOnly, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|HDRP Lit Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|Unlit Quad, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|Unlit Quad, pass: ForwardOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|Unlit Quad, pass: ForwardOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|Unlit Quad, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|Unlit Quad, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/QuadTransparent/System/Output Particle|Unlit Quad, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DECALS_3RT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: Forward, stage: vertex, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: IndirectDXR, stage: raytracing, keywords DECALS_3RT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: vertex, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: TransparentDepthPrepass, stage: pixel, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: TransparentDepthPrepass, stage: vertex, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: DepthOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: DepthOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ForwardOnly, stage: vertex, keywords USE_FPTL_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: GBuffer, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: GBuffer, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: MotionVectors, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: MotionVectors, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: ForwardOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: ForwardOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: MotionVectors, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: MotionVectors, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|Unlit Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: Forward, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: Forward, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: ForwardOnly, stage: pixel, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: ForwardOnly, stage: vertex, keywords USE_CLUSTERED_LIGHTLIST
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|HDRP Lit Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|Unlit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|Unlit Triangle, pass: ForwardOnly, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|Unlit Triangle, pass: ForwardOnly, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|Unlit Triangle, pass: ShadowCaster, stage: pixel, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|Unlit Triangle, pass: ShadowCaster, stage: vertex, keywords <no keywords>
+Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleTransparent/System/Output Particle|Unlit Triangle, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/CheckerBoardSG, pass: DepthOnly, stage: pixel, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/CheckerBoardSG, pass: DepthOnly, stage: vertex, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/CheckerBoardSG, pass: GBuffer, stage: pixel, keywords DECALS_4RT DECAL_SURFACE_GRADIENT

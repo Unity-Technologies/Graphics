@@ -98,9 +98,9 @@ This section appears only if you enable **Lighting Scenarios** under **Light Pro
 
 | **Property** | **Description** |
 |-|-|
-| **Sky Occlusion** | Enable [sky occlusion](probevolumes-skyocclusion.md) |
+| **Sky Occlusion** | Enable [sky occlusion](probevolumes-skyocclusion.md). |
 | **Samples** | Set the number of samples Unity uses to calculate the light each probe receives from the sky. Higher values increase the accuracy of the sky occlusion data, but increasing baking time. The default value is 2048. |
-| **Bounces** | The number of times Unity bounces light from the sky off objects when calculating the sky occlusion data. Higher values increase the accuracy of the sky occlusion data, but increase baking time. Use higher values if objects block the direct view from probes to the sky. The default value is 2. |
+| **Bounces** | Set the number of times Unity bounces light from the sky off objects when calculating the sky occlusion data. Higher values increase the accuracy of the sky occlusion data, but increase baking time. Use higher values if objects block the direct view from probes to the sky. The default value is 2. |
 | **Albedo Override** | Set the brightness of the single color Unity uses to represent objects the sky light bounces off, instead of the actual color of the objects. Higher values brighten the baked sky occlusion lighting. The default value is 0.6. |
 | **Sky Direction** | Enable Unity storing and using more accurate data about the directions from probes towards the sky. Refer to [Add dynamic color and shadows from the sky](probevolumes-skyocclusion.md#enable-more-accurate-sky-direction-data) for more information. |
 

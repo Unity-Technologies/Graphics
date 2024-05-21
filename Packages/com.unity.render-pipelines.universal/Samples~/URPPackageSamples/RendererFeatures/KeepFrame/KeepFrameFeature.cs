@@ -28,7 +28,9 @@ public class KeepFrameFeature : ScriptableRendererFeature
             m_Destination = destination;
         }
 
-        // The Execute method gets called by the non-RenderGraph pipeline
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
+
+        // Unity calls the Execute method in the Compatibility mode
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.camera.cameraType != CameraType.Game)
@@ -43,6 +45,8 @@ public class KeepFrameFeature : ScriptableRendererFeature
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+#pragma warning restore 618, 672
 
         // RecordRenderGraph is called for the RenderGraph path.
         // Because RenderGraph has to calculate internally how resources are used we must be aware of 2
@@ -114,6 +118,9 @@ public class KeepFrameFeature : ScriptableRendererFeature
             Blitter.BlitTexture(cmd, source, viewportScale, material, 0);
         }
 
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
+
+        // Unity calls the Execute method in the Compatibility mode
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(nameof(DrawOldFramePass));
@@ -125,6 +132,8 @@ public class KeepFrameFeature : ScriptableRendererFeature
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+#pragma warning restore 618, 672
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {

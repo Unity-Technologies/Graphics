@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
 
         internal void SetDefaults()
         {
-            enableDilation = true;
+            enableDilation = false;
             dilationDistance = 1;
             dilationValidityThreshold = 0.25f;
             dilationIterations = 1;

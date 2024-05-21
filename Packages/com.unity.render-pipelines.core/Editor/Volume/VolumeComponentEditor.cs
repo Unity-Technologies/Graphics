@@ -117,8 +117,6 @@ namespace UnityEditor.Rendering
 
         #region Additional Properties
 
-        AnimFloat m_AdditionalPropertiesAnimation;
-        EditorPrefBool m_ShowAdditionalProperties;
         List<VolumeParameter> m_VolumeNotAdditionalParameters = new List<VolumeParameter>();
 
         /// <summary>
@@ -131,17 +129,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         public bool showAdditionalProperties
         {
-            get => m_ShowAdditionalProperties.value;
-            set
-            {
-                if (value && !m_ShowAdditionalProperties.value)
-                {
-                    m_AdditionalPropertiesAnimation.value = 1.0f;
-                    m_AdditionalPropertiesAnimation.target = 0.0f;
-                }
-
-                SetAdditionalPropertiesPreference(value);
-            }
+            get => AdvancedProperties.enabled;
+            set => AdvancedProperties.enabled = value;
         }
 
         /// <summary>
@@ -151,15 +140,11 @@ namespace UnityEditor.Rendering
         /// <returns>True if the additional content should be drawn.</returns>
         protected bool BeginAdditionalPropertiesScope()
         {
-            if (hasAdditionalProperties && showAdditionalProperties)
-            {
-                CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
-                return true;
-            }
-            else
-            {
+            if (!showAdditionalProperties || !hasAdditionalProperties)
                 return false;
-            }
+
+            AdvancedProperties.BeginGroup();
+            return true;
         }
 
         /// <summary>
@@ -168,9 +153,7 @@ namespace UnityEditor.Rendering
         protected void EndAdditionalPropertiesScope()
         {
             if (hasAdditionalProperties && showAdditionalProperties)
-            {
-                CoreEditorUtils.EndAdditionalPropertiesHighlight();
-            }
+                AdvancedProperties.EndGroup();
         }
 
         #endregion
@@ -267,12 +250,7 @@ namespace UnityEditor.Rendering
         internal void InitAdditionalPropertiesPreference()
         {
             string key = GetAdditionalPropertiesPreferenceKey(GetType());
-            m_ShowAdditionalProperties = new EditorPrefBool(key);
-        }
-
-        internal void SetAdditionalPropertiesPreference(bool value)
-        {
-            m_ShowAdditionalProperties.value = value;
+            AdvancedProperties.UpdateShowAdvancedProperties(key, EditorPrefs.HasKey(key) && EditorPrefs.GetBool(key));
         }
 
         internal void Init()
@@ -290,11 +268,6 @@ namespace UnityEditor.Rendering
             m_EditorPrefBool = new EditorPrefBool(k_KeyPrefix + inspectorKey + volumeComponent.GetType().Name, expandedByDefault);
 
             InitAdditionalPropertiesPreference();
-
-            m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint)
-            {
-                speed = CoreEditorConstants.additionalPropertiesHightLightSpeed
-            };
 
             InitParameters();
             OnEnable();

@@ -310,7 +310,7 @@ namespace UnityEditor.VFX
                 m_CacheComposedTraitDescription.taskType = topologyDescription.taskType | shadingDescription.taskType;
                 m_CacheComposedTraitDescription.features = topologyDescription.features | shadingDescription.features;
                 m_CacheComposedTraitDescription.name = $"Output " +
-                                                       $"{(ownedType == VFXDataType.ParticleStrip ? "ParticleStrip" : "Particle")} ShaderGraph" +
+                                                       $"{(ownedType == VFXDataType.ParticleStrip ? "ParticleStrip" : "Particle")}".AppendLabel("ShaderGraph") +
                                                        $"\n{topologyDescription.name}" +
                                                        (string.IsNullOrEmpty(shadingDescription.name) ? string.Empty : $" - {shadingDescription.name}");
 

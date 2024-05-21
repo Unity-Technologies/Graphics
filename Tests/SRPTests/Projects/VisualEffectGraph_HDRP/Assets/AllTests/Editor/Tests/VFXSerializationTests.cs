@@ -289,7 +289,7 @@ namespace UnityEditor.VFX.Test
                         Assert.AreEqual(4.0f, tArcCircle.circle.radius);
                         Assert.AreEqual(5.0f, tArcCircle.arc);
                     }
-             
+
                     Assert.AreEqual(0.7f, block.inputSlots[1].value);
                     Assert.AreEqual(6.0f, block.inputSlots[2].value);
                 }
@@ -327,7 +327,7 @@ namespace UnityEditor.VFX.Test
                         Assert.AreEqual(6.0f, tArcCone.cone.height);
                         Assert.AreEqual(0.7f, tArcCone.arc);
                     }
-                  
+
                     Assert.AreEqual(0.9f, block.inputSlots[1].value);
                     Assert.AreEqual(1.0f, block.inputSlots[2].value);
                     Assert.AreEqual(8.0f, block.inputSlots[3].value);
@@ -1094,8 +1094,8 @@ namespace UnityEditor.VFX.Test
 
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var sizeCurrent = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
-                var sizeSource = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                var sizeCurrent = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute, StringComparison.OrdinalIgnoreCase) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
+                var sizeSource = VFXLibrary.GetOperators().First(o => o.variant.name.Contains(testAttribute, StringComparison.OrdinalIgnoreCase) && o.variant.modelType == typeof(VFXAttributeParameter)).CreateInstance();
                 (sizeSource as VFXAttributeParameter).SetSettingValue("location", VFXAttributeLocation.Source);
                 asset.GetResource().GetOrCreateGraph().AddChild(sizeCurrent);
                 asset.GetResource().GetOrCreateGraph().AddChild(sizeSource);

@@ -7,12 +7,12 @@ using UnityEngine;
 namespace UnityEditor.VFX.URP
 {
     [VFXHelpURL("Context-OutputPrimitive")]
-    [VFXInfo(name = "Output ParticleStrip URP Lit Quad", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output ParticleStrip|URP Lit|Quad", category = "#3Output Strip", experimental = true)]
     class VFXURPLitQuadStripOutput : VFXAbstractParticleURPLitOutput
     {
         protected VFXURPLitQuadStripOutput() : base(true) {}  // strips
 
-        public override string name => "Output ParticleStrip URP Lit Quad";
+        public override string name => "Output ParticleStrip".AppendLabel("URP Lit").AppendLabel("Quad");
         public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleLitPlanarPrimitive");
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
         public override bool supportsUV => true;

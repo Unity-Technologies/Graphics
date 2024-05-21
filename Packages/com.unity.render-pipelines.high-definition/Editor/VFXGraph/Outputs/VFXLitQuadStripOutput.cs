@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output ParticleStrip HDRP Lit Quad", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output ParticleStrip|HDRP Lit|Quad", category = "#3Output Strip", experimental = true, synonyms = new []{ "Trail", "Ribbon" })]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
         protected VFXLitQuadStripOutput() : base(true) { }  // strips
 
-        public override string name { get { return "Output ParticleStrip HDRP Lit Quad"; } }
+        public override string name => "Output ParticleStrip".AppendLabel("HDRP Lit", false) + "\nQuad";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }

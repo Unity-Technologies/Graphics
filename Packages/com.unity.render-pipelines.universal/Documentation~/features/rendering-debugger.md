@@ -60,6 +60,8 @@ The **Rendering Debugger** window contains the following sections:
 
 * [Lighting](#lighting)
 
+* [GPU Resident Drawer](#gpu-resident-drawer)
+
 * [Render Graph](#render-graph)
 
 * [Probe Volume](#probe-volume-panel)
@@ -145,10 +147,11 @@ The properties in this section let you visualize different rendering features.
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
-| **Map Overlays**               | Specifies which render pipeline texture to overlay on the screen. The options are:<ul><li>**None**: Renders the scene normally without a texture overlay.</li><li>**Depth**: Overlays the camera's depth texture on the screen.</li><li>**Additional Lights Shadow Map**: Overlays the [shadow map](https://docs.unity3d.com/Manual/shadow-mapping.html) that contains shadows cast by lights other than the main directional light.</li><li>**Main Light Shadow Map**: Overlays the shadow map that contains shadows cast by the main directional light.</li></ul> |
+| **Map Overlays**               | Specifies which render pipeline texture to overlay on the screen. The options are:<ul><li>**None**: Renders the scene normally without a texture overlay.</li><li>**Depth**: Overlays the camera's depth texture on the screen.</li><li>**Motion Vector**: Overlays the camera's motion vector texture on the screen.</li><li>**Additional Lights Shadow Map**: Overlays the [shadow map](https://docs.unity3d.com/Manual/shadow-mapping.html) that contains shadows cast by lights other than the main directional light.</li><li>**Main Light Shadow Map**: Overlays the shadow map that contains shadows cast by the main directional light.</li><li>**Additional Lights Cookie Atlas**: Overlays the light cookie atlas texture that contains patterns cast by lights other than the main directional light.</li><li>**Reflection Probe Atlas**: Overlays the reflection probe atlas texture that contains the reflection textures at the probe locations.</li></ul> |
 | **&nbsp;&nbsp;Map Size**       | The width and height of the overlay texture as a percentage of the view window URP displays it in. For example, a value of **50** fills up a quarter of the screen (50% of the width and 50% of the height). |
 | **HDR**                        | Indicates whether to use [high dynamic range (HDR)](https://docs.unity3d.com/Manual/HDR.html) to render the scene. Enabling this property only has an effect if you enable **HDR** in your URP Asset. |
 | **MSAA**                       | Indicates whether to use [Multisample Anti-aliasing (MSAA)](./../anti-aliasing.md#msaa) to render the scene. Enabling this property only has an effect if:<ul><li>You set **Anti Aliasing (MSAA)** to a value other than **Disabled** in your URP Asset.</li><li>You use the Game View. MSAA has no effect in the Scene View.</li></ul> |
+| **TAA Debug Mode**             | Specifies which Temporal Anti-aliasing debug mode to use. The options are:<ul><li>**None**: Renders the scene normally without a debug mode.</li><li>**Show Raw Frame**: Renders the screen with the color input Temporal Anti-aliasing currently uses.</li><li>**Show Raw Frame No Jitter**: Renders the screen with the color input TAA currently uses, and disables camera jitter.</li><li>**Show Clamped History**: Renders the screen with the color history that TAA has accumulated and corrected.</li></ul> |
 | **Post-processing**            | Specifies how URP applies post-processing. The options are:<ul><li>**Disabled**: Disables post-processing.</li><li>**Auto**: Unity enables or disables post-processing depending on the currently active debug modes. If color changes from post-processing would change the meaning of a debug mode's pixel, Unity disables post-processing. If no debug modes are active, or if color changes from post-processing don't change the meaning of the active debug modes' pixels, Unity enables post-processing.</li><li>**Enabled**: Applies post-processing to the image that the camera captures.</li></ul> |
 | **Additional Wireframe Modes** | Specifies whether and how to render wireframes for meshes in your scene. The options are:<ul><li>**None**: Doesn't render wireframes.</li><li>**Wireframe**: Exclusively renders edges for meshes in your scene. In this mode, you can see the wireframe for meshes through the wireframe for closer meshes.</li><li>**Solid Wireframe**: Exclusively renders edges and faces for meshes in your scene. In this mode, the faces of each wireframe mesh hide edges behind them.</li><li>**Shaded Wireframe**: Renders edges for meshes as an overlay. In this mode, Unity renders the scene in color and overlays the wireframe over the top.</li></ul> |
 | **Overdraw**                   | Indicates whether to render the overdraw debug view. This is useful to check where Unity draws pixels over one other. |
@@ -197,6 +200,62 @@ The properties in this section let you visualize different settings and elements
 | ----------------------- | ------------------------------------------------------------ |
 | **Lighting Debug Mode** | Specifies which lighting and shadow information to overlay on-screen to debug. The options are:<ul><li>**None**: Renders the scene normally without a debug overlay.</li><li>**Shadow Cascades**: Overlays shadow cascade information so you can determine which shadow cascade each pixel uses. Use this to debug shadow cascade distances. For information on which color represents which shadow cascade, refer to the [Shadows section of the URP Asset](../universalrp-asset.md#shadows).</li><li>**Lighting Without Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and disables normal maps. This and the **Lighting With Normal Maps** mode are useful for debugging lighting issues caused by normal maps.</li><li>**Lighting With Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and allows normal maps.</li><li>**Reflections**: Renders the scene to visualize reflections. This mode applies perfectly smooth, reflective materials to every Mesh Renderer.</li><li>**Reflections With Smoothness**: Renders the scene to visualize reflections. This mode applies reflective materials without an overridden smoothness to every GameObject.</li></ul> |
 | **Lighting Features**   | Specifies flags for which lighting features contribute to the final lighting result. Use this to view and debug specific lighting features in your scene. The options are:<ul><li>**Nothing**: Shortcut to disable all flags.</li><li>**Everything**: Shortcut to enable all flags.</li><li>**Global Illumination**: Indicates whether to render [global illumination](https://docs.unity3d.com/Manual/realtime-gi-using-enlighten.html).</li><li>**Main Light**: Indicates whether the main directional [Light](../light-component.md) contributes to lighting.</li><li>**Additional Lights**: Indicates whether lights other than the main directional light contribute to lighting.</li><li>**Vertex Lighting**: Indicates whether additional lights that use per-vertex lighting contribute to lighting.</li><li>**Emission**: Indicates whether [emissive](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterEmission.html) materials contribute to lighting.</li><li>**Ambient Occlusion**: Indicates whether [ambient occlusion](../post-processing-ssao.md) contributes to lighting.</li></ul> |
+
+### GPU Resident Drawer
+
+The properties in this section let you visualize settings that [reduce rendering work on the CPU](../reduce-rendering-work-on-cpu.md).
+
+#### Occlusion Culling
+
+|**Property**|**Sub-property**|**Description**|
+|-|-|-|
+| **Occlusion Test Overlay** || Display a heatmap of culled instances. The heatmap displays blue if there are few culled instances, through to red if there are many culled instances. If you enable this setting, culling might be slower. |
+| **Occlusion Test Overlay Count Visible** || Display a heatmap of instances that Unity doesn't cull. The heatmap displays blue if there are many culled instances, through to red if there are few culled instances. This setting only has an effect if you enable **Occlusion Test Overlay**. |
+| **Override Occlusion Test To Always Pass** || Set occluded objects as unoccluded. This setting affects both the Rendering Debugger and the scene. |
+| **Occluder Context Stats** || Display the [**Occlusion Context Stats**](#occlusion-context-stats) section. |
+| **Occluder Debug View** || Display an overlay with the occlusion textures and mipmaps Unity generates. |
+|| **Occluder Debug View Index** | Set the occlusion texture to display. |
+|| **Occluder Debug View Range Min** | Set the brightness of the minimum depth value. Increase this value to brighten objects that are far away from the view. |
+|| **Occluder Debug View Range Max** | Set the brightness of the maximum depth value. Decrease this value to darken objects that are close to the view. |
+
+![](../Images/renderingdebugger-gpuculling-heatmap.jpg)<br/>
+The Rendering Debugger with **Occlusion Test Overlay** enabled. The red areas are where Unity culls many objects. The blue area is where Unity culls few objects.
+
+![](../Images/renderingdebugger-gpuculling-overlay.jpg)<br/>
+The Rendering Debugger with **Occluder Debug View** enabled. The overlay displays each mipmap level of the occlusion texture.
+
+#### Occlusion Context Stats
+
+The **Occlusion Context Stats** section lists the occlusion textures Unity generates.
+
+|**Property**|**Description**|
+|-|-|
+| **Active Occlusion Contexts** | The number of occlusion textures. |
+| **View Instance ID** | The instance ID of the camera Unity renders the view from, to create the occlusion texture. |
+| **Subview Count** | The number of subviews. The value might be 2 or more if you use XR. |
+| **Size Per Subview** | The size of the subview texture in bytes. |
+
+#### GPU Resident Drawer Settings
+
+|**Section**|**Property**|**Sub-property**|**Description**|
+|-|-|-|-|
+|**Display Culling Stats**|||Display information about the cameras Unity uses to create occlusion textures.|
+|**Instance Culler Stats**||||
+||**View Count**|| The number of views Unity uses for GPU culling. Unity uses one view per shadow cascade or shadow map. For example, Unity uses three views for a Directional Light that generates three shadow cascades. |
+||**Per View Stats**|||
+|||**View Type**| The object or shadow split Unity renders the view from. |
+|||**View Instance ID**| The instance ID of the camera or light Unity renders the view from. |
+|||**Split Index**| The shadow split index value. This value is 0 if the object doesn't have shadow splits. |
+|||**Visible Instances**| How many objects are visible in this split. |
+|||**Draw Commands**| How many draw commands Unity uses for this split. |
+|**Occlusion Culling Events**||||
+||**View Instance ID**|| The instance ID of the camera Unity renders the view from. |
+||**Event type**|| The type of render pass. <ul><li>**OccluderUpdate**</li>The GPU samples the depth buffer and creates a new occlusion texture and its mipmap.<li>**OcclusionTest**</li>The GPU tests all the instances against the occlusion texture.</ul> |
+||**Occluder Version**|| How many times Unity updates the occlusion texture in this frame. |
+||**Subview Mask**|| A bitmask that represents which subviews are affected in this frame.  |
+||**Occlusion Test**|| Which test the GPU runs against the occlusion texture. <ul><li>**TestNone**</li>Unity found no occluders, so all instances are visible.<li>**TestAll**: Unity tests all instances against the occlusion texture.</li><li>**TestCulled**: Unity tests only instances that the previous **TestAll** test culled.</li></ul> |
+||**Visible Instances**|| The number of visible instances after occlusion culling. |
+||**Culled Instances**|| The number of culled instances after occlusion culling. |
 
 ### Render Graph
 

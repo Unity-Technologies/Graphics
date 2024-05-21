@@ -313,7 +313,8 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
-                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
+                if (cameraData.xr.enabled)
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

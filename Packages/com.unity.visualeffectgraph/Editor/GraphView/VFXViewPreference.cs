@@ -127,6 +127,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static void SetDirty()
+        {
+            m_Loaded = false;
+        }
+
         public const string experimentalOperatorKey = "VFX.displayExperimentalOperatorKey";
         public const string extraDebugInfoKey = "VFX.ExtraDebugInfo";
         public const string forceEditionCompilationKey = "VFX.ForceEditionCompilation";

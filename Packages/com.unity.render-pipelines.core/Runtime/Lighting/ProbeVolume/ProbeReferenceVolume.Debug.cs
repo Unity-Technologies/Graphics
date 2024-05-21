@@ -587,7 +587,7 @@ namespace UnityEngine.Rendering
                 {
                     probeVolumeDebug.drawVirtualOffsetPush = value;
 
-                    if (probeVolumeDebug.drawVirtualOffsetPush && probeVolumeDebug.drawProbes)
+                    if (probeVolumeDebug.drawVirtualOffsetPush && probeVolumeDebug.drawProbes && m_CurrentBakingSet != null)
                     {
                         // If probes are being drawn when enabling offset, automatically scale them down to a reasonable size so the arrows aren't obscured by the probes.
                         var searchDistance = CellSize(0) * MinBrickSize() / ProbeBrickPool.kBrickCellCount * m_CurrentBakingSet.settings.virtualOffsetSettings.searchMultiplier + m_CurrentBakingSet.settings.virtualOffsetSettings.outOfGeoOffset;

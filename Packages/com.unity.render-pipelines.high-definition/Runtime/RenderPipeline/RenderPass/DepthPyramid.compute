@@ -1,47 +1,129 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/DepthPyramidConstants.cs.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel KDepthDownsample8DualUav  KERNEL_SIZE=8  KERNEL_NAME=KDepthDownsample8DualUav
+#pragma multi_compile_local _ ENABLE_CHECKERBOARD
+
+#pragma kernel KDepthDownsample8DualUav KERNEL_NAME=KDepthDownsample8DualUav
 
 RW_TEXTURE2D_X(float, _DepthMipChain);
 
-CBUFFER_START(cb)
-    uint4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
-    uint4 _DstOffset;         // {x, y, 0, 0}
-CBUFFER_END
-
 #if UNITY_REVERSED_Z
-# define MIN_DEPTH(l, r) max(l, r)
+#define MIN_DEPTH(A, B)         max((A), (B))
+#define MIN3_DEPTH(A, B, C)     Max3((A), (B), (C))
+#define MAX_DEPTH(A, B)         min((A), (B))
+#define MAX3_DEPTH(A, B, C)     Min3((A), (B), (C))
 #else
-# define MIN_DEPTH(l, r) min(l, r)
+#define MIN_DEPTH(A, B)         min((A), (B))
+#define MIN3_DEPTH(A, B, C)     Min3((A), (B), (C))
+#define MAX_DEPTH(A, B)         max((A), (B))
+#define MAX3_DEPTH(A, B, C)     Max3((A), (B), (C))
 #endif
 
-// Downsample a depth texture by taking the min value of sampled pixels
-// The size of the dispatch is (DstMipSize / KernelSize).
-[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
-void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
+uint2 CoordInTileByIndex(uint i)
 {
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    uint2 srcOffset = _SrcOffsetAndLimit.xy;
-    uint2 srcLimit  = _SrcOffsetAndLimit.zw;
-    uint2 dstOffset = _DstOffset.xy;
-
-    // Upper-left pixel coordinate of quad that this thread will read
-    uint2 srcPixelUL = srcOffset + (dispatchThreadId.xy << 1);
-
-    float p00 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 0u), srcLimit))];
-    float p10 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 0u), srcLimit))];
-    float p01 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 1u), srcLimit))];
-    float p11 = _DepthMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), srcLimit))];
-    float4 depths = float4(p00, p10, p01, p11);
-
-    // Select the closest sample
-    float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
-
-    _DepthMipChain[COORD_TEXTURE2D_X(dstOffset + dispatchThreadId.xy)] = minDepth;
+    // decode i = [yxxyyx] (we want each pair of bits to have an x and a y)
+    return uint2(
+        (i & 1) | ((i >> 2) & 6),
+        ((i >> 1) & 3) | ((i >> 3) & 4));
 }
 
-#undef MIN_DEPTH
+groupshared float s_minDepth[32];
+#ifdef ENABLE_CHECKERBOARD
+groupshared float s_maxDepth[32];
+#endif
+
+void SubgroupMergeDepths(uint threadID, uint bitIndex, inout float minDepth, inout float maxDepth)
+{
+    uint highIndex = threadID >> (bitIndex + 1);
+    uint lowIndex = threadID & ((1 << (bitIndex + 1)) - 1);
+
+    if (lowIndex == (1 << bitIndex))
+    {
+        s_minDepth[highIndex] = minDepth;
+#ifdef ENABLE_CHECKERBOARD
+        s_maxDepth[highIndex] = maxDepth;
+#endif
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    if (lowIndex == 0)
+    {
+        minDepth = MIN_DEPTH(minDepth, s_minDepth[highIndex]);
+#ifdef ENABLE_CHECKERBOARD
+        maxDepth = MAX_DEPTH(maxDepth, s_maxDepth[highIndex]);
+#endif
+    }
+    GroupMemoryBarrierWithGroupSync();
+}
+
+float CheckerboardDepth(uint2 coord, float minDepth, float maxDepth)
+{
+    return ((coord.x ^ coord.y) & 1) ? minDepth : maxDepth;
+}
+
+// Downsample a depth texture by taking the min value of sampled pixels
+[numthreads(64, 1, 1)]
+void KERNEL_NAME(uint threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(groupID.z);
+
+    // assign threads to pixels in a swizzle-like pattern
+    int2 dstCoord0 = (groupID.xy << 3) | CoordInTileByIndex(threadID);
+
+    int2 readOffsetUL = dstCoord0 << 1;
+    float p00 = _DepthMipChain[COORD_TEXTURE2D_X(_SrcOffset + min(readOffsetUL + int2(0, 0), _SrcLimit))];
+    float p10 = _DepthMipChain[COORD_TEXTURE2D_X(_SrcOffset + min(readOffsetUL + int2(1, 0), _SrcLimit))];
+    float p01 = _DepthMipChain[COORD_TEXTURE2D_X(_SrcOffset + min(readOffsetUL + int2(0, 1), _SrcLimit))];
+    float p11 = _DepthMipChain[COORD_TEXTURE2D_X(_SrcOffset + min(readOffsetUL + int2(1, 1), _SrcLimit))];
+    float minDepth = MIN3_DEPTH(p00, p10, MIN_DEPTH(p01, p11));
+    float maxDepth = MAX3_DEPTH(p00, p10, MAX_DEPTH(p01, p11));
+
+    // write dst0
+    if (all(dstCoord0 < _DstSize0))
+    {
+        _DepthMipChain[COORD_TEXTURE2D_X(_MinDstOffset0 + dstCoord0)] = minDepth;
+#ifdef ENABLE_CHECKERBOARD
+        if (_CbDstCount >= 1)
+            _DepthMipChain[COORD_TEXTURE2D_X(_CbDstOffset0 + dstCoord0)] = CheckerboardDepth(dstCoord0, minDepth, maxDepth);
+#endif
+    }
+
+    // merge to thread 0 in subgroup size 4
+    SubgroupMergeDepths(threadID, 0, minDepth, maxDepth);
+    SubgroupMergeDepths(threadID, 1, minDepth, maxDepth);
+    if (_MinDstCount >= 2 && (threadID & 0x3) == 0)
+    {
+        int2 dstCoord1 = dstCoord0 >> 1;
+        if (all(dstCoord1 < _DstSize1))
+        {
+            _DepthMipChain[COORD_TEXTURE2D_X(_MinDstOffset1 + dstCoord1)] = minDepth;
+#ifdef ENABLE_CHECKERBOARD
+            if (_CbDstCount >= 2)
+                _DepthMipChain[COORD_TEXTURE2D_X(_CbDstOffset1 + dstCoord1)] = CheckerboardDepth(dstCoord1, minDepth, maxDepth);
+#endif
+        }
+    }
+
+    // merge to thread 0 in subgroup size 16
+    SubgroupMergeDepths(threadID, 2, minDepth, maxDepth);
+    SubgroupMergeDepths(threadID, 3, minDepth, maxDepth);
+    if (_MinDstCount >= 3 && (threadID & 0xf) == 0)
+    {
+        int2 dstCoord2 = dstCoord0 >> 2;
+        if (all(dstCoord2 < _DstSize2))
+            _DepthMipChain[COORD_TEXTURE2D_X(_MinDstOffset2 + dstCoord2)] = minDepth;
+    }
+
+    // merge to thread 0
+    SubgroupMergeDepths(threadID, 4, minDepth, maxDepth);
+    SubgroupMergeDepths(threadID, 5, minDepth, maxDepth);
+    if (_MinDstCount >= 4 && (threadID & 0x3f) == 0)
+    {
+        int2 dstCoord3 = dstCoord0 >> 3;
+        if (all(dstCoord3 < _DstSize3))
+            _DepthMipChain[COORD_TEXTURE2D_X(_MinDstOffset3 + dstCoord3)] = minDepth;
+    }
+}

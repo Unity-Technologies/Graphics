@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty skyUniqueID;
             public SerializedProperty cloudUniqueID;
             public SerializedProperty volumetricCloudsToggle;
+            public SerializedProperty numberOfBounces;
+
             public VolumeProfile volumeProfile
             {
                 get => (serializedObject.targetObject as StaticLightingSky).profile;
@@ -46,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 skyUniqueID = serializedObject.FindProperty("m_StaticLightingSkyUniqueID");
                 cloudUniqueID = serializedObject.FindProperty("m_StaticLightingCloudsUniqueID");
                 volumetricCloudsToggle = serializedObject.FindProperty("m_StaticLightingVolumetricClouds");
+                numberOfBounces = serializedObject.FindProperty("bounces");
             }
 
             public void Apply() => serializedObject.ApplyModifiedProperties();
@@ -94,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void OnActiveSceneChange(Scene current, Scene next)
             => m_SerializedActiveSceneLightingSky = new SerializedStaticLightingSky(GetStaticLightingSkyForScene(next));
 
-        StaticLightingSky GetStaticLightingSkyForScene(Scene scene)
+        static internal StaticLightingSky GetStaticLightingSkyForScene(Scene scene)
         {
             StaticLightingSky result = null;
             foreach (var go in scene.GetRootGameObjects())
@@ -204,6 +207,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
                 }
+
+                EditorGUILayout.Space();
+
+                EditorGUILayout.LabelField("Reflection Probes");
+                using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.numberOfBounces);
 
                 --EditorGUI.indentLevel;
             }

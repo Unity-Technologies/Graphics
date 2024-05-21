@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // First we must ensure, that the texture is there (if it should be) and at the right resolution
-            currentWater.CheckFoamResources();
+            currentWater.CheckFoamResources(cmd);
 
             // Skip if there are is foam to render
             if (!currentWater.foam)

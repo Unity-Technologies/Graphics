@@ -105,7 +105,7 @@ namespace UnityEditor.VFX.Test
             var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
             output.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
             graph.AddChild(output);
-            Assert.AreEqual("Output Particle ShaderGraph\nQuad", output.name);
+            Assert.AreEqual("Output Particle".AppendLabel("Shader Graph") + "\nQuad", output.name);
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             contextInitialize.LinkTo(output);
@@ -295,6 +295,30 @@ namespace UnityEditor.VFX.Test
             foreach (var yield in CheckCompilation(vfxGraph))
             {
                 yield return yield;
+            }
+        }
+
+        [UnityTest, Description("UUM-69751")]
+        public IEnumerator ShaderGraph_With_Gradient_In_Blackboard()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXSG_Gradient_Repro_69751.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var scenePath = VFXTestCommon.tempBasePath + "Repro_69751.unity";
+            SceneManagement.EditorSceneManager.OpenScene(scenePath);
+            for (int i = 0; i < 4; i++)
+                yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "Repro_69751.vfx";
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            Assert.AreEqual(2u, shaders.Length);
+            foreach (var shader in shaders)
+            {
+                Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
             }
         }
     }

@@ -8,13 +8,10 @@ using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMa
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Particle HDRP Lit Decal", category = "Output")]
+    [VFXInfo(name = "Output Particle|HDRP Lit|Decal", category = "#4Output Advanced")]
     class VFXDecalHDRPOutput : VFXAbstractParticleHDRPOutput
     {
-        public override string name
-        {
-            get { return "Output Particle HDRP Lit Decal"; }
-        }
+        public override string name => "Output Particle".AppendLabel("HDRP Lit", false) + "\nDecal";
 
         public override string codeGeneratorTemplate
         {

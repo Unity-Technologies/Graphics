@@ -130,15 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition
             k_AdditionalPropertiesState.UnregisterEditor(editor);
         }
 
-        [SetAdditionalPropertiesVisibility]
-        internal static void SetAdditionalPropertiesVisibility(bool value)
-        {
-            if (value)
-                k_AdditionalPropertiesState.ShowAll();
-            else
-                k_AdditionalPropertiesState.HideAll();
-        }
-
         static Func<LightingSettings> GetLightingSettingsOrDefaultsFallback;
 
         static HDLightUI()

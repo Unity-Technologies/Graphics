@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using Unity.Profiling;
 using Unity.UI.Builder;
@@ -12,7 +13,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXFilterWindow : EditorWindow
     {
-        private sealed class Descriptor
+        internal class Descriptor
         {
             private IVFXModelDescriptor m_Descriptor;
             public Descriptor(IVFXModelDescriptor descriptor, string match, string synonym) : this(descriptor.name, descriptor.category, descriptor, match, synonym) { }
@@ -28,19 +29,73 @@ namespace UnityEditor.VFX.UI
             }
 
             public string category { get; }
-            public string[] synonyms { get; }
             public string name { get; }
             public IVFXModelDescriptor descriptor { get; }
             public Variant variant { get; }
             public IVFXModelDescriptor[] subVariants => this.descriptor?.subVariantDescriptors;
             public string nameMatch { get; }
             public string synonymMatch { get; }
+            public float matchingScore { get; set; }
 
+            public string GetDisplayName() => string.IsNullOrEmpty(nameMatch) ? name : nameMatch;
+            // Only used for test purpose
+            public string GetDisplayNameAndSynonym() => string.IsNullOrEmpty(synonymMatch) ? name : $"{name} ({synonymMatch})";
             public string GetDocumentationLink() => this.descriptor.variant.GetDocumentationLink();
         }
 
+        private class Separator : Descriptor
+        {
+            public Separator(string name, string category, string match = null, string synonym = null) : base(name, category, null, match, synonym)
+            {
+            }
+        }
+
+        // This custom string comparer is used to sort path properly (Attribute should be listed before Attribute from Curve for instance)
+        private class CategoryComparer : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                // Hack to sort no category items at the end
+                if (string.IsNullOrEmpty(x)) return 1;
+                if (string.IsNullOrEmpty(y)) return -1;
+
+                var xIndex = x.IndexOf('/');
+                var yIndex = y.IndexOf('/');
+
+                var comparison = 0;
+                if (xIndex > 0 && yIndex < 0)
+                {
+                    comparison = string.Compare(x.Substring(0, xIndex), y, StringComparison.OrdinalIgnoreCase);
+                }
+                else if (xIndex < 0 && yIndex > 0)
+                {
+                    comparison = string.Compare(x, y.Substring(0, yIndex), StringComparison.OrdinalIgnoreCase);
+                }
+                else if (xIndex >= 0 && yIndex >= 0)
+                {
+                    comparison = string.Compare(x.Substring(0, xIndex), y.Substring(0, yIndex), StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (comparison != 0)
+                    return comparison;
+
+                // Deeper categories are sorted at the end
+                if (xIndex > 0 || yIndex > 0)
+                {
+                    var xDepth = x.Count(c => c == '/');
+                    var yDepth = y.Count(c => c == '/');
+                    if (xDepth < yDepth)
+                        return -1;
+                    else if (xDepth > yDepth)
+                        return 1;
+                }
+
+                return string.Compare(x, y, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
         [Serializable]
-        private struct Settings
+        internal struct Settings
         {
             [SerializeField] private List<string> categories;
             [SerializeField] private List<Color> colors;
@@ -117,6 +172,11 @@ namespace UnityEditor.VFX.UI
         }
 
         private static readonly ProfilerMarker s_GetMatchesPerfMarker = new("VFXFilterWindow.GetMatches");
+        private static readonly char[] s_MatchingSeparators = { ' ', '|', '_' };
+        private static Regex s_NodeNameParser = new("(?<label>[|]?[^\\|]*)", RegexOptions.Compiled);
+        private static CategoryComparer s_CategoryComparer = new CategoryComparer();
+        private static List<string> s_PatternMatches = new List<string>();
+
 
         private const float DefaultWindowWidth = 700;
         private const float DefaultPanelWidth = 350;
@@ -128,7 +188,6 @@ namespace UnityEditor.VFX.UI
         private TreeView m_VariantTreeview;
         readonly List<TreeViewItemData<Descriptor>> m_TreeviewData = new();
         private TreeViewItemData<Descriptor> m_FavoriteCategory;
-        private Label m_CategoryLabel;
         private ColorField m_CategoryColorField;
         private Button m_ResetCategoryColor;
         private string m_SearchPattern;
@@ -136,7 +195,7 @@ namespace UnityEditor.VFX.UI
         private TwoPaneSplitView m_SplitPanel;
         private ToolbarSearchField m_SearchField;
         private Button m_HelpButton;
-        private ToolbarBreadcrumbs m_Breadcrumbs;
+        private Label m_Title;
         private Label m_NoSubvariantLabel;
 
         private float leftPanelWidth;
@@ -145,15 +204,8 @@ namespace UnityEditor.VFX.UI
         private bool m_IsResizing;
         private Rect m_OriginalWindowPos;
         private Vector3 m_OriginalMousePos;
-        private VFXView m_ParentView;
 
-        private bool hasSearch => !string.IsNullOrEmpty(m_SearchPattern);
-
-        public void ToggleSubVariantVisibility()
-        {
-            var toggle = rootVisualElement.Q<Toggle>("ListVariantToggle");
-            toggle.value = !settings.showSubVariantsInSearchResults;
-        }
+        private bool hasSearch => !string.IsNullOrEmpty(GetSearchPattern());
 
         protected void OnLostFocus()
         {
@@ -166,7 +218,6 @@ namespace UnityEditor.VFX.UI
         private void OnDisable()
         {
             SaveSettings();
-            m_ParentView.Focus();
         }
 
         private void CreateGUI()
@@ -210,6 +261,7 @@ namespace UnityEditor.VFX.UI
             rootVisualElement.Q<VisualElement>("DetailsPanel");
 
             m_Treeview = rootVisualElement.Q<TreeView>("ListOfNodes");
+            m_Treeview.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             m_Treeview.makeItem += MakeItem;
             m_Treeview.bindItem += (element, index) => BindItem(m_Treeview, element, index);
             m_Treeview.unbindItem += UnbindItem;
@@ -217,14 +269,13 @@ namespace UnityEditor.VFX.UI
             m_Treeview.viewDataKey = null;
 
             m_VariantTreeview = rootVisualElement.Q<TreeView>("ListOfVariants");
+            m_VariantTreeview.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             m_VariantTreeview.makeItem += MakeItem;
             m_VariantTreeview.bindItem += (element, index) => BindItem(m_VariantTreeview, element, index);
             m_VariantTreeview.unbindItem += UnbindItem;
             m_VariantTreeview.viewDataKey = null;
 
-            m_CategoryLabel = rootVisualElement.Q<Label>("CategoryLabel");
-            m_Breadcrumbs = rootVisualElement.Q<ToolbarBreadcrumbs>("Breadcrumbs");
-            m_Breadcrumbs.SetEnabled(false);
+            m_Title = rootVisualElement.Q<Label>("Title");
             m_CategoryColorField = rootVisualElement.Q<ColorField>("CategoryColorField");
             m_CategoryColorField.RegisterCallback<ChangeEvent<Color>>(OnCategoryColorChanged);
             m_ResetCategoryColor = rootVisualElement.Q<Button>("ResetButton");
@@ -256,7 +307,10 @@ namespace UnityEditor.VFX.UI
         private void OnToggleSubVariantVisibility(ChangeEvent<bool> evt)
         {
             settings.showSubVariantsInSearchResults = evt.newValue;
-            UpdateSearchResult();
+            if (hasSearch)
+            {
+                UpdateSearchResult(true);
+            }
         }
 
         private void OnResetCategoryColor(ClickEvent evt)
@@ -264,7 +318,7 @@ namespace UnityEditor.VFX.UI
             var descriptor = (Descriptor)m_Treeview.selectedItem;
             settings.ResetCategoryColor(descriptor.name);
             var element = m_Treeview.GetRootElementForIndex(m_Treeview.selectedIndex);
-            var label = element.Q<Label>("descriptorLabel");
+            var label = element.Q<Label>("categoryLabel");
             label.style.unityBackgroundImageTintColor = new StyleColor(StyleKeyword.Null);
             m_CategoryColorField.value = label.resolvedStyle.unityBackgroundImageTintColor;
         }
@@ -275,7 +329,7 @@ namespace UnityEditor.VFX.UI
             // In that case the descriptor is a category so the path is saved in the name
             settings.SetCategoryColor(descriptor.name, evt.newValue);
             var element = m_Treeview.GetRootElementForIndex(m_Treeview.selectedIndex);
-            element.Q<Label>("descriptorLabel").style.unityBackgroundImageTintColor = evt.newValue;
+            element.Q<Label>("categoryLabel").style.unityBackgroundImageTintColor = evt.newValue;
         }
 
         private void OnKeyDown(KeyDownEvent evt)
@@ -329,20 +383,13 @@ namespace UnityEditor.VFX.UI
 
         private void OnToggleCollapse(ChangeEvent<bool> evt)
         {
-            hideDetailsPanel = evt.newValue;
-
-            var windowWidth = hideDetailsPanel ? m_Treeview.resolvedStyle.width + 2 : DefaultWindowWidth;
-            position = new Rect(position.position, new Vector2(windowWidth, position.height));
-            UpdateDetailsPanelVisibility();
-
-            // Delay so that resolved style is computed
-            EditorApplication.delayCall += SaveSettings;
+            ToggleCollapse(evt.newValue);
         }
 
         private void OnSearchChanged(ChangeEvent<string> evt)
         {
             m_SearchPattern = evt.newValue.Trim().ToLower();
-            UpdateSearchResult();
+            UpdateSearchResult(false);
         }
 
         private void OnSelectionChanged(IEnumerable<object> selection)
@@ -352,21 +399,23 @@ namespace UnityEditor.VFX.UI
             var isFavorites = false;
             var showDocButton = false;
             var showNoSubvariantMessage = false;
-            while (m_Breadcrumbs.childCount > 0)
-                m_Breadcrumbs.PopItem();
-            var categories = new List<string>();
+
             if (m_Treeview.selectedItem is not Descriptor descriptor)
             {
                 return;
             }
+
+            m_Title.text = descriptor.name.ToHumanReadable();
             if (descriptor.variant != null)
             {
                 showDetails = true;
-                categories.AddRange(descriptor.category?.Split('/', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>());
-                categories.Add(descriptor.name);
+                showDocButton = descriptor.variant.modelType?.IsSubclassOf(typeof(VisualEffectSubgraph)) == false
+                                && descriptor.variant is not VFXModelDescriptorParameters.ParameterVariant;
+                var isDocAvailable = !string.IsNullOrEmpty(descriptor.GetDocumentationLink());
+                m_HelpButton.SetEnabled(isDocAvailable);
+                m_HelpButton.tooltip = isDocAvailable ? "Open node's documentation in a browser" : "Documentation is not yet available for this node";
 
-                showDocButton = descriptor.variant.modelType?.IsSubclassOf(typeof(VisualEffectSubgraph)) == false && descriptor.variant is not VFXModelDescriptorParameters.ParameterVariant;
-                if (descriptor.subVariants != null)
+                if (descriptor.subVariants?.Length > 0)
                 {
                     m_VariantTreeview.style.display = DisplayStyle.Flex;
                     List<TreeViewItemData<Descriptor>> treeviewData = new List<TreeViewItemData<Descriptor>>();
@@ -380,20 +429,27 @@ namespace UnityEditor.VFX.UI
                     showNoSubvariantMessage = true;
                 }
             }
-            else
+            else if (descriptor is not Separator)
             {
-                categories.AddRange(descriptor.category.Split('/'));
                 m_CategoryColorField.SetValueWithoutNotify(settings.TryGetCategoryColor(descriptor.name, out var color) ? color : Color.gray);
                 isFavorites = m_Treeview.selectedItem == m_FavoriteCategory.data;
             }
+            else
+            {
+                showDetails = true;// Just to hide category UI
+            }
 
-            categories.ForEach(x => m_Breadcrumbs.PushItem(x));
-
-            m_HelpButton.SetEnabled(showDocButton);
+            if (showDocButton)
+            {
+                m_HelpButton.RemoveFromClassList("hidden");
+            }
+            else
+            {
+                m_HelpButton.AddToClassList("hidden");
+            }
             m_VariantTreeview.style.display = showVariants ? DisplayStyle.Flex : DisplayStyle.None;
             m_NoSubvariantLabel.style.display = showNoSubvariantMessage ? DisplayStyle.Flex : DisplayStyle.None;
-            m_CategoryLabel.style.display = (showDetails || isFavorites) ? DisplayStyle.None : DisplayStyle.Flex;
-            m_CategoryColorField.style.display = (showDetails || isFavorites) ? DisplayStyle.None : DisplayStyle.Flex;
+            m_CategoryColorField.parent.style.display = (showDetails || isFavorites) ? DisplayStyle.None : DisplayStyle.Flex;
             m_ResetCategoryColor.style.display = (showDetails || isFavorites) ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
@@ -436,9 +492,6 @@ namespace UnityEditor.VFX.UI
                 var docLink = descriptor.GetDocumentationLink();
                 if (!string.IsNullOrEmpty(docLink))
                 {
-                    // Temporary until the version 17 documentation is online
-                    docLink = docLink.Replace("17", "16");
-
                     Help.BrowseURL(string.Format(docLink, VFXHelpURLAttribute.version));
                 }
             }
@@ -446,9 +499,9 @@ namespace UnityEditor.VFX.UI
 
         private void OnAddNode(ClickEvent evt)
         {
-            if (evt.target is Label label)
+            if (evt.target is not Button)
             {
-                var treeView = label.GetFirstAncestorOfType<TreeView>();
+                var treeView = ((VisualElement)evt.target).GetFirstAncestorOfType<TreeView>();
                 if (evt.button == (int)MouseButton.LeftMouse && evt.clickCount == 2)
                 {
                     AddNode((Descriptor)treeView.selectedItem);
@@ -520,22 +573,56 @@ namespace UnityEditor.VFX.UI
             var parent = element.GetFirstAncestorWithClass("unity-tree-view__item");
             parent.RemoveFromClassList("favorite");
             parent.RemoveFromClassList("treeleaf");
+            parent.RemoveFromClassList("separator");
             parent.UnregisterCallback<ClickEvent>(OnToggleCategory);
             parent.visible = true;
         }
 
-        private IEnumerable<Label> BuildHighlightedLabel(string text)
+        private IEnumerable<Label> HighlightedMatches(IEnumerable<Label> labels)
         {
-            var tokens = text.Split('#', StringSplitOptions.RemoveEmptyEntries);
-            foreach (var token in tokens)
+            foreach (var label in labels)
             {
-                var isHighlighted = token.StartsWith('@');
-                var label = isHighlighted
-                    ? new Label(token.Substring(1, token.Length - 1))
-                    : new Label(token);
-                if (isHighlighted)
-                    label.AddToClassList("highlighted");
-                yield return label;
+                if (label.text.IndexOf('@') < 0)
+                {
+                    yield return label;
+                    continue;
+                }
+
+                var tokens = label.text.Split('#', StringSplitOptions.RemoveEmptyEntries);
+                for (var i = 0; i < tokens.Length; i++)
+                {
+                    var token = tokens[i];
+                    var isHighlighted = token.StartsWith('@');
+                    var newLabel = label;
+                    if (i > 0)
+                    {
+                        newLabel = new Label();
+                        if (label.ClassListContains("setting"))
+                            newLabel.AddToClassList("setting");
+                    }
+
+                    newLabel.text = isHighlighted
+                        ? token.Substring(1, token.Length - 1)
+                        : token;
+
+                    if (isHighlighted)
+                    {
+                        newLabel.AddToClassList("highlighted");
+                    }
+
+                    // Use left, middle and right classes to properly join together text which is split across multiple labels
+                    if (tokens.Length > 1)
+                    {
+                        if (i == 0)
+                            newLabel.AddToClassList("left-part");
+                        else if (i == tokens.Length - 1)
+                            newLabel.AddToClassList("right-part");
+                        else
+                            newLabel.AddToClassList("middle-part");
+                    }
+
+                    yield return newLabel;
+                }
             }
         }
 
@@ -545,18 +632,21 @@ namespace UnityEditor.VFX.UI
             element.AddToClassList("treenode");
             var parent = element.GetFirstAncestorWithClass("unity-tree-view__item");
 
-            List<Label> labels;
-            if (item.nameMatch != null)
+            List<Label> labels = null;
+
+            if (item is not Separator)
             {
-                labels = BuildHighlightedLabel(item.nameMatch).ToList();
+                labels = HighlightedMatches(item.GetDisplayName().SplitTextIntoLabels("setting")).ToList();
             }
             else
             {
-                labels = new List<Label> { new(item.name) };
-                if (item.synonymMatch != null)
-                {
-                    labels.AddRange(BuildHighlightedLabel($" ({item.synonymMatch})"));
-                }
+                parent.AddToClassList("separator");
+                element.Add(new Label(item.name));
+            }
+
+            if (item.synonymMatch != null)
+            {
+                labels.AddRange(HighlightedMatches(new [] { new Label($" ({item.synonymMatch})") }));
             }
 
             if (item.variant != null)
@@ -566,6 +656,12 @@ namespace UnityEditor.VFX.UI
                     parent.AddToClassList("favorite");
                 }
 
+                if (item.subVariants?.Length > 0)
+                {
+                    var showDetailsPanelButton = new Button(() => ToggleCollapseFromTreeview(false, index)) { name = "showDetailsPanelButton", tooltip = "Show node's sub-variants in details panel"};
+                    element.Add(showDetailsPanelButton);
+                }
+
                 if (item.variant.supportFavorite)
                 {
                     var favoriteButton = new Button { name = "favoriteButton", userData = item, tooltip = "Click toggle favorite state" };
@@ -573,17 +669,12 @@ namespace UnityEditor.VFX.UI
                     element.Add(favoriteButton);
                 }
 
-                if (item.subVariants?.Length > 0)
-                {
-                    element.AddToClassList("has-sub-variant");
-                }
-
                 parent.AddToClassList("treeleaf");
                 // This is to handle double click on variant
                 parent.RegisterCallback<ClickEvent>(OnAddNode);
             }
             // This is a category
-            else
+            else if (item is not Separator && item.name != null)
             {
                 if (treeview == m_Treeview)
                 {
@@ -596,21 +687,27 @@ namespace UnityEditor.VFX.UI
                         labels[0].style.unityBackgroundImageTintColor = color;
                     }
                 }
+                labels[0].name = "categoryLabel"; // So we can retrieve it for custom color
                 labels[0].AddToClassList("category");
 
                 // This is to handle expand collapse on the whole category line (not only the small arrow)
                 parent.RegisterCallback<ClickEvent>(OnToggleCategory);
             }
 
-            var i = 0;
-            labels[0].name = "descriptorLabel";
-            foreach (var label in labels)
+            if (labels != null)
             {
-                label.tooltip = item.name;
-                label.AddToClassList("node-name");
-                element.Insert(i++, label);
+                var i = 0;
+                foreach (var label in labels)
+                {
+                    label.tooltip = item.name.ToHumanReadable();
+                    label.AddToClassList("node-name");
+                    element.Insert(i++, label);
+                }
+
+                var spacer = new VisualElement();
+                spacer.AddToClassList("nodes-label-spacer");
+                element.Insert(i, spacer);
             }
-            labels.Last().AddToClassList("last-node-name");
         }
 
         private VisualElement MakeItem() => new ();
@@ -639,34 +736,29 @@ namespace UnityEditor.VFX.UI
             m_SplitPanel.fixedPaneInitialDimension = leftPanelWidth;
         }
 
-        private void UpdateSearchResult()
+        private void UpdateSearchResult(bool keepSelection)
         {
+            var currentSelectedItem = m_Treeview.selectedItem as Descriptor;
             UpdateTree(m_Provider.GetDescriptors(), m_TreeviewData, true, true);
             m_Treeview.SetRootItems(m_TreeviewData);
             m_Treeview.RefreshItems();
             if (hasSearch)
             {
                 // Workaround because ExpandAll can change the selection without calling the callback
-                var currentSelectedIndex = m_Treeview.selectedIndex;
                 m_Treeview.ExpandAll();
                 // Call OnSelectionChanged even if it didn't change so that search matches highlight are properly updated
-                if (currentSelectedIndex != m_Treeview.selectedIndex || (hasSearch && currentSelectedIndex != -1))
+                if (currentSelectedItem != m_Treeview.selectedItem || (hasSearch && currentSelectedItem == null))
                 {
                     OnSelectionChanged(null);
                 }
-                var previousSelectedVariant = m_Treeview.selectedItem as Descriptor;
-                SelectFirstNode(previousSelectedVariant?.variant?.name);
+
+                SelectFirstNode(keepSelection ? currentSelectedItem?.name : null);
             }
         }
 
-        private void SelectFirstNode(string previousSelectedVariant)
+        private void SelectFirstNode(string currentSelectedItem)
         {
-            SelectFirstNodeRecurse(m_TreeviewData, previousSelectedVariant);
-            // If previous selection is not found, just select the first variant result
-            if (m_Treeview.selectedItem is null or Descriptor { variant: null })
-            {
-                SelectFirstNodeRecurse(m_TreeviewData, null);
-            }
+            SelectFirstNodeRecurse(m_TreeviewData, currentSelectedItem);
 
             if (m_Treeview.selectedIndex == -1)
             {
@@ -697,45 +789,58 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        private void UpdateTree(IEnumerable<IVFXModelDescriptor> modelDescriptors, List<TreeViewItemData<Descriptor>> treeViewData, bool hasFavoriteCategory, bool groupUncategorized)
+        private void UpdateTree(IEnumerable<IVFXModelDescriptor> modelDescriptors, List<TreeViewItemData<Descriptor>> treeViewData, bool isMainTree, bool groupUncategorized)
         {
-            var favorites = hasFavoriteCategory ? new List<TreeViewItemData<Descriptor>>() : null;
+            var favorites = isMainTree ? new List<TreeViewItemData<Descriptor>>() : null;
             treeViewData.Clear();
             var id = 0;
 
-            var patternTokens = m_SearchPattern?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var searchPattern = GetSearchPattern();
+            var patternTokens = searchPattern?.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var modelDescriptor in modelDescriptors
-                         .OrderBy(x => !string.IsNullOrEmpty(x.category) ? x.category : "zzzzzzzz") // Hack to put variants without category to the end instead of at the beginning
-                         .ThenBy(x => x.category?.Contains('/') == true ? 0 : 1) // The sorting is made to put folders before items
-                         .ThenBy(x => x.name))
+                         .OrderBy(x => x.category, s_CategoryComparer)
+                         .ThenBy(x => x.name.ToHumanReadable()))
             {
                 var category = !string.IsNullOrEmpty(modelDescriptor.category) ? modelDescriptor.category : (groupUncategorized ? "Subgraph" : string.Empty);
                 var path = category.Split('/', StringSplitOptions.RemoveEmptyEntries);
                 var currentFolders = treeViewData;
 
-                var matchingDescriptors = GetMatches(modelDescriptor, patternTokens).ToArray();
+                var matchingDescriptors = GetMatches(modelDescriptor, searchPattern, patternTokens).ToArray();
                 if (matchingDescriptors.Length == 0)
                 {
                     continue;
                 }
 
+                var searchPatternLeft = searchPattern;
                 foreach (var p in path)
                 {
-                    if (currentFolders.All(x => x.data.name != p))
+                    var containerName = p;
+                    var isSeparator = containerName.StartsWith('#');
+                    if (isSeparator)
+                        containerName = containerName.Substring(2, p.Length - 2); // Skip first two characters because separator code is of the form #1, #2 ...
+                    if (currentFolders.All(x => x.data.name != containerName))
                     {
                         string categoryMatch = null;
                         if (patternTokens != null)
                         {
-                            IsSearchPatternMatch(p, m_SearchPattern, patternTokens, out categoryMatch);
+                            GetTextMatchScore(containerName, ref searchPatternLeft, patternTokens, out categoryMatch);
                         }
-                        var newFolder = new TreeViewItemData<Descriptor>(id++, new Descriptor(p, category, null, categoryMatch), new List<TreeViewItemData<Descriptor>>());
-                        currentFolders.Add(newFolder);
-                        currentFolders = (List<TreeViewItemData<Descriptor>>)newFolder.children;
+
+                        if (!isSeparator)
+                        {
+                            var newFolder = new TreeViewItemData<Descriptor>(id++, new Descriptor(containerName, containerName, null, categoryMatch), new List<TreeViewItemData<Descriptor>>());
+                            currentFolders.Add(newFolder);
+                            currentFolders = (List<TreeViewItemData<Descriptor>>)newFolder.children;
+                        }
+                        else if (!hasSearch) // This is a separator, we skip separators when there's a search because of sorting that would mess up with them
+                        {
+                            currentFolders.Add(new TreeViewItemData<Descriptor>(id++, new Separator(containerName, containerName, null, categoryMatch)));
+                        }
                     }
-                    else
+                    else if (!isSeparator)
                     {
-                        currentFolders = (List<TreeViewItemData<Descriptor>>)currentFolders.Single(x => x.data.name == p).children;
+                        currentFolders = (List<TreeViewItemData<Descriptor>>)currentFolders.Single(x => x.data.name == containerName).children;
                     }
                 }
 
@@ -743,54 +848,95 @@ namespace UnityEditor.VFX.UI
                 {
                     var descriptor = matchingDescriptors[i];
                     // When no search, only add main variant (which is the first one)
-                    if (settings.showSubVariantsInSearchResults && hasSearch || i == 0)
+                    if (hasSearch && GetShowSubVariantInSearchResults() || i == 0)
                     {
                         currentFolders.Add(new TreeViewItemData<Descriptor>(id++, descriptor));
                     }
                     // But add any matching variant, even sub-variants even when there's no search pattern
-                    if ((i == 0 || settings.showSubVariantsInSearchResults) && hasFavoriteCategory && settings.IsFavorite(descriptor))
+                    if ((i == 0 || GetShowSubVariantInSearchResults()) && isMainTree && settings.IsFavorite(descriptor))
                     {
                         favorites.Add(new TreeViewItemData<Descriptor>(id++, descriptor));
                     }
                 }
             }
 
-            if (hasFavoriteCategory)
+            if (isMainTree)
             {
                 m_FavoriteCategory = new TreeViewItemData<Descriptor>(id, new Descriptor("Favorites", string.Empty), favorites);
                 treeViewData.Insert(0, m_FavoriteCategory);
             }
+
+            if (hasSearch && isMainTree)
+            {
+                foreach (var treeViewItemData in treeViewData)
+                {
+                    SortSearchResult(treeViewItemData);
+                }
+            }
         }
 
-        internal static void Show(VFXView parentView, Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
+        private void SortSearchResult(TreeViewItemData<Descriptor> treeViewItemData)
         {
-            CreateInstance<VFXFilterWindow>().Init(parentView, graphPosition, screenPosition, provider);
+            if (!treeViewItemData.hasChildren)
+                return;
+            var children = (List<TreeViewItemData<Descriptor>>)treeViewItemData.children;
+            children.Sort((x, y) => y.data.matchingScore.CompareTo(x.data.matchingScore));
+            foreach (var child in treeViewItemData.children)
+            {
+                SortSearchResult(child);
+            }
         }
 
-        private IEnumerable<Descriptor> GetMatches(IVFXModelDescriptor modelDescriptor, string[] patternTokens)
+        private void ToggleCollapseFromTreeview(bool hide, int index = -1)
+        {
+            if (index >= 0)
+            {
+                m_Treeview.selectedIndex = index;
+            }
+
+            m_CollapseButton.value = hide;
+        }
+
+        private void ToggleCollapse(bool hide)
+        {
+            hideDetailsPanel = hide;
+
+            var windowWidth = hideDetailsPanel ? m_Treeview.resolvedStyle.width + 2 : DefaultWindowWidth;
+            position = new Rect(position.position, new Vector2(windowWidth, position.height));
+            UpdateDetailsPanelVisibility();
+
+            // Delay so that resolved style is computed
+            EditorApplication.delayCall += SaveSettings;
+        }
+
+        internal static void Show(Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
+        {
+            CreateInstance<VFXFilterWindow>().Init(graphPosition, screenPosition, provider);
+        }
+
+        private IEnumerable<Descriptor> GetMatches(IVFXModelDescriptor modelDescriptor, string pattern, string[] patternTokens)
         {
             s_GetMatchesPerfMarker.Begin();
             try
             {
-                string match = null;
-                string synonym = null;
-                Descriptor descriptor = null;
-                if (IsVariantMatch(modelDescriptor, patternTokens, out match, out synonym))
+                var score = GetVariantMatchScore(modelDescriptor, pattern, patternTokens, out var match, out var synonym);
+                if (score > 0f)
                 {
-                    descriptor = new Descriptor(modelDescriptor, match, synonym);
+                    var descriptor = new Descriptor(modelDescriptor, match, synonym) { matchingScore = score };
                     yield return descriptor;
                 }
 
-                if (settings.showSubVariantsInSearchResults)
+                if (GetShowSubVariantInSearchResults())
                 {
                     var subVariantsDescriptors = modelDescriptor.subVariantDescriptors;
                     if (subVariantsDescriptors != null)
                     {
                         foreach (var v in subVariantsDescriptors)
                         {
-                            if (IsVariantMatch(v, patternTokens, out match, out synonym))
+                            score = GetVariantMatchScore(v, pattern, patternTokens, out match, out synonym);
+                            if (score > 0f)
                             {
-                                yield return new Descriptor(v, match, synonym);
+                                yield return new Descriptor(v, match, synonym) { matchingScore = score };
                             }
                         }
                     }
@@ -802,70 +948,98 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private bool IsVariantMatch(IVFXModelDescriptor modelDescriptor, string[] patternTokens, out string match, out string synonymMatch)
+        private float GetVariantMatchScore(IVFXModelDescriptor modelDescriptor, string pattern, string[] patternTokens, out string match, out string synonymMatch)
         {
             synonymMatch = match = null;
-             return !hasSearch
-                   || IsSearchPatternMatch(modelDescriptor.name, m_SearchPattern, patternTokens, out match)
-                   || IsSearchPatternMatch(modelDescriptor.category, m_SearchPattern, patternTokens, out _)
-                   || IsSearchPatternMatch(string.Join(", ", modelDescriptor.synonyms), m_SearchPattern, patternTokens, out synonymMatch);
+            if (!hasSearch)
+                return 1f;
+
+            var initialPatternLength = pattern.Length;
+            var fixedPattern = pattern;
+            var score = GetTextMatchScore(modelDescriptor.name, ref pattern, patternTokens, out match);
+            if (pattern.Length > 0)
+            {
+                score += GetTextMatchScore(modelDescriptor.category, ref fixedPattern, patternTokens, out _);
+            }
+            if (pattern.Length > 0)
+            {
+                foreach (var synonym in modelDescriptor.synonyms)
+                {
+                    score += GetTextMatchScore(synonym, ref pattern, patternTokens, out synonymMatch);
+                    if (pattern.Length == 0)
+                        break;
+                }
+            }
+
+            return initialPatternLength > 0 ? (pattern.Length == 0 ? score : 0) : 1f;
         }
 
-        private bool IsSearchPatternMatch(string source, string pattern, string[] patternTokens, out string matchHighlight)
+        private float GetTextMatchScore(string text, ref string pattern, string[] patternTokens, out string matchHighlight)
         {
+            var score = 0f;
             matchHighlight = null;
-            if (source == null)
-                return false;
+            if (string.IsNullOrEmpty(text))
+                return 0f;
+            if (string.IsNullOrEmpty(pattern))
+                return 100f;
 
-            var start = source.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
+            var start = text.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
             if (start != -1)
             {
-                matchHighlight = source.Insert(start + pattern.Length, "#").Insert(start, "#@");
-                return true;
+                matchHighlight = text.Insert(start + pattern.Length, "#").Insert(start, "#@");
+                score = 10f + (float)pattern.Length / text.Length;
+                pattern = string.Empty;
+                return score;
             }
 
             // Match all pattern tokens with the source tokens
-            var sourceTokens = source.Split(' ');
-            if (sourceTokens.Length >= patternTokens.Length)
+            var sourceTokens = text.Split(s_MatchingSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (sourceTokens.Count >= patternTokens.Length)
             {
-                var match = false;
+                s_PatternMatches.Clear();
                 foreach (var token in patternTokens)
                 {
-                    start = matchHighlight?.IndexOf(token, StringComparison.OrdinalIgnoreCase) ?? source.IndexOf(token, StringComparison.OrdinalIgnoreCase);
-
-                    if (start != -1)
+                    foreach (var sourceToken in sourceTokens)
                     {
-                        match = true;
-                        matchHighlight ??= source;
-                        matchHighlight = matchHighlight.Insert(start + token.Length, "#").Insert(start, "#@");
-                    }
-                    else
-                    {
-                        match = false;
-                        break;
+                        if (sourceToken.Contains(token, StringComparison.OrdinalIgnoreCase))
+                        {
+                            sourceTokens.Remove(sourceToken);
+                            s_PatternMatches.Add(token);
+                            pattern = pattern.Replace(token, string.Empty).Trim();
+                            score += (float)token.Length / sourceToken.Length;
+                            break;
+                        }
                     }
                 }
 
-                if (match)
-                    return true;
+                if (s_PatternMatches.Count > 0)
+                {
+                    matchHighlight = text;
+                    foreach (var match in s_PatternMatches)
+                    {
+                        matchHighlight = matchHighlight.Replace(match, $"#@{match}#", StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    return score / text.Length;
+                }
             }
 
             // Consider pattern as initials and match with source first letters (ex: SPSC => Set Position Shape Cone)
             var initialIndex = 0;
             var matchingIndices = new List<int>();
-            for (int i = 0; i < source.Length; i++)
+            for (int i = 0; i < text.Length; i++)
             {
-                var c = source[i];
-                if (c == ' ' || i == 0)
+                var c = text[i];
+                if (c == ' ' || c == '|' || i == 0)
                 {
-                    while (!char.IsLetterOrDigit(c) && i < source.Length - 1)
+                    while (!char.IsLetterOrDigit(c) && i < text.Length - 1)
                     {
-                        c = source[++i];
+                        c = text[++i];
                     }
 
-                    if (i == source.Length - 1 && !char.IsLetterOrDigit(c))
+                    if (i == text.Length - 1 && !char.IsLetterOrDigit(c))
                     {
-                        return false;
+                        break;
                     }
 
                     if (initialIndex < pattern.Length)
@@ -876,20 +1050,20 @@ namespace UnityEditor.VFX.UI
                             initialIndex++;
                             if (initialIndex == pattern.Length)
                             {
-                                matchHighlight = new string(source.SelectMany((x, k) => matchingIndices.Contains(k) ? new [] { '#', '@', x, '#' } : new []{ x }).ToArray());
-                                return true;
+                                matchHighlight = new string(text.SelectMany((x, k) => matchingIndices.Contains(k) ? new [] { '#', '@', x, '#' } : new []{ x }).ToArray());
+                                pattern = string.Empty;
+                                return 1f;
                             }
                         }
                     }
                 }
             }
 
-            return false;
+            return score;
         }
 
-        private void Init(VFXView parentView, Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
+        private void Init(Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
         {
-            m_ParentView = parentView;
             m_Provider = provider;
             m_Provider.position = graphPosition;
 
@@ -925,6 +1099,18 @@ namespace UnityEditor.VFX.UI
             SessionState.SetFloat($"{nameof(VFXFilterWindow)}.WindowHeight", position.height);
             var json = JsonUtility.ToJson(settings);
             EditorPrefs.SetString($"{nameof(VFXFilterWindow)}.{nameof(settings)}", json);
+        }
+
+        private string GetSearchPattern()
+        {
+            if (m_SearchPattern?.StartsWith("+") == true)
+                return m_SearchPattern.Substring(1, m_SearchPattern.Length - 1);
+            return m_SearchPattern;
+        }
+
+        private bool GetShowSubVariantInSearchResults()
+        {
+            return settings.showSubVariantsInSearchResults || m_SearchPattern?.StartsWith("+") == true;
         }
     }
 }

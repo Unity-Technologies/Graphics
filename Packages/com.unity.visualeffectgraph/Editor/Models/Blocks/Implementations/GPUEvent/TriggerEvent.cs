@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
             foreach (TriggerEvent.Mode mode in Enum.GetValues(typeof(TriggerEvent.Mode)))
             {
                 yield return new Variant(
-                    "Trigger Event " + ObjectNames.NicifyVariableName(mode.ToString()),
+                    "Trigger Event".AppendLabel(mode.ToString()),
                     "GPUEvent",
                     typeof(TriggerEvent),
                     new[] { new KeyValuePair<string, object>("mode", mode) }
@@ -36,7 +36,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField]
         private Mode mode;
 
-        public override string name { get { return "Trigger Event " + ObjectNames.NicifyVariableName(mode.ToString()); } }
+        public override string name => "Trigger Event".AppendLabel(mode.ToString());
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 

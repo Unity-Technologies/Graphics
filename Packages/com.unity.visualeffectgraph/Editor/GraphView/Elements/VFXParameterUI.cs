@@ -29,6 +29,7 @@ namespace UnityEditor.VFX.UI
             return base.ContainsPoint(localPoint) && !m_ConnectorText.ContainsPoint(this.ChangeCoordinatesTo(m_ConnectorText, localPoint));
         }
     }
+
     class VFXInputParameterDataAnchor : VFXDataAnchor
     {
         public static new VFXInputParameterDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
@@ -63,6 +64,7 @@ namespace UnityEditor.VFX.UI
             {
                 return path;
             }
+
             return GetUXMLPathRecursive("Assets", name);
         }
 
@@ -112,15 +114,12 @@ namespace UnityEditor.VFX.UI
             m_ExposedIcon = this.Q<Image>("exposed-icon");
             this.AddManipulator(new SuperCollapser());
 
-            m_Pill = this.Q("pill");
+            m_Label = this.Q<Label>("title-label");
         }
 
-        VisualElement m_Pill;
+        Label m_Label;
 
-        public new VFXParameterNodeController controller
-        {
-            get { return base.controller as VFXParameterNodeController; }
-        }
+        public new VFXParameterNodeController controller => base.controller as VFXParameterNodeController;
 
         protected override VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController controller, VFXNodeUI node)
         {
@@ -131,6 +130,11 @@ namespace UnityEditor.VFX.UI
         }
 
         Image m_ExposedIcon;
+
+        protected override void UpdateTitleUI()
+        {
+            m_Label.text = controller.title;
+        }
 
         protected override void SelfChange()
         {
@@ -148,8 +152,7 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("exposed");
             }
 
-            if (m_Pill != null)
-                m_Pill.tooltip = controller.parentController.model.tooltip;
+            m_Label.parent.tooltip = controller.parentController.model.tooltip;
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)

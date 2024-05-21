@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.UI
     {
         VFXViewController m_ViewController;
 
-        public VFXController(VFXViewController viewController, T model) : base(model)
+        protected VFXController(VFXViewController viewController, T model) : base(model)
         {
             m_ViewController = viewController;
             m_ViewController.RegisterNotification(model, OnModelChanged);
@@ -155,13 +155,7 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
-        public virtual string name
-        {
-            get
-            {
-                return model.name;
-            }
-        }
+        public virtual string name => model.name;
     }
 
     struct ControllerChangedEvent

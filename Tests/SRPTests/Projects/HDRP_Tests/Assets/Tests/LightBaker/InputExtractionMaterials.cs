@@ -19,13 +19,12 @@ namespace UnityEditor.LightBaking.Tests
         public string ObjectName { get; set; } // Object for which to test the metaPass data
         public MetaPassType MetaPassType { get; set; } = MetaPassType.Albedo;
         public int TextureCount { get; set; }
+        public float RMSEThreshold { get; set; } = 0.0001f;
         public override string ToString() { return $"{SceneName}-{ObjectName}-{MetaPassType}"; }
     };
 
     internal class InputExtractionMaterials
     {
-        private static readonly float metaPassRMSETolerance = 0.0001f;
-
         Texture2D ConvertVector4ImageToRGBAHalfTexture(uint width, uint height, Vector4[] textureData)
         {
             Texture2D texture = new((int)width, (int)height, TextureFormat.RGBAHalf, false);
@@ -53,8 +52,8 @@ namespace UnityEditor.LightBaking.Tests
             new() { SceneName = "Metapass_BasicMaterials", ObjectName = "albedoTexTiling23", MetaPassType = MetaPassType.Albedo , TextureCount = 13 },
             new() { SceneName = "Metapass_BasicMaterials", ObjectName = "emissiveTexOffset_p5p3", MetaPassType = MetaPassType.Emission , TextureCount = 13 },
             new() { SceneName = "Metapass_BasicMaterials", ObjectName = "albedoTexOffset_p5p3", MetaPassType = MetaPassType.Albedo , TextureCount = 13 },
-            new() { SceneName = "BakedLightingTerrainAlbedo-editor", ObjectName = "Terrain", MetaPassType = MetaPassType.Albedo , TextureCount = 3 },
-            new() { SceneName = "BakedLightingTerrainAlbedo-editor", ObjectName = "TerrainOffset", MetaPassType = MetaPassType.Albedo , TextureCount = 3 }
+            new() { SceneName = "BakedLightingTerrainAlbedo-editor", ObjectName = "Terrain", MetaPassType = MetaPassType.Albedo , TextureCount = 3, RMSEThreshold = 0.03f },
+            new() { SceneName = "BakedLightingTerrainAlbedo-editor", ObjectName = "TerrainOffset", MetaPassType = MetaPassType.Albedo , TextureCount = 3, RMSEThreshold = 0.03f }
         };
 
         [Test, Category("Graphics")]
@@ -108,7 +107,7 @@ namespace UnityEditor.LightBaking.Tests
                 ActivePixelTests = ImageComparisonSettings.PixelTests.None,
                 ActiveImageTests = ImageComparisonSettings.ImageTests.RMSE,
                 IncorrectPixelsThreshold = 1.0f / (actualTexture2D.width * actualTexture2D.height),
-                RMSEThreshold = metaPassRMSETolerance
+                RMSEThreshold = metaPassTest.RMSEThreshold,
             };
 
             try

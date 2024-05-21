@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Strip HDRP Distortion Quad", category = "Output")]
+    [VFXInfo(name = "Output ParticleStrip|HDRP Distortion|Quad", category = "#3Output Strip", synonyms = new []{ "Trail", "Ribbon" })]
     class VFXDistortionQuadStripOutput : VFXAbstractDistortionOutput
     {
         [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.HDRP
 
         VFXDistortionQuadStripOutput() : base(true) { }
 
-        public override string name { get { return "Output Strip HDRP Distortion Quad"; } }
+        public override string name => "Output ParticleStrip".AppendLabel("HDRP Distortion", false) + "\nQuad";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionPlanarPrimitive"); } }
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
         public override bool supportsUV { get { return true; } }

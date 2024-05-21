@@ -42,8 +42,8 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _FinalScreenSize;
     float4 _IntermediateScreenSize;
     float4 _TraceScreenSize;
-    float2 _HistoryViewportSize;
-    float2 _HistoryBufferSize;
+    float2 _HistoryViewportScale;
+    int2 _ReprojDepthMipOffset;
     int _LowResolutionEvaluation;
     int _EnableIntegration;
     int _ValidSceneDepth;
@@ -61,7 +61,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float _FadeInStart;
     float _FadeInDistance;
     float _ImprovedTransmittanceBlend;
-    float _CubicTransmittance;
+    float _PaddingVC0;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 

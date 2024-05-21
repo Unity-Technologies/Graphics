@@ -204,7 +204,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 param.filteringSettings.batchLayerMask = batchLayerMask;
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
-                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
+                if (cameraData.xr.enabled)
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
 
                 UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
                 if (postSetGlobalTextures && universalRenderer != null)

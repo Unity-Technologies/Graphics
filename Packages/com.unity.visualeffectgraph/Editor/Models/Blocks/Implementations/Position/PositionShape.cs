@@ -91,12 +91,24 @@ namespace UnityEditor.VFX.Block
 
     class PositionShapeSubVariants : VariantProvider
     {
+        private readonly PositionShapeBase.Type mainVariantType;
+
+        public PositionShapeSubVariants(PositionShapeBase.Type type)
+        {
+            mainVariantType = type;
+        }
+
         public override IEnumerable<Variant> GetVariants()
         {
             foreach (PositionShapeBase.Type shape in Enum.GetValues(typeof(PositionShapeBase.Type)))
             {
+                if (shape == mainVariantType)
+                    continue;
+                if (shape == PositionShapeBase.Type.SignedDistanceField) // Already listed as main variant independently
+                    continue;
+
                 yield return new Variant(
-                    "Position On " + PositionShapeBase.GetName(shape),
+                    "Set".Label(false).AppendLiteral("Position Shape", false).AppendLabel(PositionShapeBase.GetName(shape)),
                     string.Empty,
                     typeof(PositionShape),
                     new[] { new KeyValuePair<string, object>("shape", shape) }
@@ -109,16 +121,18 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
+            var shapes = (PositionShapeBase.Type[])Enum.GetValues(typeof(PositionShapeBase.Type));
+
             yield return new Variant(
-                "Position On Shape",
-                "Position",
+                "Set".Label(false).AppendLiteral("Position Shape", false).AppendLabel("Sphere", false),
+                "Position Shape",
                 typeof(PositionShape),
                 new[] { new KeyValuePair<string, object>("shape", PositionShapeBase.Type.Sphere) },
-                () => new PositionShapeSubVariants()
+                () => new PositionShapeSubVariants(PositionShapeBase.Type.Sphere)
             );
             yield return new Variant(
-                "Position On Signed Distance Field",
-                "Position",
+                "Set".Label(false).AppendLiteral("Position Shape", false).AppendLabel("Signed Distance Field", false),
+                "Position Shape",
                 typeof(PositionShape),
                 new[] { new KeyValuePair<string, object>("shape", PositionShapeBase.Type.SignedDistanceField) }
             );
@@ -128,7 +142,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Attribute/position/Composition/{0}", variantProvider = typeof(PositionShapeVariants))]
     sealed class PositionShape : PositionBase
     {
-        public override string name => string.Format(base.name, PositionShapeBase.GetName(shape));
+        public override string name => VFXBlockUtility.GetNameString(compositionPosition).Label(false).AppendLiteral("Position Shape", false).AppendLabel(PositionShapeBase.GetName(shape));
 
         [SerializeField, VFXSetting] PositionShapeBase.Type shape = PositionShapeBase.Type.Sphere;
 

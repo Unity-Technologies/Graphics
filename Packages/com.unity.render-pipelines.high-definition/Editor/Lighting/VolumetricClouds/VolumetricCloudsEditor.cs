@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_CloudMapTilingText = EditorGUIUtility.TrTextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.");
         static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
         static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
-        static public readonly GUIContent k_PerceptualBlending = EditorGUIUtility.TrTextContent("Perceptual Blending", "When enabled, the clouds will blend in a perceptual way with the environment. This may cause artifacts when the sky is over-exposed.");
+        static public readonly GUIContent k_PerceptualBlending = EditorGUIUtility.TrTextContent("Perceptual Blending", "When enabled, the clouds will blend in a perceptual way with the environment. This may cause artifacts when the sky is over-exposed.\nThis only works when MSAA is off.");
 
         void MicroDetailsSection()
         {

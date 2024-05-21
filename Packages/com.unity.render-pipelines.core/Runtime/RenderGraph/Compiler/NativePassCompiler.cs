@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         RenderGraphCompilationCache m_CompilationCache;
 
         internal const int k_EstimatedPassCount = 100;
-        internal const int k_EstimatedResourceCountPerType = 50;
         internal const int k_MaxSubpass = 8; // Needs to match with RenderPassSetup.h
 
         NativeList<AttachmentDescriptor> m_BeginRenderPassAttachments;
@@ -34,7 +33,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativePassCompiler(RenderGraphCompilationCache cache)
         {
             m_CompilationCache = cache;
-            defaultContextData = new CompilerContextData(k_EstimatedPassCount, k_EstimatedResourceCountPerType);
+            defaultContextData = new CompilerContextData(k_EstimatedPassCount);
             toVisitPassIds = new Stack<int>(k_EstimatedPassCount);
             m_BeginRenderPassAttachments = new NativeList<AttachmentDescriptor>(FixedAttachmentArray<AttachmentDescriptor>.MaxAttachments, Allocator.Persistent);
         }
@@ -1013,9 +1012,20 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 // Partial writes will register themselves as readers so this should be adequate
                                 foreach (ref readonly var reader in contextData.Readers(fragment.resource))
                                 {
-                                    bool isFragment = contextData.passData.ElementAt(reader.passId).IsUsedAsFragment(fragment.resource, contextData);
+                                    ref var readerPass = ref contextData.passData.ElementAt(reader.passId);
+                                    bool isFragment = readerPass.IsUsedAsFragment(fragment.resource, contextData);
+
+                                    // Unsafe pass - we cannot know how it is used, so we need to both store and resolve
+                                    if (readerPass.type == RenderGraphPassType.Unsafe)
+                                    {
+                                        needsMSAASamples = true;
+                                        needsResolvedData = true;
+                                        msaaUserPassID = reader.passId;
+                                        userPassID = reader.passId;
+                                        break;
+                                    }
                                     // A fragment attachment use we need the msaa samples
-                                    if (isFragment)
+                                    else if (isFragment)
                                     {
                                         needsMSAASamples = true;
                                         msaaUserPassID = reader.passId;

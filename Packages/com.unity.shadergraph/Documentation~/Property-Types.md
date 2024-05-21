@@ -19,9 +19,10 @@ In addition to values specific to their [Data Types](Data-Types.md), most proper
 | Shader Declaration | Enumeration | Controls the shader declaration of this property |
 
 NOTE: If you overwrite the **Reference Name** parameter be aware of the following conditions:
-- If your **Reference Name** does not begin with an underscore, one will be automatically appended.
-- If your **Reference Name** contains any characters which are unsupported in HLSL they will be removed.
-- You can revert to the default **Reference Name** by right clicking on it and selecting **Reset Reference**.
+
+* If your **Reference Name** does not begin with an underscore, one will be automatically appended.
+* If your **Reference Name** contains any characters which are unsupported in HLSL they will be removed.
+* You can revert to the default **Reference Name** by right clicking on it and selecting **Reset Reference**.
 
 ## Float
 
@@ -167,6 +168,7 @@ Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. D
 | Field        | Type  | Description |
 |:-------------|:------|:------------|
 | Default | Cubemap | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+
 <a name="virtual-texture"> </a>
 ## Virtual Texture
 

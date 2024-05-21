@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -28,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering
             if (XRSystem.displayActive && xrSupported)
             {
                 XRSystem.SetDisplayZRange(camera.nearClipPlane, camera.farClipPlane);
-                XRSystem.CreateDefaultLayout(camera);
+                XRSystem.CreateDefaultLayout(camera, this);
             }
             else
             {

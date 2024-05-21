@@ -145,7 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // However debug mode like colorPickerModes and false color don't need DEBUG_DISPLAY and must work with the lighting.
             // So we will enabled DEBUG_DISPLAY independently
 
-            bool debugDisplayEnabledOrSceneLightingDisabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
+            bool isSceneLightingDisabled = CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
+            bool debugDisplayEnabledOrSceneLightingDisabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || isSceneLightingDisabled;
+
             // Enable globally the keyword DEBUG_DISPLAY on shader that support it with multi-compile
             CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
@@ -173,12 +175,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var debugEmissiveColor = new Vector4(lightingDebugSettings.overrideEmissiveColor ? 1.0f : 0.0f, lightingDebugSettings.overrideEmissiveColorValue.r, lightingDebugSettings.overrideEmissiveColorValue.g, lightingDebugSettings.overrideEmissiveColorValue.b);
                 var debugTrueMetalColor = new Vector4(materialDebugSettings.materialValidateTrueMetal ? 1.0f : 0.0f, materialDebugSettings.materialValidateTrueMetalColor.r, materialDebugSettings.materialValidateTrueMetalColor.g, materialDebugSettings.materialValidateTrueMetalColor.b);
 
-                DebugLightingMode debugLightingMode = m_CurrentDebugDisplaySettings.GetDebugLightingMode();
-                if (CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
-                {
-                    debugLightingMode = DebugLightingMode.MatcapView;
-                }
-
                 ref var cb = ref m_ShaderVariablesDebugDisplayCB;
 
                 var debugMaterialIndices = m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes();
@@ -202,6 +198,31 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                DebugLightingMode debugLightingMode = m_CurrentDebugDisplaySettings.GetDebugLightingMode();
+
+                // Mat Cap Mode Logic
+                {
+                    bool matCapMixAlbedo = false;
+                    float matCapMixScale = 1.0f;
+
+                    if (debugLightingMode == DebugLightingMode.MatcapView)
+                    {
+                        matCapMixAlbedo = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.matCapMixAlbedo;
+                        matCapMixScale = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.matCapMixScale;
+                    }
+#if UNITY_EDITOR
+                    else if (isSceneLightingDisabled)
+                    {
+                        // Forcing the MatCap Mode when scene view lighting is disabled. Also use the default values
+                        debugLightingMode = DebugLightingMode.MatcapView;
+                        matCapMixAlbedo = HDRenderPipelinePreferences.matCapMode.mixAlbedo.value;
+                        matCapMixScale = HDRenderPipelinePreferences.matCapMode.viewScale.value;
+                    }
+#endif
+                    cb._MatcapMixAlbedo = matCapMixAlbedo ? 1 : 0;
+                    cb._MatcapViewScale = matCapMixScale;
+                }
+
                 cb._DebugLightingMode = (int)debugLightingMode;
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
@@ -215,13 +236,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._ColorPickerMode = (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode();
                 cb._DebugFullScreenMode = (int)m_CurrentDebugDisplaySettings.data.fullScreenDebugMode;
 
-#if UNITY_EDITOR
-                cb._MatcapMixAlbedo = HDRenderPipelinePreferences.matcapViewMixAlbedo ? 1 : 0;
-                cb._MatcapViewScale = HDRenderPipelinePreferences.matcapViewScale;
-#else
-                cb._MatcapMixAlbedo = 0;
-                cb._MatcapViewScale = 1.0f;
-#endif
                 cb._DebugViewportSize = hdCamera.screenSize;
                 cb._DebugLightingAlbedo = debugAlbedo;
                 cb._DebugLightingSmoothness = debugSmoothness;
@@ -561,8 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DebugDisplaySettings debugDisplaySettings;
             public Material debugFullScreenMaterial;
             public HDCamera hdCamera;
-            public int depthPyramidMip;
-            public ComputeBuffer depthPyramidOffsets;
+            public Vector4 depthPyramidParams;
             public TextureHandle output;
             public TextureHandle input;
             public TextureHandle depthPyramid;
@@ -580,14 +593,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                {
+                    int mipCount = hdCamera.depthBufferMipChainInfo.mipLevelCount;
+                    int mipIndex = Mathf.Min(Mathf.FloorToInt(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * mipCount), mipCount - 1);
+                    Vector2Int mipOffset = hdCamera.depthBufferMipChainInfo.mipLevelOffsets[mipIndex];
+                    if (m_CurrentDebugDisplaySettings.data.depthPyramidView == DepthPyramidDebugView.CheckerboardDepth && hdCamera.depthBufferMipChainInfo.mipLevelCountCheckerboard != 0)
+                    {
+                        mipIndex = Mathf.Min(mipIndex, hdCamera.depthBufferMipChainInfo.mipLevelCountCheckerboard - 1);
+                        mipOffset = hdCamera.depthBufferMipChainInfo.mipLevelOffsetsCheckerboard[mipIndex];
+                    }
+                    passData.depthPyramidParams = new Vector4(mipIndex, mipOffset.x, mipOffset.y, 0.0f);
+                }
+
                 if (IsComputeThicknessNeeded(hdCamera))
                     passData.thickness = builder.ReadTexture(HDComputeThickness.Instance.GetThicknessTextureArray());
                 else
                     passData.thickness = builder.ReadTexture(renderGraph.defaultResources.blackTextureArrayXR);
-
                 passData.thicknessReindex = builder.ReadBuffer(renderGraph.ImportBuffer(HDComputeThickness.Instance.GetReindexMap()));
-                passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
-                passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+
                 // On Vulkan, not binding the Random Write Target will result in an invalid drawcall.
                 // To avoid that, if the compute buffer is invalid, we bind a dummy compute buffer anyway.
                 if (m_DebugFullScreenComputeBuffer.IsValid())
@@ -613,8 +636,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(data.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, data.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, data.hdCamera.camera.nearClipPlane, data.hdCamera.camera.farClipPlane));
                         else // Setup neutral value
                             mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-                        mpb.SetInt(HDShaderIDs._DebugDepthPyramidMip, data.depthPyramidMip);
-                        mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, data.depthPyramidOffsets);
+                        mpb.SetVector(HDShaderIDs._DebugDepthPyramidParams, data.depthPyramidParams);
                         mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, data.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
                         mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)data.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
                         mpb.SetFloat(HDShaderIDs._FogVolumeOverdrawMaxValue, (float)volumetricSliceCount);

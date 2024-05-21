@@ -55,8 +55,6 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
     /// </summary>
     public Material passMaterial;
 
-    internal bool showAdditionalProperties = false;
-
     /// <summary>
     /// The shader pass index that should be used when rendering the assigned material.
     /// </summary>

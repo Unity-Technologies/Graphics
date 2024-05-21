@@ -92,15 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 k_AdditionalPropertiesState.UnregisterEditor(editor);
             }
 
-            [SetAdditionalPropertiesVisibility]
-            internal static void SetAdditionalPropertiesVisibility(bool value)
-            {
-                if (value)
-                    k_AdditionalPropertiesState.ShowAll();
-                else
-                    k_AdditionalPropertiesState.HideAll();
-            }
-
             static void Draw_Rendering_Advanced(SerializedHDCamera p, Editor owner)
             { }
 
@@ -207,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             p.fidelityFX2SuperResolutionQuality.intValue = (int)(object)v;
                         }
                         EditorGUI.indentLevel--;
-                    } 
+                    }
 
                     EditorGUILayout.PropertyField(p.fidelityFX2SuperResolutionUseCustomAttributes, Styles.FSR2UseCustomAttributes);
                     if (p.fidelityFX2SuperResolutionUseCustomAttributes.boolValue)

@@ -1,95 +1,287 @@
-using System;
-using System.Linq;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.TestTools;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.TestTools;
 
-public class RenderPipelineManagerCallbackTests
+namespace UnityEngine.Rendering.HighDefinition
 {
-    const int k_RenderCount = 10;
-
-    int begin = 0;
-    int end = 0;
-    Camera currentCamera;
-
-    public IEnumerator SetupTest()
+    public class RenderPipelineManagerCallbackTests
     {
-        begin = 0;
-        end = 0;
+        public class TestCaseSetup
+        {
+            public struct ExpectedTriggeredTimes
+            {
+                public uint beginCameraRender { get; set; }
+                public uint endCameraRender { get; set; }
+                public uint beginContextRender { get; set; }
+                public uint endContextRender { get; set; }
 
-        GameObject go = new GameObject();
-        currentCamera = go.AddComponent<Camera>();
+                public ExpectedTriggeredTimes(uint beginCameraRender, uint endCameraRender, uint beginContextRender, uint endContextRender)
+                {
+                    this.beginCameraRender = beginCameraRender;
+                    this.endCameraRender = endCameraRender;
+                    this.beginContextRender = beginContextRender;
+                    this.endContextRender = endContextRender;
+                }
+            }
 
-        // Skip a few frame for the rp to stability
-        for (int i = 0; i < 5; i++)
-            yield return new WaitForEndOfFrame();
+            public string name { get; set; }
+            public bool isRenderRequest { get; set; }
+            public uint renderCountTimes { get; set; }
+            public ExpectedTriggeredTimes expectedTriggeredTimes { get; set; }
+            
+            public Action<Camera, HDAdditionalCameraData, RenderTexture> setUpAction { get; set; }
+            public Action<Camera, HDAdditionalCameraData, RenderTexture> tearDownAction { get; set; }
 
-        RenderPipelineManager.beginCameraRendering += CountBeginCameraRender;
-        RenderPipelineManager.endCameraRendering += CountEndCameraRender;
-    }
+            public override string ToString()
+            {
+                return $"[{name}] RenderCountTimes: {renderCountTimes}, ExpectedTriggeredTimes: {{ BeginCameraRender: {expectedTriggeredTimes.beginCameraRender}, EndCameraRender: {expectedTriggeredTimes.endCameraRender}, BeginContextRender: {expectedTriggeredTimes.beginContextRender}, EndContextRender: {expectedTriggeredTimes.endContextRender} }}";
+            }
+        }
 
-    void CountBeginCameraRender(ScriptableRenderContext context, Camera camera) => begin++;
+        private Camera m_Camera;
+        private HDAdditionalCameraData m_AdditionalCameraData;
+        private RenderTexture m_RT;
+        
+        [SetUp]
+        public void Setup()
+        {
+            var go = new GameObject($"{nameof(RenderPipelineManagerCallbackTests)}_Main");
+            m_Camera = go.AddComponent<Camera>();
+            m_AdditionalCameraData = go.AddComponent<HDAdditionalCameraData>();
+            
+            // Avoid that the camera renders outside the submit render request
+            m_Camera.enabled = false;
 
-    void CountEndCameraRender(ScriptableRenderContext context, Camera camera) => end++;
+            m_RT = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32);
+            m_RT.Create();
+        }
 
-    public void CheckResult(int expectedValue)
-    {
-        RenderPipelineManager.beginCameraRendering -= CountBeginCameraRender;
-        RenderPipelineManager.endCameraRendering -= CountEndCameraRender;
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(m_Camera.gameObject);
+            m_RT.Release();
+        }
 
-        Assert.AreEqual(expectedValue, begin);
-        Assert.AreEqual(begin, end);
-    }
+        void SendRequest()
+        {
+            RenderPipeline.StandardRequest request = new();
 
-    [UnityTest]
-    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_Camera()
-    {
-        if (XRGraphicsAutomatedTests.enabled)
-            yield break;
-        yield return SetupTest();
-        for (int i = 0; i < k_RenderCount; i++)
-            currentCamera.Render();
-        CheckResult(k_RenderCount);
-    }
+            if (RenderPipeline.SupportsRenderRequest(m_Camera, request))
+            {
+                request.destination = m_RT;
+                RenderPipeline.SubmitRenderRequest(m_Camera, request);
+            }
+        }
 
-    [UnityTest]
-    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_RenderToTexture()
-    {
-        yield return SetupTest();
-        currentCamera.targetTexture = new RenderTexture(1, 1, 32, RenderTextureFormat.ARGB32);
-        currentCamera.targetTexture.Create();
-        for (int i = 0; i < k_RenderCount; i++)
-            currentCamera.Render();
-        CheckResult(k_RenderCount);
-    }
+        public static IEnumerable TestCaseSourceProvider
+        {
+            get
+            {
 
-    [UnityTest]
-    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_CustomRender()
-    {
-        if (XRGraphicsAutomatedTests.enabled)
-            yield break;
-        yield return SetupTest();
-        var additionalData = currentCamera.gameObject.AddComponent<HDAdditionalCameraData>();
-        additionalData.customRender += (_, _) => { };
-        for (int i = 0; i < k_RenderCount; i++)
-            currentCamera.Render();
-        CheckResult(k_RenderCount);
-    }
+                void AdditionalCameraDataOncustomRender(ScriptableRenderContext arg1, HDCamera arg2)
+                {
+                }
 
-    [UnityTest]
-    public IEnumerator BeginAndEndCameraRenderingCallbackMatch_FullscreenPassthrough()
-    {
-        yield return SetupTest();
-        var additionalData = currentCamera.gameObject.AddComponent<HDAdditionalCameraData>();
-        additionalData.fullscreenPassthrough = true;
-        additionalData.customRender += (_, _) => { };
-        for (int i = 0; i < k_RenderCount; i++)
-            currentCamera.Render();
-        // Fullscreen passthrough don't trigger begin/end camera rendering
-        CheckResult(0);
+                TestCaseSetup[] testCasesSetup =
+                {
+                    new TestCaseSetup()
+                    {
+                        name = "Standard Render Requests",
+                        isRenderRequest = true,
+                        renderCountTimes = 1,
+                        expectedTriggeredTimes = new (1u, 1u, 1u, 1u),
+                        setUpAction = null,
+                        tearDownAction = null
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Multiple Standard Render Requests",
+                        isRenderRequest = true,
+                        renderCountTimes = 5,
+                        expectedTriggeredTimes = new (5u, 5u, 5u, 5u),
+                        setUpAction = null,
+                        tearDownAction = null
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Camera Render",
+                        isRenderRequest = false,
+                        renderCountTimes = 1,
+                        expectedTriggeredTimes = new (1u, 1u, 1u, 1u),
+                        setUpAction = null,
+                        tearDownAction = null
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Multiple Camera Render",
+                        isRenderRequest = false,
+                        renderCountTimes = 10,
+                        expectedTriggeredTimes = new (10u, 10u, 10u, 10u),
+                        setUpAction = null,
+                        tearDownAction = null
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Camera Render to Target Texture",
+                        isRenderRequest = false,
+                        renderCountTimes = 1,
+                        expectedTriggeredTimes = new (1u, 1u, 1u, 1u),
+                        setUpAction = (cam, _, rt) => cam.targetTexture = rt,
+                        tearDownAction = (cam, _, rt) => cam.targetTexture = null,
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Multiple Camera Render to Target Texture",
+                        isRenderRequest = false,
+                        renderCountTimes = 10,
+                        expectedTriggeredTimes = new (10u, 10u, 10u, 10u),
+                        setUpAction = (cam, _, rt) => cam.targetTexture = rt,
+                        tearDownAction = (cam, _, rt) => cam.targetTexture = null,
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Camera Render with Custom Render",
+                        isRenderRequest = false,
+                        renderCountTimes = 1,
+                        expectedTriggeredTimes = new (1u, 1u, 1u, 1u),
+                        setUpAction = (cam, additionalCam, _) => additionalCam.customRender += AdditionalCameraDataOncustomRender,
+                        tearDownAction = (cam, additionalCam, _) => additionalCam.customRender -= AdditionalCameraDataOncustomRender,
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Multiple Camera Render with Custom Render",
+                        isRenderRequest = false,
+                        renderCountTimes = 10,
+                        expectedTriggeredTimes = new (10u, 10u, 10u, 10u),
+                        setUpAction = (cam, additionalCam, _) => additionalCam.customRender += AdditionalCameraDataOncustomRender,
+                        tearDownAction = (cam, additionalCam, _) => additionalCam.customRender -= AdditionalCameraDataOncustomRender,
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Camera Render with Custom Render And FullscreenPassthrough",
+                        isRenderRequest = false,
+                        renderCountTimes = 1,
+                        // Fullscreen passthrough don't trigger begin/end camera rendering
+                        expectedTriggeredTimes = new (0u, 0u, 1u, 1u),
+                        setUpAction = (cam, additionalCam, _) =>
+                        {
+                            additionalCam.fullscreenPassthrough = true;
+                            additionalCam.customRender += AdditionalCameraDataOncustomRender;
+                        },
+                        tearDownAction = (cam, additionalCam, _) =>
+                        {
+                            additionalCam.fullscreenPassthrough = false;
+                            additionalCam.customRender -= AdditionalCameraDataOncustomRender;
+                        },
+                    },
+                    new TestCaseSetup()
+                    {
+                        name = "Multiple Camera Render with Custom Render And FullscreenPassthrough",
+                        isRenderRequest = false,
+                        renderCountTimes = 10,
+                        // Fullscreen passthrough don't trigger begin/end camera rendering
+                        expectedTriggeredTimes = new (0u, 0u, 10u, 10u),
+                        setUpAction = (cam, additionalCam, _) =>
+                        {
+                            additionalCam.fullscreenPassthrough = true;
+                            additionalCam.customRender += AdditionalCameraDataOncustomRender;
+                        },
+                        tearDownAction = (cam, additionalCam, _) =>
+                        {
+                            additionalCam.fullscreenPassthrough = false;
+                            additionalCam.customRender -= AdditionalCameraDataOncustomRender;
+                        },
+                    },
+                };
+
+                foreach (var i in testCasesSetup)
+                {
+                    yield return new TestCaseData(i)
+                        .SetName(i.ToString())
+                        .Returns(null);
+                }
+            }
+        }
+
+        private const int k_WarmUpRenderCount = 10;
+
+        [UnityTest, TestCaseSource(nameof(TestCaseSourceProvider))]
+        public IEnumerator Execute(TestCaseSetup test)
+        {
+            // Skip a few frames for the Render Pipeline to Stabilize
+            for (int i = 0; i < k_WarmUpRenderCount; i++)
+            {
+                m_Camera.Render();
+                yield return new WaitForEndOfFrame();
+            }
+
+            // Subscribe to RP manager callbacks
+            uint beginCameraCalledTimes = 0u;
+            void ActionBeginRendering(ScriptableRenderContext context, Camera camera)
+            {
+                if (camera == m_Camera)
+                    beginCameraCalledTimes++;
+            }
+
+            uint beginContextCalledTimes = 0u;
+            void ActionBeginContext(ScriptableRenderContext context, List<Camera> cameras)
+            {
+                if (cameras.Contains(m_Camera))
+                    beginContextCalledTimes++;
+            }
+            
+
+            uint endCameraCalledTimes = 0u;
+            void ActionEndRendering(ScriptableRenderContext context, Camera camera)
+            {
+                if (camera == m_Camera)
+                    endCameraCalledTimes++;
+            }
+            
+            uint endContextCalledTimes = 0u;
+            void ActionEndContext(ScriptableRenderContext context, List<Camera> cameras)
+            {
+                if (cameras.Contains(m_Camera))
+                    endContextCalledTimes++;
+            }
+
+            RenderPipelineManager.beginContextRendering += ActionBeginContext;
+            RenderPipelineManager.beginCameraRendering += ActionBeginRendering;
+            RenderPipelineManager.endCameraRendering += ActionEndRendering;
+            RenderPipelineManager.endContextRendering += ActionEndContext;
+            
+            test.setUpAction?.Invoke(m_Camera, m_AdditionalCameraData, m_RT);
+
+            for (int i = 0; i < test.renderCountTimes; ++i)
+            {
+                if (test.isRenderRequest)
+                {
+                    SendRequest();
+                }
+                else
+                {
+                    m_Camera.Render();
+                    yield return new WaitForEndOfFrame();
+                }
+            }
+
+            test.tearDownAction?.Invoke(m_Camera, m_AdditionalCameraData, m_RT);
+
+            // Unsubscribe to RP Manager callbacks
+            RenderPipelineManager.beginCameraRendering -= ActionBeginRendering;
+            RenderPipelineManager.beginContextRendering -= ActionBeginContext;
+            RenderPipelineManager.endCameraRendering -= ActionEndRendering;
+            RenderPipelineManager.endContextRendering -= ActionEndContext;
+
+            Assert.AreEqual(test.expectedTriggeredTimes.beginCameraRender, beginCameraCalledTimes, "Begin Camera Render Count mismatch");
+            Assert.AreEqual(test.expectedTriggeredTimes.endCameraRender, endCameraCalledTimes, "End Camera Render Count mismatch");
+            Assert.AreEqual(test.expectedTriggeredTimes.beginContextRender, beginContextCalledTimes, "Begin Context Render Count mismatch");
+            Assert.AreEqual(test.expectedTriggeredTimes.endContextRender, endContextCalledTimes, "End Context Render Count mismatch");
+
+            yield return null;
+        }
     }
 }

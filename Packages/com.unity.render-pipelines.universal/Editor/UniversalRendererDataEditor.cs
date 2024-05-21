@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent OverridesSectionLabel = EditorGUIUtility.TrTextContent("Overrides", "This section contains Render Pipeline properties that this Renderer overrides.");
 
-            public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
+            public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer Normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
@@ -203,11 +203,15 @@ namespace UnityEditor.Rendering.Universal
 
 
             EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.RenderPassSectionLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
-            EditorGUI.indentLevel--;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings)
+                && renderGraphSettings.enableRenderCompatibilityMode)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField(Styles.RenderPassSectionLabel, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
+                EditorGUI.indentLevel--;
+            }
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.ShadowsSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;

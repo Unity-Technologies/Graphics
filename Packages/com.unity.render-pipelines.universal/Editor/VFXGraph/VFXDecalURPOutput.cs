@@ -7,10 +7,10 @@ using UnityEngine;
 namespace UnityEditor.VFX.URP
 {
     [VFXHelpURL("Context-OutputParticleURPLitDecal")]
-    [VFXInfo(name = "Output Particle URP Decal", category = "Output")]
+    [VFXInfo(name = "Output Particle|URP Lit|Decal", category = "#4Output Advanced")]
     internal class VFXDecalURPOutput : VFXAbstractParticleURPLitOutput
     {
-        public override string name => "Output Particle URP Decal";
+        public override string name => "Output Particle".AppendLabel("URP Lit").AppendLabel("Decal");
 
         public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleURPDecal");
 

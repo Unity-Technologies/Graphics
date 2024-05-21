@@ -12,7 +12,7 @@
     "com.unity.shaderanalysis": "file:../../../../../Packages/com.unity.shaderanalysis",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
-    "com.unity.testing.graphics-performance": "file:../../../Packages/com.unity.testing.graphics-performance",
+    "com.unity.test-framework.graphics.performance": "file:../../../Packages/com.unity.test-framework.graphics.performance",
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.timeline": "1.8.4",

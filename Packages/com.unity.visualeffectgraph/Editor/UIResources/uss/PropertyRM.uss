@@ -57,10 +57,15 @@
 
 .propertyrm #spacebutton
 {
-    width: 16px;
+    border-radius: 3px;
+    width: 22px;
     height: 16px;
-    margin-left: 4px;
     margin-right: 8px;
+    padding-left: 16px;
+    font-size: 6px;
+    -unity-text-align: middle-center;
+    background-position: left;
+    background-size: 14px 14px;
 }
 
 .propertyrm > Label
@@ -84,48 +89,32 @@
     flex-direction: column;
 }
 
+.propertyrm #spacebutton.World {
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_WorldSpace@2x.png");
+}
 .propertyrm VFXMatrix4x4Field #matrixContainer {
     flex-grow: 1;
 }
 
+.propertyrm #spacebutton.Local {
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_LocalSpace@2x.png");
+}
 .propertyrm VFXMatrix4x4Field #matrixLine {
     flex-grow: 1;
     flex-direction: row;
 }
 
+.propertyrm #spacebutton.None {
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_NoneSpace@2x.png");
+}
 .propertyrm VFXMatrix4x4Field Label {
     width: 18px;
     margin-left: 4px;
 }
 
-.spaceLocal
-{
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacelocal.png");
-}
-
-.spaceLocal.hovered
-{
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacelocal_hovered.png");
-}
-
-.spaceWorld
-{
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld.png");
-}
-
-.spaceWorld.hovered
-{
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld_hovered.png");
-}
-
-.spaceNone
-{
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacenone.png");
-}
-
-.spaceNone.hovered
-{
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacenone_hovered.png");
+.propertyrm #spacebutton:hover {
+    background-color: #515151;
+    color: var(--unity-colors-default-text);
 }
 
 .propertyrm .unity-base-text-field *

@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static Color s_LastColor;
         static void UpdateColorsInHandlesIfRequired()
         {
-            Color c = HDRenderPipelinePreferences.decalGizmoColor;
+            Color c = DecalPreferences.decalGizmoColor;
             if (c != s_LastColor)
             {
                 if (s_BoxHandle != null && !s_BoxHandle.Equals(null))

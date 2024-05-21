@@ -130,13 +130,13 @@ namespace UnityEditor.Rendering.HighDefinition
             // Sky
             UpdateSkyAndFogIntPopupData();
 
-            using (var scope = new OverridablePropertyScope(m_SkyType, EditorGUIUtility.TrTextContent("Sky type", "Specifies the type of sky this Volume uses."), this))
+            using (var scope = new OverridablePropertyScope(m_SkyType, EditorGUIUtility.TrTextContent("Sky Type", "Specifies the type of sky this Volume uses."), this))
             {
                 if (scope.displayed)
                     EditorGUILayout.IntPopup(m_SkyType.value, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), scope.label);
             }
 
-            using (var scope = new OverridablePropertyScope(m_CloudType, EditorGUIUtility.TrTextContent("Background clouds", "Specifies the type of background cloud this Volume uses."), this))
+            using (var scope = new OverridablePropertyScope(m_CloudType, EditorGUIUtility.TrTextContent("Background Clouds", "Specifies the type of background cloud this Volume uses."), this))
             {
                 if (scope.displayed)
                     EditorGUILayout.IntPopup(m_CloudType.value, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), scope.label);

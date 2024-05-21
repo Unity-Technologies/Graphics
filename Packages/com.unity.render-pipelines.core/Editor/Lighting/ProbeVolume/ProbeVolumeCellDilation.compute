@@ -18,11 +18,7 @@ CBUFFER_END
 #define _ProbeCount (uint)_DilationParameters.x
 #define _ValidityThreshold _DilationParameters.y
 #define _SearchRadius _DilationParameters.z
-#define _MinBrickSizeForDilation _DilationParameters.w
-
-#define _SquaredDistanceWeight (_DilationParameters2.x > 0)
-#define _EnableSkyOcclusion (_DilationParameters2.y > 0)
-#define _EnableSkyDirection (_DilationParameters2.z > 0)
+#define _SquaredDistanceWeight (_DilationParameters.w > 0)
 
 StructuredBuffer<int> _NeedDilating;
 StructuredBuffer<float3> _ProbePositionsBuffer;
@@ -60,7 +56,7 @@ void AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, f
     }
 
     // Sky occlusion data
-    if (_EnableSkyOcclusion)
+    if (_APVSkyOcclusionWeight > 0)
     {
         float4 SO_L0L1 = SAMPLE_TEXTURE3D_LOD(apvRes.SkyOcclusionL0L1, s_linear_clamp_sampler, uvw, 0).rgba * weight;
 
@@ -68,9 +64,9 @@ void AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, f
         {
             probe.SO_L0L1 += SO_L0L1 * weight;
 
-            if (_EnableSkyDirection)
+            if (_APVSkyDirectionWeight > 0)
             {
-                int3 texCoord = uvw * _PoolDim - 0.5f; // No interpolation for sky shading indices
+                int3 texCoord = uvw * _APVPoolDim - 0.5f; // No interpolation for sky shading indices
                 uint index = LOAD_TEXTURE3D(apvRes.SkyShadingDirectionIndices, texCoord).x * 255.0;
 
                 probe.SO_Direction = index == 255 ? float3(0, 0, 0) : apvRes.SkyPrecomputedDirections[index].rgb * weight;
@@ -103,18 +99,18 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
 
         if (_NeedDilating[probeIdx] > 0)
         {
-            float3 centralPosition = _ProbePositionsBuffer[probeIdx] - _WorldOffset;
+            float3 centralPosition = _ProbePositionsBuffer[probeIdx] - _APVWorldOffset;
             DilatedProbe probe = (DilatedProbe)0;
 
             float3 uvw;
             uint subdiv;
             float shWeight = 0, soWeight = 0;
-            float3 uvwDelta = rcp(_PoolDim);
+            float3 uvwDelta = rcp(_APVPoolDim);
 
             float3 biasedPosWS;
             if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), centralPosition, 0, 0, uvw, subdiv, biasedPosWS))
             {
-                float stepSize = _MinBrickSizeForDilation / 3.0f;
+                float stepSize = _APVMinBrickSize / 3.0f;
 
                 // Inflate search radius a bit.
                 float radius = 1.5f * _SearchRadius;

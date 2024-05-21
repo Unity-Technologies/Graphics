@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-ChangeSpace")]
-    [VFXInfo(category = "Math/Geometry")]
+    [VFXInfo(category = "Math/Geometry", synonyms = new []{ "Convert" })]
     class ChangeSpace : VFXOperatorNumericUniform
     {
         [VFXSetting, SerializeField]

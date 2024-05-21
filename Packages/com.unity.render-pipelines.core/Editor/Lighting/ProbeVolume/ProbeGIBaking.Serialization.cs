@@ -326,8 +326,8 @@ namespace UnityEngine.Rendering
                         cell.indirectionEntryInfo[i].positionInBricks = cellPosInBricks + new Vector3Int(x, y, z) * indirectionEntrySizeInBricks;
                         cell.indirectionEntryInfo[i].hasOnlyBiggerBricks = minSubdiv > entrySubdivLevel && touchedBrick;
 
-                        ProbeBrickIndex.IndirectionEntryUpdateInfo unused = new ProbeBrickIndex.IndirectionEntryUpdateInfo();
-                        int brickCount = ProbeReferenceVolume.instance.GetNumberOfBricksAtSubdiv(cell.indirectionEntryInfo[i], ref unused);
+                        prv.ComputeEntryMinMax(ref cell.indirectionEntryInfo[i], cell.bricks);
+                        int brickCount = ProbeReferenceVolume.GetNumberOfBricksAtSubdiv(cell.indirectionEntryInfo[i]);
 
                         totalIndexChunks += Mathf.CeilToInt((float)brickCount / ProbeBrickIndex.kIndexChunkSize);
 

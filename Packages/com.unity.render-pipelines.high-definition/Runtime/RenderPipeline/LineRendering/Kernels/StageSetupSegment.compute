@@ -147,7 +147,7 @@ void Main(Group group)
     const float2 positionSS1 = _ScreenSize.xy * (0.5 + 0.5 * positionNDC1.xy);
 
     // Depth test against each segment vertex.
-    if(positionNDC1.z < LoadCameraDepth(float2(positionSS1.x, _ScreenSize.y - positionSS1.y)))
+    if(positionNDC1.z < LoadCameraDepth(float2(positionSS1.x, _ScreenSize.y - positionSS1.y)) && positionNDC0.z < LoadCameraDepth(float2(positionSS0.x, _ScreenSize.y - positionSS0.y)))
     {
         culled = true;
     }

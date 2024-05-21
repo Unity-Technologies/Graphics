@@ -11,13 +11,16 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var v in CollisionBase.preVariants)
+            foreach (var behavior in Enum.GetValues(typeof(CollisionBase.Behavior)).Cast<CollisionBase.Behavior>())
+            {
+                var nameBase = CollisionBase.GetNamePrefix(behavior);
                 yield return new Variant(
-                    CollisionBase.GetNamePrefix(v.behavior) + "Depth Buffer",
-                    v.category,
+                    nameBase.AppendLabel("Depth Buffer", false),
+                    behavior == CollisionBase.Behavior.Collision ? "Collision" : "Collision/".AppendSeparator(nameBase, 0),
                     typeof(CollisionDepth),
-                    new[] { new KeyValuePair<string, object>("behavior", v.behavior) }
+                    new[] { new KeyValuePair<string, object>("behavior", behavior) }
                 );
+            }
         }
     }
 
@@ -37,7 +40,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies the thickness mode for the colliding surface. It can have an infinite thickness, or be set to a custom value.")]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
-        public override string name => GetNamePrefix(behavior) + "Depth Buffer";
+        public override string name => GetNamePrefix(behavior).AppendLabel("Depth Buffer", false);
 
         public class ThicknessProperties
         {

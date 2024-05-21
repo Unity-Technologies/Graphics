@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_MSAAResolveMaterial, m_MSAAResolveMaterialDepthOnly;
         Material m_CameraMotionVectorsMaterial;
         Material m_DecalNormalBufferMaterial;
-        Material m_DownsampleDepthMaterialHalfresCheckerboard;
+        Material m_DownsampleDepthMaterialLoad;
         Material m_DownsampleDepthMaterialGather;
         Material[] m_ComputeThicknessOpaqueMaterial;
         Material[] m_ComputeThicknessTransparentMaterial;
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MSAAResolveMaterialDepthOnly.EnableKeyword("_DEPTH_ONLY");
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.cameraMotionVectorsPS);
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.decalNormalBufferPS);
-            m_DownsampleDepthMaterialHalfresCheckerboard = CoreUtils.CreateEngineMaterial(runtimeShaders.downsampleDepthPS);
+            m_DownsampleDepthMaterialLoad = CoreUtils.CreateEngineMaterial(runtimeShaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather = CoreUtils.CreateEngineMaterial(runtimeShaders.downsampleDepthPS);
             m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
             m_ComputeThicknessOpaqueMaterial = new Material[m_MaxXRViewsCount];
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_MSAAResolveMaterialDepthOnly);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
             CoreUtils.Destroy(m_DecalNormalBufferMaterial);
-            CoreUtils.Destroy(m_DownsampleDepthMaterialHalfresCheckerboard);
+            CoreUtils.Destroy(m_DownsampleDepthMaterialLoad);
             CoreUtils.Destroy(m_DownsampleDepthMaterialGather);
             m_ComputeThicknessReindexMap.Dispose();
             for (int viewId = 0; viewId < m_MaxXRViewsCount; ++viewId)
@@ -410,21 +410,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (depthBufferModified)
                     m_IsDepthBufferCopyValid = false;
 
-                // Only on consoles is safe to read and write from/to the depth atlas
-                bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5NGGC ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
-
-                mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) && hdCamera.isLowResScaleHalf;
-
-                DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
-
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
-                GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
+                GenerateDepthPyramid(renderGraph, hdCamera, ref result);
+                DownsampleDepthForLowResTransparency(renderGraph, hdCamera, ref result);
 
                 // In case we don't have MSAA, we always run camera motion vectors when is safe to assume Object MV are rendered
                 if (!needCameraMVBeforeResolve)
@@ -1468,18 +1456,35 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public bool useGatherDownsample;
             public float downsampleScale;
+            public Vector2Int loadOffset;
             public Material downsampleDepthMaterial;
             public TextureHandle depthTexture;
-            public TextureHandle depthPyramidTexture;
             public TextureHandle downsampledDepthBuffer;
             public Rect viewport;
-
-            // Data needed for potentially writing
-            public Vector2Int mip0Offset;
-            public bool computesMip1OfAtlas;
         }
 
-        void DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, bool computeMip1OfPyramid, ref PrepassOutput output)
+        internal int RequiredCheckerboardMipCountInDepthPyramid(HDCamera hdCamera)
+        {
+            int mipCount = 0;
+
+            // lowres transparency needs 1 mip
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent)
+                && hdCamera.isLowResScaleHalf
+                && m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
+            {
+                mipCount = Mathf.Max(mipCount, 1);
+            }
+
+            // Volumetric clouds need 1 mip
+            if (HasVolumetricClouds(hdCamera))
+            {
+                mipCount = Mathf.Max(mipCount, 1);
+            }
+
+            return mipCount;
+        }
+
+        void DownsampleDepthForLowResTransparency(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
             // If the depth buffer hasn't been already copied by the decal depth buffer pass, then we do the copy here.
             CopyDepthBufferIfNeeded(renderGraph, hdCamera, ref output);
@@ -1489,34 +1494,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.useGatherDownsample = false;
                 if (hdCamera.isLowResScaleHalf)
                 {
-                    if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer)
-                    {
-                        m_DownsampleDepthMaterialHalfresCheckerboard.EnableKeyword("CHECKERBOARD_DOWNSAMPLE");
-                    }
-                    else
-                    {
-                        m_DownsampleDepthMaterialHalfresCheckerboard.DisableKeyword("CHECKERBOARD_DOWNSAMPLE");
-                    }
-                    if (computeMip1OfPyramid)
-                    {
-                        passData.mip0Offset = hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1];
-                        m_DownsampleDepthMaterialHalfresCheckerboard.EnableKeyword("OUTPUT_FIRST_MIP_OF_MIPCHAIN");
-                    }
-                    passData.downsampleDepthMaterial = m_DownsampleDepthMaterialHalfresCheckerboard;
+                    passData.downsampleDepthMaterial = m_DownsampleDepthMaterialLoad;
+                    passData.loadOffset = m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer
+                        ? hdCamera.depthBufferMipChainInfo.mipLevelOffsetsCheckerboard[1]
+                        : hdCamera.depthBufferMipChainInfo.mipLevelOffsets[1];
                 }
                 else
                 {
-                    m_DownsampleDepthMaterialGather.EnableKeyword("GATHER_DOWNSAMPLE");
                     passData.downsampleDepthMaterial = m_DownsampleDepthMaterialGather;
                     passData.useGatherDownsample = true;
                 }
-
-                passData.computesMip1OfAtlas = computeMip1OfPyramid;
                 passData.downsampleScale = hdCamera.lowResScale;
                 passData.viewport = hdCamera.lowResViewport;
-                passData.depthTexture = builder.ReadTexture(output.resolvedDepthBuffer);
-                if (computeMip1OfPyramid)
-                    passData.depthPyramidTexture = builder.WriteTexture(output.depthPyramidTexture);
+                passData.depthTexture = builder.ReadTexture(output.depthPyramidTexture);
 
                 passData.downsampledDepthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true) { depthBufferBits = DepthBits.Depth32, name = "LowResDepthBuffer" }), DepthAccess.Write);
@@ -1524,36 +1514,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DownsampleDepthForLowResPassData data, RenderGraphContext context) =>
                     {
-                        if (data.computesMip1OfAtlas)
-                        {
-                            data.downsampleDepthMaterial.SetVector(HDShaderIDs._DstOffset, new Vector4(data.mip0Offset.x, data.mip0Offset.y, 0.0f, 0.0f));
-                            context.cmd.SetRandomWriteTarget(1, data.depthPyramidTexture);
-                        }
-
+                        Vector4 scaleBias = Vector4.zero;
                         if (data.useGatherDownsample)
                         {
                             float downsampleScaleInv = 1.0f / data.downsampleScale;
                             RenderTexture srcTexture = data.depthTexture;
                             RenderTexture destTexture = data.downsampledDepthBuffer;
-                            float uvScaleX = 1.0f;
-                            float uvScaleY = 1.0f;
-                            if (!DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
-                            {
-                                uvScaleX = ((float)destTexture.width / (float)srcTexture.width) * downsampleScaleInv;
-                                uvScaleY = ((float)destTexture.height / (float)srcTexture.height) * downsampleScaleInv;
-                            }
-
-                            data.downsampleDepthMaterial.SetVector(HDShaderIDs._ScaleBias, new Vector4(uvScaleX, uvScaleY, 0.0f, 0.0f));
+                            scaleBias.x = ((float)destTexture.width / (float)srcTexture.width) * downsampleScaleInv;
+                            scaleBias.y = ((float)destTexture.height / (float)srcTexture.height) * downsampleScaleInv;
                         }
+                        else
+                        {
+                            scaleBias.z = data.loadOffset.x;
+                            scaleBias.w = data.loadOffset.y;
+                        }
+                        context.cmd.SetGlobalVector(HDShaderIDs._ScaleBias, scaleBias);
 
                         context.cmd.SetViewport(data.viewport);
-                        context.cmd.SetGlobalTexture(HDShaderIDs._SourceDownsampleDepth, data.depthTexture);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.downsampleDepthMaterial, 0, MeshTopology.Triangles, 3, 1, null);
-
-                        if (data.computesMip1OfAtlas)
-                        {
-                            context.cmd.ClearRandomWriteTargets();
-                        }
                     });
 
                 output.downsampledDepthBuffer = passData.downsampledDepthBuffer;
@@ -1565,11 +1543,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthTexture;
             public HDUtils.PackedMipChainInfo mipInfo;
             public MipGenerator mipGenerator;
-
-            public bool mip0AlreadyComputed;
         }
 
-        void GenerateDepthPyramid(RenderGraph renderGraph, HDCamera hdCamera, bool mip0AlreadyComputed, ref PrepassOutput output)
+        void GenerateDepthPyramid(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
@@ -1585,12 +1561,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.WriteTexture(output.depthPyramidTexture);
                 passData.mipInfo = hdCamera.depthBufferMipChainInfo;
                 passData.mipGenerator = m_MipGenerator;
-                passData.mip0AlreadyComputed = mip0AlreadyComputed;
 
                 builder.SetRenderFunc(
                     (GenerateDepthPyramidPassData data, RenderGraphContext context) =>
                     {
-                        data.mipGenerator.RenderMinDepthPyramid(context.cmd, data.depthTexture, data.mipInfo, data.mip0AlreadyComputed);
+                        data.mipGenerator.RenderMinDepthPyramid(context.cmd, data.depthTexture, data.mipInfo);
                     });
 
                 output.depthPyramidTexture = passData.depthTexture;

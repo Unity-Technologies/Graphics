@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = viewCount;
 
             // Compute shader and kernels
-            parameters.combineKernel = hdCamera.msaaEnabled ? m_CombineCloudsKernel : m_CombineCloudsPerceptualKernel;
+            parameters.combineKernel = parameters.commonData.perceptualBlending ? m_CombineCloudsKernel : m_CombineCloudsPerceptualKernel;
 
             // Update the constant buffer
             VolumetricCloudsCameraData cameraData;
@@ -51,16 +51,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableIntegration = true;
             UpdateShaderVariablesClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
-            // If this is a default camera, we want the improved blending, otherwise we don't (in the case of a planar)
-            float perceptualBlending = settings.perceptualBlending.value;
-            parameters.commonData.cloudsCB._ImprovedTransmittanceBlend = parameters.commonData.cameraType == TVolumetricCloudsCameraType.Default ? perceptualBlending : 0.0f;
-            parameters.commonData.cloudsCB._CubicTransmittance = parameters.commonData.cameraType == TVolumetricCloudsCameraType.Default && hdCamera.msaaEnabled ? perceptualBlending : 0;
-
             return parameters;
         }
 
-        static void TraceVolumetricClouds_FullResolution(CommandBuffer cmd, VolumetricCloudsParameters_FullResolution parameters, GraphicsBuffer ambientProbeBuffer,
-            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle volumetricLightingTexture,
+        static void TraceVolumetricClouds_FullResolution(CommandBuffer cmd, VolumetricCloudsParameters_FullResolution parameters,
+            GraphicsBuffer ambientProbeBuffer, RTHandle colorBuffer, RTHandle depthPyramid,
             RTHandle intermediateCloudsLighting, RTHandle intermediateCloudsDepth,
             RTHandle cloudsLighting, RTHandle cloudsDepth)
         {
@@ -78,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, finalTX, finalTY, parameters.viewCount, in parameters.commonData,
-                volumetricLightingTexture, depthPyramid, ambientProbeBuffer,
+                ambientProbeBuffer, colorBuffer, depthPyramid,
                 intermediateCloudsLighting, intermediateCloudsDepth);
 
             DoVolumetricCloudsUpscale(cmd, parameters.combineKernel, finalTX, finalTY, parameters.viewCount, in parameters.commonData,
@@ -95,18 +90,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
             public TextureHandle depthPyramid;
             public BufferHandle ambientProbeBuffer;
-            public TextureHandle volumetricLighting;
 
             // Intermediate buffers
-            public TextureHandle intermediateLightingBuffer;
-            public TextureHandle intermediateBufferDepth;
+            public TextureHandle tracedCloudsLighting;
+            public TextureHandle tracedCloudsDepth;
 
             // Output buffer
             public TextureHandle cloudsLighting;
             public TextureHandle cloudsDepth;
         }
 
-        VolumetricCloudsOutput RenderVolumetricClouds_FullResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle volumetricLighting)
+        VolumetricCloudsOutput RenderVolumetricClouds_FullResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid)
         {
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsFullResolutionData>("Volumetric Clouds Full Resolution", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
@@ -120,25 +114,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
-                passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
-
-                passData.intermediateLightingBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 0" });
-                passData.intermediateBufferDepth = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Temporary Clouds Depth Buffer 0" });
-
-                // Output of the clouds
-                passData.cloudsLighting = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Lighting Texture" }));
-                passData.cloudsDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Depth Texture" }));
+                
+                CreateTracingTextures(renderGraph, builder, settings, 1.0f, out passData.tracedCloudsLighting, out passData.tracedCloudsDepth);
+                CreateOutputTextures(renderGraph, builder, settings, out passData.cloudsLighting, out passData.cloudsDepth);
 
                 builder.SetRenderFunc(
                     (VolumetricCloudsFullResolutionData data, RenderGraphContext ctx) =>
                     {
-                        TraceVolumetricClouds_FullResolution(ctx.cmd, data.parameters, data.ambientProbeBuffer,
-                            data.colorBuffer, data.depthPyramid, data.volumetricLighting,
-                            data.intermediateLightingBuffer, data.intermediateBufferDepth,
+                        TraceVolumetricClouds_FullResolution(ctx.cmd, data.parameters,
+                            data.ambientProbeBuffer, data.colorBuffer, data.depthPyramid,
+                            data.tracedCloudsLighting, data.tracedCloudsDepth,
                             data.cloudsLighting, data.cloudsDepth);
                     });
 

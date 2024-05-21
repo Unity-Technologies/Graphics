@@ -25,7 +25,8 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var sampleMode in sampleModes)
                 {
-                    if (m_Attribute == VFXAttribute.Age.name && sampleMode == AttributeFromCurve.CurveSampleMode.OverLife)
+                    if (m_Attribute == VFXAttribute.Age.name &&
+                        (sampleMode == AttributeFromCurve.CurveSampleMode.OverLife || (composition == AttributeCompositionMode.Overwrite && sampleMode == AttributeFromCurve.CurveSampleMode.BySpeed)))
                     {
                         continue;
                     }
@@ -41,17 +42,20 @@ namespace UnityEditor.VFX.Block
                         continue;
                     }
 
-                    var compositionString = $"{VFXBlockUtility.GetNameString(composition)}";
+                    var compositionSynonym = VFXBlockUtility.GetCompositionSynonym(composition);
+                    var compositionString = VFXBlockUtility.GetNameString(composition);
                     yield return new Variant(
-                        $"{compositionString} {m_Attribute} | {VFXBlockUtility.GetNameString(sampleMode)}",
-                        compositionString,
+                        compositionString.Label().AppendLiteral(m_Attribute).AppendLabel(VFXBlockUtility.GetNameString(sampleMode)),
+                        VFXLibraryStringHelper.Separator(compositionString, 0),
                         typeof(AttributeFromCurve),
                         new[]
                         {
                             new KeyValuePair<string, object>("attribute", m_Attribute),
                             new KeyValuePair<string, object>("Composition", composition),
                             new KeyValuePair<string, object>("SampleMode", sampleMode)
-                        });
+                        },
+                        null,
+                        m_Attribute != VFXAttribute.Color.name ? compositionSynonym : compositionSynonym.Concat(new []{ "Gradient" }).ToArray());
                 }
             }
         }
@@ -61,21 +65,30 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            var attributes = VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, false, false).Except(new[] { VFXAttribute.Alive.name }).ToArray();
-            foreach (var attribute in attributes)
+            var setSynonyms = VFXBlockUtility.GetCompositionSynonym(AttributeCompositionMode.Overwrite);
+            var groups = VFXAttributesManager
+                .GetBuiltInAttributesOrCombination(true, false, false, false)
+                .Except(new[] { VFXAttribute.Alive })
+                .GroupBy(x => x.category);
+
+            foreach (var group in groups)
             {
-                var sampleMode = attribute != VFXAttribute.Age.name ? AttributeFromCurve.CurveSampleMode.OverLife : AttributeFromCurve.CurveSampleMode.BySpeed;
-                yield return new Variant(
-                    $"Set {attribute} | {VFXBlockUtility.GetNameString(sampleMode)}",
-                    "Attribute from curve",
-                    typeof(AttributeFromCurve),
-                    new[]
-                    {
-                        new KeyValuePair<string, object>("attribute", attribute),
-                        new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
-                        new KeyValuePair<string, object>("SampleMode", sampleMode)
-                    },
-                    () => new AttributeFromCurveVariantProvider(attribute));
+                foreach (var attribute in group)
+                {
+                    var sampleMode = attribute.name != VFXAttribute.Age.name ? AttributeFromCurve.CurveSampleMode.OverLife : AttributeFromCurve.CurveSampleMode.BySpeed;
+                    yield return new Variant(
+                        "Set".Label(false).AppendLiteral(attribute.name).AppendLabel(VFXBlockUtility.GetNameString(sampleMode)),
+                        $"Attribute from Curve/{attribute.category}",
+                        typeof(AttributeFromCurve),
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("attribute", attribute.name),
+                            new KeyValuePair<string, object>("Composition", AttributeCompositionMode.Overwrite),
+                            new KeyValuePair<string, object>("SampleMode", sampleMode)
+                        },
+                        () => new AttributeFromCurveVariantProvider(attribute.name),
+                        attribute.name != VFXAttribute.Color.name ? setSynonyms : setSynonyms.Concat(new []{ "Gradient" }).ToArray());
+                }
             }
         }
     }
@@ -131,19 +144,7 @@ namespace UnityEditor.VFX.Block
         private string GenerateName()
         {
             var variadicName = currentAttribute.variadic == VFXVariadic.True ? "." + channels : string.Empty;
-            var n = VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + variadicName;
-            switch (SampleMode)
-            {
-                case CurveSampleMode.OverLife: n += " over Life"; break;
-                case CurveSampleMode.BySpeed: n += " by Speed"; break;
-                case CurveSampleMode.Random: n += $" Random from {(attribute == VFXAttribute.Color.name ? "Gradient" : "Curve")}"; break;
-                case CurveSampleMode.RandomConstantPerParticle: n += $" Random from {(attribute == VFXAttribute.Color.name ? "Gradient" : "Curve")} (Constant per-particle)"; break;
-                case CurveSampleMode.Custom: n += " Custom"; break;
-                default:
-                    throw new NotImplementedException("Invalid CurveSampleMode");
-            }
-
-            return n;
+            return VFXBlockUtility.GetNameString(Composition).Label(false).AppendLiteral(attribute) + variadicName.AppendLabel(SampleMode.ToString());
         }
 
         public override string name => GenerateName();

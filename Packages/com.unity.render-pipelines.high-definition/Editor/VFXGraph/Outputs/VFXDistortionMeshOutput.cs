@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Particle HDRP Distortion Mesh", category = "Output")]
+    [VFXInfo(name = "Output Particle|HDRP Distortion|Mesh", category = "#4Output Advanced")]
     class VFXDistortionMeshOutput : VFXAbstractDistortionOutput
     {
-        public override string name { get { return "Output Particle HDRP Distortion Mesh"; } }
+        public override string name => "Output Particle".AppendLabel("HDRP Distortion", false) + "\nMesh";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return true; } }

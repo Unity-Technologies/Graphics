@@ -1769,9 +1769,9 @@ namespace UnityEditor.VFX.UI
             {
                 VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
                 if (edge != null)
-                    VFXFilterWindow.Show(this, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
+                    VFXFilterWindow.Show(point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
-                    VFXFilterWindow.Show(this, point, ctx.screenMousePosition, m_NodeProvider);
+                    VFXFilterWindow.Show(point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -2880,7 +2880,7 @@ namespace UnityEditor.VFX.UI
             var edge = selection.OfType<VFXDataEdge>().FirstOrDefault();
             if (edge != null)
             {
-                VFXFilterWindow.Show(this, mousePosition, ViewToScreenPosition(mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new[] { typeof(VFXOperator) }));
+                VFXFilterWindow.Show( mousePosition, ViewToScreenPosition(mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new[] { typeof(VFXOperator) }));
             }
         }
 

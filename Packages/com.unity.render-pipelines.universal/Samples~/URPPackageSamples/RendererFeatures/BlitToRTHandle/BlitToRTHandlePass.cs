@@ -13,7 +13,7 @@ public class BlitToRTHandlePass : ScriptableRenderPass
         public Material material;
         public Vector4 scaleBias;
     }
-    
+
     private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("BlitToRTHandle_CopyColor");
     private RTHandle m_InputHandle;
@@ -28,6 +28,8 @@ public class BlitToRTHandlePass : ScriptableRenderPass
         m_Material = mat;
     }
 
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
+
     // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
@@ -36,7 +38,7 @@ public class BlitToRTHandlePass : ScriptableRenderPass
         desc.depthBufferBits = 0;
         desc.msaaSamples = 1;
         RenderingUtils.ReAllocateIfNeeded(ref m_OutputHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_OutputName );
-        
+
         // Set the RTHandle as the output target in the Compatibility mode
         ConfigureTarget(m_OutputHandle);
     }
@@ -46,7 +48,7 @@ public class BlitToRTHandlePass : ScriptableRenderPass
     {
         // Set camera color as the input
         m_InputHandle = renderingData.cameraData.renderer.cameraColorTargetHandle;
-        
+
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
@@ -60,7 +62,9 @@ public class BlitToRTHandlePass : ScriptableRenderPass
         cmd.Clear();
         CommandBufferPool.Release(cmd);
     }
-    
+
+#pragma warning restore 618, 672
+
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
@@ -69,16 +73,16 @@ public class BlitToRTHandlePass : ScriptableRenderPass
 
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         // Create the custom RTHandle
         var desc = cameraData.cameraTargetDescriptor;
         desc.depthBufferBits = 0;
         desc.msaaSamples = 1;
-        RenderingUtils.ReAllocateIfNeeded(ref m_OutputHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_OutputName );
-        
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_OutputHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_OutputName );
+
         // Set camera color as a texture resource for this render graph instance
         TextureHandle source = resourceData.activeColorTexture;
-            
+
         // Set RTHandle as a texture resource for this render graph instance
         TextureHandle destination = renderGraph.ImportTexture(m_OutputHandle);
 
@@ -100,12 +104,12 @@ public class BlitToRTHandlePass : ScriptableRenderPass
                 Blitter.BlitTexture(context.cmd, data.source, data.scaleBias, data.material, 0);
             });
         }
-        
+
         // In this example the pass executes after rendering transparent objects, and the transparent objects are reading the destination texture.
         // The following code sets the TextureHandle as the camera color target to avoid visual artefacts.
         resourceData.cameraColor = destination;
     }
-    
+
     public void Dispose()
     {
         m_InputHandle?.Release();

@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-SampleBezier")]
-    [VFXInfo(category = "Math/Vector")]
+    [VFXInfo(category = "Math/Vector", synonyms = new []{ "Curve" })]
     class SampleBezier : VFXOperator
     {
         public class InputProperties

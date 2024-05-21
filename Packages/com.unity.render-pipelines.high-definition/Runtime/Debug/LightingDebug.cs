@@ -359,6 +359,22 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Light category for cluster debug view.</summary>
         public ClusterLightCategoryDebug clusterLightCategory = ClusterLightCategoryDebug.All;
 
+
+        /// <summary>Enable to make HDRP mix the albedo of the Material with its material capture.</summary>
+        public bool matCapMixAlbedo = false ;
+
+        /// <summary>Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.</summary>
+        public float matCapMixScale = 1.0f;
+
+#if UNITY_EDITOR
+        public LightingDebugSettings()
+        {
+            var matCapMode = HDRenderPipelinePreferences.matCapMode;
+            matCapMixAlbedo = matCapMode.mixAlbedo.value;
+            matCapMixScale = matCapMode.viewScale.value;
+        }
+#endif
+
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {

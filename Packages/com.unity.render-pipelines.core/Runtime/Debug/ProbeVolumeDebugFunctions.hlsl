@@ -5,12 +5,10 @@
     v2f vert(appdata v)
     {
         v2f o;
+        ZERO_INITIALIZE(v2f, o);
 
         UNITY_SETUP_INSTANCE_ID(v);
         UNITY_TRANSFER_INSTANCE_ID(v, o);
-
-        o.vertex = 0;
-        o.normal = 0;
 
         if (!ShouldCull(o))
         {
@@ -26,12 +24,11 @@
 
                 float3 snappedProbePosition_WS; // worldspace position of main probe (a corner of the 8 probes cube)
                 float3 samplingPositionNoAntiLeak_WS; // // worldspace sampling position after applying 'NormalBias', 'ViewBias'
-                float3 samplingPosition_WS; // worldspace sampling position after applying 'NormalBias', 'ViewBias' and 'ValidityAndNormalBased Leak Reduction'
                 float probeDistance;
                 float3 normalizedOffset; // normalized offset between sampling position and snappedProbePosition
                 float validityWeight[8];
 
-                FindSamplingData(debugPosition.xyz, debugNormal.xyz, _RenderingLayerMask, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeight);
+                FindSamplingData(debugPosition.xyz, debugNormal.xyz, _RenderingLayerMask, snappedProbePosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeight);
 
                 float samplingFactor = ComputeSamplingFactor(probePosition_WS, snappedProbePosition_WS, normalizedOffset, probeDistance);
 
@@ -62,7 +59,7 @@
                 if (_ShadingMode == DEBUGPROBESHADINGMODE_RENDERING_LAYER_MASKS)
                 {
                     o.centerCoordSS = _ScreenSize.xy * ComputeNormalizedDeviceCoordinatesWithZ(probePosition_WS, UNITY_MATRIX_VP).xy;
-                    if (_ProbeLayerCount != 1 & (asuint(UNITY_ACCESS_INSTANCED_PROP(Props, _RenderingLayer)) & _RenderingLayerMask) == 0)
+                    if (_APVLayerCount != 1 & (asuint(UNITY_ACCESS_INSTANCED_PROP(Props, _RenderingLayer)) & _RenderingLayerMask) == 0)
                         DoCull(o);
                 }
             }
@@ -93,7 +90,8 @@
         else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
         {
             float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
-            return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity);
+            float threshold = PROBE_VALIDITY_THRESHOLD;
+            return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity > threshold);
         }
         else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
         {
@@ -117,12 +115,12 @@
                 float3(204, 121, 167) / 255.0f,
             };
 
-            if (_ProbeLayerCount == 1) return _DebugEmptyProbeData; // Rendering layers are not baked
+            if (_APVLayerCount == 1) return _DebugEmptyProbeData; // Rendering layers are not baked
             uint renderingLayer = asuint(UNITY_ACCESS_INSTANCED_PROP(Props, _RenderingLayer)) & _RenderingLayerMask;
 
             uint stripeSize = 8;
             float3 result = float3(0, 0, 0);
-            uint2 positionSS = i.vertex.xy;
+            int2 positionSS = i.vertex.xy;
             uint layerId = 0, layerCount = countbits(renderingLayer);
 
             int colorIndex = 0;
@@ -133,7 +131,7 @@
             if (layerCount >= 4 && colorIndex == 0 && positionSS.x < i.centerCoordSS.x)
                 colorIndex = 3;
 
-            for (uint l = 0; (l < _ProbeLayerCount) && (layerId < layerCount); l++)
+            for (uint l = 0; (l < _APVLayerCount) && (layerId < layerCount); l++)
             {
                 [branch]
                 if (renderingLayer & (1U << l))
@@ -240,6 +238,7 @@
     v2f vert(appdata v)
     {
         v2f o;
+        ZERO_INITIALIZE(v2f, o);
 
         float4 debugPosition = _positionNormalBuffer[0];
         float4 debugNormal = _positionNormalBuffer[1];
@@ -249,13 +248,12 @@
 
         float3 snappedProbePosition_WS; // worldspace position of main probe (a corner of the 8 probes cube)
         float3 samplingPositionNoAntiLeak_WS; // worldspace sampling position after applying 'NormalBias', 'ViewBias'
-        float3 samplingPosition_WS; // worldspace sampling position after applying 'NormalBias', 'ViewBias' and 'ValidityAndNormalBased Leak Reduction'
         float probeDistance;
         float3 normalizedOffset; // normalized offset between sampling position and snappedProbePosition
         float validityWeights[8];
         float validityWeight = 1.0f;
 
-        FindSamplingData(debugPosition.xyz, debugNormal.xyz, _RenderingLayerMask, snappedProbePosition_WS, samplingPosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeights);
+        FindSamplingData(debugPosition.xyz, debugNormal.xyz, _RenderingLayerMask, snappedProbePosition_WS, samplingPositionNoAntiLeak_WS, probeDistance, normalizedOffset, validityWeights);
 
         // QUADS to write the sampling factor of each probe
         // each QUAD has an individual ID in vertex color blue channel
@@ -314,7 +312,10 @@
                 validityWeight = validityWeights[5];
             }
 
-            samplingFactor = ComputeSamplingFactor(quadPosition, snappedProbePosition_WS, normalizedOffset, probeDistance);
+            if (_APVLeakReductionMode == APVLEAKREDUCTIONMODE_QUALITY)
+                samplingFactor = validityWeight; // this is not 100% accurate in some cases (cause we do max 3 samples)
+            else
+                samplingFactor = ComputeSamplingFactor(quadPosition, snappedProbePosition_WS, normalizedOffset, probeDistance);
 
             float4 cameraUp = mul(UNITY_MATRIX_I_V, float4(0.0f, 1.0f, 0.0f, 0.0f));
             float4 cameraRight = -mul(UNITY_MATRIX_I_V, float4(1.0f, 0.0f, 0.0f, 0.0f));

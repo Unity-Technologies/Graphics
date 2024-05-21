@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using RuntimeSRPPreferences = UnityEngine.Rendering.CoreRenderPipelinePreferences;
 
 namespace UnityEditor.Rendering
@@ -8,6 +9,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Preferences for Volumes
     /// </summary>
+    [DisplayInfo(name = "Volumes", order = 50)]
     public class VolumesPreferences : ICoreRenderPipelinePreferencesProvider
     {
         static class Keys
@@ -79,11 +81,6 @@ namespace UnityEditor.Rendering
         /// The list of keywords for user search
         /// </summary>
         public List<string> keywords => s_SearchKeywords;
-
-        /// <summary>
-        /// The header of the panel
-        /// </summary>
-        public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Volumes");
 
         /// <summary>
         /// Renders the Preferences UI for this provider

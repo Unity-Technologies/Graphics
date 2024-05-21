@@ -333,7 +333,7 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             //Plug a GPU instruction on bounds, excepting an exception while recompiling
-            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.variant.modelType == typeof(VFXAttributeParameter) && o.variant.name.Contains(VFXAttribute.Position.name));
+            var getPositionDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.variant.modelType == typeof(VFXAttributeParameter) && o.variant.name.Contains(VFXAttribute.Position.name, StringComparison.OrdinalIgnoreCase));
             var getPosition = getPositionDesc.CreateInstance();
             graph.AddChild(getPosition);
             var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();

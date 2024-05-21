@@ -25,6 +25,14 @@ VFXOperatorUI > #node-border #contents > #top > #output {
     flex: 1 1 auto;
 }
 
+VFXOperatorUI.node #node-border > #title > Label.first {
+    margin-left: 16px;
+}
+
+VFXOperatorUI.node.superCollapsed #node-border > #title > Label.last {
+    margin-right: 24px;
+}
+
 OperandInfo PopupField
 {
     height: 16px;
@@ -94,11 +102,14 @@ VFXOperatorUI.superCollapsed.VFXNodeUI.node #settings-divider, VFXOperatorUI.sup
 
 .VFXNodeUI.node.superCollapsed #node-border
 {
+    flex-grow: 1;
     overflow: hidden;
 }
 
 .VFXNodeUI.node.superCollapsed #node-border > #title
 {
+    border-radius: 6px;
+    flex-grow: 1;
     position:Relative;
     left:0;
     right:0;

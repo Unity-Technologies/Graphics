@@ -6,10 +6,10 @@ using UnityEngine.Serialization;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputLine")]
-    [VFXInfo(name = "Output Particle Line", category = "Output")]
+    [VFXInfo(name = "Output Particle|Line", category = "#5Output Debug")]
     class VFXLineOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Output Particle Line"; } }
+        public override string name => "Output Particle\nLine";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate(useNativeLines ? "VFXParticleLinesHW" : "VFXParticleLinesSW"); } }
         public override VFXTaskType taskType { get { return useNativeLines ? VFXTaskType.ParticleLineOutput : VFXTaskType.ParticleQuadOutput; } }
         public override bool implementsMotionVector { get { return true; } }

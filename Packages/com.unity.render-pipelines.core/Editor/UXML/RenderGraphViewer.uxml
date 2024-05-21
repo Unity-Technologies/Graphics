@@ -8,7 +8,7 @@
         <uie:EnumFlagsField label="Resource Filter" name="resource-filter-field"/>
     </ui:VisualElement>
 
-    <ui:TwoPaneSplitView name="content-container" fixed-pane-index="1" fixed-pane-initial-dimension="280" orientation="Horizontal">
+    <ui:TwoPaneSplitView name="content-container" orientation="Horizontal">
         <ui:VisualElement name="main-container">
             <ui:ScrollView name="pass-list-scroll-view">
                 <ui:VisualElement name="pass-list"/>

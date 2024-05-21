@@ -21,7 +21,6 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         // Aerial perspective is already applied during cloud tracing
         #define ATMOSPHERE_NO_AERIAL_PERSPECTIVE
 
-        TEXTURE2D_X(_CameraColorTexture);
         TEXTURE2D_X(_VolumetricCloudsLightingTexture);
         TEXTURE2D_X(_VolumetricCloudsDepthTexture);
         TEXTURECUBE(_VolumetricCloudsTexture);
@@ -59,7 +58,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             ZWrite Off
 
             // If this is a background pixel, we want the cloud value, otherwise we do not.
-            Blend 0 One OneMinusSrcAlpha, Zero One
+            Blend 0 One SrcAlpha, Zero One
             Blend 1 DstColor Zero // Multiply to combine the transmittance
 
             HLSLPROGRAM
@@ -77,10 +76,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
-                color = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
-                color.a = 1.0f - color.a;
+                float3 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy).xyz;
+                float transmittance = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).y;
 
-                float transmittance = 1.0f - color.a;
+                color.rgb = clouds;
+                color.a = transmittance;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
                 float linearDepth = DecodeInfiniteDepth(deviceDepth, _CloudNearPlane);
@@ -95,7 +95,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 // Apply fog
                 float3 volColor, volOpacity;
                 EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity);
-                color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
+                color.rgb = color.rgb * (1 - volOpacity) + volColor * (1 - color.a);
 
                 // Output transmittance for lens flares
                 #if defined(OUTPUT_TRANSMITTANCE_BUFFER)
@@ -109,6 +109,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         Pass
         {
             // Pass 1
+            // Sky high on metal
             Cull   Off
             ZWrite Off
             ZTest  Always
@@ -116,13 +117,17 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
 
             HLSLPROGRAM
 
+            TEXTURE2D_X(_CameraColorTexture);
+
             float4 Frag(Varyings input) : SV_Target
             {
-                // Composite the result via hardware blending.
-                float4 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                // Composite the result via manual blending.
+                float3 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy).xyz;
+                float alpha = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).y;
                 clouds.rgb *= GetInverseCurrentExposureMultiplier();
-                float4 color = LOAD_TEXTURE2D_X(_CameraColorTexture, input.positionCS.xy);
-                return float4(clouds.xyz + color.xyz * clouds.w, 1.0);
+
+                float3 color = LOAD_TEXTURE2D_X(_CameraColorTexture, input.positionCS.xy).xyz;
+                return float4(clouds + color * alpha, 1.0);
             }
             ENDHLSL
         }
@@ -130,6 +135,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         Pass
         {
             // Pass 2
+            // Sky high
             Cull   Off
             ZWrite Off
             ZTest  Always
@@ -142,9 +148,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             float4 Frag(Varyings input) : SV_Target
             {
                 // Composite the result via hardware blending.
-                float4 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                float3 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy).xyz;
+                float alpha = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).y;
                 clouds.rgb *= GetInverseCurrentExposureMultiplier();
-                return clouds;
+
+                return float4(clouds, alpha);
             }
             ENDHLSL
         }
@@ -152,6 +160,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         Pass
         {
             // Pass 3
+            // Sky low - blit to cubemap
             Cull   Off
             ZWrite Off
             Blend  Off
@@ -159,7 +168,10 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             HLSLPROGRAM
             float4 Frag(Varyings input) : SV_Target
             {
-                return LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
+                float3 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy).xyz;
+                float alpha = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).y;
+
+                return float4(clouds, alpha);
             }
             ENDHLSL
         }
@@ -167,6 +179,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         Pass
         {
             // Pass 4
+            // Sky low - pre upscale
             Cull   Off
             ZWrite Off
             Blend  Off
@@ -186,11 +199,14 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         Pass
         {
             // Pass 5
+            // Sky low - upscale metal
             Cull   Off
             ZWrite Off
             Blend  Off
 
             HLSLPROGRAM
+
+            TEXTURE2D_X(_CameraColorTexture);
 
             float4 Frag(Varyings input) : SV_Target
             {
@@ -211,6 +227,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
         Pass
         {
             // Pass 6
+            // Sky low - upscale
             Cull   Off
             ZWrite Off
             // If this is a background pixel, we want the cloud value, otherwise we do not.
@@ -242,7 +259,7 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
             ZWrite Off
 
             // If this is a background pixel, we want the cloud value, otherwise we do not.
-            Blend  One OneMinusSrcAlpha, Zero One
+            Blend  One SrcAlpha, Zero One
 
             Blend 1 One OneMinusSrcAlpha // before refraction
             Blend 2 One OneMinusSrcAlpha // before refraction alpha
@@ -275,10 +292,11 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Read cloud data
-                color = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy);
-                color.a = 1.0f - color.a;
+                float3 clouds = LOAD_TEXTURE2D_X(_VolumetricCloudsLightingTexture, input.positionCS.xy).xyz;
+                float transmittance = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).y;
 
-                float transmittance = 1.0f - color.a;
+                color.rgb = clouds;
+                color.a = 1 - transmittance;
 
                 float deviceDepth = LOAD_TEXTURE2D_X(_VolumetricCloudsDepthTexture, input.positionCS.xy).x;
                 float linearDepth = min(DecodeInfiniteDepth(deviceDepth, _CloudNearPlane), _ProjectionParams.z);
@@ -298,6 +316,8 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
 
                 // Sort clouds with refractive objects
                 ComputeRefractionSplitColor(posInput, color, outBeforeRefractionColor, outBeforeRefractionAlpha);
+
+                color.a = 1 - color.a; // That avoids precision issues when the sun is behind the clouds
 
                 // Output transmittance for lens flares
                 #if defined(OUTPUT_TRANSMITTANCE_BUFFER)

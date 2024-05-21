@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using UnityEditor.VFX.Operator;
@@ -30,6 +31,14 @@ namespace UnityEditor.VFX.Block
 
     class VFXBlockUtility
     {
+        private static readonly Dictionary<AttributeCompositionMode, string[]> s_SynonymMap = new()
+        {
+            { AttributeCompositionMode.Add, new [] {"+"} },
+            { AttributeCompositionMode.Overwrite, new [] {"="} },
+            { AttributeCompositionMode.Multiply, new [] {"*"} },
+            { AttributeCompositionMode.Blend, new [] {"%"} },
+        };
+
         public static string GetNameString(AttributeCompositionMode mode)
         {
             switch (mode)
@@ -59,9 +68,24 @@ namespace UnityEditor.VFX.Block
             {
                 case AttributeFromCurve.CurveSampleMode.OverLife: return "Over Life";
                 case AttributeFromCurve.CurveSampleMode.BySpeed: return "By Speed";
-                case AttributeFromCurve.CurveSampleMode.Random: return "Random";
+                case AttributeFromCurve.CurveSampleMode.Random: return "Random from Curve";
                 case AttributeFromCurve.CurveSampleMode.RandomConstantPerParticle: return "Random Constant/Particle";
                 case AttributeFromCurve.CurveSampleMode.Custom: return "Custom";
+                default: throw new ArgumentException();
+            }
+        }
+
+        public static string GetNameString(AttributeFromMap.AttributeMapSampleMode mode)
+        {
+            switch (mode)
+            {
+                case AttributeFromMap.AttributeMapSampleMode.IndexRelative: return "Index Relative";
+                case AttributeFromMap.AttributeMapSampleMode.Index: return "Index";
+                case AttributeFromMap.AttributeMapSampleMode.Sequential: return "Sequential";
+                case AttributeFromMap.AttributeMapSampleMode.Sample2DLOD: return "2D";
+                case AttributeFromMap.AttributeMapSampleMode.Sample3DLOD: return "3D";
+                case AttributeFromMap.AttributeMapSampleMode.Random: return "Random";
+                case AttributeFromMap.AttributeMapSampleMode.RandomConstantPerParticle: return "Random Constant/Particle";
                 default: throw new ArgumentException();
             }
         }
@@ -85,6 +109,16 @@ namespace UnityEditor.VFX.Block
                 case Noise.DimensionCount.One: return "1D";
                 case Noise.DimensionCount.Two: return "2D";
                 case Noise.DimensionCount.Three: return "3D";
+                default: throw new NotImplementedException("VFXBlockUtility.GetNameString() does not implement return string for : " + mode);
+            }
+        }
+
+        public static string GetNameString(CurlNoise.DimensionCount mode)
+        {
+            switch (mode)
+            {
+                case CurlNoise.DimensionCount.Two: return "2D";
+                case CurlNoise.DimensionCount.Three: return "3D";
                 default: throw new NotImplementedException("VFXBlockUtility.GetNameString() does not implement return string for : " + mode);
             }
         }
@@ -307,5 +341,7 @@ namespace UnityEditor.VFX.Block
             channelsMask = MaskFromChannel(channels);
             return settingsChanged;
         }
+
+        internal static string[] GetCompositionSynonym(AttributeCompositionMode mode) => s_SynonymMap[mode];
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Compare")]
-    [VFXInfo(name = "Compare", category = "Logic")]
+    [VFXInfo(name = "Compare", category = "Logic", synonyms = new [] { "Test" })]
     class Condition : VFXOperatorDynamicType
     {
         [VFXSetting, SerializeField, Tooltip("Specifies the comparison condition between the Left and Right operands.")]

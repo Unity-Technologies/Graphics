@@ -15,11 +15,17 @@ namespace UnityEditor.Rendering
 
         /// <summary>The raw value</summary>
         public uint rawValue
-        { get => (uint)EditorPrefs.GetInt(m_Key); set => EditorPrefs.SetInt(m_Key, (int)value); }
+        {
+            get => (uint)EditorPrefs.GetInt(m_Key);
+            set => EditorPrefs.SetInt(m_Key, (int)value);
+        }
 
         /// <summary>Constructor</summary>
         /// <param name="key">Name of the Key in EditorPrefs to save the value</param>
-        public EditorPrefBoolFlags(string key) => m_Key = key;
+        public EditorPrefBoolFlags(string key)
+        {
+            m_Key = key;
+        }
 
         /// <summary>Test if saved value is equal to the one given</summary>
         /// <param name="other">Given value</param>

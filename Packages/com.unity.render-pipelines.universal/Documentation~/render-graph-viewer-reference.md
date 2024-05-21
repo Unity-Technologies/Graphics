@@ -86,7 +86,7 @@ You can also use the Search bar to find a resource by name.
 |**Clear**|Displays **True** if URP clears the texture.|
 |**BindMS**|Whether the texture is bound as a multisampled texture. Refer to [RenderTextureDescriptor.BindMS](https://docs.unity3d.com/ScriptReference/RenderTextureDescriptor-bindMS.html) for more information.|
 |**Samples**|How many times Multisample Anti-aliasing (MSAA) samples the texture. Refer to [Anti-aliasing](anti-aliasing.md#multisample-anti-aliasing-msaa) for more information.|
-|**Memoryless**|Displays **True** if the resource is stored in tile memory on mobile platforms that use tile-based deferred rendering. See [Render graph system introduction](render-graph-introduction.md) for more information.|
+|**Memoryless**|Displays **True** if the resource is stored in tile memory on mobile platforms that use tile-based deferred rendering. Refer to [Render graph system introduction](render-graph-introduction.md) for more information.|
 
 ## Pass List
 

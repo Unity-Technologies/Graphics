@@ -43,6 +43,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 708aca6b4b64e8f41946dabb10fe1586, type: 2}
   - {fileID: 11400000, guid: 32bad5b5f60f85349bb6751a615e4571, type: 2}
   - {fileID: 11400000, guid: c24cfbcb0b49eb642b5173d4d3478f4d, type: 2}
+  - {fileID: 11400000, guid: 81afd9c2ea9393c4589e79894b0c709b, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -103,11 +104,11 @@ MonoBehaviour:
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
+  m_AllowPostProcessAlphaOutput: 0
   m_UseFastSRGBLinearConversion: 0
   m_SupportDataDrivenLensFlare: 0
   m_SupportScreenSpaceLensFlare: 0
   m_GPUResidentDrawerMode: 0
-  m_UseLegacyLightmaps: 0
   m_SmallMeshScreenPercentage: 0
   m_GPUResidentDrawerEnableOcclusionCullingInCameras: 0
   m_ShadowType: 0
@@ -134,6 +135,7 @@ MonoBehaviour:
   m_PrefilterDebugKeywords: 1
   m_PrefilterWriteRenderingLayers: 1
   m_PrefilterHDROutput: 1
+  m_PrefilterAlphaOutput: 0
   m_PrefilterSSAODepthNormals: 1
   m_PrefilterSSAOSourceDepthLow: 1
   m_PrefilterSSAOSourceDepthMedium: 1

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(name = "Output Event", category = "Event")]
+    [VFXInfo(name = "Output Event", category = "#1Event")]
     class VFXOutputEvent : VFXContext
     {
         [VFXSetting, SerializeField, Delayed]

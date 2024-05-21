@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             light.cookie = null;
         }
 
-        [MenuItem("CONTEXT/Light/Show All Additional Properties...", false, 100)]
+        [MenuItem("CONTEXT/Light/Open Preferences > Graphics...", false, 100)]
         static void ShowAllAdditionalProperties(MenuCommand menuCommand)
         {
             CoreRenderPipelinePreferences.Open();

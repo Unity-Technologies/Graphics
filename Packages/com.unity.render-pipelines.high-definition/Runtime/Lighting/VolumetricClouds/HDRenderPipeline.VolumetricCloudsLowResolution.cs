@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
 
             // Used kernels
-            public int depthDownscaleKernel;
             public int preUpscaleKernel;
             public int upscaleKernel;
 
@@ -50,9 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = viewCount;
 
             // Compute shader and kernels
-            parameters.depthDownscaleKernel = m_CloudDownscaleDepthKernel;
             parameters.preUpscaleKernel = m_PreUpscaleCloudsKernel;
-            parameters.upscaleKernel = hdCamera.msaaEnabled ? m_UpscaleCloudsKernel : m_UpscaleCloudsPerceptualKernel;
+            parameters.upscaleKernel = m_UpscaleCloudsKernel;
 
             // Update the constant buffer
             VolumetricCloudsCameraData cameraData;
@@ -71,10 +69,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void TraceVolumetricClouds_LowResolution(CommandBuffer cmd, VolumetricCloudsParameters_LowResolution parameters, GraphicsBuffer ambientProbeBuffer,
-            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle volumetricLightingTexture,
-            RTHandle intermediateCloudsLighting, RTHandle intermediateLightingBuffer1, RTHandle intermediateLightingBuffer2,
-            RTHandle halfResDepthBuffer, RTHandle intermediateCloudsDepth,
+        static void TraceVolumetricClouds_LowResolution(CommandBuffer cmd, VolumetricCloudsParameters_LowResolution parameters,
+            GraphicsBuffer ambientProbeBuffer, RTHandle colorBuffer, RTHandle depthPyramid,
+            RTHandle tracedCloudsLighting, RTHandle tracedCloudsDepth,
+            RTHandle intermediateLightingBuffer1, RTHandle intermediateLightingBuffer2,
             RTHandle cloudsLighting, RTHandle cloudsDepth)
         {
             // Compute the number of tiles to evaluate
@@ -97,18 +95,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.Set<ShaderVariablesClouds>(parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
             ConstantBuffer.Set<ShaderVariablesClouds>(parameters.commonData.volumetricCloudsTraceCS, HDShaderIDs._ShaderVariablesClouds);
 
-            // Depth downscale
-            DoVolumetricCloudsDepthDownscale(cmd, parameters.depthDownscaleKernel, intermediateTX, intermediateTY, parameters.viewCount, in parameters.commonData,
-                depthPyramid, halfResDepthBuffer);
-
             // Ray-march the clouds for this frame
             DoVolumetricCloudsTrace(cmd, traceTX, traceTY, parameters.viewCount, in parameters.commonData,
-                volumetricLightingTexture, halfResDepthBuffer, ambientProbeBuffer,
-                intermediateCloudsLighting, intermediateCloudsDepth);
+                ambientProbeBuffer, colorBuffer, depthPyramid,
+                tracedCloudsLighting, tracedCloudsDepth);
 
             // We only reproject for realtime clouds
             DoVolumetricCloudsReproject(cmd, parameters.preUpscaleKernel, intermediateTX, intermediateTY, parameters.viewCount, in parameters.commonData,
-                intermediateCloudsLighting, intermediateCloudsDepth, halfResDepthBuffer,
+                tracedCloudsLighting, tracedCloudsDepth, depthPyramid,
                 false, false, null, null, // no history reprojection
                 intermediateLightingBuffer1, intermediateLightingBuffer2);
 
@@ -126,21 +120,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
             public TextureHandle maxZMask;
             public BufferHandle ambientProbeBuffer;
-            public TextureHandle volumetricLighting;
 
             // Intermediate buffers
-            public TextureHandle halfResCloudsLighting;
+            public TextureHandle tracedCloudsLighting;
             public TextureHandle intermediateLightingBuffer1;
             public TextureHandle intermediateLightingBuffer2;
-            public TextureHandle halfResDepthBuffer;
-            public TextureHandle halfResCloudsDepth;
+            public TextureHandle tracedCloudsDepth;
 
             // Output buffer
             public TextureHandle cloudsLighting;
             public TextureHandle cloudsDepth;
         }
 
-        VolumetricCloudsOutput RenderVolumetricClouds_LowResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle volumetricLighting)
+        VolumetricCloudsOutput RenderVolumetricClouds_LowResolution(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid)
         {
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsLowResolutionData>("Volumetric Clouds Low Resolution", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
@@ -154,32 +146,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
-                passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
 
-                // Intermediate buffers
-                passData.halfResCloudsLighting = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Half Res Clouds Lighting" });
-                passData.intermediateLightingBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 1" });
-                passData.intermediateLightingBuffer2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 2" });
-                passData.halfResDepthBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Half Res Scene Depth" });
-                passData.halfResCloudsDepth = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Half Res Clouds Depth" });
-
-                // Output of the clouds
-                passData.cloudsLighting = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Lighting Texture" }));
-                passData.cloudsDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Depth Texture" }));
+                CreateTracingTextures(renderGraph, builder, settings, 0.25f, out passData.tracedCloudsLighting, out passData.tracedCloudsDepth);
+                CreateIntermediateTextures(renderGraph, builder, settings, out passData.intermediateLightingBuffer1, out passData.intermediateLightingBuffer2);
+                CreateOutputTextures(renderGraph, builder, settings, out passData.cloudsLighting, out passData.cloudsDepth);
 
                 builder.SetRenderFunc(
                     (VolumetricCloudsLowResolutionData data, RenderGraphContext ctx) =>
                     {
-                        TraceVolumetricClouds_LowResolution(ctx.cmd, data.parameters, data.ambientProbeBuffer,
-                            data.colorBuffer, data.depthPyramid, data.volumetricLighting,
-                            data.halfResCloudsLighting, data.intermediateLightingBuffer1, data.intermediateLightingBuffer2, data.halfResDepthBuffer, data.halfResCloudsDepth,
+                        TraceVolumetricClouds_LowResolution(ctx.cmd, data.parameters,
+                            data.ambientProbeBuffer, data.colorBuffer, data.depthPyramid,
+                            data.tracedCloudsLighting, data.tracedCloudsDepth,
+                            data.intermediateLightingBuffer1, data.intermediateLightingBuffer2,
                             data.cloudsLighting, data.cloudsDepth);
                     });
 

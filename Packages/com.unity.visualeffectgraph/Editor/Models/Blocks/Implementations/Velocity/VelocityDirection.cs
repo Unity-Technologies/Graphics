@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Block
                 var composition = VFXBlockUtility.GetNameString(mode);
 
                 yield return new Variant(
-                    $"{composition} Direction from Direction & Speed",
+                    composition.Label().AppendLiteral("Velocity from Direction & Speed"),
                     null,
                     typeof(VelocityDirection),
                     new[]
@@ -34,8 +34,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                "Set Direction from Direction & Speed",
-                "Attribute/From Direction & Speed",
+                "Set".Label().AppendLiteral("Velocity from Direction & Speed").AppendLabel("New Direction"),
+                VelocityBase.Category,
                 typeof(VelocityDirection),
                 new[]
                 {
@@ -48,9 +48,8 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(experimental = true, variantProvider = typeof(VelocityDirectionProvider))]
     class VelocityDirection : VelocityBase
     {
-        public override string name { get { return string.Format(base.name, "New Direction"); } }
-
-        protected override bool altersDirection { get { return true; } }
+        public override string name => base.name.AppendLabel("New Direction");
+        protected override bool altersDirection => true;
 
         public class InputProperties
         {

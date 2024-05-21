@@ -43,10 +43,13 @@ namespace UnityEditor.Rendering
         /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
-            if (componentList == null)
+            if (componentList == null || componentList.asset == null)
             {
                 if (!VolumeManager.instance.isInitialized)
+                {
+                    EditorGUILayout.HelpBox("Volume Profiles require an active Scriptable Render Pipeline, but nothing has been rendered. Make sure Scene or Game View is in focus and no debug modes are active.", MessageType.Warning);
                     return; // Defer initialization until VolumeManager is initialized
+                }
 
                 Init();
             }

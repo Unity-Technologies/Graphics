@@ -16,13 +16,17 @@
     border-bottom-color: #242424;
 }
 
-.VFXNodeUI.node #node-border > #title > #title-label
-{
-    margin-left: 54px;
-    flex:1 1 auto;
+.VFXNodeUI.node #node-border > #title > Label {
     overflow:hidden;
 }
 
+VFXBlockUI.node #node-border > #title > Label.first {
+    margin-left: 54px;
+}
+
+.VFXNodeUI.node #node-border > #title > #spacer {
+    flex-grow: 1;
+}
 
 .VFXNodeUI #contents
 {
@@ -118,6 +122,27 @@
     border-width: 2px;
     background-color:rgba(255,128,0,0.4);
     border-color: rgba(255,128,0,1);
+}
+
+#title Label {
+    align-self: center;
+}
+
+.setting {
+    align-self: center;
+    margin-left: 4px;
+    margin-right: 4px;
+    flex-grow: 0;
+    padding: 1px 2px;
+    border-width: 0;
+    border-radius: 2px;
+    color: #B7B7B7;
+    background-color: #323232;
+}
+
+VFXContextUI #inside > #title > .setting {
+    color: #B1B1B1;
+    background-color: #272727;
 }
 
 VFXBlockUI #top, VFXOperatorUI #top {

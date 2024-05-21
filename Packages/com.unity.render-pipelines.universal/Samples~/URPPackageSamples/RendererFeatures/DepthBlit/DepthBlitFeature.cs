@@ -13,31 +13,31 @@ public class DepthBlitFeature : ScriptableRendererFeature
     public RenderPassEvent evt_Depth = RenderPassEvent.AfterRenderingOpaques;
     public RenderPassEvent evt_Edge = RenderPassEvent.AfterRenderingOpaques;
     public UniversalRendererData rendererDataAsset; // The field for accessing opaqueLayerMask on the renderer asset
-    
+
     public Shader copyDepthShader;
-    
+
     public Material m_DepthEdgeMaterial;
-    
+
     // The RTHandle for storing the depth texture
     private RTHandle m_DepthRTHandle;
     private const string k_DepthRTName = "_MyDepthTexture";
-    
+
     // This class is for keeping the TextureHandle reference in the frame data so that it can be shared with multiple passes in the render graph system.
     public class TexRefData : ContextItem
     {
         public TextureHandle depthTextureHandle = TextureHandle.nullHandle;
-        
+
         public override void Reset()
         {
             depthTextureHandle = TextureHandle.nullHandle;
         }
     }
-    
+
     // The passes for the effect
     private DepthBlitCopyDepthPass m_CopyDepthPass;
     private DepthBlitDepthOnlyPass m_DepthOnlyPass; // DepthOnlyPass is for platforms that run OpenGL ES, which does not support CopyDepth.
     private DepthBlitEdgePass m_DepthEdgePass;
-    
+
     // Check if the platform supports CopyDepthPass
     private bool CanCopyDepth(ref CameraData cameraData)
     {
@@ -47,7 +47,7 @@ public class DepthBlitFeature : ScriptableRendererFeature
         bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
 
         bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
-        
+
         // Avoid copying MSAA depth on GLES3 platform to avoid invalid results
         if (IsGLESDevice() && msaaDepthResolve)
             return false;
@@ -59,13 +59,13 @@ public class DepthBlitFeature : ScriptableRendererFeature
     {
         return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
     }
-    
+
     public override void AddRenderPasses(ScriptableRenderer renderer,  ref RenderingData renderingData)
     {
         var cameraData = renderingData.cameraData;
         if (renderingData.cameraData.cameraType != CameraType.Game)
             return;
-        
+
         // Create an RTHandle for storing the depth
         var desc = renderingData.cameraData.cameraTargetDescriptor;
         if (CanCopyDepth(ref cameraData))
@@ -78,21 +78,21 @@ public class DepthBlitFeature : ScriptableRendererFeature
             desc.graphicsFormat = GraphicsFormat.None;
             desc.msaaSamples = 1;
         }
-        RenderingUtils.ReAllocateIfNeeded(ref m_DepthRTHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_DepthRTName );
-        
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthRTHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_DepthRTName );
+
         // Setup passes
         if (CanCopyDepth(ref cameraData))
         {
             if (m_CopyDepthPass == null)
                 m_CopyDepthPass = new DepthBlitCopyDepthPass(evt_Depth, copyDepthShader, m_DepthRTHandle);
-            
+
             renderer.EnqueuePass(m_CopyDepthPass);
         }
         else
         {
             if (m_DepthOnlyPass == null)
                 m_DepthOnlyPass = new DepthBlitDepthOnlyPass(evt_Depth, RenderQueueRange.opaque, rendererDataAsset.opaqueLayerMask, m_DepthRTHandle);
-            
+
             renderer.EnqueuePass(m_DepthOnlyPass);
         }
 

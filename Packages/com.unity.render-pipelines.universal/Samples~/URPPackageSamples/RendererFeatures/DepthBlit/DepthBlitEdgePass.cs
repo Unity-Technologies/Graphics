@@ -12,7 +12,7 @@ public class DepthBlitEdgePass : ScriptableRenderPass
         public Material material;
         public Vector4 scaleBias;
     }
-    
+
     private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DepthBlitEdgePass");
     private RTHandle m_DepthHandle; // The RTHandle of the depth texture, set by the Renderer Feature, only used in the Compatibility mode (non-RenderGraph path)
@@ -28,6 +28,8 @@ public class DepthBlitEdgePass : ScriptableRenderPass
     {
         m_DepthHandle = depthHandle;
     }
+
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
     // Unity calls the Execute method in the Compatibility mode
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -48,7 +50,9 @@ public class DepthBlitEdgePass : ScriptableRenderPass
 
         CommandBufferPool.Release(cmd);
     }
-    
+
+#pragma warning restore 618, 672
+
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
@@ -58,15 +62,15 @@ public class DepthBlitEdgePass : ScriptableRenderPass
 
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthBlitEdgePass", out var passData))
         {
             // Set the DepthHandle as a texture resource for this render graph instance
             TextureHandle source = texRefData.depthTextureHandle;
-            
+
             // Set camera color as a texture resource for this render graph instance
             TextureHandle destination = resourceData.activeColorTexture;
-            
+
             if (!source.IsValid() || !destination.IsValid())
                 return;
 

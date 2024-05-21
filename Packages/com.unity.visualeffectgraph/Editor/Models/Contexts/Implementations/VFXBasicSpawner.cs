@@ -166,7 +166,7 @@ namespace UnityEditor.VFX
     }
 
     [VFXHelpURL("Context-Spawn")]
-    [VFXInfo(name = "Spawn")]
+    [VFXInfo(name = "Spawn", category = "#0Common")]
     class VFXBasicSpawner : VFXContext
     {
         public enum DelayMode

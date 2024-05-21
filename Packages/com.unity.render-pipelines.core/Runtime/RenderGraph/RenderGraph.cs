@@ -1224,6 +1224,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
+#if UNITY_EDITOR
+                    // Feeding Render Graph Viewer before resource deallocation at pass execution
+                    GenerateDebugData();
+#endif
+
                     if (nativeRenderPassesEnabled)
                         ExecuteNativeRenderGraph();
                     else
@@ -1249,8 +1254,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             finally
             {
-                GenerateDebugData();
-
                 if (m_DebugParameters.immediateMode)
                     ReleaseImmediateModeResources();
 
@@ -2547,7 +2550,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_DebugData.Clear();
         }
 
-#endregion
+        #endregion
 
 
         Dictionary<int, TextureHandle> registeredGlobals = new Dictionary<int, TextureHandle>();

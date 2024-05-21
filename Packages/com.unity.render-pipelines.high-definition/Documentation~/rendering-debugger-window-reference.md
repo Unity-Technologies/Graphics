@@ -12,6 +12,7 @@ The Rendering Debugger separates debug items into the following sections:
 * [Probe Volume](#ProbeVolume)
 * [Camera](#CameraPanel)
 * [Virtual Texturing](#VirtualTexturingPanel)
+* [GPU Resident Drawer](#GPUResidentDrawer)
 
 Refer to [Use the Rendering debugger](use-the-rendering-debugger.md) for more information.
 
@@ -494,8 +495,8 @@ These settings make it possible for you to visualize [Adaptive Probe Volumes](pr
 
 | **Property** | **Sub-property** | **Description** |
 |-|-|-|
-| **Display Cells** || Display cells. Refer to [Understanding Adaptive Probe Volumes](../probevolumes-concept.md) for more information. |
-| **Display Bricks** || Display bricks. Refer to [Understanding Adaptive Probe Volumes](../probevolumes-concept.md) for more information. |
+| **Display Cells** || Display cells. Refer to [Understanding Adaptive Probe Volumes](probevolumes-concept.md) for more information. |
+| **Display Bricks** || Display bricks. Refer to [Understanding Adaptive Probe Volumes](probevolumes-concept.md) for more information. |
 | **Live Subdivision Preview** || Enable a preview of Adaptive Probe Volume data in the scene without baking. This might make the Editor slower. This setting appears only if you select **Display Cells** or **Display Bricks**. |
 || **Cell Updates Per Frame** | Set the number of cells, bricks, and probe positions to update per frame. Higher values might make the Editor slower.  The default value is 4. This property appears only if you enable **Live Subdivision Preview**. |
 || **Update Frequency** | Set how frequently Unity updates cell, bricks, and probe positions, in seconds. The default value is 1. This property appears only if you enable **Live Subdivision Preview**. |
@@ -506,7 +507,7 @@ These settings make it possible for you to visualize [Adaptive Probe Volumes](pr
 | **Property** | **Sub-property** | **Description** |
 |-|-|-|
 | **Display Probes** || Display probes. |
-|| **Probe Shading Mode** | Set what the Rendering Debugger displays. The options are:<ul><li><strong>SH</strong>: Display the [spherical harmonics (SH) lighting data](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) for the final color calculation. The number of bands depends on the **SH Bands** setting in the active [HDRP Asset](HDRP-Asset.md).</li><li><strong>SHL0</strong>: Display the spherical harmonics (SH) lighting data with only the first band.</li><li><strong>SHL0L1</strong>: Display the spherical Harmonics (SH) lighting data with the first two bands.</li><li><strong>Validity</strong>: Display whether probes are valid, based on the number of backfaces the probe samples. Refer to [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md) for more information about probe validity.</li><li><strong>Probe Validity Over Dilation Threshold</strong>: Display red if a probe samples too many backfaces, based on the **Validity Threshold** set in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.md). This means the probe can't be baked or sampled.</li><li><strong>Invalidated By Touchup Volumes</strong>: Display probes that a [Probe Adjustment Volume component](probevolumes-adjustment-volume-component-reference.md) has made invalid.</li><li><strong>Size</strong>: Display a different color for each size of [brick](probevolumes-concept.md).</li></ul>|
+|| **Probe Shading Mode** | Set what the Rendering Debugger displays. The options are:<ul><li><strong>SH</strong>: Display the [spherical harmonics (SH) lighting data](https://docs.unity3d.com/Manual/LightProbes-TechnicalInformation.html) for the final color calculation. The number of bands depends on the **SH Bands** setting in the active [HDRP Asset](HDRP-Asset.md).</li><li><strong>SHL0</strong>: Display the spherical harmonics (SH) lighting data with only the first band.</li><li><strong>SHL0L1</strong>: Display the spherical Harmonics (SH) lighting data with the first two bands.</li><li><strong>Validity</strong>: Display whether probes are valid, based on the number of backfaces the probe samples. Refer to [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md) for more information about probe validity.</li><li><strong>Probe Validity Over Dilation Threshold</strong>: Display red if a probe samples too many backfaces, based on the **Validity Threshold** set in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.md). This means the probe can't be baked or sampled.</li><li><strong>Invalidated By Touchup Volumes</strong>: Display probes that a [Probe Adjustment Volume component](probevolumes-adjustment-volume-component-reference.md) has made invalid.</li><li><strong>Size</strong>: Display a different color for each size of [brick](probevolumes-concept.md).</li><li><strong>Sky Occlusion SH</strong>: If you enable [sky occlusion](probevolumes-skyocclusion.md), this setting displays the amount of indirect light the probe receives from the sky that bounced off static GameObjects. The value is a scalar, so it displays as a shade of gray.</li><li><strong>Sky Direction</strong>: Display a green circle that represents the direction from the probe to the sky. This setting displays a red circle if Unity can't calculate the direction, or **Sky Direction** in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.md) is disabled.</li></ul>|
 || **Debug Size** | Set the size of the displayed probes. The default is 0.3. |
 || **Exposure Compensation** | Set the brightness of the displayed probes. Decrease the value to increase brightness. The default is 0. This property appears only if you set **Probe Shading Mode** to **SH**, **SHL0**, or **SHL0L1**. |
 || **Max Subdivisions Displayed** | Set the lowest probe density to display. For example, set this to 0 to display only the highest probe density. |
@@ -517,6 +518,8 @@ These settings make it possible for you to visualize [Adaptive Probe Volumes](pr
 | **Virtual Offset Debug** || Display the offsets Unity applies to Light Probe capture positions. |
 || **Debug Size** | Set the size of the arrows that represent Virtual Offset values. |
 | **Debug Draw Distance** || Set how far from the scene camera Unity draws debug visuals for cells and bricks, in meters. The default is 200. |
+| **Auto Display Probes** || Display probes in the Scene view, if you select a volume with a Probe Adjustment Volume component in the Hierarchy window. |
+| **Isolate Affected** || Display only probes affected by a volume with a Probe Adjustment Volume component, if you select the volume in the Hierarchy window. |
 
 ### Streaming
 
@@ -780,3 +783,62 @@ You can use the **Virtual Texturing** panel to visualize [Streaming Virtual Text
 | ------------------------------------ | ------------------------------------------------------------- |
 | **Debug disable Feedback Streaming** | Deactivate Streaming Virtual Texturing to quickly assess its cost in performance and memory at runtime. |
 | **Textures with Preloaded Mips** | Display the total number of virtual textures Unity has loaded into the scene. Unity tries to preload the least detailed mipmap level (least being 128x128) into GPU memory. This number increases every time a material is loaded. |
+
+<a name="GPUResidentDrawer"></a>
+
+## GPU Resident Drawer
+
+The properties in this section let you visualize settings that [reduce rendering work on the CPU](reduce-rendering-work-on-cpu.md).
+
+### Occlusion Culling
+
+|**Property**|**Sub-property**|**Description**|
+|-|-|-|
+| **Occlusion Test Overlay** || Display a heatmap of culled instances. The heatmap displays blue if there are few culled instances, through to red if there are many culled instances. If you enable this setting, culling might be slower. |
+| **Occlusion Test Overlay Count Visible** || Display a heatmap of instances that Unity doesn't cull. The heatmap displays blue if there are many culled instances, through to red if there are few culled instances. This setting only has an effect if you enable **Occlusion Test Overlay**. |
+| **Override Occlusion Test To Always Pass** || Set occluded objects as unoccluded. This setting affects both the Rendering Debugger and the scene. |
+| **Occluder Context Stats** || Display the [**Occlusion Context Stats**](#occlusion-context-stats) section. |
+| **Occluder Debug View** || Display an overlay with the occlusion textures and mipmaps Unity generates. |
+|| **Occluder Debug View Index** | Set the occlusion texture to display. |
+|| **Occluder Debug View Range Min** | Set the brightness of the minimum depth value. Increase this value to brighten objects that are far away from the view. |
+|| **Occluder Debug View Range Max** | Set the brightness of the maximum depth value. Decrease this value to darken objects that are close to the view. |
+
+![](Images/renderingdebugger-gpuculling-heatmap.jpg)<br/>
+The Rendering Debugger with **Occlusion Test Overlay** enabled. The red areas are where Unity culls many objects. The blue area is where Unity culls few objects.
+
+![](Images/renderingdebugger-gpuculling-overlay.jpg)<br/>
+The Rendering Debugger with **Occluder Debug View** enabled. The overlay displays each mipmap level of the occlusion texture.
+
+### Occlusion Context Stats
+
+The **Occlusion Context Stats** section lists the occlusion textures Unity generates.
+
+|**Property**|**Description**|
+|-|-|
+| **Active Occlusion Contexts** | The number of occlusion textures. |
+| **View Instance ID** | The instance ID of the camera Unity renders the view from, to create the occlusion texture. |
+| **Subview Count** | The number of subviews. The value might be 2 or more if you use XR. |
+| **Size Per Subview** | The size of the subview texture in bytes. |
+
+### GPU Resident Drawer Settings
+
+|**Section**|**Property**|**Sub-property**|**Description**|
+|-|-|-|-|
+|**Display Culling Stats**|||Display information about the cameras Unity uses to create occlusion textures.|
+|**Instance Culler Stats**||||
+||**View Count**|| The number of views Unity uses for GPU culling. Unity uses one view per shadow cascade or shadow map. For example, Unity uses three views for a Directional Light that generates three shadow cascades. |
+||**Per View Stats**|||
+|||**View Type**| The object or shadow split Unity renders the view from. |
+|||**View Instance ID**| The instance ID of the camera or light Unity renders the view from. |
+|||**Split Index**| The shadow split index value. This value is 0 if the object doesn't have shadow splits. |
+|||**Visible Instances**| How many objects are visible in this split. |
+|||**Draw Commands**| How many draw commands Unity uses for this split. |
+|**Occlusion Culling Events**||||
+||**View Instance ID**|| The instance ID of the camera Unity renders the view from. |
+||**Event type**|| The type of render pass. <ul><li>**OccluderUpdate**</li>The GPU samples the depth buffer and creates a new occlusion texture and its mipmap.<li>**OcclusionTest**</li>The GPU tests all the instances against the occlusion texture.</ul> |
+||**Occluder Version**|| How many times Unity updates the occlusion texture in this frame. |
+||**Subview Mask**|| A bitmask that represents which subviews are affected in this frame.  |
+||**Occlusion Test**|| Which test the GPU runs against the occlusion texture. <ul><li>**TestNone**</li>Unity found no occluders, so all instances are visible.<li>**TestAll**: Unity tests all instances against the occlusion texture.</li><li>**TestCulled**: Unity tests only instances that the previous **TestAll** test culled.</li></ul> |
+||**Visible Instances**|| The number of visible instances after occlusion culling. |
+||**Culled Instances**|| The number of culled instances after occlusion culling. |
+

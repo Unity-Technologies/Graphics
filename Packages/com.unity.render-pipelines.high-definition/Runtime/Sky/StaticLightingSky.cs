@@ -37,6 +37,10 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricClouds m_VolumetricClouds;
         VolumetricClouds m_VolumetricCloudSettingsFromProfile;
 
+        // Reflection Probes
+        [SerializeField, Range(1, 5), Tooltip("Controls how many times a reflection includes other reflections. A value of 1 results in the Scene being rendered once so mirrored reflections will be black.")]
+        internal int bounces = 1;
+
         internal SkySettings skySettings
         {
             get

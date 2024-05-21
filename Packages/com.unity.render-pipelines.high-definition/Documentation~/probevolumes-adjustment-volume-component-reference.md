@@ -39,8 +39,8 @@ Refer to the following for more information about using the Probe Adjustment Vol
                     <li><strong>Apply Virtual Offset:</strong> Change the position Light Probes use when sampling the lighting in the scene during baking. Refer to <a href="probevolumes-fixissues.md#adjust-virtual-offset">Adjust Virtual Offset</a> for more information.</li>
                     <li><strong>Override Virtual Offset Settings:</strong> Override the biases HDRP uses during baking to determine when Light Probes use Virtual Offset, and calculate sampling positions. Refer to <a href="probevolumes-fixissues.md#adjust-virtual-offset">Adjust Virtual Offset</a> for more information</li>
                     <li><strong>Intensity Scale:</strong> Override the intensity of probes to brighten or darken affected areas.</li>
-                    <li><strong>Override Sky Direction:</strong> Override the direction used for sampling the ambient probe when using Sky Occlusion.</li>
-                    <li><strong>Override Sample Count:</strong> Override the sample count used to compute Lighting and Sky Occlusion.</li>                    
+                    <li><strong>Override Sky Direction</strong> Override the directions Unity uses to sample the ambient probe, if you enable <a href="probevolumes-skyocclusion.md">sky occlusion</a>.</li>
+                    <li><strong>Override Sample Count:</strong> Override the number of samples Unity uses for Adaptive Probe Volumes.</li>        
                 </ul>
             </td>
         </tr>
@@ -79,5 +79,39 @@ Refer to the following for more information about using the Probe Adjustment Vol
                 <p>Change the brightness of all probes covered by the Probe Volumes Adjustment Volume component. Use this sparingly, because changing the intensity of probe data can lead to inconsistencies in the lighting. This option only appears if you set <strong>Mode</strong> to <strong>Intensity Scale</strong>.</p>
             </td>
         </tr>
+        <tr>
+            <td><strong>Preview Probe Adjustments</strong></td>
+            <td colspan="2">
+                <p>Preview the effect of the adjustments in the Scene view and the <a href="rendering-debugger-window-reference.md">Rendering Debugger</a>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Bake Probe Volumes</strong></td>
+            <td colspan="2">
+                <p>Bake the Adaptive Probe Volumes with the adjustments.</p>
+            </td>
+        </tr>                
     </tbody>
 </table>
+
+## Override Sample Count properties
+
+These properties are visible only when you set **Mode** to **Override Sample Count**.
+
+### Probes
+
+| Property | Description |
+|-|-|
+| **Direct Sample Count** | Set the number of samples Unity uses to calculate direct lighting. |
+| **Indirect Sample Count** | Set the number of samples Unity uses to calculate indirect lighting. |
+| **Sample Count Multiplier** | Set a value to multiply **Direct Sample Count** and **Indirect Sample Count** by. |
+| **Max Bounces** | Set the maximum number of times Unity bounces light off objects when it calculates indirect lighting. |
+
+### Sky Occlusion
+
+These properties only have an effect if you enable sky occlusion. Refer to [Update light from the sky at runtime with sky occlusion](probevolumes-skyocclusion.md) for more information.
+
+| Property | Description |
+|-|-|
+| **Sample Count** | Set the number of samples Unity uses to calculate a sky occlusion value for each probe. |
+| **Max Bounces** | Set the maximum number of times Unity bounces light off objects when it calculates a sky occlusion value. |

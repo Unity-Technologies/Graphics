@@ -1,8 +1,8 @@
 # Example of a complete Scriptable Renderer Feature in Compatibility Mode
 
-This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer, if you enable **Compatibility Mode (Render Graph Disabled)** in [URP graphics settings](../urp-global-settings.md).
+This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.
 
-> **Note**: Unity no longer develops or improves the rendering path that doesn't use the render graph API. Use the render graph API instead when developing new graphics features.
+[!include[](../snippets/note-compatibility-mode.md)]
 
 This walkthrough contains the following sections:
 

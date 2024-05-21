@@ -2,7 +2,7 @@
 
 ## Description
 
-Defines a constant **Gradient** for use in [Shader Graph](Shader-Graph.md), although internally to the shader this is defined as a **struct**. To sample the **Gradient** it should be used in conjunction with a [Sample Gradient Node](Sample-Gradient-Node.md). When using a separate **Gradient Node**, you can sample a **Gradient** multiple times with different Time parameters.
+Defines a constant **Gradient** for use in [Shader Graph](index.md), although internally to the shader this is defined as a **struct**. To sample the **Gradient** it should be used in conjunction with a [Sample Gradient Node](Sample-Gradient-Node.md). When using a separate **Gradient Node**, you can sample a **Gradient** multiple times with different Time parameters.
 
 ## Ports
 

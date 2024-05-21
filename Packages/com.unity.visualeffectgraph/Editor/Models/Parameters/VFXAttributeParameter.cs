@@ -12,14 +12,13 @@ namespace UnityEditor.VFX
     class GetAttributeVariant : Variant
     {
         private string attribute;
-        public GetAttributeVariant(string attribute)
-        : base($"Get {attribute}",
-            "Attribute",
+        public GetAttributeVariant(string name, string category)
+        : base("Get".AppendLiteral(ObjectNames.NicifyVariableName(name)),
+            $"Attribute/{category}",
             typeof(VFXAttributeParameter),
-            new[] { new KeyValuePair<string, object>("attribute", attribute) },
-            null)
+            new[] { new KeyValuePair<string, object>("attribute", name) })
         {
-            this.attribute = char.ToUpper(attribute[0]) + attribute.Substring(1);
+            this.attribute = char.ToUpper(name[0]) + name.Substring(1);
         }
         public override string GetDocumentationLink()
         {
@@ -47,9 +46,16 @@ namespace UnityEditor.VFX
     {
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var attribute in VFXAttributesManager.GetBuiltInNamesOrCombination(true, false, true, false))
+            var groups = VFXAttributesManager
+                .GetBuiltInAttributesOrCombination(true, false, true, false)
+                .GroupBy(x => x.category);
+
+            foreach (var group in groups)
             {
-                yield return new GetAttributeVariant(attribute);
+                foreach (var attribute in group)
+                {
+                    yield return new GetAttributeVariant(attribute.name, attribute.category);
+                }
             }
         }
     }
@@ -118,7 +124,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(vfxAttribute.type), vfxAttribute.name, attr));
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(vfxAttribute.type), ObjectNames.NicifyVariableName(vfxAttribute.name), attr));
                 }
             }
         }
@@ -127,7 +133,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                string result = $"Get Attribute: {attribute} ({location})";
+                string result = "Get".AppendLiteral(attribute).AppendLabel(location.ToString());
 
                 if (GetGraph() is {} graph && graph.attributesManager.TryFind(attribute, out var attrib))
                 {

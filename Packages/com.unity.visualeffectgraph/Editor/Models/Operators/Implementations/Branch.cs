@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.Operator
     }
 
     [VFXHelpURL("Operator-Branch")]
-    [VFXInfo(category = "Logic")]
+    [VFXInfo(category = "Logic", synonyms = new []{ "Boolean" })]
     class Branch : VFXOperatorDynamicBranch
     {
         public class InputProperties

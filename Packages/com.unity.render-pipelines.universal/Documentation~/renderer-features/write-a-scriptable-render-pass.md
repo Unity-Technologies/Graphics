@@ -1,8 +1,6 @@
 # Write a Scriptable Render Pass in Compatibility Mode
 
-If you enable **Compatibility Mode (Render Graph Disabled)** in [URP graphics settings](../urp-global-settings.md), you can write a Scriptable Render Pass without using the [render graph API](../render-graph.md).
-
-> **Note**: Unity no longer develops or improves the rendering path that doesn't use the render graph API. Use the render graph API instead when developing new graphics features.
+[!include[](../snippets/note-compatibility-mode.md)]
 
 The following example is a `ScriptableRenderPass` instance that performs the following steps:
 

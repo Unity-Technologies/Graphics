@@ -2,7 +2,7 @@
     --header-container-height: 24px;
     --resource-column-width: 220px;
     --resource-list-icon-size: 16px;
-    --resource-grid-icon-size: 12px;
+    --resource-grid-icon-size: 16px;
     --pass-width: 26px;
     --pass-list-height: 180px;
     --pass-list-tilted-label-length: 200px;
@@ -278,7 +278,7 @@
 #resource-grid .resource-icon {
     width: var(--resource-grid-icon-size);
     height: var(--resource-grid-icon-size);
-    margin-top: 8px;
+    margin-top: 5px;
     align-self: center;
 }
 
@@ -530,6 +530,18 @@ ScrollView TextElement {
     margin-top: 1px;
     margin-left: 2px;
     margin-right: 6px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.panel-resource-list__item > Toggle > VisualElement {
+    max-width: 100%
+}
+
+.panel-resource-list__item > Toggle > VisualElement > Label {
+    overflow: hidden;
+    flex-shrink: 1;
+    text-overflow: ellipsis;
 }
 
 /* Pass List panel only */
@@ -553,7 +565,7 @@ ScrollView TextElement {
     -unity-font-style: bold;
 }
 
-.attachment-info__item {
+.info-foldout {
     border-radius: 4px;
     border-width: 1px;
     border-color: var(--side-panel-item-border-color);
@@ -562,13 +574,13 @@ ScrollView TextElement {
     margin-right: 4px;
     padding-top: 4px;
     padding-bottom: 6px;
-    -unity-font-style: bold;
 }
 
-.attachment-info__item > Toggle > VisualElement {
+.info-foldout > Toggle > VisualElement {
     max-width: 100%;
 }
-.attachment-info__item > Toggle > VisualElement > Label {
+
+.info-foldout > Toggle > VisualElement > Label {
     margin-left: 6px;
     flex-shrink: 1;
     flex-grow: 1;
@@ -577,11 +589,18 @@ ScrollView TextElement {
     text-overflow: ellipsis;
 }
 
-.attachment-info__item > TextElement {
+.info-foldout > TextElement {
     -unity-font-style: normal;
     margin-right: 4px;
     margin-left: -6px;
     color: var(--unity-colors-default-text);
+}
+
+.info-foldout__secondary-text {
+    margin-left: 0px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--side-panel-secondary-text-color);
 }
 
 .panel-pass-list__item > #unity-content {

@@ -48,6 +48,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // Whether the pass is an async compute pass.
                 public bool async;
 
+                // Native subpass index.
+                public int nativeSubPassIndex;
+
                 // Index of the pass that needs to be waited for.
                 public int syncToPassIndex;
 
@@ -65,6 +68,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         public class AttachmentInfo
                         {
                             public string resourceName;
+                            public int attachmentIndex;
                             public string loadAction;
                             public string loadReason;
                             public string storeAction;

@@ -329,11 +329,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             static class Style
             {
-                const string k_IconFolder = @"Packages/com.unity.render-pipelines.high-definition/Editor/Wizard/WizardResources/";
-                public static readonly Texture ok = CoreEditorUtils.LoadIcon(k_IconFolder, "OK");
-                public static readonly Texture error = CoreEditorUtils.LoadIcon(k_IconFolder, "Error");
-                public static readonly Texture warning = CoreEditorUtils.LoadIcon(k_IconFolder, "Warning");
-
                 public const int k_IndentStepSize = 15;
             }
 
@@ -360,13 +355,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     var statusOK = new Image()
                     {
-                        image = Style.ok,
-                        name = "StatusOK"
+                        image = CoreEditorStyles.iconComplete,
+                        name = "StatusOK",
+                        style =
+                        {
+                            height = 16,
+                            width = 16
+                        }
                     };
                     var statusKO = new Image()
                     {
-                        image = Style.error,
-                        name = "StatusError"
+                        image = CoreEditorStyles.iconFail,
+                        name = "StatusError",
+                        style =
+                        {
+                            height = 16,
+                            width = 16
+                        }
                     };
                     testRow.Add(statusOK);
                     testRow.Add(statusKO);

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-Volume(AxisAlignedBox)")]
-    [VFXInfo(name = "Volume (Axis Aligned Box)", category = "Math/Geometry")]
+    [VFXInfo(name = "Volume (Axis Aligned Box)", category = "Math/Geometry", synonyms = new []{ "aabox" })]
     class AABoxVolume : VFXOperator
     {
         public class InputProperties

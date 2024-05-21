@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -93,6 +94,16 @@ namespace UnityEngine.Experimental.Rendering
         /// If true, the render pipeline is expected to output a valid depth buffer to the renderTarget.
         /// </summary>
         public bool copyDepth { get; private set; }
+
+        /// <summary>
+        /// If true, is the first pass of a xr camera
+        /// </summary>
+        public bool isFirstCameraPass => multipassId == 0;
+
+        /// <summary>
+        /// If true, is the last pass of a xr camera
+        /// </summary>
+        public bool isLastCameraPass => (multipassId == 0 && viewCount <= 1) || (multipassId == 1 && viewCount > 1);
 
         /// <summary>
         /// Index of the pass inside the frame.

@@ -11,6 +11,7 @@ Shader "Hidden/Core/ProbeVolumeSamplingDebug"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        //#pragma enable_d3d11_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Debug/ProbeVolumeDebugBase.hlsl"

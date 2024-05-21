@@ -6,7 +6,7 @@
   "unityRelease": "0b4",
   "description": "This package contains common graphics tests from several scriptable renderpipeline",
   "dependencies": {
-    "com.unity.testing.graphics-performance": "17.0.0",
+    "com.unity.test-framework.graphics.performance": "1.0.0",
     "nuget.moq": "2.0.0-exp.2"
   }
 }

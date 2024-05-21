@@ -9,7 +9,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(name = "Output Mesh", category = "Output")]
+    [VFXInfo(name = "Output Single Mesh", category = "#5Output Debug", synonyms = new []{ "static" })]
     class VFXStaticMeshOutput : VFXContext, IVFXSubRenderer
     {
         [VFXSetting, Tooltip("Specifies the shader with which the mesh output is rendered.")]

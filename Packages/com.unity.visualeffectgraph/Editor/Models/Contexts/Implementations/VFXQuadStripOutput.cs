@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(name = "Output ParticleStrip Quad", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output ParticleStrip|Unlit|Quad", category = "#3Output Strip", experimental = true, synonyms = new []{ "Trail", "Ribbon" })]
     class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {
         internal const string WriteToPositionMessage = "Writing to Position attribute in a strip output can produce unexpected behavior";
@@ -21,13 +21,7 @@ namespace UnityEditor.VFX
 
         protected VFXQuadStripOutput() : base(true) { }
 
-        public override string name
-        {
-            get
-            {
-                return "Output ParticleStrip Quad";
-            }
-        }
+        public override string name => "Output ParticleStrip".AppendLabel("Unlit", false) + "\nQuad";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }

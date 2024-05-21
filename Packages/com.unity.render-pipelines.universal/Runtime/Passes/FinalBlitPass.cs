@@ -287,6 +287,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.destination = dest;
                 builder.SetRenderAttachment(dest, 0, AccessFlags.Write);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
+                bool passSupportsFoveation = !XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
+                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+#endif
+
                 if (outputsToHDR && overlayUITexture.IsValid())
                 {
                     VolumeStack stack = VolumeManager.instance.stack;

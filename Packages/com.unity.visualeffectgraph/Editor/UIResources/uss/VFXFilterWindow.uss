@@ -15,32 +15,21 @@
     align-self: Center;
     width: 22px;
     height: 22px;
-}
-
-#ListVariantToggle  > VisualElement {
-    align-self: center;
-    width: 16px;
-    height: 16px;
-    background-size: Contain;
-    -unity-background-image-tint-color: #505050;
+    background-size: 19px 19px;
     background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-hidden.png");
 }
 
-.dark #ListVariantToggle  > VisualElement {
+.dark #ListVariantToggle {
     -unity-background-image-tint-color: #C2C2C2;
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-hidden.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_sub-variant-hidden.png");
 }
 
-#ListVariantToggle:checked > VisualElement {
+#ListVariantToggle:checked {
     background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-visible.png");
 }
 
-.dark #ListVariantToggle:checked > VisualElement {
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/sub-variant-visible.png");
-}
-
-#ListVariantToggle #unity-checkmark {
-    display: none;
+.dark #ListVariantToggle:checked {
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_sub-variant-visible.png");
 }
 
 /* Expand / collapse details panel toggle */
@@ -49,6 +38,18 @@
     width: 22px;
     height: 22px;
     margin-right: 8px;
+    background-size: Contain;
+    background-image: var(--unity-icons-arrow_left);
+}
+
+#Header Toggle {
+    margin: 0 3px;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+#Header Toggle * {
+    display: none;
 }
 
 #Header Toggle:hover {
@@ -59,15 +60,7 @@
     background-color: var(--unity-colors-button-background-hover_pressed);
 }
 
-#CollapseButton > VisualElement{
-    align-self: center;
-    width: 16px;
-    height: 16px;
-    background-size: Contain;
-    background-image: var(--unity-icons-arrow_left);
-}
-
-#CollapseButton:checked > VisualElement{
+#CollapseButton:checked {
     background-image: var(--unity-icons-arrow_right);
 }
 
@@ -97,6 +90,7 @@ Label {
 }
 
 .unity-tree-view__item {
+    height: 24px;
     background-color: rgba(0,0,0,0);
 }
 
@@ -110,26 +104,89 @@ Label {
 .unity-tree-view__item:selected {
     background-color: var(--unity-colors-highlight-background);
 }
-
+ /* Node name and labels and highlight */
 .node-name {
-    margin: 0;
+    margin-right: 4px;
     padding: 0;
     flex-grow: 0;
+    color: var(--unity-colors-default-text);
 }
 
-.node-name.last-node-name {
+.nodes-label-spacer {
     flex-grow: 1;
 }
 
-.node-name.highlighted {
+.node-name.setting {
+    align-self: center;
+    margin-left: 0;
+    margin-right: 4px;
+    flex-grow: 0;
+    padding: 2px 3px;
+    border-width: 0;
+    border-radius: 3px;
+    color: #B7B7B7;
+    background-color: #323232;
+}
+
+.node-name.left-part {
+    border-right-width: 0;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    padding-right: 0;
+    margin-right: 0;
+}
+
+.node-name.middle-part {
+    border-left-width: 0;
+    border-right-width: 0;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0;
+}
+
+.node-name.right-part {
+    border-left-width: 0;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.unity-collection-view__item .node-name.highlighted {
     -unity-font-style: bold;
     color: #FACA61;
 }
+/* ---------- */
 
 .treenode {
     flex-grow: 1;
     flex-direction: row;
 }
+
+/* Separator */
+.unity-tree-view__item.separator {
+    height: 36px;
+}
+
+.separator:hover, .separator:checked {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.separator Label {
+    flex-grow: 1;
+    margin-top: 8px;
+    margin-right: 4px;
+    margin-bottom: 10px;
+    color: var(--unity-colors-app_toolbar_button-background-checked);
+    border-color: var(--unity-colors-app_toolbar_button-background-checked);
+    border-bottom-width: 1px;
+}
+
+#ListOfVariants .separator Label {
+    color: var(--unity-colors-default-text);
+}
+/* ---------- */
 
 .category Image {
     width: 16px;
@@ -162,32 +219,47 @@ Label {
     background-color: rgba(0, 0, 0, 0);
 }
 
-.treenode:hover Button {
-background-image: resource("Icons/Favorite.png");
+/* Favorite button */
+.treenode:hover #favoriteButton {
+    -unity-background-image-tint-color: #A1A1A1;
+    background-image: resource("Icons/Favorite.png");
 }
 
-.dark .treenode:hover Button {
+.dark .treenode:hover #favoriteButton {
     background-image: resource("Icons/d_Favorite.png");
 }
 
-.has-sub-variant .node-name.last-node-name {
-    background-position-x: right;
-    background-size: 16px 16px;
-    -unity-background-image-tint-color: #656565;
-    background-image: var(--unity-icons-foldout);
-}
-
-.has-sub-variant:hover .node-name.last-node-name {
+.treeleaf.favorite #favoriteButton, .treeleaf #favoriteButton:hover {
     -unity-background-image-tint-color: white;
-    background-image: var(--unity-icons-foldout-pressed);
-}
-
-.treeleaf.favorite Button, .treeleaf Button:hover {
     background-image: resource("Icons/Favorite_colored.png");
 }
 
-.dark .treeleaf.favorite Button, .treeleaf Button:hover {
+.dark .treeleaf.favorite #favoriteButton, .treeleaf #favoriteButton:hover {
+    -unity-background-image-tint-color: white;
     background-image: resource("Icons/d_Favorite_colored.png");
+}
+/* ------------- */
+
+#showDetailsPanelButton {
+    width: 16px;
+    height: 16px;
+    -unity-background-image-tint-color: #858585;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/NodeSearch-expand@2x.png");
+}
+
+.dark #showDetailsPanelButton {
+    width: 16px;
+    height: 16px;
+    -unity-background-image-tint-color: #858585;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_NodeSearch-expand@2x.png");
+}
+
+.treeleaf:hover #showDetailsPanelButton, .treeleaf:checked #showDetailsPanelButton {
+    -unity-background-image-tint-color: #A1A1A1;
+}
+
+.treeleaf:hover #showDetailsPanelButton:hover {
+    -unity-background-image-tint-color: white;
 }
 
 Label.category {
@@ -217,19 +289,8 @@ Label.category {
 
 /* Details panel */
 
-#Breadcrumbs:disabled {
-    margin: 8px;
-    flex-grow: 1;
-    opacity: 1;
-}
-
-#Breadcrumbs BreadcrumbItem {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
 #TitleAndDoc {
+    height: 40px;
     padding: 5px;
     flex-grow: 0;
     align-items: flex-start;
@@ -245,7 +306,7 @@ Label.category {
     margin-top: 0;
     margin-bottom: 0;
     border-width: 0;
-    border-radius: 0;
+    border-radius: 3px;
     background-color: rgba(0, 0, 0, 0);
     background-image: resource("Icons/_Help@2x.png");
 }
@@ -258,16 +319,20 @@ Label.category {
     background-color: var(--unity-colors-button-background-hover);
 }
 
-#HelpButton:disabled {
+#HelpButton:hover:disabled {
+    background-color: initial;
+}
+
+#HelpButton.hidden {
     display: none;
 }
 
 #Title {
-    margin: 4px 0 4px 16px;
-    flex-grow: 0;
+    align-self: center;
+    margin-left: 8px;
+    flex-grow: 1;
     font-size: 14px;
     -unity-font-style: bold;
-    display: none;
 }
 
 #Description {
@@ -289,6 +354,7 @@ Label.category {
 }
 
 #ColorFieldRow {
+    margin-top: 16px;
     flex-direction: row;
 }
 
@@ -328,10 +394,4 @@ Label.category {
     width: 12px;
     height: 12px;
     cursor: resize-up-left;
-    -unity-background-image-tint-color: #505050;
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/resizer.png");
-}
-
-.dark #Resizer {
-    -unity-background-image-tint-color: #C2C2C2;
 }

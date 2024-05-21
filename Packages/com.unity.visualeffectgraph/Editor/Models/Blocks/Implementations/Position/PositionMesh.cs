@@ -12,8 +12,8 @@ namespace UnityEditor.VFX.Block
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                "Position On Static Mesh",
-                "Position",
+                "Set".Label(false).AppendLiteral("Position Mesh", false).AppendLabel("Mesh", false),
+                "Position Shape",
                 typeof(PositionMesh),
                 new[]
                 {
@@ -22,8 +22,8 @@ namespace UnityEditor.VFX.Block
                 });
 
             yield return new Variant(
-                "Position On Skinned Mesh",
-                "Position",
+                "Set".Label(false).AppendLiteral("Position Mesh", false).AppendLabel("Skinned Mesh", false),
+                "Position Shape",
                 typeof(PositionMesh),
                 new[]
                 {
@@ -60,9 +60,9 @@ namespace UnityEditor.VFX.Block
             get
             {
                 if (sourceMesh == SampleMesh.SourceType.Mesh)
-                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position On Static Mesh";
+                    return VFXBlockUtility.GetNameString(compositionPosition).Label(false).AppendLiteral("Position Mesh", false).AppendLabel("Mesh");
                 else
-                    return VFXBlockUtility.GetNameString(compositionPosition) + " Position On Skinned Mesh";
+                    return VFXBlockUtility.GetNameString(compositionPosition).Label(false).AppendLiteral("Position Mesh", false).AppendLabel("Skinned Mesh");
             }
         }
 

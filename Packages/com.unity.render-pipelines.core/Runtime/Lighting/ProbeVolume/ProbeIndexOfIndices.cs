@@ -27,8 +27,10 @@ namespace UnityEngine.Rendering
                     vals[i] = 0;
                 }
 
-                //  Note this packing is really really generous, I really think we can get rid of 1 uint at least if we assume we don't go extreme.
-                //  but this is encompassing all scenarios.
+                //  TODO: Note this packing is too generous, we can get rid of 1 uint
+                //  minLocalIndex is in cell space so it has an upper bound
+                //  first chunk index is also on 16bits max when using max memory budget
+                // see comment below about size of valid
                 //
                 // UINT 0:
                 //  FirstChunkIndex        29 bit
@@ -38,9 +40,12 @@ namespace UnityEngine.Rendering
                 //  minLocalIdx.y          10 bit
                 //  minLocalIdx.z          10 bit
                 // UINT 2:
-                //  maxLocalIdxPlusOne.x   10 bit
-                //  maxLocalIdxPlusOne.y   10 bit
-                //  maxLocalIdxPlusOne.z   10 bit
+                //  sizeOfValid.x          10 bit
+                //  sizeOfValid.y          10 bit
+                //  sizeOfValid.z          10 bit
+
+                // This is always less than CellSize(kEntryMaxSubdivLevel)+1 == 28. See GetEntrySubdivLevel()
+                var sizeOfValid = maxLocalIdxPlusOne - minLocalIdx;
 
                 vals[0] = (uint)firstChunkIndex & 0x1FFFFFFF;
                 vals[0] |= ((uint)minSubdiv & 0x7) << 29;
@@ -49,9 +54,9 @@ namespace UnityEngine.Rendering
                 vals[1] |= ((uint)minLocalIdx.y & 0x3FF) << 10;
                 vals[1] |= ((uint)minLocalIdx.z & 0x3FF) << 20;
 
-                vals[2] = (uint)maxLocalIdxPlusOne.x & 0x3FF;
-                vals[2] |= ((uint)maxLocalIdxPlusOne.y & 0x3FF) << 10;
-                vals[2] |= ((uint)maxLocalIdxPlusOne.z & 0x3FF) << 20;
+                vals[2] = (uint)sizeOfValid.x & 0x3FF;
+                vals[2] |= ((uint)sizeOfValid.y & 0x3FF) << 10;
+                vals[2] |= ((uint)sizeOfValid.z & 0x3FF) << 20;
             }
         }
 

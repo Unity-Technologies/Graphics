@@ -7,14 +7,14 @@ namespace UnityEditor.VFX
         public override IEnumerable<Variant> GetVariants()
         {
             yield return new Variant(
-                "Output Particle ShaderGraph Quad Strip",
-                "Output",
+                "Output ParticleStrip".AppendLabel("ShaderGraph").AppendLabel("Quad"),
+                VFXLibraryStringHelper.Separator("Output Strip", 3),
                 typeof(VFXComposedParticleStripOutput),
                 new[] { new KeyValuePair<string, object>("m_Topology", new ParticleTopologyQuadStrip()) });
         }
     }
 
-    [VFXInfo(variantProvider = typeof(VFXStripTopologyProvider))]
+    [VFXInfo(variantProvider = typeof(VFXStripTopologyProvider), synonyms = new []{ "Trail", "Ribbon" })]
     sealed class VFXComposedParticleStripOutput : VFXAbstractComposedParticleOutput
     {
         VFXComposedParticleStripOutput() : base(true) { }

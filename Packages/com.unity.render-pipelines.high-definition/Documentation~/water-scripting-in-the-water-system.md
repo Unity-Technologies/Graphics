@@ -207,15 +207,21 @@ public class FitToWaterSurface_Burst : MonoBehaviour
 
 ## Synchronizing Water Surfaces
 
-When making a multiplayer game, it can be useful to ensure all clients have a water simulation that is running in sync.
-You can achieve this by specifying the absolute time at which the simulation started by using the following API:
+When working with multiple water surfaces, it can be useful to synchronize the water simulation of each of the surface.
+In a multiplayer game, this can ensure all clients have a water simulation that is running in sync.
+You can achieve this by using one of the two following APIs;
 
 ```cs
-water.simulationStart = new DateTime(2008, 5, 1, 8, 30, 52); // HDRP will compute the water simulation as if the program started at that time
+water.simulationStart = DateTime.Now; // HDRP will compute the water simulation as if the game just started
+water.simulationTime = 0; // Set the exact simulation time in seconds
 ```
 
-Alternatively, if you have a reference water surface, you can make sure other existing surfaces are synchronized with this one by copying the start value:
+Alternatively, if you have a reference water surface, you can make sure other existing surfaces are synchronized with this one by copying the simulation time value:
 
 ```cs
 water.simulationStart = referenceSurface.simulationStart;
+water.simulationTime = referenceSurface.simulationTime;
 ```
+
+The `simulationStart` API works with absolute time data, which simplifies synchronization when sending the value over the network, as you don't have to account for the latency.
+Using the `simulationTime` gives you direct access to the time value used to compute the result of the water simulation and is useful when synchronizing surfaces locally.

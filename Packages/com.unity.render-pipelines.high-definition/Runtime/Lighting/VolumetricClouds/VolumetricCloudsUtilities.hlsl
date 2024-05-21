@@ -48,20 +48,27 @@ float ConvertCloudDepth(float3 position)
     return hClip.z / hClip.w;
 }
 
-float EvaluateFinalTransmittance(float3 color, float transmittance)
+TEXTURE2D_X(_CameraColorTexture);
+
+// Tweak the transmittance to improve situation where the sun is behind the clouds
+float EvaluateFinalTransmittance(float2 finalCoord, float transmittance)
 {
+    #ifdef PERCEPTUAL_TRANSMITTANCE
     // Due to the high intensity of the sun, we often need apply the transmittance in a tonemapped space
     // As we only produce one transmittance, we evaluate the approximation on the luminance of the color
-    float luminance = Luminance(color);
+    float luminance = Luminance(_CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)]);
+    if (luminance > 0.0f)
+    {
+        // Apply the transmittance in tonemapped space
+        float resultLuminance = FastTonemapPerChannel(luminance) * transmittance;
+        resultLuminance = FastTonemapPerChannelInvert(resultLuminance);
 
-    // Apply the tone mapping and then the transmittance
-    float resultLuminance = luminance / (1.0 + luminance) * transmittance;
+        // This approach only makes sense if the color is not black
+        transmittance = lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend);
+    }
+    #endif
 
-    // reverse the tone mapping
-    resultLuminance = resultLuminance / (1.0 - resultLuminance);
-
-    // This approach only makes sense if the color is not black
-    return luminance > 0.0 ? lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend) : transmittance;
+    return saturate(transmittance);
 }
 
 /// Tracing
@@ -351,7 +358,7 @@ void EvaluateCloudProperties(float3 positionPS, float noiseMipOffset, float eros
     float ambientOcclusionBlend = saturate(1.0 - max(erosionFactor, shapeFactor) * 0.5);
     properties.ambientOcclusion = lerp(1.0, properties.ambientOcclusion, ambientOcclusionBlend);
 
-    // Apply the erosion for nifer details
+    // Apply the erosion for nicer details
     if (!cheapVersion)
     {
         float3 erosionCoords = AnimateErosionNoisePosition(positionPS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
@@ -415,12 +422,9 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
 
         // Compute the size of the current step
         float intervalSize = totalLightDistance / (float)_NumLightSteps;
-
-        // Sums the ex
-        float extinctionSum = 0;
+        float opticalDepth = 0;
 
         // Collect total density along light ray.
-        float lastDist = 0;
         for (int j = 0; j < _NumLightSteps; j++)
         {
             // Here we intentionally do not take the right step size for the first step
@@ -428,23 +432,18 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
             float dist = intervalSize * (0.25 + j);
 
             // Evaluate the current sample point
-            float3 currentSamplePointWS = positionWS + sunDirection * dist;
+            float3 currentSamplePointPS = ConvertToPS(positionWS) + sunDirection * dist;
             // Get the cloud properties at the sample point
             CloudProperties lightRayCloudProperties;
-            EvaluateCloudProperties(ConvertToPS (currentSamplePointWS), 3.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
+            EvaluateCloudProperties(currentSamplePointPS, 3.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
 
-            // Normally we would evaluate the transmittance at each step and multiply them
-            // but given the fact that exp exp (extinctionA) * exp(extinctionB) = exp(extinctionA + extinctionB)
-            // We can sum the extinctions and do the extinction only once
-            extinctionSum += max(lightRayCloudProperties.density * lightRayCloudProperties.sigmaT, 1e-6);
-
-            // Move on to the next step
-            lastDist = dist;
+            opticalDepth += lightRayCloudProperties.density * lightRayCloudProperties.sigmaT;
         }
 
         // Compute the luminance for each octave
+        // https://magnuswrenninge.com/wp-content/uploads/2010/03/Wrenninge-OzTheGreatAndVolumetric.pdf
         float3 sunColorXPowderEffect = sunColor * powderEffect;
-        float3 extinction = intervalSize * extinctionSum * _ScatteringTint.xyz;
+        float3 extinction = intervalSize * opticalDepth * _ScatteringTint.xyz;
         for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
         {
             float msFactor = PositivePow(_MultiScattering, o);
@@ -478,8 +477,9 @@ void EvaluateCloud(CloudProperties cloudProperties, EnvironmentLighting envLight
     // Add the environement lighting contribution
     totalLuminance += lerp(envLighting.ambientTermBottom, envLighting.ambientTermTop, cloudProperties.height) * cloudProperties.ambientOcclusion;
 
-    // Note: This is an alterated version of the  "Energy-conserving analytical integration"
-    // For some reason the divison by the clamped extinction just makes it all wrong.
+    // "Energy-conserving analytical integration"
+    // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+    // No division by clamped extinction because albedo == 1 => sigma_s == sigma_e so it simplifies
     const float3 integScatt = (totalLuminance - totalLuminance * transmittance);
     volumetricRay.inScattering += integScatt * volumetricRay.transmittance;
     volumetricRay.transmittance *= transmittance;
@@ -538,8 +538,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             float meanDistanceDivider = 0.0f;
 
             // Current position for the evaluation, apply blue noise to start position
-            float currentDistance = 0;
-            float3 currentPositionWS = cloudRay.originWS + rayMarchRange.start * cloudRay.direction;
+            float currentDistance = cloudRay.integrationNoise * stepS;
+            float3 currentPositionWS = cloudRay.originWS + (rayMarchRange.start + currentDistance) * cloudRay.direction;
 
             // Initialize the values for the optimized ray marching
             bool activeSampling = true;
@@ -558,7 +558,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                 {
                     // If the density is null, we can skip as there will be no contribution
                     CloudProperties cloudProperties;
-                    EvaluateCloudProperties(ConvertToPS (currentPositionWS), 0.0f, erosionMipOffset, false, false, cloudProperties);
+                    EvaluateCloudProperties(ConvertToPS(currentPositionWS), 0.0f, erosionMipOffset, false, false, cloudProperties);
 
                     // Apply the fade in function to the density
                     cloudProperties.density *= densityAttenuationValue;
@@ -566,9 +566,9 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                     if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
                     {
                         // Contribute to the average depth (must be done first in case we end up inside a cloud at the next step)
-                        float transmitanceXdensity = volumetricRay.transmittance * cloudProperties.density;
-                        volumetricRay.meanDistance += (rayMarchRange.start + currentDistance) * transmitanceXdensity;
-                        meanDistanceDivider += transmitanceXdensity;
+                        // page 43: https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/s2016-pbs-frostbite-sky-clouds-new.pdf
+                        volumetricRay.meanDistance += (rayMarchRange.start + currentDistance) * volumetricRay.transmittance;
+                        meanDistanceDivider += volumetricRay.transmittance;
 
                         // Evaluate the cloud at the position
                         EvaluateCloud(cloudProperties, cloudRay.envLighting, currentPositionWS, stepS, currentDistance / totalDistance, volumetricRay);
@@ -591,9 +591,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         activeSampling = false;
 
                     // Do the next step
-                    float relativeStepSize = lerp(cloudRay.integrationNoise, 1.0, saturate(currentIndex));
-                    currentPositionWS += cloudRay.direction * stepS * relativeStepSize;
-                    currentDistance += stepS * relativeStepSize;
+                    currentPositionWS += cloudRay.direction * stepS;
+                    currentDistance += stepS;
                 }
                 else
                 {

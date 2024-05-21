@@ -272,7 +272,7 @@ namespace UnityEditor.VFX.Test
             }
 
             var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.Contains("Init"));
-            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.StartsWith("Output Particle Quad"));
+            var contextOutputDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.variant.name.StartsWith("Output Particle".AppendLabel("Unlit").AppendLabel("Quad")));
             for (int i = 0; i < count; ++i)
             {
                 var output = viewController.AddVFXContext(new Vector2(2 * i, 2 * i), contextOutputDesc.variant);

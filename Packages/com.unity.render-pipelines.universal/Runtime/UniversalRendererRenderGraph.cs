@@ -1436,7 +1436,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera || (isGizmosEnabled && cameraData.resolveFinalTarget))
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-                m_FinalDepthCopyPass.CopyToDepth = true;
                 m_FinalDepthCopyPass.MssaSamples = 0;
                 m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.activeDepthTexture, cameraDepthTexture, false, "Final Depth Copy");
             }

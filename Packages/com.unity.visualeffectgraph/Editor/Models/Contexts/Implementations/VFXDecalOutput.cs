@@ -6,10 +6,10 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXHelpURL("Context-OutputForwardDecal")]
-    [VFXInfo(name = "Output Particle Forward Decal", category = "Output")]
+    [VFXInfo(name = "Output Particle|Forward Decal", category = "#6Output Deprecated")]
     class VFXDecalOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Output Particle Forward Decal"; } }
+        public override string name => "Output Particle".AppendLabel("Forward Decal", false);
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool supportsUV { get { return true; } }

@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        public unsafe void BlitCachedIntoAtlas(RenderGraph renderGraph, TextureHandle cachedAtlasTexture, int cachedAtlasSize, Material blitMaterial, string passName, HDProfileId profileID)
+        public unsafe void BlitCachedIntoAtlas(RenderGraph renderGraph, TextureHandle cachedAtlasTexture, Vector2Int cachedAtlasSize, Material blitMaterial, string passName, HDProfileId profileID)
         {
             if (m_MixedRequestsPendingBlits.Length > 0)
             {
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.requestsWaitingBlits = m_MixedRequestsPendingBlits;
                     passData.blitMaterial = blitMaterial;
-                    passData.cachedShadowAtlasSize = new Vector2Int(cachedAtlasSize, cachedAtlasSize);
+                    passData.cachedShadowAtlasSize = cachedAtlasSize;
                     passData.sourceCachedAtlas = builder.ReadTexture(cachedAtlasTexture);
                     passData.atlasTexture = builder.WriteTexture(GetShadowMapDepthTexture(renderGraph));
 

@@ -162,6 +162,7 @@ TreeView TemplateContainer {
 }
 
 #FooterPanel {
+    height: 54px;
     flex-direction: row;
     justify-content: flex-end;
     align-items: flex-end;

@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(type = typeof(uint), name = "UInt")]
+    [VFXInfo(type = typeof(uint), name = "Uint")]
     class VFXSlotUint : VFXSlot
     {
         sealed protected override bool CanConvertFrom(Type type)

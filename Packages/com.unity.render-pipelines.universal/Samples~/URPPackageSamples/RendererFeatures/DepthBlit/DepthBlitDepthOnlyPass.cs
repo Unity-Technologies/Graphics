@@ -12,32 +12,34 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
     private RTHandle m_DestRT; // The RTHandle for storing the depth texture, set by the Renderer Feature
     FilteringSettings m_FilteringSettings;
     private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
-    
+
     class PassData
     {
         public RendererListHandle rendererList;
     }
-    
+
     public DepthBlitDepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, RTHandle destination)
     {
         renderPassEvent = evt;
         m_DestRT = destination;
         m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
     }
-    
+
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
+
     // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
         ConfigureTarget(m_DestRT);
     }
-    
+
     // Unity calls the Execute method in the Compatibility mode
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var cameraData = renderingData.cameraData;
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         // Setup the RendererList for drawing objects with the shader tag "DepthOnly".
         var sortFlags = cameraData.defaultOpaqueSortFlags;
         var drawSettings = RenderingUtils.CreateDrawingSettings(k_ShaderTagId, ref renderingData, sortFlags);
@@ -58,6 +60,8 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
         CommandBufferPool.Release(cmd);
     }
 
+#pragma warning restore 618, 672
+
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
@@ -65,14 +69,14 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
         UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
         UniversalLightData lightData = frameData.Get<UniversalLightData>();
         DepthBlitFeature.TexRefData texRefData = frameData.GetOrCreate<DepthBlitFeature.TexRefData>();
-        
+
         // Set the texture resources for this render graph instance.
         TextureHandle dest = renderGraph.ImportTexture(m_DestRT);
         texRefData.depthTextureHandle = dest;
-        
+
         if(!dest.IsValid())
             return;
-        
+
         using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_PassName, out var passData, m_ProfilingSampler))
         {
             // Setup the RendererList for drawing objects with the shader tag "DepthOnly".
@@ -82,7 +86,7 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
             RendererListParams param = new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
             param.filteringSettings.batchLayerMask = uint.MaxValue;
             passData.rendererList = renderGraph.CreateRendererList(param);
-            
+
             builder.UseRendererList(passData.rendererList);
             builder.SetRenderAttachmentDepth(dest, AccessFlags.Write);
             builder.AllowPassCulling(false);

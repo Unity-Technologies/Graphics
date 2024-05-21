@@ -4,16 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Particle HDRP Lit Mesh", category = "Output")]
+    [VFXInfo(name = "Output Particle|HDRP Lit|Mesh", category = "#2Output Basic")]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput
     {
-        public override string name
-        {
-            get
-            {
-                return "Output Particle HDRP Lit Mesh";
-            }
-        }
+        public override string name => "Output Particle".AppendLabel("HDRP Lit") + "\nMesh";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

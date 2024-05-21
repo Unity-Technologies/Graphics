@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXHelpURL("Operator-LookAT")]
-    [VFXInfo(category = "Math/Vector")]
+    [VFXInfo(category = "Math/Vector", synonyms = new []{ "Orient" })]
     class LookAt : VFXOperator
     {
         public class InputProperties

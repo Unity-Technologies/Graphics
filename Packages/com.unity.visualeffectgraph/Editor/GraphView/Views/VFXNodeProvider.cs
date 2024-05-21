@@ -129,7 +129,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXContext)))
             {
-                descs.AddRange(VFXLibrary.GetContexts().Select(x => new VFXModelDescriptor<VFXContext>(x.variant, null)));
+                descs.AddRange(VFXLibrary.GetContexts());
             }
             if (m_AcceptedTypes == null || m_AcceptedTypes.Contains(typeof(VFXOperator)))
             {
@@ -143,7 +143,7 @@ namespace UnityEditor.VFX.UI
                     null)));
                 descs.AddRange(m_Controller.graph.attributesManager.GetCustomAttributes().Select(x => new VFXModelDescriptor<VFXOperator>(new Variant(
                     $"Get {x.name}",
-                    "Operator/Attribute",
+                    "Operator/Attribute/".AppendSeparator("Custom", 0),
                     typeof(VFXAttributeParameter),
                     new[] { new KeyValuePair<string, object>(nameof(VFXAttributeParameter.attribute), x.name) },
                     null,
@@ -157,7 +157,7 @@ namespace UnityEditor.VFX.UI
                         t.exposedName,
                         string.IsNullOrEmpty(t.model.category)
                             ? "Property"
-                            : $"Property/{t.model.category}",
+                            : "Property/".AppendSeparator(t.model.category, 0),
                         t.portType), null));
                 descs.AddRange(parameterVariants);
             }

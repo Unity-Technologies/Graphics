@@ -103,16 +103,18 @@ void Main(Group group)
 
     const SegmentRecord s_segment = LoadSegmentRecord(_SegmentRecordBuffer, s_segmentIndex);
 
-    const float w0 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex0 << 4) + 12u));
-    const float w1 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex1 << 4) + 12u));
-
     // Choose the larger of the two widths, enforce a minimum of one tile.
-    const float screenSpaceWidthPadding = ceil(max(w0, w1));
+    float screenSpaceWidthPadding = 1;
 
     uint2 v_segmentMin, v_segmentMax;
 
     if(s_segmentIndex < gs_ActiveSegmentCount)
+    {
+        const float w0 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex0 << 4) + 12u));
+        const float w1 = asfloat(_Vertex1RecordBuffer.Load((s_segment.vertexIndex1 << 4) + 12u));
+        screenSpaceWidthPadding = ceil(max(w0, w1));
         GetSegmentBoundingBox(s_segment, screenSpaceWidthPadding, v_segmentMin, v_segmentMax);
+    }
     else
     {
         // Fall back to a zero-sized AABB to prevent uninitialized memory creating a huge one.

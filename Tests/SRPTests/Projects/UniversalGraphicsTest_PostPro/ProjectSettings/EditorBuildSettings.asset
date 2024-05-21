@@ -84,6 +84,9 @@ EditorBuildSettings:
     path: Assets/Scenes/108_UpscalingFilters_FSR.unity
     guid: 39df0b33bc51d7f40b6ee02863991adf
   - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_FSR_Banding.unity
+    guid: ea75814344b5aa24c9d981fdd991cd85
+  - enabled: 1
     path: Assets/Scenes/108_UpscalingFilters_FSR_Overlay.unity
     guid: 4a3d5fa0000f96048b95bf35caa3c44c
   - enabled: 1

@@ -232,6 +232,21 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// List of Depth Pyramid Full Screen Debug views.
+    /// </summary>
+    public enum DepthPyramidDebugView
+    {
+        /// <summary>
+        /// Closest depth.
+        /// </summary>
+        ClosestDepth,
+        /// <summary>
+        /// Checkerboard of minimum and maximum depth.
+        /// </summary>
+        CheckerboardDepth,
+    }
+
+    /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
     public partial class DebugDisplaySettings : IDebugData
@@ -280,6 +295,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 fullScreenDebugDepthRemap = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
             /// <summary>Current full screen debug mode mip level (when applicable).</summary>
             public float fullscreenDebugMip = 0.0f;
+            /// <summary>Enable to show checkerboard depths instead of closest depths (when applicable).</summary>
+            public DepthPyramidDebugView depthPyramidView = DepthPyramidDebugView.ClosestDepth;
             /// <summary>Index of the light used for contact shadows display.</summary>
             public int fullScreenContactShadowLightIndex = 0;
             /// <summary>XR single pass test mode.</summary>
@@ -378,6 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int lightClusterCategoryDebug;
             internal int historyBufferFrameIndex = 0;
             internal int stpDebugModeEnumIndex;
+            internal int depthPyramidViewEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -1204,6 +1222,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip AreaLights = new() { name = "Area Lights", tooltip = "Temporarily enables or disables Area Lights in your Scene." };
             public static readonly NameAndTooltip ReflectionProbes = new() { name = "Reflection Probes", tooltip = "Temporarily enables or disables Reflection Probes in your Scene." };
 
+            // Lighting - Mat Cap
+            public static readonly NameAndTooltip MatCapHeader = new() { name = "Mat Cap Mode", tooltip = "Settings for Scene View MatCap" };
+            public static readonly NameAndTooltip MatCapViewMixAlbedoLabel = new() { name = "Mix Albedo", tooltip = "Enable to make HDRP mix the albedo of the Material with its material capture." };
+            public static readonly NameAndTooltip MatCapIntensityScaleLabel = new() { name = "Intensity scale", tooltip = "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably." };
+
             public static readonly NameAndTooltip Exposure = new() { name = "Exposure", tooltip = "Allows the selection of an Exposure debug mode to use." };
             public static readonly NameAndTooltip HDROutput = new() { name = "HDR", tooltip = "Allows the selection of an HDR debug mode to use." };
             public static readonly NameAndTooltip HDROutputDebugMode = new() { name = "DebugMode", tooltip = "Use the drop-down to select a debug mode for HDR Output." };
@@ -1241,6 +1264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
             public static readonly NameAndTooltip ScreenSpaceShadowIndex = new() { name = "Screen Space Shadow Index", tooltip = "Select the index of the screen space shadows to view with the slider. There must be a Light in the scene that uses Screen Space Shadows." };
             public static readonly NameAndTooltip DepthPyramidDebugMip = new() { name = "Debug Mip", tooltip = "Enable to view a lower-resolution mipmap." };
+            public static readonly NameAndTooltip DepthPyramidDebugView = new() { name = "Debug View", tooltip = "Use the down-down to select which depth pyramid data to show in this view." };
             public static readonly NameAndTooltip DepthPyramidEnableRemap = new() { name = "Enable Depth Remap", tooltip = "Enable remapping of displayed depth values for better vizualization." };
             public static readonly NameAndTooltip DepthPyramidRangeMin = new() { name = "Depth Range Min Value", tooltip = "Distance at which depth values remap starts (0 is near plane, 1 is far plane)" };
             public static readonly NameAndTooltip DepthPyramidRangeMax = new() { name = "Depth Range Max Value", tooltip = "Distance at which depth values remap ends (0 is near plane, 1 is far plane)" };
@@ -1434,6 +1458,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 lighting.children.Add(hdrFoldout);
 
                 lighting.children.Add(new DebugUI.EnumField { nameAndTooltip = LightingStrings.LightingDebugMode, getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
+
+                lighting.children.Add(new DebugUI.Container()
+                {
+                    children =
+                    {
+                        new DebugUI.BoolField
+                        {
+                            nameAndTooltip = LightingStrings.MatCapViewMixAlbedoLabel,
+                            getter = () => data.lightingDebugSettings.matCapMixAlbedo,
+                            setter = value => data.lightingDebugSettings.matCapMixAlbedo = value
+                        },
+                        new DebugUI.FloatField
+                        {
+                            nameAndTooltip = LightingStrings.MatCapIntensityScaleLabel,
+                            getter = () => data.lightingDebugSettings.matCapMixScale,
+                            setter = value => data.lightingDebugSettings.matCapMixScale = value,
+                            isHiddenCallback = () => !data.lightingDebugSettings.matCapMixAlbedo
+                        },
+                    },
+                    isHiddenCallback = () => data.lightingDebugSettings.debugLightingMode != DebugLightingMode.MatcapView
+                });
+
+
                 lighting.children.Add(new DebugUI.BitField { nameAndTooltip = LightingStrings.LightHierarchyDebugMode, getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode)});
 
                 list.Add(lighting);
@@ -1565,6 +1612,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 children =
                 {
                     new DebugUI.FloatField { nameAndTooltip = LightingStrings.DepthPyramidDebugMip, getter = () => data.fullscreenDebugMip, setter = value => data.fullscreenDebugMip = value, min = () => 0f, max = () => 1f, incStep = 0.05f },
+                    new DebugUI.EnumField()
+                    {
+                        isHiddenCallback = () => data.fullScreenDebugMode != FullScreenDebugMode.DepthPyramid,
+                        nameAndTooltip = LightingStrings.DepthPyramidDebugView,
+                        getter = () => (int)data.depthPyramidView,
+                        setter = value => { data.depthPyramidView = (DepthPyramidDebugView)value; },
+                        autoEnum = typeof(DepthPyramidDebugView),
+                        getIndex = () => data.depthPyramidViewEnumIndex,
+                        setIndex = value => { data.depthPyramidViewEnumIndex = value; },
+                    },
                     new DebugUI.BoolField { nameAndTooltip = LightingStrings.DepthPyramidEnableRemap, getter = () => data.enableDebugDepthRemap, setter = value => data.enableDebugDepthRemap = value },
                     new DebugUI.Container()
                     {

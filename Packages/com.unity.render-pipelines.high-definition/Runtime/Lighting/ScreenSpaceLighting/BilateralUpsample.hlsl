@@ -86,17 +86,17 @@ float BilUpSingle_Uniform(float HiDepth, float4 LowDepths, float4 lowValue)
 // them in this structure
 struct NeighborhoodUpsampleData3x3
 {
-    // Low resolution depths
+    // Low resolution scene depths
     float4 lowDepthA;
     float4 lowDepthB;
     float lowDepthC;
 
-    // The low resolution masks
-    float4 lowMasksA;
-    float4 lowMasksB;
-    float lowMasksC;
+    // The low resolution depth values
+    float4 lowDepthValueA;
+    float4 lowDepthValueB;
+    float lowDepthValueC;
 
-    // The low resolution values
+    // The low resolution color values
     float4 lowValue0;
     float4 lowValue1;
     float4 lowValue2;
@@ -113,60 +113,10 @@ struct NeighborhoodUpsampleData3x3
     float lowWeightC;
 };
 
-void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentIndex,
-                            inout float inputMask, inout int closestNeighhor,
-                            inout float currentDistance)
-{
-    if (inputMask == 0.0f)
-        return;
-
-    // Convert the depths to linear
-    float candidateLinearDepth = Linear01Depth(lowDepth, _ZBufferParams);
-
-    // Compute the distance between the two values
-    float candidateDistance = abs(linearHighDepth - candidateLinearDepth);
-
-    // Evaluate if this becomes the closest neighbor
-    if (candidateDistance < currentDistance)
-    {
-        closestNeighhor = currentIndex;
-        currentDistance = candidateDistance;
-    }
-
-    bool validSample = candidateDistance < (linearHighDepth * 0.3);
-    inputMask = validSample ? 1.0f : 0.0f;
-}
-
-void OverrideMaskValues(float highDepth, inout NeighborhoodUpsampleData3x3 data,
-                        out bool rejectedNeighborhood, out int closestNeighbor)
-{
-    // First of all compute the linear version of the high depth
-    float linearHighDepth = Linear01Depth(highDepth, _ZBufferParams);
-    float currentDistance = 1.0f;
-
-    closestNeighbor = 4; // Index of the closest neighbor (center by default)
-
-    // The center has precedence over the other pixels
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.x, 4, data.lowMasksB.x, closestNeighbor, currentDistance);
-
-    // Then the plus
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.y, 1, data.lowMasksA.y, closestNeighbor, currentDistance);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.w, 3, data.lowMasksA.w, closestNeighbor, currentDistance);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.y, 5, data.lowMasksB.y, closestNeighbor, currentDistance);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.w, 7, data.lowMasksB.w, closestNeighbor, currentDistance);
-
-    // Then the cross
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.x, 0, data.lowMasksA.x, closestNeighbor, currentDistance);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthA.z, 2, data.lowMasksA.z, closestNeighbor, currentDistance);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthB.z, 6, data.lowMasksB.z, closestNeighbor, currentDistance);
-    EvaluateMaskValidity(linearHighDepth, data.lowDepthC, 8, data.lowMasksC, closestNeighbor, currentDistance);
-
-    // Flag that tells us which pixel holds valid information
-    rejectedNeighborhood = (currentDistance >= (linearHighDepth * 0.3));
-}
-
 // The bilateral upscale function (3x3 neighborhood)
-float4 BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data)
+// Perform joint bilateral upsampling using the scene depth as guide signal
+// https://bartwronski.com/2019/09/22/local-linear-models-guided-filter/
+void BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data, out float4 outColor, out float outDepth)
 {
     float4 combinedWeightsA = data.lowWeightA / (abs(highDepth - data.lowDepthA) + _UpsampleTolerance);
     float4 combinedWeightsB = data.lowWeightB / (abs(highDepth - data.lowDepthB) + _UpsampleTolerance);
@@ -186,8 +136,15 @@ float4 BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data)
                         + data.lowValue6 * combinedWeightsB.z
                         + data.lowValue7 * combinedWeightsB.w
                         + data.lowValue8 * combinedWeightsC
-                        + float4(_NoiseFilterStrength, _NoiseFilterStrength, _NoiseFilterStrength, 0.0);
-    return WeightedSum / TotalWeight;
+                        + float4(_NoiseFilterStrength.xxx, 0.0f);
+
+    float WeightedDepth = dot(data.lowDepthValueA, combinedWeightsA)
+                        + dot(data.lowDepthValueB, combinedWeightsB)
+                        + data.lowDepthValueC * combinedWeightsC
+                        + _NoiseFilterStrength;
+
+    outColor = WeightedSum / TotalWeight;
+    outDepth = WeightedDepth / TotalWeight;
 }
 
 // Due to compiler issues, it is not possible to use arrays to store the neighborhood values, we then store them in this structure

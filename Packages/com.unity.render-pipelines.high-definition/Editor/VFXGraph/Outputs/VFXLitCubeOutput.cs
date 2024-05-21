@@ -3,10 +3,10 @@ using System.Linq;
 
 namespace UnityEditor.VFX.HDRP
 {
-    [VFXInfo(name = "Output Particle HDRP Lit Cube", category = "Output", experimental = true)]
+    [VFXInfo(name = "Output Particle|HDRP Lit|Cube", category = "#5Output Debug", experimental = true, synonyms = new []{ "Box" })]
     class VFXLitCubeOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name => "Output Particle HDRP Lit Cube";
+        public override string name => "Output Particle".AppendLabel("HDRP Lit", false) + "\nCube";
         public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleLitCube");
         public override VFXTaskType taskType => VFXTaskType.ParticleHexahedronOutput;
         public override bool implementsMotionVector => true;

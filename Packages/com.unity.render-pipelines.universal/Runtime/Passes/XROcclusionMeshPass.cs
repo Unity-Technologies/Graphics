@@ -72,7 +72,11 @@ namespace UnityEngine.Rendering.Universal
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
-                builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering);
+                if (cameraData.xr.enabled)
+                {
+                    bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
+                    builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+                }
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {

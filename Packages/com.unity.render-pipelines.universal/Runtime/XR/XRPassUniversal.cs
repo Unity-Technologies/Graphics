@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
             pass.isLateLatchEnabled = false;
             pass.canMarkLateLatch = false;
             pass.hasMarkedLateLatch = false;
+            pass.canFoveateIntermediatePasses = true;
 
             return pass;
         }
@@ -30,5 +31,8 @@ namespace UnityEngine.Rendering.Universal
 
         /// Track the state of the late latching system.
         internal bool hasMarkedLateLatch { get; set; }
+
+        /// If false, foveated rendering should not be applied to intermediate render passes that are not the final pass.
+        internal bool canFoveateIntermediatePasses { get; set; }
     }
 }

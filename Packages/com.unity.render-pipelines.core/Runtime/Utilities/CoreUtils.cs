@@ -1149,6 +1149,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Set a local keyword on a ComputeShader using a CommandBuffer
+        /// </summary>
+        /// <param name="cmd">CommandBuffer on which to set the global keyword.</param>
+        /// <param name="cs">Compute Shader on which to set the keyword.</param>
+        /// <param name="keyword">Keyword to be set.</param>
+        /// <param name="state">Value of the keyword to be set.</param>
+        public static void SetKeyword(CommandBuffer cmd, ComputeShader cs, string keyword, bool state)
+        {
+            var kw = new LocalKeyword(cs, keyword);
+            if (state)
+                cmd.EnableKeyword(cs, kw);
+            else
+                cmd.DisableKeyword(cs, kw);
+        }
+
+        /// <summary>
         /// Set a global keyword using a RasterCommandBuffer
         /// </summary>
         /// <param name="cmd">CommandBuffer on which to set the global keyword.</param>
@@ -1162,7 +1178,7 @@ namespace UnityEngine.Rendering
                 cmd.m_WrappedCommandBuffer.DisableShaderKeyword(keyword);
         }
 
-        // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
+        // Caution: such a call should not be use interleaved with command buffer command, as it is immediate
         /// <summary>
         /// Set a keyword immediately on a Material.
         /// </summary>
@@ -1177,7 +1193,7 @@ namespace UnityEngine.Rendering
                 material.DisableKeyword(keyword);
         }
 
-        // Caution: such a call should not be use interlaced with command buffer command, as it is immediate
+        // Caution: such a call should not be use interleaved with command buffer command, as it is immediate
         /// <summary>
         /// Set a keyword immediately on a Material.
         /// </summary>
@@ -1192,8 +1208,9 @@ namespace UnityEngine.Rendering
                 material.DisableKeyword(keyword);
         }
 
+        // Caution: such a call should not be use interleaved with command buffer command, as it is immediate
         /// <summary>
-        /// Set a keyword to a compute shader
+        /// Set a keyword immediately on a compute shader
         /// </summary>
         /// <param name="cs">Compute Shader on which to set the keyword.</param>
         /// <param name="keyword">Keyword to be set.</param>

@@ -1,8 +1,8 @@
 ## Scriptable Render Pass Compatibility Mode API reference 
 
-You can use the following methods within a Scriptable Render Pass to handle its core functions, if you enable **Compatibility Mode (Render Graph Disabled)** in [URP graphics settings](../../urp-global-settings.md).
+You can use the following methods within a Scriptable Render Pass to handle its core functions.
 
-> **Note**: Unity no longer develops or improves the rendering path that doesn't use the render graph API. Use the render graph API instead when developing new graphics features.
+[!include[](../../snippets/note-compatibility-mode.md)]
 
 | **Method** | **Description** |
 | ---------- | --------------- |

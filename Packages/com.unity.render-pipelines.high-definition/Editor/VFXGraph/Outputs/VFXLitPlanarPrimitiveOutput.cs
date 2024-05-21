@@ -1,36 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+
 using UnityEngine;
 
 namespace UnityEditor.VFX.HDRP
 {
-    class VFXLitPlanarPrimitiveOutputProvider : VariantProvider
+    class VFXLitPlanarPrimitiveOutputSubVariantProvider : VariantProvider
     {
+        private readonly VFXPrimitiveType mainVariantType;
+
+        public VFXLitPlanarPrimitiveOutputSubVariantProvider(VFXPrimitiveType type)
+        {
+            this.mainVariantType = type;
+        }
+
         public override IEnumerable<Variant> GetVariants()
         {
-            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)))
+            foreach (var primitive in Enum.GetValues(typeof(VFXPrimitiveType)).Cast<VFXPrimitiveType>())
             {
+                if (primitive == this.mainVariantType)
+                    continue;
+
                 yield return new Variant(
-                    $"Lit Output Particle {primitive}",
-                    "Output",
+                    "Output Particle".AppendLabel("HDRP Lit", false).AppendLabel(primitive.ToString()),
+                    null,
                     typeof(VFXLitPlanarPrimitiveOutput),
                     new[] {new KeyValuePair<string, object>("primitiveType", primitive)});
             }
         }
     }
 
+    class VFXLitPlanarPrimitiveOutputProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> GetVariants()
+        {
+            yield return new Variant(
+                "Output Particle".AppendLabel("HDRP Lit", false).AppendLabel("Quad", false),
+                VFXLibraryStringHelper.Separator("Output Basic", 2),
+                typeof(VFXLitPlanarPrimitiveOutput),
+                new[] {new KeyValuePair<string, object>("primitiveType", VFXPrimitiveType.Quad)},
+                () => new VFXLitPlanarPrimitiveOutputSubVariantProvider(VFXPrimitiveType.Quad));
+
+        }
+    }
+
     [VFXInfo(variantProvider = typeof(VFXLitPlanarPrimitiveOutputProvider))]
     class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name
-        {
-            get
-            {
-                return "Output Particle HDRP Lit " + primitiveType.ToString();
-            }
-        }
+        public override string name => "Output Particle".AppendLabel("HDRP Lit", false) + $"\n{ObjectNames.NicifyVariableName(primitiveType.ToString())}";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
         public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }

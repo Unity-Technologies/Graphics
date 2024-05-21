@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // The fade parameters are only to be displayed when the additional parameters are
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    if (AdvancedProperties.BeginGroup())
                     {
                         // Fade of the ripples
                         using (new BoldLabelScope())
@@ -239,6 +239,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
+                    AdvancedProperties.EndGroup();
                 }
 
                 // Second band foldout
@@ -256,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // The fade parameters are only to be displayed when the additional parameters are
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    if (AdvancedProperties.BeginGroup())
                     {
                         // Fade of the ripples
                         using (new BoldLabelScope())
@@ -271,6 +272,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
+                    AdvancedProperties.EndGroup();
                 }
 
                 using (new DisabledScope(true))
@@ -292,7 +294,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Current & Orientation
                     WaterSurfaceRipplesOrientationCurrentInherit(serialized, owner, WaterPropertyParameterDrawer.swellModeNames);
 
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    if (AdvancedProperties.BeginGroup())
                     {
                         // Fade of the ripples
                         using (new BoldLabelScope())
@@ -307,6 +309,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
+                    AdvancedProperties.EndGroup();
                 }
             }
         }
@@ -342,7 +345,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // The fade parameters are only to be displayed when the additional parameters are
-                if (WaterSurfaceUI.ShowAdditionalProperties())
+                if (AdvancedProperties.BeginGroup())
                 {
                     // Fade of the agitation
                     using (new BoldLabelScope())
@@ -357,6 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                 }
+                AdvancedProperties.EndGroup();
             }
 
             // Ripples Section
@@ -372,7 +376,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Orientation & Current
                     WaterSurfaceRipplesOrientationCurrentInherit(serialized, owner, WaterPropertyParameterDrawer.agitationModeNames);
 
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    if (AdvancedProperties.BeginGroup())
                     {
                         // Fade of the ripples
                         using (new BoldLabelScope())
@@ -387,6 +391,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
+                    AdvancedProperties.EndGroup();
                 }
             }
         }
@@ -406,7 +411,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Current
                     WaterSurfaceRipplesOrientationCurrent(serialized, owner);
 
-                    if (WaterSurfaceUI.ShowAdditionalProperties())
+                    if (AdvancedProperties.BeginGroup())
                     {
                         // Fade of the ripples
                         using (new BoldLabelScope())
@@ -421,6 +426,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                         }
                     }
+                    AdvancedProperties.EndGroup();
                 }
             }
         }

@@ -162,16 +162,19 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_ParentController.model.order; }
         }
-        public override bool expanded { get; set; }
+
+        public override bool expanded
+        {
+            get => infos.expanded;
+            set => infos.expanded = value;
+        }
+
         public override bool superCollapsed
         {
-            get
-            {
-                return !infos.expanded;
-            }
+            get => infos.supecollapsed;
             set
             {
-                infos.expanded = !value;
+                infos.supecollapsed = value;
                 model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }

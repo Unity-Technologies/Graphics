@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shapeRadiusDisc = EditorGUIUtility.TrTextContent("Radius", "Sets the radius of the Disc Light.");
             public readonly GUIContent barnDoorAngle = EditorGUIUtility.TrTextContent("Barn Door Angle", "Sets the angle of the Rectangle Light so that is behaves like a barn door.");
             public readonly GUIContent barnDoorLength = EditorGUIUtility.TrTextContent("Barn Door Length", "Sets the length for the barn door.");
-            public readonly GUIContent aspectRatioPyramid = EditorGUIUtility.TrTextContent("Aspect ratio", "Controls the aspect ration of the Pyramid Light's projection. A value of 1 results in a square.");
+            public readonly GUIContent aspectRatioPyramid = EditorGUIUtility.TrTextContent("Aspect Ratio", "Controls the aspect ration of the Pyramid Light's projection. A value of 1 results in a square.");
             public readonly GUIContent shapeWidthBox = EditorGUIUtility.TrTextContent("Size X", "Sets the width of the Box Light.");
             public readonly GUIContent shapeHeightBox = EditorGUIUtility.TrTextContent("Size Y", "Sets the height of the Box Light.");
             public readonly GUIContent applyRangeAttenuation = EditorGUIUtility.TrTextContent("Range Attenuation", "Allows you to enable or disable range attenuation. Range attenuation is useful for indoor environments because you can avoid having to set up a large range for a Light to get correct inverse square attenuation that may leak out of the indoor environment.");
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent evsmExponent = EditorGUIUtility.TrTextContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = EditorGUIUtility.TrTextContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = EditorGUIUtility.TrTextContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
-            public readonly GUIContent evsmAdditionalBlurPasses = EditorGUIUtility.TrTextContent("Blur passes", "Increasing this will increase the softness of the shadow, but it will severely impact performance.");
+            public readonly GUIContent evsmAdditionalBlurPasses = EditorGUIUtility.TrTextContent("Blur Passes", "Increasing this will increase the softness of the shadow, but it will severely impact performance.");
             public readonly GUIContent dirLightPCSSMaxPenumbraSize = EditorGUIUtility.TrTextContent("Max Penumbra Size", "Maximum size (in world space) of PCSS shadow penumbra limiting blur filter kernel size, larger kernels may require more samples to avoid quality degradation.");
             public readonly GUIContent dirLightPCSSMaxSamplingDistance = EditorGUIUtility.TrTextContent("Max Sampling Distance", "Maximum distance (in world space) from the receiver PCSS shadow sampling occurs, lower to avoid light bleeding but may cause self-shadowing");
             public readonly GUIContent dirLightPCSSMinFilterSizeTexels = EditorGUIUtility.TrTextContent("Min Filter", "Minimum filter size (in shadowmap texels) to avoid aliasing close to caster");

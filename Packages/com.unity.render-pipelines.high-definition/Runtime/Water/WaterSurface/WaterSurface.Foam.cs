@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal RTHandle[] foamBuffers = new RTHandle[2];
         internal float4 previousFoamRegionScaleOffset;
 
-        internal void CheckFoamResources()
+        internal void CheckFoamResources(CommandBuffer cmd)
         {
             if (foam)
             {
@@ -137,6 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     foamBuffers[0] = RTHandles.Alloc(resolution, resolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Clamp);
                     foamBuffers[1] = RTHandles.Alloc(resolution, resolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Clamp);
+
+                    // Clear buffer 0 only
+                    CoreUtils.SetRenderTarget(cmd, foamBuffers[0], ClearFlag.Color, Color.black);
                 }
             }
             else

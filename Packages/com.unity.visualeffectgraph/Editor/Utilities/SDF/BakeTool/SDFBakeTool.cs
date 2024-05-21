@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
@@ -8,7 +9,7 @@ using UnityEngine.VFX.SDF;
 
 namespace UnityEditor.VFX.SDF
 {
-    class SDFBakeTool : EditorWindow
+    class SDFBakeTool : EditorWindow, IHasCustomMenu
     {
         [MenuItem("Window/Visual Effects/Utilities/SDF Bake Tool", false, 3013)]
         static void OpenWindow()
@@ -25,7 +26,6 @@ namespace UnityEditor.VFX.SDF
         private SdfBakerPreview m_MeshPreview;
         private Texture3DPreview m_TexturePreview;
         private bool m_RefreshMeshPreview = false;
-        private bool m_ShowAdvanced;
         private MeshToSDFBaker m_Baker;
         private bool m_FoldOutParameters = true;
         private bool m_PrefabChanged = false;
@@ -133,7 +133,6 @@ namespace UnityEditor.VFX.SDF
                 SaveSettings();
             }
             GUI.enabled = true;
-            DrawContextIcon();
             GUILayout.EndHorizontal();
             GUILayout.Space(5);
 
@@ -190,7 +189,7 @@ namespace UnityEditor.VFX.SDF
                     MessageType.Warning);
 
             bool fitPaddingChanged = false;
-            if (m_ShowAdvanced)
+            if (AdvancedProperties.BeginGroup())
             {
                 liftSizeLimit = EditorGUILayout.Toggle(Contents.liftSizeLimit, liftSizeLimit);
                 m_FoldOutParameters = EditorGUILayout.BeginFoldoutHeaderGroup(m_FoldOutParameters, Contents.bakingParameters);
@@ -211,6 +210,7 @@ namespace UnityEditor.VFX.SDF
                 m_Settings.m_FitPaddingVoxel = EditorGUILayout.Vector3IntField(Contents.fitPadding, m_Settings.m_FitPaddingVoxel);
                 fitPaddingChanged = EditorGUI.EndChangeCheck();
             }
+            AdvancedProperties.EndGroup();
             EditorGUIUtility.wideMode = prevWideMode;
 
             using (new EditorGUI.DisabledScope(mesh == null))
@@ -371,27 +371,6 @@ namespace UnityEditor.VFX.SDF
                 m_MeshPreview?.OnPreviewGUI(GUILayoutUtility.GetRect(100, 2000, 100, 2000, GUIStyle.none),
                     GUIStyle.none);
             }
-        }
-
-        private void DrawContextIcon()
-        {
-            GUILayout.FlexibleSpace();
-            EditorGUI.BeginChangeCheck();
-            var rect = GUILayoutUtility.GetRect(Contents.contextMenuIcon, GUIStyle.none, GUILayout.Height(20), GUILayout.Width(20));
-
-            GUI.Button(rect, Contents.contextMenuIcon, GUIStyle.none);
-            if (EditorGUI.EndChangeCheck())
-            {
-                OnContextClick(new Vector2(rect.x, rect.yMax));
-            }
-        }
-
-        private void OnContextClick(Vector2 pos)
-        {
-            var menu = new GenericMenu();
-            menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), m_ShowAdvanced, () => m_ShowAdvanced = !m_ShowAdvanced);
-            menu.AddItem(EditorGUIUtility.TrTextContent("Create new session"), false, CreateNewSession);
-            menu.DropDown(new Rect(pos, Vector2.zero));
         }
 
         private void OnEnable()
@@ -683,10 +662,6 @@ namespace UnityEditor.VFX.SDF
 
             internal static GUIContent saveSDFBlocked = new GUIContent("Save SDF",
                 "There is nothing to save yet. Please use the Bake Mesh button before saving.");
-            static Texture2D paneOptionsIconDark = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
-            static Texture2D paneOptionsIconLight = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
-            static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
-            internal static GUIContent contextMenuIcon = new GUIContent(paneOptionsIcon, "Additional Properties");
 
             internal static GUIContent fitPadding = new GUIContent("Fit Padding", "Controls the padding, in voxel, to apply when using \"Fit Box/Cube to Mesh\".");
             internal static GUIContent fitBoxToMesh = new GUIContent("Fit box to Mesh", "Fits the bounding box of the bake to the bounding box of the mesh. Padding specified in \"Fit Padding\" (in Additional Properties) will be applied.");
@@ -695,6 +670,12 @@ namespace UnityEditor.VFX.SDF
             internal static GUIContent createNewSession = new GUIContent("New Session", "Resets the tool to its default parameters, creating a new unsaved settings assets. This will also erase the current baked SDF texture if there is any.");
             internal static GUIContent saveSettings = new GUIContent("Save Settings", "Saves the settings of the tool into an asset.");
             internal static GUIContent settingsAsset = new GUIContent("Settings Asset");
+        }
+
+        public void AddItemsToMenu(GenericMenu menu)
+        {
+            menu.AddAdvancedPropertiesBoolMenuItem();
+            menu.AddItem(EditorGUIUtility.TrTextContent("Create new session"), false, CreateNewSession);
         }
     }
 }

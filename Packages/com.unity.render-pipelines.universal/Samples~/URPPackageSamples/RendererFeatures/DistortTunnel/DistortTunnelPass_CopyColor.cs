@@ -11,7 +11,7 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
         public TextureHandle source;
         public Vector4 scaleBias;
     }
-    
+
     private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DistortTunnelPass_CopyColor");
     private RTHandle m_OutputHandle;
@@ -20,11 +20,13 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
     {
         renderPassEvent = evt;
     }
-    
+
     public void SetRTHandles(ref RTHandle dest)
     {
         m_OutputHandle = dest;
     }
+
+#pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
     // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
@@ -38,9 +40,9 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
         var cameraData = renderingData.cameraData;
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
-        
+
         RTHandle source = cameraData.renderer.cameraColorTargetHandle;
-        
+
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
@@ -50,7 +52,9 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
         cmd.Clear();
         CommandBufferPool.Release(cmd);
     }
-    
+
+#pragma warning restore 618, 672
+
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
     {
@@ -65,11 +69,11 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
         {
             // Set camera color as a texture resource for this render graph instance
             TextureHandle source = resourceData.activeColorTexture;
-            
+
             // Set RTHandle as a texture resource for this render graph instance
             TextureHandle destination = renderGraph.ImportTexture(m_OutputHandle);
             texRefData.copyColorTexHandle = destination;
-            
+
             if (!source.IsValid() || !destination.IsValid())
                 return;
 

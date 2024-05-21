@@ -377,9 +377,9 @@ namespace UnityEditor.VFX.UI
             else if (!exists)
             {
                 if (direction == Direction.Input || viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock) // no context for subgraph operators.
-                    VFXFilterWindow.Show(view, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                    VFXFilterWindow.Show( Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
                 else
-                    VFXFilterWindow.Show(view, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                    VFXFilterWindow.Show(Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), BuildNodeProvider(viewController, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 

@@ -17,6 +17,10 @@ You should only apply post-processing to the last camera in the stack, so the fo
 * URP renders the post-processing effects only once, not repeatedly for each camera.
 * The visual effects are consistent, because all the cameras in the stack receive the same post-processing.
 
+## Limitations
+
+You cannot use a mix of different types of renderers (2D and 3D) for cameras in a camera stack.
+
 ## Additional resources
 
 * [Set up a camera stack](../camera-stacking.md)
