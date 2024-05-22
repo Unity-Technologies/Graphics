@@ -988,7 +988,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         : fromSlot.concreteValueType.ToString();
                     prop.SetDisplayNameAndSanitizeForGraph(subGraph, propName);
 
-                    if (fromProperty.useCustomSlotLabel)
+                    if (fromProperty?.useCustomSlotLabel ?? false)
                     {
                         prop.useCustomSlotLabel = true;
                         prop.customSlotLabel = fromProperty.customSlotLabel;

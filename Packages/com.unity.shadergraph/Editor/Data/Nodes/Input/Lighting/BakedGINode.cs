@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Baked GI";
             synonyms = new string[] { "global illumination" };
+            UpdateNodeAfterDeserialization();
         }
 
         [SerializeField]
