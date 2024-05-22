@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5777610382073099448
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4343883632026781579}
+  m_Layer: 0
+  m_Name: ViewPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4343883632026781579
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5777610382073099448}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0011996253, y: -0.9757914, z: 0.21863475, w: -0.0053540464}
+  m_LocalPosition: {x: -1.165, y: 2.51, z: 4.167}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3608749374209294103}
+  m_LocalEulerAnglesHint: {x: 25.258, y: -180.629, z: 0}
+--- !u!1 &6038242143246611039
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3608749374209294103}
+  m_Layer: 0
+  m_Name: TutorialStep8WaterDecals
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3608749374209294103
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6038242143246611039}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -33, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4343883632026781579}
+  - {fileID: 8238880412239631815}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3680042658855434867
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3608749374209294103}
+    m_Modifications:
+    - target: {fileID: 2102425495700333303, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_Name
+      value: InfoPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5035190720112997874, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: 6 - Add Water Decals
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: "We use the Water Wetness and Water Caustics decal to more tightly integrate
+        the stream water with the terrain. The Wetness decal makes the terrain and
+        other meshes around the stream look like they\u2019re wet, and the Caustics
+        decal imitates the appearance of lighting getting refracted by the surface
+        of the water and getting focused in animated patterns on the bottom of the
+        stream.\r\n\r\nFor the Wetness decal, it should be created and scaled so
+        that the top of the decal extends around half a meter above the surface of
+        the water. The top of the Caustics decal should be just under the water.\r\n\r\nFor
+        both decals, the decal volumes should be kept as small as possible in all
+        three dimensions - just large enough to cover their intended use and no larger.
+        You can also save some performance by lowering the Draw Distance parameter
+        on each decal so they are not drawn at a distance.\r\n \n"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+--- !u!4 &8238880412239631815 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+  m_PrefabInstance: {fileID: 3680042658855434867}
+  m_PrefabAsset: {fileID: 0}

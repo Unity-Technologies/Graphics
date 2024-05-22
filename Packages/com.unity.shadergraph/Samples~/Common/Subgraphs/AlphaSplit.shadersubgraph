@@ -29,7 +29,11 @@
         }
     ],
     "m_GroupDatas": [],
-    "m_StickyNoteDatas": [],
+    "m_StickyNoteDatas": [
+        {
+            "m_Id": "14826decf29242038afbe80d5bf23026"
+        }
+    ],
     "m_Edges": [
         {
             "m_OutputSlot": {
@@ -182,6 +186,26 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "14826decf29242038afbe80d5bf23026",
+    "m_Title": "",
+    "m_Content": "Split an RGBA value into an RGB color and an Alpha value.",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": -166.5,
+        "y": 189.0,
+        "width": 131.0,
+        "height": 100.0
+    },
+    "m_Group": {
+        "m_Id": ""
     }
 }
 

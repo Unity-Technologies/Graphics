@@ -34,13 +34,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: BranchOnMaterialQuality
-  m_Shader: {fileID: -6465566751694194690, guid: 5de22ea65d617aa42969d4f4600b0da3,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 5de22ea65d617aa42969d4f4600b0da3, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _DISABLE_SSR_TRANSPARENT
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -58,19 +57,19 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _SampleTexture2D_0a1f824bd00d4f99aa197d78651df9a7_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: d7aa8e05f3b6118478e7caf71b9232c2, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7be741f9449557c488d643ae307fe1ab, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_0becd5fadf4a4d439d4ac5a3ca357841_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: f10b5283aa718804bae1a99a4467ed1e, type: 3}
+        m_Texture: {fileID: 2800000, guid: b356831ef4f363d48989d117c6ea79e3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_1bc0a92a33bc4a9a8d08b3d48e05fd71_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: d7aa8e05f3b6118478e7caf71b9232c2, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7be741f9449557c488d643ae307fe1ab, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_307db2df28d94d9fae14d6b5050247f5_Texture_1_Texture2D:
-        m_Texture: {fileID: 2800000, guid: d7aa8e05f3b6118478e7caf71b9232c2, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7be741f9449557c488d643ae307fe1ab, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _UnpackDetailNOS_178720a26e934e7aad095c654d7a9a07_DetailNOS_3195577896_Texture2D:

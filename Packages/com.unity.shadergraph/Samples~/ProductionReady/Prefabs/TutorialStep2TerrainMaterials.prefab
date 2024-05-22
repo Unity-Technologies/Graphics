@@ -1,0 +1,150 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5589039669580753755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1876365037369443947}
+  m_Layer: 0
+  m_Name: ViewPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1876365037369443947
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5589039669580753755}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0009385571, y: -0.98524684, z: 0.17105106, w: -0.005405843}
+  m_LocalPosition: {x: -3.04, y: 2.11, z: 4.59}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3608749374209294103}
+  m_LocalEulerAnglesHint: {x: 19.698, y: -180.629, z: 0}
+--- !u!1 &6038242143246611039
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3608749374209294103}
+  m_Layer: 0
+  m_Name: TutorialStep2TerrainMaterials
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3608749374209294103
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6038242143246611039}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -33, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1876365037369443947}
+  - {fileID: 8238880412239631815}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3680042658855434867
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3608749374209294103}
+    m_Modifications:
+    - target: {fileID: 2102425495700333303, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_Name
+      value: InfoPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5035190720112997874, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: 2 - Paint Terrain Materials
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: "Next, it\u2019s time to add materials to our terrain.  We have four
+        material layers - cobblestone rocks for our stream bed, dry dirt, rocky moss,
+        and mossy grass. To apply the materials, we begin by establishing guidelines. 
+        The stones material goes in the stream bed.  The dirt material goes along
+        the banks of the stream. As a transition between the first and the grass,
+        we use the rocky moss material. And finally, we use the grass material for
+        the background.\r\n\r\nWe first block in the materials according to our guidelines
+        with large, hard-edged brushes. Then we go back and blend the materials together
+        using smaller brushes. We paint one material over the other using brushes
+        with a low opacity value to blend the two materials together.\r\n\r\nEven
+        though our terrain materials exhibit tiling artifacts by themselves, we\u2019re
+        able to hide the tiling by giving each material a different tiling frequency.
+        When the materials are blended, they break up each others tiling artifacts. 
+        We also cover the terrain with detail meshes (step 7) which further hides
+        the tiling.\r\n\n"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+--- !u!4 &8238880412239631815 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+  m_PrefabInstance: {fileID: 3680042658855434867}
+  m_PrefabAsset: {fileID: 0}

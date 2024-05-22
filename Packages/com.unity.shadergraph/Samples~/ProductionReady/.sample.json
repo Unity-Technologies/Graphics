@@ -1,0 +1,6 @@
+{
+  "displayName": "Production Ready Shaders",
+  "interactiveImport": "false",
+  "description": "This sample contains a collection of Shader Graph assets that are ready to be used in production.  The collection includes shaders for rocks, decals, water, terrain details, and many more.  It also includes post-process examples, weather effects, and shaders that behave similarly to the URP and HDRP Lit shaders.",
+  "createSeparatePackage": true
+}

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1953259897 &8574412962073106934
+TerrainLayer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ground_rockgrass_fellsdirty
+  m_DiffuseTexture: {fileID: 2800000, guid: ada3ffebc706aac4788bfcfeee5377dc, type: 3}
+  m_NormalMapTexture: {fileID: 2800000, guid: 293586dd4406ef540921e050ce974816, type: 3}
+  m_MaskMapTexture: {fileID: 2800000, guid: 464f9f1ed65ca28478ca7f2342f2d2f0, type: 3}
+  m_TileSize: {x: 5.3, y: 5.3}
+  m_TileOffset: {x: 0.68, y: 0.68}
+  m_Specular: {r: 0, g: 0, b: 0, a: 0}
+  m_Metallic: 0
+  m_Smoothness: 0
+  m_NormalScale: 2
+  m_DiffuseRemapMin: {x: 0, y: 0, z: 0, w: 0}
+  m_DiffuseRemapMax: {x: 1, y: 1, z: 1, w: 1}
+  m_MaskMapRemapMin: {x: 0, y: 0, z: 0, w: 0}
+  m_MaskMapRemapMax: {x: 1, y: 1, z: 3, w: 1}
+  m_SmoothnessSource: 1

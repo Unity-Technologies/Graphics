@@ -1,0 +1,206 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &530458310723873281
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2353704764516170545}
+  m_Layer: 0
+  m_Name: ViewPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2353704764516170545
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 530458310723873281}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.0010615586, y: -0.98109055, z: 0.19347169, w: -0.005383044}
+  m_LocalPosition: {x: -2.148, y: 2.6000023, z: 4.156}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3608749374209294103}
+  m_LocalEulerAnglesHint: {x: 22.311, y: -180.629, z: 0}
+--- !u!1 &6038242143246611039
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3608749374209294103}
+  m_Layer: 0
+  m_Name: TutorialStep5AddRocks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3608749374209294103
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6038242143246611039}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -33, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2353704764516170545}
+  - {fileID: 8238880412239631815}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3680042658855434867
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3608749374209294103}
+    m_Modifications:
+    - target: {fileID: 2102425495700333303, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_Name
+      value: InfoPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5035190720112997874, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: 5 - Add Rocks
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: "Streams are often filled with rocks that have been pushed by the current.
+        To save memory and reduce draw calls, we\u2019re using just two rock meshes
+        that both use the same texture set.  The rocks are rotated and scaled to
+        give a variety of appearances.\n\nNotice that we\u2019ve created visual variety
+        by creating two different sizes of rocks - large boulders, and smaller rocks.
+        Overall, the rocks break up the shape of the stream and change the pattern
+        of the foam on the water surface.\n"
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_lineNumber
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.8713637
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_characterCount
+      value: 488
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.740625
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.8132387
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 487
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_textInfo.wordCount
+      value: 86
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 487
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_textInfo.spaceCount
+      value: 88
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 488
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 488
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 488
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 486
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 466
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 488
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+--- !u!4 &8238880412239631815 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+  m_PrefabInstance: {fileID: 3680042658855434867}
+  m_PrefabAsset: {fileID: 0}
