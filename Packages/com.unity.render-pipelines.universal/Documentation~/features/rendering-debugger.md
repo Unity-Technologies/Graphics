@@ -4,47 +4,61 @@ The **Rendering Debugger** window lets you visualize various lighting, rendering
 
 This section contains the following topics:
 
-* [How to access the Rendering Debugger window](#how-to-access).
+* [How to access the Rendering Debugger](#how-to-access).
 
     Information on how to access the **Rendering Debugger** window in the Editor, in the Play mode, and at runtime in Development builds.
-
-* [Rendering Debugger window sections](#ui-sections)
-
-    Descriptions of the elements and properties in the **Rendering Debugger** window.
 
 * [Navigation at runtime](#navigation-at-runtime)
 
     How to navigate the **Rendering Debugger** interface at runtime.
 
-## <a name="how-to-access"></a>How to access the Rendering Debugger window
+* [Rendering Debugger window sections](#ui-sections)
+
+  Descriptions of the elements and properties in the **Rendering Debugger** window.
+
+
+## <a name="how-to-access"></a>How to access the Rendering Debugger
 
 The Rendering Debugger window is available in the following modes:
 
-* The Editor.
+| Mode       | Platform       | Availability                   | How to Open the Rendering Debugger                                                                                        |
+|------------|----------------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| Editor     | All            | Yes (window in the Editor)     | Select **Window > Analysis > Rendering Debugger** |
+| Play mode  | All            | Yes (overlay in the Game view) | On a desktop or laptop computer, press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS)<br>On a console controller, press L3 and R3 (Left Stick and Right Stick) |
+| Runtime    | Desktop/Laptop | Yes (only in Development builds) | Press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS)                                                              |
+| Runtime    | Console        | Yes (only in Development builds) | Press L3 and R3 (Left Stick and Right Stick)                                                                             |
+| Runtime    | Mobile         | Yes (only in Development builds) | Use a three-finger double tap                                                                                            |
 
-* The Play mode.
+To enable all the sections of the **Rendering Debugger** in your built application, disable **Strip Debug Variants** in **Project Settings > Graphics > URP Global Settings**. Otherwise, you can only use the [Display Stats](#display-stats) section.
 
-* At runtime in the standalone Unity Player, on any device. The window is only available in **Development builds**.
+To disable the runtime UI, use the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
-To enable all the sections of the **Rendering Debugger** in your built application, disable **Strip Debug Variants** in **Project Settings > Graphics > URP Global Settings**. Otherwise you can only use the [Display Stats](#display-stats) section.
+## <a name="navigation-at-runtime"></a>Navigation at runtime
 
-Use one of the following options to open the **Rendering Debugger** window.
+### Keyboard
 
-**In the Editor**:
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the arrow keys                                                                        |
+| **Change the current tab**                         | Use the Page up and Page down keys (Fn + Up and Fn + Down keys respectively for MacOS)    |
+| **Display the current active item independently of the debug window** | Press the right Shift key                                                                 |
 
-* Select **Window > Analysis > Rendering Debugger**.
+### Xbox Controller
 
-* Press **Ctrl+Backspace** (**Ctrl+Delete** on macOS).
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the Directional pad (D-Pad)                                                           |
+| **Change the current tab**                         | Use the Left Bumper and Right Bumper                                                      |
+| **Display the current active item independently of the debug window** | Press the X button                                                                        |
 
-**In the Play mode or at runtime in a Development build**:
+### PlayStation Controller
 
-* On a desktop or laptop computer, press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS).
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the Directional buttons                                                               |
+| **Change the current tab**                         | Use the L1 button and R1 button                                                           |
+| **Display the current active item independently of the debug window** | Press the Square button                                                                   |
 
-* On a console controller, press L3 and R3 (Left Stick and Right Stick).
-
-* On a mobile device, use a three-finger double tap.
-
-You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
 ## <a name="ui-sections"></a>Rendering Debugger window sections
 
@@ -327,35 +341,3 @@ Use the following properties to control how URP blends Lighting Scenarios. Refer
 | **Turnover Rate** | Set the blending priority of cells close to the camera. The range is 0 to 1, where 0 sets the cells close to the camera with high priority, and 1 sets all cells with equal priority. Increase **Turnover Rate** to avoid cells close to the camera blending too frequently. |
 | **Scenario To Blend With** | Select a Lighting Scenario to blend with the active Lighting Scenario. |
 | **Scenario Blending Factor** | Set how far to blend from the active Lighting Scenario to the **Scenario To Blend With**. The range is 0 to 1, where 0 is fully the active Lighting Scenario, and 1 is fully the **Scenario To Blend With**. |
-
-## Navigation at runtime
-
-This section describes how to navigate the **Rendering Debugger** interface at runtime.
-
-To change the current active item:
-
-* **Keyboard**: use the arrow keys.
-
-* **Touch screen**: tap the arrows next to properties.
-
-* **Xbox controller**: use the Directional pad (D-Pad).
-
-* **PlayStation controller**: use the Directional buttons.
-
-To change the current tab:
-
-* **Keyboard**: use the Page up and Page down keys (Fn + Up and Fn + Down keys for MacOS).
-
-* **Touch screen**: tap the arrows next to tab title.
-
-* **Xbox controller**: use the Left Bumper and Right Bumper.
-
-* **PlayStation controller**: use the L1 button and R1 button.
-
-To display the current active item independently of the debug window:
-
-* **Keyboard**: press the right Shift key.
-
-* **Xbox controller**: press the X button.
-
-* **PlayStation controller**: press the Square button.
