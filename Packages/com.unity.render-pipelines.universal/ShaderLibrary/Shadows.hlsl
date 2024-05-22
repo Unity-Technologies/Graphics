@@ -172,16 +172,20 @@ half4 GetMainLightShadowParams()
 // w: first shadow slice index for this light, there can be 6 in case of point lights. (-1 for non-shadow-casting-lights)
 half4 GetAdditionalLightShadowParams(int lightIndex)
 {
+    half4 results;
     #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-            return _AdditionalShadowParams_SSBO[lightIndex];
+            results = _AdditionalShadowParams_SSBO[lightIndex];
         #else
-            return _AdditionalShadowParams[lightIndex];
+            results = _AdditionalShadowParams[lightIndex];
+            results.w = lightIndex < 0 ? -1 : results.w;
         #endif
     #else
         // Same defaults as set in AdditionalLightsShadowCasterPass.cs
         return half4(0, 0, 0, -1);
     #endif
+
+    return results;
 }
 
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
