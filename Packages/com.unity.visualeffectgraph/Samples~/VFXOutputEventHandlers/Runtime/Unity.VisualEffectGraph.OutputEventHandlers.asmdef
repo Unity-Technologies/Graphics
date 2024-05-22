@@ -4,7 +4,8 @@
     "references": [
         "Unity.VisualEffectGraph.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Cinemachine"
+        "Cinemachine",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -23,6 +24,11 @@
             "name": "com.unity.cinemachine",
             "expression": "2.6.0",
             "define": "VFX_OUTPUTEVENT_CINEMACHINE_2_6_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "3.0.0",
+            "define": "VFX_OUTPUTEVENT_CINEMACHINE_3_0_0_OR_NEWER"
         },
         {
             "name": "com.unity.modules.physics",
