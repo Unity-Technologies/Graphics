@@ -15,7 +15,9 @@ RW_TEXTURE2D(float, _DstDepth);
 #ifdef USE_SRC
     #ifdef SRC_IS_MSAA
         #ifdef SRC_IS_ARRAY
-            Texture2DMSArray<float> _SrcDepth;
+            #ifndef SHADER_API_WEBGPU // Texture2DMSArray is not supported by WebGPU
+                Texture2DMSArray<float> _SrcDepth;
+            #endif
         #else
             Texture2DMS<float> _SrcDepth;
         #endif
@@ -33,7 +35,11 @@ float LoadDepth(int2 coord, int srcSliceIndex)
 #ifdef USE_SRC
     #ifdef SRC_IS_MSAA
         #ifdef SRC_IS_ARRAY
-            return LOAD_TEXTURE2D_ARRAY_MSAA(_SrcDepth, coord, srcSliceIndex, 0).x;
+            #ifdef SHADER_API_WEBGPU // Texture2DMSArray is not supported by WebGPU
+                return 0.0;
+            #else
+                return LOAD_TEXTURE2D_ARRAY_MSAA(_SrcDepth, coord, srcSliceIndex, 0).x;
+            #endif
         #else
             return LOAD_TEXTURE2D_MSAA(_SrcDepth, coord, 0).x;
         #endif
