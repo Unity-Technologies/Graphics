@@ -126,7 +126,7 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
         {
             finalColor = previousColor;
             finalCloudDepth = previousCloudDepth;
-            finalSampleCount = validityFactor * previousSampleCount * _CloudHistoryInvalidation;
+            finalSampleCount = max(1, validityFactor * previousSampleCount * _CloudHistoryInvalidation);
         }
     }
     else if (!validTracing)
