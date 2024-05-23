@@ -28,7 +28,7 @@ To see the preconfigured effects, select **Post-process Volume** in the Scene.
 
 To add extra effects, [add Volume Overrides to the Volume](VolumeOverrides.md#volume-add-override).
 
-To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
+To configure location-based post-processing effects, refer to [How to use Local Volumes](Volumes.md#volume-local).
 
 ### Configuring post-processing in a new URP Scene
 
@@ -43,7 +43,6 @@ To configure post-processing in a new Scene:
 3. Select the **Global Volume** GameObject. In the Volume component, create a new Profile by clicking **New** button on the right side of the Profile property.
 
     ![Create new Profile.](Images/post-proc/volume-new-scene-new-profile.png)
-
 
 4. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md#volume-add-override) to the Volume component.
 

@@ -8,7 +8,7 @@
 
 This effect helps you to render perspective views in Scenes with a very large field of view. Panini projection is a cylindrical projection, which means that it keeps vertical straight lines straight and vertical. Unlike other cylindrical projections, panini projection keeps radial lines through the center of the image straight too.
 
-For more information about panini projection, see PanoTools’ wiki documentation on [General Panini Projection](https://wiki.panotools.org/The_General_Panini_Projection).
+For more information about panini projection, refer to PanoTools’ wiki documentation on [General Panini Projection](https://wiki.panotools.org/The_General_Panini_Projection).
 
 ## Using Panini Projection
 

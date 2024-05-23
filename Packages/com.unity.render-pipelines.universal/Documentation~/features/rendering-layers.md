@@ -6,7 +6,7 @@ For example, in the following illustration, Light `A` affects Sphere `D`, but no
 
 ![Light A affects Sphere D, but not Sphere C. Light B affects Sphere C, but not Sphere D.](../Images/lighting/rendering-layers/rendering-layers-example.png)
 
-To read how to implement this example, see section [How to use Rendering Layers](#how-to-rendering-layers).
+To read how to implement this example, refer to [How to use Rendering Layers](#how-to-rendering-layers).
 
 ## <a name="enable"></a>Enable Rendering Layers for Lights
 

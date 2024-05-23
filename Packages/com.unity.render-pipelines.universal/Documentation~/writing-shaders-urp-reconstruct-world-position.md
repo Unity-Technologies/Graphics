@@ -82,11 +82,11 @@ Make the following changes to the ShaderLab code:
 
    For the reconstruction function (`ComputeWorldSpacePosition`) to work, the depth value must be in the normalized device coordinate (NDC) space. In D3D, Z is in range `[0,1]`, in OpenGL, Z is in range `[-1, 1]`.
 
-   This example uses the `UNITY_REVERSED_Z` constant to determine the platform and adjust the Z value range. See step 6 in this example for more explanations.
+   This example uses the `UNITY_REVERSED_Z` constant to determine the platform and adjust the Z value range. Refer to step 6 in this example for more explanations.
 
    The `UNITY_NEAR_CLIP_VALUE` variable is a platform independent near clipping plane value for the clip space.
 
-   For more information, see [Platform-specific rendering differences](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html).
+   For more information, refer to [Platform-specific rendering differences](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html).
 
 5. Reconstruct world space positions from the UV and Z coordinates of pixels.
 

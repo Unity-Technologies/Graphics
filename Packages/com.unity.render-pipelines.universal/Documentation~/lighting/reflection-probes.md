@@ -2,9 +2,9 @@
 
 This page describes URP-specific behavior of reflection probes.
 
-For general information on reflection probes, see the page [Reflection Probes](https://docs.unity3d.com/Manual/ReflectionProbes.html).
+For general information on reflection probes, refer to the page [Reflection Probes](https://docs.unity3d.com/Manual/ReflectionProbes.html).
 
-For examples of how to use reflection probes, see the [Lighting samples in URP Package Samples](../package-sample-urp-package-samples.md#lighting).
+For examples of how to use reflection probes, refer to the [Lighting samples in URP Package Samples](../package-sample-urp-package-samples.md#lighting).
 
 ## Configuring reflection probe settings
 

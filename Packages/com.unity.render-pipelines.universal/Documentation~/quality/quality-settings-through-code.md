@@ -131,7 +131,7 @@ You can create more complex systems and sequences of checks to determine which q
 
 You can change some properties of the URP Asset at runtime with C# scripts. This can help fine tune performance on devices with hardware that doesn't perfectly match any of the quality levels in your project.
 
-> **Note**: To change a property of the URP Asset with a C# script, the property must have a `set` method. For more information on these properties see [Accessible Properties](#accessible-properties).
+> **Note**: To change a property of the URP Asset with a C# script, the property must have a `set` method. For more information on these properties refer to [Accessible Properties](#accessible-properties).
 
 The following example uses the QualityControls script and QualityController object from the [Change Quality Level through code](#change-quality-level-through-code) section, and extends the functionality to locate the active URP Asset and change some of its properties to fit the performance level of the hardware.
 
@@ -338,4 +338,4 @@ The following properties of the URP Asset have a `set` method:
 - useAdaptivePerformance
 - useSRPBatcher
 
-For more information on these properties, see [Universal Render Pipeline Asset API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/api/UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset.html#properties).
+For more information on these properties, refer to [Universal Render Pipeline Asset API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/api/UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset.html#properties).

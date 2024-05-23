@@ -16,7 +16,7 @@ This Renderer Feature lets you inject full screen render passes at pre-defined i
 
 ### Custom post-processing effects
 
-The Full Screen Pass Renderer Feature lets you create custom post-processing effects with minimum coding effort. To read how to create a simple post-processing effect, see the page [How to create a custom post-processing effect](../post-processing/post-processing-custom-effect-low-code.md).
+The Full Screen Pass Renderer Feature lets you create custom post-processing effects with minimum coding effort. To read how to create a simple post-processing effect, refer to the page [How to create a custom post-processing effect](../post-processing/post-processing-custom-effect-low-code.md).
 
 The following images show a fog effect implemented with a Full Screen Render Pass Renderer Feature.
 
@@ -54,7 +54,7 @@ The Forward+ Rendering Path has the following advantages compared with the Forwa
 
 * More flexibility with procedural draws.
 
-For more information, see the page [Forward+ Rendering Path](../rendering/forward-plus-rendering-path.md).
+For more information, refer to the page [Forward+ Rendering Path](../rendering/forward-plus-rendering-path.md).
 
 ### LOD Cross-fade
 
@@ -64,7 +64,7 @@ As the Camera moves, Unity shows different LODs to provide a good balance betwee
 
 ![LOD cross-fade](../Images/whats-new/urp-14/lod-cross-fade.png)<br/>*1: LOD cross-fade off. 2: LOD cross-fade on.*
 
-For more information, see the [LOD Cross Fade](../universalrp-asset.md#lod-cross-fade) property.
+For more information, refer to the [LOD Cross Fade](../universalrp-asset.md#lod-cross-fade) property.
 
 ### Temporal anti-aliasing (TAA)
 
@@ -114,7 +114,7 @@ Quality improvements:
 
 * A new depth test was added to avoid adding SSAO to objects far away from one another. 
 
-For more information, see the page [Screen Space Ambient Occlusion](../post-processing-ssao.md).
+For more information, refer to the page [Screen Space Ambient Occlusion](../post-processing-ssao.md).
 
 ### 64 bit high precision HDR render target format
 
@@ -140,7 +140,7 @@ URP 14 adds two new properties to the Bloom post-processing effect:
 
 * **Max Iterations**: set the maximum number of scale iterations (down and up) the bloom effect does. This property replaces the **Skip Iterations** property, which skipped a number of last iterations, but did not limit the maximum number.
 
-For more information, see the page [Bloom](../post-processing-bloom.md).
+For more information, refer to the page [Bloom](../post-processing-bloom.md).
 
 ### Improvements to the Render Pipeline Converter
 
@@ -202,8 +202,8 @@ Point Lights and Spot Lights now have the **Soft Shadows Quality** property. Opt
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 14, see the [Changelog](xref:changelog).
+For a complete list of issues resolved in URP 14, refer to the [Changelog](xref:changelog).
 
 ## Known issues
 
-For information on the known issues in URP 14, see the section [Known issues](../known-issues.md).
+For information on the known issues in URP 14, refer to the section [Known issues](../known-issues.md).

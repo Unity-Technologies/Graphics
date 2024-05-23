@@ -27,8 +27,8 @@ You can install a different version of a graphics package from disk using the Pa
 
 ## Render pipeline compatibility
 
-Projects made using URP are not compatible with the High Definition Render Pipeline (HDRP) or the Built-in Render Pipeline. Before you start development, you must decide which render pipeline to use in your Project. For information on choosing a render pipeline, see the [Render Pipelines](https://docs.unity3d.com/2019.3/Documentation/Manual/render-pipelines.html) section of the Unity Manual.
+Projects made using URP are not compatible with the High Definition Render Pipeline (HDRP) or the Built-in Render Pipeline. Before you start development, you must decide which render pipeline to use in your Project. For information on choosing a render pipeline, refer to the [Render Pipelines](https://docs.unity3d.com/2019.3/Documentation/Manual/render-pipelines.html) section of the Unity Manual.
 
 ## Unity Player system requirements
 
-This package does not add any extra platform-specific requirements. General system requirements for the Unity Player apply. For more information on Unity system requirements, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
+This package does not add any extra platform-specific requirements. General system requirements for the Unity Player apply. For more information on Unity system requirements, refer to [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).

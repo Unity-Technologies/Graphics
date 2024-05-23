@@ -59,7 +59,7 @@ To enable MSAA:
 1. Open a [URP Asset](universalrp-asset.md) in the Inspector.
 2. Navigate to **Quality** > **Anti Aliasing (MSAA)** and select the level of MSAA you want.
 
-For more information on the available settings, see the [MSAA setings in the URP Asset](universalrp-asset.md#quality).
+For more information on the available settings, refer to the [MSAA setings in the URP Asset](universalrp-asset.md#quality).
 
 > [!NOTE]
 > On mobile platforms that don't support the [StoreAndResolve](https://docs.unity3d.com/ScriptReference/Rendering.RenderBufferStoreAction.StoreAndResolve.html) store action, if **Opaque Texture** is selected in the **URP Asset**, Unity ignores the **MSAA** property at runtime (as if **MSAA** is set to **Disabled**).

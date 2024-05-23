@@ -2,7 +2,7 @@
 
 A Renderer Feature is an asset that lets you add a built-in effect to a Universal Render Pipeline (URP) Renderer, and configure its behavior.
 
-For examples of how to use Renderer Features, see the [Renderer Features samples in URP Package Samples](package-sample-urp-package-samples.md#renderer-features).
+For examples of how to use Renderer Features, refer to the [Renderer Features samples in URP Package Samples](package-sample-urp-package-samples.md#renderer-features).
 
 |Page|Description|
 |-|-|

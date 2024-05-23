@@ -2,7 +2,7 @@
 
 Lights determine the shading of an object and the shadows it casts.
 
-This page contains information on Light components in the Universal Render Pipeline (URP). For a general introduction to lighting in Unity and examples of common lighting workflows, see [the Lighting section of the Unity Manual](https://docs.unity3d.com/Manual/LightingOverview.html).
+This page contains information on Light components in the Universal Render Pipeline (URP). For a general introduction to lighting in Unity and examples of common lighting workflows, refer to [the Lighting section of the Unity Manual](https://docs.unity3d.com/Manual/LightingOverview.html).
 
 ## Properties
 

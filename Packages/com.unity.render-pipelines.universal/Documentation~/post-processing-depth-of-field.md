@@ -1,6 +1,6 @@
 # Depth Of Field
 
-The Depth Of Field component applies a depth of field effect, which simulates the focus properties of a camera lens. In real life, a camera can only focus sharply on an object at a specific distance. Objects nearer or farther from the camera are out of focus. The blurring gives a visual cue about an object’s distance, and introduces “bokeh”, which refers to visual artifacts that appear around bright areas of the image as they fall out of focus. To read more about bokeh, see the [Wikipedia article on Bokeh](https://en.wikipedia.org/wiki/Bokeh).
+The Depth Of Field component applies a depth of field effect, which simulates the focus properties of a camera lens. In real life, a camera can only focus sharply on an object at a specific distance. Objects nearer or farther from the camera are out of focus. The blurring gives a visual cue about an object’s distance, and introduces “bokeh”, which refers to visual artifacts that appear around bright areas of the image as they fall out of focus. To read more about bokeh, refer to the [Wikipedia article on Bokeh](https://en.wikipedia.org/wiki/Bokeh).
 
 The Universal Render Pipeline (URP) has two depth of field modes:
 
@@ -36,7 +36,7 @@ The Universal Render Pipeline (URP) has two depth of field modes:
 
 ![](Images/Inspectors/BokehDepthOfField.png)
 
-The **Bokeh** Depth of Field mode closely imitates the effect of a real-life camera. For this reason, the settings are based on real-life camera settings, and offer a number of properties to adjust the diaphragm blades on the Camera. For an introduction to diaphragm blades and how they affect the visual quality of your Camera output, see Improve Photography’s guide [Aperture Blades: How many is best?](https://improvephotography.com/29529/aperture-blades-many-best/).
+The **Bokeh** Depth of Field mode closely imitates the effect of a real-life camera. For this reason, the settings are based on real-life camera settings, and offer a number of properties to adjust the diaphragm blades on the Camera. For an introduction to diaphragm blades and how they affect the visual quality of your Camera output, refer to Improve Photography’s guide [Aperture Blades: How many is best?](https://improvephotography.com/29529/aperture-blades-many-best/).
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
