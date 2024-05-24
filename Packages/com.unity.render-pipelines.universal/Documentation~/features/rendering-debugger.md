@@ -4,47 +4,62 @@ The **Rendering Debugger** window lets you visualize various lighting, rendering
 
 This section contains the following topics:
 
-* [How to access the Rendering Debugger window](#how-to-access).
+* [How to access the Rendering Debugger](#how-to-access).
 
     Information on how to access the **Rendering Debugger** window in the Editor, in the Play mode, and at runtime in Development builds.
-
-* [Rendering Debugger window sections](#ui-sections)
-
-    Descriptions of the elements and properties in the **Rendering Debugger** window.
 
 * [Navigation at runtime](#navigation-at-runtime)
 
     How to navigate the **Rendering Debugger** interface at runtime.
 
-## <a name="how-to-access"></a>How to access the Rendering Debugger window
+* [Rendering Debugger window sections](#ui-sections)
+
+    Descriptions of the elements and properties in the **Rendering Debugger** window.
+
+## <a name="how-to-access"></a>How to access the Rendering Debugger
 
 The Rendering Debugger window is available in the following modes:
 
-* The Editor.
+| Mode       | Platform       | Availability                   | How to Open the Rendering Debugger |
+| ---------- | -------------- | ------------------------------ | ---------------------------------- |
+| Editor     | All            | Yes (window in the Editor)     | Select **Window > Analysis > Rendering Debugger** |
+| Play mode  | All            | Yes (overlay in the Game view) | On a desktop or laptop computer, press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS)<br>On a console controller, press L3 and R3 (Left Stick and Right Stick) |
+| Runtime    | Desktop/Laptop | Yes (only in Development builds) | Press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS) |
+| Runtime    | Console        | Yes (only in Development builds) | Press L3 and R3 (Left Stick and Right Stick) |
+| Runtime    | Mobile         | Yes (only in Development builds) | Use a three-finger double tap |
 
-* The Play mode.
+To enable all the sections of the **Rendering Debugger** in your built application, disable **Strip Debug Variants** in **Project Settings > Graphics > URP Global Settings**. Otherwise, you can only use the [Display Stats](#display-stats) section.
 
-* At runtime in the standalone Unity Player, on any device. The window is only available in **Development builds**.
+To disable the runtime UI, use the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
-When using the **Rendering Debugger** window in the Development build, clear the **Strip Debug Variants** check box in **Project Settings > Graphics > URP Global Settings**.
+>[!NOTE]
+> When using the **Rendering Debugger** window in the Development build, clear the **Strip Debug Variants** check box in **Project Settings > Graphics > URP Global Settings**.
 
-Use one of the following options to open the **Rendering Debugger** window.
+## <a name="navigation-at-runtime"></a>Navigation at runtime
 
-**In the Editor**:
+### Keyboard
 
-* Select **Window > Analysis > Rendering Debugger**.
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the arrow keys                                                                        |
+| **Change the current tab**                         | Use the Page up and Page down keys (Fn + Up and Fn + Down keys respectively for MacOS)    |
+| **Display the current active item independently of the debug window** | Press the right Shift key                                              |
 
-* Press **Ctrl+Backspace** (**Ctrl+Delete** on macOS).
+### Xbox Controller
 
-**In the Play mode or at runtime in a Development build**:
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the Directional pad (D-Pad)                                                           |
+| **Change the current tab**                         | Use the Left Bumper and Right Bumper                                                      |
+| **Display the current active item independently of the debug window** | Press the X button                                                     |
 
-* On a desktop or laptop computer, press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS).
+### PlayStation Controller
 
-* On a console controller, press L3 and R3 (Left Stick and Right Stick).
-
-* On a mobile device, use a three-finger double tap.
-
-You can disable the runtime UI using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@14.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the Directional buttons                                                               |
+| **Change the current tab**                         | Use the L1 button and R1 button                                                           |
+| **Display the current active item independently of the debug window** | Press the Square button                                                |
 
 ## <a name="ui-sections"></a>Rendering Debugger window sections
 
@@ -107,10 +122,10 @@ The **Bottlenecks** section describes the distribution of the last 60 frames acr
 
 If Vsync limited 20 of the 60 most recent frames, the Bottleneck section might appear as follows: 
 
-- **CPU** 0.0%: This indicates that HDRP did not render any of the last 60 frames on the CPU.
-- **GPU** 66.6%: This indicates that the GPU limited 66.6% of the 60 most recent frames rendered by HDRP.
-- **Present Limited** 33.3%: This indicates that presentation constraints (Vsync or the [target framerate](https://docs.unity3d.com/ScriptReference/Application-targetFrameRate.html)) limited 33.3% of the last 60 frames.
-- **Balanced** 0.0%: This indicates that in the last 60 frames, there were 0 frames where the CPU processing time and GPU processing time were the same.
+* **CPU** 0.0%: This indicates that HDRP did not render any of the last 60 frames on the CPU.
+* **GPU** 66.6%: This indicates that the GPU limited 66.6% of the 60 most recent frames rendered by HDRP.
+* **Present Limited** 33.3%: This indicates that presentation constraints (Vsync or the [target framerate](https://docs.unity3d.com/ScriptReference/Application-targetFrameRate.html)) limited 33.3% of the last 60 frames.
+* **Balanced** 0.0%: This indicates that in the last 60 frames, there were 0 frames where the CPU processing time and GPU processing time were the same.
 
 In this example, the bottleneck is the GPU.
 
@@ -134,8 +149,6 @@ This section contains a selection of properties that users use often. The proper
 
 The properties in this section let you visualize different Material properties.
 
-![Rendering Debugger, Material section](../Images/rendering-debugger/material-section.png)<br/>*Rendering Debugger, Material section*
-
 #### Material Filters
 
 | **Property** | **Description** |
@@ -157,8 +170,6 @@ The properties in this section let you visualize different settings and elements
 
 #### Lighting Debug Modes
 
-![](../Images/rendering-debugger/lighting-debug-modes.png)<br/>*The Lighting Debug Modes subsection.*
-
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | **Lighting Debug Mode** | Specifies which lighting and shadow information to overlay on-screen to debug. The options are:<ul><li>**None**: Renders the scene normally without a debug overlay.</li><li>**Shadow Cascades**: Overlays shadow cascade information so you can see which shadow cascade each pixel uses. Use this to debug shadow cascade distances. For information on which color represents which shadow cascade, refer to the [Shadows section of the URP Asset](../universalrp-asset.md#shadows).</li><li>**Lighting Without Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and disables normal maps. This and the **Lighting With Normal Maps** mode are useful for debugging lighting issues caused by normal maps.</li><li>**Lighting With Normal Maps**: Renders the scene to visualize lighting. This mode uses neutral materials and allows normal maps.</li><li>**Reflections**: Renders the scene to visualize reflections. This mode applies perfectly smooth, reflective materials to every Mesh Renderer.</li><li>**Reflections With Smoothness**: Renders the scene to visualize reflections. This mode applies reflective materials without an overridden smoothness to every GameObject.</li></ul> |
@@ -169,8 +180,6 @@ The properties in this section let you visualize different settings and elements
 The properties in this section let you visualize different rendering features.
 
 #### Rendering Debug
-
-![](../Images/rendering-debugger/rendering-debug.png)<br/>*The Rendering Debug subsection.*
 
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
@@ -192,35 +201,3 @@ The properties in this section let you visualize different rendering features.
 | **&nbsp;&nbsp;Channels**         | Specifies which value to use for the pixel value range validation. The options are:<ul><li>**RGB**: Validates the pixel using the luminance value calculated from the red, green, and blue color channels.</li><li>**R**: Validates the pixel using the value from the red color channel.</li><li>**G**: Validates the pixel using the value from the green color channel.</li><li>**B**: Validates the pixel using the value from the blue color channel.</li><li>**A**: Validates the pixel using the value from the alpha channel.</li></ul>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 | **&nbsp;&nbsp; Value Range Min** | The minimum valid color value. Unity highlights color values that are less than this value.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
 | **&nbsp;&nbsp; Value Range Max** | The maximum valid color value. Unity highlights color values that are greater than this value.<br/><br/>This property only appears if you set **Pixel Validation Mode** to **Highlight Values Outside Range**. |
-
-## Navigation at runtime
-
-This section describes how to navigate the **Rendering Debugger** interface at runtime.
-
-To change the current active item:
-
-* **Keyboard**: use the arrow keys.
-
-* **Touch screen**: tap the arrows next to properties.
-
-* **Xbox controller**: use the Directional pad (D-Pad).
-
-* **PlayStation controller**: use the Directional buttons.
-
-To change the current tab:
-
-* **Keyboard**: use the Page up and Page down keys (Fn + Up and Fn + Down keys for MacOS).
-
-* **Touch screen**: tap the arrows next to tab title.
-
-* **Xbox controller**: use the Left Bumper and Right Bumper.
-
-* **PlayStation controller**: use the L1 button and R1 button.
-
-To display the current active item independently of the debug window:
-
-* **Keyboard**: press the right Shift key.
-
-* **Xbox controller**: press the X button.
-
-* **PlayStation controller**: press the Square button.
