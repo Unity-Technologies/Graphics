@@ -373,6 +373,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         hash = hash * 23 + desc.width;
                         hash = hash * 23 + desc.height;
                     }
+
+                    // Add the clear/discard buffer flags to the hash (used in all the cases above)
+                    hash = hash * 23 + res.desc.clearBuffer.GetHashCode();
+                    hash = hash * 23 + res.desc.discardBuffer.GetHashCode();
                 }
                 else
                 {
@@ -380,6 +384,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     hash = hash * 23 + (int)desc.colorFormat;
                     hash = hash * 23 + (int)desc.dimension;
                     hash = hash * 23 + (int)desc.msaaSamples;
+                    hash = hash * 23 + desc.clearBuffer.GetHashCode();
+                    hash = hash * 23 + desc.discardBuffer.GetHashCode();
                     switch (desc.sizeMode)
                     {
                         case TextureSizeMode.Explicit:
