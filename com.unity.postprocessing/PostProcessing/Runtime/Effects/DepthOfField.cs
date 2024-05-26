@@ -107,6 +107,15 @@ namespace UnityEngine.Rendering.PostProcessing
         readonly RenderTexture[][] m_CoCHistoryTextures = new RenderTexture[k_NumEyes][];
         int[] m_HistoryPingPong = new int[k_NumEyes];
 
+        // The samples coordinates for kDiskAllKernels in DiskKernels.hlsl are normalized to 4 rings (coordinates with length 1 lie on the 4th ring).
+        // The ring placement are not evenly-spaced but:
+        // 1st ring: 8/29
+        // 2nd ring: 15/29
+        // 3rd ring: 22/29
+        // 4th ring: 29/29
+        static readonly float[] k_DisAllKernelRingOffsets = { 8f/29, 15f/29, 22f/29, 29f/29 };
+        static readonly int[] k_DiskAllKernelSizes = { 1, 8, 22, 43, 71 };
+
         // Height of the 35mm full-frame format (36mm x 24mm)
         // TODO: Should be set by a physical camera
         const float k_FilmHeight = 0.024f;
@@ -151,7 +160,29 @@ namespace UnityEngine.Rendering.PostProcessing
 
         void CalculateCoCKernelLimits(int screenHeight, out Vector4 cocKernelLimits)
         {
-            cocKernelLimits = new Vector4(2 - 0.5f, 6 - 0.5f, 10 - 0.5f, 14 - 0.5f) / screenHeight;
+            // The sample points are grouped in 4 rings, but the distance between
+            // each ring is not even.
+            // Depending on a max CoC "distance", we can conservatively garantie
+            // only some rings need to be sampled.
+            // For instance, for a pixel C being processed, if the max CoC distance
+            // in the neighbouring pixels is less than ~14 pixels (at source image resolution),
+            // then the 4th ring does not need to be sampled.
+            // When sampling the half-resolution color texture, we sample the equivalent of
+            // 2 pixels radius from the full-resolution source image, thus the "spread" of
+            // each ring is 2 pixels wide in this diagram.
+            //
+            // Center pixel    1st ring        2nd ring        3rd ring        4th ring
+            //    at 0          spread          spread          spread          spread
+            // <------->       <------->       <------->       <------->       <------->
+            // +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---> pixel offset at full-resolution
+            //     0   1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16  17  18
+            //                             ~a              ~b              ~c              ~d
+
+            float a = k_DisAllKernelRingOffsets[0] * 16 + 2;
+            float b = k_DisAllKernelRingOffsets[1] * 16 + 2;
+            float c = k_DisAllKernelRingOffsets[2] * 16 + 2;
+            //float d = k_DisAllKernelRingOffsets[3] * 16 + 2;
+            cocKernelLimits = new Vector4(2 - 0.5f, a - 0.5f, b - 0.5f, c - 0.5f) / screenHeight;
         }
 
         RenderTexture CheckHistory(int eye, int id, PostProcessRenderContext context, RenderTextureFormat format)
@@ -200,22 +231,30 @@ namespace UnityEngine.Rendering.PostProcessing
             CalculateCoCKernelLimits(context.screenHeight, out cocKernelLimits);
             cocKernelLimits /= maxCoC;
 
-            // The samples coordinates for kDiskAllKernels in DiskKernels.hlsl are normalized to 4 rings (coordinates with length 1 lie on the 4th ring).
-            // The ring placement are not uniform but:
-            // 1st ring: 8/29
-            // 2nd ring: 15/29
-            // 3rd ring: 22/29
-            // 4th ring: 19/29
             // When the user clamps the bokeh size, the sample coordinates must be renormalized to the number of rings requested.
             float kernelScaleReNormalization = 1f;
+            float fgAlphaFactor = 0f;
+
             if (settings.kernelSize.value == KernelSize.Small)
+            {
                 kernelScaleReNormalization = 1f; // custom sampling pattern, does not use kDiskAllKernels array.
+                fgAlphaFactor = 0; // unused by shader
+            }
             else if (settings.kernelSize.value == KernelSize.Medium)
-                kernelScaleReNormalization = 29f / 15f;
+            {
+                kernelScaleReNormalization = 1f / k_DisAllKernelRingOffsets[1];
+                fgAlphaFactor = 1f / k_DiskAllKernelSizes[1];
+            }
             else if (settings.kernelSize.value == KernelSize.Large)
-                kernelScaleReNormalization = 29f / 22f;
+            {
+                kernelScaleReNormalization = 1f / k_DisAllKernelRingOffsets[2];
+                fgAlphaFactor = 1f / k_DiskAllKernelSizes[2];
+            }
             else if (settings.kernelSize.value == KernelSize.VeryLarge)
-                kernelScaleReNormalization = 29f / 29f;
+            {
+                kernelScaleReNormalization = 1f / k_DisAllKernelRingOffsets[3];
+                fgAlphaFactor = 1f / k_DiskAllKernelSizes[2];
+            }
 
             var sheet = context.propertySheets.Get(context.resources.shaders.depthOfField);
             sheet.properties.Clear();
@@ -228,6 +267,7 @@ namespace UnityEngine.Rendering.PostProcessing
             sheet.properties.SetFloat(ShaderIDs.MaxCoC, maxCoC);
             sheet.properties.SetFloat(ShaderIDs.RcpMaxCoC, 1f / maxCoC);
             sheet.properties.SetFloat(ShaderIDs.RcpAspect, 1f / aspect);
+            sheet.properties.SetFloat(ShaderIDs.FgAlphaFactor, fgAlphaFactor);
 
             var cmd = context.command;
             cmd.BeginSample("DepthOfField");

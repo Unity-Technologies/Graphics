@@ -21,12 +21,14 @@ float4 _DepthOfFieldTex_TexelSize;
 float _Distance;
 float _LensCoeff;  // f^2 / (N * (S1 - f) * film_width * 2)
 half4 _CoCKernelLimits;
-float4 _MaxCoCTexScale; // MaxCoC scale is padded with a bit of empty space (right-bottom edge) so we need some uv scale to sample it
+// MaxCoC texture is padded with a bit of empty space for alignment reasons (right&bottom sides) so we need some uv scale to sample it
+float4 _MaxCoCTexScale;
 half3 _KernelScale;
 half2 _MarginFactors;
 float _MaxCoC;
 float _RcpMaxCoC;
 float _RcpAspect;
+float _FgAlphaFactor; // 1 / sampleCount of either the first and/or second ring
 half3 _TaaParams; // Jitter.x, Jitter.y, Blending
 
 // CoC calculation
@@ -285,10 +287,6 @@ half4 FragBlurSmallBokeh (VaryingsDefault i) : SV_Target
     bgAcc.rgb /= bgAcc.a + (bgAcc.a == 0.0); // zero-div guard
     fgAcc.rgb /= fgAcc.a + (fgAcc.a == 0.0);
 
-    // BG: Calculate the alpha value only based on the center CoC.
-    // This is a rather aggressive approximation but provides stable results.
-    bgAcc.a = smoothstep(_MainTex_TexelSize.y, _MainTex_TexelSize.y * 2.0, samp0.a);
-
     // FG: Normalize the total of the weights.
     fgAcc.a *= PI / kSmallSampleCount;
 
@@ -306,19 +304,22 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
     // normalized value in range [0, 1]
     half maxCoC = SAMPLE_TEXTURE2D(_MaxCoCTex, sampler_MaxCoCTex, i.texcoordStereo * _MaxCoCTexScale.zw).r;
 
-    int sampleCount;
+    int kernelRingIndex;
 
-    UNITY_BRANCH if (maxCoC < _CoCKernelLimits[0])
-        sampleCount = kDiskAllKernelSizes[0];
-    // margin adjustment later in the shader code artifically expand bokeh by 4px in fullscreen units (1 extra ring), we cannot have small bokeh as a result!
-    else UNITY_BRANCH if (maxCoC < _CoCKernelLimits[1])
-        sampleCount = kDiskAllKernelSizes[1+1];
-    else UNITY_BRANCH if (maxCoC < _CoCKernelLimits[2])
-        sampleCount = kDiskAllKernelSizes[2+1];
-    else UNITY_BRANCH if (maxCoC < _CoCKernelLimits[3])
-        sampleCount = kDiskAllKernelSizes[3+1];
+    // margin adjustment +1 in the shader code artifically expand bokeh by 4px in fullscreen units (1 extra ring), we cannot have small bokeh as a result!
+    if (maxCoC < _CoCKernelLimits[0])
+        kernelRingIndex = 0;
+    else if (maxCoC < _CoCKernelLimits[1])
+        kernelRingIndex = 1+1;
+    else if (maxCoC < _CoCKernelLimits[2])
+        kernelRingIndex = 2+1;
+    else if (maxCoC < _CoCKernelLimits[3])
+        kernelRingIndex = 3+1;
     else
-        sampleCount = kDiskAllKernelSizes[4];
+        kernelRingIndex = 4;
+
+    int sampleCount = kDiskAllKernelSizes[kernelRingIndex];
+    half sampleCountRcp = kDiskAllKernelRcpSizes[kernelRingIndex];
 
     half4 bgAcc = 0.0; // Background: far field bokeh
     half4 fgAcc = 0.0; // Foreground: near field bokeh
@@ -414,12 +415,14 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
     bgAcc.rgb /= bgAcc.a + (bgAcc.a == 0.0); // zero-div guard
     fgAcc.rgb /= fgAcc.a + (fgAcc.a == 0.0);
 
-    // BG: Calculate the alpha value only based on the center CoC.
-    // This is a rather aggressive approximation but provides stable results.
-    bgAcc.a = smoothstep(_MainTex_TexelSize.y, _MainTex_TexelSize.y * 2.0, samp0.a);
-
-    // FG: Normalize the total of the weights.
-    fgAcc.a *= PI / sampleCount;
+    // FG: fgAcc roughly represents the number of samples in the foreground which bleed into the pixel being processed.
+    // We can use this value to gradually blend-in the DoF texture into the original source image. We use the number
+    // of samples on the first or second ring as threshold to full-blend the DoF texture (when other outer rings are sampled,
+    // we are already at full-blend).
+    // The choice of first or second ring is arbitrary and decided to closely reproduce the original algorithm result.
+    // The original algorithm produces unnatural (physically inaccurate) blending that varies with "MaxBlurSize" parameter,
+    // so there is no good fix for it.
+    fgAcc.a *= max(sampleCountRcp, _FgAlphaFactor);
 
     // Alpha premultiplying
     half alpha = saturate(fgAcc.a);
