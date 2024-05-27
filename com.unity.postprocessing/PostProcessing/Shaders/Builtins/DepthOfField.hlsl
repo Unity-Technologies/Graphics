@@ -155,7 +155,7 @@ half4 FragPrefilter(VaryingsDefault i) : SV_Target
     return half4(avg, coc);
 }
 
-VaryingsDefault VertDownsampleCoC(AttributesDefault v)
+VaryingsDefault VertDownsampleMaxCoC(AttributesDefault v)
 {
     VaryingsDefault o;
     o.vertex = float4(v.vertex.xy, 0.0, 1.0);
@@ -173,8 +173,12 @@ VaryingsDefault VertDownsampleCoC(AttributesDefault v)
     return o;
 }
 
-half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
+half4 FragDownsampleMaxCoC(VaryingsDefault i) : SV_Target
 {
+#if UNITY_GATHER_SUPPORTED
+    // Sample source colors
+    half4 cocs = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoordStereo);
+#else
     // TODO implement gather version
 
     float3 duv = _MainTex_TexelSize.xyx * float3(0.5, 0.5, -0.5);
@@ -189,6 +193,7 @@ half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
     cocs.y = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv1).r;
     cocs.z = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv2).r;
     cocs.w = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv3).r;
+#endif
 
 #if defined(INITIAL_COC)
     // Storing the absolute normalized CoC is enough.
@@ -200,11 +205,31 @@ half4 FragDownsampleCoC(VaryingsDefault i) : SV_Target
     return half4(maxCoC, 0.0, 0.0, 0.0);
 }
 
-half4 FragNeighborCoC(VaryingsDefault i) : SV_Target
+half4 FragNeighborMaxCoC(VaryingsDefault i) : SV_Target
 {
     float tx = _MainTex_TexelSize.x;
     float ty = _MainTex_TexelSize.y;
 
+#if UNITY_GATHER_SUPPORTED
+    float2 uvA = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2(-0.5, -0.5));
+    float2 uvB = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2( 0.5, -0.5));
+    float2 uvC = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2(-0.5,  0.5));
+    float2 uvD = UnityStereoTransformScreenSpaceTex(i.texcoord + _MainTex_TexelSize.xy * float2( 0.5,  0.5));
+
+    half4 cocsA = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvA);
+    half4 cocsB = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvB);
+    half4 cocsC = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvC);
+    half4 cocsD = GATHER_RED_TEXTURE2D(_MainTex, sampler_MainTex, uvD);
+    half coc0 = cocsA.x;
+    half coc1 = cocsA.y;
+    half coc2 = cocsB.x;
+    half coc3 = cocsA.z;
+    half coc4 = cocsA.w;
+    half coc5 = cocsB.z;
+    half coc6 = cocsC.x;
+    half coc7 = cocsC.y;
+    half coc8 = cocsD.w;
+#else
     float2 uv0 = UnityStereoTransformScreenSpaceTex(i.texcoord);
     float2 uv1 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx,  0));
     float2 uv2 = UnityStereoTransformScreenSpaceTex(i.texcoord + float2( tx, ty));
@@ -224,6 +249,7 @@ half4 FragNeighborCoC(VaryingsDefault i) : SV_Target
     half coc6 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv6).r;
     half coc7 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv7).r;
     half coc8 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv8).r;
+#endif
 
     half maxCoC = Max3(Max3(coc0, coc1, coc2), Max3(coc3, coc4, coc5), Max3(coc6, coc7, coc8));
     return half4(maxCoC, 0.0, 0.0, 0.0);

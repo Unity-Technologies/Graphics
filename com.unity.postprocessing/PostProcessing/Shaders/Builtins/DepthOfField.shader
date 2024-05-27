@@ -36,9 +36,9 @@ Shader "Hidden/PostProcessing/DepthOfField"
             Name "Downsample initial MaxCoC"
 
             HLSLPROGRAM
-                #pragma target 3.5
+                #pragma target 5.0
                 #pragma vertex VertDefault
-                #pragma fragment FragDownsampleCoC
+                #pragma fragment FragDownsampleMaxCoC
                 #define INITIAL_COC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
@@ -49,9 +49,9 @@ Shader "Hidden/PostProcessing/DepthOfField"
             Name "Downsample MaxCoC"
 
             HLSLPROGRAM
-                #pragma target 3.5
-                #pragma vertex VertDownsampleCoC
-                #pragma fragment FragDownsampleCoC
+                #pragma target 5.0
+                #pragma vertex VertDownsampleMaxCoC
+                #pragma fragment FragDownsampleMaxCoC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
@@ -61,9 +61,9 @@ Shader "Hidden/PostProcessing/DepthOfField"
             Name "Neighbor MaxCoC"
 
             HLSLPROGRAM
-                #pragma target 3.5
+                #pragma target 5.0
                 #pragma vertex VertDefault
-                #pragma fragment FragNeighborCoC
+                #pragma fragment FragNeighborMaxCoC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
@@ -179,7 +179,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             HLSLPROGRAM
                 #pragma target 3.5
                 #pragma vertex VertDefault
-                #pragma fragment FragDownsampleCoC
+                #pragma fragment FragDownsampleMaxCoC
                 #define INITIAL_COC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
@@ -191,8 +191,8 @@ Shader "Hidden/PostProcessing/DepthOfField"
 
             HLSLPROGRAM
                 #pragma target 3.5
-                #pragma vertex VertDownsampleCoC
-                #pragma fragment FragDownsampleCoC
+                #pragma vertex VertDownsampleMaxCoC
+                #pragma fragment FragDownsampleMaxCoC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
@@ -204,7 +204,7 @@ Shader "Hidden/PostProcessing/DepthOfField"
             HLSLPROGRAM
                 #pragma target 3.5
                 #pragma vertex VertDefault
-                #pragma fragment FragNeighborCoC
+                #pragma fragment FragNeighborMaxCoC
                 #include "Packages/com.unity.postprocessing/PostProcessing/Shaders/Builtins/DepthOfField.hlsl"
             ENDHLSL
         }
