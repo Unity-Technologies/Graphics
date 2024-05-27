@@ -976,7 +976,7 @@ namespace UnityEngine.Rendering.Universal
                 Profiling.drawGizmos))
             {
                 builder.SetRenderAttachment(color, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(depth, AccessFlags.Read);
+                builder.SetRenderAttachmentDepth(depth, AccessFlags.ReadWrite);
 
                 passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(cameraData.camera, gizmoSubset);
                 builder.UseRendererList(passData.gizmoRenderList);
