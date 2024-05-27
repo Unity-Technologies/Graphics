@@ -884,7 +884,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1761,6 +1761,7 @@ MonoBehaviour:
     position: {x: 2119.9763, y: 3262.786}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &114641720432344164
 MonoBehaviour:
   m_ObjectHideFlags: 1

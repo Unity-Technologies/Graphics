@@ -986,6 +986,7 @@ MonoBehaviour:
     position: {x: 716.8889, y: 971.11115}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661614637
 MonoBehaviour:
   m_ObjectHideFlags: 0
