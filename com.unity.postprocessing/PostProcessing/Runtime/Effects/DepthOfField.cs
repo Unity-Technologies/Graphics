@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.PostProcessing
             else if (settings.kernelSize.value == KernelSize.Large)
             {
                 kernelScaleReNormalization = 1f / k_DisAllKernelRingOffsets[2];
-                fgAlphaFactor = 1f / k_DiskAllKernelSizes[2];
+                fgAlphaFactor = 1f / ((k_DiskAllKernelSizes[1] + k_DiskAllKernelSizes[2]) * 0.5f);
             }
             else if (settings.kernelSize.value == KernelSize.VeryLarge)
             {

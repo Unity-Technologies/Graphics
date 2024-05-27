@@ -310,11 +310,11 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
     if (maxCoC < _CoCKernelLimits[0])
         kernelRingIndex = 0;
     else if (maxCoC < _CoCKernelLimits[1])
-        kernelRingIndex = 1+1;
+        kernelRingIndex = 1 + 1;
     else if (maxCoC < _CoCKernelLimits[2])
-        kernelRingIndex = 2+1;
+        kernelRingIndex = 2 + 1;
     else if (maxCoC < _CoCKernelLimits[3])
-        kernelRingIndex = 3+1;
+        kernelRingIndex = 3 + 1;
     else
         kernelRingIndex = 4;
 
@@ -326,20 +326,21 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
 
     AccumSample(0, samp0, i.texcoord, bgAcc, fgAcc);
 
-    UNITY_BRANCH if (sampleCount >= 8)
+    UNITY_BRANCH if (kernelRingIndex >= 1)
     {
-        AccumSample( 1, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 2, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 3, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 4, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 5, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 6, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 7, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(1, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(2, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(3, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(4, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(5, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(6, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(7, samp0, i.texcoord, bgAcc, fgAcc);
     }
-    UNITY_BRANCH if (sampleCount >= 22)
+
+    UNITY_BRANCH if (kernelRingIndex >= 2)
     {
-        AccumSample( 8, samp0, i.texcoord, bgAcc, fgAcc);
-        AccumSample( 9, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(8, samp0, i.texcoord, bgAcc, fgAcc);
+        AccumSample(9, samp0, i.texcoord, bgAcc, fgAcc);
         AccumSample(10, samp0, i.texcoord, bgAcc, fgAcc);
         AccumSample(11, samp0, i.texcoord, bgAcc, fgAcc);
         AccumSample(12, samp0, i.texcoord, bgAcc, fgAcc);
@@ -354,7 +355,7 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
         AccumSample(21, samp0, i.texcoord, bgAcc, fgAcc);
     }
 
-    UNITY_BRANCH if (sampleCount >= 43)
+    UNITY_BRANCH if (kernelRingIndex >= 3)
     {
         AccumSample(22, samp0, i.texcoord, bgAcc, fgAcc);
         AccumSample(23, samp0, i.texcoord, bgAcc, fgAcc);
@@ -379,7 +380,7 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
         AccumSample(42, samp0, i.texcoord, bgAcc, fgAcc);
     }
 
-    UNITY_BRANCH if (sampleCount >= 71)
+    UNITY_BRANCH if (kernelRingIndex >= 4)
     {
         AccumSample(43, samp0, i.texcoord, bgAcc, fgAcc);
         AccumSample(44, samp0, i.texcoord, bgAcc, fgAcc);
