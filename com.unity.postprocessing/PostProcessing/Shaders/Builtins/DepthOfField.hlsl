@@ -29,6 +29,7 @@ float _MaxCoC;
 float _RcpMaxCoC;
 float _RcpAspect;
 float _FgAlphaFactor; // 1 / sampleCount of either the first and/or second ring
+int _MaxRingIndex;
 half3 _TaaParams; // Jitter.x, Jitter.y, Blending
 
 // CoC calculation
@@ -317,6 +318,8 @@ half4 FragBlurDynamic(VaryingsDefault i) : SV_Target
         kernelRingIndex = 3 + 1;
     else
         kernelRingIndex = 4;
+
+    kernelRingIndex = min(_MaxRingIndex, kernelRingIndex);
 
     int sampleCount = kDiskAllKernelSizes[kernelRingIndex];
     half sampleCountRcp = kDiskAllKernelRcpSizes[kernelRingIndex];

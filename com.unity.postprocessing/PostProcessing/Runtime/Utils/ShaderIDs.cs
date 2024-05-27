@@ -83,6 +83,7 @@ namespace UnityEngine.Rendering.PostProcessing
         internal static readonly int RcpMaxCoC = Shader.PropertyToID("_RcpMaxCoC");
         internal static readonly int RcpAspect = Shader.PropertyToID("_RcpAspect");
         internal static readonly int FgAlphaFactor = Shader.PropertyToID("_FgAlphaFactor");
+        internal static readonly int MaxRingIndex = Shader.PropertyToID("_MaxRingIndex");
         internal static readonly int CoCTex = Shader.PropertyToID("_CoCTex");
         internal static readonly int TaaParams = Shader.PropertyToID("_TaaParams");
 
