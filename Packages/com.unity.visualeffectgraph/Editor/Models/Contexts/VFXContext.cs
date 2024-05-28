@@ -24,13 +24,14 @@ namespace UnityEditor.VFX
         SpawnerGPU = 1 << 6,
         Subgraph = 1 << 7,
         Filter = 1 << 8,
+        BlockSubgraph = 1 << 9,
 
         InitAndUpdate = Init | Update,
         InitAndUpdateAndOutput = Init | Update | Output,
         UpdateAndOutput = Update | Output,
         All = Init | Update | Output | Spawner | Subgraph,
 
-        CanHaveBlocks = ~(OutputEvent | Event | SpawnerGPU),
+        CanHaveBlocks = ~(OutputEvent | Event | SpawnerGPU | Subgraph),
     };
 
     [Flags]

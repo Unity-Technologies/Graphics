@@ -75,6 +75,7 @@ namespace UnityEditor.VFX.UI
             bool enableToggles = (!m_VFXView.controller.graph.GetResource()?.isSubgraph) ?? false; // for subgraph we disable auto reinit
 
             m_AutoCompileToggle.value = VFXViewWindow.GetWindowNoShow(m_VFXView).autoCompile;
+            m_AutoCompileToggle.SetEnabled(enableToggles);
 
             m_AutoReinitToggle.value = enableToggles ? VFXViewWindow.GetWindowNoShow(m_VFXView).autoReinit : false;
             m_AutoReinitToggle.SetEnabled(enableToggles);

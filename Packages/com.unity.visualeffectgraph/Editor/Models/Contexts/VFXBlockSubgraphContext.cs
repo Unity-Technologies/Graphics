@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
             UpdateAndOutput = Update | Output
         }
 
-        public VFXBlockSubgraphContext() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None)
+        public VFXBlockSubgraphContext() : base(VFXContextType.BlockSubgraph, VFXDataType.None, VFXDataType.None)
         {
         }
 
