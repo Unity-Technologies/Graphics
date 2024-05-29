@@ -114,7 +114,13 @@ namespace UnityEditor.VFX.UI
             {
                 Remove(m_PropertyRM);
             }
-            m_PropertyRM = PropertyRM.Create(controller, VFXNodeUI.DefaultLabelWidth);
+
+            var labelWidth = VFXNodeUI.DefaultLabelWidth;
+            if (node != null)
+            {
+                node.GetWidths(out labelWidth, out _);
+            }
+            m_PropertyRM = PropertyRM.Create(controller, labelWidth);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
