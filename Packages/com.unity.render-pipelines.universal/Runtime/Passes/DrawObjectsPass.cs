@@ -181,10 +181,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 drawObjectPassData = new Vector4(0.0f, 0.0f, 0.0f, (data.m_IsOpaque) ? 1.0f : 0.0f);
                 cmd.SetGlobalVector(s_DrawObjectPassDataPropID, drawObjectPassData);
 
-                if (data.m_RenderingData.cameraData.xrRendering && data.m_IsActiveTargetBackBuffer)
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (data.m_RenderingData.cameraData.xr.enabled && data.m_IsActiveTargetBackBuffer)
                 {
                     cmd.SetViewport(data.m_RenderingData.cameraData.xr.GetViewport());
                 }
+#endif
 
                 // scaleBias.x = flipSign
                 // scaleBias.y = scale
