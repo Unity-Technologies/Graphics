@@ -501,6 +501,18 @@ EditorBuildSettings:
     path: Assets/Scenes/300_RandomUAV.unity
     guid: 5e57a94eeee3964488362ad6cab7cfb2
   - enabled: 1
+    path: Assets/Scenes/301_useViewFrustumForShadowCasterCull_false.unity
+    guid: c721071fe72436c4aa76a3f438915b6d
+  - enabled: 1
+    path: Assets/Scenes/301_useViewFrustumForShadowCasterCull_true.unity
+    guid: 24f9bd7e4ee841d41a5cf4538052774c
+  - enabled: 1
+    path: Assets/Scenes/301_useViewFrustumForShadowCasterCull_noCascades_false.unity
+    guid: afbffcf7f306ba14d8324a9c21880d38
+  - enabled: 1
+    path: Assets/Scenes/301_useViewFrustumForShadowCasterCull_noCascades_true.unity
+    guid: 162856843a0b75c47a760c58d9d38e1b
+  - enabled: 1
     path: Assets/Scenes/310_Swapbuffer_Depth.unity
     guid: aec68106d2ff047868f32b8853c6abf0
   - enabled: 1
