@@ -90,13 +90,7 @@ float SoftParticles(float near, float far, float4 projection)
     if (near > 0.0 || far > 0.0)
     {
         float2 uv = UnityStereoTransformScreenSpaceTex(projection.xy / projection.w);
-
-#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        {
-            uv = RemapFoveatedRenderingLinearToNonUniform(uv, true);
-        }
-#endif
+        uv = FoveatedRemapLinearToNonUniform(uv);
 
         float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
         float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
@@ -113,13 +107,7 @@ float SoftParticles(float near, float far, ParticleParams params)
     if (near > 0.0 || far > 0.0)
     {
         float2 uv = UnityStereoTransformScreenSpaceTex(params.projectedPosition.xy / params.projectedPosition.w);
-        
-#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-        {
-            uv = RemapFoveatedRenderingLinearToNonUniform(uv, true);
-        }
-#endif
+        uv = FoveatedRemapLinearToNonUniform(uv);
 
         float rawDepth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r;
         float sceneZ = (unity_OrthoParams.w == 0) ? LinearEyeDepth(rawDepth, _ZBufferParams) : LinearDepthToEyeDepth(rawDepth);
