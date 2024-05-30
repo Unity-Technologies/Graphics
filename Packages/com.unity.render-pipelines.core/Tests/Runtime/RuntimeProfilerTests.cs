@@ -55,12 +55,22 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.LinuxPlayer, RuntimePlatform.LinuxEditor })] // Disabled on Linux (case 1370861)
+    // Fails on WebGL and Oculus Quest.
+    // Unfortunately, there is no good way to exclude Oculus Quest from the test without excluding all Android devices.
+    // https://jira.unity3d.com/browse/GFXFOUND-559
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer, RuntimePlatform.Android })]
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
         public IEnumerator RuntimeProfilerGivesNonZeroOutput()
         {
+            if ((Application.platform == RuntimePlatform.LinuxPlayer ||
+                 Application.platform == RuntimePlatform.LinuxEditor)
+                && SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+                {
+                    Assert.Ignore("Test is failing on Linux OpenGLCore. https://jira.unity3d.com/browse/GFXFOUND-559");
+                }
+
             yield return Warmup();
 
             m_ToCleanup = new GameObject();
