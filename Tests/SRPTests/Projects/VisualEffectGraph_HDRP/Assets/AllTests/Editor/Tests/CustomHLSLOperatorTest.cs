@@ -1,6 +1,7 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -388,14 +389,87 @@ float3 DecodeMorton(in uint code)
 
             bool found = false;
             var resource = graph.GetResource();
+            Assert.AreEqual(4, resource.GetShaderSourceCount());
             for (int i = 0; i < resource.GetShaderSourceCount(); ++i)
             {
                 var shaderName = resource.GetShaderSourceName(i);
+                var source = resource.GetShaderSource(i);
                 if (shaderName.Contains(vfxTargetContext.label))
                 {
-                    var source = resource.GetShaderSource(i);
-                    found = source.Contains("SpaceFillingCurves.hlsl");
-                    break;
+                    Assert.IsTrue(source.Contains("SpaceFillingCurves.hlsl"), "Can't find SpaceFillingCurves.hlsl in " + shaderName);
+                    found = true;
+                }
+                else
+                {
+                    Assert.IsFalse(source.Contains("SpaceFillingCurves.hlsl"), "Unexpected include of SpaceFillingCurves.hlsl in " + shaderName);
+                }
+            }
+            Assert.IsTrue(found, "Unable to find matching include in generated code.");
+        }
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_With_Include_Order_Is_Kept()
+        {
+            var hlslCode = new StringBuilder();
+
+            var includePathList = new List<string>();
+            for (int includeIndex = 0; includeIndex < 8; ++includeIndex)
+            {
+                CustomHLSLBlockTest.CreateShaderFile(string.Empty, out var shaderIncludePath);
+                includePathList.Add(shaderIncludePath);
+                hlslCode.AppendFormat("#include \"{0}\"", shaderIncludePath);
+                hlslCode.AppendLine();
+            }
+
+            hlslCode.Append(@"
+float3 DummyFunction()
+{
+    return float3(1,2,3);
+}");
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode.ToString());
+
+            var readIncludes = hlslOperator.includes.ToList();
+            Assert.IsTrue(includePathList.SequenceEqual(readIncludes), "Unable to parse correctly multiple includes");
+
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            var vfxTargetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Update);
+            var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.variant.modelType == typeof(Block.SetAttribute));
+            Assert.IsNotNull(blockAttributeDesc);
+            var blockAttribute = blockAttributeDesc.variant.CreateInstance() as Block.SetAttribute;
+            blockAttribute.SetSettingValue("attribute", "position");
+            vfxTargetContext.AddChild(blockAttribute);
+            vfxTargetContext.label = "Find_Me_In_Generated_Source";
+
+            Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            bool found = false;
+            var resource = graph.GetResource();
+            Assert.AreEqual(4, resource.GetShaderSourceCount());
+            for (int i = 0; i < resource.GetShaderSourceCount(); ++i)
+            {
+                var shaderName = resource.GetShaderSourceName(i);
+                var source = resource.GetShaderSource(i);
+                if (shaderName.Contains(vfxTargetContext.label))
+                {
+                    int previousIndex = -1;
+                    foreach (var include in includePathList)
+                    {
+                        var currentIndex = source.IndexOf(include, StringComparison.InvariantCulture);
+                        if (currentIndex > previousIndex)
+                        {
+                            previousIndex = currentIndex;
+                        }
+                        else
+                        {
+                            Assert.IsTrue(false, "Unexpected include ordering at: " + include);
+                        }
+                    }
+
+                    found = true;
                 }
             }
             Assert.IsTrue(found, "Unable to find matching include in generated code.");
@@ -626,6 +700,104 @@ float3 DecodeMorton(in uint code)
             yield return null;
         }
 
+        [UnityTest]
+        public IEnumerator Check_Diverging_Usage_Buffer([Values(true, false)] bool legalUsage)
+        {
+            var hlslCodeRW =
+@"float3 Read_In_RWBuffer(float3 value, RWBuffer<float3> buffer)
+{
+    return buffer[0u];
+}";
+            var hlslOperatorWrite = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperatorWrite.SetSettingValue("m_HLSLCode", hlslCodeRW);
+
+            var hlslCode =
+@"float3 Read_In_Buffer(float3 value, Buffer<float3> buffer)
+{
+    return buffer[0u];
+}";
+            var hlslOperatorRead = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperatorRead.SetSettingValue("m_HLSLCode", hlslCode);
+
+            var graph = VFXTestCommon.CreateGraph_And_System();
+
+            var init = graph.children.OfType<VFXBasicInitialize>().First();
+            var update = graph.children.OfType<VFXBasicUpdate>().First();
+
+            init.label = "Find_Me_Init";
+            update.label = "Find_Me_Update";
+
+            VFXContext first, second;
+            if (legalUsage)
+            {
+                first = init;
+                second = update;
+            }
+            else
+            {
+                first = update;
+                second = update;
+            }
+
+            graph.AddChild(hlslOperatorWrite);
+            graph.AddChild(hlslOperatorRead);
+
+            var parameter = ScriptableObject.CreateInstance<VFXParameter>();
+            parameter.Init(typeof(GraphicsBuffer));
+            graph.AddChild(parameter);
+
+            Assert.IsTrue(parameter.outputSlots[0].Link(hlslOperatorWrite.inputSlots[1]));
+            Assert.IsTrue(parameter.outputSlots[0].Link(hlslOperatorRead.inputSlots[1]));
+
+            var blockSetColor = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            blockSetColor.SetSettingValue("attribute", "color");
+            first.AddChild(blockSetColor);
+            Assert.IsTrue(hlslOperatorWrite.outputSlots[0].Link(blockSetColor.inputSlots[0]));
+
+            blockSetColor = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            blockSetColor.SetSettingValue("attribute", "color");
+            second.AddChild(blockSetColor);
+            Assert.IsTrue(hlslOperatorRead.outputSlots[0].Link(blockSetColor.inputSlots[0]));
+
+            var vfxPath = AssetDatabase.GetAssetPath(graph);
+            if (legalUsage)
+            {
+                AssetDatabase.ImportAsset(vfxPath);
+                for (int i = 0; i < 4; ++i)
+                    yield return null;
+
+                var resource = graph.GetResource();
+                bool correctInit = false;
+                bool correctUpdate = false;
+                for (int shaderIndex = 0; shaderIndex < resource.GetShaderSourceCount(); ++shaderIndex)
+                {
+                    var shaderName = resource.GetShaderSourceName(shaderIndex);
+                    if (shaderName.Contains(init.label)
+                        && resource.GetShaderSource(shaderIndex).Contains("Read_In_RWBuffer")
+                        && !resource.GetShaderSource(shaderIndex).Contains("Read_In_Buffer"))
+                    {
+                        correctInit = true;
+                    }
+
+                    if (shaderName.Contains(update.label)
+                        && !resource.GetShaderSource(shaderIndex).Contains("Read_In_RWBuffer")
+                        && resource.GetShaderSource(shaderIndex).Contains("Read_In_Buffer"))
+                    {
+                        correctUpdate = true;
+                    }
+                }
+                Assert.IsTrue(correctInit, "Unexpected Init ComputeShader");
+                Assert.IsTrue(correctUpdate, "Unexpected Update ComputeShader");
+            }
+            else
+            {
+                using var customLogHandler = new CustomLogHandler();
+                customLogHandler.ExpectedLog(LogType.Error, "Unity cannot compile the VisualEffectAsset at path");
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            yield return null;
+        }
 
         private VFXExpression[] CallBuildExpression(CustomHLSL hlslOperator, VFXExpression[] parentExpressions)
         {

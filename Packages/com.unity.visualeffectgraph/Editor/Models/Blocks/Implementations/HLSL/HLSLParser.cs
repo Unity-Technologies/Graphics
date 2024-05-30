@@ -499,7 +499,7 @@ namespace UnityEditor.VFX.Block
             { "inout", HLSLAccess.INOUT },
         };
 
-        static readonly Regex s_IncludeParser = new Regex(@"^#include ""(?<filepath>.*)""", RegexOptions.Compiled);
+        static readonly Regex s_IncludeParser = new Regex(@"^#include ""(?<filepath>.*)""", RegexOptions.Compiled | RegexOptions.Multiline);
         static readonly Regex s_MultilineCommentsParser = new Regex(@"/\*[\s\S]*?\*/", RegexOptions.Compiled|RegexOptions.Multiline);
         static readonly Regex s_SinglelineCommentsParser = new Regex(@"^\s*/{2}[^/].*$", RegexOptions.Compiled|RegexOptions.Multiline|RegexOptions.IgnorePatternWhitespace);
 
