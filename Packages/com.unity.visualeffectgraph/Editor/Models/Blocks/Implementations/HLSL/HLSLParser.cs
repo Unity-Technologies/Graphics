@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.Block
         public string message => "Missing `inout` access modifier before the VFXAttributes type.\nNeeded because your code writes to at least one attribute.";
         public VFXErrorType type => VFXErrorType.Error;
     }
-    
+
     class HLSLMissingVFXAttribute : IHLSMessage
     {
         public string message => "Missing `VFXAttributes attributes` as function's parameter";
@@ -165,7 +165,7 @@ namespace UnityEditor.VFX.Block
     class HLSLFunctionParameter
     {
         // Match inout/in/out accessor then any whitespace then the parameter type then optionally a template type any whitespace and then the parameter name
-        static readonly Regex s_ParametersParser = new Regex(@"(?<access>inout|in|out)?\s*(?<type>\w+)(?:[<](?<template>\w+)[>])?\s*(?<parameter>\w+)(?:,\s*)?", RegexOptions.Compiled);
+        static readonly Regex s_ParametersParser = new Regex(@"(?<access>(inout|in|out)\b)?\s*(?<type>\w+)(?:[<](?<template>\w+)[>])?\s*(?<parameter>\w+)(?:,\s*)?", RegexOptions.Compiled);
 
         readonly string m_RawCode;
 
