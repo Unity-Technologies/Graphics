@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering
         #endregion
 
         #region AntiLeak Buffer generator
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         static uint3 GetSampleOffset(uint i)
         {
             return new uint3(i, i >> 1, i >> 2) & 1;
@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering
             return mask;
         }
 
-        [UnityEditor.MenuItem("Edit/Rendering/Global Illumination/Generate AntiLeak Buffer")]
+        //[UnityEditor.MenuItem("Edit/Rendering/Global Illumination/Generate AntiLeak Buffer")]
         static uint[] BuildAntiLeakDataArray()
         {
             uint[] antileak = new uint[256];

@@ -171,9 +171,27 @@ namespace UnityEngine.Rendering
 
         internal ProbeVolumeBakingSet Clone()
         {
-            var newSet = Instantiate(this);
-            newSet.m_SceneGUIDs.Clear();
-            newSet.m_SceneBakeData.Clear();
+            var newSet = CreateInstance<ProbeVolumeBakingSet>();
+
+            // We don't want to clone everything in the set
+            // Especially don't copy reference to baked data !
+            newSet.probeOffset = probeOffset;
+            newSet.simplificationLevels = simplificationLevels;
+            newSet.minDistanceBetweenProbes = minDistanceBetweenProbes;
+            newSet.renderersLayerMask = renderersLayerMask;
+            newSet.minRendererVolumeSize = minRendererVolumeSize;
+            newSet.skyOcclusion = skyOcclusion;
+            newSet.skyOcclusionBakingSamples = skyOcclusionBakingSamples;
+            newSet.skyOcclusionBakingBounces = skyOcclusionBakingBounces;
+            newSet.skyOcclusionAverageAlbedo = skyOcclusionAverageAlbedo;
+            newSet.skyOcclusionBackFaceCulling = skyOcclusionBackFaceCulling;
+            newSet.skyOcclusionShadingDirection = skyOcclusionShadingDirection;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.renderingLayerMasks = renderingLayerMasks != null ? (ProbeLayerMask[])renderingLayerMasks.Clone() : null;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.useRenderingLayers = useRenderingLayers;
             return newSet;
         }
 

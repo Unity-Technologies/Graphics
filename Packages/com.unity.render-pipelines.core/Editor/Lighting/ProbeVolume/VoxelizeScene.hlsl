@@ -152,11 +152,11 @@ TerrainVertexToFragment TerrainVert(uint vertexID : SV_VERTEXID, uint instanceID
     float4 vertex = GetQuadVertexPosition(vertexID % 4);
     uint2 heightmapLoadPosition = quadPos + vertex.xy;
 
+    float scale = _TerrainSize.xz / _TerrainHeightmapResolution;
+    vertex.xy = heightmapLoadPosition * scale;
+
     // flip quad to xz axis (default terrain orientation without rotation)
     vertex = float4(vertex.x, 0, vertex.y, 1);
-
-    // Offset quad to create the plane terrain
-    vertex.xz += (float2(quadPos) / float(_TerrainHeightmapResolution)) * _TerrainSize.xz;
 
     uint2 id = (quadPos / _TerrainSize.xz) * _TerrainHeightmapResolution;
     float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(uint3(heightmapLoadPosition, 0)));

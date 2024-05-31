@@ -1446,7 +1446,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<WriteApvData>("APV Debug Sampling", out var passData, ProfilingSampler.Get(HDProfileId.APVSamplingDebug)))
             {
-                passData.resultBuffer = renderGraph.ImportBuffer(resultBuffer);
+                passData.resultBuffer = builder.WriteBuffer(renderGraph.ImportBuffer(resultBuffer));
                 passData.clickCoordinates = clickCoordinates;
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);

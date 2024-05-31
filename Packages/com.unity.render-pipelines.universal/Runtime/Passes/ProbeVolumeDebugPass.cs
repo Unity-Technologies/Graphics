@@ -80,12 +80,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 using (var builder = renderGraph.AddComputePass<WriteApvData>("APV Debug", out var passData, base.profilingSampler))
                 {
-                    passData.resultBuffer = renderGraph.ImportBuffer(resultBuffer);
                     passData.clickCoordinates = coords;
-                    passData.depthBuffer = depthPyramidBuffer;
-                    passData.normalBuffer = normalBuffer;
                     passData.computeShader = m_ComputeShader;
 
+                    passData.resultBuffer = renderGraph.ImportBuffer(resultBuffer);
+                    passData.depthBuffer = depthPyramidBuffer;
+                    passData.normalBuffer = normalBuffer;
+
+                    builder.UseBuffer(passData.resultBuffer, AccessFlags.Write);
                     builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
                     builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
 

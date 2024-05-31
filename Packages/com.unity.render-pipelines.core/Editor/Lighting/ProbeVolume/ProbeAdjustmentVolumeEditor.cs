@@ -274,10 +274,11 @@ namespace UnityEditor.Rendering
                 if (owner.targets.Length == 1)
                 {
                     EditorGUILayout.Space();
-                    using (new EditorGUI.DisabledScope(bakingSet == null))
+                    using (new EditorGUI.DisabledScope(Lightmapping.isRunning || bakingSet == null))
                     {
-                        if (GUILayout.Button(Styles.s_PreviewLighting))
-                            AdaptiveProbeVolumes.BakeAdjustmentVolume(bakingSet, ptv);
+                        using (new EditorGUI.DisabledScope(AdaptiveProbeVolumes.isRunning))
+                            if (GUILayout.Button(Styles.s_PreviewLighting))
+                                AdaptiveProbeVolumes.BakeAdjustmentVolume(bakingSet, ptv);
 
                         ProbeVolumeLightingTab.BakeAPVButton();
                     }

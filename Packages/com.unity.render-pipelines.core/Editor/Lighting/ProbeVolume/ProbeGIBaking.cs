@@ -649,11 +649,7 @@ namespace UnityEngine.Rendering
         static APVRTContext s_TracingContext;
         static BakeData s_BakeData;
 
-        static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
-        // We need to keep the original list of cells that were actually baked to feed it to the dilation process.
-        // This is because during partial bake we only want to dilate those cells.
-        static Dictionary<int, BakingCell> m_CellsToDilate = new Dictionary<int, BakingCell>();
 
         internal static HashSet<string> partialBakeSceneList = null;
         internal static bool isBakingSceneSubset => partialBakeSceneList != null;
@@ -779,10 +775,17 @@ namespace UnityEngine.Rendering
             return true;
         }
 
-        static void EnsurePerSceneDataInOpenScenes()
+        static bool EnsurePerSceneDataInOpenScenes()
         {
             var prv = ProbeReferenceVolume.instance;
             var activeScene = SceneManager.GetActiveScene();
+
+            prv.TryGetBakingSetForLoadedScene(activeScene, out var activeSet);
+            if (activeSet == null && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGUID(activeScene)))
+            {
+                Debug.LogError($"Active scene at {activeScene.path} is not part of any baking set.");
+                return false;
+            }
 
             // We assume that all the per scene data for all the scenes in the set have been set with the scene been saved at least once. However we also update the scenes that are currently loaded anyway for security.
             // and to have a new trigger to update the bounds we have.
@@ -794,12 +797,12 @@ namespace UnityEngine.Rendering
                     continue;
 
                 ProbeVolumeBakingSet.OnSceneSaving(scene); // We need to perform the same actions we do when the scene is saved.
-                prv.TryGetBakingSetForLoadedScene(activeScene, out var activeSet); // Must be done after OnSceneSaved because it can put the set in the default baking set if needed.
                 prv.TryGetBakingSetForLoadedScene(scene, out var sceneBakingSet);
 
                 if (sceneBakingSet != null && sceneBakingSet != activeSet && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGUID(scene)))
                 {
                     Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
+                    return false;
                 }
             }
 
@@ -811,6 +814,8 @@ namespace UnityEngine.Rendering
                 if (!ProbeVolumeBakingSet.SceneHasProbeVolumes(perSceneData.sceneGUID))
                     CoreUtils.Destroy(perSceneData.gameObject);
             }
+
+            return true;
         }
 
         static void CachePVHashes(List<ProbeVolume> probeVolumes)
@@ -878,8 +883,8 @@ namespace UnityEngine.Rendering
             VirtualOffset,
             LaunchThread,
             SkyOcclusion,
-            Integration,
             RenderingLayerMask,
+            Integration,
             FinalizeCells,
 
             Last = FinalizeCells + 1
@@ -940,7 +945,10 @@ namespace UnityEngine.Rendering
             if (!isFreezingPlacement)
             {
                 using (new BakingSetupProfiling(BakingSetupProfiling.Stages.EnsurePerSceneDataInOpenScenes))
-                    EnsurePerSceneDataInOpenScenes();
+                {
+                    if (!EnsurePerSceneDataInOpenScenes())
+                        return false;
+                }
             }
 
             if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return false;
@@ -1391,6 +1399,9 @@ namespace UnityEngine.Rendering
                 probeVolume.OnBakeCompleted();
             foreach (var adjustment in s_AdjustmentVolumes)
                 adjustment.volume.cachedHashCode = adjustment.volume.GetHashCode();
+
+            // We allocate data even if dilation is off, that should be changed
+            FinalizeDilation();
         }
 
 
@@ -1435,7 +1446,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Returns true when the bake job is running, false otherwise (Read Only).
+        /// Returns true when the async baking of adaptive probe volumes only is running, false otherwise (Read Only).
         /// </summary>
         public static bool isRunning => s_AsyncBakeTaskID != -1;
 
