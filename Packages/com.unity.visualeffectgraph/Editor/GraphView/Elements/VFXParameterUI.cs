@@ -152,6 +152,15 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("exposed");
             }
 
+            if (controller.parentController.isOutput)
+            {
+                AddToClassList("output");
+            }
+            else
+            {
+                RemoveFromClassList("output");
+            }
+
             m_Label.parent.tooltip = controller.parentController.model.tooltip;
         }
 

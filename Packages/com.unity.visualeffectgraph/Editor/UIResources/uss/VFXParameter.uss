@@ -56,6 +56,11 @@ VFXParameterUI.node.superCollapsed > #node-border
     flex-direction: row;
 }
 
+VFXParameterUI.node.superCollapsed.output > #node-border
+{
+    flex-direction: row-reverse;
+}
+
 VFXParameterUI.node.superCollapsed > #selection-border
 {
     border-radius: 12px;
@@ -69,6 +74,12 @@ VFXParameterUI.node.superCollapsed > #node-border > #title
 {
     background-color:rgba(0,0,0,0);
     margin-right: 16px;
+}
+
+VFXParameterUI.node.superCollapsed.output > #node-border > #title
+{
+    margin-left: 16px;
+    margin-right: 0;
 }
 
 VFXParameterUI.node.superCollapsed > #node-border > #contents > #top > #output
