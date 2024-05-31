@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
     public partial class ScriptableRenderer
     {
-        private const int kRenderPassMapSize = 10;
-        private const int kRenderPassMaxCount = 20;
+        // Used "internal" only for testing. This should be private.
+        internal const int kRenderPassMapSize = 10;
+        internal const int kRenderPassMaxCount = 20;
 
         // used to keep track of the index of the last pass when we called BeginSubpass
         private int m_LastBeginSubpassPassIndex = 0;
@@ -96,7 +96,6 @@ namespace UnityEngine.Rendering.Universal
                 int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
 
                 // Make sure the list is already sorted!
-
                 m_MergeableRenderPassesMap.Clear();
                 m_RenderPassesAttachmentCount.Clear();
                 uint currentHashIndex = 0;
@@ -105,14 +104,21 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var renderPass = m_ActiveRenderPassQueue[i];
 
-                    renderPass.renderPassQueueIndex = i;
-
                     // Disable obsolete warning for internal usage
                     #pragma warning disable CS0618
                     bool RPEnabled = IsRenderPassEnabled(renderPass);
                     #pragma warning restore CS0618
                     if (!RPEnabled)
                         continue;
+
+                    // Check if current index pass is higher than the maximum number of passes
+                    if (i >= kRenderPassMaxCount)
+                    {
+                        Debug.LogError($"Exceeded the maximum number of Render Passes (${kRenderPassMaxCount}). Please consider using Render Graph to support a higher number of render passes with Native RenderPass, note support will be enabled by default.");
+                        return;
+                    }
+
+                    renderPass.renderPassQueueIndex = i;
 
                     var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
 
@@ -129,10 +135,8 @@ namespace UnityEngine.Rendering.Universal
                     else if (m_MergeableRenderPassesMap[hash][GetValidPassIndexCount(m_MergeableRenderPassesMap[hash]) - 1] != (i - 1))
                     {
                         // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
-
                         currentHashIndex++;
                         hash = CreateRenderPassHash(rpDesc, currentHashIndex);
-
                         m_PassIndexToPassHash[i] = hash;
 
                         m_MergeableRenderPassesMap.Add(hash, m_MergeableRenderPassesMapArrays[m_MergeableRenderPassesMap.Count]);
