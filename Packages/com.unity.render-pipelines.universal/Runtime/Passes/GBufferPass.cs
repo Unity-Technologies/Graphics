@@ -306,34 +306,5 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID("_CameraRenderingLayersTexture"));
             }
         }
-
-        internal static void ResetGlobalGBufferTextures(RenderGraph renderGraph, TextureHandle[] gbuffer, TextureHandle depthTarget,
-            UniversalResourceData resourcesData, ref DeferredLights deferredLights)
-        {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Reset Global GBuffer Textures",
-                out var passData, s_ProfilingSampler))
-            {
-                passData.deferredLights = deferredLights;
-                gbuffer = resourcesData.gBuffer;
-                passData.gbuffer = deferredLights.GbufferTextureHandles;
-
-                for (int i = 0; i < deferredLights.GBufferSliceCount; i++)
-                {
-                    if (i != deferredLights.GBufferLightingIndex)
-                    {
-                        passData.gbuffer[i] = gbuffer[i];
-                        builder.SetRenderAttachment(gbuffer[i], i, AccessFlags.Write);
-                    }
-                }
-
-                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
-                builder.AllowPassCulling(false);
-                builder.AllowGlobalStateModification(true);
-
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-                {
-                });
-            }
-        }
     }
 }

@@ -187,8 +187,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal override bool supportsNativeRenderPassRendergraphCompiler
         {
-            get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
+            get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
             ;
         }

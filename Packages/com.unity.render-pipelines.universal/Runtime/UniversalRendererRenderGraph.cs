@@ -1071,11 +1071,6 @@ namespace UnityEngine.Rendering.Universal
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights);
 
-                var gfxDeviceType = SystemInfo.graphicsDeviceType;
-                // We double check for features in between GBuffer and Deferred passes just in case to know whether we need to reload the attachments
-                if (InterruptFramebufferFetch(FramebufferFetchEvent.FetchGbufferInDeferred,RenderPassEvent.AfterRenderingGbuffer, RenderPassEvent.BeforeRenderingDeferredLights))
-                    GBufferPass.ResetGlobalGBufferTextures(renderGraph, resourceData.gBuffer, resourceData.activeDepthTexture, resourceData, ref m_DeferredLights);
-
                 m_DeferredPass.Render(renderGraph, frameData, resourceData.activeColorTexture, resourceData.activeDepthTexture, resourceData.gBuffer);
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingDeferredLights, RenderPassEvent.BeforeRenderingOpaques);
