@@ -5,7 +5,8 @@
 #error Use #include_with_pragmas "FoveatedRenderingKeywords.hlsl" before including this file
 #endif*/
 
-#if (!defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_OSX) || defined(UNITY_PLATFORM_IOS))) || defined(SHADER_API_PS5)
+#if (!defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_OSX) || defined(UNITY_PLATFORM_IOS) || defined(UNITY_PLATFORM_VISIONOS))) || defined(SHADER_API_PS5)
+
     #if defined(SHADER_API_PS5) || defined(SHADER_API_METAL)
         #define SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER 1
     #endif
