@@ -557,7 +557,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
-            return renderFunc.GetHashCode();
+            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
         }
     }
 
@@ -595,7 +595,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
-            return renderFunc.GetHashCode();
+            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
         }
     }
 
@@ -633,7 +633,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
-            return renderFunc.GetHashCode();
+            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
         }
     }
 
@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetRenderFuncHash()
         {
-            return renderFunc.GetHashCode();
+            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
         }
     }
 }
