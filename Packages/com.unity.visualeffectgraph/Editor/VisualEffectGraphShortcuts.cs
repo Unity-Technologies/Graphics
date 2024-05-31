@@ -233,7 +233,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        [Shortcut("Visual Effect Graph/Toggle Property<->Inline", typeof(VFXViewWindow), KeyCode.X, ShortcutModifiers.Shift)]
+        [Shortcut("Visual Effect Graph/Toggle Property--Inline", typeof(VFXViewWindow), KeyCode.X, ShortcutModifiers.Shift)]
         static void ToggleNodePropertyOrInline(ShortcutArguments args)
         {
             if (args.context is VFXViewWindow window)
