@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
-//#endif
+#endif
 
 namespace UnityEngine.Rendering
 {
