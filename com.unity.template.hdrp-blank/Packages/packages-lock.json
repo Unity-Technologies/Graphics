@@ -86,15 +86,6 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
-    "com.unity.package-validation-suite": {
-      "version": "0.22.0-preview",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.nuget.mono-cecil": "0.1.6-preview.2"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.performance.profile-analyzer": {
       "version": "1.2.2",
       "depth": 1,

@@ -2,8 +2,7 @@
   "dependencies": {
     "com.unity.collab-proxy": "2.2.0",
     "com.unity.feature.development": "1.0.2",
-    "com.unity.inputsystem": "1.7.0",
-    "com.unity.package-validation-suite": "0.22.0-preview",
+    "com.unity.inputsystem": "1.8.1",
     "com.unity.render-pipelines.high-definition": "17.0.1",
     "com.unity.timeline": "1.8.6",
     "com.unity.ugui": "2.0.0",
