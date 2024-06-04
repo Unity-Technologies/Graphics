@@ -814,6 +814,37 @@ namespace ShaderStrippingAndPrefiltering
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
             expected = ShaderFeatures.DecalGBuffer | ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers | ShaderFeatures.DepthNormalPassRenderingLayers | ShaderFeatures.GBufferWriteRenderingLayers;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+            // Test with DepthNormal prepass enabled (Is enabled implicitly by SSAO f.ex)
+            ScreenSpaceAmbientOcclusion ssaoFeature = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
+            ssaoFeature.settings = new ScreenSpaceAmbientOcclusionSettings()
+            {
+                AOMethod = ScreenSpaceAmbientOcclusionSettings.AOMethodOptions.BlueNoise,
+                Downsample = false,
+                AfterOpaque = false,
+                Source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals,
+                NormalSamples = ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium,
+                Intensity = 3.0f,
+                DirectLightingStrength = 0.25f,
+                Radius = 0.035f,
+                Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption.Medium,
+                BlurQuality = ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.High,
+                Falloff = 100f,
+            };
+            ssaoFeature.SetActive(true);
+            m_TestHelper.rendererFeatures.Add(ssaoFeature);
+
+            ((DecalRendererFeature)m_TestHelper.rendererFeatures[0]).settings.technique = DecalTechniqueOption.ScreenSpace;
+            ((DecalRendererFeature)m_TestHelper.rendererFeatures[0]).settings.decalLayers = true;
+            rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsUnusedVariants = false;
+            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
+            expected = ShaderFeatures.ScreenSpaceOcclusion | ShaderFeatures.DecalScreenSpace |
+                       ShaderFeatures.DecalNormalBlendLow | ShaderFeatures.DecalLayers |
+                       ShaderFeatures.DepthNormalPassRenderingLayers;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+            m_TestHelper.rendererFeatures.Remove(ssaoFeature);
         }
 
         [Test]
