@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed partial class Renderer2D : ScriptableRenderer
     {
-        #if UNITY_SWITCH
+        #if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
         internal const int k_DepthBufferBits = 24;
         #else
