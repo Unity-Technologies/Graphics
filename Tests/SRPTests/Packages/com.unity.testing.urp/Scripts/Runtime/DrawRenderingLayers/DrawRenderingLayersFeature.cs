@@ -53,10 +53,6 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering Layers", out var passData, m_ProfilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-
-                builder.UseAllGlobalTextures(true);
-
                 passData.color = resourceData.activeColorTexture;
                 builder.SetRenderAttachment(passData.color, 0, AccessFlags.Write);
                 builder.UseTexture(renderingLayerTexture);
@@ -118,36 +114,68 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
         {
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                Render(cmd);
+                Render(cmd, m_Material);
             }
         }
 
-        private void Render(RasterCommandBuffer cmd)
+        private void ExecuteRenderGraphPass(RasterCommandBuffer cmd, Material mat)
+        {
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                Render(cmd, mat);
+            }
+        }
+
+        private void Render(RasterCommandBuffer cmd, Material material)
         {
             cmd.SetGlobalVectorArray("_RenderingLayersColors", m_RenderingLayerColors);
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1, 1, 0, 0));
-            cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Triangles, 3, 1);
+            cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Triangles, 3, 1);
         }
 
         private class PassData
         {
             internal DrawRenderingLayersPrePass pass;
+            internal TextureHandle cameraRenderingLayersTexture;
+            internal Material mat;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering PrePass", out var passData, m_ProfilingSampler))
             {
                 renderingLayerTexture = renderGraph.ImportTexture(m_ColoredRenderingLayersTextureHandle);
-                builder.SetRenderAttachment(renderingLayerTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
+                passData.mat = m_Material;
+
+                builder.SetRenderAttachment(renderingLayerTexture, 0, AccessFlags.Write);
+                if (renderer.renderingModeActual == RenderingMode.Deferred)
+                {
+                    builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GBufferRenderingLayers]);
+                    passData.cameraRenderingLayersTexture = resourceData.gBuffer[renderer.deferredLights.GBufferRenderingLayers];
+                }
+                else
+                {
+                    builder.UseTexture(resourceData.renderingLayersTexture);
+                    passData.cameraRenderingLayersTexture = resourceData.renderingLayersTexture;
+                }
 
                 passData.pass = this;
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
-                    data.pass.ExecutePass(rgContext.cmd);
+                    if (data.cameraRenderingLayersTexture.IsValid())
+                    {
+                        data.mat.SetTexture(s_CameraRenderingLayersTextureID,
+                            data.cameraRenderingLayersTexture);
+                    }
+
+                    data.pass.ExecuteRenderGraphPass(rgContext.cmd, data.mat);
                 });
             }
         }
@@ -192,6 +220,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
     }
 
     internal static TextureHandle renderingLayerTexture;
+    private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {

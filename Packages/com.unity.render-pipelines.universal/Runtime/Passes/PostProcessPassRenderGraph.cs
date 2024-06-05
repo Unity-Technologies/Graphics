@@ -637,12 +637,6 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 passData.material = m_Materials.gaussianDepthOfFieldCoC;
 
-                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
-                if (renderer.renderingModeActual != RenderingMode.Deferred)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
-                else if (renderer.deferredLights.GbufferDepthIndex != -1)
-                    builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
-
                 builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
                 {
                     var dofmaterial = data.material;
@@ -855,12 +849,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.depthTexture = resourceData.cameraDepthTexture;
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
                 passData.material = m_Materials.bokehDepthOfFieldCoC;
-
-                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
-                if (renderer.renderingModeActual != RenderingMode.Deferred)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
-                else if (renderer.deferredLights.GbufferDepthIndex != -1)
-                    builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
 
                 builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
                 {
@@ -1885,6 +1873,7 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle destinationTexture;
             internal TextureHandle sourceTexture;
             internal TextureHandle lutTexture;
+            internal TextureHandle depthTexture;
             internal Vector4 lutParams;
             internal TextureHandle userLutTexture;
             internal Vector4 userLutParams;
@@ -1896,7 +1885,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool enableAlphaOutput;
         }
 
-        public void RenderUberPost(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen)
+        public void RenderUberPost(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen)
         {
             var material = m_Materials.uber;
             bool hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
@@ -1919,12 +1908,20 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Postprocessing Uber Post Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
                 if (cameraData.requiresDepthTexture && renderer != null)
                 {
                     if (renderer.renderingModeActual != RenderingMode.Deferred)
+                    {
                         builder.UseGlobalTexture(s_CameraDepthTextureID);
+                        passData.depthTexture = resourceData.activeDepthTexture;
+                    }
                     else if (renderer.deferredLights.GbufferDepthIndex != -1)
-                        builder.UseGlobalTexture(DeferredLights.k_GBufferShaderPropertyIDs[renderer.deferredLights.GbufferDepthIndex]);
+                    {
+                        builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GbufferDepthIndex]);
+                        passData.depthTexture = resourceData.gBuffer[renderer.deferredLights.GbufferDepthIndex];
+                    }
                 }
 
                 if (cameraData.requiresOpaqueTexture && renderer != null)
@@ -1963,6 +1960,8 @@ namespace UnityEngine.Rendering.Universal
                     var material = data.material;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
+                    if(data.depthTexture.IsValid())
+                        material.SetTexture(s_CameraDepthTextureID, data.depthTexture);
                     material.SetTexture(ShaderConstants._InternalLut, data.lutTexture);
                     material.SetVector(ShaderConstants._Lut_Params, data.lutParams);
                     material.SetTexture(ShaderConstants._UserLut, data.userLutTexture);
@@ -2177,7 +2176,7 @@ namespace UnityEngine.Rendering.Universal
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
-                RenderUberPost(renderGraph, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, resolveToDebugScreen);
+                RenderUberPost(renderGraph, frameData, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, resolveToDebugScreen);
             }
         }
     }

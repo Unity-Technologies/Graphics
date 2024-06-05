@@ -1151,8 +1151,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
             {
-                if (RenderSettings.skybox != null || (cameraData.camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
-                    m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture, requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents);
+                cameraData.camera.TryGetComponent(out Skybox cameraSkybox);
+                Material skyboxMaterial = cameraSkybox != null ? cameraSkybox.material : RenderSettings.skybox;
+                if (skyboxMaterial != null)
+                    m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture, skyboxMaterial, requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents);
             }
 
             if (requiresColorCopyPass)
@@ -1267,7 +1269,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
-             
+
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
             // Allocate debug screen texture if the debug mode needs it.
@@ -1309,8 +1311,8 @@ namespace UnityEngine.Rendering.Universal
                     // that the post processing output is rendered to a properly sized target. Any rendering performed beyond this point will also use the upscaled targets.
                     if (cameraData.IsSTPEnabled())
                         m_UseUpscaledColorHandle = true;
-                   
-                    resourceData.cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams); 
+
+                    resourceData.cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
                 }
 
                 // Desired target for post-processing pass.
@@ -1393,7 +1395,7 @@ namespace UnityEngine.Rendering.Universal
 
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
-                m_FinalBlitPass.Render(renderGraph, cameraData, source, target, overlayUITexture);
+                m_FinalBlitPass.Render(renderGraph, frameData, cameraData, source, target, overlayUITexture);
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
             }

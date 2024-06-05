@@ -623,6 +623,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             // which prevents from resolving correct pass indices.
             if (m_StencilDeferredPasses[0] < 0)
                 InitStencilDeferredMaterial();
+            
+            if (!UseFramebufferFetch)
+            {
+                for (int i = 0; i < GbufferTextureHandles.Length; i++)
+                {
+                    if (i != GBufferLightingIndex)
+                        m_StencilDeferredMaterial.SetTexture(k_GBufferShaderPropertyIDs[i], GbufferTextureHandles[i]);
+                }
+            }
 
             using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {

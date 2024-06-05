@@ -273,10 +273,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseRendererList(passData.rendererListHdl);
                 builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
 
-                // With NRP GBuffer textures are set after Deferred, we do this to avoid breaking the pass
-                if (!renderGraph.nativeRenderPassesEnabled)
-                    GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
-
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
@@ -284,26 +280,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl);
                 });
-            }
-        }
-
-        internal static void SetGlobalGBufferTextures(IRasterRenderGraphBuilder builder, TextureHandle[] gbuffer, ref DeferredLights deferredLights)
-        {
-            for (int i = 0; i < gbuffer.Length; i++)
-            {
-                if (i != deferredLights.GBufferLightingIndex && gbuffer[i].IsValid())
-                    builder.SetGlobalTextureAfterPass(gbuffer[i], Shader.PropertyToID(DeferredLights.k_GBufferNames[i]));
-            }
-
-            // If any sub-system needs camera normal texture, make it available.
-            // Input attachments will only be used when this is not needed so safe to skip in that case
-            if (gbuffer[deferredLights.GBufferNormalSmoothnessIndex].IsValid())
-                builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferNormalSmoothnessIndex], s_CameraNormalsTextureID);
-
-            if (deferredLights.UseRenderingLayers && gbuffer[deferredLights.GBufferRenderingLayers].IsValid())
-            {
-                builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID(DeferredLights.k_GBufferNames[deferredLights.GBufferRenderingLayers]));
-                builder.SetGlobalTextureAfterPass(gbuffer[deferredLights.GBufferRenderingLayers], Shader.PropertyToID("_CameraRenderingLayersTexture"));
             }
         }
     }
