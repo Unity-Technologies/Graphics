@@ -1,6 +1,6 @@
 # Implement ray tracing with Shader Graph
 
-To use ray-traced effects with Shader Graph, use the **Raytracing Quality** Keyword node. This node exchanges accuracy for speed, except for [Path-Traced effects](Ray-Tracing-Path-Tracing.md) which aren't affected and use the default path.
+To use ray-traced effects with Shader Graph, use the **Raytracing Quality** Keyword node. This node exchanges accuracy for speed for ray-traced effects. It's also useful to prevent compilation error due to unsupported nodes when using [Path Tracing](Ray-Tracing-Path-Tracing.md).
 
 ## Add the Raytracing Quality Keyword node
 
@@ -21,6 +21,7 @@ To use this keyword in the graph, you need to create a [Keyword Node](https://do
 
 | Name          | Direction | Type           | Description                                                  |
 | :------------ | :-------- | :------------- | :----------------------------------------------------------- |
-| **default**   | Input     | Vector4        | The value to use for the normal Shader Graph. This is the default path Unity uses to render this Shader Graph. |
-| **raytraced** | Input     | Vector4        | The value to use for the fast Shader Graph to use with the ray-traced effects excepth the path traced one.|
-| **output**    | Output    | Vector4        | Outputs is the value which will be selected based on the context this shader graph is used. |
+| **default**       | Input     | Vector4        | The value to use for the normal Shader Graph. This is the default path Unity uses to render this Shader Graph. |
+| **raytraced**     | Input     | Vector4        | The value to use for the fast Shader Graph to use with the ray-traced effects.|
+| **pathtraced**    | Input     | Vector4        | The value to use for the Shader Graph when the path tracer is enabled. This is useful to prevent compilation error due to unsupported nodes in path tracing.|
+| **output**        | Output    | Vector4        | Outputs is the value which will be selected based on the context this shader graph is used. |

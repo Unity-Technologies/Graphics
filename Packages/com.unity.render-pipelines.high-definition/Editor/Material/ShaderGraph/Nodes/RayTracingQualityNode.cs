@@ -13,11 +13,13 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         private const string k_KeywordDefault = "RAYTRACING_SHADER_GRAPH_DEFAULT";
         private const string k_KeywordRaytraced = "RAYTRACING_SHADER_GRAPH_RAYTRACED";
+        private const string k_KeywordPathtracer = "RAYTRACING_SHADER_GRAPH_PATHTRACED";
 
         public enum RayTracingQualityVariant
         {
             Default,
-            Raytraced
+            Raytraced,
+            Pathtraced
         }
 
         public static string RaytracingVariantKeyword(RayTracingQualityVariant variant)
@@ -26,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 case RayTracingQualityVariant.Default: return k_KeywordDefault;
                 case RayTracingQualityVariant.Raytraced: return k_KeywordRaytraced;
+                case RayTracingQualityVariant.Pathtraced: return k_KeywordPathtracer;
                 default: throw new ArgumentOutOfRangeException(nameof(variant));
             }
         }
@@ -46,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     new KeywordEntry("Default", "DEFAULT"),
                     new KeywordEntry("Raytraced", "RAYTRACED"),
+                    new KeywordEntry("Pathtraced", "PATHTRACED"),
                 },
             };
         }
