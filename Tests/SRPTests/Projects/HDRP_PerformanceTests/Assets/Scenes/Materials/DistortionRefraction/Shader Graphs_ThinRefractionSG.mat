@@ -27,16 +27,19 @@ Material:
     RenderType: Transparent
   disabledShaderPasses:
   - MOTIONVECTORS
-  - TransparentDepthPrepass
+  - ForwardEmissiveForDeferred
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
-  - ForwardEmissiveForDeferred
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _SampleTexture2D_102226b1344041059ec23430aa3870cf_Texture_1:
+        m_Texture: {fileID: 2800000, guid: edff91b452baa2d428c58a0ce44e41b8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_102226b1344041059ec23430aa3870cf_Texture_1_Texture2D:
         m_Texture: {fileID: 2800000, guid: edff91b452baa2d428c58a0ce44e41b8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -62,6 +65,7 @@ Material:
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
     - _BlendMode: 0
+    - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
     - _DepthOffsetEnable: 0
@@ -69,10 +73,15 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 10
+    - _DstBlend2: 10
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _ExcludeFromTUAndAA: 0
     - _ForceForwardEmissive: 0
+    - _MaterialID: 1
+    - _MaterialTypeMask: 2
     - _OpaqueCullMode: 2
+    - _PerPixelSorting: 0
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
@@ -81,17 +90,18 @@ Material:
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
     - _StencilRef: 0
-    - _StencilRefDepth: 0
+    - _StencilRefDepth: 16
     - _StencilRefDistortionVec: 4
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDepth: 25
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 41
     - _SupportDecals: 1
     - _SurfaceType: 1
+    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0

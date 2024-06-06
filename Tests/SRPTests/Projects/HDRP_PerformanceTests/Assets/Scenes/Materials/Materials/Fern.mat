@@ -124,8 +124,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: 1d643760156c44e4fa0e0a5e951edd6d, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+        m_Scale: {x: 10, y: 3}
+        m_Offset: {x: 0, y: 0.5}
     - _MaskMap:
         m_Texture: {fileID: 2800000, guid: cd26c853cf4662e448f0e9b7e170159e, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -178,6 +178,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: cd26c853cf4662e448f0e9b7e170159e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TransmissionMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -207,6 +211,8 @@ Material:
     - _AlphaCutoffPrepass: 0.5
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 0
+    - _AlphaRemapMax: 1
+    - _AlphaRemapMin: 0
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
@@ -250,6 +256,7 @@ Material:
     - _DoubleSidedNormalMode: 1
     - _Drag: 0.01
     - _DstBlend: 0
+    - _DstBlend2: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
     - _EmissiveIntensity: 1
@@ -268,7 +275,7 @@ Material:
     - _GlossyReflections: 1
     - _HdrpVersion: 1
     - _HeightAmplitude: 0.02
-    - _HeightCenter: 0.5
+    - _HeightCenter: 1
     - _HeightMapParametrization: 0
     - _HeightMax: 1
     - _HeightMin: -1
@@ -291,6 +298,8 @@ Material:
     - _Mode: 3
     - _NormalMapSpace: 0
     - _NormalScale: 1
+    - _ObjectSpaceUVMapping: 0
+    - _ObjectSpaceUVMappingEmissive: 0
     - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
     - _PPDLodThreshold: 5
@@ -299,6 +308,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _Parallax: 0.02
+    - _PerPixelSorting: 0
     - _PreRefractionPass: 0
     - _RayTracing: 0
     - _ReceivesSSR: 0
@@ -325,10 +335,10 @@ Material:
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 41
     - _Stiffness: 1000
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 5
@@ -350,6 +360,7 @@ Material:
     - _Thickness: 1
     - _ThicknessMultiplier: 1
     - _TransmissionEnable: 1
+    - _TransmissionMask: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0

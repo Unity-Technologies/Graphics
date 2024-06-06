@@ -30,33 +30,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Others.unity
     guid: 2927e325ad9c3ad4cbbf2349fb02759f
   - enabled: 1
-    path: Assets/Scenes/Effects.unity
-    guid: b636d9b99a5830a48b4d03bfda7dbf3b
-  - enabled: 1
-    path: Assets/Scenes/Lighting.unity
-    guid: f7590198924b11e47b1b33cdd7ec91ac
-  - enabled: 1
-    path: Assets/Scenes/Materials.unity
-    guid: 3579be3d02cfeb748b65bee126dde746
-  - enabled: 1
-    path: Assets/Scenes/Others.unity
-    guid: 2927e325ad9c3ad4cbbf2349fb02759f
-  - enabled: 1
-    path: Assets/Scenes/Effects.unity
-    guid: b636d9b99a5830a48b4d03bfda7dbf3b
-  - enabled: 1
-    path: Assets/Scenes/Lighting.unity
-    guid: f7590198924b11e47b1b33cdd7ec91ac
-  - enabled: 1
-    path: Assets/Scenes/Materials.unity
-    guid: 3579be3d02cfeb748b65bee126dde746
-  - enabled: 1
-    path: Assets/Scenes/Others.unity
-    guid: 2927e325ad9c3ad4cbbf2349fb02759f
-  - enabled: 1
-    path: Assets/Scenes/Materials.unity
-    guid: 3579be3d02cfeb748b65bee126dde746
-  - enabled: 1
     path: Assets/Scenes/Materials.unity
     guid: 3579be3d02cfeb748b65bee126dde746
   m_configObjects:

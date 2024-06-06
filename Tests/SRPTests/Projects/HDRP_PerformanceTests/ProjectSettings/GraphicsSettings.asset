@@ -59,7 +59,6 @@ GraphicsSettings:
       type: 2}
   m_LightsUseLinearIntensity: 1
   m_LightsUseColorTemperature: 1
-  m_DefaultRenderingLayerMask: 257
   m_LogWhenShaderIsCompiled: 1
   m_LightProbeOutsideHullStrategy: 0
   m_CameraRelativeLightCulling: 0
