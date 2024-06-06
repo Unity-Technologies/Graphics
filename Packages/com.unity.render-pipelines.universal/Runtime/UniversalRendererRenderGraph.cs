@@ -246,6 +246,8 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.wrapMode = wrapMode;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
             rgDesc.vrUsage = desc.vrUsage;
+            rgDesc.useDynamicScale = desc.useDynamicScale;
+            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
             // TODO RENDERGRAPH: depthStencilFormat handling?
 
             return renderGraph.CreateTexture(rgDesc);
@@ -267,6 +269,8 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.enableRandomWrite = desc.enableRandomWrite;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
+            rgDesc.useDynamicScale = desc.useDynamicScale;
+            rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
 
             return renderGraph.CreateTexture(rgDesc);
         }
