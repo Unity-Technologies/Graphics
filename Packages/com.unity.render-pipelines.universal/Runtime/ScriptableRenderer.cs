@@ -1202,34 +1202,39 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        /// <summary>
-        /// TODO RENDERGRAPH
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="renderingData"></param>
-        /// <param name="injectionPoint"></param>
-        internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, RenderPassEvent injectionPoint)
+        internal void RecordCustomRenderGraphPassesInEventRange(RenderGraph renderGraph, RenderPassEvent eventStart, RenderPassEvent eventEnd)
         {
-            int range = ScriptableRenderPass.GetRenderPassEventRange(injectionPoint);
-            int nextValue = (int) injectionPoint + range;
-
-            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
+            // Only iterate over the active pass queue if we have a non-empty range
+            if (eventStart != eventEnd)
             {
-                if (pass.renderPassEvent >= injectionPoint && (int) pass.renderPassEvent < nextValue)
-                    pass.RecordRenderGraph(renderGraph, m_frameData);
+                foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
+                {
+                    if (pass.renderPassEvent >= eventStart && pass.renderPassEvent < eventEnd)
+                        pass.RecordRenderGraph(renderGraph, m_frameData);
+                }
             }
+        }
+
+        internal void CalculateSplitEventRange(RenderPassEvent startInjectionPoint, RenderPassEvent targetEvent, out RenderPassEvent startEvent, out RenderPassEvent splitEvent, out RenderPassEvent endEvent)
+        {
+            int range = ScriptableRenderPass.GetRenderPassEventRange(startInjectionPoint);
+
+            startEvent = startInjectionPoint;
+            endEvent = startEvent + range;
+
+            splitEvent = (RenderPassEvent)Math.Clamp((int)targetEvent, (int)startEvent, (int)endEvent);
         }
 
         internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, RenderPassEvent startInjectionPoint, RenderPassEvent endInjectionPoint)
         {
             int range = ScriptableRenderPass.GetRenderPassEventRange(endInjectionPoint);
-            int nextValue = (int) endInjectionPoint + range;
 
-            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
-            {
-                if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
-                    pass.RecordRenderGraph(renderGraph, m_frameData);
-            }
+            RecordCustomRenderGraphPassesInEventRange(renderGraph, startInjectionPoint, endInjectionPoint + range);
+        }
+
+        internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, RenderPassEvent injectionPoint)
+        {
+            RecordCustomRenderGraphPasses(renderGraph, injectionPoint, injectionPoint);
         }
 
         // ScriptableRenderPass if executed in a critical point (such as in between Deferred and GBuffer) has to have

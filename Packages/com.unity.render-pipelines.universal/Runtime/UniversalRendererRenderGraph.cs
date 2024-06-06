@@ -934,6 +934,21 @@ namespace UnityEngine.Rendering.Universal
             GPUResidentDrawer.InstanceOcclusionTest(renderGraph, settings, subviewOcclusionTests);
         }
 
+        // Records the depth copy pass along with the specified custom passes in a way that properly handles depth read dependencies
+        private void RecordCustomPassesWithDepthCopy(RenderGraph renderGraph, UniversalResourceData resourceData, RenderPassEvent earliestDepthReadEvent, RenderPassEvent currentEvent)
+        {
+            // Custom passes typically come before built-in passes but there's an exception for passes that require depth.
+            // In cases where custom passes passes may depend on depth, we split the event range and execute the depth copy as late as possible while still ensuring valid depth reads.
+
+            CalculateSplitEventRange(currentEvent, earliestDepthReadEvent, out var startEvent, out var splitEvent, out var endEvent);
+
+            RecordCustomRenderGraphPassesInEventRange(renderGraph, startEvent, splitEvent);
+
+            m_CopyDepthPass.Render(renderGraph, frameData, resourceData.cameraDepthTexture, resourceData.activeDepthTexture, true);
+
+            RecordCustomRenderGraphPassesInEventRange(renderGraph, splitEvent, endEvent);
+        }
+
         private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -1134,14 +1149,10 @@ namespace UnityEngine.Rendering.Universal
                 needsOccluderUpdate = false;
             }
 
-            // Custom passes come before built-in passes to keep parity with non-RG code path where custom passes are added before renderer Setup.
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques);
-
             if (requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
-            {
-                TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-                m_CopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true);
-            }
+                RecordCustomPassesWithDepthCopy(renderGraph, resourceData, renderPassInputs.requiresDepthTextureEarliestEvent, RenderPassEvent.AfterRenderingOpaques);
+            else
+                RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques);
 
             // Depends on the camera (copy) depth texture. Depth is reprojected to calculate motion vectors.
             if (renderPassInputs.requiresMotionVectors && m_CopyDepthMode != CopyDepthMode.AfterTransparents)
@@ -1191,12 +1202,10 @@ namespace UnityEngine.Rendering.Universal
                     resourceData.additionalShadowsTexture);
             }
 
-            // Custom passes come before built-in passes to keep parity with non-RG code path where custom passes are added before renderer Setup.
-
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingTransparents);
-
             if (requiresDepthCopyPass && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
-                m_CopyDepthPass.Render(renderGraph, frameData, resourceData.cameraDepthTexture, resourceData.activeDepthTexture, true);
+                RecordCustomPassesWithDepthCopy(renderGraph, resourceData, renderPassInputs.requiresDepthTextureEarliestEvent, RenderPassEvent.AfterRenderingTransparents);
+            else
+                RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingTransparents);
 
             // TODO: Postprocess pass should be able configure its render pass inputs per camera per frame (settings) BEFORE building any of the graph
             // TODO: Alternatively we could always build the graph (a potential graph) and cull away unused passes if "record + cull" is fast enough.
