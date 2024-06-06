@@ -630,6 +630,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             celestialBodyData.surfaceColor = (Vector4)additional.surfaceTint.linear;
             celestialBodyData.earthshine = additional.earthshine * 0.01f; // earth reflects about 0.01% of sun light
+            celestialBodyData.shadowIndex = additional.shadowIndex;
 
             if (additional.surfaceTexture == null)
                 celestialBodyData.surfaceTextureScaleOffset = Vector4.zero;

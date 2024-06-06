@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float radius;
 
         public Vector3 forward;
-        public float distanceFromCamera;  // -1 -> no sky interaction
+        public float distanceFromCamera;
         public Vector3 right;
         public float angularRadius;       // Units: radians
         public Vector3 up;
@@ -133,6 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3 flareColor;
         public float flareFalloff;
+
+        public Vector3 padding;
+        public int shadowIndex;
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
@@ -295,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public const int s_MaxPlanarReflections = HDRenderPipeline.k_MaxPlanarReflectionsOnScreen;
         public const int s_MaxCubeReflections = HDRenderPipeline.k_MaxCubeReflectionsOnScreen;
-		
+
 		[HLSLArray(s_MaxPlanarReflections, typeof(Matrix4x4))]
         public fixed float _PlanarCaptureVPWL[s_MaxPlanarReflections * 4 * 4];
         [HLSLArray(s_MaxPlanarReflections, typeof(Vector4))]

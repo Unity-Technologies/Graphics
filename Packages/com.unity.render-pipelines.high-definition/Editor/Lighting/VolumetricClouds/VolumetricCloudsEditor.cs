@@ -194,6 +194,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        bool IsWrapModeClamp(SerializedDataParameter tex) => tex.value.objectReferenceValue != null && (tex.value.objectReferenceValue as Texture).wrapMode == TextureWrapMode.Clamp;
+
         void AdvancedControlMode()
         {
             // Cumulus
@@ -215,6 +217,9 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_CloudMapResolution);
             PropertyField(m_CloudTiling, k_CloudMapTilingText);
             PropertyField(m_CloudOffset, k_CloudMapOffsetText);
+
+            if (IsWrapModeClamp(m_CumulusMap) || IsWrapModeClamp(m_AltoStratusMap) || IsWrapModeClamp(m_CumulonimbusMap))
+                EditorGUILayout.HelpBox("One of the cloud map textures uses the clamp wrap mode, this wrap mode will be used for the global generated cloud map.", MessageType.Info);
 
             // Properties of the clouds
             PropertyField(m_DensityMultiplier);

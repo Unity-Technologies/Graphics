@@ -1,0 +1,97 @@
+{
+    "introduction":
+	"""Welcome to the Environment Sample Scene.
+
+This sample puts multiple environment effects together in the same scene with different lighting conditions.
+
+<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible. If nothing is displayed, it means the current HDRP asset is properly configured.</i>
+
+<i>In addition, the corresponding HDRP frame settings should be properly checked.</i>
+
+<h1>Time of Day</h1>
+
+This sample features a script animating the position of the <link="Sun">Sun</link> based on the time of day. You can change it manually by directly modifying the Time Of Day variable, using the slider in the Game View or let it move forward by setting Time Speed.
+
+The sun has a child called <link="Moon">Moon</link> with a cookie to represent the moon. It is set at an angle so that when the sun is below the horizon the moon can be visible at night. Also, the moon is set to "Reflect Sunlight" so that its phase changes depending on its relative rotation with the sun.
+
+HDRP supports only one directional shadow at a time. To be able to have shadow from the moon as well, there is a Celestial Bodies Manager on the <link="Sun">Sun</link> that swaps shadow maps by fading them using the shadow dimmer when the contribution of one become more important than the others.  
+
+Since both of those light have physically based intensites, we have an automatic exposure setup on the <link="Global Volume">Global Volume</link> changing from -0.5 to 13.5 automatically depending on celestial bodies rotations.
+
+<h1>Lens Flares</h1>
+
+Both celestial bodies have an SRP Lens Flare component. Some elements of those flares are updated at runtime by sampling the ambient probe in the <link="FlareColor.cs">FlareColor</link> script. 
+
+For the <link="Sun">Sun</link>, the script tint elements of the flare when the sun is at a grazing angle to avoid having white elements at sunrise / sunset. 
+
+For the <link="Moon">Moon</link>, the script attenuates the color of the elements to kill the flare when the sun intensity washes out the moon at daytime.   
+
+For both, the flare intensity is multiplied by zero when the celestial body goes below the horizon.
+
+
+<h1>Physically Based Sky</h1>
+
+The Physically Based Sky simulates a two part atmosphere composed of air and aerosol particles that can be adjusted in the PBR Sky override in the <link="Global Volume">Global Volume</link>.
+
+To be more accurate, it also simulates a layer of ozone absorption that can be dimmed in the volume override.
+This is especially visible when the directional light is at a grazing angle, going through more atmosphere.
+
+To avoid paying the cost of volumetric fog at higher altitude, atmospheric scattering is enabled on the sky simulating the scaterring of blue light on objects and clouds at a distance.
+
+Lastly, to be able to move vertically through the clouds and sky, the Rendering Space is set to World in the Visual Environement override.  
+  
+  
+<h1>Night Sky</h1>
+
+The Physically Based Sky uses a custom <link="Sky.mat">Shader Graph Material</link> to customize the night sky.
+
+It features 3 different things:
+• A layer of stars by sampling a Texture3D.
+• A nebula of gas by sampling a simple Texture2D and positionning it in the sky.
+• A northern lights layer by ray-marching into a texture of noise.
+
+
+<h1>Volumetric Clouds</h1>
+
+Each different prefab in this sample shows a specific cloud setup.
+• The Simple mode uses already defined density shapes and erosion parameters. This is useful to get generic type clouds based on the nebulosity and cloud coverage you need for your environement.
+• The advanced mode is specifically useful to place sets of already defined clouds (Cumulus, Alto Status and Cumulonimbus) at a specific position in world space. Those type of clouds already have a predefined shape, altitude, erosion and density. The LUT used in advanced mode is procedurally generated, an <link="CloudLUT_Advanced.png">image version</link> can be found in this sample. This mode cannot stack clouds on top of each other. 
+• The manual mode is specifically useful to create your own type of clouds. For this, a Cloud LUT needs to be created specifying the shape, altitude, erosion and density of each clouds. Then, using a clouds map, this LUT is sampled horizontally where the blue color points in the cloud map to place specific type of clouds at a specific position in world space. For more information, see the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/volumetric-clouds-volume-override-reference.html#cloud-map-and-cloud-lookup-table">documentation</a>.
+
+
+You can scroll through different prefabs below to see the different examples:
+
+""",
+    "samples": [
+        {
+            "title": "Simple - Clear Skies",
+            "prefabName": "Clear",
+            "description": """In this example, for the Volumetric Clouds, the simple mode is used with a custom preset to lower the density starting from the already predefined Sparse cloud preset. In addition, subtle stratus clouds are added using the blue channel of the cloud layer default texture."""
+        },
+        {
+            "title": "Simple - Cloudy",
+            "prefabName": "Cloudy",
+            "description": """In this example, for the Volumetric Clouds, the simple mode is used with a custom preset to modify parameters starting from the already predefined Cloudy cloud preset. In addition, a veil of clouds is added using the green channel of the cloud layer default texture."""
+        },
+        {
+            "title": "Advanced Clouds",
+            "prefabName": "Advanced",
+            "description": """In this example, for the Volumetric Clouds, the Advanced mode is used to specifically create a small cumulus directly on top of the island. In addition, some stripes of stratus clouds and a cumulonimbus are added at different altitudes."""
+        },
+        {
+            "title": "Manual Clouds - Cumulonimbus",
+            "prefabName": "ManualCumulonimbus",
+            "description": """In this example, a custom <link="CloudLUT - Cumulonimbus.png">Cloud LUT</link> containing only the cumulonimbus cloud type is used. Then, it's sampled specifically in the <link="CloudMap - Cumulonimbus.png">Cloud Map</link> using the blue channel to be placed on the left side of the screen to catch the sunset light creating a dramatic effect."""
+        },
+        {
+            "title": "Manual Clouds - Cirro Stratus",
+            "prefabName": "ManualCirroStratus",
+            "description": """In this example, a custom <link="CloudLUT - Cirrus.png">Cloud LUT</link> containing only the Cirro Status cloud type is used. Then, it's sampled in the <link="CloudMap - Cirrus.png">Cloud Map</link> using the blue channel with a simple deformed gradient from white to black. In addition, a noise texture is used in the red channel to randomize its aspect in the sky."""
+        },
+        {
+            "title": "Manual Clouds - Complete LUT",
+            "prefabName": "ManualComplete",
+            "description": """In this example, a custom <link="CloudLUT - Complete.png">Cloud LUT</link> containing most type of clouds, each using a 32px wide band in the texture for a total of 8 cloud types. Then, using the <link="CloudMap - Complete.png">Cloud Map</link> blue channel, different types of cloud are sampled using two different gradient with colors corresponding to the horizontal position of the clouds defined in the LUT. Additionally, different noise textures are used in the red and green channels to create more diversity across the cloud types."""
+        }
+    ]	
+}

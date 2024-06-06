@@ -89,6 +89,15 @@
         "com.unity.render-pipelines.high-definition/Samples~/Common",
         "com.unity.render-pipelines.core/Samples~/Common"
       ]
+    },
+    {
+      "displayName": "Environment Samples",
+      "description": "Add a set of examples using environment features such as Physically Based Sky, Fog, Volumetric Clouds and Cloud Layer.",
+      "path": "Samples~/Environment Samples",
+      "dependencies": [
+        "com.unity.render-pipelines.high-definition/Samples~/Common",
+        "com.unity.render-pipelines.core/Samples~/Common"
+      ]
     }
   ]
 }

@@ -83,3 +83,14 @@ The Water samples contain the following scenes you can use to learn about HDRP's
 - Island: Demonstrates waves, foam, and the water excluder.
 - Rain: Demonstrates how to add pertubations to the normals using shader graph. 
 - Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md). 
+
+## Environment samples
+
+![](Images/environment-samples.png)
+
+This sample puts multiple environment effects together in the same scene with different lighting conditions.
+The scene includes examples focusing on the following effects:
+- Volumetric Clouds: Demonstrates simple, advanced and manual mode. 
+- Lens Flare: How to update SRP Lens Flares data at runtime.
+- Night Sky: How to add stars and northern lights.
+- Time Of Day: Full 24h cycle with sun, moon and proper shadow map swapping. 

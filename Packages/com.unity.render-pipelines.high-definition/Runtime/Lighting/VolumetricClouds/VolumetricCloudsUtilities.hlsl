@@ -75,6 +75,8 @@ float EvaluateFinalTransmittance(float2 finalCoord, float transmittance)
 
 // Cloud description tables
 Texture2D<float4> _CloudMapTexture;
+SAMPLER(sampler_CloudMapTexture);
+
 Texture2D<float3> _CloudLutTexture;
 
 // Noise textures for adding details
@@ -278,11 +280,11 @@ struct CloudProperties
 void GetCloudCoverageData(float3 positionPS, out CloudCoverageData data)
 {
     // Convert the position into dome space and center the texture is centered above (0, 0, 0)
-    float2 normalizedPosition = AnimateCloudMapPosition(positionPS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw - 0.5;
+    float2 normalizedPosition = AnimateCloudMapPosition(positionPS).xz / _NormalizationFactor * _CloudMapTiling.xy + _CloudMapTiling.zw + 0.5;
     #if defined(CLOUDS_SIMPLE_PRESET)
     float4 cloudMapData =  float4(0.9f, 0.0f, 0.25f, 1.0f);
     #else
-    float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition), 0);
+    float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, sampler_CloudMapTexture, float2(normalizedPosition), 0);
     #endif
     data.coverage = cloudMapData.x;
     data.rainClouds = cloudMapData.y;

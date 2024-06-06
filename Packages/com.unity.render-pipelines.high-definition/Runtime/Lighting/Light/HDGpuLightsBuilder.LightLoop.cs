@@ -338,6 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
             lightData.shadowIndex = shadowIndex;
+            additionalLightData.shadowIndex = shadowIndex;
         }
 
         private void CalculateLightDataTextureInfo(

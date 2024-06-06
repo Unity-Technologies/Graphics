@@ -2630,7 +2630,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Color EvaluateLightColor()
         {
             Color finalColor = legacyLight.color.linear * legacyLight.intensity;
-            
+
             if (legacyLight.useColorTemperature)
                 finalColor *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
 

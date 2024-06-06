@@ -16,7 +16,7 @@ using UnityEngine.Rendering;
 public class SamplesShowcaseEditor : Editor
 {
     private static readonly string UXMLPath = "SamplesSelectionUXML";
-    public static readonly string[] supportedExtensions = {".shadergraph", ".vfx", ".cs", ".hlsl", ".shader", ".asset",".mat",".fbx",".prefab"};
+    public static readonly string[] supportedExtensions = {".shadergraph", ".vfx", ".cs", ".hlsl", ".shader", ".asset",".mat",".fbx",".prefab", ".png"};
 
     SerializedProperty currentIndex;
     Color headlineColor;
