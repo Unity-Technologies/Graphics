@@ -46,8 +46,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (passData.layerUseLights)
                 {
-                    for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
+                    for (var i = 0; i < blendStylesCount; i++)
                     {
+                        var blendStyleIndex = passData.blendStyleIndices[i];
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, true);
                     }
                 }
@@ -191,9 +192,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (layerBatch.lightStats.useAnyLights)
                 {
-                    for (var blendStyleIndex = 0; blendStyleIndex < lightTextures.Length; blendStyleIndex++)
+                    for (var i = 0; i < lightTextures.Length; i++)
                     {
-                        builder.SetGlobalTextureAfterPass(lightTextures[blendStyleIndex], Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex]));
+                        var blendStyleIndex = layerBatch.activeBlendStylesIndices[i];
+                        builder.SetGlobalTextureAfterPass(lightTextures[i], Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[blendStyleIndex]));
                     }
                 }
                 else if (rendererData.lightCullResult.IsSceneLit())
