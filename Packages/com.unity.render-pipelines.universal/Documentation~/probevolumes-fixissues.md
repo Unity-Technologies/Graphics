@@ -99,16 +99,12 @@ For performance reasons, Adaptive Probe Volumes only supports up to 4 Rendering 
 When lighting is generated, Unity will try to automatically assign a mask to each probe by looking at the Rendering Layer Masks of objects surrounding the probe. Additionally, you can use a **Probe Adjustment Volume** to override the Rendering Layer Mask assigned to Light Probes.
 
 At runtime, renderers will only sample lighting data from probes that have a matching Rendering Layer Mask. If the object doesn't match any of the Masks defined in the Lighting window, it will sample lighting from all the valid surrounding probes.
-Note that this feature requires **Light Layers** to be enabled in the HDRP Asset.
+Note that this feature requires **Use Rendering Layers** to be enabled in the URP Asset.
 
 For example, in order to fix light leaking issues, you can create an Interior and an Exterior Rendering Layer Mask to ensure interior objects will never sample lighting data from exterior probes and fix light leaking through the walls.
 A renderer can have several Rendering Layers enabled in it's Rendering Layer Masks. This is useful when dealing with dynamic objects that may want to sample lighting from both the exterior and interior probes.
 
-In HDRP, you can use the Rendering Debugger to visualize which layers are assigned to an object:
-- Go to the Material tab
-- Set the **Material** field to **Common > Rendering Layers**
-
-You can also visualize which layers are assigned to a probe:
+You can visualize which layers are assigned to a probe:
 - Go to the Probe Volumes tab
 - Enable **Display Probes**
 - Set the **Probe Shading Mode** field to **Rendering Layer Masks**
