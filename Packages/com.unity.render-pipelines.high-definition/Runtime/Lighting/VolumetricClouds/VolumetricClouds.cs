@@ -27,8 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public static AnimationData animationData
         {
-            get => HDRenderPipeline.currentPipeline.m_CloudsAnimationData;
-            set { HDRenderPipeline.currentPipeline.m_CloudsAnimationData = value; }
+            get => HDRenderPipeline.currentPipeline.volumetricClouds.m_CloudsAnimationData;
+            set { HDRenderPipeline.currentPipeline.volumetricClouds.m_CloudsAnimationData = value; }
         }
 
         /// <summary>

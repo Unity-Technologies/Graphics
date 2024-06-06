@@ -40,10 +40,10 @@ namespace UnityEngine.Rendering
             /// Performs necessary tasks to free allocated resources.
             /// </summary>
             public abstract void Dispose();
-            
+
             internal NativeArray<uint> encodedDirections;
             internal void Encode() { encodedDirections = EncodeShadingDirection(shadingDirections); }
-            
+
             static int k_MaxProbeCountPerBatch = 65535;
             static readonly int _SkyShadingPrecomputedDirection = Shader.PropertyToID("_SkyShadingPrecomputedDirection");
             static readonly int _SkyShadingDirections = Shader.PropertyToID("_SkyShadingDirections");
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering
                 {
                     int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
                     int probeInBatch = Mathf.Min(probeCount - batchOffset, k_MaxProbeCountPerBatch);
-                    
+
                     directionBuffer.SetData(directions, batchOffset, 0, probeInBatch);
 
                     cs.SetBuffer(kernel, _SkyShadingPrecomputedDirection, precomputedShadingDirections);
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering
                     var batchResult = directionResults.GetSubArray(batchOffset, probeInBatch);
                     AsyncGPUReadback.RequestIntoNativeArray(ref batchResult, encodedBuffer, probeInBatch * sizeof(uint), 0).WaitForCompletion();
                 }
-                
+
                 directionBuffer.Dispose();
                 encodedBuffer.Dispose();
 

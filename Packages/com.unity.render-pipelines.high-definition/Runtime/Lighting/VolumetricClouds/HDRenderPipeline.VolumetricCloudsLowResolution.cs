@@ -3,7 +3,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class VolumetricCloudsSystem
     {
         struct VolumetricCloudsParameters_LowResolution
         {

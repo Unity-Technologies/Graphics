@@ -239,9 +239,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PassDescriptor GenerateWaterGBufferPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
         {
-            string passName = lowRes ? HDRenderPipeline.k_LowResGBufferPass: HDRenderPipeline.k_WaterGBufferPass;
+            string passName = lowRes ? WaterSystem.k_LowResGBufferPass: WaterSystem.k_WaterGBufferPass;
             if (useTessellation)
-                passName += HDRenderPipeline.k_TessellationPass;
+                passName += WaterSystem.k_TessellationPass;
 
             return new PassDescriptor
             {
@@ -302,11 +302,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PassDescriptor GenerateWaterMaskPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
         {
-            string passName = HDRenderPipeline.k_WaterMaskPass;
+            string passName = WaterSystem.k_WaterMaskPass;
             if (lowRes)
-                passName += HDRenderPipeline.k_LowResGBufferPass;
+                passName += WaterSystem.k_LowResGBufferPass;
             if (useTessellation)
-                passName += HDRenderPipeline.k_TessellationPass;
+                passName += WaterSystem.k_TessellationPass;
 
             return new PassDescriptor
             {
@@ -436,7 +436,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
-            if (pass.displayName.StartsWith(HDRenderPipeline.k_LowResGBufferPass))
+            if (pass.displayName.StartsWith(WaterSystem.k_LowResGBufferPass))
                 return;
 
             pass.keywords.Add(WaterBandCount);
@@ -445,12 +445,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.StereoInstancing);
 
             // The following keywords/multicompiles are only required for the gbuffer pass
-            if (pass.displayName.StartsWith(HDRenderPipeline.k_WaterGBufferPass))
+            if (pass.displayName.StartsWith(WaterSystem.k_WaterGBufferPass))
             {
                 if (lightingData.receiveDecals)
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
             }
-            else if (pass.displayName.StartsWith(HDRenderPipeline.k_WaterMaskPass))
+            else if (pass.displayName.StartsWith(WaterSystem.k_WaterMaskPass))
             {
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             }

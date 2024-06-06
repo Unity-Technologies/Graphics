@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_LargeBand0Multiplier, k_SwellBand0Mutliplier);
                     using (new DisabledScope(true))
                     {
-                        float maxAmplitudeBand0 = serialized.m_LargeBand0Multiplier.floatValue * HDRenderPipeline.EvaluateMaxAmplitude(serialized.m_RepetitionSize.floatValue, serialized.m_LargeWindSpeed.floatValue);
+                        float maxAmplitudeBand0 = serialized.m_LargeBand0Multiplier.floatValue * WaterSystem.EvaluateMaxAmplitude(serialized.m_RepetitionSize.floatValue, serialized.m_LargeWindSpeed.floatValue);
                         EditorGUILayout.TextField(k_SwellMaxAmplitude, maxAmplitudeBand0.ToString("0.00") + " m", EditorStyles.boldLabel);
                         totalAmplitude += maxAmplitudeBand0;
                     }
@@ -250,8 +250,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_LargeBand1Multiplier, k_SwellBand1Mutliplier);
                     using (new DisabledScope(true))
                     {
-                        float swellSecondBandRatio = HDRenderPipeline.EvaluateSwellSecondPatchSize(serialized.m_RepetitionSize.floatValue);
-                        float maxAmplitudeBand1 = serialized.m_LargeBand1Multiplier.floatValue * HDRenderPipeline.EvaluateMaxAmplitude(swellSecondBandRatio, serialized.m_LargeWindSpeed.floatValue);
+                        float swellSecondBandRatio = WaterSystem.EvaluateSwellSecondPatchSize(serialized.m_RepetitionSize.floatValue);
+                        float maxAmplitudeBand1 = serialized.m_LargeBand1Multiplier.floatValue * WaterSystem.EvaluateMaxAmplitude(swellSecondBandRatio, serialized.m_LargeWindSpeed.floatValue);
                         EditorGUILayout.TextField(k_SwellMaxAmplitude, maxAmplitudeBand1.ToString("0.00") + " m", EditorStyles.boldLabel);
                         totalAmplitude += maxAmplitudeBand1;
                     }
@@ -340,7 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.m_LargeBand0Multiplier, k_AgitationBandMutliplier);
                 using (new DisabledScope(true))
                 {
-                    float maxAmplitude = serialized.m_LargeBand0Multiplier.floatValue * HDRenderPipeline.EvaluateMaxAmplitude(serialized.m_RepetitionSize.floatValue, serialized.m_LargeWindSpeed.floatValue);
+                    float maxAmplitude = serialized.m_LargeBand0Multiplier.floatValue * WaterSystem.EvaluateMaxAmplitude(serialized.m_RepetitionSize.floatValue, serialized.m_LargeWindSpeed.floatValue);
                     EditorGUILayout.TextField(k_AgitationTotalAmplitude, maxAmplitude.ToString("0.00") + " m", EditorStyles.boldLabel);
                 }
 

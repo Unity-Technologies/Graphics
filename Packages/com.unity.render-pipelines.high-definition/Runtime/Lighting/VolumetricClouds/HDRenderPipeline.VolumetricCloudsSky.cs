@@ -3,33 +3,31 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class VolumetricCloudsSystem
     {
+        int skyReflectionSize => (int)m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
+
         TextureDesc GetVolumetricCloudsIntermediateLightingBufferDesc()
         {
-            int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-            return new TextureDesc(skyResolution, skyResolution, false, true)
+            return new TextureDesc(skyReflectionSize, skyReflectionSize, false, true)
             { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true };
         }
 
         TextureDesc GetVolumetricCloudsIntermediateDepthBufferDesc()
         {
-            int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-            return new TextureDesc(skyResolution, skyResolution, false, true)
+            return new TextureDesc(skyReflectionSize, skyReflectionSize, false, true)
             { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true };
         }
 
         TextureDesc GetVolumetricCloudsIntermediateCubeTextureDesc()
         {
-            int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-            return new TextureDesc(skyResolution, skyResolution, false, false)
+            return new TextureDesc(skyReflectionSize, skyReflectionSize, false, false)
             { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
         }
 
         TextureDesc GetVolumetricCloudsMetalCopyBufferDesc()
         {
-            int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-            return new TextureDesc(skyResolution, skyResolution, false, true)
+            return new TextureDesc(skyReflectionSize, skyReflectionSize, false, true)
             { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = false };
         }
 
@@ -190,7 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.enableIntegration = false;
             UpdateShaderVariablesClouds(ref data.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
-            int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
             data.intermediateLightingBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
             data.intermediateDepthBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateDepthBufferDesc());
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
@@ -324,8 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricCloudsPreUpscalePassData>("VolumetricCloudsPreUpscale", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPreUpscale)))
                 {
-                    int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-
                     passData.cloudCombinePass = m_CloudCombinePass;
                     passData.pixelCoordToViewDir = pixelCoordToViewDir;
                     passData.input = builder.ReadTexture(intermediateCubemap);

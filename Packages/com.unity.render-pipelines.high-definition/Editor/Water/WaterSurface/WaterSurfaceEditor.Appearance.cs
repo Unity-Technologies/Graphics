@@ -132,8 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return null;
             }
 
-            var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
-            var shader = shaders.waterPS;
+            var shader = GraphicsSettings.GetRenderPipelineSettings<WaterSystemRuntimeResources>().waterPS;
             if (!AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), path))
             {
                 Debug.LogWarning($"Failed to copy the Water Shader Graph to {path}");
@@ -237,11 +236,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     EditorGUILayout.PropertyField(serialized.m_CausticsResolution);
-                    int bandCount = HDRenderPipeline.EvaluateBandCount(surfaceType, serialized.m_Ripples.boolValue);
+                    int bandCount = WaterSystem.EvaluateBandCount(surfaceType, serialized.m_Ripples.boolValue);
 
                     if (bandCount != 1 && !serialized.m_SurfaceType.hasMultipleDifferentValues && !serialized.m_Ripples.hasMultipleDifferentValues)
                     {
-                        int bandIdx = HDRenderPipeline.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount);
+                        int bandIdx = WaterSystem.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount);
 
                         GUIContent label = null;
                         List<GUIContent> options = new();
@@ -293,7 +292,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AdvancedProperties.EndGroup();
 
                     // Display an info box if the wind speed is null for the target band
-                    if (!WaterBandHasAgitation(serialized, owner, HDRenderPipeline.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount)))
+                    if (!WaterBandHasAgitation(serialized, owner, WaterSystem.SanitizeCausticsBand(serialized.m_CausticsBand.intValue, bandCount)))
                     {
                         EditorGUILayout.HelpBox("The selected simulation band has currently a null wind speed and will not generate caustics.", MessageType.Info, wide: true);
                     }

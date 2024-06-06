@@ -3,31 +3,19 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class VolumetricCloudsSystem
     {
-        // We need to store these as globals to avoid GC alloc in history allocator callbacks
-        static bool s_FullscaleHistory;
-        static GraphicsFormat s_FormatHistory;
-        static HDCameraFrameHistoryType s_TypeHistory;
-
-        static RTHandle VolumetricCloudsHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
-        {
-            return rtHandleSystem.Alloc(Vector2.one * (s_FullscaleHistory ? 1.0f : 0.5f), TextureXR.slices, colorFormat: s_FormatHistory, dimension: TextureXR.dimension,
-                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                name: string.Format("{0}_CloudsHistory{1}Buffer{2}", viewName, s_TypeHistory, frameIndex));
-        }
-
-        static RTHandle RequestVolumetricCloudsHistoryTexture(HDCamera hdCamera, bool current, HDCameraFrameHistoryType type, bool fullscale, VolumetricClouds settings)
+        RTHandle RequestVolumetricCloudsHistoryTexture(HDCamera hdCamera, bool current, HDCameraFrameHistoryType type, bool fullscale, VolumetricClouds settings)
         {
             RTHandle texture = current ? hdCamera.GetCurrentFrameRT((int)type) : hdCamera.GetPreviousFrameRT((int)type);
             if (texture != null)
                 return texture;
 
-            s_TypeHistory = type;
-            s_FullscaleHistory = fullscale;
-            s_FormatHistory = type == HDCameraFrameHistoryType.VolumetricClouds0 ? GetCloudsColorFormat(settings, true) : GraphicsFormat.R16G16B16A16_SFloat;
+            GraphicsFormat format = type == HDCameraFrameHistoryType.VolumetricClouds0 ? GetCloudsColorFormat(settings, true) : GraphicsFormat.R16G16B16A16_SFloat;
+            var name = string.Format("CloudsHistory{0}", type);
+            var historyAlloc = new HDCamera.CustomHistoryAllocator(Vector2.one * (fullscale ? 1.0f : 0.5f), format, name);
 
-            return hdCamera.AllocHistoryFrameRT((int)type, VolumetricCloudsHistoryBufferAllocatorFunction, 2);
+            return hdCamera.AllocHistoryFrameRT((int)type, historyAlloc.Allocator, 2);
         }
 
         private int CombineVolumetricCloudsHistoryStateToMask(HDCamera hdCamera)
@@ -215,7 +203,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
                 // When DRS scale is lower than threshold, trace in half res instead of quarter res
-                bool halfRes = DynamicResolutionHandler.instance.GetCurrentScale() * 100.0f < currentPlatformRenderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold;
+                float threshold = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.lowResVolumetricCloudsMinimumThreshold;
+                bool halfRes = DynamicResolutionHandler.instance.GetCurrentScale() * 100.0f < threshold;
                 float downscaling = halfRes ? 1.0f : 0.5f;
 
                 bool fullscaleHistory = DynamicResolutionHandler.instance.DynamicResolutionEnabled() ? true : false;

@@ -1018,7 +1018,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle densityBuffer;
             public GraphicsBuffer volumetricAmbientProbeBuffer;
-            
+
             // Underwater fog
             public bool water;
             public BufferHandle waterLine;
@@ -1080,7 +1080,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
-                    
+
                     passData.water = transparentPrepass.waterGBuffer.valid && transparentPrepass.underWaterSurface != null;
                     if (passData.water)
                     {
@@ -1091,13 +1091,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     CoreUtils.SetKeyword(passData.voxelizationCS, "SUPPORT_WATER_ABSORPTION", passData.water);
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync() && !passData.water);
-                    
+
                     builder.SetRenderFunc(
                         (HeightFogVoxelizationPassData data, RenderGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);
                             ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
-                            
+
                             // Underwater fog
                             if (data.water)
                             {
@@ -1301,7 +1301,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle feedbackBuffer;
             public BufferHandle bigTileVolumetricLightListBuffer;
             public GraphicsBuffer volumetricAmbientProbeBuffer;
-            
+
             // Underwater
             public bool water;
             public BufferHandle waterLine;
@@ -1387,7 +1387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
-                    
+
                     // Water stuff
                     if (passData.water)
                     {
@@ -1395,7 +1395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.waterCameraHeight = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
                         passData.waterStencil = builder.ReadTexture(depthBuffer);
                         if (transparentPrepass.underWaterSurface.caustics)
-                            passData.causticsBuffer = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex].simulation.gpuBuffers.causticsBuffer.rt;
+                            passData.causticsBuffer = waterSystem.GetUnderWaterSurfaceCaustics();
                     }
 
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
@@ -1412,7 +1412,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);  // Read
                             ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._VBufferLighting, data.lightingBuffer); // Write
                             ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
-                            
+
                             // Underwater
                             if (data.water)
                             {

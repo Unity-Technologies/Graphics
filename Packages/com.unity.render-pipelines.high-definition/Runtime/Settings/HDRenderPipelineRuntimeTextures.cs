@@ -159,47 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_HairLongitudinalScatteringLUT, value);
         }
 
-        // Clouds textures
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
-        private Texture2D m_CloudLutRainAO;
-        public Texture2D cloudLutRainAO
-        {
-            get => m_CloudLutRainAO;
-            set => this.SetValueAndNotify(ref m_CloudLutRainAO, value);
-        }
-
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise128RGBA.png")]
-        private Texture3D m_WorleyNoise128RGBA;
-        public Texture3D worleyNoise128RGBA
-        {
-            get => m_WorleyNoise128RGBA;
-            set => this.SetValueAndNotify(ref m_WorleyNoise128RGBA, value);
-        }
-
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise32RGB.png")]
-        private Texture3D m_WorleyNoise32RGB;
-        public Texture3D worleyNoise32RGB
-        {
-            get => m_WorleyNoise32RGB;
-            set => this.SetValueAndNotify(ref m_WorleyNoise32RGB, value);
-        }
-
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
-        private Texture3D m_PerlinNoise32RGB;
-        public Texture3D perlinNoise32RGB
-        {
-            get => m_PerlinNoise32RGB;
-            set => this.SetValueAndNotify(ref m_PerlinNoise32RGB, value);
-        }
-
-        // Water textures
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/Water/FoamMask.png")]
-        private Texture2D m_FoamMask;
-        public Texture2D foamMask
-        {
-            get => m_FoamMask;
-            set => this.SetValueAndNotify(ref m_FoamMask, value);
-        }
         // Post-processing
         [SerializeField][ResourcePaths(new[]
         {
@@ -220,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_FilmGrainTex;
             set => this.SetValueAndNotify(ref m_FilmGrainTex, value);
         }
-        
+      
         // SMAA Textures
         [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Texture/SMAA/SearchTex.tga")]
         private Texture2D m_SMAASearchTex;

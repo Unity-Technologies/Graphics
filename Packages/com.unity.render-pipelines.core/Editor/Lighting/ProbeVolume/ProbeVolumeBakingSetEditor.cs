@@ -268,7 +268,7 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.Space();
         }
-        
+
         bool RenameEvent(Rect rect, bool active, bool focused, int index, ref int renameIndex)
         {
             if (active)
@@ -398,7 +398,7 @@ namespace UnityEditor.Rendering
                         else if (!supportsLayers && renderPipelineAssetType != null && renderPipelineAssetType.Name == "UniversalRenderPipelineAsset")
                         {
                             string message = "The current URP Asset does not support Light Layers.";
-                    
+
                             CoreEditorUtils.DrawFixMeBox(message, MessageType.Warning, "Open", () =>
                             {
                                 EditorUtility.OpenPropertyEditor(currentPipeline);

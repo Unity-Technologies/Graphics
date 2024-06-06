@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void FillWaterDeformationData(ref WaterSimSearchData wsd)
         {
             // Water Mask
-            if (deformation && deformationBufferSychro.TryGetBuffer(out var deformationBuffer) && deformationBuffer.Length > 0 && HDRenderPipeline.currentPipeline.NumActiveWaterDeformers() > 0)
+            if (deformation && deformationBufferSychro.TryGetBuffer(out var deformationBuffer) && deformationBuffer.Length > 0 && HDRenderPipeline.currentPipeline.waterSystem.NumActiveWaterDeformers() > 0)
             {
                 wsd.activeDeformation = true;
                 wsd.deformationBuffer = deformationBuffer;
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 wsd.activeDeformation = false;
-                wsd.deformationBuffer = HDRenderPipeline.currentPipeline.m_DefaultDeformationBuffer;
+                wsd.deformationBuffer = HDRenderPipeline.currentPipeline.waterSystem.m_DefaultDeformationBuffer;
             }
 
             wsd.deformationRegionScale = float2(1.0f / deformationAreaSize.x, 1.0f / deformationAreaSize.y);

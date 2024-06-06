@@ -1511,45 +1511,29 @@ namespace UnityEngine.Rendering.HighDefinition
             // Water
             public WaterSurface underWaterSurface;
 
-            public WaterGBuffer waterGBuffer;
+            public WaterSystem.WaterGBuffer waterGBuffer;
             public BufferHandle waterLine;
             public BufferHandle waterSurfaceProfiles;
 
             // Clouds
-            public VolumetricCloudsOutput clouds;
+            public VolumetricCloudsSystem.VolumetricCloudsOutput clouds;
         }
 
         TransparentPrepassOutput RenderTransparentPrepass(RenderGraph renderGraph, CullingResults cullingResults, HDCamera hdCamera,
             TextureHandle currentColorPyramid, in BuildGPULightListOutput lightLists, ref PrepassOutput prepassOutput)
         {
-            var defaultBuffer = renderGraph.ImportBuffer(m_DefaultWaterLineBuffer);
-            var waterSurfaceProfiles = renderGraph.ImportBuffer(m_WaterProfileArrayGPU);
-
             TransparentPrepassOutput output = new TransparentPrepassOutput()
             {
                 enablePerPixelSorting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction),
                 depthBufferPreRefraction = prepassOutput.depthBuffer,
                 resolvedDepthBufferPreRefraction = prepassOutput.resolvedDepthBuffer,
 
-                waterGBuffer = new WaterGBuffer()
-                {
-                    waterGBuffer0 = renderGraph.defaultResources.blackTextureXR,
-                    waterGBuffer1 = renderGraph.defaultResources.blackTextureXR,
-                    waterGBuffer2 = renderGraph.defaultResources.blackTextureXR,
-                    waterGBuffer3 = renderGraph.defaultResources.blackTextureXR,
-
-                    cameraHeight = defaultBuffer,
-                },
-
-                waterLine = defaultBuffer,
-                waterSurfaceProfiles = waterSurfaceProfiles,
-
                 beforeRefraction = renderGraph.defaultResources.blackTextureXR,
                 beforeRefractionAlpha = renderGraph.defaultResources.whiteTextureXR,
             };
 
-            // Init water line buffer that is used by custom passes
-            prepassOutput.waterLine = output.waterLine;
+            m_WaterSystem.InitializeWaterPrepassOutput(renderGraph, ref output);
+            prepassOutput.waterLine = output.waterLine; // This buffer is used by custom passes
 
             var preRefraction = renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, m_TransparentDepthPrepassNames,
                 renderQueueRange: GetTransparentRenderQueueRange(hdCamera, true)));
@@ -1572,7 +1556,7 @@ namespace UnityEngine.Rendering.HighDefinition
             output.beforeRefractionAlpha = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             { colorFormat = GraphicsFormat.R8_UNorm, msaaSamples = hdCamera.msaaSamples, clearBuffer = true, clearColor = Color.white, name = "Before Refraction Alpha" });
 
-            bool hasWater = ShouldRenderWater(hdCamera);
+            bool hasWater = WaterSystem.ShouldRenderWater(hdCamera);
             var refraction = renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, m_TransparentDepthPrepassNames,
                 renderQueueRange: GetTransparentRenderQueueRange(hdCamera, false)));
 
@@ -1582,10 +1566,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hasWater)
             {
                 // Render the water gbuffer (and prepare for the transparent SSR pass)
-                output.waterGBuffer = RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, lightLists);
+                output.waterGBuffer = m_WaterSystem.RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, lightLists);
 
                 // Render Water Line
-                RenderWaterLine(renderGraph, hdCamera, prepassOutput.depthBuffer, ref output);
+                m_WaterSystem.RenderWaterLine(renderGraph, hdCamera, prepassOutput.depthBuffer, ref output);
                 prepassOutput.waterLine = output.waterLine;
             }
 
@@ -1658,7 +1642,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
             // Combine volumetric clouds with prerefraction transparents
-            CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass, ref opticalFogTransmittance);
+            m_VolumetricClouds.CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass, ref opticalFogTransmittance);
 
             var preRefractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, true));
             var refractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, false));
@@ -1666,10 +1650,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, transparentPrepass, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, null, lightLists, shadowResult, cullingResults, true, preRefractionList);
 
             // Render the deferred water lighting
-            RenderWaterLighting(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, transparentPrepass, lightLists, ref opticalFogTransmittance);
+            m_WaterSystem.RenderWaterLighting(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, volumetricLighting, ssrLightingBuffer, transparentPrepass, lightLists, ref opticalFogTransmittance);
 
             // If required, render the water mask debug views
-            RenderWaterMask(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
+            m_WaterSystem.RenderWaterMask(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.waterGBuffer);
 
             bool ssmsEnabled = Fog.IsMultipleScatteringEnabled(hdCamera, out float fogMultipleScatteringIntensity);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled() || ssmsEnabled)
@@ -1947,7 +1931,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SkyManager.RenderClouds(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, ref opticalFogTransmittance);
 
-            RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, ref transparentPrepass, ref opticalFogTransmittance);
+            m_VolumetricClouds.RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, ref transparentPrepass, ref opticalFogTransmittance);
         }
 
         class GenerateColorPyramidData

@@ -11,24 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
-        #region Water
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
-        private Material m_WaterMaterial;
-        public Material waterMaterial
-        {
-            get => m_WaterMaterial;
-            set => this.SetValueAndNotify(ref m_WaterMaterial, value);
-        }
-
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/Material/MaterialWaterExclusion.mat")]
-        private Material m_WaterExclusionMaterial;
-        public Material waterExclusionMaterial
-        {
-            get => m_WaterExclusionMaterial;
-            set => this.SetValueAndNotify(ref m_WaterExclusionMaterial, value);
-        }
-        #endregion
-
         #region Sky
         [SerializeField][ResourcePath("Runtime/RenderPipelineResources/ShaderGraph/PhysicallyBasedSky.shadergraph")]
         private Material m_PBRSkyMaterial;

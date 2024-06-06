@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering
                         SubdivideSubCell(subVolume.bounds, subdivisionCtx, ctx, filteredContributors, overlappingProbeVolumes, subBrickSet);
                         if (subBrickSet.Count == 0)
                             continue;
-                        
+
                         // Make sure no bricks with unwanted subdiv level are generated
                         if (requireSubFiltering && !fastSubFiltering)
                         {

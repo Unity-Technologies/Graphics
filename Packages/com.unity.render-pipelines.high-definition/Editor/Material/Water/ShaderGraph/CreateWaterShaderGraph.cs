@@ -40,8 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
-                var shader = shaders.waterPS;
+                var shader = GraphicsSettings.GetRenderPipelineSettings<WaterSystemRuntimeResources>().waterPS;
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(shader), pathName);
             }
         }

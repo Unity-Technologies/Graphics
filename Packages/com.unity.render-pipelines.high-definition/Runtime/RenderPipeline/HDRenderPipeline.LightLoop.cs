@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BuildGPULightListOutput output = new BuildGPULightListOutput();
         }
 
-        struct BuildGPULightListOutput
+        internal struct BuildGPULightListOutput
         {
             // Tile
             public BufferHandle lightList;

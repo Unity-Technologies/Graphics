@@ -4,7 +4,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         // Controls the maximum number of foam generators that are supported in one frame
         const int k_MaxNumWaterFoamGenerators = 64;
@@ -39,18 +39,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Atlas used to hold the custom foam generators' textures.
         PowerOfTwoTextureAtlas m_FoamTextureAtlas;
+        int m_FoamAtlasSize;
 
         void InitializeWaterFoam()
         {
-            m_ActiveWaterFoam = m_Asset.currentPlatformRenderPipelineSettings.supportWaterFoam;
+            m_ActiveWaterFoam = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.supportWaterFoam;
             if (!m_ActiveWaterFoam)
                 return;
 
-            m_FoamMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.waterFoamPS);
+            m_FoamAtlasSize = (int)m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.foamAtlasSize;
+            m_FoamMaterial = CoreUtils.CreateEngineMaterial(m_RuntimeResources.waterFoamPS);
             m_WaterFoamGeneratorDataCPU = new NativeArray<WaterGeneratorData>(k_MaxNumWaterFoamGenerators, Allocator.Persistent);
             m_WaterFoamGeneratorData = new ComputeBuffer(k_MaxNumWaterFoamGenerators, System.Runtime.InteropServices.Marshal.SizeOf<WaterGeneratorData>());
-            m_FoamTextureAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize, 0, GraphicsFormat.R16G16_UNorm, name: "Water Foam Atlas", useMipMap: false);
-            m_WaterFoamCS = runtimeShaders.waterFoamCS;
+            m_FoamTextureAtlas = new PowerOfTwoTextureAtlas(m_FoamAtlasSize, 0, GraphicsFormat.R16G16_UNorm, name: "Water Foam Atlas", useMipMap: false);
+            m_WaterFoamCS = m_RuntimeResources.waterFoamCS;
             m_ReprojectFoamKernel = m_WaterFoamCS.FindKernel("ReprojectFoam");
             m_AttenuateFoamKernel = m_WaterFoamCS.FindKernel("AttenuateFoam");
 
@@ -147,9 +149,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (currentGenerator.updateMode == CustomRenderTextureUpdateMode.Realtime || currentGenerator.shouldUpdate)
                     {
-                        var size = (int)m_Asset.currentPlatformRenderPipelineSettings.foamAtlasSize;
                         cmd.SetRenderTarget(m_FoamTextureAtlas.AtlasTexture);
-                        cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
+                        cmd.SetViewport(new Rect(scaleBias.z * m_FoamAtlasSize, scaleBias.w * m_FoamAtlasSize, scaleBias.x * m_FoamAtlasSize, scaleBias.y * m_FoamAtlasSize));
                         cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.FoamGenerator, MeshTopology.Triangles, 3, 1, currentGenerator.mpb);
 
                         currentGenerator.shouldUpdate = false;
@@ -238,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(m_WaterFoamCS, m_AttenuateFoamKernel, HDShaderIDs._WaterFoamBuffer, tmpFoamBuffer);
                     cmd.SetComputeTextureParam(m_WaterFoamCS, m_AttenuateFoamKernel, HDShaderIDs._WaterFoamBufferRW, currentFoamBuffer);
                     cmd.DispatchCompute(m_WaterFoamCS, m_AttenuateFoamKernel, tileC, tileC, 1);
-                    
+
                     // Update the foam data for the next frame
                     currentWater.previousFoamRegionScaleOffset = new float4(cb._FoamRegionScale, cb._FoamRegionOffset);
                 }

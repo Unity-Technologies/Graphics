@@ -1531,7 +1531,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle depth = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
 
                 // Render the debug water
-                RenderWaterDebug(renderGraph, hdCamera, output, depth, true);
+                m_WaterSystem.RenderWaterDebug(renderGraph, hdCamera, output, depth, true);
 
                 // Render the debug lines.
                 RenderLines(renderGraph, depthBuffer, hdCamera, lightLists);

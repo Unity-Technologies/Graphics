@@ -1,8 +1,8 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
-        void RenderWaterAsWireFrame(CommandBuffer cmd, HDCamera hdCamera)
+        internal void RenderWaterAsWireFrame(CommandBuffer cmd, HDCamera hdCamera)
         {
             // If the water is disabled, no need to render
             if (!ShouldRenderWater(hdCamera))

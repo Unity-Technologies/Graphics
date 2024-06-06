@@ -869,7 +869,7 @@ namespace UnityEngine.Rendering
                     touchup.skyDirection.Normalize();
                 }
             }
-            
+
             // Sort by volume to give priority to bigger volumes so smaller volumes are applied last
             touchupVolumesAndBounds.Sort((a, b) => (b.volume.ComputeVolume(b.obb).CompareTo(a.volume.ComputeVolume(a.obb))));
 
@@ -1169,7 +1169,7 @@ namespace UnityEngine.Rendering
             CacheEntry BuildMap(in BakingCell cell)
             {
                 var entry = m_BrickMetaPool.Get();
-                
+
                 // Build a map from voxel to brick
                 // A voxel is the size of a brick at subdivision level 0
                 foreach (var brick in cell.bricks)
@@ -1192,7 +1192,7 @@ namespace UnityEngine.Rendering
 
                 return entry;
             }
-            
+
             public Dictionary<int, Brick> GetMap(in BakingCell cell)
             {
                 if (!cache.TryGetValue(cell.index, out var entry))
@@ -1242,7 +1242,7 @@ namespace UnityEngine.Rendering
                 float scale = m_ProfileInfo.minBrickSize / ProbeBrickPool.kBrickCellCount;
                 float minBrickSize = m_ProfileInfo.minBrickSize;
                 Brick largestBrick = default;
-                
+
                 int numProbes = cell.probePositions.Length;
                 for (int probeIndex = 0; probeIndex < numProbes; ++probeIndex)
                 {

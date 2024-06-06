@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PreRenderSky(renderGraph, hdCamera, result.depthBuffer, result.normalBuffer);
 
-                PreRenderVolumetricClouds(renderGraph, hdCamera);
+                m_VolumetricClouds.PreRenderVolumetricClouds(renderGraph, hdCamera);
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
@@ -1476,7 +1476,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Volumetric clouds need 1 mip
-            if (HasVolumetricClouds(hdCamera))
+            if (VolumetricCloudsSystem.HasVolumetricClouds(hdCamera))
             {
                 mipCount = Mathf.Max(mipCount, 1);
             }

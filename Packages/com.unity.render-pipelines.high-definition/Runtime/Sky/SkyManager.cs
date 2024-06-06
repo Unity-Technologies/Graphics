@@ -884,7 +884,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render the volumetric clouds into the cubemap
             if (skyContext.volumetricClouds != null)
             {
-                HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_FacePixelCoordToViewDirMatrices, skyContext.volumetricClouds,
+                HDRenderPipeline.currentPipeline.volumetricClouds.RenderVolumetricClouds_Sky(renderGraph, hdCamera, m_FacePixelCoordToViewDirMatrices, skyContext.volumetricClouds,
                     skyContext.skyRenderer, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, cloudsProbeBuffer, outputCubemap);
             }
 
@@ -1187,7 +1187,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The static one is "permanent" until recomputed, the dynamic one is recomputed no matter what at the beginning of the frame which guarantees
                     // that it will be ready when we evaluate the clouds for the camera view.
                     HDRenderPipeline hdrp = HDRenderPipeline.currentPipeline;
-                    GraphicsBuffer volumetricCloudsProbe = hdrp.RenderVolumetricCloudsAmbientProbe(renderGraph, hdCamera, skyContext, staticSky);
+                    GraphicsBuffer volumetricCloudsProbe = hdrp.volumetricClouds.RenderVolumetricCloudsAmbientProbe(renderGraph, hdCamera, this, skyContext, staticSky);
 
                     if (forceUpdate)
                     {

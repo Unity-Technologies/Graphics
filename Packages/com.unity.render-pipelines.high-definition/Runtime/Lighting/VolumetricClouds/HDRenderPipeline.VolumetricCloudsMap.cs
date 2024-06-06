@@ -4,7 +4,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class VolumetricCloudsSystem
     {
         RTHandle m_AdvancedCloudMap;
         int m_CloudMapHash;
@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeVolumetricCloudsMap()
         {
             // Grab the kernels we need
-            m_CloudMapGeneratorCS = runtimeShaders.volumetricCloudMapGeneratorCS;
+            m_CloudMapGeneratorCS = m_RuntimeResources.volumetricCloudMapGeneratorCS;
             m_EvaluateCloudMapKernel = m_CloudMapGeneratorCS.FindKernel("EvaluateCloudMap");
             m_CloudMapHash = 0;
         }

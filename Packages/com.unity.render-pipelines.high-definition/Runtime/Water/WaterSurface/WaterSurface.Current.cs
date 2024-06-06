@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void FillCurrentMapData(ref WaterSimSearchData wsd)
         {
             // Common data
-            wsd.sectorData = HDRenderPipeline.currentPipeline.m_SectorData;
+            wsd.sectorData = HDRenderPipeline.currentPipeline.waterSystem.m_SectorData;
 
             // Swell / Agitation
             if (largeCurrentMap != null && largeCurrentMapSynchronizer.TryGetBuffer(out var currentBuffer) && currentBuffer.Length > 0 && largeCurrentMapSynchronizer.CurrentResolution().x != 0)
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 wsd.activeGroup0CurrentMap = false;
-                wsd.group0CurrentMap = HDRenderPipeline.currentPipeline.m_DefaultCurrentMap;
+                wsd.group0CurrentMap = HDRenderPipeline.currentPipeline.waterSystem.m_DefaultCurrentMap;
                 wsd.group0CurrentMapResolution = int2(1, 1);
             }
 
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 wsd.activeGroup1CurrentMap = false;
-                wsd.group1CurrentMap = HDRenderPipeline.currentPipeline.m_DefaultCurrentMap;
+                wsd.group1CurrentMap = HDRenderPipeline.currentPipeline.waterSystem.m_DefaultCurrentMap;
                 wsd.group1CurrentMapResolution = int2(1, 1);
             }
 

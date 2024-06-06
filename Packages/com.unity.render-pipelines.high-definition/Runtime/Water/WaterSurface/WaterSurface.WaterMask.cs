@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 wsd.activeMask = false;
-                wsd.maskBuffer = HDRenderPipeline.currentPipeline.m_DefaultWaterMask;
+                wsd.maskBuffer = HDRenderPipeline.currentPipeline.waterSystem.m_DefaultWaterMask;
             }
 
             wsd.maskScale = float2(1.0f / waterMaskExtent.x, 1.0f / waterMaskExtent.y);

@@ -1,10 +1,9 @@
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         // Flag that allows us to track in which current under water volume we are.
         internal int m_UnderWaterSurfaceIndex;
@@ -22,13 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsBuffer m_DefaultWaterLineBuffer;
 
-        // Resolution of the binning tile
-        const int underWaterTileSize = 16;
-
         void InitializeUnderWaterResources()
         {
             // Kernels
-            m_WaterLineCS = runtimeShaders.waterLineCS;
+            m_WaterLineCS = m_RuntimeResources.waterLineCS;
             m_ClearWaterLine = m_WaterLineCS.FindKernel("ClearWaterLine");
             m_WaterLineEvaluation1D = m_WaterLineCS.FindKernel("LineEvaluation1D");
             m_WaterLineBoundsPropagation = m_WaterLineCS.FindKernel("BoundsPropagation");
@@ -65,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (currentWater.IsInfinite())
                 {
                     // Maximal possible wave height of the current setup
-                    float maxWaveHeight = HDRenderPipeline.EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, currentWater.simulation.spectrum.patchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
+                    float maxWaveHeight = WaterSystem.EvaluateMaxAmplitude(currentWater.simulation.spectrum.patchSizes.x, currentWater.simulation.spectrum.patchWindSpeed.x * WaterConsts.k_MeterPerSecondToKilometerPerHour);
                     float maxDeformation = Mathf.Max(Mathf.Max(maxWaveHeight * 2.0f, 0.1f), currentWater.volumeHeight);
 
                     // Evaluate the vertical boundaries of the volume
@@ -100,6 +96,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal RenderTexture GetUnderWaterSurfaceCaustics()
+        {
+            return WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex].simulation.gpuBuffers.causticsBuffer.rt;
+        }
+
 
         float Min4(float a, float b, float c, float d) => Mathf.Min(Mathf.Min(a, b), Mathf.Min(c, d));
         float Max4(float a, float b, float c, float d) => Mathf.Max(Mathf.Max(a, b), Mathf.Max(c, d));
@@ -116,14 +117,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe Vector4 EvaluateWaterAmbientProbe(HDCamera hdCamera, float ambientProbeDimmer)
         {
-            SphericalHarmonicsL2 probeSH = m_SkyManager.GetAmbientProbe(hdCamera);
-            probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, ambientProbeDimmer);
-            SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsProbe, probeSH);
-            Vector4 ambient = EvaluateAmbientProbe(m_PackedCoeffsProbe, Vector3.up);
+            SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.RescaleCoefficients(m_RenderPipeline.skyManager.GetAmbientProbe(hdCamera), ambientProbeDimmer);
+            Vector4 ambient = HDRenderPipeline.EvaluateAmbientProbe(probeSH, Vector3.up);
             return new Vector4(ambient.x, ambient.y, ambient.z, ambient.x * 0.2126729f + ambient.y * 0.7151522f + ambient.z * 0.072175f);
         }
 
-        unsafe void UpdateShaderVariablesGlobalWater(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        internal unsafe void UpdateShaderVariablesGlobalWater(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             cb._EnableWater = 0;
             cb._UnderWaterSurfaceIndex = -1;
@@ -141,6 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluate the ambient probe for the frame
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
+
             cb._WaterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
 
             EvaluateUnderWaterSurface(hdCamera);
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int reductionSize;
         }
 
-        void RenderWaterLine(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, ref TransparentPrepassOutput refractionOutput)
+        internal void RenderWaterLine(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, ref HDRenderPipeline.TransparentPrepassOutput refractionOutput)
         {
             // Are we in the volume of any surface at all?
             if (m_UnderWaterSurfaceIndex == -1

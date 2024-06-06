@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float error;
     }
 
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         static void EvaluateWaterDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeSimulation, out float3 totalDisplacement, out float2 dir)
         {
@@ -527,7 +527,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Do the search
             var wsr = new WaterSearchResult();
-            HDRenderPipeline.ProjectPointOnWaterSurface(simSearchData, wsp, ref wsr);
+            WaterSystem.ProjectPointOnWaterSurface(simSearchData, wsp, ref wsr);
 
             // Output the result to the output buffers
             errorBuffer[index] = wsr.error;
