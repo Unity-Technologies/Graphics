@@ -2205,12 +2205,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             // Need to save the command buffer to restore it later as the one in the context can changed if running a pass async.
             m_PreviousCommandBuffer = rgContext.cmd;
-
+            
+            bool executedWorkDuringResourceCreation = false;
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 foreach (int resource in passInfo.resourceCreateList[type])
                 {
-                    m_Resources.CreatePooledResource(rgContext, type, resource);
+                    executedWorkDuringResourceCreation |= m_Resources.CreatePooledResource(rgContext, type, resource);
                 }
             }
 
@@ -2221,6 +2222,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             if (passInfo.enableAsyncCompute)
             {
+                GraphicsFence previousFence = new GraphicsFence();
+                if (executedWorkDuringResourceCreation)
+                {
+                    previousFence = rgContext.cmd.CreateGraphicsFence(GraphicsFenceType.AsyncQueueSynchronisation, SynchronisationStageFlags.AllGPUOperations);
+                }
+
                 // Flush current command buffer on the render context before enqueuing async commands.
                 if (rgContext.contextlessTesting == false)
                     rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
@@ -2229,6 +2236,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
                 asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
                 rgContext.cmd = asyncCmd;
+
+                if (executedWorkDuringResourceCreation)
+                {
+                    rgContext.cmd.WaitOnAsyncGraphicsFence(previousFence);
+                }
             }
 
             // Synchronize with graphics or compute pipe if needed.

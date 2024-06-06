@@ -91,7 +91,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_CurrentRegistry = value;
             }
         }
-
+        
+        delegate bool ResourceCreateCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res);
         delegate void ResourceCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res);
 
         class RenderGraphResourcesData
@@ -99,7 +100,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public DynamicArray<IRenderGraphResource> resourceArray = new DynamicArray<IRenderGraphResource>();
             public int sharedResourcesCount;
             public IRenderGraphResourcePool pool;
-            public ResourceCallback createResourceCallback;
+            public ResourceCreateCallback createResourceCallback;
             public ResourceCallback releaseResourceCallback;
 
             public RenderGraphResourcesData()
@@ -1012,10 +1013,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        internal void CreatePooledResource(InternalRenderGraphContext rgContext, int type, int index)
+        internal bool CreatePooledResource(InternalRenderGraphContext rgContext, int type, int index)
         {
             Debug.Assert(index != 0, "Index 0 indicates the null object it can't be used here");
 
+            bool? executedWork = false;
             var resource = m_RenderGraphResources[type].resourceArray[index];
             if (!resource.imported)
             {
@@ -1024,20 +1026,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if (m_RenderGraphDebug.enableLogging)
                     resource.LogCreation(m_FrameInformationLogger);
 
-                m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
+                executedWork = m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
+
+            return executedWork ?? false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void CreatePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
+        internal bool CreatePooledResource(InternalRenderGraphContext rgContext, in ResourceHandle handle)
         {
-            CreatePooledResource(rgContext, handle.iType, handle.index);
+            return CreatePooledResource(rgContext, handle.iType, handle.index);
         }
 
         // Only modified by native compiler when using native render pass
         internal bool forceManualClearOfResource = true;
 
-        void CreateTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
+        bool CreateTextureCallback(InternalRenderGraphContext rgContext, IRenderGraphResource res)
         {
             var resource = res as TextureResource;
 
@@ -1049,13 +1053,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 #endif
 
+            bool executedWork = false;
             if ((forceManualClearOfResource && resource.desc.clearBuffer) || m_RenderGraphDebug.clearRenderTargetsAtCreation)
             {
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
                 var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                 var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
                 CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
+                executedWork = true;
             }
+            return executedWork;
         }
 
         internal void ReleasePooledResource(InternalRenderGraphContext rgContext, int type, int index)
