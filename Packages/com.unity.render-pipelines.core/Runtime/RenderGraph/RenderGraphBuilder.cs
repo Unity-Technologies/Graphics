@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
-            CheckResource(input.handle, true);
+            CheckResource(input.handle, false);
             m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
             return input;
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
-            CheckResource(input.handle, true);
+            CheckResource(input.handle, false);
 
             if ((flags & DepthAccess.Write) != 0)
                 m_Resources.IncrementWriteCount(input.handle);
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        void CheckResource(in ResourceHandle res, bool dontCheckTransientReadWrite = false)
+        void CheckResource(in ResourceHandle res, bool checkTransientReadWrite = true)
         {
             if(RenderGraph.enableValidityChecks)
             {
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);
                     // We have dontCheckTransientReadWrite here because users may want to use UseColorBuffer/UseDepthBuffer API to benefit from render target auto binding. In this case we don't want to raise the error.
-                    if (transientIndex == m_RenderPass.index && !dontCheckTransientReadWrite)
+                    if (transientIndex == m_RenderPass.index && checkTransientReadWrite)
                     {
                         Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
                     }

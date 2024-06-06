@@ -284,6 +284,34 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                             ctxPass.numInputs++;
                         }
+
+                        var resourceTrans = inputPass.transientResourceList[type];
+                        var resourceTransCount = resourceTrans.Count;
+
+                        for (var i = 0; i < resourceTransCount; ++i)
+                        {
+                            var resource = resourceTrans[i]; 
+
+                            // Mark this pass as reading from this version of the resource
+                            ctx.resources[resource].RegisterReadingPass(ctx, resource, passId, ctxPass.numInputs);
+
+                            ctx.inputData.Add(new PassInputData
+                            {
+                                resource = resource,
+                            });
+
+                            ctxPass.numInputs++;
+
+                            // Mark this pass as writing to this version of the resource
+                            ctx.resources[resource].SetWritingPass(ctx, resource, passId);
+
+                            ctx.outputData.Add(new PassOutputData
+                            {
+                                resource = resource,
+                            });
+
+                            ctxPass.numOutputs++;
+                        }
                     }
                 }
             }

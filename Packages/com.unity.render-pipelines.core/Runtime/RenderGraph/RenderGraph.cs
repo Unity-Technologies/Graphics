@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
         RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
-        List<RenderGraphPass> m_RenderPasses = new List<RenderGraphPass>(64);
+        internal/*for tests*/ List<RenderGraphPass> m_RenderPasses = new List<RenderGraphPass>(64);
         List<RendererListHandle> m_RendererLists = new List<RendererListHandle>(32);
         RenderGraphDebugParams m_DebugParameters = new RenderGraphDebugParams();
         RenderGraphLogger m_FrameInformationLogger = new RenderGraphLogger();

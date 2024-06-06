@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void AsyncPassWriteWaitOnGraphcisPipe()
+        public void AsyncPassWriteWaitOnGraphicsPipe()
         {
             TextureHandle texture0;
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
@@ -513,7 +513,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void AsyncPassReadWaitOnGraphcisPipe()
+        public void AsyncPassReadWaitOnGraphicsPipe()
         {
             TextureHandle texture0;
             TextureHandle texture1;
