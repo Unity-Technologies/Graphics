@@ -939,7 +939,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     if (readerPass.type == RenderGraphPassType.Unsafe)
                                     {
                                         needsMSAASamples = true;
-                                        needsResolvedData = true;
+                                        needsResolvedData = !resourceData.bindMS;
                                         msaaUserPassID = reader.passId;
                                         userPassID = reader.passId;
                                         break;
