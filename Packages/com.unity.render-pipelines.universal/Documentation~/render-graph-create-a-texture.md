@@ -1,10 +1,10 @@
-# Create a render graph system texture
+# Create a texture in the render graph system
 
-You can create a render graph texture in a custom render pass. You can then [read from or write to the texture](render-graph-read-write-texture.md).
+To create a texture in the render graph system, use the `UniversalRenderer.CreateRenderGraphTexture` API.
 
-When the Universal Render Pipeline (URP) optimizes the render graph, it might not create a texture if the final frame doesn't use the texture, to reduce the memory and bandwidth the render passes use. Refer to [Introduction to the render graph system](render-graph-introduction.md) for more information.
+When the Universal Render Pipeline (URP) optimizes the render graph, it might not create a texture if the final frame doesn't use the texture, to reduce the memory and bandwidth the render passes use. For more information about how URP optimizes render graphs, refer to [Introduction to the render graph system](render-graph-introduction.md).
 
-If you need to use a texture in multiple frames or on multiple cameras, for example a texture asset you imported in your project, refer to [Import a texture into the render graph system](render-graph-import-a-texture.md).
+For more information about using a texture in multiple frames or on multiple cameras, for example a texture asset you imported in your project, refer to [Import a texture into the render graph system](render-graph-import-a-texture.md).
 
 ## Create a texture
 
@@ -28,7 +28,7 @@ The render graph system manages the lifetime of textures you create with `Create
 
 ### Example
 
-The following Scriptable Renderer Feature contains an example render pass that creates a texture and clears it to yellow. Refer to [Inject a pass using a Scriptable Renderer Feature](renderer-features/scriptable-renderer-features/inject-a-pass-using-a-scriptable-renderer-feature.md#add-renderer-feature-to-asset) for instructions on how to add the render pass to a project.
+The following Scriptable Renderer Feature contains an example render pass that creates a texture and clears it to yellow. For more information about adding the render pass to the render pipeline, refer to [Inject a pass using a Scriptable Renderer Feature](renderer-features/scriptable-renderer-features/inject-a-pass-using-a-scriptable-renderer-feature.md#add-renderer-feature-to-asset).
 
 Use the [Frame Debugger](https://docs.unity3d.com/2023.3/Documentation/Manual/frame-debugger-window.html) to check the texture the render pass adds.
 
@@ -88,6 +88,8 @@ public class CreateYellowTextureFeature : ScriptableRendererFeature
 
 }
 ```
+
+For another example, refer to the example called **OutputTexture** in the [Universal Render Pipeline (URP) package samples](package-samples.md).
 
 ## Additional resources
 

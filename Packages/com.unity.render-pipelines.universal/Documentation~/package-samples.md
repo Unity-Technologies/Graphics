@@ -27,4 +27,5 @@ To open a package sample:
 
 The package samples that URP provides are:
 
-* URP Package Samples: A collection of example shaders, C# scripts, and other assets you can build upon or use in your application. For more information, refer to [URP Package Samples](package-sample-urp-package-samples.md).
+* URP Package Samples: A collection of example shaders, C# scripts, and other assets you can build upon or use in your application. Refer to [URP Package Samples](package-sample-urp-package-samples.md).
+* URP RenderGraph Samples: A collection of example [Scriptable Renderer Features](renderer-features/scriptable-renderer-features/scriptable-renderer-features-landing.md) demonstrating how to use the render graph system. For more information about the render graph samples, refer to [Render graph system](render-graph.md).

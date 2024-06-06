@@ -17,9 +17,9 @@ Follow these steps:
     }
     ```
 
-2. Create a [RendererListParams](https://docs.unity3d.com/ScriptReference/Rendering.RendererListParams.html) object that contains the objects to draw, drawing settings, and culling data. Refer to [Creating a simple render loop in a custom render pipeline](https://docs.unity3d.com/Manual/srp-creating-simple-render-loop.html) for more information.
+2. Create a [RendererListParams](https://docs.unity3d.com/ScriptReference/Rendering.RendererListParams.html) object that contains the objects to draw, drawing settings, and culling data. For more information about the `RenderListParams` object, refer to [Creating a simple render loop in a custom render pipeline](https://docs.unity3d.com/Manual/srp-creating-simple-render-loop.html).
 
-    Refer to [Example](#example) below for a detailed example.
+    For a detailed example, refer to [Example](#example).
 
 3. In the `RecordRenderGraph` method, use the [`CreateRendererList` API](https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.CreateRendererList.html) to convert the `RendererListParams` object to a handle that the render graph system can use.
 
@@ -168,6 +168,8 @@ public class DrawObjectsWithOverrideMaterial : ScriptableRendererFeature
  
 }
 ```
+
+For another example, refer to the example called **RendererList** in the [render graph system URP package samples](package-samples.md).
 
 ## Additional resources
 

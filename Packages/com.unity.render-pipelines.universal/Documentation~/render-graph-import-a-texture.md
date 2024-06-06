@@ -1,8 +1,8 @@
 # Import a texture into the render graph system
 
-When you [create a render graph system texture](render-graph-create-a-texture.md) in a render pass, the render graph system handles the creation and disposal of the texture. This process means the texture might not exist in the next frame, and other cameras might not be able to use it.
+When you [create a texture in the render graph system](render-graph-create-a-texture.md) in a render pass, the render graph system handles the creation and disposal of the texture. This process means the texture might not exist in the next frame, and other cameras might not be able to use it.
 
-To make sure a texture is available across frames and cameras, you can import it into the render graph system using the `ImportTexture` API.
+To make sure a texture is available across frames and cameras, import it into the render graph system using the `ImportTexture` API.
 
 You can import a texture if you use a texture created outside the render graph system. For example, you can create a render texture that points to a texture in your project, such as a [texture asset](https://docs.unity3d.com/Manual/ImportingTextures.html), and use it as the input to a render pass.
 
@@ -11,7 +11,7 @@ The render graph system doesn't manage the lifetime of imported textures. As a r
 - You must [dispose of the imported render texture](#dispose-of-a-render-texture) to free up the memory it uses when you're finished with it.
 - URP can't cull render passes that use imported textures. As a result, rendering might be slower.
 
-Refer to [Using the RTHandle system](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/rthandle-system-using.html) in the SRP Core manual for more information about the `RTHandle` API.
+For more information about the `RTHandle` API, refer to [Using the RTHandle system](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/rthandle-system-using.html).
 
 ## Import a texture
 
@@ -88,7 +88,7 @@ public void Dispose()
 
 The following Scriptable Renderer Feature contains an example render pass that copies a texture asset to a temporary texture. To use this example, follow these steps:
 
-1. Refer to [Inject a pass using a Scriptable Renderer Feature](renderer-features/scriptable-renderer-features/inject-a-pass-using-a-scriptable-renderer-feature.md#add-renderer-feature-to-asset) for instructions on how to add this render pass to a URP Asset.
+1. Add this Scriptable Renderer Feature to a URP Asset. Refer to [Inject a pass using a Scriptable Renderer Feature](renderer-features/scriptable-renderer-features/inject-a-pass-using-a-scriptable-renderer-feature.md#add-renderer-feature-to-asset).
 2. In the Inspector window of the URP Asset, add a texture to the **Texture To Use** property.
 3. Use the [Frame Debugger](https://docs.unity3d.com/2023.3/Documentation/Manual/frame-debugger-window.html) to check the texture the render pass adds.
 

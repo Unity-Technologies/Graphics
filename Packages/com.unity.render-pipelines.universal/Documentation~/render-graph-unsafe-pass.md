@@ -11,7 +11,7 @@ If you use the `AddUnsafePass` API, the following applies:
 
 To create an unsafe render pass, follow these steps:
 
-1. In your `RecordRenderGraph` method, use the `AddUnsafePass` method instead of the `AddPass` method.
+1. In your `RecordRenderGraph` method, use the `AddUnsafePass` method instead of the `AddRasterRenderPass` method.
 
     For example:
 
@@ -124,3 +124,5 @@ public class DrawNormalsToActiveColorTexture : ScriptableRendererFeature
 
 }
 ```
+
+For another example, refer to the example called **UnsafePass** in the [Universal Render Pipeline (URP) package samples](package-samples.md).
