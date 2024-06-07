@@ -216,6 +216,7 @@
     * [Make a GameObject compatible with the GPU Resident Drawer](make-object-compatible-gpu-rendering.md)
     * [Use GPU occlusion culling](gpu-culling.md)
   * [Update Quality Setting Presets for URP](birp-onboarding/quality-presets.md)
+  * [Optimization techniques for untethered XR devices](xr-untethered-device-optimization.md)
 * [2D graphics features](2d-index.md)
   * [Introduction to the 2D Lighting system](Lights-2D-intro.md)
     * [Requirements and setup](Setup.md)
