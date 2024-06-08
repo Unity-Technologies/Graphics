@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed partial class Renderer2D : ScriptableRenderer
     {
-        #if UNITY_SWITCH
+        #if UNITY_SWITCH || UNITY_ANDROID
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
         internal const int k_DepthBufferBits = 24;
         #else
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
-            
+
             CleanupRenderGraphResources();
 
             base.Dispose(disposing);
