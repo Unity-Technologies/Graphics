@@ -493,13 +493,18 @@ namespace UnityEngine.Rendering
             static IRayTracingShader m_ShaderSO = null;
             static IRayTracingShader m_ShaderRL = null;
 
-            internal IRayTracingAccelStruct CreateAccelerationStructure()
+            const string k_PackageLightTransport = "Packages/com.unity.rendering.light-transport";
+
+            internal AccelStructAdapter CreateAccelerationStructure()
             {
-                return context.CreateAccelerationStructure(new AccelerationStructureOptions
+                var c = context;
+                return new AccelStructAdapter(c.CreateAccelerationStructure(new AccelerationStructureOptions
                 {
                     // Use PreferFastBuild to avoid bug triggered with big meshes (UUM-52552));
                     buildFlags = BuildFlags.PreferFastBuild
-                });
+                }),
+                m_RayTracingResources
+                );
             }
 
             public RayTracingContext context
@@ -585,7 +590,7 @@ namespace UnityEngine.Rendering
                     m_SamplingResources.Load();
                 }
 
-                SamplingResources.BindSamplingTextures(cmd, m_SamplingResources);
+                SamplingResources.BindSobolBlueNoiseTextures(cmd, m_SamplingResources);
             }
 
             public bool TryGetMeshForAccelerationStructure(Renderer renderer, out Mesh mesh)
@@ -614,7 +619,15 @@ namespace UnityEngine.Rendering
                 {
                     m_Context.Dispose();
                     m_Context = null;
+
+                    // The lifetime of these shaders are bound to the lifetime of the context.
+                    m_ShaderRL = null;
+                    m_ShaderSO = null;
+                    m_ShaderVO = null;
                 }
+
+                m_SamplingResources?.Dispose();
+                m_SamplingResources = null;
             }
         }
 

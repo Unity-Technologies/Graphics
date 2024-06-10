@@ -4,13 +4,13 @@
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
 
-#define RNG_METHOD 2 // XOR_SHIFT
+#define QRNG_METHOD_RANDOM_XOR_SHIFT
 #define SAMPLE_COUNT 32
 #define RAND_SAMPLES_PER_BOUNCE 2
-#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Random.hlsl"
+#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
 
-UNITY_DECLARE_RT_ACCEL_STRUCT(_AccelStruct);
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 
 StructuredBuffer<float3> _ProbePositions;
 RWStructuredBuffer<uint> _LayerMasks;
@@ -24,17 +24,17 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
     ray.tMax = FLT_MAX;
     ray.tMin = 0.0f;
 
-    RngState rngState;
-    rngState.Init(0, 1, SAMPLE_COUNT);
+    QuasiRandomGenerator rngState;
+    rngState.Init(0, SAMPLE_COUNT);
 
     int4 hitCount = 0;
 
-    UnifiedRT::RayTracingAccelStruct accelStruct = UNITY_GET_RT_ACCEL_STRUCT(_AccelStruct);
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_AccelStruct);
 
     for (uint i = 0; i < SAMPLE_COUNT; ++i)
     {
-        float2 u = float2(rngState.GetFloatSample(2*i), rngState.GetFloatSample(2*i+1));
-        ray.direction = SphereSample(u);
+        float2 u = float2(rngState.GetFloat(2*i), rngState.GetFloat(2*i+1));
+        ray.direction = MapSquareToSphere(u);
 
         uint hitMask = 0;
         UnifiedRT::Hit hit = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, 0);
@@ -42,7 +42,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         if (hit.IsValid() & hit.isFrontFace)
         {
             // we use material id to store layer mask
-            uint objMask = accelStruct.instanceList[hit.instanceIndex].userMaterialID;
+            uint objMask = g_AccelStructInstanceList[hit.instanceID].userMaterialID;
 
             [unroll]
             for (int l = 0; l < PROBE_MAX_REGION_COUNT; l++)

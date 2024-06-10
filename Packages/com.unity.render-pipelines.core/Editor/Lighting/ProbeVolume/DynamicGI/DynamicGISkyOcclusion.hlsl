@@ -2,12 +2,11 @@
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
 
-#define RNG_METHOD 5 // SOBOL
-#define RAND_SAMPLES_PER_BOUNCE 2
-#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Random.hlsl"
+#define QRNG_METHOD_SOBOL
+#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
 
-UNITY_DECLARE_RT_ACCEL_STRUCT(_AccelStruct);
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 
 
 int _SampleCount;
@@ -29,8 +28,8 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     int probeId = dispatchInfo.globalThreadIndex;
 
-    RngState rngState;
-    rngState.Init(uint2((uint)probeId, 0), 1, _SampleId);
+    QuasiRandomGenerator rngState;
+    rngState.Init(uint2((uint)probeId, 0), _SampleId);
 
     if (_SampleId==0)
     {
@@ -39,10 +38,10 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
             _SkyShadingOut[probeId] = float3(0,0,0);
     }
 
-    UnifiedRT::RayTracingAccelStruct accelStruct = UNITY_GET_RT_ACCEL_STRUCT(_AccelStruct);
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_AccelStruct);
 
-    float2 u = float2(rngState.GetFloatSample(0), rngState.GetFloatSample(1));
-    float3 rayFirstDirection = SphereSample(u);
+    float2 u = float2(rngState.GetFloat(0), rngState.GetFloat(1));
+    float3 rayFirstDirection = MapSquareToSphere(u);
 
     float pathWeight = 4.0f * PI; // 1 / SphereSamplePDF
     float3 normalWS = float3(0,1,0);
@@ -67,7 +66,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         }
         else
         {
-            u = float2(rngState.GetFloatSample(2*bounceIndex), rngState.GetFloatSample(2*bounceIndex+1));
+            u = float2(rngState.GetFloat(2*bounceIndex), rngState.GetFloat(2*bounceIndex+1));
 
             SampleDiffuseBrdf(u, normalWS, ray.direction);
             ray.direction = normalize(ray.direction);
@@ -88,11 +87,10 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
         if (hasHit)
         {
-            UnifiedRT::InstanceData instanceInfo = UnifiedRT::GetInstance(accelStruct, hitResult.instanceIndex);
-            PTHitGeom hitGeom = (PTHitGeom)0;
-            hitGeom = GetHitGeomInfo(accelStruct, instanceInfo, hitResult);
-            hitPointWS = hitGeom.worldPosition;
-            normalWS = hitGeom.worldNormal;
+            UnifiedRT::InstanceData instanceInfo = UnifiedRT::GetInstance(hitResult.instanceID);
+            UnifiedRT::HitGeomAttributes hitGeom = UnifiedRT::FetchHitGeomAttributesInWorldSpace(instanceInfo, hitResult);
+            hitPointWS = hitGeom.position;
+            normalWS = hitGeom.normal;
             if (dot(normalWS, ray.direction) > 0.0f) // flip normal if hitting backface
                 normalWS *= -1.0f;
         }

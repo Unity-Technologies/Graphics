@@ -59,11 +59,13 @@ namespace UnityEditor.LightBaking.Tests
         {
             string sceneName = $"{metaPassTest.SceneName}.unity";
             EditorSceneManager.OpenScene($"Assets/Test/LightBaker/Scenes/{sceneName}");
-            
+
             // Extract the scene
             using LightBaker.BakeInput bakeInput = new();
+            using LightBaker.LightmapRequests lightmapRequest = new();
+            using LightBaker.LightProbeRequests probeRequest = new();
             using SourceMap map = new();
-            var result = ExtractFromScene(FileUtil.LightBakerTempOutputPath, bakeInput, map);
+            var result = ExtractFromScene(FileUtil.LightBakerTempOutputPath, bakeInput, lightmapRequest, probeRequest,  map);
             Assert.IsTrue(result, $"Scene {metaPassTest.SceneName} failed to extract.");
 
             // Lookup the texture data for the requested object

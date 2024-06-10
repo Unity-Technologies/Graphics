@@ -41,7 +41,9 @@
 #define FLT_NAN  asfloat(0xffc00000)
 #define FLT_EPS  5.960464478e-8  // 2^-24, machine epsilon: 1 + EPS = 1 (half of the ULP for 1.0f)
 #define FLT_MIN  1.175494351e-38 // Minimum normalized positive floating-point number
+#ifndef FLT_MAX
 #define FLT_MAX  3.402823466e+38 // Maximum representable floating-point number
+#endif
 #define HALF_EPS 4.8828125e-4    // 2^-11, machine epsilon: 1 + EPS = 1 (half of the ULP for 1.0f)
 #define HALF_MIN 6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
 #define HALF_MIN_SQRT 0.0078125  // 2^-7 == sqrt(HALF_MIN), useful for ensuring HALF_MIN after x^2

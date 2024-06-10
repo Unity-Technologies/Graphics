@@ -129,8 +129,7 @@ namespace UnityEngine.Rendering
             static readonly int _AverageAlbedo = Shader.PropertyToID("_AverageAlbedo");
             static readonly int _BackFaceCulling = Shader.PropertyToID("_BackFaceCulling");
             static readonly int _BakeSkyShadingDirection = Shader.PropertyToID("_BakeSkyShadingDirection");
-            static readonly int _SobolBuffer = Shader.PropertyToID("_SobolBuffer");
-            static readonly int _CPRBuffer = Shader.PropertyToID("_CPRBuffer");
+            static readonly int _SobolBuffer = Shader.PropertyToID("_SobolMatricesBuffer");
 
             int skyOcclusionBackFaceCulling;
             float skyOcclusionAverageAlbedo;
@@ -154,11 +153,10 @@ namespace UnityEngine.Rendering
             public override NativeArray<Vector4> occlusion => occlusionResults;
             public override NativeArray<Vector3> shadingDirections => directionResults;
 
-            IRayTracingAccelStruct m_AccelerationStructure;
+            AccelStructAdapter m_AccelerationStructure;
             GraphicsBuffer scratchBuffer;
             GraphicsBuffer probePositionsBuffer;
             GraphicsBuffer sobolBuffer;
-            GraphicsBuffer cprBuffer; // Cranley Patterson rotation
 
             public override ulong currentStep => step;
             public override ulong stepCount => (ulong)probeCount;
@@ -193,22 +191,19 @@ namespace UnityEngine.Rendering
                 probePositionsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector3>());
                 occlusionOutputBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, batchSize, Marshal.SizeOf<Vector4>());
                 shadingDirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, skyDirection ? batchSize : 1, Marshal.SizeOf<Vector3>());
-                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure, skyOcclusionShader, (uint)batchSize, 1, 1);
+                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure.GetAccelerationStructure(), skyOcclusionShader, (uint)batchSize, 1, 1);
 
                 var buildCmd = new CommandBuffer();
-                m_AccelerationStructure.Build(buildCmd, scratchBuffer);
+                m_AccelerationStructure.Build(buildCmd, ref scratchBuffer);
                 Graphics.ExecuteCommandBuffer(buildCmd);
                 buildCmd.Dispose();
 
                 int sobolBufferSize = (int)(SobolData.SobolDims * SobolData.SobolSize);
                 sobolBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, sobolBufferSize, Marshal.SizeOf<uint>());
                 sobolBuffer.SetData(SobolData.SobolMatrices);
-
-                cprBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, SamplingResources.cranleyPattersonRotationBufferSize, Marshal.SizeOf<float>());
-                cprBuffer.SetData(SamplingResources.GetCranleyPattersonRotations());
             }
 
-            static IRayTracingAccelStruct BuildAccelerationStructure()
+            static AccelStructAdapter BuildAccelerationStructure()
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
                 var contributors = m_BakingBatch.contributors;
@@ -218,34 +213,18 @@ namespace UnityEngine.Rendering
                     if (!s_TracingContext.TryGetMeshForAccelerationStructure(renderer.component, out var mesh))
                         continue;
 
-                    var matIndices = GetMaterialIndices(renderer.component);
-                    uint mask = GetInstanceMask(renderer.component.shadowCastingMode);
                     int subMeshCount = mesh.subMeshCount;
+                    var matIndices = GetMaterialIndices(renderer.component);
+                    var perSubMeshMask = new uint[subMeshCount];
+                    Array.Fill(perSubMeshMask, GetInstanceMask(renderer.component.shadowCastingMode));
 
-                    for (int i = 0; i < subMeshCount; ++i)
-                    {
-                        var instanceDesc = new MeshInstanceDesc(mesh, i);
-                        instanceDesc.localToWorldMatrix = renderer.component.transform.localToWorldMatrix;
-                        instanceDesc.mask = mask;
-                        instanceDesc.materialID = matIndices[i];
-
-                        instanceDesc.enableTriangleCulling = true;
-                        instanceDesc.frontTriangleCounterClockwise = false;
-
-                        accelStruct.AddInstance(instanceDesc);
-                    }
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices);
                 }
 
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
-
-                    var terrainDesc = new TerrainDesc(terrain.component);
-                    terrainDesc.localToWorldMatrix = terrain.component.transform.localToWorldMatrix;
-                    terrainDesc.mask = mask;
-                    terrainDesc.materialID = 0;
-
-                    accelStruct.AddTerrain(terrainDesc);
+                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { mask }, new uint[1] { 0 });
                 }
 
                 return accelStruct;
@@ -278,7 +257,7 @@ namespace UnityEngine.Rendering
                 }
 
                 s_TracingContext.BindSamplingTextures(cmd);
-                skyOccShader.SetAccelerationStructure(cmd, "_AccelStruct", m_AccelerationStructure);
+                m_AccelerationStructure.Bind(cmd, "_AccelStruct", skyOccShader);
 
                 skyOccShader.SetIntParam(cmd, _BakeSkyShadingDirection, shadingDirections.IsCreated ? 1 : 0);
                 skyOccShader.SetIntParam(cmd, _BackFaceCulling, skyOcclusionBackFaceCulling);
@@ -290,7 +269,6 @@ namespace UnityEngine.Rendering
                 skyOccShader.SetBufferParam(cmd, _SkyShadingOut, shadingDirectionBuffer);
 
                 skyOccShader.SetBufferParam(cmd, _SobolBuffer, sobolBuffer);
-                skyOccShader.SetBufferParam(cmd, _CPRBuffer, cprBuffer);
 
                 skyOccShader.SetIntParam(cmd, _SampleCount, job.skyOcclusionBakingSamples);
                 skyOccShader.SetIntParam(cmd, _MaxBounces, job.skyOcclusionBakingBounces);
@@ -356,7 +334,6 @@ namespace UnityEngine.Rendering
                 scratchBuffer?.Dispose();
                 probePositionsBuffer?.Dispose();
                 sobolBuffer?.Dispose();
-                cprBuffer?.Dispose();
 
                 occlusionResults.Dispose();
                 if (directionResults.IsCreated)

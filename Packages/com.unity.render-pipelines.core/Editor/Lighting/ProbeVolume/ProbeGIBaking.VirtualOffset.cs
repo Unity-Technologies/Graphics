@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering
             // Output buffer
             public override NativeArray<Vector3> offsets => results;
 
-            private IRayTracingAccelStruct m_AccelerationStructure;
+            private AccelStructAdapter m_AccelerationStructure;
             private GraphicsBuffer probeBuffer;
             private GraphicsBuffer offsetBuffer;
             private GraphicsBuffer scratchBuffer;
@@ -117,16 +117,16 @@ namespace UnityEngine.Rendering
 
                 probeBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<ProbeData>());
                 offsetBuffer = new GraphicsBuffer(computeBufferTarget, k_MaxProbeCountPerBatch, Marshal.SizeOf<Vector3>());
-                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure, virtualOffsetShader,
+                scratchBuffer = RayTracingHelper.CreateScratchBufferForBuildAndDispatch(m_AccelerationStructure.GetAccelerationStructure(), virtualOffsetShader,
                     (uint)k_MaxProbeCountPerBatch, 1, 1);
 
                 var cmd = new CommandBuffer();
-                m_AccelerationStructure.Build(cmd, scratchBuffer);
+                m_AccelerationStructure.Build(cmd, ref scratchBuffer);
                 Graphics.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
 
-            static IRayTracingAccelStruct BuildAccelerationStructure(int mask)
+            static AccelStructAdapter BuildAccelerationStructure(int mask)
             {
                 var accelStruct = s_TracingContext.CreateAccelerationStructure();
                 var contributors = m_BakingBatch.contributors;
@@ -141,14 +141,10 @@ namespace UnityEngine.Rendering
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;
-                    for (int i = 0; i < subMeshCount; ++i)
-                    {
-                        accelStruct.AddInstance(new MeshInstanceDesc(mesh, i)
-                        {
-                            localToWorldMatrix = renderer.component.transform.localToWorldMatrix,
-                            enableTriangleCulling = false
-                        });
-                    }
+                    var maskAndMatDummy = new uint[subMeshCount];
+                    System.Array.Fill(maskAndMatDummy, 0xFFFFFFFF);
+
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, maskAndMatDummy, maskAndMatDummy);
                 }
 
                 foreach (var terrain in contributors.terrains)
@@ -157,11 +153,7 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    accelStruct.AddTerrain(new TerrainDesc(terrain.component)
-                    {
-                        localToWorldMatrix = terrain.component.transform.localToWorldMatrix,
-                        enableTriangleCulling = false
-                    });
+                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF });
                 }
 
                 return accelStruct;
@@ -230,7 +222,7 @@ namespace UnityEngine.Rendering
                 // Execute job
                 var cmd = new CommandBuffer();
                 var virtualOffsetShader = s_TracingContext.shaderVO;
-                virtualOffsetShader.SetAccelerationStructure(cmd, "_AccelStruct", m_AccelerationStructure);
+                m_AccelerationStructure.Bind(cmd, "_AccelStruct", virtualOffsetShader);
                 virtualOffsetShader.SetBufferParam(cmd, _Probes, probeBuffer);
                 virtualOffsetShader.SetBufferParam(cmd, _Offsets, offsetBuffer);
 
