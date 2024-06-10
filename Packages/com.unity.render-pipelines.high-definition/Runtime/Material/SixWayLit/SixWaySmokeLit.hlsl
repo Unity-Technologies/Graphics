@@ -250,9 +250,9 @@ void GatherAPVData(float3 positionRWS, float3x3 tbn, out float4 diffuseGIData[3]
 
         SampleAPVSixWay(apvSample, tbn, diffuseGIData); //Sample Only L1 even if L2 is available
 
-        if (_Weight < 1.f)
+        if (_APVWeight < 1.f)
         {
-            EvaluateAmbientProbeSixWay(_Weight, tbn, diffuseGIData);
+            EvaluateAmbientProbeSixWay(_APVWeight, tbn, diffuseGIData);
         }
     }
     else

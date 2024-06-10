@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Sky and Fog Volume Profile 1
+  m_Name: Sky and Fog Settings
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 3237104197077496784}
---- !u!114 &3237104197077496784
+  - {fileID: 5353269470521923829}
+--- !u!114 &5353269470521923829
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -28,7 +28,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   mode:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   meteringMode:
     m_OverrideState: 0
