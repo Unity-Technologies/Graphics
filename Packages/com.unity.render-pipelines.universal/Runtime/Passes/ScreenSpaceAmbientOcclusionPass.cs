@@ -342,7 +342,7 @@ namespace UnityEngine.Rendering.Universal
             // Update keywords and other shader params
             SetupKeywordsAndParameters(ref m_CurrentSettings, ref cameraData);
 
-            using (IUnsafeRenderGraphBuilder builder = renderGraph.AddUnsafePass<SSAOPassData>("SSAO", out var passData, m_ProfilingSampler))
+            using (IUnsafeRenderGraphBuilder builder = renderGraph.AddUnsafePass<SSAOPassData>("Blit SSAO", out var passData, m_ProfilingSampler))
             {
                 // Shader keyword changes are considered as global state modifications
                 builder.AllowGlobalStateModification(true);

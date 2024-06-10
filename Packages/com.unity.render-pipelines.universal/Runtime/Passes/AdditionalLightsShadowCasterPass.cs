@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderPassEvent"/>
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(AdditionalLightsShadowCasterPass));
+            base.profilingSampler = new ProfilingSampler("Draw Additional Lights Shadowmap");
             renderPassEvent = evt;
 
             m_PassData = new PassData();
@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Additional Lights Shadowmap", out var passData, base.profilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
             {
                 InitPassData(ref passData, cameraData, lightData, shadowData);
                 InitRendererLists(ref renderingData.cullResults, ref passData, default(ScriptableRenderContext), graph, true);

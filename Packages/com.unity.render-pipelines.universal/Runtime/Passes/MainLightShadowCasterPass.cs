@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             TextureHandle shadowTexture;
 
-            using (var builder = graph.AddRasterRenderPass<PassData>("Main Light Shadowmap", out var passData, base.profilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>("Draw Main Light Shadowmap", out var passData, base.profilingSampler))
             {
                 InitPassData(ref passData, renderingData, cameraData, lightData, shadowData);
                 InitRendererLists(ref passData, default(ScriptableRenderContext), graph, true);

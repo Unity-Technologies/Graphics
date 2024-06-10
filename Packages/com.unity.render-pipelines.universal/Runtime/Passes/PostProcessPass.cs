@@ -33,8 +33,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_StreakTmpTexture2;
         RTHandle m_ScreenSpaceLensFlareResult;
 
-        const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
-        const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
+        const string k_RenderPostProcessingTag = "Blit PostProcessing Effects";
+        const string k_RenderFinalPostProcessingTag = "Blit Final PostProcessing";
         private static readonly ProfilingSampler m_ProfilingRenderPostProcessing = new ProfilingSampler(k_RenderPostProcessingTag);
         private static readonly ProfilingSampler m_ProfilingRenderFinalPostProcessing = new ProfilingSampler(k_RenderFinalPostProcessingTag);
 

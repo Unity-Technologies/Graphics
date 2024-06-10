@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
 
             // Render uGUI and UIToolkit overlays
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space UIToolkit/uGUI Pass - Overlay", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw UIToolkit/uGUI Overlay", out var passData, base.profilingSampler))
             {
                 if (cameraData.requiresOpaqueTexture && renderer != null)
                     builder.UseGlobalTexture(s_CameraOpaqueTextureID);
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             // Doing so allow us to safely cover cases when graphics commands called through onGUI() in user scripts are not supported by RenderPass API
             // Besides, Vulkan backend doesn't support SetSRGWrite() in RenderPass API and we have some of them at IMGUI levels
             // Note, these specific UI calls doesn't need depth buffer unlike UIToolkit/uGUI
-            using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Screen Space IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw IMGUI/SoftwareCursor Overlay", out var passData, base.profilingSampler))
             {
                 passData.colorTarget = colorBuffer;
                 builder.UseTexture(colorBuffer, AccessFlags.Write);

@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="RenderPassEvent"/>
         public DrawSkyboxPass(RenderPassEvent evt)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
+            base.profilingSampler = new ProfilingSampler("Draw Skybox");
 
             renderPassEvent = evt;
         }
@@ -149,8 +149,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Skybox Pass", out var passData,
-                base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
             {
                 var skyRendererListHandle = CreateSkyBoxRendererList(renderGraph, cameraData);
                 InitPassData(ref passData, cameraData.xr, skyRendererListHandle);

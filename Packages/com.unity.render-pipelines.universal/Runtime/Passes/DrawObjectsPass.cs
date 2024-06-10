@@ -17,12 +17,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
-        string m_ProfilerTag;
-
-        /// <summary>
-        /// Profiling sampler
-        /// </summary>
-        protected ProfilingSampler m_ProfilingSampler;
 
         bool m_IsOpaque;
 
@@ -58,10 +52,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="StencilState"/>
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(DrawObjectsPass));
+            base.profilingSampler = new ProfilingSampler(profilerTag);
             m_PassData = new PassData();
-            m_ProfilerTag = profilerTag;
-            m_ProfilingSampler = new ProfilingSampler(profilerTag);
             foreach (ShaderTagId sid in shaderTagIds)
                 m_ShaderTagIdList.Add(sid);
             renderPassEvent = evt;
@@ -77,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
-        }
+        }        
 
         /// <summary>
         /// Creates a new <c>DrawObjectsPass</c> instance.
@@ -100,9 +92,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         { }
 
         internal DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
-            : this(profileId.GetType().Name, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
+            : this("", opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {
-            m_ProfilingSampler = ProfilingSampler.Get(profileId);
+            profilingSampler = ProfilingSampler.Get(profileId);
         }
 
         /// <inheritdoc/>
@@ -117,7 +109,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             InitPassData(cameraData, ref m_PassData, uint.MaxValue, m_IsActiveTargetBackBuffer);
             InitRendererLists(universalRenderingData, cameraData, lightData, ref m_PassData, context, default(RenderGraph), false);
 
-            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
+            using (new ProfilingScope(renderingData.commandBuffer, profilingSampler))
             {
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList, m_PassData.cameraData.IsCameraProjectionMatrixFlipped());
             }
@@ -261,8 +253,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Objects Pass", out var passData,
-                m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
             {
                 builder.UseAllGlobalTextures(true);
 
@@ -410,8 +401,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle renderingLayersTexture, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>("Draw Objects With Rendering Layers Pass", out var passData,
-                m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>(profilingSampler.name, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();

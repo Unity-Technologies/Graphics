@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthNormals Prepass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw DepthNormals Prepass", out var passData, base.profilingSampler))
             {
                 passData.cameraNormalsTexture = cameraNormalsTexture;
                 builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);

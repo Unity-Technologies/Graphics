@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderPassEvent"/>
         public CopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false, string customPassName = null)
         {
-            base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : new ProfilingSampler(nameof(CopyDepthPass));
+            base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : new ProfilingSampler("Copy Depth");
             m_PassData = new PassData();
             CopyToDepth = copyToDepth;
             m_CopyDepthMaterial = copyDepthShader != null ? CoreUtils.CreateEngineMaterial(copyDepthShader) : null;
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            Render(renderGraph, destination, source, resourceData, cameraData, bindAsCameraDepth);
+            Render(renderGraph, destination, source, resourceData, cameraData, bindAsCameraDepth, passName);
         }
 
         /// <summary>
@@ -247,7 +247,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MssaSamples = -1;
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, base.profilingSampler))
+            //Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming 
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.copyDepthMaterial = m_CopyDepthMaterial;
                 passData.msaaSamples = MssaSamples;

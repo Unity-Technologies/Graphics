@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
                     : GraphicsFormat.B8G8R8A8_UNorm;
                 TextureHandle color = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ScreenSpaceShadowmapTexture", true);
 
-                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadows Pass", out var passData, m_ProfilingSampler))
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Blit Screen Space Shadows", out var passData, m_ProfilingSampler))
                 {
                     passData.target = color;
                     builder.SetRenderAttachment(color, 0, AccessFlags.Write);
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.Universal
             }
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
-                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space Shadow Post Pass", out var passData, m_ProfilingSampler))
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("Set Screen Space Shadow Keywords", out var passData, m_ProfilingSampler))
                 {
                     UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 

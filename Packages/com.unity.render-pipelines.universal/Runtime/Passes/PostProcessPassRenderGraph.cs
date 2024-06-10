@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void UberPostSetupBloomPass(RenderGraph rendergraph, in TextureHandle bloomTexture, Material uberMaterial)
         {
-            using (var builder = rendergraph.AddRasterRenderPass<UberSetupBloomPassData>("UberPost - UberPostSetupBloomPass", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPostSetupBloomPass)))
+            using (var builder = rendergraph.AddRasterRenderPass<UberSetupBloomPassData>("Setup Bloom Post Processing", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPostSetupBloomPass)))
             {
                 // Setup bloom on uber
                 var tint = m_Bloom.tint.value.linear;
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            using (var builder = renderGraph.AddUnsafePass<BloomPassData>("Bloom", out var passData, ProfilingSampler.Get(URPProfileId.Bloom)))
+            using (var builder = renderGraph.AddUnsafePass<BloomPassData>("Blit Bloom Mipmaps", out var passData, ProfilingSampler.Get(URPProfileId.Bloom)))
             {
                 passData.mipCount = mipCount;
                 passData.material = m_Materials.bloom;
@@ -1905,7 +1905,7 @@ namespace UnityEngine.Rendering.Universal
                     m_ColorLookup.texture.value.height - 1f,
                     m_ColorLookup.contribution.value);
 
-            using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Postprocessing Uber Post Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
+            using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Blit Post Processing", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();

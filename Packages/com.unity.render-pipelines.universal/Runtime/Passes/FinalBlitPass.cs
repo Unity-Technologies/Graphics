@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderPassEvent"/>
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial, Material blitHDRMaterial)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
+            base.profilingSampler = new ProfilingSampler("Blit Final To BackBuffer");
             base.useNativeRenderPass = false;
             m_PassData = new PassData();
             renderPassEvent = evt;
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, in TextureHandle src, in TextureHandle dest, TextureHandle overlayUITexture)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Final Blit", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;

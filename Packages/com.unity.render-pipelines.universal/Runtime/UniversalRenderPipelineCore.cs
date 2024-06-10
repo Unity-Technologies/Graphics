@@ -1888,7 +1888,7 @@ namespace UnityEngine.Rendering.Universal
         LensFlareDataDrivenComputeOcclusion,
         LensFlareDataDriven,
         LensFlareScreenSpace,
-        MotionVectors,
+        DrawMotionVectors,
         DrawFullscreen,
 
         // PostProcessPass RenderGraph

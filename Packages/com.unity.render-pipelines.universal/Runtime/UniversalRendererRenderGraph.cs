@@ -724,7 +724,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             var colorHistoryTarget = renderGraph.ImportTexture(colorHistory.GetCurrentTexture(multipassId));
                             // See pass create in UniversalRenderer() for execution order.
-                            m_HistoryRawColorCopyPass.RenderToExistingTexture(renderGraph, frameData, colorHistoryTarget, resourceData.cameraColor, Downsampling.None, "Copy Raw Color History");
+                            m_HistoryRawColorCopyPass.RenderToExistingTexture(renderGraph, frameData, colorHistoryTarget, resourceData.cameraColor, Downsampling.None);
                         }
                     }
                 }
@@ -750,7 +750,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
                             // See pass create in UniversalRenderer() for execution order.
-                            m_HistoryRawDepthCopyPass.Render(renderGraph, frameData, depthHistoryTarget, resourceData.cameraDepth, false, "Copy Raw Depth History");
+                            m_HistoryRawDepthCopyPass.Render(renderGraph, frameData, depthHistoryTarget, resourceData.cameraDepth, false);
                         }
                     }
                 }
@@ -1080,7 +1080,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!renderGraph.nativeRenderPassesEnabled)
                 {
                     TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-                    m_GBufferCopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true, "GBuffer Depth Copy");
+                    m_GBufferCopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true);
                 }
                 else
                 {
@@ -1447,7 +1447,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 m_FinalDepthCopyPass.MssaSamples = 0;
-                m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.activeDepthTexture, cameraDepthTexture, false, "Final Depth Copy");
+                m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.activeDepthTexture, cameraDepthTexture, false);
             }
 #endif
             if (cameraData.isSceneViewCamera)

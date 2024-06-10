@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -60,8 +61,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             string message = mergeResult.reason == PassBreakReason.Merged ?
                 "The passes are <b>compatible</b> to be merged.\n\n" :
                 "The passes are <b>incompatible</b> to be merged.\n\n";
-            string passName = pass.GetName(ctx).name;
-            string prevPassName = prevPass.GetName(ctx).name;
+            string passName = InjectSpaces(pass.GetName(ctx).name);
+            string prevPassName = InjectSpaces(prevPass.GetName(ctx).name);
             switch (mergeResult.reason)
             {
                 case (PassBreakReason.Merged):
@@ -98,6 +99,23 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
 
             return message;
+        }
+
+        static string InjectSpaces(string camelCaseString)
+        {
+            var bld = new StringBuilder();
+
+            for (var i = 0; i< camelCaseString.Length; i++)
+            {
+                if (char.IsUpper(camelCaseString[i])
+                    && (i!=0 && char.IsLower(camelCaseString[i-1]) ) )
+                {
+                    bld.Append(" ");
+                }
+
+                bld.Append(camelCaseString[i]);
+            }
+            return bld.ToString();
         }
 
         internal void GenerateNativeCompilerDebugData(ref RenderGraph.DebugData debugData)
@@ -210,7 +228,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 var graphPass = graph.m_RenderPasses[passId];
                 ref var passData = ref ctx.passData.ElementAt(passId);
                 RenderGraph.DebugData.PassData debugPass = new RenderGraph.DebugData.PassData();
-                debugPass.name = passData.GetName(ctx).name;
+                debugPass.name = InjectSpaces(passData.GetName(ctx).name);
                 debugPass.type = passData.type;
                 debugPass.culled = passData.culled;
                 debugPass.async = passData.asyncCompute;

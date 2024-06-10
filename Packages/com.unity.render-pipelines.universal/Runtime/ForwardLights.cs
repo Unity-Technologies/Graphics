@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(renderingData.commandBuffer), universalRenderingData, cameraData, lightData);
         }
 
-        static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward lights.");
+        static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward Lights");
         private class SetupLightPassData
         {
             internal UniversalRenderingData renderingData;
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         internal void SetupRenderGraphLights(RenderGraph renderGraph, UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            using (var builder = renderGraph.AddUnsafePass<SetupLightPassData>("SetupForwardLights", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<SetupLightPassData>(s_SetupForwardLights.name, out var passData,
                 s_SetupForwardLights))
             {
                 passData.renderingData = renderingData;

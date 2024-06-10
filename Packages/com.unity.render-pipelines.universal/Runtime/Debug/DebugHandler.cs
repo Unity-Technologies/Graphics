@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region Pass Data
 
-        private static readonly ProfilingSampler s_DebugSetupSampler = new ProfilingSampler(nameof(Setup));
+        private static readonly ProfilingSampler s_DebugSetupSampler = new ProfilingSampler("Setup Debug Properties");
         private static readonly ProfilingSampler s_DebugFinalValidationSampler = new ProfilingSampler(nameof(UpdateShaderGlobalPropertiesForFinalValidationPass));
 
         DebugSetupPassData s_DebugSetupPassData = new DebugSetupPassData();
@@ -507,7 +507,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal void Setup(RenderGraph renderGraph, bool isPreviewCamera)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<DebugSetupPassData>(nameof(Setup), out var passData, s_DebugSetupSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<DebugSetupPassData>(s_DebugSetupSampler.name, out var passData, s_DebugSetupSampler))
             {
                 InitDebugSetupPassData(passData, isPreviewCamera);
                 builder.AllowPassCulling(false);

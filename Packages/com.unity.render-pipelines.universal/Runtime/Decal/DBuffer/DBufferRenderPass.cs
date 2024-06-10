@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.Universal
 
         private FilteringSettings m_FilteringSettings;
         private List<ShaderTagId> m_ShaderTagIdList;
-        private ProfilingSampler m_ProfilingSampler;
         private ProfilingSampler m_DBufferClearSampler;
 
         private bool m_DecalLayers;
@@ -50,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
             m_DrawSystem = drawSystem;
             m_Settings = settings;
             m_DBufferClear = dBufferClear;
-            m_ProfilingSampler = new ProfilingSampler("DBuffer Render");
+            profilingSampler = new ProfilingSampler("Draw DBuffer");
             m_DBufferClearSampler = new ProfilingSampler("Clear");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
             m_DecalLayers = decalLayers;
@@ -135,7 +134,7 @@ namespace UnityEngine.Rendering.Universal
             InitPassData(ref m_PassData);
             var cmd = renderingData.commandBuffer;
             var passData = m_PassData;
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, profilingSampler))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -239,7 +238,7 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? resourceData.activeDepthTexture :
                 (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? resourceData.dBufferDepth : resourceData.activeDepthTexture);
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("DBuffer Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
             {
                 InitPassData(ref passData);
 
