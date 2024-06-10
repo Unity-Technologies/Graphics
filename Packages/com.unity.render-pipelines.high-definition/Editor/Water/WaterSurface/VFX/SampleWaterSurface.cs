@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             baseCode += "#define IGNORE_HQ_NORMAL_SAMPLE\n";
             baseCode += "#define IGNORE_WATER_FADE\n"; // didn't profile but probably faster
 
-            int bandCount = HDRenderPipeline.EvaluateBandCount(surfaceType, evaluateRipples);
+            int bandCount = WaterSystem.EvaluateBandCount(surfaceType, evaluateRipples);
             if (bandCount == 1)
                 baseCode += "#define WATER_ONE_BAND\n";
             else if (bandCount == 2)

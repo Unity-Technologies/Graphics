@@ -35,7 +35,11 @@
         }
     ],
     "m_GroupDatas": [],
-    "m_StickyNoteDatas": [],
+    "m_StickyNoteDatas": [
+        {
+            "m_Id": "2dfb0463b40d4f618818e96d27964c79"
+        }
+    ],
     "m_Edges": [
         {
             "m_OutputSlot": {
@@ -189,6 +193,26 @@
         "z": 0.0
     },
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "2dfb0463b40d4f618818e96d27964c79",
+    "m_Title": "",
+    "m_Content": "Combine the input color RGB and input Alpha to create the RGBA output. ",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": -368.5,
+        "y": 116.0,
+        "width": 200.0,
+        "height": 100.0
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
 }
 
 {

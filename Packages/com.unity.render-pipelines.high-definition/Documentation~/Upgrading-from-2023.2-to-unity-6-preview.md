@@ -22,6 +22,10 @@ With the introduction of the sky occlusion feature some asset data layout has ch
 
 Path tracing now has a *Seed Mode* parameter. The default is the **non repeating** noise pattern, which is different from the previous behavior. To match behavior in the last version, select the **repeating** pattern.
 
+The [Raytracing Quality Keyword](SGNode-Raytracing-Quality.md) has been updated to include a Pathtraced input. 
+In previous versions, when Path tracing is enabled, the default input was used. Now, it uses the Pathtraced input. This is to prevent compilation error in graphs using unsupported nodes. 
+If you had Shader Graph materials using the Raytracing Quality Keyword, the result will stay unchanged until you re-save them. To upgrade the behavior, you need to delete the keyword in the blackboard and re-add it manually. 
+
 ## Enabling light sources in Path Tracing
 
 In this version, the setting to include light sources in ray traced effects has been split in one checkbox for hybrid ray tracing effects (`include for Ray Tracing`) and one checkbox for inclusion in Path Tracing (`include for Path Tracing`). When upgrading, this last checkbox might need to be updated.

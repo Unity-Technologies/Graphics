@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering
             NativeArray<uint> layerMask;
 
             public override NativeArray<uint> renderingLayerMasks => layerMask;
-            
+
             CommandBuffer cmd;
             IRayTracingAccelStruct m_AccelerationStructure;
             GraphicsBuffer scratchBuffer;
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering
             {
                 if (currentStep >= stepCount)
                     return true;
-                
+
                 var shader = s_TracingContext.shaderRL;
 
                 int batchOffset = batchIndex * k_MaxProbeCountPerBatch;
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
                 shader.SetVectorParam(cmd, _RenderingLayerMasks, regionMasks);
                 shader.SetBufferParam(cmd, _ProbePositions, probePositionsBuffer);
                 shader.SetBufferParam(cmd, _LayerMasks, layerMaskBuffer);
-                
+
                 shader.Dispatch(cmd, scratchBuffer, (uint)batchSize, 1, 1);
                 batchIndex++;
 

@@ -284,6 +284,34 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                             ctxPass.numInputs++;
                         }
+
+                        var resourceTrans = inputPass.transientResourceList[type];
+                        var resourceTransCount = resourceTrans.Count;
+
+                        for (var i = 0; i < resourceTransCount; ++i)
+                        {
+                            var resource = resourceTrans[i]; 
+
+                            // Mark this pass as reading from this version of the resource
+                            ctx.resources[resource].RegisterReadingPass(ctx, resource, passId, ctxPass.numInputs);
+
+                            ctx.inputData.Add(new PassInputData
+                            {
+                                resource = resource,
+                            });
+
+                            ctxPass.numInputs++;
+
+                            // Mark this pass as writing to this version of the resource
+                            ctx.resources[resource].SetWritingPass(ctx, resource, passId);
+
+                            ctx.outputData.Add(new PassOutputData
+                            {
+                                resource = resource,
+                            });
+
+                            ctxPass.numOutputs++;
+                        }
                     }
                 }
             }
@@ -386,7 +414,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             // Allocate a stand-alone native renderpass based on the current pass
                             ctx.nativePassData.Add(new NativePassData(ref passToAdd, ctx));
                             passToAdd.nativePassIndex = ctx.nativePassData.LastIndex();
-
                             activeNativePassId = passToAdd.nativePassIndex;
                         }
                     }
@@ -413,7 +440,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 // Raster but cannot be merged, allocate a new stand-alone native renderpass based on the current pass
                                 ctx.nativePassData.Add(new NativePassData(ref passToAdd, ctx));
                                 passToAdd.nativePassIndex = ctx.nativePassData.LastIndex();
-
                                 activeNativePassId = passToAdd.nativePassIndex;
                             }
                         }
@@ -588,7 +614,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             for (var passIdx = 0; passIdx < contextData.nativePassData.Length; ++passIdx)
             {
                 ref var nativePassData = ref contextData.nativePassData.ElementAt(passIdx);
-                PrepareNativeRenderPass(ref nativePassData);
+                DetermineLoadStoreActions(ref nativePassData);
             }
         }
 
@@ -737,7 +763,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
 
-        void PrepareNativeRenderPass(ref NativePassData nativePass)
+        void DetermineLoadStoreActions(ref NativePassData nativePass)
         {
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_PrepareNativePass)))
             {
@@ -754,113 +780,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // Some sanity checks, these should not happen
                 Debug.Assert(firstGraphPass.mergeState == PassMergeState.Begin || firstGraphPass.mergeState == PassMergeState.None);
                 Debug.Assert(lastGraphPass.mergeState == PassMergeState.End || lastGraphPass.mergeState == PassMergeState.None);
-
                 ref readonly var fragmentList = ref nativePass.fragments;
-
-                // Fill out the subpass descriptors for the native renderpasses
-                // NOTE: Not all graph subpasses get an actual native pass:
-                // - There could be passes that do only non-raster ops (like setglobal) and have no attachments. They don't get a native pass
-                // - Renderpasses that use exactly the same rendertargets at the previous pass use the same native pass. This is because
-                //   nextSubpass is expensive on some platforms (even if its' essentially a no-op as it's using the same attachments).
-                nativePass.firstNativeSubPass = contextData.nativeSubPassData.Length;
-                for (var graphPassIndex = 0; graphPassIndex < nativePass.numGraphPasses; ++graphPassIndex)
-                {
-                    SubPassDescriptor desc = new SubPassDescriptor();
-                    ref var graphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass + graphPassIndex);
-
-                    // We have no output attachments, this is an "empty" raster pass doing only non-rendering command so skip it.
-                    if (graphPass.numFragments == 0)
-                    {
-                        // We always merge it into the currently active
-                        graphPass.nativeSubPassIndex = nativePass.numNativeSubPasses - 1;
-                        graphPass.beginNativeSubpass = false;
-                        continue;
-                    }
-
-                    // If depth ends up being bound only because of merging we explicitly say that we will not write to it
-                    // which could have been implied by leaving the flag to None
-                    if (!graphPass.fragmentInfoHasDepth && nativePass.hasDepth)
-                    {
-                        desc.flags = SubPassFlags.ReadOnlyDepth;
-                    }
-
-                    // MRT attachments
-                    {
-                        int fragmentIdx = 0;
-                        int colorOffset = (graphPass.fragmentInfoHasDepth) ? -1 : 0;
-
-                        desc.colorOutputs = new AttachmentIndexArray(graphPass.numFragments + colorOffset);
-
-                        foreach (ref readonly var fragment in graphPass.Fragments(contextData))
-                        {
-                            // Check if we're handling the depth attachment
-                            if (graphPass.fragmentInfoHasDepth && fragmentIdx == 0)
-                            {
-                                desc.flags = (fragment.accessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
-                            }
-                            // It's a color attachment
-                            else
-                            {
-                                // Find the index of this subpass's attachment in the native renderpass attachment list
-                                int colorAttachmentIdx = -1;
-                                for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
-                                {
-                                    if (fragmentList[fragmentId].resource.index == fragment.resource.index)
-                                    {
-                                        colorAttachmentIdx = fragmentId;
-                                        break;
-                                    }
-                                }
-                                Debug.Assert(colorAttachmentIdx >= 0); // If this is not the case it means we are using an attachment in a sub pass that is not part of the native pass !?!? clear bug
-                                                                       // Set up the color indexes
-                                desc.colorOutputs[fragmentIdx + colorOffset] = colorAttachmentIdx;
-                            }
-                            fragmentIdx++;
-                        }
-                    }
-
-                    // FB-fetch attachments
-                    {
-                        int inputIndex = 0;
-
-                        desc.inputs = new AttachmentIndexArray(graphPass.numFragmentInputs);
-
-                        foreach (ref readonly var fragmentInput in graphPass.FragmentInputs(contextData))
-                        {
-                            // Find the index of this subpass's attachment in the native renderpass attachment list
-                            int inputAttachmentIdx = -1;
-                            for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
-                            {
-                                if (fragmentList[fragmentId].resource.index == fragmentInput.resource.index)
-                                {
-                                    inputAttachmentIdx = fragmentId;
-                                    break;
-                                }
-                            }
-                            Debug.Assert(inputAttachmentIdx >= 0); // If this is not the case it means we are using an attachment in a sub pass that is not part of the native pass !?!? clear bug
-                                                                   // Set up the color indexes
-                            desc.inputs[inputIndex] = inputAttachmentIdx;
-                            inputIndex++;
-                        }
-                    }
-
-                    // Check if we can merge the native sub pass with the previous one
-                    if (nativePass.numNativeSubPasses == 0 || !IsSameNativeSubPass(ref desc, ref contextData.nativeSubPassData.ElementAt(nativePass.firstNativeSubPass + nativePass.numNativeSubPasses - 1)))
-                    {
-                        contextData.nativeSubPassData.Add(desc);
-                        int idx = contextData.nativeSubPassData.LastIndex();
-                        Debug.Assert(idx == nativePass.firstNativeSubPass + nativePass.numNativeSubPasses);
-                        nativePass.numNativeSubPasses++;
-
-                        graphPass.beginNativeSubpass = true;
-                    }
-                    else
-                    {
-                        graphPass.beginNativeSubpass = false;
-                    }
-
-                    graphPass.nativeSubPassIndex = nativePass.numNativeSubPasses - 1;
-                }
 
                 // determine load store actions
                 // This pass also contains the latest versions used within this pass
@@ -1019,7 +939,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     if (readerPass.type == RenderGraphPassType.Unsafe)
                                     {
                                         needsMSAASamples = true;
-                                        needsResolvedData = true;
+                                        needsResolvedData = !resourceData.bindMS;
                                         msaaUserPassID = reader.passId;
                                         userPassID = reader.passId;
                                         break;

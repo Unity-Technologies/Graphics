@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         // Simulation shader and kernels
         ComputeShader m_WaterSimulationCS;
@@ -366,21 +366,25 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_FFTRowPassRs = null;
         RTHandle m_FFTRowPassIs = null;
 
-        internal bool m_GPUReadbackMode;
-        internal WaterSimulationResolution m_WaterBandResolution;
-        internal WaterSimulationResolution m_WaterCPUSimulationResolution;
+        bool m_GPUReadbackMode;
+        WaterSimulationResolution m_WaterBandResolution;
+        WaterSimulationResolution m_WaterCPUSimulationResolution;
+
+        internal bool replicateSimulationOnCPU => !m_GPUReadbackMode;
+        internal WaterSimulationResolution simationRes => m_WaterBandResolution;
+        internal WaterSimulationResolution cpuSimationRes => m_WaterCPUSimulationResolution;
 
         void InitializeWaterSimulation()
         {
-            m_GPUReadbackMode = m_Asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.GPUReadback;
-            m_WaterBandResolution = m_Asset.currentPlatformRenderPipelineSettings.waterSimulationResolution;
+            m_GPUReadbackMode = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.GPUReadback;
+            m_WaterBandResolution = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.waterSimulationResolution;
 
             m_WaterCPUSimulationResolution = m_WaterBandResolution;
-            if ((int)m_WaterBandResolution != 64 && !m_Asset.currentPlatformRenderPipelineSettings.waterFullCPUSimulation)
+            if ((int)m_WaterBandResolution != 64 && !m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.waterFullCPUSimulation)
                 m_WaterCPUSimulationResolution = (WaterSimulationResolution)((int)m_WaterBandResolution / 2);
 
             // Simulation shader and kernels
-            m_WaterSimulationCS = runtimeShaders.waterSimulationCS;
+            m_WaterSimulationCS = m_RuntimeResources.waterSimulationCS;
             m_InitializePhillipsSpectrumKernel = m_WaterSimulationCS.FindKernel("InitializePhillipsSpectrum");
             m_EvaluateDispersionKernel = m_WaterSimulationCS.FindKernel("EvaluateDispersion");
             m_EvaluateNormalsKernel = m_WaterSimulationCS.FindKernel("EvaluateNormals");
@@ -390,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EvaluateInstanceDataInfiniteKernel = m_WaterSimulationCS.FindKernel("EvaluateInstanceDataInfinite");
 
             // FFT shader and kernels
-            m_FourierTransformCS = runtimeShaders.fourierTransformCS;
+            m_FourierTransformCS = m_RuntimeResources.fourierTransformCS;
             GetFFTKernels(m_FourierTransformCS, m_WaterBandResolution, out m_RowPassTi_Kernel, out m_ColPassTi_Kernel);
 
             // Allocate all the RTHanles required for the water simulation

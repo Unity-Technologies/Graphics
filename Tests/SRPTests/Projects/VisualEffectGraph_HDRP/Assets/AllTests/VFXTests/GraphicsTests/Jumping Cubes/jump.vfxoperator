@@ -66,7 +66,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -402,6 +402,7 @@ MonoBehaviour:
     position: {x: 795, y: 592}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &13
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -483,6 +484,7 @@ MonoBehaviour:
     position: {x: 1585, y: 606}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &16
 MonoBehaviour:
   m_ObjectHideFlags: 0

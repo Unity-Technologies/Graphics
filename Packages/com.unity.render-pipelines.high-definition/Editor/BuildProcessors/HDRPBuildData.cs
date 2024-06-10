@@ -19,6 +19,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public Dictionary<int, ComputeShader> rayTracingComputeShaderCache { get; private set; } = new();
         public Dictionary<int, ComputeShader> computeShaderCache { get; private set; } = new();
 
+        public HDRenderPipelineRuntimeShaders runtimeShaders { get; private set; }
+        public HDRenderPipelineRuntimeMaterials materialResources { get; private set; }
+
         public HDRPBuildData()
         {
 
@@ -41,14 +44,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                var hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.Ensure();
+                var hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.instance;
+                if (hdrpGlobalSettingsInstance == null)
+                    hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.Ensure();
+
                 if (hdrpGlobalSettingsInstance != null)
                 {
                     GraphicsSettings.GetRenderPipelineSettings<HDRPRayTracingResources>()
                         .ForEachFieldOfType<ComputeShader>(computeShader => rayTracingComputeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
 
-                    var runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+                    runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
                     runtimeShaders?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
+
+                    materialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
 
                     stripDebugVariants = !isDevelopmentBuild || GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().stripRuntimeDebugShaders;
                 }
@@ -65,6 +73,8 @@ namespace UnityEditor.Rendering.HighDefinition
             playerNeedRaytracing = false;
             stripDebugVariants = true;
             buildingPlayerForHDRenderPipeline = false;
+            runtimeShaders = null;
+            materialResources = null;
             m_Instance = null;
         }
     }

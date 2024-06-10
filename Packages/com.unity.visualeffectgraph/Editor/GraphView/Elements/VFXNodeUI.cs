@@ -172,10 +172,9 @@ namespace UnityEditor.VFX.UI
 
         protected virtual bool HasPosition() => true;
 
-        private bool SyncSettings()
+        private void SyncSettings()
         {
             Profiler.BeginSample("VFXNodeUI.SyncSettings");
-            var hasChanged = false;
             var settings = controller.settings;
             var graphSettings = controller.model.GetSettings(false, VFXSettingAttribute.VisibleFlags.InGraph).ToArray();
 
@@ -186,7 +185,6 @@ namespace UnityEditor.VFX.UI
                 {
                     propertyRM.RemoveFromHierarchy();
                     m_Settings.Remove(propertyRM);
-                    hasChanged = true;
                 }
             }
 
@@ -199,7 +197,6 @@ namespace UnityEditor.VFX.UI
                     var setting = settings.Single(x => string.Compare(x.name, vfxSetting.field.Name, StringComparison.OrdinalIgnoreCase) == 0);
                     var propertyRM = AddSetting(setting);
                     settingsContainer.Insert(i, propertyRM);
-                    hasChanged = true;
                 }
             }
 
@@ -224,20 +221,17 @@ namespace UnityEditor.VFX.UI
             }
 
             Profiler.EndSample();
-            return hasChanged;
         }
 
-        bool SyncAnchors()
+        void SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-            var hasResync = SyncAnchors(controller.outputPorts, outputContainer, false);
-            hasResync |= SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
+            SyncAnchors(controller.outputPorts, outputContainer, false);
+            SyncAnchors(controller.inputPorts, inputContainer, controller.HasActivationAnchor);
             Profiler.EndSample();
-
-            return hasResync;
         }
 
-        bool SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool hasActivationPort)
+        void SyncAnchors(ReadOnlyCollection<VFXDataAnchorController> ports, VisualElement container, bool hasActivationPort)
         {
             // Check whether resync is needed
             bool needsResync = false;
@@ -295,7 +289,6 @@ namespace UnityEditor.VFX.UI
 
             if (hasActivationPort)
                 UpdateActivationPortPositionIfAny(); // Needed to account for expanded state change in case of undo/redo
-            return needsResync;
         }
 
         private void UpdateActivationPortPosition(VFXDataAnchor anchor)
@@ -416,18 +409,15 @@ namespace UnityEditor.VFX.UI
 
             base.expanded = controller.expanded;
 
-            var needRefresh = SyncSettings();
-            needRefresh |= SyncAnchors();
+            SyncSettings();
+            SyncAnchors();
             Profiler.BeginSample("VFXNodeUI.SelfChange The Rest");
             RefreshExpandedState();
             Profiler.EndSample();
             Profiler.EndSample();
 
             UpdateCollapse();
-            if (needRefresh)
-            {
-                EditorApplication.delayCall += RefreshLayout;
-            }
+            RefreshLayout();
         }
 
         protected virtual VFXDataAnchor InstantiateDataAnchor(VFXDataAnchorController ctrl, VFXNodeUI node)
@@ -520,18 +510,23 @@ namespace UnityEditor.VFX.UI
             return rm;
         }
 
+        public void GetWidths(out float labelWidth, out float controlWidth)
+        {
+            var settingsLabelWidth = 0f;
+            var inputsLabelWidth = 0f;
+            controlWidth = 50f;
+            GetPreferredSettingsWidths(ref settingsLabelWidth, ref controlWidth);
+            GetPreferredWidths(ref inputsLabelWidth, ref controlWidth);
+            labelWidth = Mathf.Max(settingsLabelWidth, inputsLabelWidth);
+            if (labelWidth > 0)
+                labelWidth = Mathf.Max(labelWidth, defaultLabelWidth);
+        }
+
         protected virtual void RefreshLayout()
         {
             if (expanded)
             {
-                var settingsLabelWidth = 0f;
-                var inputsLabelWidth = 0f;
-                var controlWidth = 50f;
-                GetPreferredSettingsWidths(ref settingsLabelWidth, ref controlWidth);
-                GetPreferredWidths(ref inputsLabelWidth, ref controlWidth);
-                var labelWidth = Mathf.Max(settingsLabelWidth, inputsLabelWidth);
-                if (labelWidth > 0)
-                    labelWidth = Mathf.Max(labelWidth, defaultLabelWidth);
+                GetWidths(out var labelWidth, out var controlWidth);
                 ApplySettingsWidths(labelWidth);
                 ApplyWidths(labelWidth, controlWidth);
             }

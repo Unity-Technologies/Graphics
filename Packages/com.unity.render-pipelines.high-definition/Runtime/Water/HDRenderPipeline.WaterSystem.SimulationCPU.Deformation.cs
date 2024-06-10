@@ -6,7 +6,7 @@ using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         static float2 RotateUV(WaterSimSearchData wsd, float2 uv)
         {

@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sky
+  m_Shader: {fileID: -6465566751694194690, guid: 5cb3c73a57d729c4295a3f5230ab0694, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - LOCAL_SKY
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _NorthernLights_Texture:
+        m_Texture: {fileID: 2800000, guid: 1a969d5914917d64e866563d33808c2a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Projector_Texture:
+        m_Texture: {fileID: 2800000, guid: d4de389b293fe5f4f8541cbc1b806b92, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_5283fa6e7f894c50bbc6498bb75ffc33_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: d4de389b293fe5f4f8541cbc1b806b92, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Stars_3D_texture:
+        m_Texture: {fileID: 11700000, guid: 279c43c64bca72e4cb632d9b76291501, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Stars_Density_Cubemap:
+        m_Texture: {fileID: 8900000, guid: fbf3fac8cf7e3f745ade08b5e78f208c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Edge: 0.917
+    - _Flatness: 4
+    - _Height: 0.8
+    - _Hue_Shift: 0.574
+    - _Max_Thickness_Zone: 0.25
+    - _Noise_Energy_Influence: 0.572
+    - _Noise_Intensity: 0.01
+    - _Noise_Scale: 1
+    - _Northern_Lights_Intensity: 3
+    - _Projector_Altitude: 0.3
+    - _Projector_Azimuth: 0.43
+    - _Projector_Height: 0.639
+    - _Projector_Intensity: 1
+    - _Projector_Width: 0.672
+    - _Rotation: 90
+    - _Saturation_Shift: 0.794
+    - _Smoothness: 0.3
+    - _Stars_Brightness: 10
+    - _Stars_High_Density_Amount: 0.15
+    - _Stars_Intensity: 20
+    - _Stars_Low_Density_Amount: 0.7
+    - _Stars_Texture_Tiling: 4
+    - _Steps: 48
+    m_Colors:
+    - _Color: {r: 1, g: 0.34276712, b: 0.97382605, a: 0}
+    - _Global_Speed: {r: 0.01, g: -0.001, b: 0, a: 0}
+    - _Noise_Speed: {r: -0.02, g: 0.002, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

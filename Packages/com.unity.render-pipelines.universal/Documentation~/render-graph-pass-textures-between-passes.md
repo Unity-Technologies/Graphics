@@ -49,7 +49,7 @@ Follow these steps:
     ```csharp
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameContext)
     {
-        using (var builder = renderGraph.AddPass<PassData>("Get frame data", out var passData))
+        using (var builder = renderGraph.AddRasterRenderPass<PassData>("Get frame data", out var passData))
         {
             UniversalResourceData resourceData = frameContext.Get<UniversalResourceData>();
             var customData = contextData.Create<MyCustomData>();
@@ -84,7 +84,7 @@ MyCustomData fetchedData = frameData.Get<MyCustomData>();
 TextureHandle customTexture = customData.textureToTransfer;
 ```
 
-Refer to [Use frame data](accessing-frame-data.md) for more information about frame data.
+For more information about frame data, refer to [Use frame data](accessing-frame-data.md).
 
 ### Example
 
@@ -202,7 +202,7 @@ public class AddOwnTextureToFrameData : ScriptableRendererFeature
 
 If you need to use a texture as the input for the shader on a GameObject, you can set a texture as a global texture. A global texture is available to all shaders and render passes.
 
-Setting a texture as a global texture can make rendering slower. Refer to [SetGlobalTexture](https://docs.unity3d.com/ScriptReference/Shader.SetGlobalTexture.html) for more information.
+Setting a texture as a global texture can make rendering slower. Refer to [SetGlobalTexture](https://docs.unity3d.com/ScriptReference/Shader.SetGlobalTexture.html).
 
 Don't use an [unsafe render pass](render-graph-unsafe-pass.md) and `CommandBuffer.SetGlobal` to set a texture as a global texture, because it might cause errors.
 
@@ -221,7 +221,13 @@ using (var builder = renderGraph.AddRasterRenderPass<PassData>("MyPass", out var
 }
 ```
 
+If you don't already call `SetRenderFunc`, you must also add an empty render function. For example:
+
+```csharp
+    builder.SetRenderFunc((PassData data, RasterGraphContext context) => { });
+```
+
 You can now:
 
 - Access the texture in a different render pass, using the `UseGlobalTexture()` or `UseAllGlobalTextures()` API.
-- Use the texture on any material in your scene. URP automatically uses the `UseAllGlobalTextures()` API to enable this.
+- Use the texture on any material in your scene.

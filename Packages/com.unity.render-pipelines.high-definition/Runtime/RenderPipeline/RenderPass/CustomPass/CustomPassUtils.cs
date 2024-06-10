@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (overrideMaterialIndex == normalToColorPassIndex) mode = 2;
                             if (overrideMaterialIndex == tangentToColorPassIndex) mode = 3;
 
-                            HDRenderPipeline.currentPipeline.RenderWaterFromCamera(view, ctx.cmd, mode);
+                            HDRenderPipeline.currentPipeline.waterSystem.RenderWaterFromCamera(view, ctx.cmd, mode);
                         }
                     }
                 }

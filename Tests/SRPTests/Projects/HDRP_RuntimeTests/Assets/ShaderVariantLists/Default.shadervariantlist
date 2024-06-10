@@ -8,6 +8,7 @@ Compiled compute shader: BloomPrefilter, kernel: KMain, keywords ENABLE_ALPHA LO
 Compiled compute shader: BloomPrefilter, kernel: KMain, keywords LOW_QUALITY
 Compiled compute shader: BloomUpsample, kernel: KMain, keywords HIGH_QUALITY
 Compiled compute shader: BloomUpsample, kernel: KMain, keywords LOW_QUALITY
+Compiled compute shader: ClearBuffer2D, kernel: ClearBuffer2DMain, keywords <no keywords>
 Compiled compute shader: ClearLightLists, kernel: ClearList, keywords <no keywords>
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTexture, keywords <no keywords>
 Compiled compute shader: ClearUIntTextureArray, kernel: ClearUIntTextureArray, keywords <no keywords>

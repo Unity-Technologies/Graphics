@@ -80,7 +80,21 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
         {
             internal Material material;
             internal bool visualizeAlphaChannel;
+            internal TextureHandle[] gBuffer;
         }
+
+        //  Make sure this is consistent with DeferredLights.cs
+        private static readonly int s_GbufferLightingIndex = 3; // _GBuffer3 is the activeColorTexture
+        private static readonly int[] s_GBufferShaderPropertyIDs = new int[]
+        {
+            Shader.PropertyToID("_GBuffer0"),
+            Shader.PropertyToID("_GBuffer1"),
+            Shader.PropertyToID("_GBuffer2"),
+            Shader.PropertyToID("_GBuffer3"),
+            Shader.PropertyToID("_GBuffer4"),
+            Shader.PropertyToID("_GBuffer5"),
+            Shader.PropertyToID("_GBuffer6")
+        };
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
@@ -91,12 +105,28 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Test GBuffer visualization.", out var passData))
             {
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
+
+                for (int i = 0; i < resourceData.gBuffer.Length; i++)
+                {
+                    if (i == s_GbufferLightingIndex) continue;
+                    builder.UseTexture(resourceData.gBuffer[i]);
+                }
+
+                passData.gBuffer = resourceData.gBuffer;
+
                 passData.material = m_Material;
                 passData.visualizeAlphaChannel = m_VisualizeAlphaChannel;
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     CoreUtils.SetKeyword(data.material,"VIS_ALPHA", data.visualizeAlphaChannel);
+
+                    for (int i = 0; i < data.gBuffer.Length; i++)
+                    {
+                        if (i == s_GbufferLightingIndex) continue;
+                        data.material.SetTexture(s_GBufferShaderPropertyIDs[i], data.gBuffer[i]);
+                    }
+
                     context.cmd.DrawProcedural(Matrix4x4.identity, data.material, 0, MeshTopology.Triangles, 3, 1);
                 });
             }

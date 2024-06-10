@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering
     //Make CoreBuildData constructed and kept till end of build
     class CorePreprocessBuild : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
-        int IOrderedCallback.callbackOrder => -1;
+        int IOrderedCallback.callbackOrder => int.MinValue + 50;
 
         private static CoreBuildData m_BuildData = null;
 

@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public CommonShaderPreprocessor()
         {
-            m_ShaderResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
-            m_MaterialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
+            m_ShaderResources = HDRPBuildData.instance.runtimeShaders;
+            m_MaterialResources = HDRPBuildData.instance.materialResources;
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -39,20 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (inputData.shaderKeywordSet.IsEnabled(m_SupportWaterAbsorption))
                     return true;
 
-                if (stripDebugVariants && snippet.passName.StartsWith(HDRenderPipeline.k_WaterMaskPass))
-                    return true;
-
-                if (shader == m_ShaderResources.waterCausticsPS ||
-                    shader == m_ShaderResources.waterFoamPS ||
-                    shader == m_ShaderResources.waterPS ||
-                    shader == m_MaterialResources.waterExclusionMaterial.shader)
-                    return true;
-            }
-
-            // Volumetric clouds
-            if (!settings.supportVolumetricClouds)
-            {
-                if (shader == m_ShaderResources.volumetricCloudsCombinePS)
+                if (stripDebugVariants && snippet.passName.StartsWith(WaterSystem.k_WaterMaskPass))
                     return true;
             }
 

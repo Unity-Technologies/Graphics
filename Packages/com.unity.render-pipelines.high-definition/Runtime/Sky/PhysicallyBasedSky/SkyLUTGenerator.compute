@@ -18,6 +18,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/VolumetricCloudsShadowSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
@@ -307,33 +308,47 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
 
     skyTransmittance = ParallelPrefixProduct(s, transmittanceOverSegment);
 
+    float sunShadow = 1.0f;
+    if (_DirectionalShadowIndex >= 0)
+    {
+        // See GetDirectionalShadowAttenuation
+        // Load shadowmap twice to get some form of smoothing
+        // We offset by one texel to not depend too much on the resolution of the shadow map
+        // Function call is inlined so share some computations between samples, which is not correct but faster
+        float3 V2 = -GetSkyViewDirWS((uv + 0.5 / res) * _ScreenSize.xy);
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        HDShadowContext shadowContext = InitShadowContext();
+
+        // Find if last cascade is usable, we only use this one as we don't need precise occlusion and it's faster
+        // See EvalShadow_GetSplitIndex
+        int shadowSplitIndex = _CascadeShadowCount - 1;
+        float4 sphere  = shadowContext.directionalShadowData.sphereCascades[shadowSplitIndex];
+        float3 wposDir = P - sphere.xyz;
+        float  distSq  = dot(wposDir, wposDir);
+        if (distSq <= sphere.w)
+        {
+            HDShadowData sd = shadowContext.shadowDatas[light.shadowIndex];
+            LoadDirectionalShadowDatas(sd, shadowContext, light.shadowIndex + shadowSplitIndex);
+
+            float3 posWS = O + _PlanetCenterPosition + sd.cacheTranslationDelta.xyz;
+            float3 posTC1 = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, posWS + t*V, false);
+            float3 posTC2 = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, posWS + t*V2, false);
+
+            sunShadow = (DIRECTIONAL_FILTER_ALGORITHM(sd, 0, posTC1, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS) +
+                    DIRECTIONAL_FILTER_ALGORITHM(sd, 0, posTC2, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS)) / 2.0f;
+        }
+
+        if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
+            sunShadow *= EvaluateVolumetricCloudsShadows(light, P + _PlanetCenterPosition);
+    }
+
+
     for (uint i = 0; i < _CelestialLightCount; i++)
     {
         CelestialBodyData light = _CelestialBodyDatas[i];
         float3 L = -light.forward.xyz;
 
-        float shadow = 1.0f;
-
-        /*
-        // Disabled because the LUT is too low res to get interesting results
-        if (light.shadowIndex >= 0)
-        {
-            HDShadowContext shadowContext = InitShadowContext();
-            shadow *= GetDirectionalShadowAttenuation(shadowContext,
-                    coord, P + _PlanetCenterPosition, -V,
-                    light.shadowIndex, L);
-        }
-        */
-
-        if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
-        {
-            DirectionalLightData dirLight;
-            dirLight.forward = light.forward;
-            dirLight.right = light.right;
-            dirLight.up = light.up;
-            shadow *= EvaluateVolumetricCloudsShadows(dirLight, P + _PlanetCenterPosition);
-        }
-
+        float shadow = (light.shadowIndex >= 0) ? sunShadow : 1.0f;
         const float3 sunTransmittance = shadow * EvaluateSunColorAttenuation(dot(N, L), r);
         const float3 phaseScatter = AirScatter(height) * AirPhase(-dot(L, V)) + AerosolScatter(height) * AerosolPhase(-dot(L, V));
         const float3 multiScatteredLuminance = EvaluateMultipleScattering(dot(N, L), height);
@@ -344,10 +359,6 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
     }
 
     skyColor = ParallelPostfixSum(s, skyColor);
-
-    // For debug: no LDS
-    //GetSample(s, PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_DEPTH, ATMOSPHERIC_SCATTERING_MAX_DISTANCE, t, dt);
-    //EvaluateAtmosphericColor(O, V, t, skyColor, skyTransmittance);
 
     // Make sure first slice is all black. Looks better for bilinear at close range
     if (s == 0) skyColor = 0.0f;

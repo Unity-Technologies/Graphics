@@ -589,6 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>The main directional Light.</returns>
         public Light GetMainLight() { return m_CurrentSunLight; }
+        internal HDAdditionalLightData GetMainLightAdditionalData() { return m_CurrentSunLightAdditionalLightData; }
 
         // Screen space shadow data
         internal struct ScreenSpaceShadowData

@@ -219,9 +219,10 @@ Vector3PropertyRM.propertyrm VFXVector3Field.fieldContainer
     flex: 1 0 auto;
 }
 
-VFXVector3Field FloatField {
+VFXVector3Field .unity-float-field {
     margin-left: 4px;
 }
+
 
 ColorPropertyRM .unity-float-field
 {
@@ -385,4 +386,8 @@ VFXColorField .colorcontainer
 
 .propertyrm.hasDepth > .unity-base-field {
     margin-left: 4px;
+}
+
+.fieldContainer .unity-base-text-field__input {
+    width: 36px;
 }

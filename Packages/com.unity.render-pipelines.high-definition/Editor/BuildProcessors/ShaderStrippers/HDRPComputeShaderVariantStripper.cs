@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public HDRPComputeShaderVariantStripper()
         {
-            m_Shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+            m_Shaders = HDRPBuildData.instance.runtimeShaders;
         }
 
         // Modify this function to add more stripping clauses
@@ -43,25 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Remove water if disabled
             if (!settings.supportWater)
             {
-                if (shader == m_Shaders.waterSimulationCS ||
-                    shader == m_Shaders.fourierTransformCS ||
-                    shader == m_Shaders.waterEvaluationCS ||
-                    shader == m_Shaders.waterLightingCS ||
-                    shader == m_Shaders.waterLineCS ||
-                    shader == m_Shaders.waterDeformationCS ||
-                    shader == m_Shaders.waterFoamCS)
-                    return true;
-                
                 if (inputData.shaderKeywordSet.IsEnabled(m_WaterAbsorption))
-                    return true;
-            }
-
-            // Remove volumetric clouds if disabled
-            if (!settings.supportVolumetricClouds)
-            {
-                if (shader == m_Shaders.volumetricCloudsCS ||
-                    shader == m_Shaders.volumetricCloudsTraceCS ||
-                    shader == m_Shaders.volumetricCloudMapGeneratorCS)
                     return true;
             }
 

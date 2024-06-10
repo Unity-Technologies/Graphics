@@ -3,7 +3,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class VolumetricCloudsSystem
     {
         // Setup to match FORWARD_ECCENTRICITY in VolumetricCloudsUtilies.hlsl
         // Kinda empirical because they are not using the same phase function
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_CloudsStaticProbeBuffer);
         }
 
-        internal GraphicsBuffer RenderVolumetricCloudsAmbientProbe(RenderGraph renderGraph, HDCamera hdCamera, SkyUpdateContext lightingSky, bool staticSky)
+        internal GraphicsBuffer RenderVolumetricCloudsAmbientProbe(RenderGraph renderGraph, HDCamera hdCamera, SkyManager skyManager, SkyUpdateContext lightingSky, bool staticSky)
         {
             // Grab the volume settings
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HasVolumetricClouds(hdCamera, in settings) && lightingSky.skyRenderer != null)
             {
                 // We include background clouds in the ambient probe because we assume they are located above the volumetric clouds (in the background) so they should block sky light
-                m_SkyManager.RenderSkyAmbientProbe(renderGraph, lightingSky, hdCamera, probeBuffer, renderBackgroundClouds: true, HDProfileId.VolumetricCloudsAmbientProbe,
+                skyManager.RenderSkyAmbientProbe(renderGraph, lightingSky, hdCamera, probeBuffer, renderBackgroundClouds: true, HDProfileId.VolumetricCloudsAmbientProbe,
                     settings.ambientLightProbeDimmer.value, m_VolumetricCloudsAnisotropy);
             }
 

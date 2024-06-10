@@ -16,40 +16,56 @@ MonoBehaviour:
   - m_name: Enable Realtime Raytracing
     m_description: Enable Realtime Raytracing
     propertyPath: m_RenderPipelineSettings.supportRayTracing
-    targetValue: 1
     valueType: 0
+    targetValue: 1
     validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 1
   - m_name: Enable Screen Space Reflections
     m_description: Enable Screen Space Reflections
     propertyPath: m_RenderPipelineSettings.supportSSR
-    targetValue: 1
     valueType: 0
+    targetValue: 1
     validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 8
   - m_name: Enable Screen Space Reflections on Transparent
     m_description: Enable Screen Space Reflections on Transparent
     propertyPath: m_RenderPipelineSettings.supportSSRTransparent
-    targetValue: 1
     valueType: 0
+    targetValue: 1
     validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 8
+  - m_name: Enable Compute Thickness
+    m_description: Enable Compute Thickness
+    propertyPath: m_RenderPipelineSettings.supportComputeThickness
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 16
+    uiSubSectionInt: 64
+  - m_name: Set Compute Thickness Layer Mask to TransparentFX & IgnoreRaycast
+    m_description: Set Compute Thickness Layer Mask to TransparentFX & IgnoreRaycast
+    propertyPath: m_RenderPipelineSettings.computeThicknessLayerMask
+    valueType: 1
+    targetValue: 6
+    validationType: 6
+    uiSectionInt: 16
+    uiSubSectionInt: 64
   - m_name: Enable Screen Space Shadows
     m_description: Enable Screen Space Shadows
     propertyPath: m_RenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows
-    targetValue: 1
     valueType: 0
+    targetValue: 1
     validationType: 0
     uiSectionInt: 32
-    uiSubSectionInt: 32
+    uiSubSectionInt: 128
   - m_name: Set Maximum Screen Space Shadows to 6
     m_description: Set Maximum Screen Space Shadows to 6
     propertyPath: m_RenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots
-    targetValue: 6
     valueType: 1
+    targetValue: 6
     validationType: 3
     uiSectionInt: 32
-    uiSubSectionInt: 32
+    uiSubSectionInt: 128

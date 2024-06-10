@@ -842,7 +842,7 @@ namespace UnityEditor.VFX
                         var contextData = compiledData.taskToCompiledData[task];
                         contextData.gpuMapper = gpuMapper;
                         contextData.uniformMapper = uniformMapper;
-                        contextData.bufferUsage = graph.BufferUsage;
+                        contextData.bufferUsage = graph.GetBufferTypeUsage(context);
 
                         if (task.doesGenerateShader)
                         {
@@ -1183,7 +1183,7 @@ namespace UnityEditor.VFX
                     foreach (var task in contextCompiledData.tasks)
                     {
                         var contextData = new VFXTaskCompiledData() { indexInShaderSource = -1 };
-                        contextData.hlslCodeHolders = m_ExpressionGraph.customHLSLExpressions;
+                        contextData.hlslCodeHolders = m_ExpressionGraph.GetCustomHLSLExpressions(context);
                         contextData.cpuMapper = cpuMapper;
                         contextData.parameters = context.additionalMappings.ToArray();
                         contextData.linkedEventOut = ComputeEventListFromSlot(context.allLinkedOutputSlot).ToArray();

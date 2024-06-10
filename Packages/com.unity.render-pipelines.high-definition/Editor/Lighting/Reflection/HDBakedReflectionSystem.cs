@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 for (int bounce = 0; bounce < reflectionBounces; bounce++)
                 {
                     var bounceHash = Hash128.Compute(bounce);
-                    
+
                     // Render probes that were added or modified
                     for (int i = 0; i < toBakeIndicesList.Count; ++i)
                     {

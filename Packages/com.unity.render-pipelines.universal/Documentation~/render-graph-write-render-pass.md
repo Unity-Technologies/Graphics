@@ -64,7 +64,7 @@ TextureHandle destination =
     UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "CopyTexture", false);
 ```
 
-THe `builder.UseTexture` method declares that this render pass uses the source texture as a read-only input:
+The `builder.UseTexture` method declares that this render pass uses the source texture as a read-only input:
 
 ```C#
 builder.UseTexture(passData.copySourceTexture);

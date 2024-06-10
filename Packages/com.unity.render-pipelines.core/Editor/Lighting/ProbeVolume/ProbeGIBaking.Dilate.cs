@@ -172,6 +172,18 @@ namespace UnityEngine.Rendering
         static readonly int _NeedDilating = Shader.PropertyToID("_NeedDilating");
         static readonly int _DilationParameters = Shader.PropertyToID("_DilationParameters");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
+        
+        // We need to keep the original list of cells that were actually baked to feed it to the dilation process.
+        // This is because during partial bake we only want to dilate those cells.
+        static Dictionary<int, BakingCell> m_CellsToDilate = new Dictionary<int, BakingCell>();
+        static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
+
+        // Free up dilation related data
+        static internal void FinalizeDilation()
+        {
+            m_CellPosToIndex.Clear();
+            m_CellsToDilate.Clear();
+        }
 
         // Can definitively be optimized later on.
         // Also note that all the bookkeeping of all the reference volumes will likely need to change when we move to

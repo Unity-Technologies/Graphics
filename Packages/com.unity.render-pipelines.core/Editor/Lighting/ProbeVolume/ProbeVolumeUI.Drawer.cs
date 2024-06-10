@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUILayout.Space();
-            using (new EditorGUI.DisabledScope(bakingSet == null))
+            using (new EditorGUI.DisabledScope(Lightmapping.isRunning || bakingSet == null))
             {
                 ProbeVolumeLightingTab.BakeAPVButton();
             }

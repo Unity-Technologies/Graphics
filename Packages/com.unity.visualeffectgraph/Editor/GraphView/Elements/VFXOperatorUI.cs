@@ -60,13 +60,6 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer != null)
                     m_EditContainer.name = "edit-container";
             }
-
-        }
-
-        protected override void ApplyWidths(float labelWidth, float controlWidth)
-        {
-            base.ApplyWidths(labelWidth, controlWidth);
-            inputContainer.style.width = labelWidth + controlWidth + 20;
         }
 
         private bool isEditable => controller != null && controller.isEditable;

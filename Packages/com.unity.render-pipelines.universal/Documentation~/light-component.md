@@ -51,10 +51,10 @@ The Light Inspector includes the following groups of properties:
 
 | Property:| Function: |
 |:---|:---|
-| **Render Mode**| Use this drop-down to set the rendering priority of the selected Light. This can affect lighting fidelity and performance (refer to the *Performance Considerations*, below). |
-|&nbsp;&nbsp;&nbsp;&nbsp;Auto| The rendering method is determined at run time, depending on the brightness of nearby lights and the current [Quality](https://docs.unity3d.com/Manual/class-QualitySettings.html) settings. |
-|&nbsp;&nbsp;&nbsp;&nbsp;Important| The light is always rendered at per-pixel quality. Use **Important** mode only for the most noticeable visual effects (for example, the headlights of a player’s car). |
-|&nbsp;&nbsp;&nbsp;&nbsp;Not Important| The light is always rendered in a faster, vertex/object light mode.  |
+| **Render Mode**| Use this drop-down to set the rendering priority of the selected Light. This can affect lighting fidelity and performance (refer to the **Performance Considerations**, below). |
+|&nbsp;&nbsp;&nbsp;&nbsp;**Auto**| The rendering method is determined at run time, depending on the brightness of nearby lights and the current [Quality](https://docs.unity3d.com/Manual/class-QualitySettings.html) settings. |
+|&nbsp;&nbsp;&nbsp;&nbsp;**Important**| The light is always rendered at per-pixel quality. Use **Important** mode only for the most noticeable visual effects (for example, the headlights of a player’s car). |
+|&nbsp;&nbsp;&nbsp;&nbsp;**Not Important**| The light is always rendered in a faster, vertex/object light mode.  |
 | **Culling Mask**| Use this to selectively exclude groups of objects from being affected by the Light. For more information, refer to [Layers](https://docs.unity3d.com/Manual/Layers.html).|
 
 ## <a name="Shadows"></a>Shadows
@@ -64,7 +64,7 @@ The Light Inspector includes the following groups of properties:
 | **Shadow Type**| Determine whether this Light casts Hard Shadows, Soft Shadows, or no shadows at all. For information on hard and soft shadows, refer to documentation on [Lights](https://docs.unity3d.com/Manual/class-Light.html). |
 |&nbsp;&nbsp;&nbsp;&nbsp;**Baked Shadow Angle** | If **Type** is set to **Directional** and **Shadow Type** is set to **Soft Shadows**, this property adds some artificial softening to the edges of shadows and gives them a more natural look.<br/><br/>**Note**: This property is only available if **Mode** is set to **Mixed** or **Baked**. |
 |&nbsp;&nbsp;&nbsp;&nbsp;**Baked Shadow Radius** | If **Type** is set to **Point** or **Spot** and **Shadow Type** is set to **Soft Shadows**, this property adds some artificial softening to the edges of shadows and gives them a more natural look.<br/><br/>**Note**: This property is only available if **Mode** is set to **Mixed** or **Baked**. |
-|&nbsp;&nbsp;&nbsp;&nbsp;Realtime Shadows| These properties are available when **Shadow Type** is set to **Hard Shadows** or **Soft Shadows**. Use these properties to control real-time shadow rendering settings. |
+|&nbsp;&nbsp;&nbsp;&nbsp;**Realtime Shadows**| These properties are available when **Shadow Type** is set to **Hard Shadows** or **Soft Shadows**. Use these properties to control real-time shadow rendering settings. |
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Strength**| Use the slider to control how dark the shadows cast by this Light are, represented by a value between 0 and 1. This is set to 1 by default. |
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Bias**| Controls whether to use shadow bias settings from the URP Asset, or whether to define custom shadow bias settings for this Light. Possible values are **Use Pipeline Settings** or **Custom**.|
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**Depth**| Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts. This property is visible only when **Bias** is set to **Custom**.|

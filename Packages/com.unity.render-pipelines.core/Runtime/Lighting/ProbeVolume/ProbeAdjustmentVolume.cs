@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering
             /// <summary>Scale probe intensity.</summary>
             IntensityScale = 99, // make sure this appears last
         };
-        
+
         /// <summary>The mode that adjustment volume will operate in. It determines what probes falling within the volume will do. </summary>
         public enum RenderingLayerMaskOperation
         {

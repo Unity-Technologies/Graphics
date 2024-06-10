@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering
                         SubdivideSubCell(subVolume.bounds, subdivisionCtx, ctx, filteredContributors, overlappingProbeVolumes, subBrickSet);
                         if (subBrickSet.Count == 0)
                             continue;
-                        
+
                         // Make sure no bricks with unwanted subdiv level are generated
                         if (requireSubFiltering && !fastSubFiltering)
                         {
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering
                             {
                                 float brickSize = ProbeReferenceVolume.instance.BrickSize(brick.subdivisionLevel);
                                 Bounds brickBounds = new Bounds();
-                                brickBounds.min = (Vector3)brick.position * ProbeReferenceVolume.instance.MinBrickSize();
+                                brickBounds.min = subdivisionCtx.profile.probeOffset + (Vector3)brick.position * ProbeReferenceVolume.instance.MinBrickSize();
                                 brickBounds.max = brickBounds.min + new Vector3(brickSize, brickSize, brickSize);
 
                                 // If any volume that overlaps this brick wants this subdiv level, we keep it

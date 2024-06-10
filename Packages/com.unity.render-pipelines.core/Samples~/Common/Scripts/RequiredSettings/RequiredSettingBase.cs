@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering
                         break;
                     case ValueType.Int:
                         floatValue = property.intValue;
-                        comparedValue = (int)comparedValue;
+                        comparedValue = (int)targetValue;
                         break;
                     default:
                             return property.boolValue == (targetValue > 0f);
@@ -102,6 +102,10 @@ namespace UnityEngine.Rendering
                         return floatValue <= comparedValue;
                     case ValidationType.Different:
                         return floatValue != comparedValue;
+                    case ValidationType.LayermaskContains:
+                        var intValue = property.intValue;
+                        var intCompared = (int)targetValue;
+                        return (intValue & intCompared) == intCompared;
                     default:
                         return floatValue == comparedValue;
                 }
@@ -123,7 +127,8 @@ namespace UnityEngine.Rendering
         Lower,
         GreaterEqual,
         LowerEqual,
-        Different
+        Different,
+        LayermaskContains
     };
 }
 #endif

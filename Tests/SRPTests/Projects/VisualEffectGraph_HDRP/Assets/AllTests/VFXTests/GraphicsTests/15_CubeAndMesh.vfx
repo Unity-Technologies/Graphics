@@ -80,6 +80,7 @@ MonoBehaviour:
     position: {x: 5182.982, y: 857.6316}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &114117428237288382
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -780,6 +781,7 @@ MonoBehaviour:
     expandedSlots:
     - {fileID: 114649673960739854}
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &114564606616422122
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -822,7 +824,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 

@@ -551,6 +551,8 @@ namespace UnityEditor.VFX.UI
         readonly Texture2D m_UnlinkedIcon;
         readonly VFXVCSDropdownButton m_VCSDropDown;
 
+        private VFXCompileDropdownButton m_CompileDropDownButton;
+
         VFXNodeProvider m_NodeProvider;
         bool m_IsRuntimeMode;
         bool m_ForceShaderDebugSymbols;
@@ -619,8 +621,8 @@ namespace UnityEditor.VFX.UI
             var saveDropDownButton = new VFXSaveDropdownButton(this);
             m_Toolbar.Add(saveDropDownButton);
 
-            var compileDropDownButton = new VFXCompileDropdownButton(this);
-            m_Toolbar.Add(compileDropDownButton);
+            m_CompileDropDownButton = new VFXCompileDropdownButton(this);
+            m_Toolbar.Add(m_CompileDropDownButton);
 
             m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
             m_UnlinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "UnLinked.png"));
@@ -794,6 +796,7 @@ namespace UnityEditor.VFX.UI
         private void SetToolbarEnabled(bool enabled)
         {
             ToolbarElementsToDisableWhenNoAsset.ForEach(x => m_Toolbar.Q<VisualElement>(x).SetEnabled(enabled));
+
         }
 
         public void UpdateBadges(IVFXErrorReporter report)
@@ -1290,8 +1293,10 @@ namespace UnityEditor.VFX.UI
                 m_NoAssetElement.RemoveFromHierarchy();
                 SetToolbarEnabled(true);
 
-                m_AttachDropDownButton.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
-                m_LockToggle.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
+                bool isSubGraph = this.controller.model.isSubgraph;
+                m_CompileDropDownButton.SetEnabled(!isSubGraph);
+                m_AttachDropDownButton.SetEnabled(!isSubGraph);
+                m_LockToggle.SetEnabled(!isSubGraph);
 
                 OnFocus();
             }

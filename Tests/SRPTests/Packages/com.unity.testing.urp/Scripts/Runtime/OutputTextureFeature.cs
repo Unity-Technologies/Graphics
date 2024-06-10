@@ -99,15 +99,22 @@ public class OutputTextureFeature : ScriptableRendererFeature
         private class PassData
         {
             internal ProfilingSampler profilingSampler;
+            internal TextureHandle cameraNormalsTexture;
             internal Material material;
             internal Vector4 outputAdjust;
         }
 
         static readonly int s_OutputAdjustParamsID = Shader.PropertyToID("_OutputAdjustParams");
+        static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
         private static void ExecutePass(PassData passData, RasterCommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, passData.profilingSampler))
             {
+                if (passData.cameraNormalsTexture.IsValid())
+                {
+                    passData.material.SetTexture(s_CameraNormalsTextureID, passData.cameraNormalsTexture);
+                }
+
                 passData.material.SetVector(s_OutputAdjustParamsID, passData.outputAdjust);
                 Blitter.BlitTexture(cmd, Vector2.one, passData.material, 0);
             }
@@ -117,10 +124,20 @@ public class OutputTextureFeature : ScriptableRendererFeature
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
                 builder.UseAllGlobalTextures(true);
+
+                if (renderer.renderingModeActual == RenderingMode.Deferred)
+                {
+                    builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GBufferNormalSmoothnessIndex]);
+                    passData.cameraNormalsTexture =
+                        resourceData.gBuffer[renderer.deferredLights.GBufferNormalSmoothnessIndex];
+                }
+
+
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
 

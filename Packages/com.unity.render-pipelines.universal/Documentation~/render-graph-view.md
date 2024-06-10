@@ -12,7 +12,7 @@ To open the **Render Graph Viewer** window, go to **Window > Analysis > Render G
 
 The Render Graph Viewer window displays a render graph, which is the optimized sequence of render passes the Universal Render Pipeline (URP) steps through each frame. The Render Graph Viewer displays both built-in render passes and any [custom render passes](renderer-features/scriptable-render-passes.md) you create.
 
-Refer to [Render Graph Viewer window reference](render-graph-viewer-reference.md) for more information on the Render Graph Viewer.
+For more information about the **Render Graph Viewer** window, refer to [Render Graph Viewer window reference](render-graph-viewer-reference.md).
 
 ### View a render graph
 
@@ -28,7 +28,7 @@ In the previous example, the `_MainLightShadowmapTexture_` texture goes through 
 
 1. During the first five render passes between **InitFrame** and **SetupCameraProperties**, the texture doesn't exist.
 
-2. The **Main Light Shadowmap** render pass creates the texture as a global texture, and has write-only access to it. Refer to [Transfer textures between passes](render-graph-pass-textures-between-passes.md) for more information about global textures.
+2. The **Main Light Shadowmap** render pass creates the texture as a global texture, and has write-only access to it. For more information about global textures, refer to [Transfer textures between passes](render-graph-pass-textures-between-passes.md).
     
     The blue merge bar below **Main Light Shadowmap** means URP merged **Main Light Shadowmap**, **Additional Lights Shadowmap** and **SetupCameraProperties** into a single render pass. 
 
@@ -40,6 +40,8 @@ In the previous example, the `_MainLightShadowmapTexture_` texture goes through 
 
 6. The second **Draw Objects** render pass has read-only access to the texture.
 
+7. Unity destroys the texture, because it's no longer needed. 
+
 ### Check how URP optimized a render pass
 
 To check the details of a render pass, for example to find out why it's not a native render pass or a merged pass, do either of the following:
@@ -47,7 +49,7 @@ To check the details of a render pass, for example to find out why it's not a na
 - Select the render pass name to display the details in the Pass List.
 - Below the render pass name, hover your cursor over the gray, blue, or flashing blue resource access overview block.
 
-Refer to [Render Graph Viewer window reference](render-graph-viewer-reference.md) for more information.
+For more information about displaying details of a render pass, refer to [Render Graph Viewer window reference](render-graph-viewer-reference.md).
 
 ## Use the Rendering Debugger
 
@@ -61,7 +63,7 @@ To enable logging, follow these steps:
 4. Select either **Log Frame Information** to log how URP uses resources, or **Log Resources** to log details about the resources.
 5. Select the new item in the **Console** window to display the full log.
 
-Refer to [Rendering Debugger](features/rendering-debugger.md) for more information.
+For more information about the Rendering Debugger, refer to [Rendering Debugger](features/rendering-debugger.md).
 
 ## Use the Frame Debugger
 
@@ -74,7 +76,7 @@ The Frame Debugger displays the following in the [Event Hierarchy panel](https:/
 
 The Frame Debugger shows only render passes that contain a draw call.
 
-Refer to [Frame Debugger](https://docs.unity3d.com/2023.3/Documentation/Manual/frame-debugger-window.html) for more information.
+For more information about the Frame Debugger, refer to [Frame Debugger](https://docs.unity3d.com/2023.3/Documentation/Manual/frame-debugger-window.html).
 
 ## Additional resources
 

@@ -41,16 +41,10 @@ namespace UnityEditor.Rendering
         {
             bool supportProbeVolume = false;
 
-            using (ListPool<RenderPipelineAsset>.Get(out List<RenderPipelineAsset> rpAssets))
+            foreach (var asset in CoreBuildData.instance.renderPipelineAssets)
             {
-                if (UnityEditor.EditorUserBuildSettings.activeBuildTarget.TryGetRenderPipelineAssets<RenderPipelineAsset>(rpAssets))
-                {
-                    foreach (var asset in rpAssets)
-                    {
-                        if (asset is IProbeVolumeEnabledRenderPipeline probeVolumeEnabledAsset)
-                            supportProbeVolume |= probeVolumeEnabledAsset.supportProbeVolume;
-                    }
-                }
+                if (asset is IProbeVolumeEnabledRenderPipeline probeVolumeEnabledAsset)
+                    supportProbeVolume |= probeVolumeEnabledAsset.supportProbeVolume;
             }
 
             return supportProbeVolume;

@@ -22,7 +22,7 @@ Refer to [Use the Rendering debugger](use-the-rendering-debugger.md) for more in
 
 The **Decals** panel has tools that you can use to debug [decals](decal-material-inspector-reference.md) affecting transparent objects in your project.
 
-| **Debug Option** | **Description** |
+| **Property** | **Description** |
 | ----------------- | ------------------------------------------------------------ |
 | **Display Atlas** | Enable the checkbox to display the decal atlas for a Camera in the top left of that Camera's view. |
 | **Mip Level** | Use the slider to select the mip level for the decal atlas. The higher the mip level, the blurrier the decal atlas. |
@@ -115,7 +115,7 @@ The **Material** panel has tools that you can use to visualize different Materia
 <table>
  <thead>
  <tr>
- <th colspan="1"><strong>Debug Option</strong></th>
+ <th colspan="1"><strong>Property</strong></th>
  <th colspan="2"><strong>Description</strong></th>
  </tr>
  </thead>
@@ -385,7 +385,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 <table>
 <thead>
 <tr>
-<th colspan="1"><strong>Debug Option</strong></th>
+<th colspan="1"><strong>Property</strong></th>
 <th colspan="2"><strong>Description</strong></th>
 </tr>
 </thead>
@@ -477,7 +477,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 
 The **Volume** panel has tools that you can use to visualize the Volume Components affecting a camera.
 
-| **Debug Option** | **Description** |
+| **Property** | **Description** |
 | ---------------------- | ---------------------------------------------------- |
 | **Component** | Use the drop-down to select which volume component to visualize. |
 | **Camera** | Use the drop-down to select which camera to use as volume anchor. |
@@ -551,121 +551,54 @@ Use the following properties to control how HDRP blends Lighting Scenarios. Refe
 
 The **Rendering** panel has tools that you can use to visualize various HDRP rendering features.
 
-<table>
-<thead>
-<tr>
-<th colspan="1"><strong>Debug Option</strong></th>
-<th colspan="2"><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td rowspan="15"><strong>Fullscreen Debug Mode</strong></td>
-<td colspan="2">Use the drop-down to select a rendering mode to display as an overlay on the screen.</td>
-</tr>
-<tr>
-<td><strong>Motion Vectors</strong></td>
-<td>Select this option to display motion vectors. Note that object motion vectors aren't visible in the Scene view.</td>
-</tr>
-<tr>
-<td><strong>World Space Position</strong></td>
-<td>Select this option to display world space positions.</td>
-</tr>
-<tr>
-<td><strong>NaN Tracker</strong></td>
-<td>Select this option to display an overlay that highlights <a href="https://en.wikipedia.org/wiki/NaN">NaN</a> values.</td>
-</tr>
-<tr>
-<td><strong>ColorLog</strong></td>
-<td>Select this option to display how the raw, log-encoded buffer looks before color grading takes place.</td>
-</tr>
-<tr>
-<td><strong>DepthOfFieldCoc</strong></td>
-<td>Select this option to display the circle of confusion for the depth of field effect. The circle of confusion displays how much the depth of field effect blurs a given pixel/area.</td>
-</tr>
-<tr>
-<td><strong>Quad Overdraw</strong></td>
-<td>Select this option to display an overlay that highlights gpu quads running multiple fragment shaders. This is mainly caused by small or thin triangles. Use LODs to reduce the amount of overdraw when objects are far away. (This mode is currently not supported on Metal and PS4).</td>
-</tr>
-<tr>
-<td><strong>Vertex Density</strong></td>
-<td>Select this option to display an overlay that highlights pixels running multiple vertex shaders. A vertex can be run multiple times when part of different triangles. This helps finding models that need LODs. (This mode is currently not supported on Metal).</td>
-</tr>
-<tr>
-<td><strong>TransparencyOverdraw</strong></td>
-<td>Select this option to view the number of transparent pixels that draw over one another. This represents the amount of on-screen overlapping of transparent pixel. This is useful to see the amount of pixel overdraw for transparent GameObjects from different points of view in the Scene. This debug option displays each pixel as a heat map going from black (which represents no transparent pixels) through blue to red (at which there are <strong>Max Pixel Cost</strong> number of transparent pixels).</td>
-</tr>
-<tr>
-<td><strong>RequestedVirtualTextureTiles</strong></td>
-<td>Select this option to display what texture tile each pixel uses. Pixels that this debug view renders with the same color request the same texture tile to be streamed into video memory by the streaming virtual texturing system. This debug view is useful to see which areas of the screen use textures that the virtual texturing system steams into video memory. It can help to identify issues with the virtual texture streaming system.</td>
-</tr>
-<tr>
-<tr>
-<td><strong>LensFlareScreenSpace</strong></td>
-<td>Display the lens flares that the <a href="shared/lens-flare/Override-Screen-Space-Lens-Flare.html">Screen Space Lens Flare</a> override generates.</td>
-</tr>
-<tr>
-<td><strong>Compute Thickness</strong></td>
-<td>Select this option to display thickness for each layer selected in the current HDRP Asset and configure the following properties:
-<br/> &#8226; <strong>Layer Mask</strong>: Set the layer number to visualize in the debug view.
-<br/> &#8226; <strong>Show Overlap Count</strong>: Highlight the triangles that intersect for each pixel.
-<br/> &#8226; <strong>Thickness Scale</strong>: Set the range (in meters) of the ComputeThickness debug view. When you enable Show Overlap Count, this setting affects the Overlap Count debug view. <br/>
-For more information on how to debug compute thickness, refer to <a href="Compute-Thickness.md">Sample and use material thickness</a>.</td>
-</tr>
-<tr>
-<td><strong>Max Pixel Cost</strong></td>
-<td>The scale of the transparency overdraw heat map. For example, a value of 10 displays a red pixel if 10 transparent pixels overlap. Any number of overdraw above this value also displays as red.<br/>This property only appears if you set <strong>Fullscreen Debug Mode</strong> to <strong>TransparencyOverdraw</strong>.</td>
-</tr>
-<tr>
-<td><strong>High Quality Lines</strong></td>
-<td>Select this option to view underlying data used by tile-based software rasterizer for the <a href="Override-High-Quality-Lines.md">High Quality Line Rendering</a> feature.<ul><li> <strong>Segments per Tile</strong> displays a heatmap representing the number of segments in each tile. </li><li><strong>Tile Processor UV</strong> displays the uv coordinate for each tile.</li><li><strong>Cluster Depth</strong> displays segments based on their depth in the cluster structure that's used for transparent sorting.</li></ul></td>
-</tr>
-<tr>
-<td rowspan="8"><strong>MipMaps</strong></td>
-<td colspan="2">Use the drop-down to select a mipmap streaming property to debug.</td>
-</tr>
-<tr>
-<td><strong>None</strong></td>
-<td>Select this option to disable this debug feature.</td>
-</tr>
-<tr>
-<td><strong>MipRatio</strong></td>
-<td>Select this option to display a heat map of pixel to texel ratio. A blue tint represents areas with too little Texture detail (the Texture is too small). A bed tint represents areas with too much Texture detail (the Texture is too large for the screen area). If the debugger displays the original color for a pixel, this means that the level of detail is just right.</td>
-</tr>
-<tr>
-<td><strong>MipCount</strong></td>
-<td>Select this option to display mip count as grayscale from black to white as the number of mips increases (for up to 14 mips, or 16K size). Red inidates Textures with more than 14 mips. Magenta indicates Textures with 0 mips or that the Shader doesn't support mip count.</td>
-</tr>
-<tr>
-<td><strong>MipCountReduction</strong></td>
-<td>Select this option to display the difference between the current mip count and the original mip count as a green scale. A brighter green represents a larger reduction (that mip streaming saves more Texture memory). Magenta means that the debugger doesn't know the original mip count.</td>
-</tr>
-<tr>
-<td><strong>StreamingMipBudget</strong></td>
-<td>Select this option to display the mip status due to streaming budget. Green means that streaming Textures saves some memory. Red means that mip levels are lower than is optimal, due to full Texture memory budget. White means that streaming Textures saves no memory.</td>
-</tr>
-<tr>
-<td><strong>StreamingMip</strong></td>
-<td>Select this option to display the same information as <strong>StreamingMipBudget</strong>, but to apply the colors to the original Textures.</td>
-</tr>
-<tr>
-<td><strong>Terrain Texture</strong></td>
-<td>Use the drop-down to select the terrain Texture to debug the mipmap for. This property only appears when you select an option other than <strong>None</strong> from the <strong>MipMaps</strong> drop-down.</td>
-</tr>
-</tbody>
-</table>
+### Fullscreen Debug Mode
 
-| **Color Picker** | **Description** |
+Use the drop-down to select a rendering mode to display as an overlay on the screen.
+
+| Property | Description |
+|-|-|
+| **Motion Vectors** | Select this option to display motion vectors. Note that object motion vectors aren't visible in the Scene view. |
+| **World Space Position** | Select this option to display world space positions. |
+| **NaN Tracker** | Select this option to display an overlay that highlights [NaN](https://en.wikipedia.org/wiki/NaN) values. |
+| **ColorLog** | Select this option to display how the raw, log-encoded buffer looks before color grading takes place. |
+| **DepthOfFieldCoc** | Select this option to display the circle of confusion for the depth of field effect. The circle of confusion displays how much the depth of field effect blurs a given pixel/area. |
+| **Quad Overdraw** | Select this option to display an overlay that highlights gpu quads running multiple fragment shaders. This is mainly caused by small or thin triangles. Use LODs to reduce the amount of overdraw when objects are far away. (This mode is currently not supported on Metal and PS4). |
+| **Vertex Density** | Select this option to display an overlay that highlights pixels running multiple vertex shaders. A vertex can be run multiple times when part of different triangles. This helps finding models that need LODs. (This mode is currently not supported on Metal). |
+| **TransparencyOverdraw** | Select this option to view the number of transparent pixels that draw over one another. This represents the amount of on-screen overlapping of transparent pixel. This is useful to see the amount of pixel overdraw for transparent GameObjects from different points of view in the Scene. This debug option displays each pixel as a heat map going from black (which represents no transparent pixels) through blue to red (at which there are **Max Pixel Cost** number of transparent pixels). |
+| **RequestedVirtualTextureTiles** | Select this option to display what texture tile each pixel uses. Pixels that this debug view renders with the same color request the same texture tile to be streamed into video memory by the streaming virtual texturing system. This debug view is useful to see which areas of the screen use textures that the virtual texturing system steams into video memory. It can help to identify issues with the virtual texture streaming system. |
+| **LensFlareScreenSpace** | Display the lens flares that the [Screen Space Lens Flare](shared/lens-flare/Override-Screen-Space-Lens-Flare.html) override generates. |
+| **Compute Thickness** | Select this option to display thickness for each layer selected in the current HDRP Asset and configure the following properties:<br/> &#8226; **Layer Mask**: Set the layer number to visualize in the debug view.<br/> &#8226; **Show Overlap Count**: Highlight the triangles that intersect for each pixel.<br/> &#8226; **Thickness Scale**: Set the range (in meters) of the ComputeThickness debug view. When you enable Show Overlap Count, this setting affects the Overlap Count debug view. <br/>For more information on how to debug compute thickness, refer to [Sample and use material thickness](Compute-Thickness.md). |
+| **Max Pixel Cost** | The scale of the transparency overdraw heat map. For example, a value of 10 displays a red pixel if 10 transparent pixels overlap. Any number of overdraw above this value also displays as red.<br/>This property only appears if you set **Fullscreen Debug Mode** to **TransparencyOverdraw**. |
+| **High Quality Lines** | Select this option to view underlying data used by tile-based software rasterizer for the [High Quality Line Rendering](Override-High-Quality-Lines.md) feature.<ul><li> **Segments per Tile** displays a heatmap representing the number of segments in each tile. </li><li>**Tile Processor UV** displays the uv coordinate for each tile.</li><li>**Cluster Depth** displays segments based on their depth in the cluster structure that's used for transparent sorting.</li></ul> |
+
+### Mipmap Streaming
+
+| **Property** | **Description** |
+|-|-|
+| **Disable Mip Caching** | If you enable **Disable Mip Caching**, Unity doesn't cache mipmap levels in GPU memory, and constantly discards mipmap levels from GPU memory when they're no longer needed. This means the mipmap streaming debug views more accurately display which mipmap levels Unity uses at the current time. Enabling this setting increases the amount of data Unity transfers from disk to the CPU and the GPU. |
+| **Debug View** | Set a mipmap streaming debug view. Options:<ul><li>**None**: Display the normal view.</li><li>**Mip Streaming Performance**: Use color to indicate which textures use mipmap streaming, and whether mipmap streaming limits the number of mipmap levels Unity loads.</li><li>**Mip Streaming Status**: Use color on materials to indicate whether their textures use mipmap streaming. Diagonal stripes mean some of the textures use a [`requestedMipmapLevel`](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Texture2D-requestedMipmapLevel.html) that overrides mipmap streaming. Yellow means Unity can't stream the texture, or the texture is assigned to terrain.</li><li>**Mip Streaming Activity**: Use color to indicate whether Unity recently streamed the textures.</li><li>**Mip Streaming Priority**: Use color to indicate the streaming priority of the textures. Set streaming priority for a texture in the [**Texture Import Settings** window](https://docs.unity3d.com/6000.0/Documentation/Manual/class-TextureImporter.html).</li><li>**Mip Count**: Display the number of mipmap levels Unity loads for the textures.</li><li>**Mip Ratio**: Use color to indicate the pixel density of the highest-resolution mipmap levels Unity uploads for the textures.</li></ul> |
+| **Debug Opacity** | Set the opacity of the **Debug View** you select. 0 means not visible and 1 means fully visible. This property is visible only if **Debug View** is not set to **None**. |
+| **Combined Per Material** | Set the **Debug View** to display debug information of all the textures on a material, not individual texture slots. This property is only visible if **Debug View** is set to **Mip Streaming Status** or **Mip Streaming Activity**. |
+| **Material Texture Slot** | Set which texture Unity uses from each material to display debug information. For example, set **Material Texture Slot** to **Slot 3** to display debug information for the fourth texture. If a material has fewer textures than the **Material Texture Slot** value, Unity uses no texture. This property is visible only if **Combined Per Material** is disabled, and **Debug View** is not set to **None**. |
+| **Display Status Codes** | Display more detailed statuses for textures that display as **Not streaming** or **Warning** in the **Mip Streaming Status** debug view. This property is visible only if **Debug View** is set to **Mip Streaming Status**. |
+| **Activity Timespan** | Set how long a texture displays as **Just streamed**, in seconds. This property is visible only if **Debug View** is set to **Mip Streaming Activity**. |
+| **Terrain Texture** | Set which terrain texture Unity displays. You can select either **Control** for the control texture, or one of the diffuse textures. This property is visible only if **Debug View** is not set to **None**. |
+
+### Color Picker
+
+The **Color Picker** works with whichever debug mode HDRP displays at the time. This means that you can see the values of various components of the rendering like Albedo or Diffuse Lighting. By default, this displays the value of the main High Dynamic Range (HDR) color buffer.
+
+| **Property** | **Description** |
 | --------------------- | ------------------------------------------------------------ |
 | **Debug Mode** | Use the drop-down to select the format of the color picker display. |
 | **Font Color** | Use the color picker to select a color for the font that the Color Picker uses for its display. |
 
-The **Color Picker** works with whichever debug mode HDRP displays at the time. This means that you can see the values of various components of the rendering like Albedo or Diffuse Lighting. By default, this displays the value of the main High Dynamic Range (HDR) color buffer.
+### False Color Mode and Freeze Camera For Culling
 
 <table>
 <thead>
 <tr>
-<th colspan="1"><strong>Debug Option</strong></th>
+<th colspan="1"><strong>Property</strong></th>
 <th colspan="2"><strong>Description</strong></th>
 </tr>
 </thead>
@@ -701,9 +634,11 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 </tbody>
 </table>
 
+### Color Monitors
+
 The **Color monitors** are a set of industry-standard monitors to help artists control the overall look and exposure of a scene.
 
-| **Debug Option** | **Description**    |
+| **Property** | **Description**    |
 |------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Waveform** | Displays the full range of luma (brightness) information in the Camera’s output. The horizontal axis of the graph corresponds to the render (from left to right) and the vertical axis indicates the brightness value.   |
 | **Exposure** | Determines the exposure multiplier HDRP applies to the waveform values.<br/><br/>This property only appears when you enable the **Waveform** checkbox.   |
@@ -712,7 +647,7 @@ The **Color monitors** are a set of industry-standard monitors to help artists c
 | **Exposure** | Determines the exposure multiplier HDRP applies to the vectorscope values.<br/><br/>This property only appears when you enable the **Vectorscope** checkbox.   |
 | **Size** | The size ratio of the color monitors.   |
 
-| **Debug Option** | **Description** |
+| **Property** | **Description** |
 | ----------------- | ------------------------------------------------------------ |
 | **Clear Render Targets at creation** | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
 | **Disable Pass Culling** | Enable the checkbox to render passes which have no impact on the final render. |
@@ -736,7 +671,7 @@ The **NVIDIA device debug view** is a panel that displays a list of the current 
 
 The **History Buffers view** lets you display various render pipeline full screen buffers that persist across multiple frames.
 
-| **Debug Option**   | **Description**                                              |
+| **Property**   | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
 | **Buffer**         | Choose the history buffer to visualize as a full screen output. |
 | **Frame Index**    | Choose what frame version of the history buffer to visualize. Certain buffers only have a limited number of versions. |
@@ -779,7 +714,7 @@ Unity processes **Sanitized**, **Overridden**, and **Default** in a specific ord
 
 You can use the **Virtual Texturing** panel to visualize [Streaming Virtual Texturing](https://docs.unity3d.com/Manual/svt-streaming-virtual-texturing.html).
 
-| **Debug Option** | **Description** |
+| **Property** | **Description** |
 | ------------------------------------ | ------------------------------------------------------------- |
 | **Debug disable Feedback Streaming** | Deactivate Streaming Virtual Texturing to quickly assess its cost in performance and memory at runtime. |
 | **Textures with Preloaded Mips** | Display the total number of virtual textures Unity has loaded into the scene. Unity tries to preload the least detailed mipmap level (least being 128x128) into GPU memory. This number increases every time a material is loaded. |

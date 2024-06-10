@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -820,7 +821,6 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(1, lastUsedList.Length);
             Assert.AreEqual(buffer.handle.index, lastUsedList[0].index);
             Assert.AreEqual(RenderGraphResourceType.Buffer, lastUsedList[0].type);
-
         }
 
         [Test]
@@ -887,6 +887,80 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(RenderBufferStoreAction.DontCare, passes[0].attachments[0].storeAction);
             // When discarding MSAA color, we only discard the MSAA buffers but keep the resolved texture
             Assert.AreEqual(RenderBufferStoreAction.Resolve, passes[0].attachments[1].storeAction);
+        }
+
+        [Test]
+        public void TransientTexturesCantBeReused()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+            var textureTransientHandle = TextureHandle.nullHandle;
+
+            // Render something to textureTransientHandle, created locally in the pass.
+            // No exception and no error(s) should be thrown in the Console.
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+
+                var textDesc = new TextureDesc(Vector2.one, false, false)
+                {
+                    width = 1920,
+                    height = 1080,
+                    colorFormat = GraphicsFormat.B10G11R11_UFloatPack32,
+                    clearBuffer = true,
+                    clearColor = Color.red,
+                    name = "Transient Texture"
+                };
+                textureTransientHandle = builder.CreateTransientTexture(textDesc);
+
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+
+                Assert.IsTrue(g.m_RenderPasses.Count != 0);
+                Assert.IsTrue(g.m_RenderPasses[^1].transientResourceList[(int)textureTransientHandle.handle.type].Count != 0);
+            }
+
+            // Try to render something to textureTransientHandle, reusing the previous TextureHandle.
+            // UseTexture should throw an exception.
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.UseTexture(textureTransientHandle, AccessFlags.Read | AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            });
+        }
+
+        [Test]
+        public void TransientBuffersCantBeReused()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+            var bufferTransientHandle = BufferHandle.nullHandle;
+
+            // Render something to textureTransientHandle, created locally in the pass.
+            // No error(s) should be thrown in the Console.
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+
+                var prefixBuffer0Desc = new BufferDesc(1920 * 1080, 4, GraphicsBuffer.Target.Raw) { name = "prefixBuffer0" };
+                bufferTransientHandle = builder.CreateTransientBuffer(prefixBuffer0Desc);
+
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+
+                Assert.IsTrue(g.m_RenderPasses.Count != 0);
+                Assert.IsTrue(g.m_RenderPasses[^1].transientResourceList[(int)bufferTransientHandle.handle.type].Count != 0);
+            }
+
+            // Try to render something to textureTransientHandle, reusing the previous TextureHandle.
+            // UseTexture should throw an exception.
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.UseBuffer(bufferTransientHandle, AccessFlags.Read | AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.Dispose();
+            });
         }
     }
 }

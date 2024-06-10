@@ -4,7 +4,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class VolumetricCloudsSystem
     {
         RTHandle m_AdvancedCloudMap;
         int m_CloudMapHash;
@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeVolumetricCloudsMap()
         {
             // Grab the kernels we need
-            m_CloudMapGeneratorCS = runtimeShaders.volumetricCloudMapGeneratorCS;
+            m_CloudMapGeneratorCS = m_RuntimeResources.volumetricCloudMapGeneratorCS;
             m_EvaluateCloudMapKernel = m_CloudMapGeneratorCS.FindKernel("EvaluateCloudMap");
             m_CloudMapHash = 0;
         }
@@ -60,13 +60,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return status;
         }
 
+        bool IsWrapModeClamp(TextureParameter tex) => tex.value != null && tex.value.wrapMode == TextureWrapMode.Clamp;
+
         void AdjustCloudMapTextureSize(in VolumetricClouds settings)
         {
             int cloudMapRes = (int)settings.cloudMapResolution.value;
+            bool clamp = IsWrapModeClamp(settings.cumulusMap) || IsWrapModeClamp(settings.altoStratusMap) || IsWrapModeClamp(settings.cumulonimbusMap);
 
             // Evaluate if a (re)allocation is required
             bool needAllocation = m_AdvancedCloudMap == null;
-            if (m_AdvancedCloudMap != null && m_AdvancedCloudMap.rt.width != cloudMapRes)
+            if (m_AdvancedCloudMap != null && (m_AdvancedCloudMap.rt.width != cloudMapRes || (m_AdvancedCloudMap.rt.wrapMode == TextureWrapMode.Clamp) != clamp))
             {
                 RTHandles.Release(m_AdvancedCloudMap);
                 needAllocation = true;
@@ -74,8 +77,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (needAllocation)
             {
+                var wrapMode = clamp ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
                 m_AdvancedCloudMap = RTHandles.Alloc(cloudMapRes, cloudMapRes, 1, colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
-                    enableRandomWrite: true, useDynamicScale: false, useMipMap: false, wrapMode: TextureWrapMode.Repeat, name: "Volumetric Clouds Map");
+                    enableRandomWrite: true, useDynamicScale: false, useMipMap: false, filterMode: FilterMode.Bilinear, wrapMode: wrapMode, name: "Volumetric Clouds Map");
             }
         }
 
@@ -120,8 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudMapGeneration)))
             {
                 // Compute the final resolution parameters
-                int cloudmapTX = (parameters.cloudMapResolution + (8 - 1)) / 8;
-                int cloudmapTY = (parameters.cloudMapResolution + (8 - 1)) / 8;
+                int resolutionRounded = HDUtils.DivRoundUp(parameters.cloudMapResolution, 8);
                 cmd.SetComputeIntParam(parameters.generationCS, HDShaderIDs._CloudMapResolution, parameters.cloudMapResolution);
 
                 cmd.SetComputeTextureParam(parameters.generationCS, parameters.generationKernel, HDShaderIDs._CumulusMap, parameters.cumulusMap);
@@ -136,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.generationCS, parameters.generationKernel, HDShaderIDs._RainMap, parameters.rainMap);
 
                 cmd.SetComputeTextureParam(parameters.generationCS, parameters.generationKernel, HDShaderIDs._CloudMapTextureRW, outputCloudMap);
-                cmd.DispatchCompute(parameters.generationCS, parameters.generationKernel, cloudmapTX, cloudmapTY, 1);
+                cmd.DispatchCompute(parameters.generationCS, parameters.generationKernel, resolutionRounded, resolutionRounded, 1);
             }
         }
 

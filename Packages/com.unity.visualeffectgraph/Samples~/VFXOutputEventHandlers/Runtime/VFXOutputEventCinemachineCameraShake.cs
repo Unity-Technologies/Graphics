@@ -1,5 +1,10 @@
 #if VFX_OUTPUTEVENT_CINEMACHINE_2_6_0_OR_NEWER
+
+#if VFX_OUTPUTEVENT_CINEMACHINE_3_0_0_OR_NEWER
+using Unity.Cinemachine;
+#else
 using Cinemachine;
+#endif
 
 namespace UnityEngine.VFX.Utility
 {

@@ -12,30 +12,71 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
-  m_ObsoleteRenderPipelineRayTracingResources: {fileID: 0}
-  m_Settings:
-    m_SettingsList:
-      m_List:
-      - rid: 120979388225814528
-      - rid: 120979388225814529
-      - rid: 120979388225814530
-      - rid: 120979388225814531
-      - rid: 120979388225814532
-      - rid: 120979388225814533
-      - rid: 120979388225814534
-      - rid: 120979388225814535
-      - rid: 120979635940884480
-      - rid: 120979635940884481
-      - rid: 120979635940884482
-      - rid: 120979635940884483
-      - rid: 120979635940884484
-      - rid: 120979635940884485
-    m_RuntimeSettings:
-      m_List: []
-  m_DefaultVolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
-    type: 2}
-  m_LookDevVolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
-    type: 2}
+  m_CustomPostProcessOrdersSettings:
+    m_Version: 0
+    m_BeforeTransparentCustomPostProcesses:
+      m_InjectionPoint: 0
+      m_CustomPostProcessTypesAsString:
+      - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_BeforeTAACustomPostProcesses:
+      m_InjectionPoint: 3
+      m_CustomPostProcessTypesAsString:
+      - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_BeforePostProcessCustomPostProcesses:
+      m_InjectionPoint: 1
+      m_CustomPostProcessTypesAsString:
+      - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_AfterPostProcessBlursCustomPostProcesses:
+      m_InjectionPoint: 4
+      m_CustomPostProcessTypesAsString:
+      - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_AfterPostProcessCustomPostProcesses:
+      m_InjectionPoint: 2
+      m_CustomPostProcessTypesAsString:
+      - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+  beforeTransparentCustomPostProcesses:
+  - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  beforePostProcessCustomPostProcesses:
+  - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  afterPostProcessBlursCustomPostProcesses:
+  - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  afterPostProcessCustomPostProcesses:
+  - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  beforeTAACustomPostProcesses:
+  - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_ShaderStrippingSetting:
+    m_Version: 0
+    m_ExportShaderVariants: 1
+    m_ShaderVariantLogLevel: 0
+    m_StripRuntimeDebugShaders: 1
+  m_ShaderVariantLogLevel: 0
+  m_SupportRuntimeDebugDisplay: 0
+  m_ExportShaderVariants: 1
+  m_StripDebugVariants: 1
+  DLSSProjectId: 000000
+  useDLSSCustomProjectId: 0
+  supportProbeVolumes: 1
+  autoRegisterDiffusionProfiles: 0
+  analyticDerivativeEmulation: 0
+  analyticDerivativeDebugOutput: 0
+  lensAttenuationMode: 0
+  colorGradingSpace: 1
+  m_ObsoleteDiffusionProfileSettingsList: []
+  specularFade: 0
+  rendererListCulling: 1
+  m_ObsoleteDefaultVolumeProfile: {fileID: 0}
+  m_ObsoleteLookDevVolumeProfile: {fileID: 0}
   m_ObsoleteRenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 1265449290956637
@@ -84,7 +125,7 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 1
     materialQuality: 0
-  m_RenderingPath:
+  m_ObsoleteRenderingPath:
     m_Version: 0
     m_Camera:
       bitDatas:
@@ -134,52 +175,43 @@ MonoBehaviour:
       sssCustomDownsampleSteps: 0
       msaaMode: 1
       materialQuality: 0
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
-  m_CustomPostProcessOrdersSettings:
-    m_Version: 0
-    m_BeforeTransparentCustomPostProcesses:
-      m_InjectionPoint: 0
-      m_CustomPostProcessTypesAsString:
-      - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    m_BeforeTAACustomPostProcesses:
-      m_InjectionPoint: 3
-      m_CustomPostProcessTypesAsString:
-      - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    m_BeforePostProcessCustomPostProcesses:
-      m_InjectionPoint: 1
-      m_CustomPostProcessTypesAsString:
-      - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    m_AfterPostProcessBlursCustomPostProcesses:
-      m_InjectionPoint: 4
-      m_CustomPostProcessTypesAsString:
-      - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    m_AfterPostProcessCustomPostProcesses:
-      m_InjectionPoint: 2
-      m_CustomPostProcessTypesAsString:
-      - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
-        PublicKeyToken=null
-      - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
-        PublicKeyToken=null
-  beforeTransparentCustomPostProcesses:
-  - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforePostProcessCustomPostProcesses:
-  - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  afterPostProcessBlursCustomPostProcesses:
-  - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  afterPostProcessCustomPostProcesses:
-  - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
-    PublicKeyToken=null
-  - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  beforeTAACustomPostProcesses:
-  - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  defaultRenderingLayerMask: 257
+  m_Settings:
+    m_SettingsList:
+      m_List:
+      - rid: 120979388225814528
+      - rid: 120979388225814529
+      - rid: 120979388225814530
+      - rid: 120979388225814531
+      - rid: 120979388225814532
+      - rid: 120979388225814533
+      - rid: 120979388225814534
+      - rid: 120979388225814535
+      - rid: 120979635940884480
+      - rid: 120979635940884481
+      - rid: 120979635940884482
+      - rid: 120979635940884483
+      - rid: 120979635940884484
+      - rid: 120979635940884485
+      - rid: 1748197788746514432
+      - rid: 1748197788746514433
+      - rid: 1748197788746514434
+      - rid: 1748197788746514435
+      - rid: 1748197788746514436
+      - rid: 1748197788746514437
+      - rid: 1748197788746514438
+      - rid: 1748197788746514439
+      - rid: 1748197788746514440
+      - rid: 1748197788746514441
+      - rid: 1748197788746514442
+      - rid: 1748197788746514443
+      - rid: 1748197788746514444
+      - rid: 1748197788746514445
+      - rid: 1748197788746514446
+      - rid: 1748197788746514447
+      - rid: 1748197788746514448
+      - rid: 1748197788746514449
+    m_RuntimeSettings:
+      m_List: []
   renderingLayerNames:
   - Light Layer default
   - Light Layer 1
@@ -213,17 +245,6 @@ MonoBehaviour:
   decalLayerName5: Decal Layer 5
   decalLayerName6: Decal Layer 6
   decalLayerName7: Decal Layer 7
-  lensAttenuationMode: 0
-  colorGradingSpace: 1
-  m_ObsoleteDiffusionProfileSettingsList: []
-  specularFade: 0
-  rendererListCulling: 1
-  DLSSProjectId: 000000
-  useDLSSCustomProjectId: 0
-  supportProbeVolumes: 1
-  autoRegisterDiffusionProfiles: 0
-  analyticDerivativeEmulation: 0
-  analyticDerivativeDebugOutput: 0
   apvScenesData:
     obsoleteSceneBounds:
       m_Keys:
@@ -235,16 +256,7 @@ MonoBehaviour:
       m_Keys:
       - fc784678bf952de4482e78aea61ccdc8
       m_Values: 01
-  m_Version: 12
-  m_ShaderStrippingSetting:
-    m_Version: 0
-    m_ExportShaderVariants: 1
-    m_ShaderVariantLogLevel: 0
-    m_StripRuntimeDebugShaders: 1
-  m_ShaderVariantLogLevel: 0
-  m_SupportRuntimeDebugDisplay: 0
-  m_ExportShaderVariants: 1
-  m_StripDebugVariants: 1
+  m_Version: 14
   references:
     version: 2
     RefIds:
@@ -378,6 +390,8 @@ MonoBehaviour:
           type: 3}
         m_DefaultSpeedTree8Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce,
           type: 3}
+        m_DefaultSpeedTree9Shader: {fileID: -6465566751694194690, guid: d81c74dd5f463104ca482aa23ef2c798,
+          type: 3}
     - rid: 120979388225814533
       type: {class: HDRenderPipelineRuntimeTextures, ns: UnityEngine.Rendering.HighDefinition,
         asm: Unity.RenderPipelines.HighDefinition.Runtime}
@@ -479,15 +493,6 @@ MonoBehaviour:
           type: 2}
         m_HairLongitudinalScatteringLUT: {fileID: 11700000, guid: 0da412d38ea6ba3459322abe6984ca9b,
           type: 2}
-        m_CloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114,
-          type: 3}
-        m_WorleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8,
-          type: 3}
-        m_WorleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2,
-          type: 3}
-        m_PerlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915,
-          type: 3}
-        m_FoamMask: {fileID: 2800000, guid: ca1d72d84c34dba4390eab4c86e62f62, type: 3}
         m_FilmGrainTex:
         - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
         - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}
@@ -516,6 +521,18 @@ MonoBehaviour:
           type: 3}
         m_TransformUpdaterKernels: {fileID: 7200000, guid: 2a567b9b2733f8d47a700c3c85bed75b,
           type: 3}
+        m_WindDataUpdaterKernels: {fileID: 7200000, guid: fde76746e4fd0ed418c224f6b4084114,
+          type: 3}
+        m_OccluderDepthPyramidKernels: {fileID: 7200000, guid: 08b2b5fb307b0d249860612774a987da,
+          type: 3}
+        m_InstanceOcclusionCullingKernels: {fileID: 7200000, guid: f6d223acabc2f974795a5a7864b50e6c,
+          type: 3}
+        m_OcclusionCullingDebugKernels: {fileID: 7200000, guid: b23e766bcf50ca4438ef186b174557df,
+          type: 3}
+        m_DebugOcclusionTestPS: {fileID: 4800000, guid: d3f0849180c2d0944bc71060693df100,
+          type: 3}
+        m_DebugOccluderPS: {fileID: 4800000, guid: b3c92426a88625841ab15ca6a7917248,
+          type: 3}
     - rid: 120979388225814535
       type: {class: IncludeAdditionalRPAssets, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:
@@ -532,6 +549,8 @@ MonoBehaviour:
         m_CameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9,
           type: 3}
         m_ColorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf,
+          type: 3}
+        m_ColorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a,
           type: 3}
         m_DepthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4,
           type: 3}
@@ -598,7 +617,6 @@ MonoBehaviour:
           type: 3}
         m_ProbeVolumeSamplingDebugComputeShader: {fileID: 7200000, guid: 22de19bc461f84742857dd64c56b0397,
           type: 3}
-        m_DeferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
         m_PlanarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2,
           type: 3}
         m_ScreenSpaceGlobalIlluminationCS: {fileID: 7200000, guid: 96170a954eb538b40a5ff369552c3629,
@@ -624,8 +642,6 @@ MonoBehaviour:
         m_BuildMaterialFlagsCS: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08,
           type: 3}
         m_DeferredCS: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
-        m_DeferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5,
-          type: 3}
         m_VolumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a,
           type: 3}
         m_VolumetricLightingCS: {fileID: 7200000, guid: b4901a10df2d1e24282725e9fbc77c97,
@@ -633,6 +649,8 @@ MonoBehaviour:
         m_VolumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46,
           type: 3}
         m_DefaultFogVolumeShader: {fileID: -6465566751694194690, guid: 95060fe3e070428418e64e6bed27b111,
+          type: 3}
+        m_ScreenSpaceMultipleScatteringCS: {fileID: 7200000, guid: 29c79555731a206478f0ea448352340c,
           type: 3}
         m_SubsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
           type: 3}
@@ -666,37 +684,6 @@ MonoBehaviour:
           type: 3}
         m_SkyLUTGenerator: {fileID: 7200000, guid: 79224112d91b32241be6b65802863db4,
           type: 3}
-        m_VolumetricCloudsCS: {fileID: 7200000, guid: f911a8577fa9a4546a6b255bcf888baf,
-          type: 3}
-        m_VolumetricCloudsTraceCS: {fileID: 7200000, guid: 66eaa9becc91a8646a88c15375af8b86,
-          type: 3}
-        m_VolumetricCloudsTraceShadowsCS: {fileID: 7200000, guid: f350c5c3b41fd1b408aac9076f96610e,
-          type: 3}
-        m_VolumetricCloudsShadowFilterCS: {fileID: 7200000, guid: 771ea9a52996c024095906ac37a8a71f,
-          type: 3}
-        m_VolumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb,
-          type: 3}
-        m_VolumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3,
-          type: 3}
-        m_WaterSimulationCS: {fileID: 7200000, guid: 32ac7f445960a854595586a600c24034,
-          type: 3}
-        m_FourierTransformCS: {fileID: 7200000, guid: bc2ee21836a0b5147900ef35a6e1f508,
-          type: 3}
-        m_WaterEvaluationCS: {fileID: 7200000, guid: c24e765a2bbaace4d9a0ecec600e1967,
-          type: 3}
-        m_WaterPS: {fileID: -6465566751694194690, guid: 3fda5e465882bec4d8e64161b681806c,
-          type: 3}
-        m_WaterLightingCS: {fileID: 7200000, guid: 05d00ad19f202ee4891fdaa90d6d1b23,
-          type: 3}
-        m_WaterLineCS: {fileID: 7200000, guid: 1e7e38362b5026d44ab4f3ff4a612026, type: 3}
-        m_WaterCausticsPS: {fileID: 4800000, guid: 020d64d10886f754e91664d240248c13,
-          type: 3}
-        m_WaterDeformationPS: {fileID: 4800000, guid: 575db5571f0ebfb439b332bf5b0a405b,
-          type: 3}
-        m_WaterDeformationCS: {fileID: 7200000, guid: 9b8063fa5834d4243bfca8c68a92d9f1,
-          type: 3}
-        m_WaterFoamPS: {fileID: 4800000, guid: cf863cbd7bbd44a43b414caed214ba29, type: 3}
-        m_WaterFoamCS: {fileID: 7200000, guid: 0d16d14b783e65f4d81dbcece2bd0ef9, type: 3}
         m_LineStagePrepareCS: {fileID: 7200000, guid: 53231d98bbe64477aacc1adc14ba2619,
           type: 3}
         m_LineStageSetupSegmentCS: {fileID: 7200000, guid: 028836c66d494d8d94e1b2ca7d5382ae,
@@ -912,10 +899,6 @@ MonoBehaviour:
       type: {class: HDRenderPipelineRuntimeMaterials, ns: UnityEngine.Rendering.HighDefinition,
         asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
-        m_WaterMaterial: {fileID: -876546973899608171, guid: 3fda5e465882bec4d8e64161b681806c,
-          type: 3}
-        m_WaterExclusionMaterial: {fileID: 2100000, guid: 1e520c84f7fd17c46af5586f6632155c,
-          type: 2}
         m_PBRSkyMaterial: {fileID: -876546973899608171, guid: 02532cbb810fb404db49da84f1efe41e,
           type: 3}
         m_AreaLightMaterial: {fileID: 2100000, guid: ef5f65c980e25304098a95e28f3bd20b,
@@ -953,3 +936,241 @@ MonoBehaviour:
       data:
         m_Version: 1
         m_ProbeVolumeDisableStreamingAssets: 0
+    - rid: 1748197788746514432
+      type: {class: VolumetricCloudsRuntimeResources, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_VolumetricCloudsCS: {fileID: 7200000, guid: f911a8577fa9a4546a6b255bcf888baf,
+          type: 3}
+        m_VolumetricCloudsTraceCS: {fileID: 7200000, guid: 66eaa9becc91a8646a88c15375af8b86,
+          type: 3}
+        m_VolumetricCloudsTraceShadowsCS: {fileID: 7200000, guid: f350c5c3b41fd1b408aac9076f96610e,
+          type: 3}
+        m_VolumetricCloudsShadowFilterCS: {fileID: 7200000, guid: 771ea9a52996c024095906ac37a8a71f,
+          type: 3}
+        m_VolumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb,
+          type: 3}
+        m_VolumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3,
+          type: 3}
+        m_CloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114,
+          type: 3}
+        m_WorleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8,
+          type: 3}
+        m_WorleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2,
+          type: 3}
+        m_PerlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915,
+          type: 3}
+    - rid: 1748197788746514433
+      type: {class: ColorGradingSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_ColorGradingSpace: 1
+    - rid: 1748197788746514434
+      type: {class: RenderingPathFrameSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_Camera:
+          bitDatas:
+            data1: 1265449290956637
+            data2: 4575659395735552024
+          lodBias: 1
+          lodBiasMode: 0
+          lodBiasQualityLevel: 0
+          maximumLODLevel: 0
+          maximumLODLevelMode: 0
+          maximumLODLevelQualityLevel: 0
+          sssQualityMode: 0
+          sssQualityLevel: 0
+          sssCustomSampleBudget: 20
+          sssCustomDownsampleSteps: 0
+          msaaMode: 1
+          materialQuality: 0
+        m_CustomOrBakedReflection:
+          bitDatas:
+            data1: 139713129348893
+            data2: 4539628424389459992
+          lodBias: 1
+          lodBiasMode: 0
+          lodBiasQualityLevel: 0
+          maximumLODLevel: 0
+          maximumLODLevelMode: 0
+          maximumLODLevelQualityLevel: 0
+          sssQualityMode: 0
+          sssQualityLevel: 0
+          sssCustomSampleBudget: 20
+          sssCustomDownsampleSteps: 0
+          msaaMode: 1
+          materialQuality: 0
+        m_RealtimeReflection:
+          bitDatas:
+            data1: 140065316601629
+            data2: 4539628424389459992
+          lodBias: 1
+          lodBiasMode: 0
+          lodBiasQualityLevel: 0
+          maximumLODLevel: 0
+          maximumLODLevelMode: 0
+          maximumLODLevelQualityLevel: 0
+          sssQualityMode: 0
+          sssQualityLevel: 0
+          sssCustomSampleBudget: 20
+          sssCustomDownsampleSteps: 0
+          msaaMode: 1
+          materialQuality: 0
+    - rid: 1748197788746514435
+      type: {class: LookDevVolumeProfileSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_VolumeProfile: {fileID: 11400000, guid: 254c4fe87beb7be4fa72e1681edbed02,
+          type: 2}
+    - rid: 1748197788746514436
+      type: {class: HDRPDefaultVolumeProfileSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_VolumeProfile: {fileID: 11400000, guid: aea7ff43876258748be47d8751e0e9d5,
+          type: 2}
+    - rid: 1748197788746514437
+      type: {class: AnalyticDerivativeSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_AnalyticDerivativeEmulation: 0
+        m_AnalyticDerivativeDebugOutput: 0
+    - rid: 1748197788746514438
+      type: {class: SpecularFadeSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_SpecularFade: 0
+    - rid: 1748197788746514439
+      type: {class: CustomPostProcessOrdersSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_BeforeTransparentCustomPostProcesses:
+          m_InjectionPoint: 0
+          m_CustomPostProcessTypesAsString:
+          - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_BeforeTAACustomPostProcesses:
+          m_InjectionPoint: 3
+          m_CustomPostProcessTypesAsString:
+          - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_BeforePostProcessCustomPostProcesses:
+          m_InjectionPoint: 1
+          m_CustomPostProcessTypesAsString:
+          - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - CustomPP1_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_AfterPostProcessBlursCustomPostProcesses:
+          m_InjectionPoint: 4
+          m_CustomPostProcessTypesAsString:
+          - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_AfterPostProcessCustomPostProcesses:
+          m_InjectionPoint: 2
+          m_CustomPostProcessTypesAsString:
+          - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - CustomPostProcessMotionVector, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+          - CustomPP2_8210, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - ScreenCoordPostProcess, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
+    - rid: 1748197788746514440
+      type: {class: WaterSystemRuntimeResources, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_WaterMaterial: {fileID: -876546973899608171, guid: 3fda5e465882bec4d8e64161b681806c,
+          type: 3}
+        m_WaterExclusionMaterial: {fileID: 2100000, guid: 1e520c84f7fd17c46af5586f6632155c,
+          type: 2}
+        m_WaterSimulationCS: {fileID: 7200000, guid: 32ac7f445960a854595586a600c24034,
+          type: 3}
+        m_FourierTransformCS: {fileID: 7200000, guid: bc2ee21836a0b5147900ef35a6e1f508,
+          type: 3}
+        m_WaterEvaluationCS: {fileID: 7200000, guid: c24e765a2bbaace4d9a0ecec600e1967,
+          type: 3}
+        m_WaterPS: {fileID: -6465566751694194690, guid: 3fda5e465882bec4d8e64161b681806c,
+          type: 3}
+        m_WaterLightingCS: {fileID: 7200000, guid: 05d00ad19f202ee4891fdaa90d6d1b23,
+          type: 3}
+        m_WaterLineCS: {fileID: 7200000, guid: 1e7e38362b5026d44ab4f3ff4a612026, type: 3}
+        m_WaterCausticsPS: {fileID: 4800000, guid: 020d64d10886f754e91664d240248c13,
+          type: 3}
+        m_WaterDeformationPS: {fileID: 4800000, guid: 575db5571f0ebfb439b332bf5b0a405b,
+          type: 3}
+        m_WaterDeformationCS: {fileID: 7200000, guid: 9b8063fa5834d4243bfca8c68a92d9f1,
+          type: 3}
+        m_WaterFoamPS: {fileID: 4800000, guid: cf863cbd7bbd44a43b414caed214ba29, type: 3}
+        m_WaterFoamCS: {fileID: 7200000, guid: 0d16d14b783e65f4d81dbcece2bd0ef9, type: 3}
+        m_FoamMask: {fileID: 2800000, guid: ca1d72d84c34dba4390eab4c86e62f62, type: 3}
+    - rid: 1748197788746514441
+      type: {class: LensSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_LensAttenuationMode: 0
+    - rid: 1748197788746514442
+      type: {class: RenderGraphSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_DynamicRenderPassCulling: 1
+    - rid: 1748197788746514443
+      type: {class: DiffusionProfileDefaultSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 0
+        m_AutoRegisterDiffusionProfiles: 0
+    - rid: 1748197788746514444
+      type: {class: HDRenderingLayersLimitSettings, ns: UnityEditor.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Editor}
+      data:
+        m_Version: 0
+    - rid: 1748197788746514445
+      type: {class: RenderGraphUtilsResources, ns: UnityEngine.Rendering.RenderGraphModule.Util,
+        asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_Version: 0
+        m_CoreCopyPS: {fileID: 4800000, guid: 12dc59547ea167a4ab435097dd0f9add, type: 3}
+    - rid: 1748197788746514446
+      type: {class: ProbeVolumeBakingResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_Version: 1
+        dilationShader: {fileID: 7200000, guid: 6bb382f7de370af41b775f54182e491d,
+          type: 3}
+        subdivideSceneCS: {fileID: 7200000, guid: bb86f1f0af829fd45b2ebddda1245c22,
+          type: 3}
+        voxelizeSceneShader: {fileID: 4800000, guid: c8b6a681c7b4e2e4785ffab093907f9e,
+          type: 3}
+        traceVirtualOffsetCS: {fileID: 7200000, guid: 805f10d263aac4b4098c0279cd37a4f3,
+          type: 3}
+        traceVirtualOffsetRT: {fileID: 4807578003741378534, guid: b60511f4aa1443f4d8c0b18f4fec92f4,
+          type: 3}
+        skyOcclusionCS: {fileID: 7200000, guid: 798f52ec82fa04048a12826bbbbcf7b4,
+          type: 3}
+        skyOcclusionRT: {fileID: 4807578003741378534, guid: dfaf42b38dd001f49a72d8102b709f29,
+          type: 3}
+        renderingLayerCS: {fileID: 7200000, guid: a63c9cf933e3d8f41ae680a372784ebf,
+          type: 3}
+        renderingLayerRT: {fileID: 4807578003741378534, guid: c2be09c936362eb49a58f08aeb30627a,
+          type: 3}
+    - rid: 1748197788746514447
+      type: {class: RenderGraphGlobalSettings, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_version: 0
+        m_EnableCompilationCaching: 1
+        m_EnableValidityChecks: 1
+    - rid: 1748197788746514448
+      type: {class: ShaderStrippingSetting, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_Version: 0
+        m_ExportShaderVariants: 1
+        m_ShaderVariantLogLevel: 0
+        m_StripRuntimeDebugShaders: 1
+    - rid: 1748197788746514449
+      type: {class: STP/RuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_setupCS: {fileID: 7200000, guid: 33be2e9a5506b2843bdb2bdff9cad5e1, type: 3}
+        m_preTaaCS: {fileID: 7200000, guid: a679dba8ec4d9ce45884a270b0e22dda, type: 3}
+        m_taaCS: {fileID: 7200000, guid: 3923900e2b41b5e47bc25bfdcbcdc9e6, type: 3}

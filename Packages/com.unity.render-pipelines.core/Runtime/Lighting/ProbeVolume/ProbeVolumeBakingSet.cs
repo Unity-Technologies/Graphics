@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering
         [SerializeField] internal int supportLayerMaskChunkSize;
         [SerializeField] internal int supportOffsetsChunkSize;
         [SerializeField] internal int supportDataChunkSize;
-        
+
         internal bool bakedSkyOcclusion
         {
             get => bakedSkyOcclusionValue <= 0 ? false : true;
@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering
         /// Bake sky shading direction.
         /// </summary>
         public bool skyOcclusionShadingDirection = false;
-        
+
         [Serializable]
         internal struct ProbeLayerMask
         {

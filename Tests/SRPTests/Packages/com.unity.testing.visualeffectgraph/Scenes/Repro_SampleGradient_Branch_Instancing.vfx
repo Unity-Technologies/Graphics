@@ -141,7 +141,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1142,6 +1142,7 @@ MonoBehaviour:
     position: {x: -89.333336, y: 508.6667}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614587}
@@ -1149,6 +1150,7 @@ MonoBehaviour:
     position: {x: 175.33334, y: 11.333332}
     expandedSlots: []
     expanded: 1
+    supecollapsed: 0
   - m_Id: 4
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614587}
@@ -1156,6 +1158,7 @@ MonoBehaviour:
     position: {x: 323.3333, y: 718.6667}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661614587
 MonoBehaviour:
   m_ObjectHideFlags: 0

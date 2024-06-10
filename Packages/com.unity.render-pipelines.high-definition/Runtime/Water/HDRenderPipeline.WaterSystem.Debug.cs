@@ -5,7 +5,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         ShaderVariablesWaterDebug[] m_WaterDebugCBs = new ShaderVariablesWaterDebug[k_MaxNumWaterSurfaceProfiles];
 
@@ -14,13 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesWaterDebug[] waterDebugCBs;
         }
 
-        void RenderWaterMask(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        internal void RenderWaterMask(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             if (waterGBuffer.debugRequired)
                 RenderWaterDebug(renderGraph, hdCamera, colorBuffer, depthBuffer, false);
         }
 
-        void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, bool debugDisplay)
+        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, bool debugDisplay)
         {
             if (!ShouldRenderWater(hdCamera))
                 return;

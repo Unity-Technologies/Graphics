@@ -616,9 +616,9 @@ namespace UnityEngine.Rendering
 
                 onRemoveCallback = (list) =>
                 {
+                    var guid = (string)list.list[list.index];
+                    activeSet.RemoveScene(guid);
                     Undo.RegisterCompleteObjectUndo(new Object[] { activeSet }, "Deleted scene in baking set");
-
-                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
                     EditorUtility.SetDirty(activeSet);
                 },
 
@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering
                 EnableGroupBox(probeDistanceGroupBox, debug.drawBricks);
                 EnableGroupBox(probeSamplingGroupBox, debug.drawProbeSamplingDebug);
                 EnableTextArea(vertexSamplingWarning, ProbeReferenceVolume.instance.vertexSampling);
-                
+
                 if (debugLayers && m_LayerToggles != null)
                 {
                     if (bakingSet.bakedMaskCount != 1)

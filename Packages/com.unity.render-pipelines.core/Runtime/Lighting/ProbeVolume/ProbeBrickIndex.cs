@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering
         NativeArray<int> m_PhysicalIndexBufferData;
         ComputeBuffer m_DebugFragmentationBuffer;
         int[] m_DebugFragmentationData;
-        
+
         bool m_NeedUpdateIndexComputeBuffer;
         int m_UpdateMinIndex = int.MaxValue;
         int m_UpdateMaxIndex = int.MinValue;
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering
                 var entryMinIndex = entry.minValidBrickIndexForCellAtMaxRes / minBrickSize;
                 var entryMaxIndex = entry.maxValidBrickIndexForCellAtMaxResPlusOne / minBrickSize;
                 var sizeOfValid = (entryMaxIndex - entryMinIndex);
-                            
+
                 if (brickSubdivLevel >= entrySubdivLevel)
                 {
                     brickMin = Vector3Int.zero;
@@ -407,14 +407,14 @@ namespace UnityEngine.Rendering
                     brickMin -= entryMinIndex;
                     brickMax -= entryMinIndex;
                 }
-                            
+
                 // Analytically compute min and max because doing it in the inner loop with Math.Min/Max is costly (not inlined)
                 int chunkStart = entry.firstChunkIndex * kIndexChunkSize;
                 int newMin = chunkStart + LocationToIndex(brickMin.x, brickMin.y, brickMin.z, sizeOfValid);
                 int newMax = chunkStart + LocationToIndex(brickMax.x - 1, brickMax.y - 1, brickMax.z - 1, sizeOfValid);
                 m_UpdateMinIndex = Math.Min(m_UpdateMinIndex, newMin);
                 m_UpdateMaxIndex = Math.Max(m_UpdateMaxIndex, newMax);
-                            
+
                 // Loop through all touched voxels
                 for (int x = brickMin.x; x < brickMax.x; ++x)
                 {
@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering
                     int brickSize = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Vector3Int brickMin = brick.position;
                     Vector3Int brickMax = brick.position + new Vector3Int(brickSize, brickSize, brickSize);
-                    
+
                     // Find all entries that this brick touch (usually only one, but several in case of bigger bricks)
                     foreach (var entry in cellInfo.updateInfo.entriesInfo)
                     {

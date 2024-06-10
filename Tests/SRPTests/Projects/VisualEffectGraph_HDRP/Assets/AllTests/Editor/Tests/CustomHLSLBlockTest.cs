@@ -559,14 +559,19 @@ void CustomHLSL(inout VFXAttributes attributes)
 
             bool found = false;
             var resource = graph.GetResource();
+            Assert.AreEqual(4, resource.GetShaderSourceCount());
             for (int i = 0; i < resource.GetShaderSourceCount(); ++i)
             {
                 var shaderName = resource.GetShaderSourceName(i);
+                var source = resource.GetShaderSource(i);
                 if (shaderName.Contains(vfxTargetContext.label))
                 {
-                    var source = resource.GetShaderSource(i);
-                    found = source.Contains("SpaceFillingCurves.hlsl");
-                    break;
+                    Assert.IsTrue(source.Contains("SpaceFillingCurves.hlsl"), "Can't find SpaceFillingCurves.hlsl in " + shaderName);
+                    found = true;
+                }
+                else
+                {
+                    Assert.IsFalse(source.Contains("SpaceFillingCurves.hlsl"), "Unexpected include of SpaceFillingCurves.hlsl in " + shaderName);
                 }
             }
             Assert.IsTrue(found, "Unable to find matching include in generated code.");
@@ -645,6 +650,96 @@ void CustomHLSL(inout VFXAttributes attributes)
 
             // Assert
             Assert.Pass("No exception should be raised");
+        }
+
+        [UnityTest]
+        public IEnumerator Check_Diverging_Usage_Buffer([Values(true, false)] bool legalUsage)
+        {
+            var hlslCodeRW =
+@"void Write_In_RWBuffer(VFXAttributes attributes, RWBuffer<float3> buffer)
+{
+    buffer[0u] = attributes.color;
+}";
+
+            var hlslCode =
+@"void Read_In_Buffer(VFXAttributes attributes, Buffer<float3> buffer)
+{
+    attributes.color = buffer[0u];
+}";
+            var hlslOperatorWrite = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperatorWrite.SetSettingValue("m_HLSLCode", hlslCodeRW);
+
+            var hlslOperatorRead = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperatorRead.SetSettingValue("m_HLSLCode", hlslCode);
+
+            var graph = VFXTestCommon.CreateGraph_And_System();
+
+            var init = graph.children.OfType<VFXBasicInitialize>().First();
+            var update = graph.children.OfType<VFXBasicUpdate>().First();
+
+            init.label = "Find_Me_Init";
+            update.label = "Find_Me_Update";
+
+            VFXContext first, second;
+            if (legalUsage)
+            {
+                first = init;
+                second = update;
+            }
+            else
+            {
+                first = update;
+                second = update;
+            }
+
+            first.AddChild(hlslOperatorWrite);
+            second.AddChild(hlslOperatorRead);
+
+            var parameter = ScriptableObject.CreateInstance<VFXParameter>();
+            parameter.Init(typeof(GraphicsBuffer));
+            graph.AddChild(parameter);
+
+            Assert.IsTrue(parameter.outputSlots[0].Link(hlslOperatorWrite.inputSlots[0]));
+            Assert.IsTrue(parameter.outputSlots[0].Link(hlslOperatorRead.inputSlots[0]));
+
+            var vfxPath = AssetDatabase.GetAssetPath(graph);
+            if (legalUsage)
+            {
+                AssetDatabase.ImportAsset(vfxPath);
+                for (int i = 0; i < 4; ++i)
+                    yield return null;
+
+                var resource = graph.GetResource();
+                bool correctInit = false;
+                bool correctUpdate = false;
+                for (int shaderIndex = 0; shaderIndex < resource.GetShaderSourceCount(); ++shaderIndex)
+                {
+                    var shaderName = resource.GetShaderSourceName(shaderIndex);
+                    if (shaderName.Contains(init.label)
+                        && resource.GetShaderSource(shaderIndex).Contains("Write_In_RWBuffer")
+                        && !resource.GetShaderSource(shaderIndex).Contains("Read_In_Buffer"))
+                    {
+                        correctInit = true;
+                    }
+
+                    if (shaderName.Contains(update.label)
+                        && !resource.GetShaderSource(shaderIndex).Contains("Write_In_RWBuffer")
+                        && resource.GetShaderSource(shaderIndex).Contains("Read_In_Buffer"))
+                    {
+                        correctUpdate = true;
+                    }
+                }
+                Assert.IsTrue(correctInit, "Unexpected Init ComputeShader");
+                Assert.IsTrue(correctUpdate, "Unexpected Update ComputeShader");
+            }
+            else
+            {
+                using var customLogHandler = new CustomLogHandler();
+                customLogHandler.ExpectedLog(LogType.Error, "Unity cannot compile the VisualEffectAsset at path");
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            yield return null;
         }
 
         internal static ShaderInclude CreateShaderFile(string hlslCode, out string destinationPath)

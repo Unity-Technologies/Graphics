@@ -82,6 +82,8 @@ struct CelestialBodyData
     float flareSize;
     float3 flareColor;
     float flareFalloff;
+    float3 padding;
+    float shadowIndex;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.DirectionalLightData

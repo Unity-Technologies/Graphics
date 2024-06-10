@@ -57,8 +57,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public void GenerateAmplitudeTable()
         {
             // Number of pixels per band
-            int waterSampleOffset = HDRenderPipeline.EvaluateWaterNoiseSampleOffset(resolutionEnum);
-            float waterSpectrumOffset = HDRenderPipeline.EvaluateFrequencyOffset(resolutionEnum);
+            int waterSampleOffset = WaterSystem.EvaluateWaterNoiseSampleOffset(resolutionEnum);
+            float waterSpectrumOffset = WaterSystem.EvaluateFrequencyOffset(resolutionEnum);
 
             // Allocate all the native buffers
             NativeArray<float2> h0BufferCPU = new NativeArray<float2>(numPixels, Allocator.Persistent);
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Prepare the first band
                         WaterCPUSimulation.InverseFFT inverseFFT0 = new WaterCPUSimulation.InverseFFT();
                         inverseFFT0.simulationResolution = resolution;
-                        inverseFFT0.butterflyCount = HDRenderPipeline.ButterFlyCount(resolutionEnum);
+                        inverseFFT0.butterflyCount = WaterSystem.ButterFlyCount(resolutionEnum);
                         inverseFFT0.bufferOffset = 0;
                         inverseFFT0.columnPass = false;
 
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Second inverse FFT
                         WaterCPUSimulation.InverseFFT inverseFFT1 = new WaterCPUSimulation.InverseFFT();
                         inverseFFT1.simulationResolution = resolution;
-                        inverseFFT1.butterflyCount = HDRenderPipeline.ButterFlyCount(resolutionEnum);
+                        inverseFFT1.butterflyCount = WaterSystem.ButterFlyCount(resolutionEnum);
                         inverseFFT1.bufferOffset = 0;
                         inverseFFT1.columnPass = true;
 

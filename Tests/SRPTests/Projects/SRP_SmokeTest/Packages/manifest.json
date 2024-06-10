@@ -12,7 +12,8 @@
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "local.utf.references": "file:../../../Packages/local.utf.references",
-    "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph"
+    "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
+    "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references"
   },
   "testables": [
     "com.unity.render-pipelines.core",

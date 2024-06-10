@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Second part of the Phillips spectrum term
                 float2 k = Mathf.PI * 2.0f * ((float2)coords.xy - simulationResolution * 0.5f)  / patchSize;
-                float2 windDirection = -HDRenderPipeline.OrientationToDirection(orientation);
+                float2 windDirection = -WaterSystem.OrientationToDirection(orientation);
                 float P = Phillips(k, windDirection, windSpeed, directionDampner, patchSize);
 
                 // Combine and output
@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
         // Function that returns the number of butterfly passes depending on the resolution
         internal static int ButterFlyCount(WaterSimulationResolution simRes)
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_ActiveWaterSimulationCPU = true;
 
-            if (m_Asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.CPUSimulation)
+            if (m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.waterScriptInteractionsMode == WaterScriptInteractionsMode.CPUSimulation)
             {
                 int res = (int)m_WaterBandResolution;
 
@@ -483,7 +483,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // For each band, we evaluate the dispersion then the two inverse fft passes
-            int activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(waterSurface.surfaceType, waterSurface.ripples, waterSurface.cpuEvaluateRipples);
+            int activeBandCount = WaterSystem.EvaluateCPUBandCount(waterSurface.surfaceType, waterSurface.ripples, waterSurface.cpuEvaluateRipples);
             for (int bandIndex = 0; bandIndex < activeBandCount; ++bandIndex)
             {
                 // Prepare the first band

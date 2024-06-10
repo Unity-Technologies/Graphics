@@ -37,8 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition
             DynamicResolution = 1 << 1,
             LowResTransparency = 1 << 2,
             Water = 1 << 3,
-            ComputeThickness = 1 << 4,
-            HighQualityLineRendering = 1 << 5
+            // Illegal index 1 << 4 since parent Lighting section index is using it
+            HighQualityLineRendering = 1 << 5,
+            ComputeThickness = 1 << 6
         }
 
         internal enum ExpandableDecal
@@ -53,8 +54,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Cookie = 1 << 2,
             Reflection = 1 << 3,
             Sky = 1 << 4,
-            Shadow = 1 << 5,
-            LightLoop = 1 << 6
+            // Illegal index 1 << 5 since parent Lighting section index is using it
+            LightLoop = 1 << 6,
+            Shadow = 1 << 7
         }
 
         internal enum ExpandableLightingQuality

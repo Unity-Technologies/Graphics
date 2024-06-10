@@ -1306,7 +1306,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingDefault },
+            { Defines.raytracingPathtraced },
             { Defines.pathtracingDisableLightCluster },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
@@ -1423,6 +1423,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Raytracing Quality
             public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 } };
             public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1 } };
+            public static DefineCollection raytracingPathtraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 2 } };
 
             // Path tracing specific defines
             public static DefineCollection pathtracingDisableLightCluster = new DefineCollection { { CoreKeywordDescriptors.DisableLightloopTileAndCluster, 1 }, { CoreKeywordDescriptors.PathTracingclusteredDecals, 1 } };

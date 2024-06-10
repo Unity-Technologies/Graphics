@@ -116,6 +116,9 @@ namespace UnityEngine.Rendering
 
         internal static void Initialize()
         {
+            if (!SystemInfo.supportsComputeShaders)
+                return;
+
             s_DataUploadCS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeRuntimeResources>()?.probeVolumeUploadDataCS;
             s_DataUploadL2CS = GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeRuntimeResources>()?.probeVolumeUploadDataL2CS;
 

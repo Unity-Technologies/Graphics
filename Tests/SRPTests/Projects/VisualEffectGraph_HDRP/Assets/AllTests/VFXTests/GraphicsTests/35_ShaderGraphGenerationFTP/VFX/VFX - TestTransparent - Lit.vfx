@@ -240,7 +240,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1237,6 +1237,7 @@ MonoBehaviour:
     position: {x: -123, y: 897}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615534}
@@ -1244,6 +1245,7 @@ MonoBehaviour:
     position: {x: 724, y: 922}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1325,6 +1327,7 @@ MonoBehaviour:
     position: {x: 766, y: 886}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615536}
@@ -1332,6 +1335,7 @@ MonoBehaviour:
     position: {x: -38, y: 845}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1413,6 +1417,7 @@ MonoBehaviour:
     position: {x: -37, y: 807}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615538}
@@ -1420,6 +1425,7 @@ MonoBehaviour:
     position: {x: 759, y: 851}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1501,6 +1507,7 @@ MonoBehaviour:
     position: {x: 739, y: 817}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615540}
@@ -1508,6 +1515,7 @@ MonoBehaviour:
     position: {x: -64, y: 773}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615540
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1725,6 +1733,7 @@ MonoBehaviour:
     position: {x: -26, y: 937}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615546}
@@ -1732,6 +1741,7 @@ MonoBehaviour:
     position: {x: 778, y: 961}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615546
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1813,6 +1823,7 @@ MonoBehaviour:
     position: {x: 784, y: 1000}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615548}
@@ -1820,6 +1831,7 @@ MonoBehaviour:
     position: {x: -52, y: 1006}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1901,6 +1913,7 @@ MonoBehaviour:
     position: {x: -73, y: 1040}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615556}
@@ -1908,6 +1921,7 @@ MonoBehaviour:
     position: {x: 766, y: 1039}
     expandedSlots: []
     expanded: 0
+    supecollapsed: 0
 --- !u!114 &8926484042661615556
 MonoBehaviour:
   m_ObjectHideFlags: 0

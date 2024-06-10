@@ -9,27 +9,47 @@ If your project uses the Universal Render Pipeline (URP) or the High-Definition 
 - [Add controls to the Rendering Debugger in URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@15.0/manual/features/rendering-debugger-add-controls.html)
 - [Add controls to the Rendering Debugger in HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Rendering-Debugger-Add-Controls.html)
 
-## Open the Rendering Debugger
+## How to access the Rendering Debugger
 
-You can open the **Rendering Debugger** in the following ways:
+The Rendering Debugger window is available in the following modes:
 
-- As a window in the Editor.
-- An overlay in the Game view in Play Mode.
-- An overlay in your built application.
+| Mode       | Platform       | Availability                   | How to Open the Rendering Debugger                                                                                                                                                                                            |
+|------------|----------------|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Editor     | All            | Yes (window in the Editor)     | Select **Window > Analysis > Rendering Debugger**                                                                                                                                                                             |
+| Play mode  | All            | Yes (overlay in the Game view) | On a desktop or laptop computer, press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS)<br>On a console controller, press L3 and R3 (Left Stick and Right Stick) |
+| Runtime    | Desktop/Laptop | Yes (only in Development builds) | Press **LeftCtrl+Backspace** (**LeftCtrl+Delete** on macOS)                                                                                                                                                                   |
+| Runtime    | Console        | Yes (only in Development builds) | Press L3 and R3 (Left Stick and Right Stick)                                                                                                                                                                                  |
+| Runtime    | Mobile         | Yes (only in Development builds) | Use a three-finger double tap                                                                                                                                                                                                 |
 
-### As a window in the Editor
 
-Select **Window > Analysis > Rendering Debugger** in the Editor.
+To disable the runtime UI, use the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
-### As an overlay
+## Navigation at runtime
 
-To enable the **Rendering Debugger** in your built application, you must enable **Development build** in your [build settings](https://docs.unity3d.com/2023.1/Documentation/Manual/BuildSettings.html).
+### Keyboard
 
-To open the overlay in your built application, or the Game view in Play Mode:
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the arrow keys                                                                        |
+| **Change the current tab**                         | Use the Page up and Page down keys (Fn + Up and Fn + Down keys respectively for MacOS)    |
+| **Display the current active item independently of the debug window** | Press the right Shift key                                                                 |
 
-- On a keyboard, press Left Ctrl + Backspace (macOS: Left Ctrl + Delete).
-- On a console controller, press L3 + R3.
-- On a mobile device, use a three-finger double tap.
+### Xbox Controller
+
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the Directional pad (D-Pad)                                                           |
+| **Change the current tab**                         | Use the Left Bumper and Right Bumper                                                      |
+| **Display the current active item independently of the debug window** | Press the X button                                                                        |
+
+### PlayStation Controller
+
+| Action                                             | Control                                                                                   |
+|----------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Change the current active item**                 | Use the Directional buttons                                                               |
+| **Change the current tab**                         | Use the L1 button and R1 button                                                           |
+| **Display the current active item independently of the debug window** | Press the Square button                                                                   |
+
 
 ## Add a control
 

@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Experimental.GraphView;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using UnityEditor.ShaderGraph.Internal;
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
@@ -25,6 +26,86 @@ using UnityEngine.Timeline;
 
 namespace UnityEditor.VFX.Test
 {
+    //Equivalent of LogAssert but always works during import
+    //LogAssert.Expect(LogType.Error, new Regex("You must use an unlit vfx master node with an unlit output"));
+    //LogAssert.Expect(LogType.Error, new Regex("System.InvalidOperationException"));
+    //It also provides the ability of breaking on log while running test
+    class CustomLogHandler : ILogHandler, IDisposable
+    {
+        private ILogHandler m_OriginalHandler;
+        private Dictionary<Regex, Type> m_ExpectedException = new();
+        private Dictionary<string, Type> m_ActualException = new();
+        private Dictionary<Regex, LogType> m_ExpectedLogs = new();
+        private Dictionary<string, LogType> m_ActualLogs = new();
+
+        public CustomLogHandler()
+        {
+            m_OriginalHandler = Debug.unityLogger.logHandler;
+            Debug.unityLogger.logHandler = this;
+        }
+
+        public void Reset()
+        {
+            m_ExpectedException.Clear();
+            m_ActualException.Clear();
+            m_ExpectedLogs.Clear();
+            m_ActualLogs.Clear();
+        }
+
+        public void Clear()
+        {
+            m_ActualException.Clear();
+            m_ActualLogs.Clear();
+        }
+
+        public void ExpectedLog(LogType type, string message)
+        {
+            m_ExpectedLogs.Add(new Regex(message), type);
+        }
+
+        public void ExpectedException(Type type, string message)
+        {
+            m_ExpectedException.Add(new Regex(message), type);
+        }
+
+        public void LogFormat(LogType logType, UnityEngine.Object context, string format, params object[] args)
+        {
+            var message = string.Format(format, args);
+
+            foreach (var expectedLog in m_ExpectedLogs)
+            {
+                if (expectedLog.Value == logType && expectedLog.Key.IsMatch(message))
+                {
+                    m_ActualLogs.TryAdd(message, expectedLog.Value);
+                    return;
+                }
+            }
+
+            m_OriginalHandler.LogFormat(logType, context, format, args);
+        }
+
+        public void LogException(Exception exception, UnityEngine.Object context)
+        {
+            foreach (var expectedException in m_ExpectedException)
+            {
+                if (expectedException.Value == exception.GetType() && expectedException.Key.IsMatch(exception.Message))
+                {
+                    m_ActualException.TryAdd(exception.Message, expectedException.Value);
+                    return;
+                }
+            }
+            m_OriginalHandler.LogException(exception, context);
+        }
+
+        public void Dispose()
+        {
+            Assert.AreEqual(m_ExpectedLogs.Count, m_ActualLogs.Count, "Expected logs count do not match actual log count");
+            Assert.AreEqual(m_ExpectedException.Count, m_ActualException.Count, "Expected exception count do not match actual exception count");
+            Debug.unityLogger.logHandler = m_OriginalHandler;
+            Reset();
+        }
+    }
+
     class VFXTestCommon
     {
         public static readonly string simpleParticleSystemPath = "Packages/com.unity.testing.visualeffectgraph/CommonAssets/VFX/SimpleParticleSystem.vfx";

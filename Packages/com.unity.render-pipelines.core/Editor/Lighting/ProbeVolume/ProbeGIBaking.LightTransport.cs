@@ -117,6 +117,13 @@ namespace UnityEngine.Rendering
                     context.Dispose();
                 }
 
+                // Fixup lighting for probes part of bricks with different subdivision levels
+                // When baking reflection probes, we want to skip this step
+                if (m_BakingBatch != null)
+                {
+                    FixSeams(s_BakeData.positionRemap, positions, irradiance, validity);
+                }
+
                 return true;
             }
 

@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering
 {
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Categorization.CategoryInfo(Name = "R: Probe Volume", Order = 1000), HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: Adaptive Probe Volumes", Order = 1000), HideInInspector]
     class ProbeVolumeRuntimeResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Categorization.CategoryInfo(Name = "R: Probe Volume", Order = 1000), HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: Adaptive Probe Volumes", Order = 1000), HideInInspector]
     class ProbeVolumeDebugResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Categorization.CategoryInfo(Name = "R: Probe Volume", Order = 1000), HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: Adaptive Probe Volumes", Order = 1000), HideInInspector]
     class ProbeVolumeBakingResources : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Categorization.CategoryInfo(Name = "Probe Volume", Order = 20)]
+    [Categorization.CategoryInfo(Name = "Adaptive Probe Volumes", Order = 20)]
     class ProbeVolumeGlobalSettings : IRenderPipelineGraphicsSettings
     {
         [SerializeField, HideInInspector]

@@ -6,13 +6,13 @@ using static Unity.Mathematics.math;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDRenderPipeline
+    partial class WaterSystem
     {
-        // Controls the maximum number of deformers that are supported in one frame
-        int m_MaxDeformerCount;
-
         // Flag that allows us to track if the system currently supports foam.
         bool m_ActiveWaterDeformation = false;
+
+        // Controls the maximum number of deformers that are supported in one frame
+        int m_MaxDeformerCount;
 
         // Buffer used to hold all the water deformers on the CPU
         NativeArray<WaterDeformerData> m_WaterDeformersDataCPU;
@@ -36,21 +36,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Atlas used to hold the custom deformers' textures.
         PowerOfTwoTextureAtlas m_DeformerAtlas;
+        int m_DeformationAtlasSize;
 
         void InitializeWaterDeformers()
         {
-            m_ActiveWaterDeformation = m_Asset.currentPlatformRenderPipelineSettings.supportWaterDeformation;
+            m_ActiveWaterDeformation = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.supportWaterDeformation;
             if (!m_ActiveWaterDeformation)
                 return;
 
-            m_MaxDeformerCount = m_Asset.currentPlatformRenderPipelineSettings.maximumDeformerCount;
+            m_DeformationAtlasSize = (int)m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.deformationAtlasSize;
+            m_MaxDeformerCount = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.maximumDeformerCount;
             m_WaterDeformersData = new ComputeBuffer(m_MaxDeformerCount, System.Runtime.InteropServices.Marshal.SizeOf<WaterDeformerData>());
             m_WaterDeformersDataCPU = new NativeArray<WaterDeformerData>(m_MaxDeformerCount, Allocator.Persistent);
-            m_DeformerMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.waterDeformationPS);
-            m_WaterDeformationCS = runtimeShaders.waterDeformationCS;
+            m_DeformerMaterial = CoreUtils.CreateEngineMaterial(m_RuntimeResources.waterDeformationPS);
+            m_WaterDeformationCS = m_RuntimeResources.waterDeformationCS;
             m_FilterDeformationKernel = m_WaterDeformationCS.FindKernel("FilterDeformation");
             m_EvaluateDeformationSurfaceGradientKernel = m_WaterDeformationCS.FindKernel("EvaluateDeformationSurfaceGradient");
-            m_DeformerAtlas = new PowerOfTwoTextureAtlas((int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize, 0, GraphicsFormat.R16_UNorm, name: "Water Deformation Atlas", useMipMap: false);
+            m_DeformerAtlas = new PowerOfTwoTextureAtlas(m_DeformationAtlasSize, 0, GraphicsFormat.R16_UNorm, name: "Water Deformation Atlas", useMipMap: false);
         }
 
         void ReleaseWaterDeformers()
@@ -188,9 +190,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (currentDeformer.updateMode == CustomRenderTextureUpdateMode.Realtime || currentDeformer.shouldUpdate)
                             {
-                                var size = (int)m_Asset.currentPlatformRenderPipelineSettings.deformationAtlasSize;
                                 cmd.SetRenderTarget(m_DeformerAtlas.AtlasTexture);
-                                cmd.SetViewport(new Rect(scaleBias.z * size, scaleBias.w * size, scaleBias.x * size, scaleBias.y * size));
+                                cmd.SetViewport(new Rect(scaleBias.z * m_DeformationAtlasSize, scaleBias.w * m_DeformationAtlasSize, scaleBias.x * m_DeformationAtlasSize, scaleBias.y * m_DeformationAtlasSize));
                                 cmd.DrawProcedural(Matrix4x4.identity, mat, (int)WaterDeformer.PassType.Deformer, MeshTopology.Triangles, 3, 1, currentDeformer.mpb);
 
                                 currentDeformer.shouldUpdate = false;

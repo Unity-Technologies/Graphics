@@ -285,6 +285,12 @@ void TerrainLitDebug(float2 uv, uint2 screenSpaceCoords, out float3 baseColor)
         {
             baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_TEX(screenSpaceCoords, uv * _Splat7_ST.xy + _Splat7_ST.zw, _Splat7);
         }
+    #else
+        else
+        {
+            // User is trying to debug layer 4/5/6/7 but this terrain only has 4 layers: let's try to display some basic "invalid" debug info...
+            baseColor = GET_TEXTURE_STREAMING_DEBUG_FOR_TERRAIN_NO_TEX(screenSpaceCoords, uv);
+        }
     #endif
 #endif
 }

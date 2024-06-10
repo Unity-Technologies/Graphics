@@ -71,7 +71,7 @@ MonoBehaviour:
     m_Value: 2
   m_RayLength:
     m_OverrideState: 0
-    m_Value: 3
+    m_Value: 1
   m_SampleCount:
     m_OverrideState: 0
     m_Value: 2
@@ -216,18 +216,18 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 1
-  planetType:
-    m_OverrideState: 0
-    m_Value: 0
-  seaLevel:
-    m_OverrideState: 0
-    m_Value: 0
   planetRadius:
     m_OverrideState: 0
-    m_Value: 6378100
+    m_Value: 6378.1
+  renderingSpace:
+    m_OverrideState: 0
+    m_Value: 1
+  centerMode:
+    m_OverrideState: 0
+    m_Value: 0
   planetCenter:
     m_OverrideState: 0
-    m_Value: {x: 0, y: -6378100, z: 0}
+    m_Value: {x: 0, y: -6378.1, z: 0}
   windOrientation:
     m_OverrideState: 0
     m_Value: 0
@@ -237,6 +237,7 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 1
     m_Value: 2
+  m_Version: 1
 --- !u!114 &114686666210790174
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -250,36 +251,37 @@ MonoBehaviour:
   m_Name: HDShadowSettings
   m_EditorClassIdentifier: 
   active: 1
+  interCascadeBorders: 1
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 50
   directionalTransmissionMultiplier:
     m_OverrideState: 0
     m_Value: 1
   cascadeShadowSplitCount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 4
   cascadeShadowSplit0:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.05
   cascadeShadowSplit1:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.15
   cascadeShadowSplit2:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.3
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.112
+    m_Value: 0.2
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.11999999
+    m_Value: 0.099999994
   cascadeShadowBorder2:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.06666666
   cascadeShadowBorder3:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 0.014285714
 --- !u!114 &1014795077881267267
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -605,7 +607,7 @@ MonoBehaviour:
     m_Value: 0
   m_RayMaxIterations:
     m_OverrideState: 1
-    m_Value: 64
+    m_Value: 100
   rayMiss:
     m_OverrideState: 0
     m_Value: 3

@@ -112,10 +112,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                // Without NRP GBuffer textures are set after GBuffer, we only do this here to avoid breaking the pass
-                if (renderGraph.nativeRenderPassesEnabled)
-                    GBufferPass.SetGlobalGBufferTextures(builder, gbuffer, ref m_DeferredLights);
-
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 

@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
                 if (mapper != null)
                 {
                     foreach (var exp in mapper.expressions)
-                        expressionContext.RegisterExpression(exp);
+                        expressionContext.RegisterExpression(exp, context);
                     contextsToExpressions.Add(context, mapper);
                 }
             }
@@ -82,22 +82,18 @@ namespace UnityEditor.VFX
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
 
-            var bufferUsage = m_BufferUsage
-                .Concat(expressionContext.GraphicsBufferUsageType)
-                .GroupBy(o => o.Key).ToArray();
-
-            m_BufferUsage.Clear();
-            foreach (var expression in bufferUsage)
+            foreach (var bufferTypeUsage in expressionContext.GraphicsBufferTypeUsagePerContext)
             {
-                var types = expression.Select(o => o.Value);
-                if (types.Count() != 1)
-                    throw new InvalidOperationException("Diverging type usage for GraphicsBuffer : " + types.Select(o => o.ToString()).Aggregate((a, b) => a + b));
-                m_BufferUsage.Add(expression.Key, types.First());
+                m_BufferTypeUsagePerContext.TryAdd(bufferTypeUsage.Key, bufferTypeUsage.Value);
             }
+
 
             if (target == VFXDeviceTarget.GPU)
             {
-                m_CustomHLSLExpressions = expressionContext.hlslCodeHolders;
+                foreach (var hlslCodeHolder in expressionContext.hlslCodeHoldersPerContext)
+                {
+                    m_CustomHLSLExpressionsPerContext.Add(hlslCodeHolder.Key, hlslCodeHolder.Value);
+                }
             }
         }
 
@@ -294,12 +290,27 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes => m_GlobalEventAttributes;
 
-        public ReadOnlyDictionary<VFXExpression, BufferUsage> BufferUsage => new ReadOnlyDictionary<VFXExpression, BufferUsage>(m_BufferUsage);
+        public ReadOnlyDictionary<VFXExpression, BufferUsage> GetBufferTypeUsage(VFXContext context)
+        {
+            if (m_BufferTypeUsagePerContext.TryGetValue(context, out var bufferTypeUsage))
+            {
+                return new ReadOnlyDictionary<VFXExpression, BufferUsage>(bufferTypeUsage);
+            }
 
-        public IHLSLCodeHolder[] customHLSLExpressions => m_CustomHLSLExpressions;
+            return new ReadOnlyDictionary<VFXExpression, BufferUsage>(new Dictionary<VFXExpression, BufferUsage>());
+        }
 
-        private IHLSLCodeHolder[] m_CustomHLSLExpressions;
-        private Dictionary<VFXExpression, BufferUsage> m_BufferUsage = new Dictionary<VFXExpression, BufferUsage>();
+        public IHLSLCodeHolder[] GetCustomHLSLExpressions(VFXContext context)
+        {
+            if (m_CustomHLSLExpressionsPerContext.TryGetValue(context, out var hlslCodeHolders))
+            {
+                return hlslCodeHolders.ToArray();
+            }
+            return Array.Empty<IHLSLCodeHolder>();
+        }
+
+        private Dictionary<VFXContext, List<IHLSLCodeHolder>> m_CustomHLSLExpressionsPerContext = new();
+        private Dictionary<VFXContext, Dictionary<VFXExpression, BufferUsage>> m_BufferTypeUsagePerContext = new();
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();

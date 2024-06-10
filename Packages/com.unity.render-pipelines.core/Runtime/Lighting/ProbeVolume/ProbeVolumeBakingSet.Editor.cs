@@ -171,9 +171,27 @@ namespace UnityEngine.Rendering
 
         internal ProbeVolumeBakingSet Clone()
         {
-            var newSet = Instantiate(this);
-            newSet.m_SceneGUIDs.Clear();
-            newSet.m_SceneBakeData.Clear();
+            var newSet = CreateInstance<ProbeVolumeBakingSet>();
+
+            // We don't want to clone everything in the set
+            // Especially don't copy reference to baked data !
+            newSet.probeOffset = probeOffset;
+            newSet.simplificationLevels = simplificationLevels;
+            newSet.minDistanceBetweenProbes = minDistanceBetweenProbes;
+            newSet.renderersLayerMask = renderersLayerMask;
+            newSet.minRendererVolumeSize = minRendererVolumeSize;
+            newSet.skyOcclusion = skyOcclusion;
+            newSet.skyOcclusionBakingSamples = skyOcclusionBakingSamples;
+            newSet.skyOcclusionBakingBounces = skyOcclusionBakingBounces;
+            newSet.skyOcclusionAverageAlbedo = skyOcclusionAverageAlbedo;
+            newSet.skyOcclusionBackFaceCulling = skyOcclusionBackFaceCulling;
+            newSet.skyOcclusionShadingDirection = skyOcclusionShadingDirection;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.renderingLayerMasks = renderingLayerMasks != null ? (ProbeLayerMask[])renderingLayerMasks.Clone() : null;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.useRenderingLayers = useRenderingLayers;
+            newSet.useRenderingLayers = useRenderingLayers;
             return newSet;
         }
 
@@ -422,9 +440,9 @@ namespace UnityEngine.Rendering
         {
             float maxSizedDim = Mathf.Max(volumeSize.x, Mathf.Max(volumeSize.y, volumeSize.z));
             float maxSideInBricks = maxSizedDim / ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-            int subdiv = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3));
+            int subdiv = Mathf.FloorToInt(Mathf.Log(maxSideInBricks, 3)) - 1;
 
-            return Mathf.Max(subdiv, maxSubdiv) - 1;
+            return Mathf.Max(subdiv, maxSubdiv);
         }
 
         static void InflateBound(ref Bounds bounds, ProbeVolume pv)
@@ -446,7 +464,7 @@ namespace UnityEngine.Rendering
             maxPadding = cellSizeVector - new Vector3(Mathf.Abs(maxPadding.x), Mathf.Abs(maxPadding.y), Mathf.Abs(maxPadding.z));
 
             // Find the size of the brick we can put for every axis given the padding size
-            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
+            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
             if (pv.overridesSubdivLevels) maxSubdiv = Mathf.Min(pv.highestSubdivLevelOverride, maxSubdiv);
 
             float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(MaxSubdivLevelInProbeVolume(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z), maxSubdiv));
@@ -554,7 +572,7 @@ namespace UnityEngine.Rendering
         internal static bool SceneHasProbeVolumes(string sceneGUID)
         {
             var bakingSet = GetBakingSetForScene(sceneGUID);
-            return bakingSet.GetSceneBakeData(sceneGUID)?.hasProbeVolume ?? false;
+            return bakingSet?.GetSceneBakeData(sceneGUID)?.hasProbeVolume ?? false;
         }
 
 		internal bool DialogNoProbeVolumeInSetShown()

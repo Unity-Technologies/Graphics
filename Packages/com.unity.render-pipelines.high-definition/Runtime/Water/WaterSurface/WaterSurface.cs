@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Min(0.001f), Tooltip("Sets the multiplier for the  Absorption Distance when the camera is underwater. A value of 2.0 means you will see twice as far underwater.")]
         public float absorptionDistanceMultiplier = 1.0f;
-        
+
         /// <summary>
         /// Sets the contribution of the ambient probe luminance when multiplied by the underwater scattering color.
         /// </summary>
@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void FillMaterialPropertyBlock(bool supportFoam, bool supportDeformation)
         {
-            var constantBuffer = HDRenderPipeline.currentPipeline.m_ShaderVariablesWaterPerSurface[surfaceIndex];
+            var constantBuffer = HDRenderPipeline.currentPipeline.waterSystem.m_ShaderVariablesWaterPerSurface[surfaceIndex];
             mpb.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
 
             // Textures
@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (simulation == null)
                 return;
 
-            var constantBuffer = HDRenderPipeline.currentPipeline.m_ShaderVariablesWaterPerSurface[surfaceIndex];
+            var constantBuffer = HDRenderPipeline.currentPipeline.waterSystem.m_ShaderVariablesWaterPerSurface[surfaceIndex];
             Shader.SetGlobalTexture(HDShaderIDs._WaterDisplacementBuffer, simulation.gpuBuffers.displacementBuffer);
             Shader.SetGlobalTexture(HDShaderIDs._WaterAdditionalDataBuffer, simulation.gpuBuffers.additionalDataBuffer);
             Shader.SetGlobalConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, constantBuffer, 0, constantBuffer.stride);
@@ -556,14 +556,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdrp == null || !scriptInteractions)
                 return false;
 
-            if (simulation != null && simulation.ValidResources((int)hdrp.m_WaterBandResolution, numActiveBands))
+            if (simulation != null && simulation.ValidResources((int)hdrp.waterSystem.simationRes, numActiveBands))
             {
                 // General
                 wsd.simulationTime = simulation.simulationTime;
 
                 // Simulation
-                wsd.activeBandCount = HDRenderPipeline.EvaluateCPUBandCount(surfaceType, ripples, cpuEvaluateRipples);
-                wsd.cpuSimulation = !hdrp.m_GPUReadbackMode;
+                wsd.activeBandCount = WaterSystem.EvaluateCPUBandCount(surfaceType, ripples, cpuEvaluateRipples);
+                wsd.cpuSimulation = hdrp.waterSystem.replicateSimulationOnCPU;
                 wsd.spectrum = simulation.spectrum;
                 wsd.rendering = simulation.rendering;
 
@@ -572,7 +572,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (simulation.cpuBuffers == null)
                         return false;
 
-                    wsd.simulationRes = (int)hdrp.m_WaterCPUSimulationResolution;
+                    wsd.simulationRes = (int)hdrp.waterSystem.cpuSimationRes;
                     wsd.displacementDataCPU = simulation.cpuBuffers.displacementBufferCPU;
                     wsd.displacementDataGPU = wsd.displacementDataCPU.Reinterpret<half4>(4 * sizeof(float));
                 }
@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Try to to fill the search data and run the evaluation.
             WaterSimSearchData wsd = new WaterSimSearchData();
             if (FillWaterSearchData(ref wsd))
-                return HDRenderPipeline.ProjectPointOnWaterSurface(wsd, wsp, ref wsr);
+                return WaterSystem.ProjectPointOnWaterSurface(wsd, wsp, ref wsr);
             return false;
         }
 
@@ -763,7 +763,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (caustics && simulation?.gpuBuffers?.causticsBuffer != null)
             {
-                int causticsBandIndex = HDRenderPipeline.SanitizeCausticsBand(causticsBand, simulation.numActiveBands);
+                int causticsBandIndex = WaterSystem.SanitizeCausticsBand(causticsBand, simulation.numActiveBands);
                 regionSize = simulation.spectrum.patchSizes[causticsBandIndex];
                 return simulation.gpuBuffers.causticsBuffer;
             }

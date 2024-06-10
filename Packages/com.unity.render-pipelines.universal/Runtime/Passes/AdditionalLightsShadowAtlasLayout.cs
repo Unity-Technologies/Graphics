@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Sort array in decreasing requestedResolution order,
-        // sub-sorting in "HardShadow > SoftShadow" and then "Spot > Point",
+        // sub-sorting in "HardShadow > SoftShadow",
         //   i.e place last requests that will be removed in priority to make room for the others,
         //   because their resolution is too small to produce good-looking shadows ; or because they take relatively more space in the atlas )
         // sub-sub-sorting in light distance to camera
@@ -350,10 +350,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 return (((curr.requestedResolution > other.requestedResolution)
                          || (curr.requestedResolution == other.requestedResolution && !curr.softShadow && other.softShadow)
-                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && !curr.pointLightShadow && other.pointLightShadow)
-                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && curr.pointLightShadow == other.pointLightShadow && s_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] < s_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex])
-                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && curr.pointLightShadow == other.pointLightShadow && s_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == s_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex] && curr.visibleLightIndex < other.visibleLightIndex)
-                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && curr.pointLightShadow == other.pointLightShadow && s_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == s_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex] && curr.visibleLightIndex == other.visibleLightIndex && curr.perLightShadowSliceIndex < other.perLightShadowSliceIndex)))
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && s_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] < s_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex])
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && s_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == s_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex] && curr.visibleLightIndex < other.visibleLightIndex)
+                         || (curr.requestedResolution == other.requestedResolution && curr.softShadow == other.softShadow && s_VisibleLightIndexToCameraSquareDistance[curr.visibleLightIndex] == s_VisibleLightIndexToCameraSquareDistance[other.visibleLightIndex] && curr.visibleLightIndex == other.visibleLightIndex && curr.perLightShadowSliceIndex < other.perLightShadowSliceIndex)))
                     ? -1 : 1;
             };
         }

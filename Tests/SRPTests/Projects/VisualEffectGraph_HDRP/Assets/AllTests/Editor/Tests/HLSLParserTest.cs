@@ -354,6 +354,28 @@ namespace UnityEditor.VFX.Test
             // Assert
             CollectionAssert.IsNotEmpty(functions);
         }
+
+        [Test, Description("Covers issue UUM-71490")]
+        public void HLSL_Check_Int_Without_Access_Modifier()
+        {
+            // Arrange
+            var hlslCode =
+                $"void Repro(inout VFXAttributes attributes, int parameter)" +
+                "{\n" +
+                "    // Nothing\n" +
+                "}\n";
+
+            // Act
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode).ToArray();
+
+            // Assert
+            CollectionAssert.IsNotEmpty(functions);
+            var parameters = functions[0].inputs.ToArray();
+            Assert.AreEqual(2, parameters.Length);
+            Assert.AreEqual("int", parameters[1].rawType);
+            Assert.AreEqual(typeof(int), parameters[1].type);
+            Assert.AreEqual(HLSLAccess.NONE, parameters[1].access);
+        }
     }
 }
 #endif

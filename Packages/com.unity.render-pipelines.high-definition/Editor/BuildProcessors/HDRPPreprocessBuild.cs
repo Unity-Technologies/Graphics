@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     class HDRPPreprocessBuild : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
-        public int callbackOrder => 0;
+        public int callbackOrder => int.MinValue + 100;
 
         private static HDRPBuildData m_BuildData = null;
         private static List<ShaderFeatures> s_SupportedFeaturesList = new();

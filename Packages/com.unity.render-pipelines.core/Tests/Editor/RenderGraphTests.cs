@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
+using UnityEngine.TestTools;
 
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
@@ -13,10 +14,12 @@ namespace UnityEngine.Rendering.Tests
     class RenderGraphTests
     {
         // For RG Record/Hash/Compile testing, use m_RenderGraph
-        RenderGraph m_RenderGraph; 
-        RenderPipelineAsset m_OldDefaultRenderPipeline;
+        RenderGraph m_RenderGraph;
 
-        // For RG Execute/Submit testing with rendering, use m_RenderGraphTestPipeline and its recordRenderGraphBody
+        RenderPipelineAsset m_OldDefaultRenderPipeline;
+        RenderPipelineAsset m_OldQualityRenderPipeline;
+
+        // For RG Execute/Submit testing with rendering, use m_RenderGraphTestPipeline and m_RenderGraph in its recordRenderGraphBody
         RenderGraphTestPipelineAsset m_RenderGraphTestPipeline;
         RenderGraphTestGlobalSettings m_RenderGraphTestGlobalSettings;
 
@@ -96,12 +99,14 @@ namespace UnityEngine.Rendering.Tests
 #if UNITY_EDITOR
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderGraphTestPipelineInstance>(m_RenderGraphTestGlobalSettings);
 #endif
-            // Saving old render pipeline to set it back after testing
+            // Saving old render pipelines to set them back after testing
             m_OldDefaultRenderPipeline = GraphicsSettings.defaultRenderPipeline;
+            m_OldQualityRenderPipeline = QualitySettings.renderPipeline;
 
             // Setting the custom RG render pipeline
             m_RenderGraphTestPipeline = ScriptableObject.CreateInstance<RenderGraphTestPipelineAsset>();
             GraphicsSettings.defaultRenderPipeline = m_RenderGraphTestPipeline;
+            QualitySettings.renderPipeline = m_RenderGraphTestPipeline;
 
             // Getting the RG from the custom asset pipeline
             m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
@@ -112,6 +117,9 @@ namespace UnityEngine.Rendering.Tests
         {
             GraphicsSettings.defaultRenderPipeline = m_OldDefaultRenderPipeline;
             m_OldDefaultRenderPipeline = null;
+
+            QualitySettings.renderPipeline = m_OldQualityRenderPipeline;
+            m_OldQualityRenderPipeline = null;
 
             m_RenderGraph.Cleanup();    
 
@@ -473,7 +481,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void AsyncPassWriteWaitOnGraphcisPipe()
+        public void AsyncPassWriteWaitOnGraphicsPipe()
         {
             TextureHandle texture0;
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
@@ -505,7 +513,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void AsyncPassReadWaitOnGraphcisPipe()
+        public void AsyncPassReadWaitOnGraphicsPipe()
         {
             TextureHandle texture0;
             TextureHandle texture1;
@@ -964,6 +972,35 @@ namespace UnityEngine.Rendering.Tests
                 rendererListHandle = m_RenderGraph.CreateSkyboxRendererList(camera, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity);
                 Assert.IsTrue(rendererListHandle.IsValid());
             };
+            camera.Render();
+
+            GameObject.DestroyImmediate(gameObject);
+        }
+
+        [Test]
+        public void RenderPassWithNoRenderFuncThrows()
+        {
+            // We need a real ScriptableRenderContext and a camera to execute the render graph
+            // add the default camera
+            var gameObject = new GameObject("testGameObject")
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            gameObject.tag = "MainCamera";
+            var camera = gameObject.AddComponent<Camera>();
+
+            // record and execute render graph calls
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    // no render func                    
+                }
+            };
+            LogAssert.Expect(LogType.Error, "Render Graph Execution error");
+            LogAssert.Expect(LogType.Exception, "InvalidOperationException: RenderPass TestPassWithNoRenderFunc was not provided with an execute function.");
             camera.Render();
 
             GameObject.DestroyImmediate(gameObject);
