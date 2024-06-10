@@ -23,6 +23,11 @@
       "displayName": "Feature Examples",
       "description": "This set of assets provides examples for how to achieve specific features and effects in Shader Graph - such as parallax occlusion mapping, interior cube mapping, vertex animation, various types of UV projection, and more. While not intended to be used directly, these examples should help you learn how to achieve these specific effects in your own shaders.",
       "path": "Samples~/FeatureExamples"
+    },
+    {
+      "displayName": "Production Ready Shaders",
+      "description": "This sample contains a collection of Shader Graph assets that are ready to be used in production.  The collection includes shaders for rocks, decals, water, terrain details, and many more.  It also includes post-process examples, weather effects, and shaders that behave similarly to the URP and HDRP Lit shaders.",
+      "path": "Samples~/ProductionReady"
     }
   ]
 }

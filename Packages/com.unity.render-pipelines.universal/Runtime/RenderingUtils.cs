@@ -229,7 +229,19 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                     loadAction, storeAction, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                cmd.Blit(source.nameID, destination.nameID);
+
+                // Necessary to disable the wireframe here, since Vulkan is handling the wireframe differently
+                // to handle the Terrain "Draw Instanced" scenario (Ono: case-1205332).
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+                {
+                    cmd.SetWireframe(false);
+                    cmd.Blit(source, destination);
+                    cmd.SetWireframe(true);
+                }
+                else
+                {
+                    cmd.Blit(source, destination);
+                }
             }
             else if (source.rt == null)
                 Blitter.BlitTexture(cmd, source.nameID, scaleBias, material, passIndex);  // Obsolete usage of RTHandle aliasing a RenderTargetIdentifier

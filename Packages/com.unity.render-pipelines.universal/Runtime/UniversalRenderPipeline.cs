@@ -473,15 +473,41 @@ namespace UnityEngine.Rendering.Universal
 
                 camera.targetTexture = temporaryRT ? temporaryRT : destination;
 
-                if (standardRequest != null)
+
+                using (ListPool<Camera>.Get(out var tmp))
                 {
-                    Render(context, new Camera[] { camera });
+                    tmp.Add(camera);
+                    if (standardRequest != null)
+                    {
+                        Render(context, tmp.ToArray());
+                    }
+                    else
+                    {
+                        using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
+                        {
+                            BeginContextRendering(context, tmp);
+                        }
+
+                        using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                        {
+                            BeginCameraRendering(context, camera);
+                        }
+
+                        camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                        RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+
+                        using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                        {
+                            EndCameraRendering(context, camera);
+                        }
+
+                        using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
+                        {
+                            EndContextRendering(context, tmp);
+                        }
+                    }
                 }
-                else
-                {
-                    camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
-                    RenderSingleCameraInternal(context, camera, ref additionalCameraData);
-                }
+                
 
                 if(temporaryRT)
                 {

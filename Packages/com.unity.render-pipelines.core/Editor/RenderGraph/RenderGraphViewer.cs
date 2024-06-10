@@ -706,11 +706,7 @@ public class RenderGraphViewer : EditorWindow
         foreach (var graph in registeredGraph)
             m_RegisteredGraphs.Add(graph, new HashSet<string>());
 
-        RenderGraph.requireDebugData = true;
-        RenderGraph.onGraphRegistered += OnGraphRegistered;
-        RenderGraph.onGraphUnregistered += OnGraphUnregistered;
-        RenderGraph.onExecutionRegistered += OnExecutionRegistered;
-        RenderGraph.onExecutionUnregistered += OnExecutionUnregistered;
+        SubscribeToRenderGraphEvents();
     }
 
     private void CreateGUI()
@@ -720,10 +716,36 @@ public class RenderGraphViewer : EditorWindow
 
     void OnDisable()
     {
+        UnsubscribeToRenderGraphEvents();
+    }
+
+    void SubscribeToRenderGraphEvents()
+    {
+        if (RenderGraph.requireDebugData)
+            return;
+
+        RenderGraph.requireDebugData = true;
+        RenderGraph.onGraphRegistered += OnGraphRegistered;
+        RenderGraph.onGraphUnregistered += OnGraphUnregistered;
+        RenderGraph.onExecutionRegistered += OnExecutionRegistered;
+        RenderGraph.onExecutionUnregistered += OnExecutionUnregistered;
+    }
+
+    void UnsubscribeToRenderGraphEvents()
+    {
+        if (!RenderGraph.requireDebugData)
+            return;
+
         RenderGraph.requireDebugData = false;
         RenderGraph.onGraphRegistered -= OnGraphRegistered;
         RenderGraph.onGraphUnregistered -= OnGraphUnregistered;
         RenderGraph.onExecutionRegistered -= OnExecutionRegistered;
         RenderGraph.onExecutionUnregistered -= OnExecutionUnregistered;
+    }
+
+    void Update()
+    {
+        // UUM-70378: In case the OnDisable Unsubscribes to Render Graph events when coming back from a Maximized state
+        SubscribeToRenderGraphEvents();
     }
 }

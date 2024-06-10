@@ -184,7 +184,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
     ![Add Renderer Feature](../Images/how-to/blit/add-renderer-feature.png)
 
-    For information on how to add a Renderer Feature, see the page [How to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md).
+    For information on how to add a Renderer Feature, refer to the page [How to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md).
 
     For this example, set the Intensity property to 1.5.
 

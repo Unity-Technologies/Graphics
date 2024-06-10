@@ -6,7 +6,7 @@ With the Decal Renderer Feature, Unity can project specific Materials (decals) o
 
 ![Sample scene with decals](Images/decal/decal-sample-with.png)<br/>*Sample scene with decals. The decals hide the seams between materials and add artistic details.*
 
-For examples of how to use Decals, see the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
+For examples of how to use Decals, refer to the [Decals samples in URP Package Samples](package-sample-urp-package-samples.md#decals).
 
 ## How to use the feature
 
@@ -24,7 +24,7 @@ The following illustration shows a Decal Projector in the Scene.
 
 ![Decal Projector in the Scene.](Images/decal/decal-projector-selected-with-inspector.png)
 
-For more information, see also [Decal Projector component](#decal-projector-component).
+For more information, refer to [Decal Projector component](#decal-projector-component).
 
 <a name="decal-gameobject"></a>An alternative way to add decals to a Scene:
 
@@ -101,7 +101,7 @@ If you enable **Use Rendering Layers**, URP creates a DepthNormal prepass. This 
 
 The Decal Projector component lets Unity project decals onto other objects in the Scene. A Decal Projector component must use a Material with the [Decal Shader Graph](decal-shader.md) assigned (`Shader Graphs/Decal`).
 
-For more information on how to use the Decal Projector, see section [How to use the feature](#how-to-use-the-feature).
+For more information on how to use the Decal Projector, refer to [How to use the feature](#how-to-use-the-feature).
 
 The Decal Projector component contains the Scene view editing tools and the Decal Projector properties.
 
@@ -140,7 +140,7 @@ This section describes the Decal Projector component properties.
 | __Height__              | The height of the projector bounding box. The projector scales the decal to match this value along the local Y axis. |
 | __Projection Depth__    | The depth of the projector bounding box. The projector projects decals along the local Z axis. |
 | __Pivot__               | The offset position of the center of the projector bounding box relative to the origin of the root GameObject. |
-| __Material__            | The Material to project. The Material must use a Shader Graph that has the Decal Material type. For more information, see the page [Decal Shader Graph](decal-shader.md). |
+| __Material__            | The Material to project. The Material must use a Shader Graph that has the Decal Material type. For more information, refer to the page [Decal Shader Graph](decal-shader.md). |
 | __Tiling__              | The tiling values for the decal Material along its UV axes. |
 | __Offset__              | The offset values for the decal Material along its UV axes. |
 | __Opacity__             | This property lets you specify the opacity value. A value of 0 makes the decal fully transparent, a value of 1 makes the decal as opaque as defined by the __Material__. |

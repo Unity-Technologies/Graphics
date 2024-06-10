@@ -925,14 +925,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Punctual
                 result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Punctual Lights Shadows rendering");
-                cachedShadowManager.punctualShadowAtlas.AddBlitRequestsForUpdatedShadows(m_Atlas);
                 BlitCachedShadows(renderGraph, ShadowMapType.PunctualAtlas);
                 result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Punctual Lights Shadows rendering");
 
                 if (ShaderConfig.s_AreaLights == 1)
                 {
                     cachedShadowManager.areaShadowAtlas.RenderShadowMaps(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Area Lights Shadows rendering");
-                    cachedShadowManager.areaShadowAtlas.AddBlitRequestsForUpdatedShadows(m_AreaLightShadowAtlas);
                     BlitCachedShadows(renderGraph, ShadowMapType.AreaLightAtlas);
                     m_AreaLightShadowAtlas.RenderShadowMaps(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Area Light Shadows rendering");
                     result.areaShadowResult = m_AreaLightShadowAtlas.BlurShadows(renderGraph);
@@ -946,8 +944,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cachedShadowManager.UpdateDirectionalCacheTexture(renderGraph);
                         cachedShadowManager.directionalLightAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Directional Lights Shadows rendering");
-
-                        cachedShadowManager.directionalLightAtlas.AddBlitRequestsForUpdatedShadows(m_CascadeAtlas);
                     }
                     BlitCachedShadows(renderGraph, ShadowMapType.CascadedDirectional);
                 }
@@ -1043,26 +1039,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BlitCachedShadows(RenderGraph renderGraph)
         {
-            m_Atlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.punctualShadowAtlas.GetOutputTexture(renderGraph), cachedShadowManager.punctualShadowAtlas.width, m_BlitShadowMaterial, "Blit Punctual Mixed Cached Shadows", HDProfileId.BlitPunctualMixedCachedShadowMaps);
+            m_Atlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.punctualShadowAtlas.GetOutputTexture(renderGraph), new Vector2Int(cachedShadowManager.punctualShadowAtlas.width, cachedShadowManager.punctualShadowAtlas.height), m_BlitShadowMaterial, "Blit Punctual Mixed Cached Shadows", HDProfileId.BlitPunctualMixedCachedShadowMaps);
             if (cachedShadowManager.DirectionalHasCachedAtlas())
             {
-                m_CascadeAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.directionalLightAtlas.GetOutputTexture(renderGraph), cachedShadowManager.directionalLightAtlas.width, m_BlitShadowMaterial, "Blit Directional Mixed Cached Shadows", HDProfileId.BlitDirectionalMixedCachedShadowMaps);
+                m_CascadeAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.directionalLightAtlas.GetOutputTexture(renderGraph), new Vector2Int(cachedShadowManager.directionalLightAtlas.width, cachedShadowManager.directionalLightAtlas.height), m_BlitShadowMaterial, "Blit Directional Mixed Cached Shadows", HDProfileId.BlitDirectionalMixedCachedShadowMaps);
             }
 
             if (ShaderConfig.s_AreaLights == 1)
             {
-                m_AreaLightShadowAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.areaShadowAtlas.GetOutputTexture(renderGraph), cachedShadowManager.areaShadowAtlas.width, m_BlitShadowMaterial, "Blit Area Mixed Cached Shadows", HDProfileId.BlitAreaMixedCachedShadowMaps);
+                m_AreaLightShadowAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.areaShadowAtlas.GetOutputTexture(renderGraph), new Vector2Int(cachedShadowManager.areaShadowAtlas.width, cachedShadowManager.areaShadowAtlas.height), m_BlitShadowMaterial, "Blit Area Mixed Cached Shadows", HDProfileId.BlitAreaMixedCachedShadowMaps);
             }
         }
 
         void BlitCachedShadows(RenderGraph renderGraph, ShadowMapType shadowAtlas)
         {
             if (shadowAtlas == ShadowMapType.PunctualAtlas)
-                m_Atlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.punctualShadowAtlas.GetOutputTexture(renderGraph), cachedShadowManager.punctualShadowAtlas.width, m_BlitShadowMaterial, "Blit Punctual Mixed Cached Shadows", HDProfileId.BlitPunctualMixedCachedShadowMaps);
+                m_Atlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.punctualShadowAtlas.GetOutputTexture(renderGraph), new Vector2Int(cachedShadowManager.punctualShadowAtlas.width, cachedShadowManager.punctualShadowAtlas.height), m_BlitShadowMaterial, "Blit Punctual Mixed Cached Shadows", HDProfileId.BlitPunctualMixedCachedShadowMaps);
             if (shadowAtlas == ShadowMapType.CascadedDirectional && cachedShadowManager.DirectionalHasCachedAtlas())
-                m_CascadeAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.directionalLightAtlas.GetOutputTexture(renderGraph), cachedShadowManager.directionalLightAtlas.width, m_BlitShadowMaterial, "Blit Directional Mixed Cached Shadows", HDProfileId.BlitDirectionalMixedCachedShadowMaps);
+                m_CascadeAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.directionalLightAtlas.GetOutputTexture(renderGraph), new Vector2Int(cachedShadowManager.directionalLightAtlas.width, cachedShadowManager.directionalLightAtlas.height), m_BlitShadowMaterial, "Blit Directional Mixed Cached Shadows", HDProfileId.BlitDirectionalMixedCachedShadowMaps);
             if (shadowAtlas == ShadowMapType.AreaLightAtlas && ShaderConfig.s_AreaLights == 1)
-                m_AreaLightShadowAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.areaShadowAtlas.GetShadowMapDepthTexture(renderGraph), cachedShadowManager.areaShadowAtlas.width, m_BlitShadowMaterial, "Blit Area Mixed Cached Shadows", HDProfileId.BlitAreaMixedCachedShadowMaps);
+                m_AreaLightShadowAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.areaShadowAtlas.GetShadowMapDepthTexture(renderGraph), new Vector2Int(cachedShadowManager.areaShadowAtlas.width, cachedShadowManager.areaShadowAtlas.height), m_BlitShadowMaterial, "Blit Area Mixed Cached Shadows", HDProfileId.BlitAreaMixedCachedShadowMaps);
         }
     }
 }

@@ -33,4 +33,8 @@ The following samples are currently available for Shader Graph.
 |:--------------------|
 |![](images/FeatureExamplesSample.png) |
 | This is a collection of over 30 Shader Graph files.  Each file demonstrates a specific shader technique such as angle blending, triplanar projection, parallax mapping, and custom lighting. While you won’t use these shaders directly in your project, you can use them to quickly learn and understand the various techniques, and recreate them into your own work. Each file contains notes that describe what the shader is doing, and most of the shaders are set up with the core functionality contained in a subgraph that’s easy to copy and paste directly into your own shader. The sample also has extensive documentation describing each of the samples to help you learn.
- |
+
+| [Production Ready Shaders](Shader-Graph-Sample-Production-Ready.md) |
+|:--------------------|
+|![](images/ProductionReadySample.png) |
+| The Shader Graph Production Ready Shaders sample is a collection of Shader Graph shader assets that are ready to be used out of the box or modified to suit your needs.  You can take them apart and learn from them, or just drop them directly into your project and use them as they are. The sample includes the Shader Graph versions of the HDRP and URP Lit shaders. It also includes a step-by-step tutorial for how to combine several of the shaders to create a forest stream environment.

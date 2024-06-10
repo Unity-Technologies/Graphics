@@ -13,7 +13,7 @@ This guide is split into the following sections:
 
 ## Prerequisites
 
-This guide assumes that you already have a complete Scriptable Renderer Feature to work with. If you do not, see [How to Create a Custom Renderer Feature](../create-custom-renderer-feature.md).
+This guide assumes that you already have a complete Scriptable Renderer Feature to work with. If you do not, refer to [How to Create a Custom Renderer Feature](../create-custom-renderer-feature.md).
 
 ## <a name="scriptable-renderer-feature-game-camera"></a>Apply Scriptable Renderer Feature to Game Cameras
 

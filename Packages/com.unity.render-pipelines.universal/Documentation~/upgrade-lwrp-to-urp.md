@@ -14,7 +14,7 @@ For each Assembly Definition Asset in your Project:
 * Select the Assembly Defintion Asset
 * In the Inspector, enable **Use GUIDs**
 
-For information on using Assembly Definition files, see the [documentation on Assembly Definitions](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html).
+For information on using Assembly Definition files, refer to the [documentation on Assembly Definitions](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html).
 
 ## Upgrade process
 ### Upgrading your version of LWRP

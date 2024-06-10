@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3579780557424021172
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 100000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_Name
+      value: Rock_A_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300002, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: dcfc778208fd5e04398bd01346b542b3, type: 2}
+    - target: {fileID: 2300004, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4ebdecb45e1ff4941b8a2446368dcce4, type: 2}
+    - target: {fileID: 2300006, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4ebdecb45e1ff4941b8a2446368dcce4, type: 2}
+    - target: {fileID: 2300008, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4ebdecb45e1ff4941b8a2446368dcce4, type: 2}
+    - target: {fileID: 20500000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LODs.Array.data[0].screenRelativeHeight
+      value: 0.5021768
+      objectReference: {fileID: 0}
+    - target: {fileID: 20500000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0.24798477
+      objectReference: {fileID: 0}
+    - target: {fileID: 20500000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LODs.Array.data[2].screenRelativeHeight
+      value: 0.11629233
+      objectReference: {fileID: 0}
+    - target: {fileID: 20500000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}
+      propertyPath: m_LODs.Array.data[3].screenRelativeHeight
+      value: 0.02445711
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0347a2ca593e212468d38a00c0f15925, type: 3}

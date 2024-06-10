@@ -1,0 +1,235 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4722856464532375124
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7593767404175202170}
+  m_Layer: 0
+  m_Name: ViewPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7593767404175202170
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4722856464532375124}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.00093855686, y: -0.98524684, z: 0.17105104, w: -0.005405842}
+  m_LocalPosition: {x: 0.2, y: 2.82, z: 5.29}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3608749374209294103}
+  m_LocalEulerAnglesHint: {x: 19.698, y: -180.629, z: 0}
+--- !u!1 &6038242143246611039
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3608749374209294103}
+  m_Layer: 0
+  m_Name: TutorialStep1SculptTerrain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3608749374209294103
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6038242143246611039}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -33, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7593767404175202170}
+  - {fileID: 8238880412239631815}
+  - {fileID: 6350775364206949346}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &3680042658855434867
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3608749374209294103}
+    m_Modifications:
+    - target: {fileID: 2102425495700333303, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_Name
+      value: InfoPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5035190720112997874, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: '1 - Sculpt Terrain
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7809346879080935076, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+      propertyPath: m_text
+      value: 'We start by blocking out the main shapes of the terrain. We use the
+        Set Height brush to create a sloping terrain by creating a series of terraces
+        and then using the Smooth brush to smooth out the hard edges between the
+        terraces.
+
+
+
+        Then we cut in our stream channel with the Set Height
+        brush in several different tiers heading down the slope. After cutting in
+        the stream, we smooth out the hard edges using the Smooth brush.
+
+
+
+        We
+        finalize the terrain shape by adding polish using the Raise/Lower Height
+        brush and the Smooth brush to add touch-ups and variety.  In this process,
+        we start out with large brushes and end up using small ones.
+
+
+
+        Once
+        this step is done, we do revisit the terrain shape occasionally to add additional
+        touch ups, especially after adding in the water meshes in steps 3 and 4,
+        to ensure that the water meshes and terrain shape work together.
+
+'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+--- !u!4 &8238880412239631815 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4702955764361932724, guid: c4058e53767c32445a7b7cb7c5bc3dad, type: 3}
+  m_PrefabInstance: {fileID: 3680042658855434867}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5670590467324726987
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3608749374209294103}
+    m_Modifications:
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.34
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1736223423933981007, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_text
+      value: In this tutorial, we show you step by step how to construct a forest
+        stream environment using some of the assets included in this sample.
+      objectReference: {fileID: 0}
+    - target: {fileID: 7952654427140829992, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_text
+      value: Forest Stream Tutorial
+      objectReference: {fileID: 0}
+    - target: {fileID: 8999424632605148233, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+      propertyPath: m_Name
+      value: InfoStand
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+--- !u!4 &6350775364206949346 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1626792839209827625, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
+  m_PrefabInstance: {fileID: 5670590467324726987}
+  m_PrefabAsset: {fileID: 0}

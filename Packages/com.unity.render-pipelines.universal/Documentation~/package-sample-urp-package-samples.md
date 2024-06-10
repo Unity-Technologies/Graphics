@@ -1,6 +1,6 @@
 # URP Package Samples
 
-URP Package Samples is a [package sample](package-samples.md) for the Universal Render Pipeline (URP). It contains example shaders, C# scripts, and other assets you can build upon, use to learn how to use a feature, or use directly in your application. For information on how to import URP Package Samples into your project, see [Importing package samples](package-samples.md#importing-package-samples).
+URP Package Samples is a [package sample](package-samples.md) for the Universal Render Pipeline (URP). It contains example shaders, C# scripts, and other assets you can build upon, use to learn how to use a feature, or use directly in your application. For information on how to import URP Package Samples into your project, refer to [Importing package samples](package-samples.md#importing-package-samples).
 
 Each example uses its own [URP Asset](universalrp-asset.md) so, if you want to build an example scene, [add the example's URP Asset to your Graphics settings](InstallURPIntoAProject.md#set-urp-active). If you don't do this, Unity might strip shaders or render passes that the example uses.
 

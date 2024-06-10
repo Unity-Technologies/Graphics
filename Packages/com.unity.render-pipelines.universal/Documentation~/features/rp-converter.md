@@ -20,7 +20,7 @@ To convert project assets:
 
     ![Select converters](../Images/rp-converter/select-converters.png)
 
-    For the list of available converters, see the section [Converters](#converters).
+    For the list of available converters, refer to the section [Converters](#converters).
 
 4. Click **Initialize Converters**. The Render Pipeline Converter preprocesses the assets in the project and shows the list of elements to convert. Select or clear check boxes next to assets to include or exclude them from the conversion process.
 
@@ -156,4 +156,4 @@ To run the example conversion from the command line, use the following command:
 "<path to Unity application> -projectPath <project path> -batchmode -executeMethod MyUpgradeScript.ConvertBuiltinToURPMaterials
 ```
 
-See also: [Unity Editor command line arguments](https://docs.unity3d.com/Manual/EditorCommandLineArguments.html).
+For more information, refer to: [Unity Editor command line arguments](https://docs.unity3d.com/Manual/EditorCommandLineArguments.html).

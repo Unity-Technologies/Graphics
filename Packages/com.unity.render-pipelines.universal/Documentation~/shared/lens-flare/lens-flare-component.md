@@ -17,7 +17,7 @@ To create a lens flare in a scene:
 3. Select **Rendering** > **Lens Flare (SRP)**. Currently, the lens flare doesn't render in the scene because the component doesn't reference a Lens Flare (SRP) Data asset in its **Lens Flare Data** property.
 4. Create a new Lens Flare (SRP) Data asset (menu: **Assets** > **Create** > **Lens Flare (SRP)**).
 5. In the Lens Flare (SRP) component Inspector, assign the new Lens Flare (SRP) Data asset to the **Lens Flare Data** property.
-6. Select the Lens Flare (SRP) Data asset and, in the Inspector, add a new element to the **Elements** list. A default white lens flare now renders at the position of the Lens Flare (SRP) component. For information on how to customize how the lens flare looks, see [Lens Flare (SRP) Data](lens-flare-asset.md).
+6. Select the Lens Flare (SRP) Data asset and, in the Inspector, add a new element to the **Elements** list. A default white lens flare now renders at the position of the Lens Flare (SRP) component. For information on how to customize how the lens flare looks, refer to [Lens Flare (SRP) Data](lens-flare-asset.md).
 
 ## Properties
 

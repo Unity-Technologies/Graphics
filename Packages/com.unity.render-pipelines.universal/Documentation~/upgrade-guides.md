@@ -2,7 +2,7 @@
 
 This section contains information about upgrading from an older version of the Universal Render Pipeline (URP) to a more recent version, and about upgrading from the Lightweight Render Pipeline (LWRP) to URP.
 
-For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, see the page [Render Pipeline Converter](features/rp-converter.md).
+For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, refer to the page [Render Pipeline Converter](features/rp-converter.md).
 
 * [Upgrading to URP 2022.2](upgrade-guide-2022-2.md)
 * [Upgrading to URP 2022.1](upgrade-guide-2022-1.md)

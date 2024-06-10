@@ -32,13 +32,13 @@ cameraData.renderType = CameraRenderType.Base;
 
 Base Camera is the default type of Camera in URP. A Base Camera is a general purpose Camera that renders to a given render target.
 
-To render anything in URP, you must have at least one Base Camera in your Scene. You can have multiple Base Cameras in a Scene. You can use a Base Camera on its own, or you can use it in a [Camera stack](camera-stacking.md). For more information on working with multiple Cameras in URP, see [Working with multiple cameras](cameras-multiple.md).
+To render anything in URP, you must have at least one Base Camera in your Scene. You can have multiple Base Cameras in a Scene. You can use a Base Camera on its own, or you can use it in a [Camera stack](camera-stacking.md). For more information on working with multiple Cameras in URP, refer to [Working with multiple cameras](cameras-multiple.md).
 
 When you have an active Base Camera in your Scene, this icon appears next to the Camera Gizmo in the Scene view:
 
 ![Overlay Camera icon](Images/camera-icon-base.png)
 
-For information on the properties that Unity exposes in the Inspector for a Base Camera, see the [Camera component reference](camera-component-reference.md).
+For information on the properties that Unity exposes in the Inspector for a Base Camera, refer to the [Camera component reference](camera-component-reference.md).
 
 <a name="overlay-camera"></a>
 
@@ -73,4 +73,4 @@ Unity hides all of the other unused properties in the Inspector. You can access 
 > [!NOTE]
 > While you can apply post-processing to an individual Overlay Camera within a camera stack, the effects also apply to all the outputs the camera stack renders before the Overlay Camera. This is different to how you can apply post-processing to an individual Base Camera where the effects on only apply to the Base Camera.
 
-For information on the properties that Unity exposes in the Inspector of an Overlay Camera, see the [Camera component reference](camera-component-reference.md).
+For information on the properties that Unity exposes in the Inspector of an Overlay Camera, refer to the [Camera component reference](camera-component-reference.md).
