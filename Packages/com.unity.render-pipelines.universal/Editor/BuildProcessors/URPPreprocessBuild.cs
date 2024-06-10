@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
 {
     class URPPreprocessBuild : IPreprocessBuildWithReport
     {
-        public int callbackOrder => -1;
+        public int callbackOrder => int.MinValue + 100;
 
         private static URPBuildData m_BuildData = null;
 

@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public CommonShaderPreprocessor()
         {
-            m_ShaderResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
-            m_MaterialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
+            m_ShaderResources = HDRPBuildData.instance.runtimeShaders;
+            m_MaterialResources = HDRPBuildData.instance.materialResources;
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)

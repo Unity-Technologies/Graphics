@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public HDRPComputeShaderVariantStripper()
         {
-            m_Shaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
+            m_Shaders = HDRPBuildData.instance.runtimeShaders;
         }
 
         // Modify this function to add more stripping clauses
