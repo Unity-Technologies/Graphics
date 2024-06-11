@@ -513,17 +513,19 @@ namespace UnityEngine.Rendering
             var L0Format = GraphicsFormat.R16G16B16A16_SFloat;
             var L1L2Format = compressed ? GraphicsFormat.RGBA_BC7_UNorm : GraphicsFormat.R8G8B8A8_UNorm;
 
+            var ValidityFormat = allocateRenderingLayers ?
+                // for 32 bits we use a float format but it's an uint
+                GraphicsFormat.R32_SFloat :
+                // NOTE: Platforms that do not support Sample nor LoadStore for R8_UNorm need to fallback to RGBA8_UNorm since that format should be supported for both (e.g. GLES3.x)
+                SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.Sample | GraphicsFormatUsage.LoadStore) ? GraphicsFormat.R8_UNorm : GraphicsFormat.R8G8B8A8_UNorm;
+
             allocatedBytes = 0;
             loc.TexL0_L1rx = CreateDataTexture(width, height, depth, L0Format, $"{name}_TexL0_L1rx", allocateRendertexture, ref allocatedBytes);
             loc.TexL1_G_ry = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_G_ry", allocateRendertexture, ref allocatedBytes);
             loc.TexL1_B_rz = CreateDataTexture(width, height, depth, L1L2Format, $"{name}_TexL1_B_rz", allocateRendertexture, ref allocatedBytes);
 
             if (allocateValidityData)
-            {
-                // for 32 bits we use a float format but it's an uint
-                var format = allocateRenderingLayers ? GraphicsFormat.R32_SFloat : GraphicsFormat.R8_UNorm;
-                loc.TexValidity = CreateDataTexture(width, height, depth, format, $"{name}_Validity", allocateRendertexture, ref allocatedBytes);
-            }
+                loc.TexValidity = CreateDataTexture(width, height, depth, ValidityFormat, $"{name}_Validity", allocateRendertexture, ref allocatedBytes);
             else
                 loc.TexValidity = null;
 
