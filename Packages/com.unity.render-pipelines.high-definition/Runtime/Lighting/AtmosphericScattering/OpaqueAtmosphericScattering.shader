@@ -29,6 +29,10 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
+        #ifdef DEBUG_DISPLAY
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+        #endif
+
         TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
         TEXTURE2D_X_MSAA(float,  _DepthTextureMS);
         TEXTURE2D_X(_ColorTexture);
@@ -80,7 +84,8 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             #endif
 
             #ifdef DEBUG_DISPLAY
-            output.color = float4(debugColor, 0.0f);
+            if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VOLUMETRIC_FOG)
+                output.color = float4(debugColor, 0.0f);
             #endif
 
             return output;

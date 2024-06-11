@@ -679,6 +679,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        bool EnableRayTracedReflections(HDCamera hdCamera, ScreenSpaceReflection settings)
+        {
+            // We can use the ray tracing version of the effect if:
+            // - It is enabled in the frame settings
+            // - It is enabled in the volume
+            // - The RTAS has been build validated
+            // - The RTLightCluster has been validated
+            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                   && ScreenSpaceReflection.RayTracingActive(settings)
+                   && GetRayTracingState() && GetRayTracingClusterState();
+        }
+
         int CombineReflectionsHistoryStateToMask(bool fullResolution, bool rayTraced)
         {
             // Combine the flags to define the current mask

@@ -383,6 +383,21 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        /// <summary>
+        /// Tests if the baking set data has already been baked.
+        /// </summary>
+        /// <param name="scenario">The name of the scenario to test. If null or if scenarios are disabled, the function will test for the default scenario.</param>
+        /// <returns>True if the baking set data has been baked.</returns>
+        public bool HasBakedData(string scenario = null)
+        {
+            if (scenario == null)
+                return scenarios.ContainsKey(ProbeReferenceVolume.defaultLightingScenario);
+
+            if (!ProbeReferenceVolume.instance.supportLightingScenarios && scenario != ProbeReferenceVolume.defaultLightingScenario)
+                return false;
+            return scenarios.ContainsKey(scenario);
+        }
+
         /// <summary>Called after deserializing</summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {

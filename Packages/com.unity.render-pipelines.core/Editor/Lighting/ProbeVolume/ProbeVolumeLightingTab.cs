@@ -999,22 +999,29 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
                 AdaptiveProbeVolumes.partialBakeSceneList = null;
 
-            if (AdaptiveProbeVolumes.partialBakeSceneList != null)
+            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
+                activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
+            
+            // Layout has changed and is incompatible.
+            if (activeSet.HasValidSharedData() && !activeSet.freezePlacement &&
+                (activeSet.bakedMinDistanceBetweenProbes != activeSet.minDistanceBetweenProbes ||
+                activeSet.bakedSimplificationLevels != activeSet.simplificationLevels))
             {
-                // Layout has changed and is incompatible.
-                if (!activeSet.freezePlacement &&
-                    (activeSet.bakedMinDistanceBetweenProbes != activeSet.minDistanceBetweenProbes ||
-                    activeSet.bakedSimplificationLevels != activeSet.simplificationLevels))
+                if (AdaptiveProbeVolumes.partialBakeSceneList != null)
                 {
                     if (EditorUtility.DisplayDialog("Incompatible Layout", "You are partially baking the set with an incompatible cell layout. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
                         ClearBakedData();
                     else
                         return false;
                 }
+                else if (ProbeReferenceVolume.instance.supportLightingScenarios && activeSet.scenarios.Count != (activeSet.scenarios.ContainsKey(activeSet.lightingScenario) ? 1 : 0))
+                {
+                    if (EditorUtility.DisplayDialog("Incompatible Layout", "You are baking scenarios with incompatible cell layouts. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
+                        ClearBakedData();
+                    else
+                        return false;
+                }
             }
-
-            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
-                activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
 
             return true;
         }
