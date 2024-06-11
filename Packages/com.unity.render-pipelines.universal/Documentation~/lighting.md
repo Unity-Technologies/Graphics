@@ -21,7 +21,6 @@ Refer to [Configure for better performance](configure-for-better-performance.md)
 ## Additional resources
 
 * [Universal Render Pipeline for advanced Unity creators](https://unity.com/resources/introduction-universal-render-pipeline-for-advanced-unity-creators-2022lts)
-* [Shedding some light on the Universal Render Pipeline](https://blog.unity.com/engine-platform/shedding-light-on-universal-render-pipeline-for-unity-2021-lts)
 * [Optimize your Unity project with URP](https://www.youtube.com/watch?v=NFBr21V0zvU&ab_channel=Unity)
 * [Creating Believable Visuals](https://learn.unity.com/tutorial/creating-believable-visuals)
 * [Creative Core: Lighting](https://learn.unity.com/project/creative-core-lighting)
