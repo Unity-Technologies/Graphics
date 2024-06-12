@@ -212,7 +212,7 @@ For example:
 
 ```csharp
 // Allocate a global shader texture called _GlobalTexture
-private int shaderTextureID = Shader.globalTextureID("_GlobalTexture")
+private int globalTextureID = Shader.SetGlobalTexture("_GlobalTexture")
 
 using (var builder = renderGraph.AddRasterRenderPass<PassData>("MyPass", out var passData)){
 
