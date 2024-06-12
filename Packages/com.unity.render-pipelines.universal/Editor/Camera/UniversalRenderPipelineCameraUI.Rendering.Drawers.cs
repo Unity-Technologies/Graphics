@@ -33,6 +33,10 @@ namespace UnityEditor.Rendering.Universal
                 (serialized, owner) => !serialized.renderPostProcessing.boolValue && (AntialiasingMode)serialized.antialiasing.intValue != AntialiasingMode.None,
                 (serialized, owner) => EditorGUILayout.HelpBox(Styles.disabledPostprocessingAntiAliasWarning, MessageType.Warning));
 
+            private static readonly CED.IDrawer MSAAWarningDrawer = CED.Conditional(
+                (serialized, owner) => (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset asset && asset.msaaSampleCount > 1) && serialized.baseCameraSettings.allowMSAA.boolValue == true && (AntialiasingMode)serialized.antialiasing.intValue == AntialiasingMode.TemporalAntiAliasing,
+                (serialized, owner) => EditorGUILayout.HelpBox(Styles.MSAAWarning, MessageType.Warning));
+
             private static readonly CED.IDrawer PostProcessingStopNaNsWarningDrawer = CED.Conditional(
                 (serialized, owner) => !s_PostProcessingWarningShown && IsAnyRendererHasPostProcessingEnabled(serialized, UniversalRenderPipeline.asset) && serialized.stopNaNs.boolValue,
                 (serialized, owner) =>
@@ -60,6 +64,7 @@ namespace UnityEditor.Rendering.Universal
                     ),
                 PostProcessingAAWarningDrawer,
                 DisabledPostProcessingAAWarningDrawer,
+                MSAAWarningDrawer,
                 CED.Conditional(
                     (serialized, owner) => !serialized.antialiasing.hasMultipleDifferentValues,
                     CED.Group(
