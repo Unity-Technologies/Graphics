@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class VFXPreprocessBuild : IPreprocessBuildWithReport
 {
-    public int callbackOrder => -1;
+    public int callbackOrder => int.MinValue + 49;
 
     public void OnPreprocessBuild(BuildReport report)
     {
