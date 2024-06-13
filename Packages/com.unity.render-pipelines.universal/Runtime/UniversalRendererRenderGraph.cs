@@ -1172,6 +1172,8 @@ namespace UnityEngine.Rendering.Universal
                     m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture, skyboxMaterial, requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents);
             }
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingSkybox);
+
             if (requiresColorCopyPass)
             {
                 TextureHandle activeColor = resourceData.activeColorTexture;
@@ -1181,6 +1183,8 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.cameraOpaqueTexture = cameraOpaqueTexture;
             }
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingTransparents);
+
 #if UNITY_EDITOR
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
@@ -1188,8 +1192,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ProbeVolumeDebugPass.Render(renderGraph, frameData, cameraDepthTexture, cameraNormalsTexture);
             }
 #endif
-
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingSkybox, RenderPassEvent.BeforeRenderingTransparents);
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER

@@ -50,7 +50,7 @@ public class OutputURPTexture : ScriptableRendererFeature
     public override void Create()
     {
         m_ScriptablePass = new OutputURPTexturePass(m_TextureType);
-        m_ScriptablePass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+        m_ScriptablePass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
