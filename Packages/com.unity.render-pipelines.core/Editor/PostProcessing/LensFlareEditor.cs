@@ -7,7 +7,6 @@ namespace UnityEditor
     /// Editor for Lens Flare (builtin): Editor to show an error message
     /// </summary>
     [CustomEditor(typeof(LensFlare))]
-    [SupportedOnRenderPipeline]
     [CanEditMultipleObjects]
     class LensFlareEditor : Editor
     {
@@ -16,7 +15,10 @@ namespace UnityEditor
         /// </summary>
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("This component doesn't work on SRP, use Lens Flare (SRP) instead.", MessageType.Error);
+            if (GraphicsSettings.isScriptableRenderPipelineEnabled)
+                EditorGUILayout.HelpBox("This component doesn't work on SRP, use Lens Flare (SRP) instead.", MessageType.Error);
+            else
+                DrawDefaultInspector();
         }
     }
 }
