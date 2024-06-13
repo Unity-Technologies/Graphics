@@ -22,15 +22,17 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_Color;
         RTHandle m_Depth;
         readonly Material m_CameraMaterial;
+        readonly FilteringSettings m_FilteringSettings;
 
         private PassData m_PassData;
         #endregion
 
         #region Constructors
-        internal MotionVectorRenderPass(RenderPassEvent evt, Material cameraMaterial)
+        internal MotionVectorRenderPass(RenderPassEvent evt, Material cameraMaterial, LayerMask opaqueLayerMask)
         {
             renderPassEvent = evt;
             m_CameraMaterial = cameraMaterial;
+            m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque,opaqueLayerMask);
             m_PassData = new PassData();
             base.profilingSampler = ProfilingSampler.Get(URPProfileId.DrawMotionVectors);
 
@@ -203,12 +205,11 @@ namespace UnityEngine.Rendering.Universal
         private void InitRendererLists(ref PassData passData, ref CullingResults cullResults, bool supportsDynamicBatching, ScriptableRenderContext context, RenderGraph renderGraph, bool useRenderGraph)
         {
             var drawingSettings = GetDrawingSettings(passData.camera, supportsDynamicBatching);
-            var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, passData.camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             if (useRenderGraph)
-                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererListHdl);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(renderGraph, ref cullResults, drawingSettings, m_FilteringSettings, renderStateBlock, ref passData.rendererListHdl);
             else
-                RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, drawingSettings, filteringSettings, renderStateBlock, ref passData.rendererList);
+                RenderingUtils.CreateRendererListWithRenderStateBlock(context, ref cullResults, drawingSettings, m_FilteringSettings, renderStateBlock, ref passData.rendererList);
         }
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraDepthTexture, TextureHandle motionVectorColor, TextureHandle motionVectorDepth)
