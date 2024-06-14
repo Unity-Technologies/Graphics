@@ -2023,7 +2023,6 @@ namespace UnityEngine.Rendering.Universal
             m_HasFinalPass = hasFinalPass;
             m_EnableColorEncodingIfNeeded = enableColorEndingIfNeeded;
 
-
             ref ScriptableRenderer renderer = ref cameraData.renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
@@ -2040,7 +2039,19 @@ namespace UnityEngine.Rendering.Universal
 
             // Disable MotionBlur in EditMode, so that editing remains clear and readable.
             // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
+            // Disable MotionBlurMode.CameraAndObjects on renderers that do not support motion vectors
             useMotionBlur = useMotionBlur && Application.isPlaying;
+            if (useMotionBlur && m_MotionBlur.mode.value == MotionBlurMode.CameraAndObjects)
+            {
+                useMotionBlur &= renderer.SupportsMotionVectors();
+                if (!useMotionBlur)
+                {
+                    var warning = "Disabling Motion Blur for Camera And Objects because the renderer does not implement motion vectors.";
+                    const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
+                    if (Time.frameCount % warningThrottleFrames == 0)
+                        Debug.LogWarning(warning);
+                }
+            }
 
             // Note that enabling jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed

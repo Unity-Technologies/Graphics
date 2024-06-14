@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.Universal
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
         UpscalePass m_UpscalePass;
+        CopyDepthPass m_CopyDepthPass;
         CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
         FinalBlitPass m_FinalBlitPass;
         DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
@@ -77,6 +78,12 @@ namespace UnityEngine.Rendering.Universal
             if (GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
             {
                 m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial, renderer2DResources.fallOffLookup);
+
+                m_CopyDepthPass = new CopyDepthPass(
+                    RenderPassEvent.AfterRenderingTransparents,
+                    renderer2DResources.copyDepthPS,
+                    shouldClear: true,
+                    copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported());
             }
 
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
@@ -119,6 +126,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthTextureHandle?.Release();
             ReleaseRenderTargets();
             m_UpscalePass.Dispose();
+            m_CopyDepthPass?.Dispose();
             m_FinalBlitPass?.Dispose();
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
