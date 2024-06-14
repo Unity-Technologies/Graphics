@@ -1,9 +1,9 @@
 {
     "introduction": 
-	"""Welcome to the collection of <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Fog.html">Volumetric Fog</a> Samples.
+	"""Welcome to the collection of <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/fog.html">Volumetric Fog</a> Samples.
 	Each of the effects instantiated by this script are Prefabs available for usage in <b>VolumetricSamples/Prefabs/…</b>
 	
-	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Local-Volumetric-Fog.html">Local Volumetric Fog</a> component allows the usage of <b>3D Textures</b> or <b>Shader Graphs</b> to add details and animation locally to the fog. <b>Blending Modes</b> are also available to add, multiply or overwrite fog values.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/local-volumetric-fog-volume-reference.html">Local Volumetric Fog</a> component allows the usage of <b>3D Textures</b> or <b>Shader Graphs</b> to add details and animation locally to the fog. <b>Blending Modes</b> are also available to add, multiply or overwrite fog values.
 	
 	The Local Fog visual quality is dependent on the <b>Volumetric Fog quality settings</b>, found in the active <b>Volume Profile</b>. The Manual control offers precise management over the Fog's budget : for an effect with lots of variation over a short distance, it is preferred to increase the <b>Volume Slice Count</b>. If performance is an issue, the <b>Screen Resolution Percentage</b> can be kept low as a tradeoff.""",
     "samples": [

@@ -118,18 +118,8 @@ struct EnvironmentLighting
 {
     // Light direction (point to sun)
     float3 sunDirection;
-
-    // Light intensity/color of the sun, this already takes into account the atmospheric scattering
-    float3 sunColor0;
-    float3 sunColor1;
-
-    // Ambient term from the ambient probe
-    float3 ambientTermTop;
-    float3 ambientTermBottom;
-
     // Angle between the light and the ray direction
     float cosAngle;
-
     // Phase functions for the individual
     PHASE_FUNCTION_STRUCTURE phaseFunction;
 };
@@ -155,16 +145,6 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     // Sun parameters
     EnvironmentLighting lighting;
     lighting.sunDirection = _SunDirection.xyz;
-    lighting.sunColor0 = _SunLightColor.xyz;
-    lighting.sunColor1 = _SunLightColor.xyz;
-    lighting.ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0));
-    lighting.ambientTermBottom = max(SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0)), 0);
-
-    #ifdef PHYSICALLY_BASED_SUN
-    // evaluate the attenuation at both points (entrance and exit of the cloud layer)
-    lighting.sunColor0 *= EvaluateSunColorAttenuation(entryEvaluationPointPS, lighting.sunDirection, true);
-    lighting.sunColor1 *= EvaluateSunColorAttenuation(exitEvaluationPointPS, lighting.sunDirection, false);
-    #endif
 
     // Evaluate cos of the theta angle between the view and light vectors
     lighting.cosAngle = dot(ray.direction, lighting.sunDirection);
@@ -187,12 +167,6 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     #endif
 
     return lighting;
-}
-
-// Function that evaluates the sun color along the ray
-float3 EvaluateSunColor(EnvironmentLighting envLighting, float relativeRayDistance)
-{
-    return lerp(envLighting.sunColor0, envLighting.sunColor1, relativeRayDistance);
 }
 
 // Density remapping function
@@ -220,7 +194,7 @@ struct RayMarchRange
 
 bool GetCloudVolumeIntersection(CloudRay ray, out RayMarchRange rayMarchRange)
 {
-    return IntersectCloudVolume(ConvertToPS (ray.originWS), ray.direction, _LowestCloudAltitude, _HighestCloudAltitude,
+    return IntersectCloudVolume(ConvertToPS(ray.originWS), ray.direction, _LowestCloudAltitude, _HighestCloudAltitude,
         rayMarchRange.start, rayMarchRange.end);
 }
 
@@ -272,7 +246,7 @@ struct CloudProperties
     float ambientOcclusion;
     // Normalized value that tells us the height within the cloud volume (vertically)
     float height;
-    // Transmittance of the cloud
+    // Extinction over the interval
     float sigmaT;
 };
 
@@ -396,8 +370,11 @@ void EvaluateCloudProperties(float3 positionPS, float noiseMipOffset, float eros
 // Structure that holds the result of our volumetric ray
 struct VolumetricRayResult
 {
-    // Amount of lighting that comes from the clouds
-    float3 inScattering;
+    // Amount of lighting that reach the clouds
+    // We keep track of sun light and ambient light separately for optimization
+    // They are combine at the end of tracing
+    float3 scattering;
+    float ambient;
     // Transmittance through the clouds
     float transmittance;
     // Mean distance of the clouds
@@ -406,15 +383,15 @@ struct VolumetricRayResult
     bool invalidRay;
 };
 
-// Function that evaluates the luminance at a given cloud position (only the contribution of the sun)
-float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunColor, float powderEffect, PHASE_FUNCTION_STRUCTURE phaseFunction)
+// Function that evaluates the transmittance to the sun at a given cloud position
+float3 EvaluateSunTransmittance(float3 positionPS, float3 sunDirection, PHASE_FUNCTION_STRUCTURE phaseFunction)
 {
     // Compute the Ray to the limits of the cloud volume in the direction of the light
     float totalLightDistance = 0.0;
-    float3 luminance = float3(0.0, 0.0, 0.0);
+    float3 transmittance = 0.0f;
 
     // If we early out, this means we've hit the earth itself
-    if (ExitCloudVolume(ConvertToPS(positionWS), sunDirection, _HighestCloudAltitude, totalLightDistance))
+    if (ExitCloudVolume(positionPS, sunDirection, _HighestCloudAltitude, totalLightDistance))
     {
         // Because of the very limited numebr of light steps and the potential humongous distance to cover, we decide to potnetially cover less and make it more useful
         totalLightDistance = clamp(totalLightDistance, 0, _NumLightSteps * LIGHT_STEP_MAXIMAL_SIZE);
@@ -434,7 +411,7 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
             float dist = intervalSize * (0.25 + j);
 
             // Evaluate the current sample point
-            float3 currentSamplePointPS = ConvertToPS(positionWS) + sunDirection * dist;
+            float3 currentSamplePointPS = positionPS + sunDirection * dist;
             // Get the cloud properties at the sample point
             CloudProperties lightRayCloudProperties;
             EvaluateCloudProperties(currentSamplePointPS, 3.0f * j / _NumLightSteps, 0.0, true, true, lightRayCloudProperties);
@@ -444,23 +421,20 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
 
         // Compute the luminance for each octave
         // https://magnuswrenninge.com/wp-content/uploads/2010/03/Wrenninge-OzTheGreatAndVolumetric.pdf
-        float3 sunColorXPowderEffect = sunColor * powderEffect;
         float3 extinction = intervalSize * opticalDepth * _ScatteringTint.xyz;
         for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
         {
             float msFactor = PositivePow(_MultiScattering, o);
-            float3 transmittance = exp(-extinction * msFactor);
-            luminance += transmittance * sunColorXPowderEffect * (phaseFunction[o] * msFactor);
+            transmittance += exp(-extinction * msFactor) * (phaseFunction[o] * msFactor);
         }
     }
 
-    // return the combined luminance
-    return luminance;
+    return transmittance;
 }
 
 // Evaluates the inscattering from this position
 void EvaluateCloud(CloudProperties cloudProperties, EnvironmentLighting envLighting,
-                float3 currentPositionWS, float stepSize, float relativeRayDistance,
+                float3 currentPositionPS, float stepSize, float relativeRayDistance,
                 inout VolumetricRayResult volumetricRay)
 {
     // Apply the extinction
@@ -468,22 +442,22 @@ void EvaluateCloud(CloudProperties cloudProperties, EnvironmentLighting envLight
     const float transmittance = exp(-extinction * stepSize);
 
     // Compute the powder effect
-    float powder_effect = PowderEffect(cloudProperties.density, envLighting.cosAngle, _PowderEffectIntensity);
+    float powderEffect = PowderEffect(cloudProperties.density, envLighting.cosAngle, _PowderEffectIntensity);
 
-    // Evaluate the sun color at the position
-    float3 sunColor = EvaluateSunColor(envLighting, relativeRayDistance);
+    // Evaluate the sun visibility
+    float3 sunTransmittance = EvaluateSunTransmittance(currentPositionPS, envLighting.sunDirection, envLighting.phaseFunction);
 
-    // Evaluate the sun's luminance
-    float3 totalLuminance = EvaluateSunLuminance(currentPositionWS, envLighting.sunDirection, sunColor, powder_effect, envLighting.phaseFunction);
-
-    // Add the environement lighting contribution
-    totalLuminance += lerp(envLighting.ambientTermBottom, envLighting.ambientTermTop, cloudProperties.height) * cloudProperties.ambientOcclusion;
+    // Compute luminance separately to factor out color multiplication at the end of the loop
+    // Use 1 as placeholder to compute the 'transfer function'
+    float3 sunLuminance = 1.0f * sunTransmittance * powderEffect;
+    float ambientLuminance = 1.0f * cloudProperties.ambientOcclusion;
 
     // "Energy-conserving analytical integration"
     // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
     // No division by clamped extinction because albedo == 1 => sigma_s == sigma_e so it simplifies
-    const float3 integScatt = (totalLuminance - totalLuminance * transmittance);
-    volumetricRay.inScattering += integScatt * volumetricRay.transmittance;
+    // Note: this is not true anymore when _ScatteringTint is modified, but it still looks correct
+    volumetricRay.scattering += sunLuminance     * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
+    volumetricRay.ambient    += ambientLuminance * (volumetricRay.transmittance - volumetricRay.transmittance * transmittance);
     volumetricRay.transmittance *= transmittance;
 }
 
@@ -503,7 +477,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 {
     // Initiliaze the volumetric ray
     VolumetricRayResult volumetricRay;
-    volumetricRay.inScattering = 0.0;
+    volumetricRay.scattering = 0.0;
+    volumetricRay.ambient = 0.0;
     volumetricRay.transmittance = 1.0;
     volumetricRay.meanDistance = FLT_MAX;
     volumetricRay.invalidRay = true;
@@ -555,12 +530,15 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                 // Compute the mip offset for the erosion texture
                 float erosionMipOffset = ErosionMipOffset(rayMarchRange.start + currentDistance);
 
+                // Accumulate in WS and convert at each iteration to avoid precision issues
+                float3 currentPositionPS = ConvertToPS(currentPositionWS);
+
                 // Should we be evaluating the clouds or just doing the large ray marching
                 if (activeSampling)
                 {
                     // If the density is null, we can skip as there will be no contribution
                     CloudProperties cloudProperties;
-                    EvaluateCloudProperties(ConvertToPS(currentPositionWS), 0.0f, erosionMipOffset, false, false, cloudProperties);
+                    EvaluateCloudProperties(currentPositionPS, 0.0f, erosionMipOffset, false, false, cloudProperties);
 
                     // Apply the fade in function to the density
                     cloudProperties.density *= densityAttenuationValue;
@@ -573,7 +551,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         meanDistanceDivider += volumetricRay.transmittance;
 
                         // Evaluate the cloud at the position
-                        EvaluateCloud(cloudProperties, cloudRay.envLighting, currentPositionWS, stepS, currentDistance / totalDistance, volumetricRay);
+                        EvaluateCloud(cloudProperties, cloudRay.envLighting, currentPositionPS, stepS, currentDistance / totalDistance, volumetricRay);
 
                         // if most of the energy is absorbed, just leave.
                         if (volumetricRay.transmittance < 0.003)
@@ -600,7 +578,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                 {
                     // Sample the cheap version of the clouds
                     CloudProperties cloudProperties;
-                    EvaluateCloudProperties(ConvertToPS (currentPositionWS), 1.0f, 0.0, true, false, cloudProperties);
+                    EvaluateCloudProperties(currentPositionPS, 1.0f, 0.0, true, false, cloudProperties);
 
                     // Apply the fade in function to the density
                     cloudProperties.density *= densityAttenuationValue;
@@ -626,12 +604,27 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             }
 
             // Normalized the depth we computed
-            if (volumetricRay.meanDistance == 0.0)
-                volumetricRay.invalidRay = true;
-            else
+            if (volumetricRay.meanDistance != 0.0)
             {
-                volumetricRay.meanDistance /= meanDistanceDivider;
                 volumetricRay.invalidRay = false;
+                volumetricRay.meanDistance /= meanDistanceDivider;
+                volumetricRay.meanDistance = min(volumetricRay.meanDistance, cloudRay.maxRayLength);
+
+                float3 currentPositionPS = ConvertToPS(cloudRay.originWS) + volumetricRay.meanDistance * cloudRay.direction;
+                float relativeHeight = EvaluateNormalizedCloudHeight(currentPositionPS);
+
+                float3 sunColor = _SunLightColor.xyz;
+                #ifdef PHYSICALLY_BASED_SUN
+                sunColor *= EvaluateSunColorAttenuation(currentPositionPS, cloudRay.envLighting.sunDirection, true);
+                #endif
+
+                float3 ambientTermTop = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, 1, 0));
+                float3 ambientTermBottom = SampleSH9(_VolumetricCloudsAmbientProbeBuffer, float3(0, -1, 0));
+                float3 ambient = max(0, lerp(ambientTermBottom, ambientTermTop, relativeHeight));
+
+                volumetricRay.scattering = sunColor * volumetricRay.scattering;
+                volumetricRay.scattering += ambient * volumetricRay.ambient;
+                volumetricRay.scattering *= GetCurrentExposureMultiplier();
             }
         }
     }

@@ -323,7 +323,7 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
         // See EvalShadow_GetSplitIndex
         int shadowSplitIndex = _CascadeShadowCount - 1;
         float4 sphere  = shadowContext.directionalShadowData.sphereCascades[shadowSplitIndex];
-        float3 wposDir = P - sphere.xyz;
+        float3 wposDir = P + _PlanetCenterPosition - sphere.xyz;
         float  distSq  = dot(wposDir, wposDir);
         if (distSq <= sphere.w)
         {

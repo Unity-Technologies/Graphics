@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/Samples/Core%20RP%20Library/Common/Scripts/Resources/SamplesSelectionUSS.uss?fileID=7433441132597879392&amp;guid=dace8ee3f59c99149ad4c1db64b635fe&amp;type=3#SamplesSelectionUSS" />
     <ui:ScrollView horizontal-scroller-visibility="Hidden">
-        <ui:Button text="Open in Window" name="OpenInWindowButton" style="margin-top: 15px; margin-bottom: 0; width: 100%; align-self: center;" />
+        <ui:Button text="Open in Window" name="OpenInWindowButton" enabled="true" style="margin-top: 15px; margin-bottom: 0; width: 100%; align-self: center; display: none;" />
         <ui:VisualElement name="RequiredSettingsBox" style="flex-grow: 1; top: auto; left: auto; bottom: auto; right: auto; margin-left: 0; margin-right: 0; margin-top: 15px; margin-bottom: 15px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; align-self: flex-start; border-left-color: rgba(0, 0, 0, 0.25); border-right-color: rgba(0, 0, 0, 0.25); border-top-color: rgba(0, 0, 0, 0.25); border-bottom-color: rgba(0, 0, 0, 0.25); flex-direction: column; flex-wrap: nowrap; border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: rgba(255, 255, 255, 0.1); justify-content: space-around; width: 100%;">
             <ui:VisualElement style="flex-grow: 1; flex-direction: row; margin-bottom: 5px;">
                 <ui:VisualElement class="warningIcon" />
