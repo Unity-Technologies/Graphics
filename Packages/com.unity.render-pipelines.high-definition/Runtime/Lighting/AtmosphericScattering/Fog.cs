@@ -174,6 +174,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return a && b && c && d;
         }
 
+        internal static bool IsVolumetricReprojectionEnabled(HDCamera hdCamera)
+        {
+            var fog = hdCamera.volumeStack.GetComponent<Fog>();
+ 
+            return (fog.denoisingMode.value & FogDenoisingMode.Reprojection) != 0;
+        }
+
         internal static bool IsPBRFogEnabled(HDCamera hdCamera)
         {
             var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
