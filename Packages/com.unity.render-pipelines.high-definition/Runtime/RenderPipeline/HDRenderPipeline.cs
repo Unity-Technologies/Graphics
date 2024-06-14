@@ -2358,6 +2358,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
+                        ScriptableRenderContext.PushDisableApiRenderers();
 
                         // Execute render request graph, in reverse order
                         for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
@@ -2419,6 +2420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
                         }
+
+                        ScriptableRenderContext.PopDisableApiRenderers();
                     }
                 }
             }
