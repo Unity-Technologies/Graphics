@@ -26,6 +26,7 @@ TEXTURE2D_X(_TileMaxNeighbourhood);
 #define DEBUG_SAMPLE_COUNT 5
 
 #define DEBUG_VIEW NO_DEBUG
+#define DEBUG_VISUALIZE_TILE 0
 
 // ------------Debug Weight------------------
 #define NO_DEBUG 0
@@ -45,7 +46,7 @@ TEXTURE2D_X(_TileMaxNeighbourhood);
 #define DEBUG_EXECUTION NORMAL
 
 // ------------Options------------------
-#define MIRROR_WEIGHTS 1
+#define MIRROR_WEIGHTS 0 // disabling this: seems to be causing a lot of haloing artifacts on motion blur
 #define TILE_JITTER 1
 // When this is set to 1, samples are taken from both the central direction and the maximum direction in the tile. This reduces bugs when very different velocities are available in a tile.
 // This however also can cause the blur to look slightly different.
@@ -173,6 +174,31 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
     return float4(sampleColor.xyz, sampleWeight);
 }
 
+float3 BlendMotionBlurLayers(float3 centralColor, float4 accumulation, float scatterNeighborhoodIntensity, float invSampleCount)
+{
+    // This function tries to mimic a multi layer blending approach for motion blur.
+    // Inputs:
+    //  centralColor - the color of the unblurred pixel.
+    //  accumulation - rgb hold the unormalized weighted sum of the blur kernel. So Sum(c * w[i]). The w component holds the sum of all the weights Sum(w[i])
+    //  scatterNeighborhoodIntensity - Within the tile (neighborhood) how blurry this pixel will look like. High value means this pixels motion vector has a high intensity relative to neighborhood, and viceversa
+    //  invSampleCount - reciprocal of number of samples added in accumulation (1.0 / N)
+    // 
+    // Explanation of blur algorithm:
+    // We split this blend into a top layer, and a back layer.
+    // Top layer -
+    //      The fully blurred / pixel color normalized weighted blurr in accumulation. This avoids any ringing when the background is very blury and the foreground is static within neighborhood, because the top layer color is normalized.
+    //      This allows to recover energy loss by pixels that are occluded.
+    // Bottom layer -
+    //      is the unormalized / low intensity color bleeding into background pixels. This looks good when a foreground object is moving fast, and the background is static. It however adds a ringing artifact when the background is fast moving and the foreground is static.
+    // To get the best of both results, we blend them depending on how much the current pixel has to scatter. If the current pixel scatters a lot (high motion vector intensity relative to tile) we opt for a top layer.
+    // on the other hand, if the current pixel doesn't scatter as much (has a low intensity motion vector) we are ok showing more of the bottom layer.
+    
+    float3 topLayerColor = accumulation.w < 1e-4 ? centralColor.rgb : accumulation.rgb/accumulation.w;
+    float topLayerAlpha = accumulation.w * invSampleCount;
+    float3 backLayerColor = lerp(centralColor.rgb, topLayerColor, topLayerAlpha);
+    float layerBlendWeight = saturate(scatterNeighborhoodIntensity);
+    return lerp(backLayerColor, topLayerColor, layerBlendWeight);
+}
 
 // ---------------------------------------------
 // Kernel
@@ -282,8 +308,8 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             float  centralDepth = motionVecAndDepth.z;
 
-            float4 accumulation = 0.0;
-            float alphaAccumulation = 0.0;
+            float4 accumulation = 0;
+            float alphaAccumulation = 0;
             for (uint i = 0; i < stepCount; ++i)
             {
 #if GUERTIN2014_DOUBLE_DIR
@@ -300,15 +326,17 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
                 MirrorWeights(fw_Depth, bw_Depth, fw_MotionVecLen, bw_MotionVecLen, fw_Sample.w, bw_Sample.w);
 #endif
                 accumulation += float4(fw_Sample.w * fw_Sample.rgb, fw_Sample.w) + float4(bw_Sample.w * bw_Sample.rgb, bw_Sample.w);
+
 #if ENABLE_ALPHA
                 alphaAccumulation += fw_Sample.w * fw_Alpha + bw_Sample.w * bw_Alpha;
 #endif
             }
-            accumulation *= invSampleCount;
 
-            colorAccumulation.rgb = accumulation.rgb + (1.0 - accumulation.w) * centralColor.rgb;
+            float scatterNeighborhoodIntensity = centralMotionVecLen/maxMotionVecLen;
+            colorAccumulation.rgb = BlendMotionBlurLayers(centralColor.rgb, accumulation, scatterNeighborhoodIntensity, invSampleCount);
+
 #if ENABLE_ALPHA
-            colorAccumulation.w = alphaAccumulation * invSampleCount + (1.0 - accumulation.w) * centralColor.w;
+            colorAccumulation.a = BlendMotionBlurLayers(centralColor.aaa, float4(alphaAccumulation.xxx, accumulation.w), scatterNeighborhoodIntensity, invSampleCount).x;
 #endif
 
 #if DEBUG_VIEW == WEIGHT_VIS
@@ -327,6 +355,12 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         colorAccumulation.xyz = colorAccumulation.xyz * 0.25 + 0.75 * lerp(float3(0.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), float(actualSampleCount) / _SampleCount);
 #endif
 
+#if DEBUG_VISUALIZE_TILE
+        {
+            uint2 tileCoords = (uint2)floor(dispatchThreadId.xy /  _TileSize);
+            colorAccumulation = lerp(colorAccumulation,  lerp(((tileCoords.y & 0x1) ? float3(1,0,0) : float3(0,0,1)), ((tileCoords.x & 0x1) ? float3(1,0,0) : float3(0,0,1)), 0.5), 0.3);
+        }
+#endif
         _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = colorAccumulation;
     }
 

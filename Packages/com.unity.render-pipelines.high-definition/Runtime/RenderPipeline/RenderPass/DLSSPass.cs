@@ -338,6 +338,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 in DlssViewData viewData,
                 CommandBuffer cmdBuffer)
             {
+                if(m_Device == null)
+                    return;
+
                 bool shouldUseOptimalSettings = ShouldUseAutomaticSettings();
                 bool isNew = false;
                 if (viewData.outputRes != m_Data.outputRes ||

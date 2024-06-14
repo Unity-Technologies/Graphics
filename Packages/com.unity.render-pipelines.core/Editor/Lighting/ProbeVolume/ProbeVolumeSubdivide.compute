@@ -23,6 +23,7 @@ RWStructuredBuffer<float3> _BricksToClear;
 
 StructuredBuffer<GPUProbeVolumeOBB> _ProbeVolumes;
 
+CBUFFER_START(cb0)
 float4 _Size;
 float4 _MaxBrickSize;
 float4 _VolumeSizeInBricks;
@@ -35,6 +36,7 @@ float _SubdivisionLevel;
 float _MaxSubdivisionLevel;
 float _ProbeVolumeCount;
 float _ClearValue;
+CBUFFER_END
 
 [numthreads(8,8,1)]
 void Clear(uint3 id : SV_DispatchThreadID)
@@ -42,7 +44,7 @@ void Clear(uint3 id : SV_DispatchThreadID)
     if (any(id >= uint3(_Size.xyz)))
         return;
 
-    _Output[id] = _ClearValue;
+    _Output[id] = _ClearValue.xxxx;
 }
 
 [numthreads(64,1,1)]

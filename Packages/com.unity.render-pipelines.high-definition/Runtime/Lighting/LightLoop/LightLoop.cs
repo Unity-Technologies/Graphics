@@ -276,6 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
         static bool k_PreferFragment = false;
 #endif
+
 #if !UNITY_EDITOR && UNITY_SWITCH
         const bool k_HasNativeQuadSupport = true;
 #else
@@ -1058,7 +1059,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // If the max number of planar on screen is reached
                     if (fetchIndex >= m_MaxPlanarReflectionsOnScreen)
                     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                         Debug.LogWarning("Maximum planar reflection probes on screen reached. To fix this error, increase the 'Maximum Planar Reflection Probes on Screen' property in the HDRP asset.");
+#endif
                         break;
                     }
 
@@ -1084,7 +1087,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // If the max number of reflection probes on screen is reached
                     if (fetchIndex >= m_MaxCubeReflectionsOnScreen)
                     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                         Debug.LogWarning("Maximum reflection probes on screen reached. To fix this error, increase the 'Maximum Cube Reflection Probes on Screen' property in the HDRP asset.");
+#endif
                         break;
                     }
 
