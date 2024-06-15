@@ -1,77 +1,109 @@
-# What's new in URP 17 (Unity 2023.3)
+# What's new in URP 17 (Unity 6 Preview)
 
 This section contains information about new features, improvements, and issues fixed in URP 17.
 
-For a complete list of changes made in URP 17, refer to the [Changelog](xref:changelog).
+For a complete list of changes made in URP 17, refer to the [Changelog](xref:urp-changelog).
 
 ## Features
 
 This section contains the overview of the new features in this release.
 
-### Screen Space Lens Flare
+### Render graph system
 
-![](../Images/shared/lens-flare/screenspacelensflaresurp.png)
+In this release, Unity introduces the [render graph](../render-graph.md) system. The render graph system is a framework built on top of the Scriptable Render Pipeline (SRP) API. This system improves the way you customize and maintain the render pipeline.
 
-URP 17 includes a new [Screen Space Lens Flare](../shared/lens-flare/post-processing-screen-space-lens-flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](../shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](../post-processing-bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
+The render graph system reduces the amount of memory URP uses and makes memory management more efficient. The render graph system only allocates resources the frame actually uses, and you no longer need to write complicated logic to handle resource allocation and account for rare worst-case scenarios. The render graph system also generates correct synchronization points between the compute and graphics queues, which reduces frame time.
 
-### Temporal anti-aliasing (TAA)
+The [Render Graph Viewer](../render-graph-viewer-reference.md) lets you visualize how render passes use frame resources, and debug the rendering process.
 
-Temporal anti-aliasing (TAA) is a spatial multi-frame anti-aliasing technique that uses results from current and previous rendered frames to remove jaggies in the current frame and reduce temporal judder between frames.
+For more information about the render graph system, refer to the [render graph](../render-graph.md) documentation.
 
-TAA uses Motion Vectors to reduce or avoid shimmer and ghosting artifacts caused by moving objects that end up being in different pixel locations in different frames.
+### Alpha Processing setting in post-processing
 
-To enable TAA for a Camera:
+URP 17 adds an **Alpha Processing** setting (**URP Asset** > **Post-processing** > **Alpha Processing**). If you enable this setting, URP renders the post-processing output into a render texture with an alpha channel. In previous versions, URP discarded the alpha channel by replacing alpha values with 1.
 
-* Select the Camera.
+The render target requires a format with the alpha channel. The camera color buffer format must be RGBA8 for SDR (HDR off) and RGBA16F for HDR (64-bits). You can configure the format using the settings in **URP Asset** > **Quality**.
 
-* In the Inspector, in the **Rendering** section, select **Temporal Anti-aliasing (TAA)** in the **Anti-aliasing** property.
+Example use cases for this feature:
 
-The following image shows a frame with TAA off:
+* Render in-game UI, such as a head-up display. You can render multiple render textures with different post-processing configurations and compose the final output using the alpha channel.
 
-![TAA off](../Images/whats-new/urp-15/taa-example-off.png)
+* Render a character customization screen, where Unity renders a background interface and a 3D character with different post-processing effects and blends them using the alpha channel.
 
-The following image shows a frame with TAA on:
+* XR applications that need to support video pass-through.
 
-![TAA on](../Images/whats-new/urp-15/taa-example-on.png)
-### High Dynamic Range (HDR) Output
+### Reduce rendering work on the CPU
 
-[High Dynamic Range](https://en.wikipedia.org/wiki/High_dynamic_range) content has a wider color gamut and greater luminosity range than standard definition content.
+URP 17 contains new features that let you speed up the rendering process by moving certain tasks to the GPU and reducing the workload on the CPU.
 
-URP can output HDR content for displays which support that functionality.
+#### GPU Resident Drawer
 
-To activate HDR output, navigate to **Project Settings** > **Player** > **Other Settings** and enable **Use display in HDR mode**.
+URP 17 includes a new rendering system called the **GPU Resident Drawer**.
+
+This system automatically uses the [BatchRendererGroup API](https://docs.unity3d.com/Manual/batch-renderer-group.html) to draw GameObjects with GPU instancing, which reduces the number of draw calls and frees CPU processing time.
+
+For more information on the GPU Resident Drawer, refer to the section [Reduce rendering work on the CPU](../reduce-rendering-work-on-cpu.md).
+
+#### GPU occlusion culling
+
+When using GPU occlusion culling, Unity uses the GPU instead of the CPU to exclude objects from rendering when they're occluded behind other objects. Unity uses this information to speed up rendering in scenes that have a lot of occlusion.
+
+For more information on GPU occlusion culling, refer to the section [Reduce rendering work on the CPU](../gpu-culling.md).
+
+### Foveated rendering in the Forward+ Rendering Path
+
+The Forward+ Rendering Path now supports foveated rendering.
+
+### Camera history API
+
+This release contains the [camera history API](xref:UnityEngine.Rendering.Universal.UniversalCameraHistory) which lets you access per-camera history textures and use them in custom render passes. History textures are the color and depth textures that Unity rendered for each camera in previous frames.
+
+You can use history textures for rendering algorithms that use frame data from one or multiple previous frames.
+
+URP implements per-camera color and depth texture history and history access for custom render passes.
+
+### Mipmap Streaming section in the Rendering Debugger
+
+The [Rendering Debugger](../features/rendering-debugger.md) now contains a **Mipmap Streaming** section. This section lets you inspect the texture streaming activity.
+
+
+### Spatial Temporal Post-Processing (STP)
+
+Spatial Temporal Post-Processing (STP) optimizes GPU performance and enhances visual quality by upscaling frames Unity renders at a lower resolution. STP works on desktop platforms, consoles, and mobile devices that support compute shaders.
+
+To enable STP, in the active **URP Asset**, select **Quality** > **Upscaling Filter** > **Spatial Temporal Post-Processing (STP)**. 
 
 ## Improvements
 
 This section contains the overview of the major improvements in this release.
 
-### FXAA quality improvements
+### Adaptive Probe Volumes (APV)
 
-This URP version improves the overall quality of FXAA. This implementation provides better edge anti-aliasing (removing odd edge artifacts seen with the previous implementation) and better retention of texture quality. The improvement does not affect performance. The output quality is now comparable to the low and medium SMAA presets but with better performance.
+This release contains the following improvements to [Adaptive Probe Volumes](../probevolumes.md):
 
-The following image shows the effect of the previous FXAA implementation (1) and the new one (2):
+* [APV Lighting Scenario Blending](../probevolumes-bakedifferentlightingsetups.md).
 
-![FXAA improvement](../Images/whats-new/urp-15/fxaa-improvement.png)
+* [APV sky occlusion support](../probevolumes-skyocclusion.md).
 
-### Public API documentation improvements
+* [APV disk streaming](../probevolumes-streaming.md).
 
-In this release a significant amount of missing public API descriptions were added.
+### Volume framework enhancements
 
-### New Soft Shadows Quality property
+This release comes with CPU performance optimizations of the volume framework on all platforms, especially mobile platforms. You can now set global volume default values and override them in quality settings.
 
-URP Asset now contains a **Quality** property under the **Soft Shadows** property, which lets you select the quality level of soft shadow processing. By default, all Lights use the quality setting from the URP Asset, and you can override that setting per Light using the **Soft Shadows Quality** property.
+### 8192 shadow texture resolution
 
-The **Quality** property in the URP Asset:
+The **Shadow Resolution** property now contains the `8192` option for the Main Light and Additional Lights.
 
-![The Quality property in the URP Asset](../Images/whats-new/urp-15/urp-asset-soft-shadows-quality.png)
+### Use the URP Config package to change render pipeline settings
 
-The **Soft Shadows Quality** property on a Light:
+The [URP Config package](../URP-Config-Package.md) lets you change certain render pipeline settings that are not available in the Editor interface.
 
-![The Soft Shadows Quality property on a Light](../Images/whats-new/urp-15/light-soft-shadows-quality.png)
+For example, you can [change the maximum number of visible lights](../rendering/forward-plus-rendering-path.md#change-the-maximum-number-of-visible-lights).
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 17, refer to the [Changelog](xref:changelog).
+For a complete list of issues resolved in URP 17, refer to the [Changelog](xref:urp-changelog).
 
 ## Known issues
 
