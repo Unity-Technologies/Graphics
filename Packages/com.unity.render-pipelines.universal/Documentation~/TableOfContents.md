@@ -37,6 +37,7 @@
       * [Full Screen Pass Renderer Feature reference](renderer-features/renderer-feature-full-screen-pass.md)
 * [Upgrade guides](upgrade-guides.md)
   * [Render Pipeline Converter](features/rp-converter.md)
+  * [Upgrading to URP 17](upgrade-guide-unity-6.md)
   * [Upgrading to URP 16](upgrade-guide-2023-2.md)
   * [Upgrading to URP 15](upgrade-guide-2023-1.md)
   * [Upgrading to URP 14](upgrade-guide-2022-2.md)

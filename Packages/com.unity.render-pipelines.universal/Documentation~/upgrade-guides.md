@@ -4,6 +4,7 @@ This section contains information about upgrading from an older version of the U
 
 For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, refer to the page [Render Pipeline Converter](features/rp-converter.md).
 
+* [Upgrading to Unity 6 Preview](upgrade-guide-unity-6.md)
 * [Upgrading to URP 2023.2](upgrade-guide-2023-2.md)
 * [Upgrading to URP 2023.1](upgrade-guide-2023-1.md)
 * [Upgrading to URP 2022.2](upgrade-guide-2022-2.md)
