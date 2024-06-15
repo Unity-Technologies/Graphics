@@ -1491,6 +1491,10 @@ namespace UnityEngine.Rendering
                     if (!ProbeBrickIndex.BrickOverlapEntry(brickMin, brickMax, entry_min, entry_max))
                         continue;
 
+                    // Bricks can be bigger than entries !
+                    brickMin = Vector3Int.Max(brickMin, entry_min);
+                    brickMax = Vector3Int.Min(brickMax, entry_max);
+
                     if (initialized)
                     {
                         entryInfo.minBrickPos = Vector3Int.Min(brickMin, entryInfo.minBrickPos);
