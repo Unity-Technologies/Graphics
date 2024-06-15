@@ -1,7 +1,9 @@
 #ifndef __BUILTINUTILITIES_HLSL__
 #define __BUILTINUTILITIES_HLSL__
 
+#ifndef INCLUDE_ONLY_MV_FUNCTIONS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#endif
 
 // Calculate motion vector variant for High Quality Line Rendering, which needs to divide by W much earlier in the pipeline.
 float2 CalculateMotionVector(float4 positionCS, float2 previousPositionSS)
@@ -36,6 +38,8 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 {
     return CalculateMotionVector(positionCS, previousPositionCS.xy / previousPositionCS.w);
 }
+
+#ifndef INCLUDE_ONLY_MV_FUNCTIONS
 
 // For builtinData we want to allow the user to overwrite default GI in the surface shader / shader graph.
 // So we perform the following order of operation:
@@ -138,5 +142,7 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 
     ApplyDebugToBuiltinData(builtinData);
 }
+
+#endif // INCLUDE_ONLY_MV_FUNCTIONS
 
 #endif //__BUILTINUTILITIES_HLSL__
