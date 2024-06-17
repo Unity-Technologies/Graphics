@@ -1827,7 +1827,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 widgetList.Add(new DebugUI.Container
                 {
-                    isHiddenCallback = () => data.fullScreenDebugMode == FullScreenDebugMode.None,
+                    isHiddenCallback = () => data.mipMapDebugSettings.debugMipMapMode == DebugMipMapMode.None,
                     children =
                     {
                         new DebugUI.EnumField { nameAndTooltip = RenderingStrings.TerrainTexture, getter = () => (int)data.mipMapDebugSettings.terrainTexture, setter = value => data.mipMapDebugSettings.terrainTexture = (DebugMipMapModeTerrainTexture)value, autoEnum = typeof(DebugMipMapModeTerrainTexture), getIndex = () => data.terrainTextureEnumIndex, setIndex = value => data.terrainTextureEnumIndex = value }
@@ -2090,7 +2090,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
                 GetDebugLightingMode() == DebugLightingMode.RefractionLighting ||
-                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision
+                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision ||
+                GetDebugMipMapMode() != DebugMipMapMode.None
             );
         }
 

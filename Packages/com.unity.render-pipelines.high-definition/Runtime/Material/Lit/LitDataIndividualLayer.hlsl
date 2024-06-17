@@ -208,8 +208,15 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     float4 color = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgba * ADD_IDX(_BaseColor).rgba;
     surfaceData.baseColor = color.rgb;
-    float alpha = color.a;
-    alpha = lerp(ADD_IDX(_AlphaRemapMin), ADD_IDX(_AlphaRemapMax), alpha);
+
+    float alpha = 1.0f;
+#ifdef DEBUG_DISPLAY
+    if (_DebugMipMapMode == DEBUGMIPMAPMODE_NONE)
+#endif
+    {
+        alpha = color.a;
+        alpha = lerp(ADD_IDX(_AlphaRemapMin), ADD_IDX(_AlphaRemapMax), alpha);
+    }
 
 #ifdef _DETAIL_MAP_IDX
     // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
