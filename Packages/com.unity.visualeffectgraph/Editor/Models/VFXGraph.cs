@@ -1189,18 +1189,23 @@ namespace UnityEditor.VFX
 
             var dependencies = new HashSet<int>();
             GetImportDependentAssets(dependencies);
-            var dependentAssetGUIDs = dependencies
-                .Where(x => x != 0)
-                .Select(x => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(x)))
-                .Distinct()
-                .ToArray();
 
-            foreach (var guid in dependentAssetGUIDs)
+            var guids = new HashSet<string>();
+            foreach (var dependency in dependencies)
             {
-                visualEffectResource.AddImportDependency(guid);
-            }
+                if (dependency == 0)
+                    continue;
 
-            return dependentAssetGUIDs;
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(dependency, out string guid, out long localId))
+                {
+                    if (!guids.Contains(guid))
+                    {
+                        guids.Add(guid);
+                        visualEffectResource.AddImportDependency(guid);
+                    }
+                }
+            }
+            return guids.ToArray();
         }
 
         private VisualEffectResource m_Owner;

@@ -1246,6 +1246,16 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
+        [UnityTest, Description("Cover case UUM-553")]
+        public IEnumerator Unexpected_Import_Issue_With_Diffusion_Profile()
+        {
+            var packagePath = "Assets/AllTests/Editor/Tests/Import_Diffusion_Profile_Repro_553.unitypackage";
+            AssetDatabase.ImportPackage(packagePath, false);
+            //Shouldn't log Repro_553_EmptySG_SSR_DiffProfile.shadergraph has been scheduled for reimport during the Refresh loop and Loading of it has been attempted.
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+        }
+
         static List<string> ExtractPropertyList(VFXMaterialSerializedSettings settings)
         {
             var field = typeof(VFXMaterialSerializedSettings).GetField("m_PropertyMap", BindingFlags.Instance | BindingFlags.NonPublic);
