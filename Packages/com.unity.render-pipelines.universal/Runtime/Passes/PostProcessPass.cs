@@ -55,6 +55,20 @@ namespace UnityEngine.Rendering.Universal
         Tonemapping m_Tonemapping;
         FilmGrain m_FilmGrain;
 
+        // Depth Of Field shader passes
+        const int k_GaussianDoFPassComputeCoc = 0;
+        const int k_GaussianDoFPassDownscalePrefilter = 1;
+        const int k_GaussianDoFPassBlurH = 2;
+        const int k_GaussianDoFPassBlurV = 3;
+        const int k_GaussianDoFPassComposite = 4;
+
+        const int k_BokehDoFPassComputeCoc = 0;
+        const int k_BokehDoFPassDownscalePrefilter = 1;
+        const int k_BokehDoFPassBlur = 2;
+        const int k_BokehDoFPassPostFilter = 3;
+        const int k_BokehDoFPassComposite = 4;
+
+
         // Misc
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_DefaultColorFormat;   // The default format for post-processing, follows back-buffer format in URP.
@@ -866,7 +880,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
-            Blitter.BlitCameraTexture(cmd, source, m_FullCoCTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
+            Blitter.BlitCameraTexture(cmd, source, m_FullCoCTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_GaussianDoFPassComputeCoc);
 
             // Downscale & prefilter color + coc
             m_MRT2[0] = m_HalfCoCTexture.nameID;
@@ -875,18 +889,18 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
             CoreUtils.SetRenderTarget(cmd, m_MRT2, m_HalfCoCTexture);
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-            Blitter.BlitTexture(cmd, source, viewportScale, material, 1);
+            Blitter.BlitTexture(cmd, source, viewportScale, material, k_GaussianDoFPassDownscalePrefilter);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, m_HalfCoCTexture.nameID);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            Blitter.BlitCameraTexture(cmd, m_PingTexture, m_PongTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 2);
-            Blitter.BlitCameraTexture(cmd, m_PongTexture, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 3);
+            Blitter.BlitCameraTexture(cmd, m_PingTexture, m_PongTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_GaussianDoFPassBlurH);
+            Blitter.BlitCameraTexture(cmd, m_PongTexture, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_GaussianDoFPassBlurV);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, m_PingTexture.nameID);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
-            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 4);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_GaussianDoFPassComposite);
         }
 
         void PrepareBokehKernel(float maxRadius, float rcpAspect)
@@ -987,21 +1001,21 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
 
             // Compute CoC
-            Blitter.BlitCameraTexture(cmd, source, m_FullCoCTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
+            Blitter.BlitCameraTexture(cmd, source, m_FullCoCTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_BokehDoFPassComputeCoc);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
 
             // Downscale & prefilter color + coc
-            Blitter.BlitCameraTexture(cmd, source, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 1);
+            Blitter.BlitCameraTexture(cmd, source, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_BokehDoFPassDownscalePrefilter);
 
             // Bokeh blur
-            Blitter.BlitCameraTexture(cmd, m_PingTexture, m_PongTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 2);
+            Blitter.BlitCameraTexture(cmd, m_PingTexture, m_PongTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_BokehDoFPassBlur);
 
             // Post-filtering
-            Blitter.BlitCameraTexture(cmd, m_PongTexture, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 3);
+            Blitter.BlitCameraTexture(cmd, m_PongTexture, m_PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_BokehDoFPassPostFilter);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._DofTexture, m_PingTexture.nameID);
-            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 4);
+            Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, k_BokehDoFPassComposite);
         }
 
         #endregion

@@ -552,73 +552,36 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private class DoFGaussianSetupPassData
+        private class DoFGaussianPassData
         {
-            internal TextureHandle source;
-            internal int downSample;
+            // Setup
+            internal int downsample;
             internal RenderingData renderingData;
             internal Vector3 cocParams;
             internal bool highQualitySamplingValue;
-            internal Material material;
-            internal Material materialCoC;
-        };
-
-        private class DoFGaussianPassData
-        {
-            internal TextureHandle cocTexture;
-            internal TextureHandle colorTexture;
+            // Inputs
             internal TextureHandle sourceTexture;
             internal TextureHandle depthTexture;
             internal Material material;
+            internal Material materialCoC;
+            // Pass textures
+            internal TextureHandle halfCoCTexture;
+            internal TextureHandle fullCoCTexture;
+            internal TextureHandle pingTexture;
+            internal TextureHandle pongTexture;
+            internal RenderTargetIdentifier[] multipleRenderTargets = new RenderTargetIdentifier[2];
+            // Output textures
+            internal TextureHandle destination;
         };
 
-        public void RenderDoFGaussian(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial)
+        public void RenderDoFGaussian(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, TextureHandle destination, ref Material dofMaterial)
         {
-            int downSample = 2;
             var material = dofMaterial;
+            int downSample = 2;
             int wh = m_Descriptor.width / downSample;
             int hh = m_Descriptor.height / downSample;
 
-            using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianSetupPassData>("Setup DoF passes", out var passData, ProfilingSampler.Get(URPProfileId.RG_SetupDoF)))
-            {
-                float farStart = m_DepthOfField.gaussianStart.value;
-                float farEnd = Mathf.Max(farStart, m_DepthOfField.gaussianEnd.value);
-
-                // Assumes a radius of 1 is 1 at 1080p
-                // Past a certain radius our gaussian kernel will look very bad so we'll clamp it for
-                // very high resolutions (4K+).
-                float maxRadius = m_DepthOfField.gaussianMaxRadius.value * (wh / 1080f);
-                maxRadius = Mathf.Min(maxRadius, 2f);
-
-                passData.source = source;
-                passData.downSample = downSample;
-                passData.cocParams = new Vector3(farStart, farEnd, maxRadius);
-                passData.highQualitySamplingValue = m_DepthOfField.highQualitySampling.value;
-                passData.material = material;
-                passData.materialCoC = m_Materials.gaussianDepthOfFieldCoC;
-
-                // TODO RENDERGRAPH: properly setup dependencies between passes
-                builder.AllowPassCulling(false);
-                builder.AllowGlobalStateModification(true);
-
-                builder.SetRenderFunc(static (DoFGaussianSetupPassData data, RasterGraphContext context) =>
-                {
-                    var cmd = context.cmd;
-
-                    var dofMaterial = data.material;
-                    dofMaterial.SetVector(ShaderConstants._CoCParams, data.cocParams);
-                    CoreUtils.SetKeyword(dofMaterial, ShaderKeywordStrings.HighQualitySampling, data.highQualitySamplingValue);
-
-                    var dofMaterialCoC = data.materialCoC;
-                    dofMaterialCoC.SetVector(ShaderConstants._CoCParams, data.cocParams);
-                    CoreUtils.SetKeyword(dofMaterialCoC, ShaderKeywordStrings.HighQualitySampling, data.highQualitySamplingValue);
-
-                    PostProcessUtils.SetSourceSize(cmd, data.source);
-                    cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample, data.downSample));
-                });
-            }
-
-            // Temporary textures
+            // Pass Textures
             var fullCoCTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, m_Descriptor.width, m_Descriptor.height, m_GaussianCoCFormat);
             var fullCoCTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullCoCTextureDesc, "_FullCoCTexture", true, FilterMode.Bilinear);
             var halfCoCTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_GaussianCoCFormat);
@@ -628,149 +591,140 @@ namespace UnityEngine.Rendering.Universal
             var pongTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, m_DefaultColorFormat);
             var pongTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pongTextureDesc, "_PongTexture", true, FilterMode.Bilinear);
 
-            using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Compute CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
+            using (var builder = renderGraph.AddUnsafePass<DoFGaussianPassData>("Depth of Field - Gaussian", out var passData))
             {
-                builder.SetRenderAttachment(fullCoCTexture, 0, AccessFlags.Write);
+                // Setup
+                float farStart = m_DepthOfField.gaussianStart.value;
+                float farEnd = Mathf.Max(farStart, m_DepthOfField.gaussianEnd.value);
+
+                // Assumes a radius of 1 is 1 at 1080p
+                // Past a certain radius our gaussian kernel will look very bad so we'll clamp it for
+                // very high resolutions (4K+).
+                float maxRadius = m_DepthOfField.gaussianMaxRadius.value * (wh / 1080f);
+                maxRadius = Mathf.Min(maxRadius, 2f);
+
+                passData.downsample = downSample;
+                passData.cocParams = new Vector3(farStart, farEnd, maxRadius);
+                passData.highQualitySamplingValue = m_DepthOfField.highQualitySampling.value;
+
+                passData.material = material;
+                passData.materialCoC = m_Materials.gaussianDepthOfFieldCoC;
+
+                // Inputs
                 passData.sourceTexture = source;
                 builder.UseTexture(source, AccessFlags.Read);
+
                 passData.depthTexture = resourceData.cameraDepthTexture;
                 builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
-                passData.material = m_Materials.gaussianDepthOfFieldCoC;
 
-                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
+                // Pass Textures
+                passData.fullCoCTexture = fullCoCTexture;
+                builder.UseTexture(fullCoCTexture, AccessFlags.ReadWrite);
+
+                passData.halfCoCTexture = halfCoCTexture;
+                builder.UseTexture(halfCoCTexture, AccessFlags.ReadWrite);
+
+                passData.pingTexture = pingTexture;
+                builder.UseTexture(pingTexture, AccessFlags.ReadWrite);
+
+                passData.pongTexture = pongTexture;
+                builder.UseTexture(pongTexture, AccessFlags.ReadWrite);
+
+                // Outputs
+                passData.destination = destination;
+                builder.UseTexture(destination, AccessFlags.Write);
+
+                builder.SetRenderFunc(static (DoFGaussianPassData data, UnsafeGraphContext context) =>
                 {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
+                    var dofMat = data.material;
+                    var dofMaterialCoC = data.materialCoC;
+                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
 
-                    dofmaterial.SetTexture(s_CameraDepthTextureID, data.depthTexture);
+                    RTHandle sourceTextureHdl = data.sourceTexture;
+                    RTHandle dstHdl = data.destination;
+
+                    // Setup
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_SetupDoF)))
+                    {
+                        dofMat.SetVector(ShaderConstants._CoCParams, data.cocParams);
+                        CoreUtils.SetKeyword(dofMat, ShaderKeywordStrings.HighQualitySampling,
+                            data.highQualitySamplingValue);
+
+                        dofMaterialCoC.SetVector(ShaderConstants._CoCParams, data.cocParams);
+                        CoreUtils.SetKeyword(dofMaterialCoC, ShaderKeywordStrings.HighQualitySampling,
+                            data.highQualitySamplingValue);
+
+                        PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
+                        dofMat.SetVector(ShaderConstants._DownSampleScaleFactor,
+                            new Vector4(1.0f / data.downsample, 1.0f / data.downsample, data.downsample,
+                                data.downsample));
+                    }
 
                     // Compute CoC
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 0);
-                });
-            }
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
+                    {
+                        dofMat.SetTexture(s_CameraDepthTextureID, data.depthTexture);
+                        Blitter.BlitCameraTexture(cmd, data.sourceTexture, data.fullCoCTexture, data.materialCoC, k_GaussianDoFPassComputeCoc);
+                    }
 
-            using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Downscale & Prefilter Color + CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFDownscalePrefilter)))
-            {
-                builder.SetRenderAttachment(halfCoCTexture, 0, AccessFlags.Write);
-                builder.SetRenderAttachment(pingTexture, 1, AccessFlags.Write);
-                // TODO RENDERGRAPH: Setting MRTs without a depth buffer is not supported in the old path, could we add the support and remove the depth?
-                // Should go away if the old path goes away
-                if (!renderGraph.nativeRenderPassesEnabled)
-                    builder.SetRenderAttachmentDepth(renderGraph.CreateTexture(halfCoCTexture), AccessFlags.ReadWrite);
-                builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = source;
-                builder.UseTexture(source, AccessFlags.Read);
-                passData.cocTexture = fullCoCTexture;
-                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
-                passData.material = material;
+                    // Downscale & prefilter color + CoC
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFDownscalePrefilter)))
+                    {
+                        dofMat.SetTexture(ShaderConstants._FullCoCTexture, data.fullCoCTexture);
 
-                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
+                        // Handle packed shader output
+                        data.multipleRenderTargets[0] = data.halfCoCTexture;
+                        data.multipleRenderTargets[1] = data.pingTexture;
+                        CoreUtils.SetRenderTarget(cmd, data.multipleRenderTargets, data.halfCoCTexture);
 
-                    // Downscale & prefilter color + coc
-                    dofmaterial.SetTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 1);
-                });
-            }
+                        Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+                        Blitter.BlitTexture(cmd, data.sourceTexture, viewportScale, dofMat, k_GaussianDoFPassDownscalePrefilter);
+                    }
 
-            using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Blur H", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFBlurH)))
-            {
-                builder.SetRenderAttachment(pongTexture, 0, AccessFlags.Write);
-                builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = pingTexture;
-                builder.UseTexture(pingTexture, AccessFlags.Read);
-                passData.cocTexture = halfCoCTexture;
-                builder.UseTexture(halfCoCTexture, AccessFlags.Read);
-                passData.material = material;
+                    // Blur H
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFBlurH)))
+                    {
+                        dofMat.SetTexture(ShaderConstants._HalfCoCTexture, data.halfCoCTexture);
+                        Blitter.BlitCameraTexture(cmd, data.pingTexture, data.pongTexture, dofMat, k_GaussianDoFPassBlurH);
+                    }
 
-                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTexture = data.sourceTexture;
-
-                    // Blur
-                    dofmaterial.SetTexture(ShaderConstants._HalfCoCTexture, data.cocTexture);
-                    Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTexture, viewportScale, dofmaterial, 2);
-                });
-            }
-
-            using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Blur V", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFBlurV)))
-            {
-                builder.SetRenderAttachment(pingTexture, 0, AccessFlags.Write);
-                builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = pongTexture;
-                builder.UseTexture(pongTexture, AccessFlags.Read);
-                passData.cocTexture = halfCoCTexture;
-                builder.UseTexture(halfCoCTexture, AccessFlags.Read);
-                passData.material = material;
-
-                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
-
-                    // Blur
-                    dofmaterial.SetTexture(ShaderConstants._HalfCoCTexture, data.cocTexture);
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 3);
-                });
-            }
-
-            using (var builder = renderGraph.AddRasterRenderPass<DoFGaussianPassData>("Depth of Field - Composite", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComposite)))
-            {
-                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
-                builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = source;
-                builder.UseTexture(source, AccessFlags.Read);
-                passData.cocTexture = fullCoCTexture;
-                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
-                passData.colorTexture = pingTexture;
-                builder.UseTexture(pingTexture, AccessFlags.Read);
-                passData.material = material;
-
-                builder.SetRenderFunc(static (DoFGaussianPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
+                    // Blur V
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFBlurV)))
+                    {
+                        Blitter.BlitCameraTexture(cmd, data.pongTexture, data.pingTexture, dofMat, k_GaussianDoFPassBlurV);
+                    }
 
                     // Composite
-                    dofmaterial.SetTexture(ShaderConstants._ColorTexture, data.colorTexture);
-                    dofmaterial.SetTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 4);
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFComposite)))
+                    {
+                        dofMat.SetTexture(ShaderConstants._ColorTexture, data.pingTexture);
+                        dofMat.SetTexture(ShaderConstants._FullCoCTexture, data.fullCoCTexture);
+                        Blitter.BlitCameraTexture(cmd, sourceTextureHdl, dstHdl, dofMat, k_GaussianDoFPassComposite);
+                    }
                 });
             }
         }
 
-        private class DoFBokehSetupPassData
+        private class DoFBokehPassData
         {
+            // Setup
             internal Vector4[] bokehKernel;
-            internal TextureHandle source;
             internal int downSample;
             internal float uvMargin;
             internal Vector4 cocParams;
             internal bool useFastSRGBLinearConversion;
-            internal Material material;
-            internal Material materialCoC;
-        };
-
-        private class DoFBokehPassData
-        {
-            internal TextureHandle cocTexture;
-            internal TextureHandle dofTexture;
+            // Inputs
             internal TextureHandle sourceTexture;
             internal TextureHandle depthTexture;
             internal Material material;
+            internal Material materialCoC;
+            // Pass textures
+            internal TextureHandle halfCoCTexture;
+            internal TextureHandle fullCoCTexture;
+            internal TextureHandle pingTexture;
+            internal TextureHandle pongTexture;
+            // Output texture
+            internal TextureHandle destination;
         };
 
         public void RenderDoFBokeh(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, in TextureHandle source, in TextureHandle destination, ref Material dofMaterial)
@@ -780,8 +734,17 @@ namespace UnityEngine.Rendering.Universal
             int wh = m_Descriptor.width / downSample;
             int hh = m_Descriptor.height / downSample;
 
-            using (var builder = renderGraph.AddRasterRenderPass<DoFBokehSetupPassData>("Setup DoF passes", out var passData, ProfilingSampler.Get(URPProfileId.RG_SetupDoF)))
+            // Pass Textures
+            var fullCoCTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm);
+            var fullCoCTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullCoCTextureDesc, "_FullCoCTexture", true, FilterMode.Bilinear);
+            var pingTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, GraphicsFormat.R16G16B16A16_SFloat);
+            var pingTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pingTextureDesc, "_PingTexture", true, FilterMode.Bilinear);
+            var pongTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, GraphicsFormat.R16G16B16A16_SFloat);
+            var pongTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pongTextureDesc, "_PongTexture", true, FilterMode.Bilinear);
+
+            using (var builder = renderGraph.AddUnsafePass<DoFBokehPassData>("Depth of Field - Bokeh", out var passData))
             {
+                // Setup
                 // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                 float F = m_DepthOfField.focalLength.value / 1000f;
                 float A = m_DepthOfField.focalLength.value / m_DepthOfField.aperture.value;
@@ -789,7 +752,6 @@ namespace UnityEngine.Rendering.Universal
                 float maxCoC = (A * F) / (P - F);
                 float maxRadius = GetMaxBokehRadiusInPixels(m_Descriptor.height);
                 float rcpAspect = 1f / (wh / (float)hh);
-
 
                 // Prepare the bokeh kernel constant buffer
                 int hash = m_DepthOfField.GetHashCode();
@@ -803,151 +765,92 @@ namespace UnityEngine.Rendering.Universal
                 float uvMargin = (1.0f / m_Descriptor.height) * downSample;
 
                 passData.bokehKernel = m_BokehKernel;
-                passData.source = source;
                 passData.downSample = downSample;
                 passData.uvMargin = uvMargin;
                 passData.cocParams = new Vector4(P, maxCoC, maxRadius, rcpAspect);
                 passData.useFastSRGBLinearConversion = m_UseFastSRGBLinearConversion;
+
+                // Inputs
+                passData.sourceTexture = source;
+                builder.UseTexture(source, AccessFlags.Read);
+
+                passData.depthTexture = resourceData.cameraDepthTexture;
+                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
+
                 passData.material = material;
                 passData.materialCoC = m_Materials.bokehDepthOfFieldCoC;
 
+                // Pass Textures
+                passData.fullCoCTexture = fullCoCTexture;
+                builder.UseTexture(fullCoCTexture, AccessFlags.ReadWrite);
+                passData.pingTexture = pingTexture;
+                builder.UseTexture(pingTexture, AccessFlags.ReadWrite);
+                passData.pongTexture = pongTexture;
+                builder.UseTexture(pongTexture, AccessFlags.ReadWrite);
+
+                // Outputs
+                passData.destination = destination;
+                builder.UseTexture(destination, AccessFlags.Write);
+
                 // TODO RENDERGRAPH: properly setup dependencies between passes
-                builder.AllowPassCulling(false);
-                builder.AllowGlobalStateModification(true);
-
-                builder.SetRenderFunc(static (DoFBokehSetupPassData data, RasterGraphContext context) =>
+                builder.SetRenderFunc(static (DoFBokehPassData data, UnsafeGraphContext context) =>
                 {
-                    var cmd = context.cmd;
-
-                    var dofMaterial = data.material;
-                    CoreUtils.SetKeyword(dofMaterial, ShaderKeywordStrings.UseFastSRGBLinearConversion, data.useFastSRGBLinearConversion);
-
+                    var dofMat = data.material;
                     var dofMaterialCoC = data.materialCoC;
-                    CoreUtils.SetKeyword(dofMaterialCoC, ShaderKeywordStrings.UseFastSRGBLinearConversion, data.useFastSRGBLinearConversion);
-
-                    cmd.SetGlobalVector(ShaderConstants._CoCParams, data.cocParams);
-                    cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, data.bokehKernel);
-                    cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample, data.downSample));
-                    cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(data.uvMargin, data.uvMargin * 2.0f));
-                    PostProcessUtils.SetSourceSize(cmd, data.source);
-                });
-            }
-
-            // Temporary textures
-            var fullCoCTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm);
-            var fullCoCTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, fullCoCTextureDesc, "_FullCoCTexture", true, FilterMode.Bilinear);
-            var pingTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, GraphicsFormat.R16G16B16A16_SFloat);
-            var pingTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pingTextureDesc, "_PingTexture", true, FilterMode.Bilinear);
-            var pongTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor, wh, hh, GraphicsFormat.R16G16B16A16_SFloat);
-            var pongTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, pongTextureDesc, "_PongTexture", true, FilterMode.Bilinear);
-
-            using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Compute CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
-            {
-                builder.SetRenderAttachment(fullCoCTexture, 0, AccessFlags.Write);
-                passData.sourceTexture = source;
-                builder.UseTexture(source, AccessFlags.Read);
-                passData.depthTexture = resourceData.cameraDepthTexture;
-                builder.UseTexture(resourceData.cameraDepthTexture, AccessFlags.Read);
-                passData.material = m_Materials.bokehDepthOfFieldCoC;
-
-                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
+                    var cmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
                     RTHandle sourceTextureHdl = data.sourceTexture;
+                    RTHandle dst = data.destination;
 
-                    dofmaterial.SetTexture(s_CameraDepthTextureID, data.depthTexture);
+                    // Setup
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_SetupDoF)))
+                    {
+                        CoreUtils.SetKeyword(dofMat, ShaderKeywordStrings.UseFastSRGBLinearConversion,
+                            data.useFastSRGBLinearConversion);
+                        CoreUtils.SetKeyword(dofMaterialCoC, ShaderKeywordStrings.UseFastSRGBLinearConversion,
+                            data.useFastSRGBLinearConversion);
+
+                        dofMat.SetVector(ShaderConstants._CoCParams, data.cocParams);
+                        dofMat.SetVectorArray(ShaderConstants._BokehKernel, data.bokehKernel);
+                        dofMat.SetVector(ShaderConstants._DownSampleScaleFactor,
+                            new Vector4(1.0f / data.downSample, 1.0f / data.downSample, data.downSample,
+                                data.downSample));
+                        dofMat.SetVector(ShaderConstants._BokehConstants,
+                            new Vector4(data.uvMargin, data.uvMargin * 2.0f));
+                        PostProcessUtils.SetSourceSize(cmd, data.sourceTexture);
+                    }
 
                     // Compute CoC
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 0);
-                });
-            }
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFComputeCOC)))
+                    {
+                        dofMat.SetTexture(s_CameraDepthTextureID, data.depthTexture);
+                        Blitter.BlitCameraTexture(cmd, sourceTextureHdl, data.fullCoCTexture, dofMat, k_BokehDoFPassComputeCoc);
+                    }
 
-            using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Downscale & Prefilter Color + CoC", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFDownscalePrefilter)))
-            {
-                builder.SetRenderAttachment(pingTexture, 0, AccessFlags.Write);
-                builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = source;
-                builder.UseTexture(source, AccessFlags.Read);
-                passData.cocTexture = fullCoCTexture;
-                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
-                passData.material = material;
+                    // Downscale and Prefilter Color + CoC
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFDownscalePrefilter)))
+                    {
+                        dofMat.SetTexture(ShaderConstants._FullCoCTexture, data.fullCoCTexture);
+                        Blitter.BlitCameraTexture(cmd, sourceTextureHdl, data.pingTexture, dofMat, k_BokehDoFPassDownscalePrefilter);
+                    }
 
-                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
+                    // Blur
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFBlurBokeh)))
+                    {
+                        Blitter.BlitCameraTexture(cmd, data.pingTexture, data.pongTexture, dofMat, k_BokehDoFPassBlur);
+                    }
 
-                    // Downscale & prefilter color + coc
-                    dofmaterial.SetTexture(ShaderConstants._FullCoCTexture, data.cocTexture);
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 1);
-                });
-            }
-
-            using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Bokeh Blur", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFBlurBokeh)))
-            {
-                builder.SetRenderAttachment(pongTexture, 0, AccessFlags.Write);
-                passData.sourceTexture = pingTexture;
-                builder.UseTexture(pingTexture, AccessFlags.Read);
-                passData.material = material;
-
-                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
-
-                    // Downscale & prefilter color + coc
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 2);
-                });
-            }
-
-            using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Post-filtering", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFPostFilter)))
-            {
-                builder.SetRenderAttachment(pingTexture, 0, AccessFlags.Write);
-                passData.sourceTexture = pongTexture;
-                builder.UseTexture(pongTexture, AccessFlags.Read);
-                passData.material = material;
-
-                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
-
-                    // Post - filtering
-                    // TODO RENDERGRAPH: Look into loadstore op in BlitDstDiscardContent
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 3);
-                });
-            }
-
-            using (var builder = renderGraph.AddRasterRenderPass<DoFBokehPassData>("Depth of Field - Composite", out var passData, ProfilingSampler.Get(URPProfileId.RG_DOFComposite)))
-            {
-                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
-                builder.AllowGlobalStateModification(true);
-                passData.sourceTexture = source;
-                builder.UseTexture(source, AccessFlags.Read);
-                passData.dofTexture = pingTexture;
-                builder.UseTexture(pingTexture, AccessFlags.Read);
-                builder.UseTexture(fullCoCTexture, AccessFlags.Read);
-                passData.material = material;
-
-                builder.SetRenderFunc(static (DoFBokehPassData data, RasterGraphContext context) =>
-                {
-                    var dofmaterial = data.material;
-                    var cmd = context.cmd;
-                    RTHandle sourceTextureHdl = data.sourceTexture;
+                    // Post Filtering
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFPostFilter)))
+                    {
+                        Blitter.BlitCameraTexture(cmd, data.pongTexture, data.pingTexture, dofMat, k_BokehDoFPassPostFilter);
+                    }
 
                     // Composite
-                    // TODO RENDERGRAPH: Look into loadstore op in BlitDstDiscardContent
-                    dofmaterial.SetTexture(ShaderConstants._DofTexture, data.dofTexture);
-                    Vector2 viewportScale = sourceTextureHdl.useScaling ? new Vector2(sourceTextureHdl.rtHandleProperties.rtHandleScale.x, sourceTextureHdl.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, viewportScale, dofmaterial, 4);
+                    using (new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_DOFComposite)))
+                    {
+                        dofMat.SetTexture(ShaderConstants._DofTexture, data.pingTexture);
+                        Blitter.BlitCameraTexture(cmd, sourceTextureHdl, dst, dofMat, k_BokehDoFPassComposite);
+                    }
                 });
             }
         }
