@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-optimization
+---
 # Optimization and debugging
 
 This section contains information related to optimization and debugging.

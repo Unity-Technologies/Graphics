@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-quality-presets
+---
 # Update graphics quality levels for URP
 
 This page provides recommended URP graphics [Quality Level](xref:class-QualitySettings) settings for **Low** and **High** quality level values. These settings approximately match the performance of the equivalent **Low** and **High** default presets in the Built-In Render Pipeline.

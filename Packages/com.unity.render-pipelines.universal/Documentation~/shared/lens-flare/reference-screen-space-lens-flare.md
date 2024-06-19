@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-reference-screen-space-lens-flare
+---
 # Screen Space Lens Flare override reference
 
 Refer to [Add screen space lens flares](post-processing-screen-space-lens-flare.md) for more information.

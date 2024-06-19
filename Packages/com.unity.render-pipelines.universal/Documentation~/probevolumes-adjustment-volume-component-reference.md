@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-adjustment-volume-component-reference
+---
 # Probe Adjustment Volume component reference
 
 Select a [Probe Adjustment Volume Component](probevolumes-fixissues.md#add-a-probe-adjustment-volume-component) and open the Inspector to view its properties.

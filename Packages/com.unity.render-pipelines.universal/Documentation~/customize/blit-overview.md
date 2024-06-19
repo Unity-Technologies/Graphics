@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-blit-overview
+---
 # URP blit best practices
 
 A blit operation is a process of copying a source texture to a destination texture.

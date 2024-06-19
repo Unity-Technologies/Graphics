@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-install-urp-into-a-project
+---
 # Installing the Universal Render Pipeline into an existing Project
 
 You can download and install the latest version of the Universal Render Pipeline (URP) to your existing Project via the [Package Manager system](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@latest/index.html), and then install it into your Project. If you don’t have an existing Project, refer to documentation on [how to start a new URP Project from a Template](creating-a-new-project-with-urp.md).

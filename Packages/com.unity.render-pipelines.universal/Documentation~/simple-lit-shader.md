@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-simple-lit-shader
+---
 # Simple Lit Shader
 
 Use this Shader when performance is more important than photorealism. This Shader uses a simple approximation for lighting. Because this Shader [does not calculate for physical correctness and energy conservation](shading-model.md#simple-shading), it renders quickly.

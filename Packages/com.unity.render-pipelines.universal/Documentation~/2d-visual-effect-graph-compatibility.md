@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-2d-visual-effect-graph-compatibility
+---
 # Light a Visual Effect Graph asset 
 
 [Visual Effect Graph assets](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest?subfolder=/manual/VisualEffectGraphAsset.html) are compatible with the 2D Renderer by using [Shader Graphs](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest). Follow the steps below to first [create a Visual Effect Graph asset](#create-a-visual-effect-graph-asset) and then [light it with a 2D light](#light-a-visual-effect-with-2d-lights).

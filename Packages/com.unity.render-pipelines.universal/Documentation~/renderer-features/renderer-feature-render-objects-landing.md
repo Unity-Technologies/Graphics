@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-renderer-feature-render-objects-landing
+---
 # Render Objects Renderer Feature
 
 Use a Render Objects Renderer Feature to draw objects on a certain layer, at a certain time, with specific overrides.

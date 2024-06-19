@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-custom-rendering-pass-workflow-in-urp
+---
 # Custom render pass workflow in URP
 
 A custom render pass is a way to change how the Universal Render Pipeline (URP) renders a scene or the objects within a scene. A custom render pass contains your own rendering code, which you insert into the rendering pipeline at an injection point.

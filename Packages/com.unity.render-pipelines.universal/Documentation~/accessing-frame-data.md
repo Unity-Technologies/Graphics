@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-accessing-frame-data
+---
 # Get data from the current frame
 
 You can fetch the textures that the Universal Render Pipeline (URP) creates for the current frame, for example the active color buffer or a G-buffer texture, and use them in your render passes.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-color-curves
+---
 # Color Curves
 
 Grading curves are an advanced way to adjust specific ranges in hue, saturation, or luminosity. You can adjust the curves in eight available graphs to achieve effects such as specific hue replacement or desaturating certain luminosities.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-concept
+---
 # Understanding Adaptive Probe Volumes
 
 An Adaptive Probe Volume is a group of [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html) that Unity places automatically based on the geometry density in your Scene, to create baked indirect lighting. You can use Adaptive Probe Volumes instead of manually placing and configuring Light Probes.

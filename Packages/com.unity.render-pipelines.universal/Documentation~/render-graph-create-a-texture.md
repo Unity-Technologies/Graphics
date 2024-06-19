@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-create-a-texture
+---
 # Create a texture in the render graph system
 
 To create a texture in the render graph system, use the `UniversalRenderer.CreateRenderGraphTexture` API.

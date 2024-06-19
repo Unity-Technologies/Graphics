@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-intro-to-scriptable-render-passes
+---
 # Introduction to Scriptable Render Passes
 
 Scriptable Render Passes are a way to alter how Unity renders a scene or the objects within a scene. They allow you to fine tune how Unity renders each scene in your project on a scene-by-scene basis.

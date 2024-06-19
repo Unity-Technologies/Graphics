@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-to-a-render-texture
+---
 # Render a camera's output to a Render Texture
 
 In the Universal Render Pipeline (URP), a Camera can render to the screen or to a [Render Texture](https://docs.unity3d.com/Manual/class-RenderTexture.html). Rendering to a screen is the default and is the most common use case, but rendering to a Render Texture allows you to create effects such as CCTV camera monitors.

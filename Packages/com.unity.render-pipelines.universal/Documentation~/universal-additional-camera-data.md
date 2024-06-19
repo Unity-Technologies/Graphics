@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-universal-additional-camera-data
+---
 # The Universal Additional Camera Data component
 
 The Universal Additional Camera Data component is a component the Universal Render Pipeline (URP) uses for internal data storage. The Universal Additional Camera Data component allows URP to extend and override the functionality and appearance of Unity's standard Camera component.

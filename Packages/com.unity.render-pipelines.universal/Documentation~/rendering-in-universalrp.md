@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-in-universalrp
+---
 # Rendering in the Universal Render Pipeline
 
 The Universal Render Pipeline (URP) renders scenes using the following components:

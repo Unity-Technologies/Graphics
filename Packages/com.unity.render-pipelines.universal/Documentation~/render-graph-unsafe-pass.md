@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-unsafe-pass
+---
 # Use Compatibility Mode APIs in render graph render passes
 
 You can use the render graph `AddUnsafePass` API to use Compatibility Mode APIs such as `SetRenderTarget` in render graph system render passes.

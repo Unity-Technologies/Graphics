@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-add-and-remove-cameras-in-a-stack
+---
 # Add and remove cameras in a camera stack
 
 Camera stacks contain a single Base Camera with one or more Overlay Cameras stacked on top. In the Editor, you can add, remove, and reorder these cameras as much as you like to achieve the desired effects.

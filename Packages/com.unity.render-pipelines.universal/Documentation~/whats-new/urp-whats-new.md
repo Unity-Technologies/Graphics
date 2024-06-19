@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-whats-new
+---
 # What's new in URP 17 (Unity 6 Preview)
 
 This section contains information about new features, improvements, and issues fixed in URP 17.

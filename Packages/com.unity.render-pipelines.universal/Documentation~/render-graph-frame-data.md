@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-frame-data
+---
 # Use frame data
 
 Fetch the textures that the Universal Render Pipeline (URP) creates for the current frame or previous frames, for example a color texture or a depth texture.

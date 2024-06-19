@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-scriptable-renderer-feature-reference
+---
 # Scriptable Renderer Feature API reference
 
 You can use the following methods within a Scriptable Renderer Feature to handle its core functions. For more information on Scriptable Renderer Feature scripting and further details on the methods listed below, refer to [ScriptableRendererFeature](xref:UnityEngine.Rendering.Universal.ScriptableRendererFeature).

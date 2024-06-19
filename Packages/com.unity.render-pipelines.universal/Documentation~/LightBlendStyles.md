@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-light-blend-styles
+---
 # Light Blend Styles
 
 In the [2D Renderer Data asset](2DRendererData-overview.md), its **Light Blend Styles** determine the way that the light interacts with sprites in the scene. The asset can contain a total of four different **Light Blend Styles**, each with a different combination of Blend Style settings by default. All lights in the scene must pick from one of these available **Light Blend Styles**. When you create a light, it's automatically assigned the first Blend Style listed in the asset.

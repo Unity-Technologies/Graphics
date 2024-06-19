@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-layers
+---
 # Rendering Layers
 
 The Rendering Layers feature lets you configure certain Lights to affect only specific GameObjects.

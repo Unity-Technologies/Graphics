@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-linear01-depth
+---
 <tr>
 <td>**Linear 01 Depth**</td>
 <td>Uses a linear depth value between 0 and 1.</td>

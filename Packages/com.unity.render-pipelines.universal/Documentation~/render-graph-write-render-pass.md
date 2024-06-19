@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-write-render-pass
+---
 # Write a render pass using the render graph system
 
 This page describes how to write a render pass using the render graph system.

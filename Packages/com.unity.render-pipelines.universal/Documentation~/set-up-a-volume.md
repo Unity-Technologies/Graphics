@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-set-up-a-volume
+---
 # Set up a volume
 
 To set up a volume in your scene, you can configure the project's default volume settings, or add a new custom volume. For details, refer to the following sections:

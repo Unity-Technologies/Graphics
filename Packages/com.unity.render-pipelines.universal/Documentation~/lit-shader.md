@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lit-shader
+---
 # Lit Shader
 
 The Lit Shader lets you render real-world surfaces like stone, wood, glass, plastic, and metals in photo-realistic quality. Your light levels and reflections look lifelike and react properly across various lighting conditions, for example bright sunlight, or a dark cave. This Shader uses the most computationally heavy [shading model](shading-model.md) in the Universal Render Pipeline (URP).

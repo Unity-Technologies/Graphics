@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-shadows-in-urp
+---
 # Shadows in the Universal Render Pipeline
 
 The Universal Render Pipeline’s [Lights](light-component.md) can cast shadows from one GameObject onto another. They emphasize the position and scale of GameObjects, which adds a degree of depth and realism to a scene that could otherwise look flat.

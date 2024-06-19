@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-shader-terrain-lit
+---
 # Terrain Lit shader
 
 URP uses the Terrain Lit shader for Unity Terrain. This shader is a simpler version of the [Lit shader](lit-shader.md). A Terrain can use a Terrain Lit Material with up to eight [Terrain Layers](https://docs.unity3d.com/Manual/class-TerrainLayer.html).

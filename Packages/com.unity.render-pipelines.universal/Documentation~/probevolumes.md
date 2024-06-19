@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes
+---
 # Adaptive Probe Volumes (APV)
 
 Adaptive Probe Volumes make [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html) easier to use by automating placement. They also provide higher quality, more accurate lighting, because they light per-pixel not per-object.

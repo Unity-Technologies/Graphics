@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-decal-shader
+---
 # Decal Shader Graph
 
 The [Decal Projector](renderer-feature-decal.md#decal-projector-component) component can project a Material as a decal if the Material uses a Shader Graph with the Decal Material type.

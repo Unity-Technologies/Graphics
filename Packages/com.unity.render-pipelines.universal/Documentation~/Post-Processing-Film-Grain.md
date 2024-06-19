@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-film-grain
+---
 # Film Grain
 
 ![Film Grain off](Images/post-proc/film-grain-off.png)

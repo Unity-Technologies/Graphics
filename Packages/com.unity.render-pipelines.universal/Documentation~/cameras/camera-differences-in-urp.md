@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-camera-differences-in-urp
+---
 # Cameras in URP
 
 Cameras in the Universal Render Pipeline (URP) are based on Unity's standard camera functionality, but with some significant differences. For example, URP cameras use the following:

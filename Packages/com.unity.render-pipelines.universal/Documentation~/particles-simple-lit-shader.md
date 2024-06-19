@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-particles-simple-lit-shader
+---
 # Particles Simple Lit Shader
 
 In the Universal Render Pipeline (URP), use this Shader for particles where performance is more important than photorealism. This Shader uses a simple approximation for lighting. Because this Shader [does not calculate for physical correctness and energy conservation](shading-model.md#simple-shading), it renders quickly.

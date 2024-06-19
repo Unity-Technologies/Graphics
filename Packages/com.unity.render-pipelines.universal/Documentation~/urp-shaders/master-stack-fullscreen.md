@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-master-stack-fullscreen
+---
 # Fullscreen
 
 Use the Fullscreen Master Stack to create a Shader Graph material to apply to the entire screen at the end of the rendering process. You can use this to create custom post-process and custom pass effects.

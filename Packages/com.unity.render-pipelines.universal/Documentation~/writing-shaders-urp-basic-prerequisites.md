@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-shaders-urp-basic-prerequisites
+---
 # Creating a sample scene
 
 To follow the examples in this section:

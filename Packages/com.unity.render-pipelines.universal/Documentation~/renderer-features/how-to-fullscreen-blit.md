@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-how-to-fullscreen-blit
+---
 # Perform a full screen blit in URP in Compatibility Mode
 
 The example on this page describes how to create a custom Renderer Feature that performs a full screen blit.

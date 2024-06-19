@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-use-built-in-shader-methods
+---
 # Shader methods in URP
 
 The Universal Render Pipeline (URP) has a library of High-Level Shader Language (HLSL) shader files that contain helper methods. You can import these files into your custom shader files and use the helper methods.

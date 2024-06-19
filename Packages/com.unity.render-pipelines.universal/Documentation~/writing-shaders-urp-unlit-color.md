@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-shaders-urp-unlit-color
+---
 # URP unlit shader with color input
 
 The Unity shader in this example adds the **Base Color** property to the Material. You can select the color using that property and the shader fills the mesh shape with the color.

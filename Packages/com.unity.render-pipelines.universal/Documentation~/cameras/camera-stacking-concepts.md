@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-camera-stacking-concepts
+---
 # Understand camera stacking
 
 In the Universal Render Pipeline (URP), you use camera stacking to layer the output of multiple Cameras and create a single combined output. Camera stacking allows you to create effects such as a 3D model in a 2D UI, or the cockpit of a vehicle.

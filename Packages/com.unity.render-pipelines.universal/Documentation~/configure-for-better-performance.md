@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-configure-for-better-performance
+---
 # Configure for better performance
 
 You can disable or change Universal Render Pipeline (URP) settings and features that have a large performance impact. This helps you get better performance for your project, especially on lower-end platforms.

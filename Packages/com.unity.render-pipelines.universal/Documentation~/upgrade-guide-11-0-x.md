@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-guide-11-0-x
+---
 # Upgrading to version 11.0.x of the Universal Render Pipeline
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 11.0.x.

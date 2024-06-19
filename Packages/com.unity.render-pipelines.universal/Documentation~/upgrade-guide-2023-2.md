@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-guide-2023-2
+---
 # Upgrading to URP 16 (Unity 2023.2)
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to URP 16 (Unity 2023.2).

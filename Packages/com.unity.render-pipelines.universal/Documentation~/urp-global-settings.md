@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-global-settings
+---
 # Graphics settings window reference in URP 
 
 If a project has the Universal Render Pipeline (URP) package installed, Unity shows URP-specific graphics settings in **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **URP**.

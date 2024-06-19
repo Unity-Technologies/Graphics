@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-white-balance
+---
 # White Balance
 
 The White Balance component applies a white balance effect that removes unrealistic color casts, so that items that would appear white in real life render as white in your final image. You can also use white balance to create an overall colder or warmer feel in the final render.

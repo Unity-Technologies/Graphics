@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-hdr-custom-pass
+---
 # Scriptable Render Passes with HDR Output
 
 High Dynamic Range (HDR) Output changes the inputs to your custom pass when it applies tone mapping and color space conversions. These changes can cause your custom pass to produce incorrect results. This means that when you use HDR Output and a custom pass that happens in or after the AfterRenderingPostProcessing injection point, you need to account for the changes HDR Output makes. This also applies when you want to add overlays during or after post-processing, such as UI or output from other cameras, because you need to work with the color gamut that results from HDR Output. To make a custom pass work with the changes HDR Output makes, you must manually perform [tone mapping and convert color space in a script](#tone-map-convert-color-space).

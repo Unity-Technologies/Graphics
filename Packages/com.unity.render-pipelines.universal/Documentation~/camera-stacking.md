@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-camera-stacking
+---
 # Set up a camera stack
 
 This page describes how to use a camera stack to layer outputs from multiple cameras to the same render target. For more information on camera stacking, refer to [Understand camera stacking](cameras/camera-stacking-concepts.md).

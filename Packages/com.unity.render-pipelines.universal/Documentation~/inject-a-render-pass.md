@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-inject-a-render-pass
+---
 # Adding a Scriptable Render Pass to the frame rendering loop
 
 Add the custom render pass to the Universal Render Pipeline (URP) frame rendering loop by creating a Scriptable Renderer Feature, or using the `RenderPipelineManager` API.

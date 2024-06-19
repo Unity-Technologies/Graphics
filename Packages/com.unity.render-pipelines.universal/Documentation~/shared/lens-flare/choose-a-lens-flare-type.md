@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-choose-a-lens-flare-type
+---
 # Choose a lens flare type
 
 You can add the following types of lens flares:

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-universalrp-asset
+---
 # Universal Render Pipeline Asset
 
 Any Unity project that uses the Universal Render Pipeline (URP) must have a URP Asset to configure the settings. When you create a project using the URP template, Unity creates the URP Assets in the **Settings** project folder and assigns them in Project Settings. If you are migrating an existing project to URP, you need to [create a URP Asset and assign the asset in the Graphics settings](InstallURPIntoAProject.md).

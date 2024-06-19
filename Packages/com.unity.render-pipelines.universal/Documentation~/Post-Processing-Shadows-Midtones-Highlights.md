@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-shadows-midtones-highlights
+---
 # Shadows Midtones Highlights
 
 The **Shadows Midtones Highlights** effect separately controls the shadows, midtones, and highlights of the render. Unlike [Lift, Gamma, Gain](Post-Processing-Lift-Gamma-Gain.md), you can use this effect to precisely define the tonal range for shadows, midtones, and highlights.

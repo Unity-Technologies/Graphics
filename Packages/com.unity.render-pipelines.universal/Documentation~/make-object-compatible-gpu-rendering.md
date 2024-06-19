@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-make-object-compatible-gpu-rendering
+---
 # Make a GameObject compatible with the GPU Resident Drawer
 
 To make a GameObject compatible with the [GPU Resident Drawer](gpu-resident-drawer.md), check it has the following properties:

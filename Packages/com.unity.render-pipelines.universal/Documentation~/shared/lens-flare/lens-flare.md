@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lens-flare
+---
 # Lens flares
 
 Lens flares simulate the effect of lights refracting inside a camera lens. Use lens flares to represent bright lights, or to add atmosphere to a scene.

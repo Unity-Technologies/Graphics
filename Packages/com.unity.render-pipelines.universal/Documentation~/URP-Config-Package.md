@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-config-package
+---
 # Configure settings with the URP Config package
 
 You can use the Universal Render Pipeline (URP) Config package to control some of the settings of URP. Unity automatically adds the package files in the package cache as they are a dependency of URP, but you must make a copy of them in your project before you can use the package.

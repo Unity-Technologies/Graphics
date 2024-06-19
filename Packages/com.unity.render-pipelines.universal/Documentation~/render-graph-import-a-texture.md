@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-import-a-texture
+---
 # Import a texture into the render graph system
 
 When you [create a texture in the render graph system](render-graph-create-a-texture.md) in a render pass, the render graph system handles the creation and disposal of the texture. This process means the texture might not exist in the next frame, and other cameras might not be able to use it.

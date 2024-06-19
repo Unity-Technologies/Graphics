@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-understand-changing-lighting-at-runtime
+---
 # Choose how to change lighting at runtime
 
 You can change how objects use the baked data in Adaptive Probe Volumes, to create lighting that changes at runtime. For example, you can turn the lights on and off in a scene, or change the time of day.

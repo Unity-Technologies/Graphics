@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-bakedifferentlightingsetups
+---
 # Bake different lighting setups with Lighting Scenarios
 
 A Lighting Scenario contains the baked lighting data for a scene or Baking Set. You can bake different lighting setups into different Lighting Scenario assets, and change which one the Universal Render Pipeline (URP) uses at runtime.

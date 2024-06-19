@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-add-textures-to-previous-frames
+---
 # Add data to previous frames
 
 To add your own texture to the camera history and read the data in later frames, create a camera history type to store the texture between frames.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-compute-shader-run
+---
 # Run a compute shader in a render pass
 
 To create a render pass that runs a compute shader, do the following:

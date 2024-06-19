@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-scriptable-renderer-features-landing
+---
 # Scriptable Renderer Features
 
 Scriptable Renderer Features are components you can add to a renderer to alter how URP renders a project.

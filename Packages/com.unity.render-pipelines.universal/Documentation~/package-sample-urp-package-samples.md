@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-package-sample-urp-package-samples
+---
 # URP Package Samples
 
 URP Package Samples is a [package sample](package-samples.md) for the Universal Render Pipeline (URP). It contains example shaders, C# scripts, and other assets you can build upon, use to learn how to use a feature, or use directly in your application. For information on how to import URP Package Samples into your project, refer to [Importing package samples](package-samples.md#importing-package-samples).

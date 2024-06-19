@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-cameras-advanced
+---
 # Understand camera render order
 
 This page describes when a Universal Render Pipeline (URP) camera performs the following operations:

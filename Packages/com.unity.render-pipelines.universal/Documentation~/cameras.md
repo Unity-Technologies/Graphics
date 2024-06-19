@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-cameras
+---
 # Cameras
 
 A Camera in Unity works like a camera in the real world: it captures a view of objects in 3-dimensional space and flattens that view to display it on a 2-dimensional surface.

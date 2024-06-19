@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-view
+---
 # Analyze a render graph
 
 There are several ways to analyse a render graph:

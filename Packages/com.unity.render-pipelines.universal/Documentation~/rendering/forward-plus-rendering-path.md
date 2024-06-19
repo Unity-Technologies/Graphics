@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-forward-plus-rendering-path
+---
 # Forward+ Rendering Path
 
 The Forward+ Rendering Path lets you avoid the per object limit of the Forward Rendering Path.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-2d-renderer-data-overview
+---
 # Configure the 2D Renderer Asset
 
 ![The 2D Renderer Data Asset property settings](Images/2D/2dRendererData_properties.png)

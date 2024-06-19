@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-prep-shader
+---
 # Prepare and upgrade sprites and projects for lighting
 
 To light a sprite with [2D lights](2DLightProperties.md), first go to the [Sprite Renderer](xref:class-SpriteRenderer) component of the sprite and assign a material with a Shader that reacts to 2D lights. When you drag sprites onto the scene, Unity automatically assigns the `Sprite-Lit-Default` material to them which enables them to interact and appear lit by 2D lights.

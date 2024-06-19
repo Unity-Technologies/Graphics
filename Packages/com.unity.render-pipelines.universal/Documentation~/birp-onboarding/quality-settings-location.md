@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-quality-settings-location
+---
 # Find graphics quality settings in URP
 
 URP splits its quality settings between Project Settings and the URP Asset to allow for more versatility in the quality levels your project has. As a result, some settings that Built-In Render Pipeline (BiRP) listed in the Project Settings **Quality** section have moved or changed, or no longer exist.

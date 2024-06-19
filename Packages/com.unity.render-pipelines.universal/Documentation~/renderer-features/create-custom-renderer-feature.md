@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-create-custom-renderer-feature
+---
 # Example of a complete Scriptable Renderer Feature
 
 This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.

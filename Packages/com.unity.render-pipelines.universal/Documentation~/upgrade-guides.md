@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-guides
+---
 # Upgrade guides
 
 This section contains information about upgrading from an older version of the Universal Render Pipeline (URP) to a more recent version, and about upgrading from the Lightweight Render Pipeline (LWRP) to URP.

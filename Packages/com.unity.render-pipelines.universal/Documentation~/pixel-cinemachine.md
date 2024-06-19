@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-pixel-cinemachine
+---
 # Using the Cinemachine Pixel Perfect extension
 
 Both the **Pixel Perfect Camera** and [Cinemachine](https://unity.com/unity/features/editor/art-and-design/cinemachine) modify the Camera’s orthographic size. Using these two systems together in a single scene would cause them to fight for control over the Camera and produce unwanted results. The **Cinemachine Pixel Perfect** extension solves this incompatibility.

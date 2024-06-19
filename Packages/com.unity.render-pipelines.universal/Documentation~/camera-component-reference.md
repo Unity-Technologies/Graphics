@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-camera-component-reference
+---
 # Camera component reference
 
 In the Universal Render Pipeline (URP), Unity exposes different properties of the Camera component in the Inspector depending on the camera type. To change the type of the camera, select a [Render Type](camera-types-and-render-type.md).

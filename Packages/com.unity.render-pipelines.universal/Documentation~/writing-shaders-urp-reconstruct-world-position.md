@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-shaders-urp-reconstruct-world-position
+---
 # Reconstruct the world space positions of pixels from the depth texture
 
 The Unity shader in this example reconstructs the world space positions for pixels using a depth texture and screen space UV coordinates. The shader draws a checkerboard pattern on a mesh to visualize the positions.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-vignette
+---
 # Vignette
 
 In photography, vignetting is the term for the darkening and/or desaturating towards the edges of an image compared to the center. In real life, thick or stacked filters, secondary lenses, and improper lens hoods are usually the cause of this effect. You can use vignetting to draw focus to the center of an image.

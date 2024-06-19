@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-volumes
+---
 # Understand volumes
 
 The Universal Render Pipeline (URP) uses volumes for [post-processing](integration-with-post-processing.md#post-proc-how-to) effects. Volumes can override or extend scene properties depending on the camera position relative to each volume.

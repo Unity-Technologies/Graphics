@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-ssao
+---
 # Ambient Occlusion
 
 The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other in real-time. In the real world, such areas tend to block out or occlude ambient light, so they appear darker.

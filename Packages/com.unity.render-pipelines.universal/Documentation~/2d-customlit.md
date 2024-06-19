@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-2d-customlit
+---
 # Custom Lighting in 2D
 
 The default lighting model in 2D renderer is meant for generic use and was design to provide some level flexibility.

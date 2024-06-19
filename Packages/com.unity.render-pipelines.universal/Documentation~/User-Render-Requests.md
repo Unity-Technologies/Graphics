@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-user-render-requests
+---
 # Render Requests
 
 For a general documentation see the [Core Package](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/User-Render-Requests.html) about Render Requests.

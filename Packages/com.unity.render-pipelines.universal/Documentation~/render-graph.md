@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph
+---
 # Render graph system
 
 The render graph system is a set of APIs you use to create a [Scriptable Render Pass](renderer-features/scriptable-render-passes.md).

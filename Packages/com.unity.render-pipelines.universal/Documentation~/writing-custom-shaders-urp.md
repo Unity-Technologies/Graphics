@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-custom-shaders-urp
+---
 # Writing custom shaders
 
 This section contains guidelines that help you to get started with writing shaders for Universal Render Pipeline (URP).

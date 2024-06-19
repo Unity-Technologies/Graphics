@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-custom-effect-low-code
+---
 # How to create a custom post-processing effect
 
 The example on this page shows how to use a Full Screen Render Pass to create a grayscale custom post-processing effect.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-physical-camera-reference
+---
 # Physical Camera reference
 
 The physical camera properties enable the URP camera to simulate a real-world camera. These properties correspond to features of real-world cameras and work in the same way.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-pass-textures-between-passes
+---
 # Transfer a texture between render passes
 
 You can transfer a texture between render passes, for example if you need to create a texture in one render pass and read it in a later render pass.

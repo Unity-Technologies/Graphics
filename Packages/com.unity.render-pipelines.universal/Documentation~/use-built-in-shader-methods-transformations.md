@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-use-built-in-shader-methods-transformations
+---
 # Transform positions in a custom URP shader
 
 To transform positions in a custom Universal Render Pipeline (URP) shader, follow these steps:

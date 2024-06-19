@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-hdr-output
+---
 # High Dynamic Range (HDR) Output
 
 [High Dynamic Range](https://docs.unity3d.com/Manual/HDR.html) content has a wider color gamut and greater luminosity range than standard definition content.

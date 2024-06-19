@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-light-types
+---
 # Specific 2D Light Type properties
 
 This page documents the specific properties available to each of the different 2D Light Types. Refer to [Common properties of 2D Lights](2DLightProperties.md) for the properties common to all 2D Light Types. 

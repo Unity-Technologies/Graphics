@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-fixissues
+---
 # Fix issues with Adaptive Probe Volumes
 
 Adjust settings or use Volume overrides to fix artefacts from Adaptive Probe Volumes.

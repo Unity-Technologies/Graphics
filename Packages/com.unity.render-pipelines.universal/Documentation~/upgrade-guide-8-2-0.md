@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-guide-8-2-0
+---
 # Upgrading to version 8.2.x of the Universal Render Pipeline
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 8.2.x.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-guide-unity-6
+---
 # Upgrading to URP 17 (Unity 6 Preview)
 
 This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to URP 17 (Unity 6 Preview).

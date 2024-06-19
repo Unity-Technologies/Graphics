@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-light-component
+---
 # Light component reference
 
 Lights determine the shading of an object and the shadows it casts.

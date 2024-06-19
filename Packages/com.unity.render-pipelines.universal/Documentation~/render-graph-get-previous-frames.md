@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-get-previous-frames
+---
 # Get data from previous frames
 
 To fetch the previous frames that the camera rendered in the Universal Render Pipeline (URP), use the [`UniversalCameraData.historyManager`](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/api/UnityEngine.Rendering.Universal.UniversalCameraData.html) API. These textures are sometimes called history textures or history buffers.

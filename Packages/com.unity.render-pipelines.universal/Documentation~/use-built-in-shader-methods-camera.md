@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-use-built-in-shader-methods-camera
+---
 # Use the camera in a custom URP shader
 
 To use the camera in a custom Universal Render Pipeline (URP) shader, follow these steps:

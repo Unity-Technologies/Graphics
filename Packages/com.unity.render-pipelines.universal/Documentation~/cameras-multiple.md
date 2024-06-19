@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-cameras-multiple
+---
 # Use multiple cameras
 
 In the Universal Render Pipeline (URP), you can use multiple cameras to work with multiple camera outputs and targets, as well as different output resolutions and post-processing effects.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-shaders-urp-unlit-normals
+---
 # Visualizing normal vectors
 
 The Unity shader in this example visualizes the normal vector values on the mesh.
