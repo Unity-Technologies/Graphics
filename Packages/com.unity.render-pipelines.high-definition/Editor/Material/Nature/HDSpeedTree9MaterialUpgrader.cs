@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly int CullModeForwardID = Shader.PropertyToID("_CullModeForward");
             internal static readonly int DiffusionProfileAssetID = Shader.PropertyToID("_Diffusion_Profile_Asset");
             internal static readonly int DiffusionProfileID = Shader.PropertyToID("_Diffusion_Profile");
+            internal static readonly int BillboardToggleID = Shader.PropertyToID("_BillboardKwToggle");
 
             internal static readonly string WindShared = "_WIND_SHARED";
             internal static readonly string WindBranch2 = "_WIND_BRANCH2";
@@ -53,10 +54,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void SetupHDPropertiesOnImport(Material mat)
         {
-            // Since _DoubleSidedEnable controls _CullMode in HD,
-            // disable it for billboard LOD.
-            float doubleSided = mat.GetInt(HDProperties.ExtraMapKwToggleID) > 0 ? 0.0f : 1.0f; 
-            mat.SetFloat(HDProperties.DoubleSidedEnableID, doubleSided);
+            // Since _DoubleSidedEnable controls _CullMode in HD, disable it for billboard LOD.
+            if (mat.HasFloat(HDProperties.BillboardToggleID))
+            {
+                var isBillboard = mat.GetFloat(HDProperties.BillboardToggleID) == 1.0f;
+                mat.SetFloat(HDProperties.DoubleSidedEnableID, (isBillboard) ? 0.0f : 1.0f);
+            }
 
             if (mat.HasFloat(HDProperties.TwoSidedID))
             {
