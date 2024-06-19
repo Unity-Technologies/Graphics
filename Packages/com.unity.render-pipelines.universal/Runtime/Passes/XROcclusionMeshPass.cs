@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
                 if (data.isActiveTargetBackBuffer)
                     cmd.SetViewport(data.xr.GetViewport());
 
-                data.xr.RenderOcclusionMesh(cmd);
+                data.xr.RenderOcclusionMesh(cmd, renderIntoTexture: !data.isActiveTargetBackBuffer);
             }
         }
 

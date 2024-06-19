@@ -326,10 +326,11 @@ namespace UnityEngine.Experimental.Rendering
         /// "XR_OCCLUSION_MESH_COMBINED" is also enabled when rendering the combined mesh.
         /// </summary>
         /// <param name="cmd">CommandBuffer to modify</param>
-        public void RenderOcclusionMesh(CommandBuffer cmd)
+        /// <param name="renderIntoTexture">Set to true when rendering into a render texture. Used for handling Unity yflip.</param>
+        public void RenderOcclusionMesh(CommandBuffer cmd, bool renderIntoTexture = false)
         {
             if(occlusionMeshScale > 0)
-                m_OcclusionMesh.RenderOcclusionMesh(cmd, occlusionMeshScale);
+                m_OcclusionMesh.RenderOcclusionMesh(cmd, occlusionMeshScale, renderIntoTexture);
         }
 
         /// <summary>
@@ -339,10 +340,11 @@ namespace UnityEngine.Experimental.Rendering
         /// "XR_OCCLUSION_MESH_COMBINED" is also enabled when rendering the combined mesh.
         /// </summary>
         /// <param name="cmd">RasterCommandBuffer to modify</param>
-        public void RenderOcclusionMesh(RasterCommandBuffer cmd)
+        /// <param name="renderIntoTexture">Set to true when rendering into a render texture. Used for handling Unity yflip.</param>
+        public void RenderOcclusionMesh(RasterCommandBuffer cmd, bool renderIntoTexture = false)
         {
             if (occlusionMeshScale > 0)
-                m_OcclusionMesh.RenderOcclusionMesh(cmd.m_WrappedCommandBuffer, occlusionMeshScale);
+                m_OcclusionMesh.RenderOcclusionMesh(cmd.m_WrappedCommandBuffer, occlusionMeshScale, renderIntoTexture);
         }
 
         /// <summary>
