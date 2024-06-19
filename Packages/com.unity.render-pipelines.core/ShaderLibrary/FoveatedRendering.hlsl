@@ -107,8 +107,8 @@ int2 FoveatedRemapNonUniformToLinearCS(int2 positionCS)
 // dummy coordinate remapping functions for non-foveated rendering
 float2 FoveatedRemapLinearToNonUniform(float2 uv) {return uv;}
 float2 FoveatedRemapPrevFrameLinearToNonUniform(float2 uv) {return uv;}
-float2 FoveatedRemapDensity(float2 uv) {return uv;}
-float2 FoveatedRemapPrevFrameDensity(float2 uv) {return uv;}
+float2 FoveatedRemapDensity(float2 uv) {return float2(1.0f, 1.0f);}
+float2 FoveatedRemapPrevFrameDensity(float2 uv) {return float2(1.0f, 1.0f);}
 float2 FoveatedRemapNonUniformToLinear(float2 uv) {return uv;}
 float2 FoveatedRemapPrevFrameNonUniformToLinear(float2 uv) {return uv;}
 int2 FoveatedRemapLinearToNonUniformCS(int2 positionCS) {return positionCS;}

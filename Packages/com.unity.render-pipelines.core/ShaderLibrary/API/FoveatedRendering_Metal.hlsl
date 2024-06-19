@@ -34,7 +34,7 @@
     float2 RemapFoveatedRenderingDensity(float2 uv, bool yFlip = false)
     {
         // TODO: Implement density look up
-        return uv;
+        return float2(1.0f, 1.0f);
     }
 
     float2 RemapFoveatedRenderingPrevFrameDensity(float2 uv, bool yFlip = false)
