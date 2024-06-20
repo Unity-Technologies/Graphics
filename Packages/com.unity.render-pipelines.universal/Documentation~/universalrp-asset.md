@@ -24,23 +24,14 @@ In the URP, you can configure settings for:
 > [!NOTE]
 > If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the URP Asset don't have any impact on your final app or game.
 
-### How to show Additional Properties
+### Show advanced properties
 
-Unity does not show certain advanced properties in the URP Asset by default. To reveal all available properties:
+Unity does not show certain advanced properties in the URP Asset by default. To show all available properties in a section, open the **More** (&vellip;) menu and select **Advanced Properties**.
 
-* In the URP Asset, in any section, click the vertical ellipsis icon (&vellip;) and select **Show Additional Properties**
+To show all additional properties in all sections, follow these steps:
 
-    ![Show Additional Properties](Images/settings-general/show-additional-properties.png)
-
-    Unity shows all available properties in the current section.
-
-To show all additional properties in all sections:
-
-1. Click the vertical ellipsis icon (&vellip;) and select **Show All Additional Properties**. Unity opens the **Core Render Pipeline** section in the **Preferences** window.
-
-2. In the property **Additional Properties > Visibility**, select **All Visible**.
-
-    ![Additional Properties > Visibility > All Visible](Images/settings-general/show-all-additional-properties.png)
+1. Go to **Edit** &gt; **Preferences**.
+2. In the **Graphics** section, set **Advanced Properties** to **All Visible**.
 
 ### Rendering
 
