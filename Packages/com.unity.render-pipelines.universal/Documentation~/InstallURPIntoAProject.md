@@ -27,7 +27,7 @@ The [Universal Render Pipeline Asset](universalrp-asset.md) (URP Asset) contains
 To create a Universal Render Pipeline Asset:
 
 1. In the Editor, go to the Project window.
-2. Right-click in the Project window, and select  __Create > Rendering > URP Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets > Create > Rendering > URP Asset__.
+2. Right-click in the Project window, and select  **Create** > **Rendering** > **URP Asset (with Universal Renderer)**. Alternatively, navigate to the menu bar at the top, and select **Assets** > **Create** > **Rendering** > **URP Asset (with Universal Renderer)**.
 
 You can either leave the default name for the new Universal Render Pipeline Asset, or type a new one.
 
@@ -60,5 +60,5 @@ When you upgrade a project from the Built-in Render Pipeline (BiRP) to the Unive
 * [Converting your shaders](upgrading-your-shaders.md)
 * [Render Pipeline Converter](features/rp-converter.md)
 * [Upgrade custom shaders for URP compatibility](urp-shaders/birp-urp-custom-shader-upgrade-guide.md)
-* [Find graphics quality settings in URP](quality-settings-location.md)
+* [Find graphics quality settings in URP](birp-onboarding/quality-settings-location.md)
 * [Update graphics quality levels for URP](quality-presets.md)

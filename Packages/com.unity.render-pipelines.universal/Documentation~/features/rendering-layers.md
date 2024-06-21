@@ -70,9 +70,9 @@ To implement the example:
 
 5. Make the following settings on Lights and Spheres:
 
-    Light `A`: in the property **Light > General > Rendering Layers**, clear all options, and select `Green`.
+    Light `A`: in the property **Light > Rendering > Rendering Layers**, clear all options, and select `Green`.
 
-    Light `B`: in the property **Light > General > Rendering Layers**, clear all options, and select `Red`.
+    Light `B`: in the property **Light > Rendering > Rendering Layers**, clear all options, and select `Red`.
 
     Sphere `C`: in the property **Mesh Renderer > Additional Settings > Rendering Layer Mask**, select all options, clear `Green`.
 
