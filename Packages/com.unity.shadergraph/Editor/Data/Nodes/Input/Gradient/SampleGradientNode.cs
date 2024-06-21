@@ -69,23 +69,30 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    $precision3 color = Gradient.colors[0].rgb;
+    // convert to OkLab if we need perceptual color space.
+    $precision3 color = lerp(Gradient.colors[0].rgb, LinearToOklab(Gradient.colors[0].rgb), Gradient.type == 2);
+
     [unroll]
     for (int c = 1; c < Gradient.colorsLength; c++)
     {
         $precision colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
-        color = lerp(color, Gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), Gradient.type));
+        $precision3 color2 = lerp(Gradient.colors[c].rgb, LinearToOklab(Gradient.colors[c].rgb), Gradient.type == 2);
+        color = lerp(color, color2, lerp(colorPos, step(0.01, colorPos), Gradient.type % 2)); // grad.type == 1 is fixed, 0 and 2 are blends.
     }
+    color = lerp(color, OklabToLinear(color), Gradient.type == 2);
+
 #ifdef UNITY_COLORSPACE_GAMMA
     color = LinearToSRGB(color);
 #endif
+
     $precision alpha = Gradient.alphas[0].x;
     [unroll]
     for (int a = 1; a < Gradient.alphasLength; a++)
     {
         $precision alphaPos = saturate((Time - Gradient.alphas[a - 1].y) / (Gradient.alphas[a].y - Gradient.alphas[a - 1].y)) * step(a, Gradient.alphasLength - 1);
-        alpha = lerp(alpha, Gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), Gradient.type));
+        alpha = lerp(alpha, Gradient.alphas[a].x, lerp(alphaPos, step(0.01, alphaPos), Gradient.type % 2));
     }
+
     Out = $precision4(color, alpha);
 }
 ";
