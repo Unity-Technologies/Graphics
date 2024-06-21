@@ -49,11 +49,16 @@ SubShader{
 		#pragma vertex vert
 		#pragma fragment frag
 
+		#pragma multi_compile _ DEBUG_DISPLAY
 		#pragma multi_compile __ UNITY_UI_CLIP_RECT
 		#pragma multi_compile __ UNITY_UI_ALPHACLIP
 
 
 		#include "UnityCG.cginc"
+
+		#if defined(DEBUG_DISPLAY)
+		#include "Debugging2D.cginc"
+		#endif
 
 		struct appdata_t
 		{
@@ -127,6 +132,12 @@ SubShader{
 
 			#if UNITY_UI_ALPHACLIP
 				clip(color.a - 0.001);
+			#endif
+
+			#if defined(DEBUG_DISPLAY)
+				fixed4 debugColor = 0;
+				if(CanDebugOverrideOutputColor(debugColor))
+				   return debugColor;
 			#endif
 
 			return color;

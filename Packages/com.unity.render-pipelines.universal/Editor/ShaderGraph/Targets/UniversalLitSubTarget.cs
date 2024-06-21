@@ -371,7 +371,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.Default));
                 result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.Default));
-                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.Default));
+                result.passes.Add(LitPasses._2D(target, LitKeywords._2D));
 
                 return result;
             }
@@ -580,7 +580,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            public static PassDescriptor _2D(UniversalTarget target)
+            public static PassDescriptor _2D(UniversalTarget target, KeywordCollection keywords)
             {
                 var result = new PassDescriptor()
                 {
@@ -603,9 +603,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection { keywords },
                     includes = LitIncludes._2D,
 
                     // Custom Interpolator Support
@@ -867,6 +867,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.RenderPassEnabled },
+                { CoreKeywordDescriptors.DebugDisplay },
+            };
+
+            public static readonly KeywordCollection _2D = new KeywordCollection
+            {
                 { CoreKeywordDescriptors.DebugDisplay },
             };
         }

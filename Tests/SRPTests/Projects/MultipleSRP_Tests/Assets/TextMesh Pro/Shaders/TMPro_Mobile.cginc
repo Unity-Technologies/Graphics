@@ -1,4 +1,8 @@
-﻿struct vertex_t
+﻿#if defined(DEBUG_DISPLAY)
+#include "Debugging2D.cginc"
+#endif
+
+struct vertex_t
 {
     UNITY_VERTEX_INPUT_INSTANCE_ID
     float4	position		: POSITION;
@@ -159,6 +163,12 @@ float4 PixShader(pixel_t input) : SV_Target
 
     #if UNITY_UI_ALPHACLIP
     clip(faceColor.a - 0.001);
+    #endif
+
+    #if defined(DEBUG_DISPLAY)
+    fixed4 debugColor = 0;
+    if(CanDebugOverrideOutputColor(debugColor))
+       faceColor = debugColor;
     #endif
 
     return faceColor;
