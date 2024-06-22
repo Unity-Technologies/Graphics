@@ -34,7 +34,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
             HLSLPROGRAM
             #pragma vertex MaskRenderingVertex
             #pragma fragment MaskRenderingFragment
-            #pragma multi_compile _ DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL
@@ -45,7 +44,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
             HLSLPROGRAM
             #pragma vertex MaskRenderingVertex
             #pragma fragment MaskRenderingFragment
-            #pragma multi_compile _ DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL
@@ -56,7 +54,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Mask"
             HLSLPROGRAM
             #pragma vertex MaskRenderingVertex
             #pragma fragment MaskRenderingFragment
-            #pragma multi_compile _ DEBUG_DISPLAY
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SpriteMaskShared.hlsl"
             ENDHLSL

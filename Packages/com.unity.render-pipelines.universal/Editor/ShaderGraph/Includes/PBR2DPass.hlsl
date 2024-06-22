@@ -1,10 +1,3 @@
-
-#if defined(DEBUG_DISPLAY)
-#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
-#endif
-
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -31,20 +24,5 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     half4 color = half4(surfaceDescription.BaseColor, alpha);
-
-    #if defined(DEBUG_DISPLAY)
-    SurfaceData2D surfaceData;
-    InitializeSurfaceData(color.rgb, color.a, surfaceData);
-    InputData2D inputData;
-    InitializeInputData(unpacked.positionCS.xy, half2(unpacked.positionCS.xy), inputData);
-    half4 debugColor = 0;
-
-    SETUP_DEBUG_DATA_2D(inputData, unpacked.positionCS, unpacked.positionCS);
-
-    if (CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
-    {
-        return debugColor;
-    }
-    #endif
     return color;
 }

@@ -119,7 +119,6 @@ SubShader {
 		#pragma shader_feature __ UNDERLAY_ON UNDERLAY_INNER
 		#pragma shader_feature __ GLOW_ON
 
-		#pragma multi_compile _ DEBUG_DISPLAY
 		#pragma multi_compile __ UNITY_UI_CLIP_RECT
 		#pragma multi_compile __ UNITY_UI_ALPHACLIP
 
@@ -127,10 +126,6 @@ SubShader {
 		#include "UnityUI.cginc"
 		#include "TMPro_Properties.cginc"
 		#include "TMPro.cginc"
-
-		#if defined(DEBUG_DISPLAY)
-		#include "Debugging2D.cginc"
-		#endif
 
 		struct vertex_t
 		{
@@ -313,12 +308,6 @@ SubShader {
 
 		    #if UNITY_UI_ALPHACLIP
 			clip(faceColor.a - 0.001);
-		    #endif
-
-		    #if defined(DEBUG_DISPLAY)
-			fixed4 debugColor = 0;
-			if(CanDebugOverrideOutputColor(debugColor))
-			   return debugColor;
 		    #endif
 
 			return faceColor * input.color.a;

@@ -88,15 +88,10 @@ SubShader {
 
 		#pragma multi_compile __ UNITY_UI_CLIP_RECT
 		#pragma multi_compile __ UNITY_UI_ALPHACLIP
-		#pragma multi_compile _ DEBUG_DISPLAY
 
 		#include "UnityCG.cginc"
 		#include "UnityUI.cginc"
 		#include "TMPro_Properties.cginc"
-
-		#if defined(DEBUG_DISPLAY)
-		#include "Debugging2D.cginc"
-		#endif
 
 		struct vertex_t
 		{
@@ -240,12 +235,6 @@ SubShader {
 
             #if UNITY_UI_ALPHACLIP
 			clip(c.a - 0.001);
-		    #endif
-
-            #if defined(DEBUG_DISPLAY)
-			fixed4 debugColor = 0;
-			if(CanDebugOverrideOutputColor(debugColor))
-			   return debugColor;
 		    #endif
 
 			return c;

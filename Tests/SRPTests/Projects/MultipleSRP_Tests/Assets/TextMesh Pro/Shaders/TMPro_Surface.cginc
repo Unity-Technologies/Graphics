@@ -1,8 +1,3 @@
-#pragma multi_compile _ DEBUG_DISPLAY
-#if defined(DEBUG_DISPLAY)
-#include "Debugging2D.cginc"
-#endif
-
 void VertShader(inout appdata_full v, out Input data)
 {
 	v.vertex.x += _VertexOffsetX;
@@ -92,12 +87,6 @@ void PixShader(Input input, inout SurfaceOutput o)
 	emission += glowColor.rgb*glowColor.a;
 	faceColor = BlendARGB(glowColor, faceColor);
 	faceColor.rgb /= max(faceColor.a, 0.0001);
-#endif
-
-#if defined(DEBUG_DISPLAY)
-	fixed4 debugColor = 0;
-	if(CanDebugOverrideOutputColor(debugColor))
-	   faceColor = debugColor;
 #endif
 
 	// Set Standard output structure

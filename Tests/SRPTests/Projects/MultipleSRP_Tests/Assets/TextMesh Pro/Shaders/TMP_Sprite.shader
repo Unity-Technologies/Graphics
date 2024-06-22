@@ -58,11 +58,6 @@ Shader "TextMeshPro/Sprite"
 
             #pragma multi_compile __ UNITY_UI_CLIP_RECT
             #pragma multi_compile __ UNITY_UI_ALPHACLIP
-            #pragma multi_compile _ DEBUG_DISPLAY
-
-            #if defined(DEBUG_DISPLAY)
-			#include "Debugging2D.cginc"
-            #endif
 
 			struct appdata_t
 			{
@@ -119,16 +114,10 @@ Shader "TextMeshPro/Sprite"
 				color *= m.x * m.y;
 				#endif
 
-				#if UNITY_UI_ALPHACLIP
+				#ifdef UNITY_UI_ALPHACLIP
 					clip (color.a - 0.001);
 				#endif
 
-				#if defined(DEBUG_DISPLAY)
-				fixed4 debugColor = 0;
-				if(CanDebugOverrideOutputColor(debugColor))
-				   return debugColor;
-				#endif
-				
 				return color;
 			}
 		    ENDCG
