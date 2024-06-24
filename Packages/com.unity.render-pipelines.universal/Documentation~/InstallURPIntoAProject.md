@@ -27,7 +27,7 @@ The [Universal Render Pipeline Asset](universalrp-asset.md) (URP Asset) contains
 To create a Universal Render Pipeline Asset:
 
 1. In the Editor, go to the Project window.
-2. Right-click in the Project window, and select  __Create > Rendering > URP Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets > Create > Rendering > Universal Render Pipeline > Pipeline Asset__.
+2. Right-click in the Project window, and select  **Create** > **Rendering** > **URP Asset (with Universal Renderer)**. Alternatively, navigate to the menu bar at the top, and select **Assets** > **Create** > **Rendering** > **URP Asset (with Universal Renderer)**.
 
 You can either leave the default name for the new Universal Render Pipeline Asset, or type a new one.
 
