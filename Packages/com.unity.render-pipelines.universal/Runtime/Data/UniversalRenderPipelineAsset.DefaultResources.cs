@@ -3,6 +3,16 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.Universal
 {
+    internal enum DefaultMaterialType
+    {
+        Default,
+        Particle,
+        Terrain,
+        Sprite,
+        SpriteMask,
+        Decal
+    }
+
     public partial class UniversalRenderPipelineAsset
     {
         #region Materials
@@ -21,11 +31,11 @@ namespace UnityEngine.Rendering.Universal
                 {
                     return materialType switch
                     {
-                      DefaultMaterialType.Standard => defaultMaterials.defaultMaterial,
+                      DefaultMaterialType.Default => defaultMaterials.defaultMaterial,
                       DefaultMaterialType.Particle => defaultMaterials.defaultParticleUnlitMaterial,
                       DefaultMaterialType.Terrain => defaultMaterials.defaultTerrainLitMaterial,
                       DefaultMaterialType.Decal => defaultMaterials.defaultDecalMaterial,
-                      _ => null,// Unity Builtin Default
+                      _ => null
                     };
                 }
             }
@@ -40,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the default Material.
         /// </summary>
         /// <returns>Returns the default Material.</returns>
-        public override Material defaultMaterial => GetMaterial(DefaultMaterialType.Standard);
+        public override Material defaultMaterial => GetMaterial(DefaultMaterialType.Default);
 
         /// <summary>
         /// Returns the default particle Material.
@@ -61,24 +71,6 @@ namespace UnityEngine.Rendering.Universal
         public override Material defaultTerrainMaterial => GetMaterial(DefaultMaterialType.Terrain);
 
         /// <summary>
-        /// Returns the default UI Material.
-        /// </summary>
-        /// <returns>Returns the default UI Material.</returns>
-        public override Material defaultUIMaterial => GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
-
-        /// <summary>
-        /// Returns the default UI overdraw Material.
-        /// </summary>
-        /// <returns>Returns the default UI overdraw Material.</returns>
-        public override Material defaultUIOverdrawMaterial => GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
-
-        /// <summary>
-        /// Returns the default UIETC1 supported Material for this asset.
-        /// </summary>
-        /// <returns>Returns the default UIETC1 supported Material.</returns>
-        public override Material defaultUIETC1SupportedMaterial => GetMaterial(DefaultMaterialType.UnityBuiltinDefault);
-
-        /// <summary>
         /// Returns the default material for the 2D renderer.
         /// </summary>
         /// <returns>Returns the material containing the default lit and unlit shader passes for sprites in the 2D renderer.</returns>
@@ -95,7 +87,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <returns>Returns the Material containing the Unity decal shader.</returns>
         public Material decalMaterial => GetMaterial(DefaultMaterialType.Decal);
-
 
         #endregion
 

@@ -223,17 +223,6 @@ namespace UnityEngine.Rendering.Universal
         _4xBilinear
     }
 
-    internal enum DefaultMaterialType
-    {
-        Standard,
-        Particle,
-        Terrain,
-        Sprite,
-        UnityBuiltinDefault,
-        SpriteMask,
-        Decal
-    }
-
     /// <summary>
     /// Options for light rendering mode.
     /// </summary>

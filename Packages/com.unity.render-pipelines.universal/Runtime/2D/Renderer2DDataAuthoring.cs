@@ -10,7 +10,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal override Shader GetDefaultShader()
         {
-            return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
+                return null;
+
+            return resources.defaultLitMaterial.shader;
         }
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
