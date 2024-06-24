@@ -2,7 +2,7 @@
 
 To determine when Unity executes a Custom Pass Volume, select an **Injection Point** in the [Custom Pass Volume](Custom-Pass-Creating.md#Custom-Pass-Volume) component.
 
-Each injection point affects the way Custom Passes appear in your scene. There are six injection points in the High Definition Render Pipeline (HDRP). If there are multiple Custom Pass volumes assigned to one Injection Point, HDRP executes them in order of priority. For more information see [Custom Pass Volume workflow](#Custom-Pass-Volume-Workflow.md)
+Each injection point affects the way Custom Passes appear in your scene. There are seven injection points in the High Definition Render Pipeline (HDRP). If there are multiple Custom Pass volumes assigned to one Injection Point, HDRP executes them in order of priority. For more information see [Custom Pass Volume workflow](#Custom-Pass-Volume-Workflow.md)
 
 Injection points give a Custom Pass Volume component access to a selection of buffers. Each available buffer has different read or write access at each injection point. Each buffer contains a subset of objects rendered before your pass. HDRP creates a color pyramid and depth pyramid at specific points in the rendering pipeline. For more information, see [Custom Pass buffers and pyramids](Custom-Pass-buffers-pyramids.md).
 
