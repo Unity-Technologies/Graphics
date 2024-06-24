@@ -126,14 +126,17 @@ namespace UnityEngine.VFX.Test
                 var rt = RenderTexture.GetTemporary(imageComparisonSettings.TargetWidth, imageComparisonSettings.TargetHeight, 24);
                 camera.targetTexture = rt;
 
-                //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
-                maxFrame = maxFrameWaiting;
-                while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
-                    yield return new WaitForEndOfFrame();
-                Assert.Greater(maxFrame, 0);
+                if (vfxComponents.Length > 0)
+                {
+                    //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
+                    maxFrame = maxFrameWaiting;
+                    while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
+                        yield return new WaitForEndOfFrame();
+                    Assert.Greater(maxFrame, 0);
 
-                foreach (var component in vfxComponents)
-                    component.Reinit();
+                    foreach (var component in vfxComponents)
+                        component.Reinit();
+                }
 
 #if UNITY_EDITOR
                 //When we change the graph, if animator was already enable, we should reinitialize animator to force all BindValues
