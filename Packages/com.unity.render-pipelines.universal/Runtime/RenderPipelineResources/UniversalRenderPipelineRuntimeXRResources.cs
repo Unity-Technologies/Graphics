@@ -45,6 +45,19 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_xrMirrorViewPS, value, nameof(m_xrMirrorViewPS));
         }
 
+        [SerializeField]
+        [ResourcePath("Shaders/XR/XRMotionVector.shader")]
+        public Shader m_xrMotionVector;
+
+        /// <summary>
+        /// XR MotionVector shader.
+        /// </summary>
+        public Shader xrMotionVector
+        {
+            get => m_xrMotionVector;
+            set => this.SetValueAndNotify(ref m_xrMotionVector, value, nameof(m_xrMotionVector));
+        }
+
         internal bool valid
         {
             get
@@ -53,6 +66,9 @@ namespace UnityEngine.Rendering.Universal
                     return false;
 
                 if (xrMirrorViewPS == null)
+                    return false;
+
+                if (m_xrMotionVector == null)
                     return false;
 
                 return true;

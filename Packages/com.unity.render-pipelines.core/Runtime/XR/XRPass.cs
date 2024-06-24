@@ -12,6 +12,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         internal RenderTargetIdentifier renderTarget;
         internal RenderTextureDescriptor renderTargetDesc;
+        internal RenderTargetIdentifier motionVectorRenderTarget;
+        internal RenderTextureDescriptor motionVectorRenderTargetDesc;
         internal ScriptableCullingParameters cullingParameters;
         internal Material occlusionMeshMaterial;
         internal float occlusionMeshScale;
@@ -19,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         internal int multipassId;
         internal int cullingPassId;
         internal bool copyDepth;
+        internal bool hasMotionVectorPass;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
@@ -96,6 +99,11 @@ namespace UnityEngine.Experimental.Rendering
         public bool copyDepth { get; private set; }
 
         /// <summary>
+        ///  If true, the render pipeline is expected to generate motion data and output to the motionVectorRenderTarget.
+        /// </summary>
+        public bool hasMotionVectorPass { get; private set; }
+
+        /// <summary>
         /// If true, is the first pass of a xr camera
         /// </summary>
         public bool isFirstCameraPass => multipassId == 0;
@@ -124,6 +132,16 @@ namespace UnityEngine.Experimental.Rendering
         /// Destination render target descriptor.
         /// </summary>
         public RenderTextureDescriptor renderTargetDesc { get; private set; }
+
+        /// <summary>
+        ///  Destination render target for motion vectors
+        /// </summary>
+        public RenderTargetIdentifier motionVectorRenderTarget { get; private set; }
+
+        /// <summary>
+        /// Destination render target descriptor for motion vectors.
+        /// </summary>
+        public RenderTextureDescriptor motionVectorRenderTargetDesc { get; private set; }
 
         /// <summary>
         /// Parameters used for culling.
@@ -209,6 +227,26 @@ namespace UnityEngine.Experimental.Rendering
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewMatrix;
+        }
+
+        /// <summary>
+        /// Returns true if the previous frame view matrix for a given view is valid.
+        /// </summary>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> Boolean describing if previous frame view matrix for a given view is valid. </returns>
+        public bool GetPrevViewValid(int viewIndex = 0)
+        {
+            return m_Views[viewIndex].isPrevViewMatrixValid;
+        }
+
+        /// <summary>
+        /// Returns the previous frame view matrix for a given view.
+        /// </summary>
+        /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
+        /// <returns> Previous frame XR view matrix for the specified XRView. </returns>
+        public Matrix4x4 GetPrevViewMatrix(int viewIndex = 0)
+        {
+            return m_Views[viewIndex].prevViewMatrix;
         }
 
         /// <summary>
@@ -422,6 +460,9 @@ namespace UnityEngine.Experimental.Rendering
             AssignCullingParams(createInfo.cullingPassId, createInfo.cullingParameters);
             renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
             renderTargetDesc = createInfo.renderTargetDesc;
+            motionVectorRenderTarget = new RenderTargetIdentifier(createInfo.motionVectorRenderTarget, 0, CubemapFace.Unknown, -1);
+            motionVectorRenderTargetDesc = createInfo.motionVectorRenderTargetDesc;
+            hasMotionVectorPass = createInfo.hasMotionVectorPass;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;

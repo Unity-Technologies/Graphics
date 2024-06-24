@@ -996,6 +996,18 @@ namespace UnityEngine.Rendering.Universal
             bool isDeferred = this.renderingModeActual == RenderingMode.Deferred;
 
             bool needsOccluderUpdate = cameraData.useGPUOcclusionCulling;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled && cameraData.xr.hasMotionVectorPass)
+            {
+                // Update prevView and View matrices.
+                m_XRDepthMotionPass?.Update(ref cameraData);
+
+                // Record depthMotion pass and import XR resources into the rendergraph.
+                m_XRDepthMotionPass?.Render(renderGraph, frameData);
+            }
+#endif
+
             if (requiresDepthPrepass)
             {
                 // TODO RENDERGRAPH: is this always a valid assumption for deferred rendering?

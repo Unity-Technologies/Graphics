@@ -23,7 +23,6 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
             m_PassData = new PassData();
             m_IsActiveTargetBackBuffer = false;
-            base.profilingSampler = new ProfilingSampler("XR Occlusion Pass");
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData data)
