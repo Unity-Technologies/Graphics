@@ -27,6 +27,7 @@ Varyings DepthOnlyVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     #if defined(_ALPHATEST_ON)
@@ -38,6 +39,7 @@ Varyings DepthOnlyVertex(Attributes input)
 
 half DepthOnlyFragment(Varyings input) : SV_TARGET
 {
+    UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     #if defined(_ALPHATEST_ON)
