@@ -142,6 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                     {
+                        if (!shadowIndicesAndVisibleLightData.isSplitValidMask[(uint)index])
+                            continue;
+
                         bool needToUpdateCachedContent = needCacheUpdateMask[(uint)index];
                         HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                         int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
@@ -190,6 +193,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                     {
+                        if (!shadowIndicesAndVisibleLightData.isSplitValidMask[(uint)index])
+                            continue;
+
                         HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                         int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                         ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
@@ -557,6 +563,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                 {
+                    if (!shadowIndicesAndVisibleLightData.isSplitValidMask[(uint)index])
+                        continue;
+
                     HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                     int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                     ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
@@ -617,6 +626,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int index = 0; index < shadowIndicesAndVisibleLightData.splitCount; index++)
                 {
+                    if (!shadowIndicesAndVisibleLightData.isSplitValidMask[(uint)index])
+                        continue;
+
                     HDShadowRequestHandle indexHandle = shadowRequestSetHandle[index];
                     int shadowRequestIndex = requestIndicesStorage[indexHandle.storageIndexForRequestIndex];
                     ref HDShadowResolutionRequest resolutionRequest = ref shadowManager.shadowResolutionRequestStorage.ElementAt(shadowRequestIndex);
