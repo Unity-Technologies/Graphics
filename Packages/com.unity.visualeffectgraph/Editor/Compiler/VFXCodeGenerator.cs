@@ -653,7 +653,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 var spaceable = data as ISpaceable;
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.World ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
-            globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
+            globalIncludeContent.WriteLineFormat("#include_with_pragmas \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
 
             if (needsGraphValueStruct)
                 globalIncludeContent.WriteLine("#define VFX_USE_GRAPH_VALUES 1");
