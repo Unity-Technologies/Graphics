@@ -4,7 +4,7 @@
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
 
-#define QRNG_METHOD_RANDOM_XOR_SHIFT
+#define QRNG_METHOD_SOBOL
 #define SAMPLE_COUNT 32
 #define RAND_SAMPLES_PER_BOUNCE 2
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
