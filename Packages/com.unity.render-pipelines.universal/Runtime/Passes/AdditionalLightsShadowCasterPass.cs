@@ -751,6 +751,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
                     // For Spot lights and Point lights _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 
+                    // Update shadow pancaking
+                    ShadowUtils.SetShadowPancaking(cmd, shadowLight.lightType != LightType.Spot);
+
                     RendererList shadowRendererList = useRenderGraph? data.shadowRendererListsHdl[globalShadowSliceIndex] : data.shadowRendererLists[globalShadowSliceIndex];
                     ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
