@@ -17,6 +17,9 @@ APVSample BlendAPVSamples(APVSample state0, APVSample state1, half factor)
     result.L2_B = lerp(state0.L2_B, state1.L2_B, factor);
     result.L2_C = lerp(state0.L2_C, state1.L2_C, factor);
 #endif
+#ifdef USE_APV_PROBE_OCCLUSION
+    result.probeOcclusion = lerp(state0.probeOcclusion, state1.probeOcclusion, factor);
+#endif
     result.status = APV_SAMPLE_STATUS_DECODED;
     return result;
 }
@@ -38,6 +41,9 @@ void EncodeAndStoreAPV(APVResourcesRW apvRes, APVSample apvSample, int3 loc)
     apvRes.L2_1[loc].rgba = apvSample.L2_G;
     apvRes.L2_2[loc].rgba = apvSample.L2_B;
     apvRes.L2_3[loc].rgba = float4(apvSample.L2_C, 0.0f);
+#endif
+#ifdef USE_APV_PROBE_OCCLUSION
+    apvRes.ProbeOcclusion[loc].rgba = apvSample.probeOcclusion;
 #endif
 }
 

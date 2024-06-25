@@ -25,6 +25,9 @@ struct Varyings
     #endif
     half4   NormalWS        : TEXCOORD5;
     float3  PositionWS      : TEXCOORD6;
+    #ifdef USE_APV_PROBE_OCCLUSION
+    float4 probeOcclusion   : TEXCOORD7;
+    #endif
     float4  PositionCS      : SV_POSITION; // Clip Position
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -50,7 +53,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.fogCoord = input.LightingFog.a;
     inputData.vertexLighting = input.LightingFog.rgb;
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
     inputData.positionWS = input.PositionWS;
 
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
@@ -58,9 +60,12 @@ void InitializeInputData(Varyings input, out InputData inputData)
         GetAbsolutePositionWS(inputData.positionWS),
         input.NormalWS.xyz,
         GetWorldSpaceNormalizeViewDir(inputData.positionWS),
-        inputData.positionCS.xy);
+        inputData.positionCS.xy,
+        input.probeOcclusion,
+        inputData.shadowMask);
 #else
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, input.NormalWS.xyz);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 #endif
 
     #if defined(DEBUG_DISPLAY)
@@ -141,7 +146,7 @@ Varyings TerrainLitVertex(Attributes input)
 
     // Vertex Lighting
     half3 NormalWS = input.NormalOS;
-    OUTPUT_SH4(vertexInput.positionWS, NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
+    OUTPUT_SH4(vertexInput.positionWS, NormalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
     Light mainLight = GetMainLight();
     half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
     half3 diffuseColor = half3(0, 0, 0);

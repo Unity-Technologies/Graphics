@@ -47,6 +47,10 @@ struct Varyings
     float2 dynamicLightmapUV        : TEXCOORD9;
 #endif
 
+#ifdef USE_APV_PROBE_OCCLUSION
+    float4 probeOcclusion           : TEXCOORD10;
+#endif
+
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -96,17 +100,20 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
 #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(SH,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
         inputData.viewDirectionWS,
-        inputData.positionCS.xy);
+        inputData.positionCS.xy,
+        IN.probeOcclusion,
+        inputData.shadowMask);
 #else
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
 #endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 
     #if defined(DEBUG_DISPLAY)
     #if defined(DYNAMICLIGHTMAP_ON)
@@ -310,7 +317,7 @@ Varyings SplatmapVert(Attributes v)
         o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
     #else
         o.normal = TransformObjectToWorldNormal(v.normalOS);
-        OUTPUT_SH4(Attributes.positionWS, o.normal.xyz, GetWorldSpaceNormalizeViewDir(Attributes.positionWS), o.vertexSH);
+        OUTPUT_SH4(Attributes.positionWS, o.normal.xyz, GetWorldSpaceNormalizeViewDir(Attributes.positionWS), o.vertexSH, o.probeOcclusion);
     #endif
 
     half fogFactor = 0;

@@ -55,6 +55,16 @@ MonoBehaviour:
     Reason: incorrect on metal
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 852276b9a099f5f47bb91f7f3ae48c29, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: incorrect on metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 6abac8c2689f0ed48b18d05bc496d5c4, type: 3}
     ColorSpace: -1
     BuildPlatform: -2

@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering
             public int _L1GryOffset;
             public int _L1BrzOffset;
             public int _ValidityOffset;
+            public int _ProbeOcclusionOffset;
             public int _SkyOcclusionOffset;
             public int _SkyShadingDirectionOffset;
             public int _L2_0Offset;
@@ -95,6 +96,8 @@ namespace UnityEngine.Rendering
             public int _L1ProbeSize; // In bytes
             public int _ValiditySize;
             public int _ValidityProbeSize; // In bytes
+            public int _ProbeOcclusionSize;
+            public int _ProbeOcclusionProbeSize; // In bytes
             public int _SkyOcclusionSize;
             public int _SkyOcclusionProbeSize; // In bytes
             public int _SkyShadingDirectionSize;
@@ -181,6 +184,7 @@ namespace UnityEngine.Rendering
             public DiskStreamingRequest cellDataStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest cellOptionalDataStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest cellSharedDataStreamingRequest = new DiskStreamingRequest(1);
+            public DiskStreamingRequest cellProbeOcclusionDataStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest brickStreamingRequest = new DiskStreamingRequest(1);
             public DiskStreamingRequest supportStreamingRequest = new DiskStreamingRequest(5);
 
@@ -200,6 +204,7 @@ namespace UnityEngine.Rendering
                     cellDataStreamingRequest.Cancel();
                     cellOptionalDataStreamingRequest.Cancel();
                     cellSharedDataStreamingRequest.Cancel();
+                    cellProbeOcclusionDataStreamingRequest.Cancel();
                 }
 
                 state = State.Canceled;
@@ -214,6 +219,7 @@ namespace UnityEngine.Rendering
                     cellDataStreamingRequest.Wait();
                     cellOptionalDataStreamingRequest.Wait();
                     cellSharedDataStreamingRequest.Wait();
+                    cellProbeOcclusionDataStreamingRequest.Wait();
                 }
             }
 
@@ -237,6 +243,7 @@ namespace UnityEngine.Rendering
                     success &= UpdateRequestState(cellDataStreamingRequest, ref isComplete);
                     success &= UpdateRequestState(cellOptionalDataStreamingRequest, ref isComplete);
                     success &= UpdateRequestState(cellSharedDataStreamingRequest, ref isComplete);
+                    success &= UpdateRequestState(cellProbeOcclusionDataStreamingRequest, ref isComplete);
 
                     if (!success)
                     {
@@ -265,6 +272,7 @@ namespace UnityEngine.Rendering
                 cellDataStreamingRequest.Clear();
                 cellOptionalDataStreamingRequest.Clear();
                 cellSharedDataStreamingRequest.Clear();
+                cellProbeOcclusionDataStreamingRequest.Clear();
                 bytesWritten = 0;
             }
 
@@ -275,6 +283,7 @@ namespace UnityEngine.Rendering
                 cellDataStreamingRequest.Dispose();
                 cellOptionalDataStreamingRequest.Dispose();
                 cellSharedDataStreamingRequest.Dispose();
+                cellProbeOcclusionDataStreamingRequest.Dispose();
             }
         }
 
@@ -1167,6 +1176,16 @@ namespace UnityEngine.Rendering
                 request.bytesWritten += request.cellOptionalDataStreamingRequest.RunCommands(optionalDataAsset.OpenFile());
             }
 
+            if (m_CurrentBakingSet.bakedProbeOcclusion)
+            {
+                var probeOcclusionDataAsset = request.scenarioData.cellProbeOcclusionDataAsset;
+                cellStreamingDesc = probeOcclusionDataAsset.streamableCellDescs[cellIndex];
+                var probeOcclusionReadSize = m_CurrentBakingSet.ProbeOcclusionChunkSize * chunkCount;
+                request.cellProbeOcclusionDataStreamingRequest.AddReadCommand(cellStreamingDesc.offset, probeOcclusionReadSize, mappedBufferAddr);
+                mappedBufferAddr += probeOcclusionReadSize;
+                request.bytesWritten += request.cellProbeOcclusionDataStreamingRequest.RunCommands(probeOcclusionDataAsset.OpenFile());
+            }
+
             // Bricks Data
             cellData.bricks = new NativeArray<ProbeBrickIndex.Brick>(cellDesc.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
@@ -1371,12 +1390,14 @@ namespace UnityEngine.Rendering
                     {
                         scenarioData.cellDataAsset.CloseFile();
                         scenarioData.cellOptionalDataAsset.CloseFile();
+                        scenarioData.cellProbeOcclusionDataAsset.CloseFile();
                     }
 
                     if (!string.IsNullOrEmpty(otherScenario) && m_CurrentBakingSet.scenarios.TryGetValue(lightingScenario, out var otherScenarioData))
                     {
                         otherScenarioData.cellDataAsset.CloseFile();
                         otherScenarioData.cellOptionalDataAsset.CloseFile();
+                        otherScenarioData.cellProbeOcclusionDataAsset.CloseFile();
                     }
                 }
             }

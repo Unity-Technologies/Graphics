@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering
             public int sceneHash;
             public ProbeVolumeStreamableAsset cellDataAsset; // Contains L0 L1 SH data
             public ProbeVolumeStreamableAsset cellOptionalDataAsset; // Contains L2 SH data
+            public ProbeVolumeStreamableAsset cellProbeOcclusionDataAsset; // Contains per-probe occlusion for up to to 4 lights in range [0;1]
 
             bool m_HasValidData;
         }
@@ -129,6 +130,7 @@ namespace UnityEngine.Rendering
         [SerializeField] internal Bounds globalBounds;
         [SerializeField] internal int bakedSimplificationLevels = -1;
         [SerializeField] internal float bakedMinDistanceBetweenProbes = -1.0f;
+        [SerializeField] internal bool bakedProbeOcclusion = false;
         [SerializeField] internal int bakedSkyOcclusionValue = -1;
         [SerializeField] internal int bakedSkyShadingDirectionValue = -1;
         [SerializeField] internal Vector3 bakedProbeOffset = Vector3.zero;
@@ -138,6 +140,7 @@ namespace UnityEngine.Rendering
         [SerializeField] internal int L0ChunkSize;
         [SerializeField] internal int L1ChunkSize;
         [SerializeField] internal int L2TextureChunkSize; // Optional. Size of the chunk for one texture (4 textures for all data)
+        [SerializeField] internal int ProbeOcclusionChunkSize; // Optional. Size of the chunk for one texture
         [SerializeField] internal int sharedValidityMaskChunkSize; // Shared
         [SerializeField] internal int sharedSkyOcclusionL0L1ChunkSize; // Shared
         [SerializeField] internal int sharedSkyShadingDirectionIndicesChunkSize;
@@ -490,6 +493,7 @@ namespace UnityEngine.Rendering
                     {
                         scenario.Value.cellDataAsset.Dispose();
                         scenario.Value.cellOptionalDataAsset.Dispose();
+                        scenario.Value.cellProbeOcclusionDataAsset.Dispose();
                     }
                 }
             }
@@ -930,7 +934,8 @@ namespace UnityEngine.Rendering
 
                 var cellData = LoadStreambleAssetData<byte>(data.cellDataAsset, m_PrunedScenarioIndexList);
                 var cellOptionalData = shUseL2 ? LoadStreambleAssetData<byte>(data.cellOptionalDataAsset, m_PrunedScenarioIndexList) : default;
-                if (!ResolvePerScenarioCellData(cellData, cellOptionalData, name, m_PrunedScenarioIndexList))
+                var cellProbeOcclusionData = bakedProbeOcclusion ? LoadStreambleAssetData<byte>(data.cellProbeOcclusionDataAsset, m_PrunedScenarioIndexList) : default;
+                if (!ResolvePerScenarioCellData(cellData, cellOptionalData, cellProbeOcclusionData, name, m_PrunedScenarioIndexList))
                 {
                     Debug.LogError($"Baked data for scenario '{name}' cannot be loaded.");
                     return false;
@@ -939,12 +944,14 @@ namespace UnityEngine.Rendering
                 ReleaseStreamableAssetData(cellData);
                 if (shUseL2)
                     ReleaseStreamableAssetData(cellOptionalData);
+                if (bakedProbeOcclusion)
+                    ReleaseStreamableAssetData(cellProbeOcclusionData);
             }
 
             return true;
         }
 
-        internal bool ResolvePerScenarioCellData(NativeArray<byte> cellData, NativeArray<byte> cellOptionalData, string scenario, List<int> cellIndices)
+        internal bool ResolvePerScenarioCellData(NativeArray<byte> cellData, NativeArray<byte> cellOptionalData, NativeArray<byte> cellProbeOcclusionData, string scenario, List<int> cellIndices)
         {
             Debug.Assert(!ProbeReferenceVolume.instance.diskStreamingEnabled);
 
@@ -954,8 +961,11 @@ namespace UnityEngine.Rendering
             // Optional L2 data
             var hasOptionalData = cellOptionalData.IsCreated;
 
+            var hasProbeOcclusionData = cellProbeOcclusionData.IsCreated && cellProbeOcclusionData.Length > 0;
+
             var chunkOffsetL0L1 = 0;
             var chunkOffsetL2 = 0;
+            var chunkOffsetProbeOcclusion = 0;
 
             for (var i = 0; i < cellIndices.Count; ++i)
             {
@@ -989,8 +999,16 @@ namespace UnityEngine.Rendering
                     cellState.shL2Data_3 = m_UseStreamingAsset ? new NativeArray<byte>(sourceShL2Data_3, Allocator.Persistent) : sourceShL2Data_3;
                 }
 
+                if (hasProbeOcclusionData)
+                {
+                    var sourceProbeOcclusionDataSource = cellProbeOcclusionData.GetSubArray(chunkOffsetProbeOcclusion, ProbeOcclusionChunkSize * shChunkCount);
+
+                    cellState.probeOcclusion = m_UseStreamingAsset ? new NativeArray<byte>(sourceProbeOcclusionDataSource, Allocator.Persistent) : sourceProbeOcclusionDataSource;
+                }
+
                 chunkOffsetL0L1 += (L0ChunkSize + 2 * L1ChunkSize) * shChunkCount;
                 chunkOffsetL2 += (L2TextureChunkSize * 4) * shChunkCount;
+                chunkOffsetProbeOcclusion += ProbeOcclusionChunkSize * shChunkCount;
 
                 cell.scenarios.Add(scenario, cellState);
             }
@@ -1029,6 +1047,10 @@ namespace UnityEngine.Rendering
             // 4 Optional L2 Chunks
             if (shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 size += 4 * L2TextureChunkSize;
+
+            // Optional probe occlusion
+            if (bakedProbeOcclusion)
+                size += ProbeOcclusionChunkSize;
 
             return size;
         }

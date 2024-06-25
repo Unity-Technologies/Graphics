@@ -32,7 +32,9 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
         inputData.viewDirectionWS,
-        input.clipPos.xy);
+        input.clipPos.xy,
+        input.probeOcclusion,
+        inputData.shadowMask);
 #else
     inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
 #endif

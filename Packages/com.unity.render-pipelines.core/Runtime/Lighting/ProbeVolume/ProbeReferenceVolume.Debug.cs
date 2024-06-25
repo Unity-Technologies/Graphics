@@ -51,7 +51,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Based on shading direction
         /// </summary>
-        SkyDirection
+        SkyDirection,
+        /// <summary>
+        /// Occlusion values per probe
+        /// </summary>
+        ProbeOcclusion,
     }
 
     enum ProbeSamplingDebugUpdate
@@ -527,6 +531,7 @@ namespace UnityEngine.Rendering
                             DebugProbeShadingMode.SHL0L1 => false,
                             DebugProbeShadingMode.SkyOcclusionSH => false,
                             DebugProbeShadingMode.SkyDirection => false,
+                            DebugProbeShadingMode.ProbeOcclusion => false,
                             _ => true
                         };
                     }

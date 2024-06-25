@@ -19,6 +19,7 @@ struct DilatedProbe
     float3 L2_4;
     float4 SO_L0L1;
     float3 SO_Direction;
+    float4 ProbeOcclusion;
 };
 
 

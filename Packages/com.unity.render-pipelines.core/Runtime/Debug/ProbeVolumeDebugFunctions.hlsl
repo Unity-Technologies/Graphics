@@ -73,7 +73,7 @@
         UNITY_SETUP_INSTANCE_ID(i);
 
         if (_ShadingMode >= DEBUGPROBESHADINGMODE_SH && _ShadingMode <= DEBUGPROBESHADINGMODE_SHL0L1
-            || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
+            || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION || _ShadingMode == DEBUGPROBESHADINGMODE_PROBE_OCCLUSION)
         {
             return float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
         }

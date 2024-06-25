@@ -53,6 +53,10 @@ struct VaryingsParticle
         #endif
 
         half3 vertexSH             : TEXCOORD8; // SH
+
+        #ifdef USE_APV_PROBE_OCCLUSION
+            float4 probeOcclusion  : TEXCOORD9;
+        #endif
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID

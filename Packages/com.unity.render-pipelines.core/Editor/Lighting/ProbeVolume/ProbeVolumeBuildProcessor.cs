@@ -112,6 +112,7 @@ namespace UnityEditor.Rendering
                         PrepareStreamableAsset(scenario.Value.cellDataAsset, basePath, useStreamingAsset);
                         if (maxSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                             PrepareStreamableAsset(scenario.Value.cellOptionalDataAsset, basePath, useStreamingAsset);
+                        PrepareStreamableAsset(scenario.Value.cellProbeOcclusionDataAsset, basePath, useStreamingAsset);
                     }
 
                     processedBakingSets.Add(bakingSet);

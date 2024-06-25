@@ -4,6 +4,7 @@
 #pragma kernel BlendScenarios
 
 #pragma multi_compile _ PROBE_VOLUMES_L2
+#pragma multi_compile _ USE_APV_PROBE_OCCLUSION
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolumeBlendStates.hlsl"
 
@@ -34,6 +35,12 @@ RWTexture3D<float4> _Out_L2_0;
 RWTexture3D<float4> _Out_L2_1;
 RWTexture3D<float4> _Out_L2_2;
 RWTexture3D<float4> _Out_L2_3;
+#endif
+
+#ifdef USE_APV_PROBE_OCCLUSION
+Texture3D<float4> _State0_ProbeOcclusion;
+Texture3D<float4> _State1_ProbeOcclusion;
+RWTexture3D<float4> _Out_ProbeOcclusion;
 #endif
 
 float4 _ChunkList[1000];

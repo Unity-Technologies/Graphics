@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering
         public Vector4[] skyOcclusionDataL0L1;
         public byte[] skyShadingDirectionIndices;
         public float[] validity;
+        public Vector4[] probeOcclusion;
         public byte[] layerValidity;
         public Vector3[] offsetVectors;
         public float[] touchupVolumeInteraction;
@@ -220,7 +221,7 @@ namespace UnityEngine.Rendering
         }
 
         internal void SetBakedData(ProbeVolumeBakingSet bakingSet, BakingBatch bakingBatch, TouchupVolumeWithBoundsList localTouchupVolumes, int i, int probeIndex,
-            in SphericalHarmonicsL2 sh, float validity, NativeArray<uint> renderingLayerMasks, NativeArray<Vector3> virtualOffsets, NativeArray<Vector4> skyOcclusion, NativeArray<uint> skyDirection)
+            in SphericalHarmonicsL2 sh, float validity, NativeArray<uint> renderingLayerMasks, NativeArray<Vector3> virtualOffsets, NativeArray<Vector4> skyOcclusion, NativeArray<uint> skyDirection, NativeArray<Vector4> probeOcclusion)
         {
             byte layerValidityMask = (byte)(renderingLayerMasks.IsCreated ? renderingLayerMasks[probeIndex] : 0);
 
@@ -246,6 +247,9 @@ namespace UnityEngine.Rendering
             this.validity[i] = currValidity;
             for (int l = 0; l < APVDefinitions.probeMaxRegionCount; l++)
                 validityNeighbourMask[l, i] = currValidityNeighbourMask;
+
+            if (probeOcclusion.IsCreated)
+                this.probeOcclusion[i] = probeOcclusion[probeIndex];
         }
 
         internal int GetBakingHashCode()
@@ -473,7 +477,7 @@ namespace UnityEngine.Rendering
                     defaultSOJob.jobs = jobs;
 
                 lightingJob = lightingOverride ?? new DefaultLightTransport();
-                lightingJob.Initialize(sortedPositions);
+                lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions);
                 if (lightingJob is DefaultLightTransport defaultLightingJob)
                     defaultLightingJob.jobs = jobs;
 
@@ -1059,7 +1063,8 @@ namespace UnityEngine.Rendering
                     s_BakeData.lightingJob.irradiance, s_BakeData.lightingJob.validity,
                     s_BakeData.layerMaskJob.renderingLayerMasks,
                     s_BakeData.virtualOffsetJob.offsets,
-                    s_BakeData.skyOcclusionJob.occlusion, s_BakeData.skyOcclusionJob.encodedDirections);
+                    s_BakeData.skyOcclusionJob.occlusion, s_BakeData.skyOcclusionJob.encodedDirections,
+                    s_BakeData.lightingJob.occlusion);
 
                 if (s_BakeData.cellIndex >= m_BakingBatch.cells.Count)
                     s_BakeData.step++;

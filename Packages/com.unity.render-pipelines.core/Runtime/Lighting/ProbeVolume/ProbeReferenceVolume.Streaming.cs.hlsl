@@ -12,6 +12,7 @@ CBUFFER_START(CellStreamingScratchBufferLayout)
     int _L1GryOffset;
     int _L1BrzOffset;
     int _ValidityOffset;
+    int _ProbeOcclusionOffset;
     int _SkyOcclusionOffset;
     int _SkyShadingDirectionOffset;
     int _L2_0Offset;
@@ -24,6 +25,8 @@ CBUFFER_START(CellStreamingScratchBufferLayout)
     int _L1ProbeSize;
     int _ValiditySize;
     int _ValidityProbeSize;
+    int _ProbeOcclusionSize;
+    int _ProbeOcclusionProbeSize;
     int _SkyOcclusionSize;
     int _SkyOcclusionProbeSize;
     int _SkyShadingDirectionSize;

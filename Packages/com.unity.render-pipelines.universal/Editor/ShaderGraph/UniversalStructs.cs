@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.staticLightmapUV,
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
+                UniversalStructFields.Varyings.probeOcclusion,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight,
                 UniversalStructFields.Varyings.shadowCoord,
                 StructFields.Varyings.instanceID,

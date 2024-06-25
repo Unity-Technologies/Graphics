@@ -122,7 +122,9 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
         inputData.viewDirectionWS,
-        inputData.positionCS.xy);
+        inputData.positionCS.xy,
+        input.probeOcclusion,
+        inputData.shadowMask);
 #else
     inputData.bakedGI = SAMPLE_GI(NOT_USED, input.vertexSH, inputData.normalWS);
 #endif

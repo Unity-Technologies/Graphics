@@ -154,3 +154,13 @@ MonoBehaviour:
     XrSdk: OculusLoader
     StereoModes: 7
     Reason: https://jira.unity3d.com/browse/UUM-62688
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 885c03fc42bf0a548b6e415c2f70e55b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-73634
