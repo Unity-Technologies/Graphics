@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
                     instanceIndex++;
 
                     int instanceCount = instanceIndex - instanceStart;
-                    bool isReachedMaximumBatchSize = instanceCount >= 250;
+                    bool isReachedMaximumBatchSize = instanceCount >= DecalDrawSystem.MaxBatchSize;
                     if (isReachedMaximumBatchSize)
                     {
                         subCalls[subCallIndex++] = new DecalSubDrawCall()
