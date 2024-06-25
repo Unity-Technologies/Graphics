@@ -855,6 +855,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
         public static readonly int shadowBias = Shader.PropertyToID("_ShadowBias");
+        public static readonly int shadowPancaking = Shader.PropertyToID("_ShadowPancaking");
         public static readonly int lightDirection = Shader.PropertyToID("_LightDirection");
         public static readonly int lightPosition = Shader.PropertyToID("_LightPosition");
 
