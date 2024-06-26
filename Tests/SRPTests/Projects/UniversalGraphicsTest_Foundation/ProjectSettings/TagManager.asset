@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags: []
   layers:
   - Default
@@ -19,8 +19,8 @@ TagManager:
   - VolumeLayer4
   - 
   - 
-  - 
-  - 
+  - HiddenObjectByOpaqueMask
+  - HiddenObjectByCullingMask
   - 
   - 
   - 
@@ -47,3 +47,7 @@ TagManager:
   - name: FG
     uniqueID: 116359401
     locked: 0
+  m_RenderingLayers:
+  - Default
+  - Layer 1
+  - HiddenObject
