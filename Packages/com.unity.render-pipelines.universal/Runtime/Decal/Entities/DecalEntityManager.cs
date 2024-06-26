@@ -283,9 +283,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 var propertyBlock = new MaterialPropertyBlock();
 
-                // In order instanced and non instanced rendering to work with _NormalToWorld
-                // We need to make sure array is created with maximum size
-                propertyBlock.SetMatrixArray("_NormalToWorld", new Matrix4x4[250]);
+                // In order instanced and non instanced rendering to work with _NormalToWorld and _DecalLayerMaskFromDecal
+                // We need to make sure the array are created with maximum size
+                propertyBlock.SetMatrixArray("_NormalToWorld", new Matrix4x4[DecalDrawSystem.MaxBatchSize]);
+                propertyBlock.SetFloatArray("_DecalLayerMaskFromDecal", new float[DecalDrawSystem.MaxBatchSize]);
 
                 entityChunks.Add(new DecalEntityChunk() { material = material });
                 cachedChunks.Add(new DecalCachedChunk()

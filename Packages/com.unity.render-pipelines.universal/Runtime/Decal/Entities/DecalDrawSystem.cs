@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal abstract class DecalDrawSystem
     {
+        readonly static internal uint MaxBatchSize = 250;
+
         protected DecalEntityManager m_EntityManager;
         private Matrix4x4[] m_WorldToDecals;
         private Matrix4x4[] m_NormalToDecals;
@@ -20,9 +22,9 @@ namespace UnityEngine.Rendering.Universal
         {
             m_EntityManager = entityManager;
 
-            m_WorldToDecals = new Matrix4x4[250];
-            m_NormalToDecals = new Matrix4x4[250];
-            m_DecalLayerMasks = new float[250];
+            m_WorldToDecals = new Matrix4x4[MaxBatchSize];
+            m_NormalToDecals = new Matrix4x4[MaxBatchSize];
+            m_DecalLayerMasks = new float[MaxBatchSize];
 
             m_Sampler = new ProfilingSampler(sampler);
         }
