@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEditor.Rendering.Analytics;
 
 
 namespace UnityEditor.Rendering.Universal
@@ -148,6 +149,12 @@ namespace UnityEditor.Rendering.Universal
         void OnEnable()
         {
             InitIfNeeded();
+            GraphicsToolLifetimeAnalytic.WindowOpened<RenderPipelineConvertersEditor>();
+        }
+
+        private void OnDisable()
+        {
+            GraphicsToolLifetimeAnalytic.WindowClosed<RenderPipelineConvertersEditor>();
         }
 
         void InitIfNeeded()
@@ -894,10 +901,17 @@ namespace UnityEditor.Rendering.Universal
             child.Q<ListView>("converterItems").Rebuild();
         }
 
+        struct AnalyticContextInfo
+        {
+            public string converter_id;
+            public int items_count;
+        }
+
         void Convert(ClickEvent evt)
         {
             // Ask to save save the current open scene and after the conversion is done reload the same scene.
             if (!SaveCurrentSceneAndContinue()) return;
+
             string currentScenePath = SceneManager.GetActiveScene().path;
 
             List<ConverterState> activeConverterStates = new List<ConverterState>();
@@ -911,6 +925,8 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
+            List<AnalyticContextInfo> contextInfo = new ();
+
             int currentCount = 0;
             int activeConvertersCount = activeConverterStates.Count;
             foreach (ConverterState activeConverterState in activeConverterStates)
@@ -920,11 +936,17 @@ namespace UnityEditor.Rendering.Universal
                 m_CoreConvertersList[index].OnPreRun();
                 var converterName = m_CoreConvertersList[index].name;
                 var itemCount = m_ItemsToConvert[index].itemDescriptors.Count;
+                AnalyticContextInfo converterInfo = new ()
+                {
+                    converter_id = converterName,
+                    items_count = 0
+                };
                 string progressTitle = $"{converterName}           Converter : {currentCount}/{activeConvertersCount}";
                 for (var j = 0; j < itemCount; j++)
                 {
                     if (activeConverterState.items[j].isActive)
                     {
+                        converterInfo.items_count++;
                         if (EditorUtility.DisplayCancelableProgressBar(progressTitle,
                             string.Format("({0} of {1}) {2}", j, itemCount, m_ItemsToConvert[index].itemDescriptors[j].info),
                             (float)j / (float)itemCount))
@@ -932,6 +954,8 @@ namespace UnityEditor.Rendering.Universal
                         ConvertIndex(index, j);
                     }
                 }
+
+                contextInfo.Add(converterInfo);
                 m_CoreConvertersList[index].OnPostRun();
                 AssetDatabase.SaveAssets();
                 EditorUtility.ClearProgressBar();
@@ -943,7 +967,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorSceneManager.OpenScene(currentScenePath);
             }
 
-            RecreateUI();
+            RecreateUI(); 
+
+            GraphicsToolUsageAnalytic.ActionPerformed<RenderPipelineConvertersEditor>(nameof(Convert), contextInfo.ToNestedColumn());
         }
 
         void ConvertIndex(int coreConverterIndex, int index)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Rendering.Analytics;
 using UnityEngine;
@@ -173,6 +174,14 @@ namespace UnityEditor.Rendering
         /// <returns>The current value from the UI</returns>
         protected abstract TValue DoGUI(Rect rect, GUIContent label, TField field, TState state);
 
+        struct WidgetChangedAction
+        {
+            public string query_path;
+            public TValue previous_value;
+            public TValue new_value;
+        }
+
+        static List<WidgetChangedAction> s_Analytic = new List<WidgetChangedAction>();
         /// <summary>
         /// Implement this to execute processing after UI rendering.
         /// </summary>
@@ -184,9 +193,17 @@ namespace UnityEditor.Rendering
             {
                 var w = Cast<TField>(widget);
                 var s = Cast<TState>(state);
-                Apply(w, s, value);
 
-                DebugManagerWidgetUsedAnalytic.Send(widget.queryPath, value);
+                s_Analytic.Clear();
+                s_Analytic.Add(new()
+                {
+                    query_path = widget.queryPath,
+                    previous_value = w.GetValue(),
+                    new_value = value
+                });
+
+                Apply(w, s, value);
+                GraphicsToolUsageAnalytic.ActionPerformed<DebugWindow>("Widget Value Changed", s_Analytic.ToNestedColumn());
             }
         }
     }

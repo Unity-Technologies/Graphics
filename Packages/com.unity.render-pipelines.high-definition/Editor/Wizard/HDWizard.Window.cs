@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnityEditor.Rendering.Analytics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -259,6 +260,16 @@ namespace UnityEditor.Rendering.HighDefinition
             WizardBehaviour();
         }
 
+        void OnEnable()
+        {
+            GraphicsToolLifetimeAnalytic.WindowOpened<HDWizard>();
+        }
+
+        private void OnDisable()
+        {
+            GraphicsToolLifetimeAnalytic.WindowClosed<HDWizard>();
+        }
+
         #region SCRIPT_RELOADING
 
         static int frameToWait;
@@ -393,6 +404,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
                 () =>
                 {
+                    GraphicsToolUsageAnalytic.ActionPerformed<HDWizard>("Fix All", Array.Empty<string>());
                     FixHDRPAll();
                     switch (m_Configuration)
                     {
@@ -512,6 +524,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Button button = new Button(action) { text = title };
             button.AddToClassList("LargeButton");
+            button.clicked += () =>
+            {
+                string context = "{" + $"\"id\" : \"{title}\"" + "}";
+                GraphicsToolUsageAnalytic.ActionPerformed<HDWizard>("Button Pressed", new string[] { context });
+            };
             return button;
         }
 
@@ -590,7 +607,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     entry.configStyle.messageType,
                     entry.configStyle.button,
                     () => entry.check(),
-                    () => entry.fix?.Invoke(false),
+                    () =>
+                    {
+                        if (entry.fix != null)
+                        {
+                            string context = "{" + $"\"id\" : \"{entry.configStyle.label}\"" + "}";
+                            GraphicsToolUsageAnalytic.ActionPerformed<HDWizard>("Fix", new string[] { context });
+                            entry.fix.Invoke(false);
+                        }
+                    },
                     entry.indent,
                     entry.configStyle.messageType == MessageType.Error || entry.forceDisplayCheck,
                     entry.skipErrorIcon));

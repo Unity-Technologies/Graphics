@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool stripDebugVariants { get; private set; } = true;
         public Dictionary<int, ComputeShader> rayTracingComputeShaderCache { get; private set; } = new();
         public Dictionary<int, ComputeShader> computeShaderCache { get; private set; } = new();
-
+        
         public HDRenderPipelineRuntimeShaders runtimeShaders { get; private set; }
         public HDRenderPipelineRuntimeMaterials materialResources { get; private set; }
 
@@ -47,7 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.instance;
                 if (hdrpGlobalSettingsInstance == null)
                     hdrpGlobalSettingsInstance = HDRenderPipelineGlobalSettings.Ensure();
-
                 if (hdrpGlobalSettingsInstance != null)
                 {
                     GraphicsSettings.GetRenderPipelineSettings<HDRPRayTracingResources>()
@@ -55,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     runtimeShaders = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeShaders>();
                     runtimeShaders?.ForEachFieldOfType<ComputeShader>(computeShader => computeShaderCache.Add(computeShader.GetInstanceID(), computeShader));
-
+                    
                     materialResources = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>();
 
                     stripDebugVariants = !isDevelopmentBuild || GraphicsSettings.GetRenderPipelineSettings<ShaderStrippingSetting>().stripRuntimeDebugShaders;
