@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Refraction, "Refraction");
             PropertyField(m_ScreenFadeDistance, k_ScreenFadeDistance);
         }
 

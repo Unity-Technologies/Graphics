@@ -167,6 +167,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.SSGI, "Screen Space Global Illumination");
+
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             bool notSupported = !currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false;
             if (notSupported)
@@ -195,6 +197,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (rayTracingSettingsDisplayed)
                 {
+                    HDEditorUtils.EnsureFrameSetting(FrameSettingsField.RayTracing, "RayTracing");
                     if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
                         HDRenderPipelineUI.DisplayRayTracingSupportBox();
 

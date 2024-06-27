@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override void OnInspectorGUI()
         {
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.RayTracing, "Raytracing");
+
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing;
             if (notSupported)
