@@ -1,8 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
-
-using System;
 
 namespace UnityEditor.VFX
 {
@@ -49,11 +48,19 @@ namespace UnityEditor.VFX
         {
             for (int i = 0; i < meshCount; ++i)
             {
-                string id = GetId(meshCount, i);
-
-                yield return meshName + id;
-                yield return maskName + id;
+                foreach (var name in GetCPUExpressionNames(meshCount, i))
+                {
+                    yield return name;
+                }
             }
+        }
+
+        public static IEnumerable<string> GetCPUExpressionNames(uint meshCount, int meshIndex)
+        {
+            string id = GetId(meshCount, meshIndex);
+
+            yield return meshName + id;
+            yield return maskName + id;
         }
 
         public static IEnumerable<VFXMapping> PatchCPUMapping(IEnumerable<VFXMapping> mappings, uint meshCount, int index)
@@ -86,6 +93,25 @@ namespace UnityEditor.VFX
                     yield return new VFXMapping(bufferName, m.index + bufferIndex);
                 else
                     yield return m;
+            }
+        }
+
+        public static void PatchInstancingSplitValues(List<uint> instancingSplitDescValues, VFXExpressionGraph expressionGraph, ReadOnlyCollection<VFXSlot> inputSlots, uint meshCount, int meshIndex)
+        {
+            foreach (var name in GetCPUExpressionNames(meshCount, meshIndex))
+            {
+                var exp = inputSlots.First(s => s.name == name).GetExpression();
+                if (exp != null && !exp.IsAny(VFXExpression.Flags.Constant))
+                {
+                    // Obtain reduced version of the expression
+                    exp = expressionGraph.CPUExpressionsToReduced.First(kvp => kvp.Key == exp).Value;
+
+                    int index = expressionGraph.GetFlattenedIndex(exp);
+                    if (index >= 0)
+                    {
+                        instancingSplitDescValues.Add((uint)index);
+                    }
+                }
             }
         }
     }

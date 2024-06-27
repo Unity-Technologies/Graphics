@@ -962,7 +962,6 @@ namespace UnityEditor.VFX
             for (int i = 0; i < m_Contexts.Count; ++i)
             {
                 var temporaryBufferMappings = new List<VFXMappingTemporary>();
-                var instanceSplitDescValues = new List<uint>();
 
                 var context = m_Contexts[i];
                 if (!contextToCompiledData.TryGetValue(context, out var contextData))
@@ -1113,6 +1112,7 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping($"eventListOut_{prefix}", gpuTarget));
                 }
 
+                var instancingSplitDescValues = contextData.instancingSplitValues;
                 uniformMappings.Clear();
 
                 foreach (var buffer in contextData.uniformMapper.buffers)
@@ -1120,7 +1120,7 @@ namespace UnityEditor.VFX
                     int index = expressionGraph.GetFlattenedIndex(buffer);
                     if (!buffer.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
                     {
-                        instanceSplitDescValues.Add((uint)index);
+                        instancingSplitDescValues.Add((uint)index);
                     }
                     var name = contextData.uniformMapper.GetName(buffer);
                     uniformMappings.Add(new VFXMapping(name, index));
@@ -1130,7 +1130,7 @@ namespace UnityEditor.VFX
                     int index = expressionGraph.GetFlattenedIndex(texture);
                     if (!texture.IsAny(VFXExpression.Flags.Constant | VFXExpression.Flags.Foldable))
                     {
-                        instanceSplitDescValues.Add((uint)index);
+                        instancingSplitDescValues.Add((uint)index);
                     }
                     // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary
                     foreach (var name in contextData.uniformMapper.GetNames(texture))
@@ -1155,17 +1155,19 @@ namespace UnityEditor.VFX
                 taskDesc.values = uniformMappings.OrderBy(mapping => mapping.index).ToArray();
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).Concat(additionalParameters).ToArray();
                 taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
-                taskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instanceSplitDescValues);
+                taskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValues);
                 taskDesc.model = context;
 
-                if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
+                if (context is IVFXMultiMeshOutput multiMeshOutput && multiMeshOutput.meshCount > 0) // If the context is a multi mesh output, split and patch task desc into several tasks
                 {
-                    var multiMeshOutput = (IVFXMultiMeshOutput)context;
                     for (int j = (int)multiMeshOutput.meshCount - 1; j >= 0; --j) // Back to front to be consistent with LOD and alpha
                     {
                         VFXEditorTaskDesc singleMeshTaskDesc = taskDesc;
                         singleMeshTaskDesc.parameters = VFXMultiMeshHelper.PatchCPUMapping(taskDesc.parameters, multiMeshOutput.meshCount, j).ToArray();
                         singleMeshTaskDesc.buffers = VFXMultiMeshHelper.PatchBufferMapping(taskDesc.buffers, j).ToArray();
+                        var instancingSplitDescValuesMesh = new List<uint>(instancingSplitDescValues);
+                        VFXMultiMeshHelper.PatchInstancingSplitValues(instancingSplitDescValuesMesh, expressionGraph, context.inputSlots, multiMeshOutput.meshCount, j);
+                        singleMeshTaskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValuesMesh);
                         taskDescs.Add(singleMeshTaskDesc);
                     }
                 }
