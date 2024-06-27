@@ -103,6 +103,9 @@ namespace UnityEditor.VFX
                 var exp = inputSlots.First(s => s.name == name).GetExpression();
                 if (exp != null && !exp.IsAny(VFXExpression.Flags.Constant))
                 {
+                    // Obtain reduced version of the expression
+                    exp = expressionGraph.CPUExpressionsToReduced.First(kvp => kvp.Key == exp).Value;
+
                     int index = expressionGraph.GetFlattenedIndex(exp);
                     if (index >= 0)
                     {

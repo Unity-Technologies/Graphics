@@ -1368,8 +1368,9 @@ namespace UnityEditor.VFX
                         VFXEditorTaskDesc singleMeshTaskDesc = taskDesc;
                         singleMeshTaskDesc.parameters = VFXMultiMeshHelper.PatchCPUMapping(taskDesc.parameters, multiMeshOutput.meshCount, j).ToArray();
                         singleMeshTaskDesc.buffers = VFXMultiMeshHelper.PatchBufferMapping(taskDesc.buffers, j).ToArray();
-                        VFXMultiMeshHelper.PatchInstancingSplitValues(instancingSplitDescValues, expressionGraph, context.inputSlots, multiMeshOutput.meshCount, j);
-                        singleMeshTaskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValues);
+                        var instancingSplitDescValuesMesh = new List<uint>(instancingSplitDescValues);
+                        VFXMultiMeshHelper.PatchInstancingSplitValues(instancingSplitDescValuesMesh, expressionGraph, context.inputSlots, multiMeshOutput.meshCount, j);
+                        singleMeshTaskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValuesMesh);
                         AddTaskDesc(taskDescs, singleMeshTaskDesc, context);
                     }
                 }
