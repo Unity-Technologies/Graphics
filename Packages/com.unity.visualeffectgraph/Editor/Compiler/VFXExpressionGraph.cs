@@ -82,14 +82,13 @@ namespace UnityEditor.VFX
             foreach (var exp in expressionsToReduced.Values)
                 AddExpressionDataRecursively(m_ExpressionsData, exp);
 
-            foreach (var bufferTypeUsage in expressionContext.GraphicsBufferTypeUsagePerContext)
+            if (options.HasFlag(VFXExpressionContextOption.CollectPerContextData))
             {
-                m_BufferTypeUsagePerContext.TryAdd(bufferTypeUsage.Key, bufferTypeUsage.Value);
-            }
+                foreach (var bufferTypeUsage in expressionContext.GraphicsBufferTypeUsagePerContext)
+                {
+                    m_BufferTypeUsagePerContext.TryAdd(bufferTypeUsage.Key, bufferTypeUsage.Value);
+                }
 
-
-            if (target == VFXDeviceTarget.GPU)
-            {
                 foreach (var hlslCodeHolder in expressionContext.hlslCodeHoldersPerContext)
                 {
                     m_CustomHLSLExpressionsPerContext.Add(hlslCodeHolder.Key, hlslCodeHolder.Value);
@@ -177,7 +176,7 @@ namespace UnityEditor.VFX
                 var otherContexts = contexts.Where(o => o.contextType != VFXContextType.Spawner);
                 CompileExpressionContext(spawnerContexts, options | VFXExpressionContextOption.PatchReadToEventAttribute, VFXDeviceTarget.CPU);
                 CompileExpressionContext(otherContexts, options, VFXDeviceTarget.CPU);
-                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation, VFXDeviceTarget.GPU);
+                CompileExpressionContext(contexts, options | VFXExpressionContextOption.GPUDataTransformation | VFXExpressionContextOption.CollectPerContextData, VFXDeviceTarget.GPU);
 
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
