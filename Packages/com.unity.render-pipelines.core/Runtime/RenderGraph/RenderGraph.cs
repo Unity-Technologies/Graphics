@@ -1233,6 +1233,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         ExecuteNativeRenderGraph();
                     else
                         ExecuteRenderGraph();
+
+#if RENDER_GRAPH_CLEAR_GLOBALS
+                    // Clear the shader bindings for all global textures to make sure bindings don't leak outside the graph
+                    ClearGlobalBindings();
+#endif
                 }
             }
             catch (Exception e)
@@ -2587,6 +2592,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
             TextureHandle h;
             registeredGlobals.TryGetValue(globalPropertyId, out h);
             return h;
+        }
+
+        /// <summary>
+        /// Clears the shader bindings associated with the registered globals in the graph
+        ///
+        /// This prevents later rendering logic from accidentally relying on stale shader bindings that were set
+        /// earlier during graph execution.
+        /// </summary>
+        internal void ClearGlobalBindings()
+        {
+            // Set all the global texture shader bindings to the default black texture.
+            // This doesn't technically "clear" the shader bindings, but it's the closest we can do.
+            foreach (var globalTex in registeredGlobals)
+            {
+                m_RenderGraphContext.cmd.SetGlobalTexture(globalTex.Key, defaultResources.blackTexture);
+            }
         }
     }
 
