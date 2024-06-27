@@ -27,6 +27,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool m_ShouldClear;
         private PassData m_PassData;
 
+        static readonly int k_ZWriteShaderHandle = Shader.PropertyToID("_ZWrite");
+
         /// <summary>
         /// Creates a new <c>CopyDepthPass</c> instance.
         /// </summary>
@@ -98,6 +100,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int msaaSamples;
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
+            internal int zWriteShaderHandle;
         }
 
         /// <inheritdoc/>
@@ -178,10 +181,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
 
-                if (copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None)
-                    cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, true);
-                else
-                    cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, false);
+                bool outputDepth = copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None;
+                cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, outputDepth);
+                copyDepthMaterial.SetFloat(k_ZWriteShaderHandle, outputDepth ? 1.0f : 0.0f);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
