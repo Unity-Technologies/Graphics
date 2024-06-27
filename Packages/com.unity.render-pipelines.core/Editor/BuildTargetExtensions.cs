@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using UnityEditor.Build;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -88,11 +89,11 @@ namespace UnityEditor.Rendering
                 return false;
 
             var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
 
-            QualitySettings.GetRenderPipelineAssetsForPlatform<T>(activeBuildTargetGroupName, out var buildPipelineAssets, out var allQualityLevelsAreOverriden);
+            QualitySettings.GetRenderPipelineAssetsForPlatform<T>(namedBuildTarget.TargetName, out var buildPipelineAssets, out var allQualityLevelsAreOverriden);
 
-            bool noQualityLevels = QualitySettings.GetActiveQualityLevelsForPlatformCount(activeBuildTargetGroupName) == 0;
+            bool noQualityLevels = QualitySettings.GetActiveQualityLevelsForPlatformCount(namedBuildTarget.TargetName) == 0;
             if (noQualityLevels || !allQualityLevelsAreOverriden)
             {
                 // We need to check the fallback cases
