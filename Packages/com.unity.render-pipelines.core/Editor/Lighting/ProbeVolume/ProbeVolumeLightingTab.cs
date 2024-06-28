@@ -206,7 +206,10 @@ namespace UnityEngine.Rendering
 
             EditorSceneManager.sceneOpened -= OnSceneOpened;
 
-            AdaptiveProbeVolumes.Dispose();
+            // We keep allocated acceleration structures while the Lighting window is open in order to make subsequent bakes faster, but when the window closes we dispose of them
+            // Unless a bake is running, in which case we leave disposing to CleanBakeData() 
+            if (!AdaptiveProbeVolumes.isRunning && !Lightmapping.isRunning)
+                AdaptiveProbeVolumes.Dispose();
         }
 
         #region On GUI
