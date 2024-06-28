@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering
                     shv[rgb, 8] = shv[rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
 
                     for (int coeff = 1; coeff < 9; ++coeff)
-                        Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
+                        shv[rgb, coeff] = Mathf.Clamp01(shv[rgb, coeff]);
                 }
             }
         }

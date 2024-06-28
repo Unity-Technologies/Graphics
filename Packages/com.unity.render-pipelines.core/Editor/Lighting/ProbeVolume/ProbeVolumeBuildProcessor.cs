@@ -73,7 +73,17 @@ namespace UnityEditor.Rendering
 
             // Delete previously built data. This way we remove any data from scenes that are no longer in the build.
             if (Directory.Exists(tempStreamingAssetsPath))
-                Directory.Delete(tempStreamingAssetsPath, recursive: true);
+            {
+                try
+                {
+                    Directory.Delete(tempStreamingAssetsPath, recursive: true);
+                }
+                catch
+                {
+                    // This can happen if for example the folder is write protected
+                    // This is not ideal but don't block project build
+                }
+            }
 
             Directory.CreateDirectory(tempStreamingAssetsPath);
 

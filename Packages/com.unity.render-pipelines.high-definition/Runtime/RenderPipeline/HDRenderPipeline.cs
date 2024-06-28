@@ -3092,7 +3092,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
             if (currentPipeline.apvIsEnabled)
             {
-                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera, currentPipeline.GetExposureTexture(hdCamera));
+                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera, hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>(), currentPipeline.GetExposureTexture(hdCamera));
             }
 
             // Set the LOD bias and store current value to be able to restore it.

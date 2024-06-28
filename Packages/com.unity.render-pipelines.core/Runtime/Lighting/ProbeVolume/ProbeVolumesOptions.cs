@@ -89,5 +89,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         [AdditionalProperty, Tooltip("Multiplier applied on the sky lighting when using sky occlusion.")]
         public ClampedFloatParameter skyOcclusionIntensityMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 5.0f);
+
+        /// <summary>
+        /// Offset applied at runtime to probe positions in world space.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Offset applied at runtime to probe positions in world space.\nThis is not considered while baking.")]
+        public Vector3Parameter worldOffset = new Vector3Parameter(Vector3.zero);
     }
 }

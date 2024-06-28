@@ -804,6 +804,8 @@ namespace UnityEngine.Rendering
                 m_CellsToDilate.Clear();
             }
 
+            Debug.Assert(bakingSet.CheckCompatibleCellLayout());
+
             // Clear loaded data
             foreach (var data in prv.perSceneDataList)
                 data.QueueSceneRemoval();

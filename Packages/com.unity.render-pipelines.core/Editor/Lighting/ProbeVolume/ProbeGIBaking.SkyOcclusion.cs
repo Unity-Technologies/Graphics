@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering
 
         class DefaultSkyOcclusion : SkyOcclusionBaker
         {
-            const int k_MaxProbeCountPerBatch = 65535 * 64;
+            const int k_MaxProbeCountPerBatch = 128 * 1024;
             const float k_SkyOcclusionOffsetRay = 0.015f;
             const int k_SampleCountPerStep = 16;
 

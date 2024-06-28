@@ -372,6 +372,17 @@ namespace UnityEngine.Rendering
 #endif
         }
 
+        // Return true if baking settings are incompatible with already baked data
+        internal bool CheckCompatibleCellLayout()
+        {
+            return simplificationLevels == bakedSimplificationLevels &&
+                minDistanceBetweenProbes == bakedMinDistanceBetweenProbes &&
+                skyOcclusion == bakedSkyOcclusion &&
+                skyOcclusionShadingDirection == bakedSkyShadingDirection &&
+                settings.virtualOffsetSettings.useVirtualOffset == (supportOffsetsChunkSize != 0) &&
+                useRenderingLayers == (bakedMaskCount != 1);
+        }
+
         bool ComputeHasSupportData()
         {
             return cellSupportDataAsset != null && cellSupportDataAsset.IsValid() && cellSupportDataAsset.FileExists();

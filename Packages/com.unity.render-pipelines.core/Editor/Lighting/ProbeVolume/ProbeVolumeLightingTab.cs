@@ -1003,9 +1003,7 @@ namespace UnityEngine.Rendering
                 activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
             
             // Layout has changed and is incompatible.
-            if (activeSet.HasValidSharedData() && !activeSet.freezePlacement &&
-                (activeSet.bakedMinDistanceBetweenProbes != activeSet.minDistanceBetweenProbes ||
-                activeSet.bakedSimplificationLevels != activeSet.simplificationLevels))
+            if (activeSet.HasValidSharedData() && !activeSet.freezePlacement && !activeSet.CheckCompatibleCellLayout())
             {
                 if (AdaptiveProbeVolumes.partialBakeSceneList != null)
                 {

@@ -851,7 +851,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         hdCamera.camera.cameraType != CameraType.Preview)
                     {
                         // TODO: Move this to one call for all cameras
-                        ProbeReferenceVolume.instance.UpdateCellStreaming(cmd, hdCamera.camera);
+                        ProbeReferenceVolume.instance.UpdateCellStreaming(cmd, hdCamera.camera, hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>());
                     }
                 }
             }

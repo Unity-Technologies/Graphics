@@ -74,7 +74,7 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
         // Extract Shared Data. 1 probe == 1 byte => 4 probes encoded in 1 uint == 4 bytes
         ExtractByte(_ScratchBuffer.Load(offsetValidity), shared_probe_0_3);
     }
-    else if (_ValidityProbeSize == 4)
+    else
     {
         // When layers are on, 1 probe == 4 byte => 1 probe encoded in 1 uint
         // See LoadValidityMask()

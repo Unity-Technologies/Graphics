@@ -596,13 +596,24 @@ namespace UnityEngine.Rendering
                 maxStreamingScore = Mathf.Max(maxStreamingScore, m_LoadedCells[m_LoadedCells.size - 1].streamingInfo.streamingScore);
             }
         }
-
+        
         /// <summary>
         /// Updates the cell streaming for a <see cref="Camera"/>
         /// </summary>
         /// <param name="cmd">The <see cref="CommandBuffer"/></param>
         /// <param name="camera">The <see cref="Camera"/></param>
         public void UpdateCellStreaming(CommandBuffer cmd, Camera camera)
+        {
+            UpdateCellStreaming(cmd, camera, null);
+        }
+
+        /// <summary>
+        /// Updates the cell streaming for a <see cref="Camera"/>
+        /// </summary>
+        /// <param name="cmd">The <see cref="CommandBuffer"/></param>
+        /// <param name="camera">The <see cref="Camera"/></param>
+        /// <param name="options">Options coming from the volume stack.</param>
+        public void UpdateCellStreaming(CommandBuffer cmd, Camera camera, ProbeVolumesOptions options)
         {
             if (!isInitialized || m_CurrentBakingSet == null) return;
 
@@ -616,7 +627,8 @@ namespace UnityEngine.Rendering
                 }
 
                 // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
-                var cameraPositionCellSpace = (m_FrozenCameraPosition - ProbeOffset()) / MaxBrickSize() - Vector3.one * 0.5f;
+                var offset = ProbeOffset() + (options != null ? options.worldOffset.value : Vector3.zero);
+                var cameraPositionCellSpace = (m_FrozenCameraPosition - offset) / MaxBrickSize() - Vector3.one * 0.5f;
 
                 DynamicArray<Cell> bestUnloadedCells;
                 DynamicArray<Cell> worseLoadedCells;

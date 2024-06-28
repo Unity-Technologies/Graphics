@@ -357,6 +357,7 @@ namespace UnityEngine.Rendering
             parameters.skyOcclusionShadingDirection = bakingSet.skyOcclusionShadingDirection ? true : false;
             parameters.regionCount = 1;
             parameters.regionLayerMasks = 1;
+            parameters.worldOffset = Vector3.zero;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

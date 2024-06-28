@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering
         public bool skyOcclusionShadingDirection;
         public int regionCount;
         public uint4 regionLayerMasks;
+        public Vector3 worldOffset;
     }
 
     /// <summary>
@@ -2093,7 +2094,7 @@ namespace UnityEngine.Rendering
             m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int _);
             var entriesPerCell = m_CellIndices.entriesPerCellDimension;
             var skyDirectionWeight = parameters.skyOcclusionShadingDirection ? 1.0f : 0.0f;
-            var probeOffset = ProbeOffset();
+            var probeOffset = ProbeOffset() + parameters.worldOffset;
 
             ShaderVariablesProbeVolumes shaderVars;
             shaderVars._Offset_LayerCount = new Vector4(probeOffset.x, probeOffset.y, probeOffset.z, parameters.regionCount);
