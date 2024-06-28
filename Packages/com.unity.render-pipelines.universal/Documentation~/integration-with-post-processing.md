@@ -28,7 +28,7 @@ To see the preconfigured effects, select **Post-process Volume** in the Scene.
 
 To add extra effects, [add Volume Overrides to the Volume](VolumeOverrides.md#volume-add-override).
 
-To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
+To configure location-based post-processing effects, refer to [How to use Local Volumes](Volumes.md#volume-local).
 
 ### Configuring post-processing in a new URP Scene
 

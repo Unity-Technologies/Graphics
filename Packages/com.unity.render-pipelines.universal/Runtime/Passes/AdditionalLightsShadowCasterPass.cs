@@ -983,21 +983,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector2 invShadowAtlasSize = Vector2.one / allocatedShadowAtlasSize;
                 Vector2 invHalfShadowAtlasSize = invShadowAtlasSize * 0.5f;
 
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0,
-                        new Vector4(-invHalfShadowAtlasSize.x, -invHalfShadowAtlasSize.y,
-                            invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1,
-                        new Vector4(invHalfShadowAtlasSize.x, -invHalfShadowAtlasSize.y,
-                            invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset2,
-                        new Vector4(-invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y, invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset3,
-                        new Vector4(invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y, invHalfShadowAtlasSize.x, invHalfShadowAtlasSize.y));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset0, new Vector4(-invHalfShadowAtlasSize.x, -invHalfShadowAtlasSize.y, 0f, 0f));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset1, new Vector4( invHalfShadowAtlasSize.x, -invHalfShadowAtlasSize.y, 0f, 0f));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset2, new Vector4(-invHalfShadowAtlasSize.x,  invHalfShadowAtlasSize.y, 0f, 0f));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowOffset3, new Vector4( invHalfShadowAtlasSize.x,  invHalfShadowAtlasSize.y, 0f, 0f));
 
                 // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
                 // enough so custom shaders might use it.
-                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasSize.x, invShadowAtlasSize.y,
-                    allocatedShadowAtlasSize.x, allocatedShadowAtlasSize.y));
+                cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowmapSize, new Vector4(invShadowAtlasSize.x, invShadowAtlasSize.y, allocatedShadowAtlasSize.x, allocatedShadowAtlasSize.y));
             }
         }
 

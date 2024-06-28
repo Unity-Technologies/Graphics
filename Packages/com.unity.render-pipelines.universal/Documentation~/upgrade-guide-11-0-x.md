@@ -14,7 +14,7 @@ This page describes how to upgrade from an older version of the Universal Render
 
 ### DepthNormals Pass
 
-Starting from version 10.0.x, URP can generate a normal texture called `_CameraNormalsTexture`. To render to this texture in your custom shader, add a Pass with the name `DepthNormals`. For example, see the implementation in `Lit.shader`.
+Starting from version 10.0.x, URP can generate a normal texture called `_CameraNormalsTexture`. To render to this texture in your custom shader, add a Pass with the name `DepthNormals`. For example, refer to the implementation in `Lit.shader`.
 
 ### Screen Space Ambient Occlusion (SSAO)
 
@@ -49,7 +49,7 @@ If you intend to use the SSAO effect with your custom shaders, consider the foll
     normalizedScreenSpaceUV)
     ```
 
-To support SSAO in custom shader, add the `DepthNormals` Pass and the `_SCREEN_SPACE_OCCLUSION` keyword the the shader. For example, see `Lit.shader`.
+To support SSAO in custom shader, add the `DepthNormals` Pass and the `_SCREEN_SPACE_OCCLUSION` keyword the the shader. For example, refer to `Lit.shader`.
 
 If your custom shader implements custom lighting functions, use the function `GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpaceUV)` to get the `AmbientOcclusionFactor` value for your lighting calculations.
 

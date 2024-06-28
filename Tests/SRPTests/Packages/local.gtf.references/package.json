@@ -9,6 +9,6 @@
   ],
   "category": "Libraries",
   "dependencies": {
-    "com.unity.testframework.graphics": "8.3.2-exp.1"
+    "com.unity.testframework.graphics": "8.6.3-exp.1"
   }
 }

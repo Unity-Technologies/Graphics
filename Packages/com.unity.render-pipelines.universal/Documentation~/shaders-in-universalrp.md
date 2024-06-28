@@ -23,7 +23,7 @@ Lit and custom Lit shaders written for the Built-in Render Pipeline are not comp
 
 Unlit shaders written for the Built-in Render Pipeline are compatible with URP.
 
-For information on converting shaders written for the Built-in Render Pipeline to URP shaders, see the page [Converting your shaders](upgrading-your-shaders.md).
+For information on converting shaders written for the Built-in Render Pipeline to URP shaders, refer to the page [Converting your shaders](upgrading-your-shaders.md).
 
 ## Choosing a shader
 
@@ -47,4 +47,4 @@ To ensure that a Shader is SRP Batcher compatible:
 * Declare all Material properties in a single CBUFFER called `UnityPerMaterial`.
 * Declare all built-in engine properties, such as `unity_ObjectToWorld` or `unity_WorldTransformParams`, in a single CBUFFER called `UnityPerDraw`.
 
-For more information on the SRP Batcher, see the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).
+For more information on the SRP Batcher, refer to the page [Scriptable Render Pipeline (SRP) Batcher](https://docs.unity3d.com/Manual/SRPBatcher.html).

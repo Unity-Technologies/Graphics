@@ -1,6 +1,6 @@
 # Installing the Universal Render Pipeline into an existing Project
 
-You can download and install the latest version of the Universal Render Pipeline (URP) to your existing Project via the [Package Manager system](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@latest/index.html), and then install it into your Project. If you don’t have an existing Project, see documentation on [how to start a new URP Project from a Template](creating-a-new-project-with-urp.md).
+You can download and install the latest version of the Universal Render Pipeline (URP) to your existing Project via the [Package Manager system](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@latest/index.html), and then install it into your Project. If you don’t have an existing Project, refer to [how to start a new URP Project from a Template](creating-a-new-project-with-urp.md).
 
 ## Before you begin
 
@@ -27,7 +27,7 @@ The [Universal Render Pipeline Asset](universalrp-asset.md) (URP Asset) contains
 To create a Universal Render Pipeline Asset:
 
 1. In the Editor, go to the Project window.
-2. Right-click in the Project window, and select  __Create > Rendering > URP Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets > Create > Rendering > Universal Render Pipeline > Pipeline Asset__.
+2. Right-click in the Project window, and select  **Create** > **Rendering** > **URP Asset (with Universal Renderer)**. Alternatively, navigate to the menu bar at the top, and select **Assets** > **Create** > **Rendering** > **URP Asset (with Universal Renderer)**.
 
 You can either leave the default name for the new Universal Render Pipeline Asset, or type a new one.
 
@@ -51,4 +51,4 @@ Set an override URP Assets for different quality levels:
 
 ## Upgrading your shaders
 
-If your project uses the prebuilt [Standard Shader](https://docs.unity3d.com/Manual/shader-StandardShader.html), or custom Unity shaders made for the Built-in Render Pipeline, you must convert them to URP-compatible Unity shaders. For more information on this topic, see [Upgrading your Shaders](upgrading-your-shaders.md).
+If your project uses the prebuilt [Standard Shader](https://docs.unity3d.com/Manual/shader-StandardShader.html), or custom Unity shaders made for the Built-in Render Pipeline, you must convert them to URP-compatible Unity shaders. For more information on this topic, refer to [Upgrading your Shaders](upgrading-your-shaders.md).

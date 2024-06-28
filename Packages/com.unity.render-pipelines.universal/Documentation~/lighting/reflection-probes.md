@@ -2,7 +2,7 @@
 
 This page describes URP-specific behavior of reflection probes.
 
-For general information on reflection probes, see the page [Reflection Probes](https://docs.unity3d.com/Manual/ReflectionProbes.html).
+For general information on reflection probes, refer to the page [Reflection Probes](https://docs.unity3d.com/Manual/ReflectionProbes.html).
 
 ## Configuring reflection probe settings
 

@@ -6,12 +6,12 @@ If you disable features in the [URP Asset](universalrp-asset.md), URP automatica
 
 For example, if your project doesn't use shadows for directional lights, by default Unity still includes variants that support directional light shadows in your build. If you disable **Cast Shadows** in the URP Asset, URP strips these variants.
 
-If you want to examine the code that strips shaders in URP, see the `Editor/ShaderPreprocessor.cs` file. The file uses the [IPreprocessShaders](https://docs.unity3d.com/ScriptReference/Build.IPreprocessShaders.html) API.
+If you want to examine the code that strips shaders in URP, refer to the `Editor/ShaderPreprocessor.cs` file. The file uses the [IPreprocessShaders](https://docs.unity3d.com/ScriptReference/Build.IPreprocessShaders.html) API.
 
-For more information on stripping shader variants, see the following pages:
+For more information on stripping shader variants, refer to the following pages:
 
 - [Check how many shader variants you have](https://docs.unity3d.com/Manual/shader-how-many-variants.html).
-- See the [standard guidance about shader stripping](https://docs.unity3d.com/Manual/shader-variant-stripping.html), which applies to all render pipelines.
+- [Standard guidance about shader stripping](https://docs.unity3d.com/Manual/shader-variant-stripping.html), which applies to all render pipelines.
 
 ## Strip feature shader variants
 

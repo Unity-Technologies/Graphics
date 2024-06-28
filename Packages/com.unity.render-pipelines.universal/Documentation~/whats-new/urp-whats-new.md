@@ -20,7 +20,7 @@ Improvements in this release bring URP's **Scene Debug View Modes** closer to pa
 
 Reflection probe blending and box projection support have been added to allow for better reflection quality using probes and bringing URP closer to feature parity with the Built-In Render Pipeline.
 
-For more information on reflection probes in URP, see the page [Reflection probes](../lighting/reflection-probes.md).
+For more information on reflection probes in URP, refer to the page [Reflection probes](../lighting/reflection-probes.md).
 
 ### URP Deferred Rendering Path
 
@@ -28,7 +28,7 @@ For more information on reflection probes in URP, see the page [Reflection probe
 
 The URP Deferred Rendering Path uses a rendering technique where light shading is performed in screen space on a separate rendering pass after all the vertex and pixel shaders have been rendered. Deferred shading decouples scene geometry from lighting calculations, so the shading of each light is only computed for the visible pixels that it actually affects. With this approach, Unity can efficiently render a far greater amount of lights in a scene compared to per-object forward rendering.
 
-For more information about this feature, see the page [Deferred Rendering Path](../rendering/deferred-rendering-path.md).
+For more information about this feature, refer to the page [Deferred Rendering Path](../rendering/deferred-rendering-path.md).
 
 ### URP decal system
 
@@ -36,7 +36,7 @@ For more information about this feature, see the page [Deferred Rendering Path](
 
 The new decal system enables you to project decal materials into the surfaces of a Scene. Decals projected into a scene will wrap around meshes and interact with the Scene’s lighting. Decals are useful for adding extra textural detail to a Scene, especially in order to break up materials’ repetitiveness and detail patterns.
 
-For more information about this feature, see the page [Decal Renderer Feature](../renderer-feature-decal.md).
+For more information about this feature, refer to the page [Decal Renderer Feature](../renderer-feature-decal.md).
 
 ### Depth prepass (Depth Priming Mode)
 
@@ -60,7 +60,7 @@ To open the Render Pipeline Converter window, select **Window** > **Rendering** 
 
 ![Render Pipeline Converter](../Images/whats-new/urp-12/render-pipeline-converter-ui.png)
 
-For more information, see the page [Render Pipeline Converter](../features/rp-converter.md).
+For more information, refer to the page [Render Pipeline Converter](../features/rp-converter.md).
 
 ### Motion Vectors
 
@@ -82,7 +82,7 @@ The URP Global Settings section lets you define project-wide settings for URP. I
 
 Light Layers let you mask certain lights in a Scene to affect particular meshes. The lights assigned to a specific layer only affect meshes assigned to the same layer.
 
-For more information, see the page [Light layers](../lighting/light-layers.md).
+For more information, refer to the page [Light layers](../lighting/light-layers.md).
 
 ### New URP package samples
 
@@ -104,7 +104,7 @@ Enlighten Realtime GI lets you enrich your projects with more dynamic lighting e
 
 ### SpeedTree 8 vegetation
 
-This release adds support for SpeedTree 8 vegetation to URP, including support for animated vegetation using the SpeedTree wind system. URP uses Shader Graphs to support SpeedTree 8, for more information see the page [SpeedTree Sub Graph Assets](https://docs.unity3d.com/Packages/com.unity.shadergraph@12.0/manual/SpeedTree8-SubGraphAssets.html).
+This release adds support for SpeedTree 8 vegetation to URP, including support for animated vegetation using the SpeedTree wind system. URP uses Shader Graphs to support SpeedTree 8, for more information refer to the page [SpeedTree Sub Graph Assets](https://docs.unity3d.com/Packages/com.unity.shadergraph@12.0/manual/SpeedTree8-SubGraphAssets.html).
 
 ### Shader Graph: Override Material properties
 
@@ -177,8 +177,8 @@ This release contains multiple URP 2D Renderer improvements:
 
 ## Issues resolved
 
-For a complete list of issues resolved in URP 12, see the [Changelog](xref:changelog).
+For a complete list of issues resolved in URP 12, refer to [Changelog](xref:changelog).
 
 ## Known issues
 
-For information on the known issues in URP 12, see the section [Known issues](../known-issues.md).
+For information on the known issues in URP 12, refer to [Known issues](../known-issues.md).

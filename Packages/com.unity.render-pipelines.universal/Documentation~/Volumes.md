@@ -12,7 +12,7 @@ The Volume component contains the **Mode** property that defines whether the Vol
 
 ![Volume Mode property](Images/post-proc/volume-mode-prop.png)
 
-With Mode set to **Global**, Volumes affect the Camera everywhere in the Scene. With Mode set to **Local**, Volumes affect the Camera if the Camera is within the bounds of the Collider. For more information, see [How to use Local Volumes](#volume-local).
+With Mode set to **Global**, Volumes affect the Camera everywhere in the Scene. With Mode set to **Local**, Volumes affect the Camera if the Camera is within the bounds of the Collider. For more information, refer to [How to use Local Volumes](#volume-local).
 
 You can add a __Volume__ component to any GameObject. A Scene can contain multiple GameObjects with Volume components. You can add multiple Volume components to a GameObject.
 
