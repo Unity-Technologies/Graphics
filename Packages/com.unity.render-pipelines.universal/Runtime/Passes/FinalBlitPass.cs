@@ -49,9 +49,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="blitMaterial">The <c>Material</c> to use for copying the executing the final blit.</param>
         /// <param name="blitHDRMaterial">The <c>Material</c> to use for copying the executing the final blit when HDR output is active.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial, Material blitHDRMaterial)
+        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial, Material blitHDRMaterial)            
         {
-            base.profilingSampler = new ProfilingSampler("Blit Final To BackBuffer");
+            profilingSampler = ProfilingSampler.Get(URPProfileId.BlitFinalToBackBuffer);
             base.useNativeRenderPass = false;
             m_PassData = new PassData();
             renderPassEvent = evt;
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Source = renderingData.cameraData.renderer.cameraColorTargetHandle;
             }
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
+            using (new ProfilingScope(cmd, profilingSampler))
             {
                 m_PassData.blitMaterialData.material.enabledKeywords = null;
 
@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, in TextureHandle src, in TextureHandle dest, TextureHandle overlayUITexture)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;

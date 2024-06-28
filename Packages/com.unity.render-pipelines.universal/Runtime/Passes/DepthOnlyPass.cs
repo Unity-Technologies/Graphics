@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="LayerMask"/>
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
+            profilingSampler = new ProfilingSampler("Draw Depth Only");
             m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthOnly Prepass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
                 param.filteringSettings.batchLayerMask = batchLayerMask;

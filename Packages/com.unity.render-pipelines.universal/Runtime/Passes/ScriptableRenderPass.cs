@@ -272,12 +272,47 @@ namespace UnityEngine.Rendering.Universal
         private bool[] m_OverriddenColorStoreActions = new bool[] { false };
         private bool m_OverriddenDepthStoreAction = false;
 
+        private ProfilingSampler m_ProfingSampler;
+        private string m_PassName;
+        private RenderGraphSettings m_RenderGraphSettings;
+
         /// <summary>
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
-        /// Default is <c>Unnamed_ScriptableRenderPass</c>.
-        /// Set <c>base.profilingSampler</c> from the sub-class constructor to set a profiling name for a custom <c>ScriptableRenderPass</c>.
+        /// The default is named as the class type of the sub-class.
+        /// Set <c>base.profilingSampler</c> from the sub-class constructor to set a different profiling name for a custom <c>ScriptableRenderPass
+        /// This returns null in release build (non-development).</c>.
         /// </summary>
-        protected internal ProfilingSampler profilingSampler { get; set; }
+        protected internal ProfilingSampler profilingSampler
+        {
+            get
+            {
+                //We only need this in release (non-dev build) but putting it here to track it in more test automation.
+                if (m_RenderGraphSettings == null)
+                {
+                    m_RenderGraphSettings = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
+                }
+
+#if (DEVELOPMENT_BUILD || UNITY_EDITOR)
+                return m_ProfingSampler;
+#else 
+                //We only remove the sampler in release build when not in Compatibility Mode to avoid breaking user projects in the very unlikely scenario they would get the sampler.
+                return m_RenderGraphSettings.enableRenderCompatibilityMode ? m_ProfingSampler : null;
+#endif
+            }
+            set
+            {
+                m_ProfingSampler = value;
+                m_PassName = (value != null) ? value.name : this.GetType().Name;                
+            }
+        }
+
+        /// <summary>
+        /// The name of the pass that will show up in profiler and other tools. This will be indentical to the 
+        /// name of <c>profilingSampler</c>. <c>profilingSampler</c> is set to null in the release build (non-development)
+        /// so this <c>passName</c> property is the safe way to access the name and use it consistently. This will always return a valid string.
+        /// </summary>
+        protected internal string passName{ get { return m_PassName; } }
+
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
@@ -313,7 +348,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Creates a new <c>ScriptableRenderPass"</c> instance.
         /// </summary>
-        public ScriptableRenderPass()
+        public ScriptableRenderPass()            
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             // Disable obsolete warning for internal usage
@@ -331,7 +366,6 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
             breakGBufferAndDeferredRenderPass = true;
             renderPassQueueIndex = -1;
@@ -340,6 +374,8 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
             };
+
+            profilingSampler = new ProfilingSampler(this.GetType().Name);
         }
 
         /// <summary>

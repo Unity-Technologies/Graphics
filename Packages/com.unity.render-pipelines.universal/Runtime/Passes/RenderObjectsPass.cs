@@ -95,10 +95,20 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderQueueType">The queue type for the objects to render.</param>
         /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
         /// <param name="cameraSettings">The settings for custom cameras values.</param>
-        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)            
         {
-            base.profilingSampler = new ProfilingSampler(profilerTag);
+            profilingSampler = new ProfilingSampler(profilerTag);
+            Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
+        }
 
+        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        {
+            profilingSampler = ProfilingSampler.Get(profileId);
+            Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
+        }
+
+        internal void Init(RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        {
             m_PassData = new PassData();
 
             this.renderPassEvent = renderPassEvent;
@@ -114,8 +124,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (shaderTags != null && shaderTags.Length > 0)
             {
-                foreach (var passName in shaderTags)
-                    m_ShaderTagIdList.Add(new ShaderTagId(passName));
+                foreach (var tag in shaderTags)
+                    m_ShaderTagIdList.Add(new ShaderTagId(tag));
             }
             else
             {
@@ -126,12 +136,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_CameraSettings = cameraSettings;
-        }
-
-        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
-            : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings)
-        {
-            base.profilingSampler = ProfilingSampler.Get(profileId);
         }
 
         /// <inheritdoc/>
@@ -267,7 +271,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler == null ? "" : profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 

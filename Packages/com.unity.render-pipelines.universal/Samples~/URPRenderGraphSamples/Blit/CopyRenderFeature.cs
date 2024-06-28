@@ -10,8 +10,6 @@ public class CopyRenderFeature : ScriptableRendererFeature
 {
     class CopyRenderPass : ScriptableRenderPass
     {
-        string m_PassName = "Copy To or From Temp Texture";
-
         public CopyRenderPass()
         {
             //The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
@@ -24,6 +22,8 @@ public class CopyRenderFeature : ScriptableRendererFeature
         // Each ScriptableRenderPass can use the RenderGraph handle to add multiple render passes to the render graph
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            const string passName = "Copy To or From Temp Texture";
+
             // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
             // The active color and depth textures are the main color and depth buffers that the camera renders into
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -33,7 +33,7 @@ public class CopyRenderFeature : ScriptableRendererFeature
             var source = resourceData.activeColorTexture;
 
             var destinationDesc = renderGraph.GetTextureDesc(source);
-            destinationDesc.name = $"CameraColor-{m_PassName}";
+            destinationDesc.name = $"CameraColor-{passName}";
             destinationDesc.clearBuffer = false;
 
             TextureHandle destination = renderGraph.CreateTexture(destinationDesc);  
@@ -41,10 +41,10 @@ public class CopyRenderFeature : ScriptableRendererFeature
             if (RenderGraphUtils.CanAddCopyPassMSAA())
             {
                 // This simple pass copies the active color texture to a new texture. 
-                renderGraph.AddCopyPass(resourceData.activeColorTexture, destination, passName: m_PassName);
+                renderGraph.AddCopyPass(resourceData.activeColorTexture, destination, passName: passName);
 
                 //Need to copy back otherwise the pass gets culled since the result of the previous copy is not read. This is just for demonstration purposes.
-                renderGraph.AddCopyPass(destination, resourceData.activeColorTexture, passName: m_PassName);
+                renderGraph.AddCopyPass(destination, resourceData.activeColorTexture, passName: passName);
             }
             else
             {

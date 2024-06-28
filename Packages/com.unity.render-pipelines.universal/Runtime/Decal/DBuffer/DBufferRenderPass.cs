@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? resourceData.activeDepthTexture :
                 (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? resourceData.dBufferDepth : resourceData.activeDepthTexture);
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 InitPassData(ref passData);
 

@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal
 
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();

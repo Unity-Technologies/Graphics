@@ -29,12 +29,13 @@ namespace UnityEngine.Rendering.Universal
 
         #region Constructors
         internal MotionVectorRenderPass(RenderPassEvent evt, Material cameraMaterial, LayerMask opaqueLayerMask)
+
         {
+            profilingSampler = ProfilingSampler.Get(URPProfileId.DrawMotionVectors);
             renderPassEvent = evt;
             m_CameraMaterial = cameraMaterial;
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque,opaqueLayerMask);
             m_PassData = new PassData();
-            base.profilingSampler = ProfilingSampler.Get(URPProfileId.DrawMotionVectors);
 
             ConfigureInput(ScriptableRenderPassInput.Depth);
         }
@@ -217,7 +218,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler == null ? "" : profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 builder.UseAllGlobalTextures(true);
 

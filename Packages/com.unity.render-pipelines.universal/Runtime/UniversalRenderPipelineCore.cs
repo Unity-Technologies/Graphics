@@ -1854,7 +1854,7 @@ namespace UnityEngine.Rendering.Universal
         ColorGradingLUT,
         CopyColor,
         CopyDepth,
-        DepthNormalPrepass,
+        DrawDepthNormalPrepass,
         DepthPrepass,
         UpdateReflectionProbeAtlas,
 
@@ -1919,7 +1919,8 @@ namespace UnityEngine.Rendering.Universal
         [HideInDebugUI] RG_FinalFSRScale,
         [HideInDebugUI] RG_FinalBlit,
 
-        FinalBlit
+        BlitFinalToBackBuffer,
+        DrawSkybox
     }
 
     // Internal class to detect and cache runtime platform information.

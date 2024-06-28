@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             TextureHandle[] gbuffer;
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData,profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 // Note: This code is pretty confusing as passData.gbuffer[i] and gbuffer[i] actually point to the same array but seem to be mixed in this code.
                 passData.gbuffer = gbuffer = m_DeferredLights.GbufferTextureHandles;

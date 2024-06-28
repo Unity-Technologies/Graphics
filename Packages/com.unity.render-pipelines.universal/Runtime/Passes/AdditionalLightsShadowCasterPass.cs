@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
-            using (var builder = graph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = graph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 InitPassData(ref passData, cameraData, lightData, shadowData);
                 InitRendererLists(ref renderingData.cullResults, ref passData, default(ScriptableRenderContext), graph, true);

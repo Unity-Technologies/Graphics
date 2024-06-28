@@ -35,9 +35,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="Downsampling"/>
         public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial = null, string customPassName = null)
         {
-            var passName = customPassName != null ? customPassName : "Copy Color";
+            profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : ProfilingSampler.Get(URPProfileId.CopyColor);
 
-            base.profilingSampler = new ProfilingSampler(passName);
             m_PassData = new PassData();
 
             m_SamplingMaterial = samplingMaterial;
@@ -214,7 +213,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(profilingSampler.name, out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.destination = destination;
                 builder.SetRenderAttachment(destination, 0, AccessFlags.Write);

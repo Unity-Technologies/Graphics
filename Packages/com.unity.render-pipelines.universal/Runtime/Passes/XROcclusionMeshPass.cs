@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
         public XROcclusionMeshPass(RenderPassEvent evt)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(XROcclusionMeshPass));
+            profilingSampler = new ProfilingSampler("Draw XR Occlusion Mesh");
             renderPassEvent = evt;
             m_PassData = new PassData();
             m_IsActiveTargetBackBuffer = false;
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("XR Occlusion Pass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.xr = cameraData.xr;
 				passData.cameraColorAttachment = cameraColorAttachment;

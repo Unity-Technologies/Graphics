@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="PostProcessParams"/>
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, ref PostProcessParams postProcessParams)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
+            profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
             renderPassEvent = evt;
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
