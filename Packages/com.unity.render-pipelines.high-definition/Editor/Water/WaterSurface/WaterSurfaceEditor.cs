@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             OnEnableSimulation(o);
 
             // Deformation
-            OnEnableDeformation(o);
+            OnEnableDecals(o);
 
             // Appearance
             OnEnableAppearance(o);
@@ -295,6 +295,12 @@ namespace UnityEditor.Rendering.HighDefinition
             Func<WaterRendering, string> validator = (water) => !water.enable.value ? "Water Surface Rendering is not enabled in the Volume System." : null;
             HDEditorUtils.EnsureVolumeAndFrameSetting(validator, FrameSettingsField.Water, "Water");
 
+            if (target is WaterSurface surface && surface.surfaceIndex == -1)
+            {
+                EditorGUILayout.HelpBox("Only up to 16 water surfaces are supported simultaneously. This surface will not be rendered.", MessageType.Warning);
+                EditorGUILayout.Space();
+            }
+
             // Draw UI
             WaterSurfaceUI.Inspector.Draw(this, this);
 
@@ -328,7 +334,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
         public static readonly GUIContent simulationHeader = EditorGUIUtility.TrTextContent("Simulation");
-        public static readonly GUIContent deformationHeader = EditorGUIUtility.TrTextContent("Deformation");
+        public static readonly GUIContent decalHeader = EditorGUIUtility.TrTextContent("Water Decals");
         public static readonly GUIContent appearanceHeader = EditorGUIUtility.TrTextContent("Appearance");
         public static readonly GUIContent foamHeader = EditorGUIUtility.TrTextContent("Foam");
         public static readonly GUIContent miscellaneousHeader = EditorGUIUtility.TrTextContent("Miscellaneous");
@@ -337,7 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             General = 1 << 0,
             Simulation = 1 << 1,
-            Deformation = 1 << 2,
+            Decal = 1 << 2,
             Appearance = 1 << 3,
             Foam = 1 << 4,
             Miscellaneous = 1 << 5,
@@ -395,7 +401,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AdditionalProperties.General, k_AdditionalPropertiesState, CED.Group(WaterSurfaceEditor.WaterSurfaceGeneralSection), emptyDrawer),
                 CED.AdditionalPropertiesFoldoutGroup(simulationHeader, Expandable.Simulation, k_ExpandedState,
                     AdditionalProperties.Simulation, k_AdditionalPropertiesState, CED.Group(WaterSurfaceEditor.WaterSurfaceSimulationSection), emptyDrawer),
-                CED.FoldoutGroup(deformationHeader, Expandable.Deformation, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceDeformationSection),
+                CED.FoldoutGroup(decalHeader, Expandable.Decal, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceDecalSection),
                 CED.AdditionalPropertiesFoldoutGroup(appearanceHeader, Expandable.Appearance, k_ExpandedState,
                     AdditionalProperties.Appearance, k_AdditionalPropertiesState, CED.Group(WaterSurfaceEditor.WaterSurfaceAppearanceSection), emptyDrawer),
                 CED.FoldoutGroup(foamHeader, Expandable.Foam, k_ExpandedState, WaterSurfaceEditor.WaterSurfaceFoamSection),

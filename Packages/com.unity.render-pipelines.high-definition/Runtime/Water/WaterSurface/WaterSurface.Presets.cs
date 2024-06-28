@@ -11,6 +11,9 @@ namespace UnityEngine.Rendering.HighDefinition
             waterSurface.cpuEvaluateRipples = false;
             waterSurface.renderingLayerMask = (RenderingLayerMask)(uint)UnityEngine.RenderingLayerMask.defaultRenderingLayerMask;
 
+            waterSurface.decalRegionSize.Set(200f, 200f);
+            waterSurface.decalRegionAnchor = null;
+
             // Simulation
             waterSurface.waterMask = null;
             waterSurface.waterMaskRemap.Set(0.0f, 1.0f);
@@ -55,8 +58,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Foam
             waterSurface.foam = false;
-            waterSurface.foamAreaSize.Set(200f, 200f);
-            waterSurface.foamAreaOffset = Vector2.zero;
         }
 
         static internal void ApplyWaterOceanPreset(WaterSurface waterSurface)
@@ -91,10 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Foam
             waterSurface.foam = true;
-            waterSurface.foamResolution = WaterFoamResolution.Resolution512;
+            waterSurface.foamResolution = WaterDecalRegionResolution.Resolution512;
             waterSurface.foamTextureTiling = 0.15f;
             waterSurface.foamSmoothness = 1.0f;
-            waterSurface.simulationFoam = true;
             waterSurface.simulationFoamAmount = 0.2f;
             waterSurface.simulationFoamMask = null;
             waterSurface.simulationFoamWindCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));

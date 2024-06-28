@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shader Graphs_Shore Foam Water System
-  m_Shader: {fileID: -6465566751694194690, guid: 83411d32d5fac824c80df55eca8f1bc8,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 83411d32d5fac824c80df55eca8f1bc8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -71,7 +70,7 @@ Material:
     - _DecalStencilRef: 16
     - _DecalStencilWriteMask: 16
     - _DrawOrder: 10
-    - _Normal_Strength: 0.5
+    - _Normal_Strength: 5
     - _Opacity: 0.5
     m_Colors:
     - _Color: {r: 0.990566, g: 0.95941615, b: 0.8192417, a: 1}

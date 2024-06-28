@@ -15,6 +15,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
     public int count = 50;
     public WaterSurface waterSurface = null;
     public bool includeDeformation = true;
+    public bool excludeSimulation = false;
     public float currentSpeedMultiplier = 1.0f;
     public GameObject prefab;
 
@@ -103,7 +104,7 @@ public class FitToWaterSurfaceBurst : MonoBehaviour
         searchJob.maxIterations = 8;
         searchJob.error = 0.01f;
         searchJob.includeDeformation = includeDeformation;
-        searchJob.excludeSimulation = false;
+        searchJob.excludeSimulation = excludeSimulation;
 
         searchJob.projectedPositionWSBuffer = projectedPositionWSBuffer;
         searchJob.normalWSBuffer = normalWSBuffer;

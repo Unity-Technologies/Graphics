@@ -170,12 +170,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
-        internal void CheckResources(int bandResolution, bool activeFoam, bool gpuReadback)
+        internal void CheckResources(int bandResolution, bool gpuReadback)
         {
             int bandCount = numActiveBands;
+            bool foam = HasSimulationFoam();
 
             // If the previously existing resources are not valid, just release them
-            if (simulation != null && !simulation.ValidResources(bandResolution, bandCount))
+            if (simulation != null && !simulation.ValidResources(bandResolution, bandCount, foam))
             {
                 simulation.ReleaseSimulationResources();
                 simulation = null;
@@ -191,10 +192,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 simulation = new WaterSimulationResources();
 
                 // Initialize for the allocation
-                simulation.InitializeSimulationResources(bandResolution, bandCount);
+                simulation.InitializeSimulationResources(bandResolution, bandCount, foam);
 
                 // GPU buffers should always be allocated
-                simulation.AllocateSimulationBuffersGPU(activeFoam);
+                simulation.AllocateSimulationBuffersGPU();
 
                 // CPU buffers should be allocated only if required
                 if (cpuSimulationActive)

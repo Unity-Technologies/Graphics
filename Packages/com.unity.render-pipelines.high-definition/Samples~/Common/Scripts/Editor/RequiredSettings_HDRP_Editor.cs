@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor;
 using System;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -80,9 +81,17 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var setting = settingBase as RequiredSettingHDRP;
             
-            SettingsService.OpenProjectSettings(setting.projectSettingsPath);
-            HDRenderPipelineUI.SubInspectors[(HDRenderPipelineUI.ExpandableGroup)setting.uiSectionInt].Expand(setting.uiSubSectionInt);
-            CoreEditorUtils.Highlight("Project Settings", setting.propertyPath, HighlightSearchMode.Identifier);
+            if (!string.IsNullOrEmpty(setting.globalSettingsType))
+			{
+                var type = Type.GetType(setting.globalSettingsType);
+                GraphicsSettingsInspectorUtility.OpenAndScrollTo(type);
+			}
+            else
+			{
+                SettingsService.OpenProjectSettings(setting.projectSettingsPath);
+                HDRenderPipelineUI.SubInspectors[(HDRenderPipelineUI.ExpandableGroup)setting.uiSectionInt].Expand(setting.uiSubSectionInt);
+                CoreEditorUtils.Highlight("Project Settings", setting.propertyPath, HighlightSearchMode.Identifier);
+			}
         }
     }
 }

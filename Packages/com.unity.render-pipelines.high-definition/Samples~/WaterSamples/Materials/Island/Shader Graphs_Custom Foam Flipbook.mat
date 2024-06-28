@@ -11,7 +11,9 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: f4ed57d2870a3d34ebbb6b7ecb530ea8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _AFFECTS_DEFORMATION
+  - _AFFECTS_FOAM
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -45,6 +47,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AffectDeformation: 1
+    - _AffectFoam: 1
+    - _AffectLargeCurrent: 0
+    - _AffectRipplesCurrent: 0
+    - _AffectSimulationMask: 0
     - _NormalizedAliveTime: 0.5458785
     - _Optical_Flow_Multiplier: 1
     m_Colors:

@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
             (uint)FrameSettingsField.VolumetricClouds,
             (uint)FrameSettingsField.Water,
 
-            (uint)FrameSettingsField.WaterDeformation,
+            (uint)FrameSettingsField.WaterDecals,
             (uint)FrameSettingsField.WaterExclusion,
             (uint)FrameSettingsField.ComputeThickness
             // (uint)FullResolutionCloudsForSky
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             (uint)FrameSettingsField.VolumetricClouds,
             (uint)FrameSettingsField.Water,
 
-            (uint)FrameSettingsField.WaterDeformation,
+            (uint)FrameSettingsField.WaterDecals,
             (uint)FrameSettingsField.WaterExclusion,
             (uint)FrameSettingsField.AdaptiveProbeVolume,
             // (uint)FullResolutionCloudsForSky

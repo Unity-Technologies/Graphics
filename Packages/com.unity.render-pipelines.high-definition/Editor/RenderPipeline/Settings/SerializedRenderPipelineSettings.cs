@@ -33,12 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // Water
         public SerializedProperty supportWater;
         public SerializedProperty waterSimulationResolution;
-        public SerializedProperty supportWaterDeformation;
-        public SerializedProperty deformationAtlasSize;
-        public SerializedProperty maximumDeformerCount;
-        public SerializedProperty supportWaterFoam;
-        public SerializedProperty foamAtlasSize;
         public SerializedProperty supportWaterExclusion;
+        public SerializedProperty supportWaterDecals;
+        public SerializedProperty waterDecalAtlasSize;
+        public SerializedProperty maximumWaterDecalCount;
         public SerializedProperty waterScriptInteractionsMode;
         public SerializedProperty waterFullCPUSimulation;
 
@@ -125,12 +123,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // Water data
             supportWater = root.Find((RenderPipelineSettings s) => s.supportWater);
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
-            supportWaterDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterDeformation);
-            deformationAtlasSize = root.Find((RenderPipelineSettings s) => s.deformationAtlasSize);
-            maximumDeformerCount = root.Find((RenderPipelineSettings s) => s.maximumDeformerCount);
-            supportWaterFoam = root.Find((RenderPipelineSettings s) => s.supportWaterFoam);
-            foamAtlasSize = root.Find((RenderPipelineSettings s) => s.foamAtlasSize);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
+            supportWaterDecals = root.Find((RenderPipelineSettings s) => s.supportWaterDecals);
+            waterDecalAtlasSize = root.Find((RenderPipelineSettings s) => s.waterDecalAtlasSize);
+            maximumWaterDecalCount = root.Find((RenderPipelineSettings s) => s.maximumWaterDecalCount);
             waterScriptInteractionsMode = root.Find((RenderPipelineSettings s) => s.waterScriptInteractionsMode);
             waterFullCPUSimulation = root.Find((RenderPipelineSettings s) => s.waterFullCPUSimulation);
 

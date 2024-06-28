@@ -43,43 +43,23 @@
 #define WATERMASKDEBUGMODE_GREEN_CHANNEL (1)
 #define WATERMASKDEBUGMODE_BLUE_CHANNEL (2)
 
-// Generated from UnityEngine.Rendering.HighDefinition.WaterDeformerData
+// Generated from UnityEngine.Rendering.HighDefinition.WaterDecalData
 // PackingRules = Exact
-struct WaterDeformerData
+struct WaterDecalData
 {
+    float2 positionXZ;
+    float2 forwardXZ;
     float2 regionSize;
-    int type;
+    float surfaceFoamDimmer;
+    float deepFoamDimmer;
     float amplitude;
-    float3 position;
-    float rotation;
-    float2 blendRegion;
-    float2 breakingRange;
-    float bowWaveElevation;
-    float waveLength;
-    int waveRepetition;
-    float waveSpeed;
-    float waveOffset;
-    int cubicBlend;
-    float deepFoamDimmer;
-    float surfaceFoamDimmer;
-    float2 deepFoamRange;
-    float2 padding3;
-    float4 scaleOffset;
-};
-
-// Generated from UnityEngine.Rendering.HighDefinition.WaterGeneratorData
-// PackingRules = Exact
-struct WaterGeneratorData
-{
-    float3 position;
-    float rotation;
-    float2 regionSize;
-    int type;
-    int padding0;
-    float2 padding1;
-    float deepFoamDimmer;
-    float surfaceFoamDimmer;
-    float4 scaleOffset;
+    float padding0;
+    float padding1;
+    float padding2;
+    float4 deformFoamScaleOffset;
+    float4 maskScaleOffset;
+    float4 largeCurrentScaleOffset;
+    float4 ripplesCurrentScaleOffset;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.WaterSectorData

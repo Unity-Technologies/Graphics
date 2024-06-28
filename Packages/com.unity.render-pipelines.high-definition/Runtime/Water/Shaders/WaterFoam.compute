@@ -12,39 +12,21 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderVariablesWater.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/SampleWaterSurface.hlsl"
 
 // EvaluateNormals UAVS
-Texture2D<float2> _WaterFoamBuffer;
 RWTexture2D<float2> _WaterFoamBufferRW;
 float4 _PreviousFoamRegionScaleOffset;
 
 bool PreviousLocationInsideRegion(float2 foamPrevUV)
 {
-    return all(foamPrevUV >= 0.0) && all(foamPrevUV <= 1.0);
+    return all(saturate(foamPrevUV) == foamPrevUV);
 }
 
-float2 FoamUVToWorld(float2 uv)
+float2 EvaluatePreviousDecalUV(float3 transformedPositionAWS)
 {
-    uv = uv / _FoamRegionScale;
-
-    float2 axis1 = _WaterForwardXZ;
-    float2 axis2 = float2(-axis1.y, axis1.x);
-    uv = uv.x * axis1 + uv.y * axis2;
-
-    return uv + _FoamRegionOffset;
-}
-
-float2 GetPreviousFoamUV(float2 transformedPositionAWS)
-{
-    float2 deformationPosition = transformedPositionAWS - _PreviousFoamRegionScaleOffset.zw;
-
-    float2 axis1 = _WaterForwardXZ;
-    float2 axis2 = float2(-axis1.y, axis1.x);
-    deformationPosition = float2(dot(deformationPosition, axis1), dot(deformationPosition, axis2));
-
-    return deformationPosition * _PreviousFoamRegionScaleOffset.xy;
+    // EvaluateDecalUV with prev region
+    return (transformedPositionAWS.xz - _PreviousFoamRegionScaleOffset.zw) * _PreviousFoamRegionScaleOffset.xy + 0.5f;
 }
 
 [numthreads(8, 8, 1)]
@@ -57,13 +39,13 @@ void ReprojectFoam(uint3 currentThread : SV_DispatchThreadID,
     uint2 coord = currentThread.xy;
 
     // Evaluate the UV coordinates of this pixel
-    float2 foamRegionCoord = (coord + 0.5f) / _WaterFoamRegionResolution - 0.5f;
+    float2 foamRegionCoord = (coord + 0.5f) / _WaterFoamRegionResolution;
 
     // Evaluate the world space position of this pixel
-    float2 foamPosWS = FoamUVToWorld(foamRegionCoord);
+    float3 foamPosWS = EvaluateInverseDecalUV(foamRegionCoord);
 
     // Evaluate the previous foam region
-    float2 foamPrevUV = GetPreviousFoamUV(foamPosWS) + 0.5f;
+    float2 foamPrevUV = EvaluatePreviousDecalUV(foamPosWS);
 
     // Output the normal and foam
     _WaterFoamBufferRW[coord] = PreviousLocationInsideRegion(foamPrevUV) ? SAMPLE_TEXTURE2D_LOD(_WaterFoamBuffer, s_linear_clamp_sampler, foamPrevUV, 0).xy : 0.0;

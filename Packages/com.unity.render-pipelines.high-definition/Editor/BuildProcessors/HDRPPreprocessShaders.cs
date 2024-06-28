@@ -42,6 +42,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (stripDebugVariants && snippet.passName.StartsWith(WaterSystem.k_WaterMaskPass))
                     return true;
             }
+            if (HDRPBuildData.instance.waterDecalMaskAndCurrent)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WaterDecalPartial))
+                    return true;
+            }
+            else
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WaterDecalComplete))
+                    return true;
+            }
 
             // If Screen Space Lens Flare is disabled, strip all the shaders
             if (!settings.supportScreenSpaceLensFlare)

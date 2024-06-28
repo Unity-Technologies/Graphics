@@ -55,7 +55,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var baseCode = "\n";
             baseCode += "#define WATER_DISPLACEMENT\n";
-            baseCode += "#define IGNORE_WATER_DEFORMATION\n";
             baseCode += "#define IGNORE_HQ_NORMAL_SAMPLE\n";
             baseCode += "#define IGNORE_WATER_FADE\n"; // didn't profile but probably faster
 
@@ -67,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 baseCode += "#define WATER_THREE_BANDS\n";
 
-            if (includeDeformation) baseCode += "#define WATER_POST_INCLUDE_DEFORMATION\n";
+            if (!includeDeformation) baseCode += "#define IGNORE_WATER_DEFORMATION\n";
             if (includeCurrent) baseCode += "#define WATER_LOCAL_CURRENT\n";
 
             baseCode += $"#include \"{m_SampleWaterSurface}\"\n";

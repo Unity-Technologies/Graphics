@@ -50,6 +50,7 @@ namespace UnityEditor.ShaderGraph
             bool integer = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
+            m_DefaultValue = value;
             m_Value = value;
             m_Integer = integer;
             if ((label1 != null) || (label2 != null))

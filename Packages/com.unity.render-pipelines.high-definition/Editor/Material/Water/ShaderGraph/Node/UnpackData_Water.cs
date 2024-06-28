@@ -45,10 +45,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine("$precision {1} = saturate(IN.{0}.x); $precision {2} = IN.{0}.y;",
-                ShaderGeneratorNames.GetUVName(UVChannel.UV1),
+            // See PackWaterVertexData
+
+            // Low Frequency Height
+            sb.AppendLine("$precision {0} = saturate(IN.{1}.w);",
                 GetVariableNameForSlot(kLowFrequencyHeightOutputSlotId),
-                GetVariableNameForSlot(kHorizontalDisplacementOutputSlotId)
+                ShaderGeneratorNames.GetUVName(UVChannel.UV1)
+            );
+
+            // Horizontal Displacement
+            sb.AppendLine("$precision {0} = IN.{1}.w;",
+                GetVariableNameForSlot(kHorizontalDisplacementOutputSlotId),
+                ShaderGeneratorNames.GetUVName(UVChannel.UV0)
             );
         }
 

@@ -5,15 +5,12 @@
 // #pragma enable_d3d11_debug_symbols
 
 // Required for finding the vertical displacements
+#pragma multi_compile WATER_DECAL_PARTIAL WATER_DECAL_COMPLETE
 #pragma multi_compile WATER_ONE_BAND WATER_TWO_BANDS WATER_THREE_BANDS
 #pragma multi_compile _ WATER_LOCAL_CURRENT
 
 // Required to be defined for some includes
 #define WATER_SIMULATION
-
-// Small optimization to reduce deformation reads
-#define IGNORE_WATER_DEFORMATION
-#define WATER_POST_INCLUDE_DEFORMATION
 
 // SRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

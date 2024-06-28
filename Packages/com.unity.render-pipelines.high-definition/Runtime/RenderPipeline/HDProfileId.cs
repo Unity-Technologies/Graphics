@@ -107,12 +107,16 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudMapGeneration,
         VolumetricCloudsAmbientProbe,
 
+        // Water Decals
+        WaterDecalDeformation,
+        WaterDecalFoam,
+        WaterDecalMask,
+        WaterDecalCurrent,
+
         // Water surface
         WaterSurfaceUpdate,
         WaterSurfaceSimulation,
-        WaterSurfaceDeformation,
         WaterSurfaceCaustics,
-        WaterSurfaceFoam,
         WaterExclusion,
         WaterGBuffer,
         WaterMaskDebug,

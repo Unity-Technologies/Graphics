@@ -70,7 +70,7 @@ void EvaluateFoamData(float surfaceFoam, float customFoam, float3 positionOS, ou
     foamData.foamValue = FoamErosion(foamLifeTime, positionOS.xz);
 
     // Blend the smoothness of the water and the foam
-    foamData.smoothness = lerp(_WaterSmoothness, _FoamSmoothness, saturate(foamData.foamValue));
+    foamData.smoothness = lerp(_WaterSmoothness, _WaterFoamSmoothness, saturate(foamData.foamValue));
 }
 
 #define WATER_BACKGROUND_ABSORPTION_DISTANCE 1000.f

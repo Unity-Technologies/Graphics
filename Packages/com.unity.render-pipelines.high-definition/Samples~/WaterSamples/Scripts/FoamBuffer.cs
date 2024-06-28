@@ -7,7 +7,6 @@ using UnityEngine.Rendering.HighDefinition;
 public class FoamBuffer : MonoBehaviour
 {
     public WaterSurface waterSurface;
-    public float time = 2.5f;
 
     // Update is called once per frame
     void Update()

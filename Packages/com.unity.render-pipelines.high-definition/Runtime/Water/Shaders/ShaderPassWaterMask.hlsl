@@ -47,17 +47,25 @@ void Frag(PackedVaryingsToPS packedInput,
     float3 positionOS = float3(input.texCoord0.x, 0.0f, input.texCoord0.y);
     float3 transformedPosAWS = GetAbsolutePositionWS(input.positionRWS);
 
+    float2 decalUV = EvaluateDecalUV(transformedPosAWS);
+    float decalRegionMask = all(saturate(decalUV) == decalUV) ? 1.0 : 0.0;
+
+    bool decalWorkflow = false;
+    #ifdef WATER_DECAL_COMPLETE
+    decalWorkflow = true;
+    #endif
+
     if (_WaterDebugMode == WATERDEBUGMODE_SIMULATION_FOAM_MASK)
     {
-        float2 maskUV = EvaluateFoamMaskUV(positionOS.xz);
-        float foamMask = SAMPLE_TEXTURE2D(_SimulationFoamMask, sampler_SimulationFoamMask, maskUV).x;
-        outGBuffer0 = float4(foamMask, foamMask, foamMask, 1.0);
+        float foamMask = EvaluateFoamMask(positionOS, EvaluateWaterMask(transformedPosAWS));
+        outGBuffer0 = float4(foamMask.xxx * (decalWorkflow ? decalRegionMask : 1), 1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_WATER_MASK)
     {
-        float3 waterMask = EvaluateWaterMask(positionOS);
-        float3 debugMask = waterMask[_WaterMaskDebugMode];
-        outGBuffer0 = float4(debugMask, 1.0);
+        // Note: we sample water mask with position after water mask has been applied
+        // But since sampling is on XZ and water mask is on Y, that's not an issue
+        float waterMask = EvaluateWaterMask(transformedPosAWS)[_WaterMaskDebugMode];
+        outGBuffer0 = float4(waterMask.xxx * (decalWorkflow ? decalRegionMask : 1), 1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_CURRENT)
     {
@@ -81,32 +89,41 @@ void Frag(PackedVaryingsToPS packedInput,
         float2 tileSize = ARROW_TILE_SIZE / _CurrentDebugMultiplier;
         // Evaluate the arrow
         float arrowV = EvaluateArrow(input.texCoord0.xy, dir, tileSize);
-        dir = RotateUV(dir);
+
+        if (!decalWorkflow) dir = RotateUV(dir);
         outGBuffer0 = float4((dir * 0.5 + 0.5) * (1.0 - arrowV), 0.0, 1.0);
+        //if (decalWorkflow) outGBuffer0.z = 1 - decalRegionMask;
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_DEFORMATION)
     {
-        // Define the sampling coordinates
-        float2 deformationUV = EvaluateDeformationUV(transformedPosAWS);
-
         // Sample the deformation region
-        float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
+        float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, decalUV, 0);
+
+        // Checkerboard pattern to visualize resolution
+        float scale = _DeformationRegionResolution;
+        float total = floor(decalUV.x * scale) + floor(decalUV.y * scale);
+        float checkerboard = lerp(0.5f, 1.0f, step(fmod(total, 2.0), 0.5));
 
         // Evaluate the region flag
-        float regionFlag = deformationUV.x > 0.0 && deformationUV.x < 1.0 && deformationUV.y > 0.0 && deformationUV.y < 1.0;
         float negativeDisplacement = max(-verticalDeformation, 0);
         float positiveDisplacement = max(verticalDeformation, 0);
-        outGBuffer0 = float4(negativeDisplacement / (1.0 + negativeDisplacement), positiveDisplacement / (1.0 + positiveDisplacement), regionFlag, 1.0);
+        outGBuffer0 = float4(negativeDisplacement / (1.0 + negativeDisplacement),
+                             positiveDisplacement / (1.0 + positiveDisplacement),
+                             decalRegionMask * checkerboard,
+                             1.0);
     }
     else if (_WaterDebugMode == WATERDEBUGMODE_FOAM)
     {
         WaterAdditionalData waterAdditionalData;
         EvaluateWaterAdditionalData(input.texCoord0.xyy, input.positionRWS, float3(0, 1, 0), waterAdditionalData);
 
-        float2 foamUV = EvaluateFoamUV(transformedPosAWS);
-        float foamRegionMask = all(foamUV > 0.0) && all(foamUV < 1.0) ? 1.0 : 0.0;
+        // Checkerboard pattern to visualize resolution
+        float scale = _WaterFoamRegionResolution;
+        float total = floor(decalUV.x * scale) + floor(decalUV.y * scale);
+        float checkerboard = lerp(0.5f, 1.0f, step(fmod(total, 2.0), 0.5));
+
         float targetFoam = _WaterFoamDebugMode == 0 ? waterAdditionalData.surfaceFoam : waterAdditionalData.deepFoam;
-        outGBuffer0 = float4(targetFoam, targetFoam, foamRegionMask, 1.0);
+        outGBuffer0 = float4(targetFoam, targetFoam, decalRegionMask * checkerboard, 1.0);
     }
     else
     {

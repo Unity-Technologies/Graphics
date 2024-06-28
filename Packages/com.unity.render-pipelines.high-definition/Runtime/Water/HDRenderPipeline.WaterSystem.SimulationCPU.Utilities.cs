@@ -167,11 +167,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static float2 EvaluateWaterGroup0CurrentUV(in WaterSimSearchData wsd, float2 currentUV)
         {
+            if (wsd.decalWorkflow)
+            {
+                float3 positionAWS = mul(wsd.rendering.waterToWorldMatrix, float4(currentUV.x, 0, currentUV.y, 1.0f)).xyz;
+                return EvaluateDecalUV(wsd, positionAWS);
+            }
+
             return float2(currentUV.x - wsd.group0CurrentRegionOffset.x, currentUV.y + wsd.group0CurrentRegionOffset.y) * wsd.group0CurrentRegionScale + 0.5f;
         }
 
         static float2 EvaluateWaterGroup1CurrentUV(in WaterSimSearchData wsd, float2 currentUV)
         {
+            if (wsd.decalWorkflow)
+            {
+                float3 positionAWS = mul(wsd.rendering.waterToWorldMatrix, float4(currentUV.x, 0, currentUV.y, 1.0f)).xyz;
+                return EvaluateDecalUV(wsd, positionAWS);
+            }
+
             return float2(currentUV.x - wsd.group1CurrentRegionOffset.x, currentUV.y + wsd.group1CurrentRegionOffset.y) * wsd.group1CurrentRegionOffset + 0.5f;
         }
 
@@ -300,37 +312,52 @@ namespace UnityEngine.Rendering.HighDefinition
             FillPatchData(wsd.spectrum.patchGroup[2], gr0SC.data2, gr1SC.data2, gr0CD, gr1CD, gr0SD, gr1SD, firstPass, out simCoord.data2);
         }
 
-        static void AddBandContribution(in WaterSimSearchData wsd, in PatchSimData data, int bandIdx, float3 waterMask, ref float3 totalDisplacement)
+        static void AddBandContribution(in WaterSimSearchData wsd, in PatchSimData data, int bandIdx, ref float2 horizontalDisplacement, ref float3 verticalDisplacements)
         {
             float3 rawDisplacement = wsd.cpuSimulation ? SampleTexture2DArrayBilinear(wsd.displacementDataCPU, data.uv, bandIdx, wsd.simulationRes).xyz :
                 SampleTexture2DArrayBilinear(wsd.displacementDataGPU, data.uv, bandIdx, wsd.simulationRes).xyz;
-            rawDisplacement *= wsd.rendering.patchAmplitudeMultiplier[bandIdx] * waterMask[bandIdx] * data.blend;
-            totalDisplacement += float3(rawDisplacement.x, dot(rawDisplacement.yz, data.swizzle.xy), dot(rawDisplacement.yz, data.swizzle.zw));
+            rawDisplacement *= wsd.rendering.patchAmplitudeMultiplier[bandIdx] * data.blend;
+
+            horizontalDisplacement += float2(dot(rawDisplacement.yz, data.swizzle.xy), dot(rawDisplacement.yz, data.swizzle.zw));
+            verticalDisplacements[bandIdx] = rawDisplacement.x;
+
         }
 
-        static float3 EvaluateWaterSimulation(in WaterSimSearchData wsd, WaterSimCoord sc, float3 waterMask)
+        static void EvaluateWaterSimulation(in WaterSimSearchData wsd, WaterSimCoord sc, out float2 horizontalDisplacement, out float3 verticalDisplacements)
         {
-            float3 totalDisplacement = 0.0f;
+            horizontalDisplacement = 0.0f;
+            verticalDisplacements = 0.0f;
 
-            AddBandContribution(in wsd, in sc.data0, 0, waterMask, ref totalDisplacement);
+            AddBandContribution(in wsd, in sc.data0, 0, ref horizontalDisplacement, ref verticalDisplacements);
 
             if (wsd.activeBandCount > 1)
-                AddBandContribution(in wsd, in sc.data1, 1, waterMask, ref totalDisplacement);
+                AddBandContribution(in wsd, in sc.data1, 1, ref horizontalDisplacement, ref verticalDisplacements);
 
             if (wsd.activeBandCount > 2)
-                AddBandContribution(in wsd, in sc.data2, 2, waterMask, ref totalDisplacement);
-
-            return totalDisplacement;
+                AddBandContribution(in wsd, in sc.data2, 2, ref horizontalDisplacement, ref verticalDisplacements);
         }
 
-        static float3 EvaluateWaterMask(in WaterSimSearchData wsd, float2 uv)
+        static float2 EvaluateDecalUV(in WaterSimSearchData wsd, float3 positionAWS)
+        {
+            return (positionAWS.xz - wsd.decalRegionCenter) * wsd.decalRegionScale + 0.5f;
+        }
+
+        static float3 EvaluateWaterMask(in WaterSimSearchData wsd, float3 positionAWS)
         {
             float3 waterMask = 1.0f;
             if (wsd.activeMask)
             {
-                float2 waterMaskUV = float2(uv.x - wsd.maskOffset.x, uv.y + wsd.maskOffset.y) * wsd.maskScale + 0.5f;
-                waterMask = SampleTexture2DBilinear(wsd.maskBuffer, waterMaskUV, wsd.maskResolution, wsd.maskWrapModeU, wsd.maskWrapModeV).xyz;
-                waterMask = wsd.maskRemap.xxx + waterMask * wsd.maskRemap.yyy;
+                if (wsd.decalWorkflow)
+                {
+                    float2 maskUV = EvaluateDecalUV(wsd, positionAWS);
+                    waterMask = all(maskUV == saturate(maskUV)) ? SampleTexture2DBilinear(wsd.maskBuffer, maskUV, wsd.maskResolution, TextureWrapMode.Clamp, TextureWrapMode.Clamp).xyz : 1;
+                }
+                else
+                {
+                    float2 maskUV = RotateUV(wsd, positionAWS.xz - wsd.maskOffset) * wsd.maskScale + 0.5f;
+                    waterMask = SampleTexture2DBilinear(wsd.maskBuffer, maskUV, wsd.maskResolution, wsd.maskWrapModeU, wsd.maskWrapModeV).xyz;
+                    waterMask = wsd.maskRemap.xxx + waterMask * wsd.maskRemap.yyy;
+                }
             }
             return waterMask;
         }

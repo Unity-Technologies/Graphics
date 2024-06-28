@@ -15,18 +15,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return float2(dot(uv, axis1), dot(uv, axis2));
         }
 
-        static float2 EvaluateDeformationUV(WaterSimSearchData wsd, float3 transformedPositionAWS)
-        {
-            return RotateUV(wsd, transformedPositionAWS.xz - wsd.deformationRegionOffset) * wsd.deformationRegionScale + 0.5f;
-        }
-
         internal static float EvaluateDeformers(WaterSimSearchData wsd, float3 positionAWS)
         {
             if (wsd.deformationResolution.x == 0.0f && wsd.deformationResolution.y == 0.0f)
                 return 0.0f;
 
             // Apply the deformation data
-            float2 deformationUV = EvaluateDeformationUV(wsd, positionAWS);
+            float2 deformationUV = EvaluateDecalUV(wsd, positionAWS);
             return SampleTexture2DBilinear(wsd.deformationBuffer, deformationUV, wsd.deformationResolution);
         }
 
@@ -46,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0.0f;
 
             // Apply the deformation data
-            float2 deformationUV = EvaluateDeformationUV(wsd, positionAWS);
+            float2 deformationUV = EvaluateDecalUV(wsd, positionAWS);
             PrepareCoordinates(deformationUV, wsd.deformationResolution, out int2 centerCoord, out float2 fract);
 
             // Get the displacement we need for the evaluate (and re-order them)
@@ -55,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float displacementUp = LoadDeformation(wsd, centerCoord + int2(0, 1));
 
             // Evaluate the displacement normalization factor and pixel size
-            float2 pixelSize = 1.0f / (wsd.deformationResolution * wsd.deformationRegionScale);
+            float2 pixelSize = 1.0f / (wsd.deformationResolution * wsd.decalRegionScale);
 
             // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
             float3 p0 = float3(0, displacementCenter, 0);

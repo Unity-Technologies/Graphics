@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 3729.938, g: 5864.9536, b: 6702.954, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -733,15 +732,22 @@ MonoBehaviour:
   volumeDepth: 50
   volumeHeight: 0
   volumePrority: 0
-  absorptionDistanceMultiplier: 1000
+  absorptionDistanceMultiplier: 5
+  underWaterAmbientProbeContribution: 1
   underWaterScatteringColorMode: 0
   underWaterScatteringColor: {r: 0, g: 0.27, b: 0.23, a: 1}
   underWaterRefraction: 0
+  decalRegionSize: {x: 200, y: 200}
+  decalRegionAnchor: {fileID: 0}
+  supportLargeCurrent: 0
+  largeCurrentRes: 512
   largeCurrentSpeedValue: 0
   largeCurrentMap: {fileID: 0}
   largeCurrentRegionExtent: {x: 100, y: 100}
   largeCurrentRegionOffset: {x: 0, y: 0}
   largeCurrentMapInfluence: 1
+  supportRipplesCurrent: 0
+  ripplesCurrentRes: 512
   ripplesCurrentSpeedValue: 0
   ripplesCurrentMap: {fileID: 0}
   ripplesCurrentRegionExtent: {x: 100, y: 100}
@@ -749,19 +755,15 @@ MonoBehaviour:
   ripplesCurrentMapInfluence: 1
   deformation: 0
   deformationRes: 512
-  deformationAreaSize: {x: 200, y: 200}
-  deformationAreaOffset: {x: 0, y: 0}
   foam: 1
   foamResolution: 512
-  foamAreaSize: {x: 200, y: 200}
-  foamAreaOffset: {x: 0, y: 0}
   foamPersistenceMultiplier: 1
   foamCurrentInfluence: 0.6
   foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.15
   foamSmoothness: 1
-  simulationFoam: 1
   simulationFoamAmount: 0.2
+  supportSimulationFoamMask: 0
   simulationFoamMask: {fileID: 0}
   simulationFoamMaskExtent: {x: 100, y: 100}
   simulationFoamMaskOffset: {x: 0, y: 0}
@@ -827,6 +829,8 @@ MonoBehaviour:
   ripplesFadeMode: 1
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
+  simulationMask: 0
+  maskRes: 512
   waterMask: {fileID: 0}
   waterMaskRemap: {x: 0, y: 1}
   waterMaskExtent: {x: 100, y: 100}
@@ -931,8 +935,7 @@ MonoBehaviour:
   highlightDarkColor: {r: 1, g: 0.89, b: 0.45, a: 1}
   codeLightColor: {r: 0.76, g: 0.41, b: 0, a: 1}
   codeDarkColor: {r: 0.91, g: 0.57, b: 0.17, a: 1}
-  SamplesDescriptionsJson: {fileID: 4900000, guid: 5053fb44b5514f745a84b556afc98495,
-    type: 3}
+  SamplesDescriptionsJson: {fileID: 4900000, guid: 5053fb44b5514f745a84b556afc98495, type: 3}
   samplesPrefabs: []
   PresentationMode: 2
   enableSelectButton: 0

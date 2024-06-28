@@ -35,7 +35,7 @@ public class ShoreDecalTrigger : MonoBehaviour
             if (waterSurface.ProjectPointOnWaterSurface(searchParameters, out searchResult))
             {
                 // If the trigger is below the water surface, it means a wave hit it, so if there's not already a decal, we instantiate one. 
-                if(searchResult.projectedPositionWS.y > this.transform.position.y && !decalGameObject.activeSelf)
+                if (searchResult.projectedPositionWS.y > this.transform.position.y && !decalGameObject.activeSelf)
                 {
                     ActivateDecal();
                 }

@@ -156,8 +156,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: Water, positiveDependencies: new[] { TransparentObjects, Refraction }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render water surfaces.")]
         Water = 99,
         /// <summary>When enabled, Cameras using these Frame Settings will support water deformers.</summary>
-        [FrameSettingsField(0, autoName: WaterDeformation, positiveDependencies: new[] { TransparentObjects, Refraction, Water }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings will support water deformers.")]
-        WaterDeformation = 102,
+        [FrameSettingsField(0, autoName: WaterDecals, positiveDependencies: new[] { TransparentObjects, Refraction, Water }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings will support water decals.")]
+        WaterDecals = 102,
         /// <summary>When enabled, Cameras using these Frame Settings will support water excluders.</summary>
         [FrameSettingsField(0, autoName: WaterExclusion, positiveDependencies: new[] { TransparentObjects, Refraction, Water }, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings will support water excluders.")]
         WaterExclusion = 101,
@@ -707,7 +707,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VolumetricClouds];
 
             bool water = sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Water] &= sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.Refraction] && renderPipelineSettings.supportWater && notPreview;
-            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterDeformation] &= water && renderPipelineSettings.supportWaterDeformation;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterDecals] &= water && renderPipelineSettings.supportWaterDecals;
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.WaterExclusion] &= water && renderPipelineSettings.supportWaterExclusion;
 
             // Disable Lens Flares if they are unchecked in the HDRP Assets

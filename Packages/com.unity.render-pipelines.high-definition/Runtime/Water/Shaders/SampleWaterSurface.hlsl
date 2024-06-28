@@ -46,30 +46,41 @@ float2 RotateUV(float2 uv)
     return float2(dot(uv, axis1), dot(uv, axis2));
 }
 
+float2 EvaluateDecalUV(float3 transformedPositionAWS)
+{
+    return (transformedPositionAWS.xz - _DecalRegionOffset) * _DecalRegionScale + 0.5f;
+}
+
+float3 EvaluateInverseDecalUV(float2 uv)
+{
+    float2 posWS = (uv - 0.5f) / _DecalRegionScale + _DecalRegionOffset;
+    return float3(posWS.x, 0, posWS.y);
+}
+
 // Water Mask
 TEXTURE2D(_WaterMask);
 SAMPLER(sampler_WaterMask);
 
-float3 EvaluateWaterMask(float3 positionOS)
+float4 EvaluateWaterMask(float3 positionAWS)
 {
-    float2 maskUV = (positionOS.xz - _WaterMaskOffset) * _WaterMaskScale + 0.5f;
-    float3 waterMask = SAMPLE_TEX2D(_WaterMask, sampler_WaterMask, maskUV).xyz;
-
-    return _WaterMaskRemap.xxx + waterMask * _WaterMaskRemap.yyy;
+#ifdef WATER_DECAL_COMPLETE
+    float2 maskUV = (positionAWS.xz - _DecalRegionOffset) * _DecalRegionScale + 0.5f;
+    float4 mask = all(maskUV == saturate(maskUV)) ? SAMPLE_TEX2D(_WaterMask, s_linear_clamp_sampler, maskUV) : 1;
+    return float4(mask.xyz, lerp(1, mask.w, _SimulationFoamMaskScale.x));
+#else
+    float2 maskUV = RotateUV(positionAWS.xz - _WaterMaskOffset) * _WaterMaskScale + 0.5f;
+    float4 waterMask = SAMPLE_TEX2D(_WaterMask, sampler_WaterMask, maskUV);
+    return float4(_WaterMaskRemap.xxx + waterMask.xyz * _WaterMaskRemap.yyy, 1);
+#endif
 }
 
 // Deformation region
 Texture2D<float> _WaterDeformationBuffer;
 Texture2D<float2> _WaterDeformationSGBuffer;
 
-float2 EvaluateDeformationUV(float3 transformedPositionAWS)
-{
-    return RotateUV(transformedPositionAWS.xz - _DeformationRegionOffset) * _DeformationRegionScale + 0.5f;
-}
-
 float EvaluateWaterDeformation(float3 positionAWS)
 {
-    float2 deformationUV = EvaluateDeformationUV(positionAWS);
+    float2 deformationUV = EvaluateDecalUV(positionAWS);
     return SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
 }
 
@@ -186,59 +197,45 @@ float3 SampleDisplacement_VS(float2 uv, float bandIdx)
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, uv, bandIdx, 0).xyz;
 }
 
-void SampleSimulation_VS(WaterSimCoord waterCoord, float3 waterMask, float distanceToCamera,
-                        out float3 totalDisplacement, out float lowFrequencyHeight)
+void SampleSimulation_VS(WaterSimCoord waterCoord, float distanceToCamera, out float2 horizontalDisplacement, out float3 verticalDisplacements)
 {
     // Initialize the output
-    totalDisplacement = 0.0;
-    lowFrequencyHeight = 0.0;
+    horizontalDisplacement = 0.0;
+    verticalDisplacements = 0.0;
 
     // Loop through the bands
     UNITY_UNROLL for (int bandIdx = 0; bandIdx < NUM_WATER_BANDS; ++bandIdx)
     {
         float distanceFade = DistanceFade(distanceToCamera, bandIdx);
-        if (distanceFade == 0.0f) continue;
+        if (distanceFade != 0.0f)
+        {
+            // Grab the data for the current band
+            PatchSimData currentData = waterCoord.data[bandIdx];
 
-        // Grab the data for the current band
-        PatchSimData currentData = waterCoord.data[bandIdx];
+            // Read the raw simulation data
+            float3 rawDisplacement = SampleDisplacement_VS(currentData.uv, (float)bandIdx);
 
-        // Read the raw simulation data
-        float3 rawDisplacement = SampleDisplacement_VS(currentData.uv, (float)bandIdx);
+            // Apply the global attenuations
+            rawDisplacement *= GetPatchAmplitudeMultiplier(bandIdx) * currentData.blend;
 
-        // Apply the global attenuations
-        rawDisplacement *= GetPatchAmplitudeMultiplier(bandIdx) * waterMask[bandIdx] * currentData.blend;
+            // Apply the camera distance attenuation
+            rawDisplacement *= distanceFade;
 
-        // Apply the camera distance attenuation
-        rawDisplacement *= distanceFade;
-
-        // Swizzle the displacement and add it
-        totalDisplacement += float3(rawDisplacement.x, dot(rawDisplacement.yz, currentData.swizzle.xy), dot(rawDisplacement.yz, currentData.swizzle.zw));
-
-        // Contribute to the low frequency height
-        lowFrequencyHeight += bandIdx < 2 ? rawDisplacement.x : 0;
+            // Swizzle the displacement and add it
+            horizontalDisplacement += float2(dot(rawDisplacement.yz, currentData.swizzle.xy), dot(rawDisplacement.yz, currentData.swizzle.zw));
+            verticalDisplacements[bandIdx] = rawDisplacement.x;
+        }
     }
 }
 
 // Evaluate Water displacement
 
-struct WaterDisplacementData
-{
-    float3 displacement;
-    float lowFrequencyHeight;
-};
-
-void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
+void EvaluateSimulationDisplacement(float3 positionOS, out float2 horizontalDisplacement, out float3 verticalDisplacements)
 {
     // Evaluate the pre-displaced absolute position
     float3 positionRWS = TransformObjectToWorld_Water(positionOS);
     // Evaluate the distance to the camera
     float distanceToCamera = length(positionRWS);
-
-    // Attenuate using the water mask
-    float3 waterMask = EvaluateWaterMask(positionOS);
-
-    float3 totalDisplacement = 0.0;
-    float lowFrequencyHeight = 0.0;
 
 #if !defined(WATER_LOCAL_CURRENT)
     // Compute the simulation coordinates
@@ -246,7 +243,7 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
     ComputeWaterUVs(positionOS.xz, waterCoord);
 
     // Sample the simulation
-    SampleSimulation_VS(waterCoord, waterMask, distanceToCamera, totalDisplacement, lowFrequencyHeight);
+    SampleSimulation_VS(waterCoord, distanceToCamera, horizontalDisplacement, verticalDisplacements);
 #else
     // Read the current data
     CurrentData currentData[2];
@@ -267,37 +264,66 @@ void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData disp
     ComputeWaterUVs(tapCoords[1].xy, waterCoord[1]);
     AggregateWaterSimCoords(waterCoord, currentData, true, finalCoords);
 
-    float3 totalDisplacement0 = 0.0;
-    float lowFrequencyHeight0 = 0.0;
-    SampleSimulation_VS(finalCoords, waterMask, distanceToCamera, totalDisplacement0, lowFrequencyHeight0);
+    float2 horizontalDisplacement0;
+    float3 verticalDisplacements0;
+    SampleSimulation_VS(finalCoords, distanceToCamera, horizontalDisplacement0, verticalDisplacements0);
 
     // Sample the simulation (second time)
     ComputeWaterUVs(tapCoords[0].zw, waterCoord[0]);
     ComputeWaterUVs(tapCoords[1].zw, waterCoord[1]);
     AggregateWaterSimCoords(waterCoord, currentData, false, finalCoords);
 
-    float3 totalDisplacement1 = 0.0;
-    float lowFrequencyHeight1 = 0.0;
-    SampleSimulation_VS(finalCoords, waterMask, distanceToCamera, totalDisplacement1, lowFrequencyHeight1);
+    float2 horizontalDisplacement1;
+    float3 verticalDisplacements1;
+    SampleSimulation_VS(finalCoords, distanceToCamera, horizontalDisplacement1, verticalDisplacements1);
 
     // Combine both contributions
-    totalDisplacement = totalDisplacement0 + totalDisplacement1;
-    lowFrequencyHeight = lowFrequencyHeight0 + lowFrequencyHeight1;
+    horizontalDisplacement = horizontalDisplacement0 + horizontalDisplacement1;
+    verticalDisplacements = verticalDisplacements0 + verticalDisplacements1;
 #endif
 
     // We apply the choppiness to all bands
-    totalDisplacement.yz *= WATER_SYSTEM_CHOPPINESS;
+    horizontalDisplacement *= -WATER_SYSTEM_CHOPPINESS;
+}
 
-    // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
-    displacementData.lowFrequencyHeight = lowFrequencyHeight;
-    displacementData.displacement = float3(-totalDisplacement.y, totalDisplacement.x, -totalDisplacement.z);
+void EvaluateVerticalDisplacement(float3 positionOS, float3 verticalDisplacements, out float verticalDisplacement, out float lowFrequencyHeight)
+{
+    // Compute the position that will be used to sample decals
+    float3 positionAWS = GetAbsolutePositionWS(TransformObjectToWorld_Water(positionOS));
+
+    // Compute water mask
+    float3 waterMask = EvaluateWaterMask(positionAWS).xyz;
+
+    // Compute final vertical deformation
+    verticalDisplacement = dot(verticalDisplacements, waterMask);
+    lowFrequencyHeight = dot(verticalDisplacements.xy, waterMask.xy);
 
 #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
-    float verticalDeformation = EvaluateWaterDeformation(GetAbsolutePositionWS(positionRWS) + displacementData.displacement);
-    displacementData.displacement += float3(0.0, verticalDeformation, 0.0);
-    displacementData.lowFrequencyHeight += verticalDeformation;
+    float verticalDeformation = EvaluateWaterDeformation(positionAWS);
+    verticalDisplacement += verticalDeformation;
+    lowFrequencyHeight += verticalDeformation;
 #endif
+}
+
+struct WaterDisplacementData
+{
+    float3 displacement;
+    float lowFrequencyHeight;
+};
+
+void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
+{
+    float2 horizontalDisplacement;
+    float3 verticalDisplacements;
+    EvaluateSimulationDisplacement(positionOS, horizontalDisplacement, verticalDisplacements);
+
+    float lowFrequencyHeight;
+    float3 displacement = float3(horizontalDisplacement.x, 0, horizontalDisplacement.y);
+    EvaluateVerticalDisplacement(positionOS + displacement, verticalDisplacements, displacement.y, lowFrequencyHeight);
+
+    displacementData.displacement = displacement;
+    displacementData.lowFrequencyHeight = lowFrequencyHeight;
 
 #if defined(SHADER_STAGE_VERTEX) && !defined(WATER_DISPLACEMENT)
     ZERO_INITIALIZE(WaterDisplacementData, displacementData);
@@ -315,15 +341,9 @@ SAMPLER(sampler_SimulationFoamMask);
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/FoamUtilities.hlsl"
 
 // UV to sample the foam mask
-float2 EvaluateFoamMaskUV(float2 foamUV)
+float2 EvaluateFoamMaskUV(float2 positionOS)
 {
-    return foamUV * _SimulationFoamMaskScale - _SimulationFoamMaskOffset * _SimulationFoamMaskScale + 0.5f;
-}
-
-// UV to sample the foam simulation
-float2 EvaluateFoamUV(float3 transformedPositionAWS)
-{
-    return RotateUV(transformedPositionAWS.xz - _FoamRegionOffset) * _FoamRegionScale + 0.5f;
+    return positionOS * _SimulationFoamMaskScale - _SimulationFoamMaskOffset * _SimulationFoamMaskScale + 0.5f;
 }
 
 float EvaluateFoam(float jacobian, float foamAmount)
@@ -331,10 +351,14 @@ float EvaluateFoam(float jacobian, float foamAmount)
     return saturate(-jacobian + foamAmount);
 }
 
-float EvaluateFoamMask(float3 positionOS)
+float EvaluateFoamMask(float3 positionOS, float4 waterMask)
 {
-    float2 maskUV = (positionOS.xz - _SimulationFoamMaskOffset) * _SimulationFoamMaskScale + 0.5f;
+#ifdef WATER_DECAL_COMPLETE
+    float foamMask = waterMask.w;
+#else
+    float2 maskUV = EvaluateFoamMaskUV(positionOS.xz);
     float foamMask = SAMPLE_TEX2D(_SimulationFoamMask, sampler_SimulationFoamMask, maskUV).x;
+#endif
 
     return foamMask * _SimulationFoamIntensity;
 }
@@ -363,7 +387,7 @@ float4 SampleAdditionalData(float2 uv, float bandIdx, float4 texSize)
 #endif
 }
 
-void SampleSimulation_PS(WaterSimCoord waterCoord,  float3 waterMask, float distanceToCamera, float4 texSize,
+void SampleSimulation_PS(WaterSimCoord waterCoord, float3 waterMask, float distanceToCamera, float4 texSize,
                         out float2 surfGrdt, out float2 lfSurfGrdt, out float jcbSurface, out float jcbDeep)
 {
     // Initialize the outputs
@@ -417,6 +441,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float distanceToCamera = length(positionRWS);
     // Get the world space transformed postion
     float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
+    float2 decalUV = EvaluateDecalUV(transformedAWS);
 
     // Compute the texture size param for the filtering
     float4 texSize = 0.0;
@@ -424,7 +449,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     texSize.zw = 1.0f / _BandResolution;
 
     // Attenuate using the water mask
-    float3 waterMask = EvaluateWaterMask(positionOS);
+    float4 waterMask = EvaluateWaterMask(transformedAWS);
 
     // Initialize the surface gradients
     float2 surfaceGradient = 0.0;
@@ -437,7 +462,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     // Sample the simulation
     WaterSimCoord waterCoord;
     ComputeWaterUVs(positionOS.xz, waterCoord);
-    SampleSimulation_PS(waterCoord,  waterMask, distanceToCamera, texSize,
+    SampleSimulation_PS(waterCoord,  waterMask.xyz, distanceToCamera, texSize,
                         surfaceGradient, lFSurfaceGradient, jacobianSurface, jacobianDeep);
     #else
     // Read the current data
@@ -463,7 +488,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float2 lowFrequencySurfaceGradient0 = 0.0;
     float jacobianSurface0 = 0.0;
     float jacobianDeep0 = 0.0;
-    SampleSimulation_PS(finalCoords,  waterMask, distanceToCamera, texSize,
+    SampleSimulation_PS(finalCoords, waterMask.xyz, distanceToCamera, texSize,
                         surfaceGradient0, lowFrequencySurfaceGradient0, jacobianSurface0, jacobianDeep0);
 
     // Sample the simulation (second time)
@@ -475,7 +500,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float2 lowFrequencySurfaceGradient1 = 0.0;
     float jacobianSurface1 = 0.0;
     float jacobianDeep1 = 0.0;
-    SampleSimulation_PS(finalCoords, waterMask, distanceToCamera, texSize,
+    SampleSimulation_PS(finalCoords, waterMask.xyz, distanceToCamera, texSize,
                         surfaceGradient1, lowFrequencySurfaceGradient1, jacobianSurface1, jacobianDeep1);
 
     // Combine both contributions
@@ -485,12 +510,14 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     jacobianDeep = jacobianDeep0 + jacobianDeep1;
     #endif
 
-    #if defined(SUPPORT_WATER_DEFORMATION) || defined(WATER_POST_INCLUDE_DEFORMATION)
+    #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
-    float2 deformationUV = EvaluateDeformationUV(transformedAWS);
-    float2 deformationSG = SAMPLE_TEXTURE2D_LOD(_WaterDeformationSGBuffer, s_linear_clamp_sampler, deformationUV, 0);
-    lFSurfaceGradient += deformationSG;
-    surfaceGradient += deformationSG;
+    if (all(decalUV == saturate(decalUV)))
+    {
+        float2 deformationSG = SAMPLE_TEXTURE2D_LOD(_WaterDeformationSGBuffer, s_linear_clamp_sampler, decalUV, 0);
+        lFSurfaceGradient += deformationSG;
+        surfaceGradient += deformationSG;
+    }
     #endif
 #endif
 
@@ -501,8 +528,8 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     waterAdditionalData.normalWS = TransformObjectToWorldDir_Water(normalOS);
 
 #ifdef WATER_DISPLACEMENT
-    // Attenuate using the foam mask
-    float foamMask = EvaluateFoamMask(positionOS);
+    // Attenuate using the simulation foam mask
+    float foamMask = EvaluateFoamMask(positionOS, waterMask);
 
     // Evaluate the foam from the jacobian
     waterAdditionalData.surfaceFoam = SURFACE_FOAM_BRIGHTNESS * foamMask * EvaluateFoam(jacobianSurface, _SimulationFoamAmount);
@@ -514,10 +541,9 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
 #if !defined(IGNORE_FOAM_REGION)
     // Evaluate the foam region coordinates
-    float2 foamUV = EvaluateFoamUV(transformedAWS);
-    if (_WaterFoamRegionResolution > 0 && all(foamUV == saturate(foamUV)))
+    if (all(decalUV == saturate(decalUV)))
     {
-        float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, s_linear_clamp_sampler, foamUV).xy;
+        float2 foamRegion = SAMPLE_TEXTURE2D(_WaterFoamBuffer, s_linear_clamp_sampler, decalUV).xy;
         waterAdditionalData.surfaceFoam += foamRegion.x;
         waterAdditionalData.deepFoam += foamRegion.y;
     }
@@ -532,11 +558,10 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
 
 struct TapData
 {
-    float3 currentDisplacement;
-    float3 displacedPoint;
     float2 offset;
     float distance;
-    float height;
+    float2 horizontalDisplacement;
+    float3 verticalDisplacements;
 };
 
 TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePosition)
@@ -544,21 +569,11 @@ TapData EvaluateDisplacementData(float3 currentLocation, float3 referencePositio
     TapData data;
 
     // Evaluate the displacement at the current point
-    WaterDisplacementData displacementData;
-    EvaluateWaterDisplacement(currentLocation, displacementData);
-    data.currentDisplacement = displacementData.displacement;
-
-    // Evaluate the complete position
-    data.displacedPoint = currentLocation + data.currentDisplacement;
+    EvaluateSimulationDisplacement(currentLocation, data.horizontalDisplacement, data.verticalDisplacements);
 
     // Evaluate the distance to the reference point
-    data.offset = data.displacedPoint.xz - referencePosition.xz;
-
-    // Length of the offset vector
+    data.offset = (currentLocation.xz + data.horizontalDisplacement) - referencePosition.xz;
     data.distance = length(data.offset);
-
-    // Simulation height of the position of the offset vector
-    data.height = displacementData.displacement.y;
 
     return data;
 }
@@ -577,47 +592,37 @@ float FindVerticalDisplacement(float3 positionWS, int iterationCount, float dist
     bool found = false;
     TapData tapData = EvaluateDisplacementData(targetPosition, targetPosition);
     float3 currentLocation = targetPosition;
+    float3 currentVertical = tapData.verticalDisplacements;
     float2 stepSize = tapData.offset;
-    float currentHeight = tapData.height;
-
     currentError = tapData.distance;
-    stepCount = 0;
 
+    stepCount = 0;
     while (stepCount < iterationCount)
     {
-        bool progress = false;
-        // Is the point close enough to target position?
         if (currentError < distanceThreshold)
         {
             found = true;
             break;
         }
 
-        // Keep track of the step size that will be use for the 4 samples
-        float2 localSearchStepSize = stepSize;
-
-        float3 candidateLocation = currentLocation - float3(localSearchStepSize.x, 0, localSearchStepSize.y);
+        float3 candidateLocation = currentLocation - float3(stepSize.x, 0, stepSize.y);
         TapData tapData = EvaluateDisplacementData(candidateLocation, targetPosition);
         if (tapData.distance < currentError)
         {
             currentLocation = candidateLocation;
             stepSize = tapData.offset;
             currentError = tapData.distance;
-            currentHeight = tapData.height;
-            progress = true;
+            currentVertical = tapData.verticalDisplacements;
         }
-
-        // If we didn't make any progress in this step, this means our steps are probably too big make them smaller
-        if (!progress)
+        else // If we didn't make any progress in this step, this means our steps are probably too big make them smaller
             stepSize *= 0.25;
 
-        // If none of the 4 steps managed to get closer, we need a smaller step
         stepCount++;
     }
 
-#ifdef WATER_POST_INCLUDE_DEFORMATION
-    currentHeight += EvaluateWaterDeformation(positionWS);
-#endif
+    float currentHeight;
+    float lowFrequencyHeight;
+    EvaluateVerticalDisplacement(currentLocation, currentVertical, currentHeight, lowFrequencyHeight);
 
 #if !defined(WATER_SIMULATION)
     WaterAdditionalData waterAdditionalData;

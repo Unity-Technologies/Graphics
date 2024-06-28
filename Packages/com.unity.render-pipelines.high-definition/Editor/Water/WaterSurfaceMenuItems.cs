@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering
             boxCollider.isTrigger = true;
         }
 
-        [MenuItem("GameObject/Water/Excluder", priority = 13)]
+        [MenuItem("GameObject/Water/Excluder", priority = 17)]
         static void CreateWaterExcluder(MenuCommand menuCommand)
         {
             Transform targetParent = null;
@@ -98,8 +98,7 @@ namespace UnityEditor.Rendering
             Mesh targetMesh = null;
             if (replace)
             {
-                MeshFilter filter = null;
-                if (toReplace.TryGetComponent<MeshFilter>(out filter))
+                if (toReplace.TryGetComponent<MeshFilter>(out var filter))
                 {
                     var excluderMeshFilter = waterExclusion.m_ExclusionRenderer.GetComponent<MeshFilter>();
                     targetMesh = filter.sharedMesh;
@@ -112,108 +111,16 @@ namespace UnityEditor.Rendering
             waterExclusion.SetExclusionMesh(targetMesh);
         }
 
-        [MenuItem("GameObject/Water/Deformer/Sphere", priority = 17)]
-        static void CreateWaterSphereDeformer(MenuCommand menuCommand)
+        [MenuItem("GameObject/Water/Water Decal", priority = 16)]
+        static void CreateWaterDecal(MenuCommand menuCommand)
         {
             // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Sphere Deformer", menuCommand.context);
+            var go = CoreEditorUtils.CreateGameObject("Water Decal", menuCommand.context);
             go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
 
             // Add the water surface component
-            var waterDeformer = go.AddComponent<WaterDeformer>();
-
-            // Set the parameters
-            waterDeformer.type = WaterDeformerType.Sphere;
-            WaterDeformerPresets.ApplyWaterSphereDeformerPreset(waterDeformer);
-        }
-
-        [MenuItem("GameObject/Water/Deformer/Box", priority = 14)]
-        static void CreateWaterBoxDeformer(MenuCommand menuCommand)
-        {
-            // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Box Deformer", menuCommand.context);
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-
-            // Add the water surface component
-            var waterDeformer = go.AddComponent<WaterDeformer>();
-
-            // Set the parameters
-            waterDeformer.type = WaterDeformerType.Box;
-            WaterDeformerPresets.ApplyWaterBoxDeformerPreset(waterDeformer);
-        }
-
-        [MenuItem("GameObject/Water/Deformer/Shore Wave", priority = 16)]
-        static void CreateWaterWaveDeformer(MenuCommand menuCommand)
-        {
-            // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Wave Deformer", menuCommand.context);
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-
-            // Add the water surface component
-            var waterDeformer = go.AddComponent<WaterDeformer>();
-
-            // Set the parameters
-            waterDeformer.type = WaterDeformerType.ShoreWave;
-            WaterDeformerPresets.ApplyWaterShoreWaveDeformerPreset(waterDeformer);
-        }
-
-        [MenuItem("GameObject/Water/Deformer/Bow Wave", priority = 15)]
-        static void CreateBowWaveDeformer(MenuCommand menuCommand)
-        {
-            // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Bow Wave Deformer", menuCommand.context);
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-
-            // Add the water surface component
-            var waterDeformer = go.AddComponent<WaterDeformer>();
-
-            // Set the parameters
-            waterDeformer.type = WaterDeformerType.BowWave;
-            WaterDeformerPresets.ApplyWaterBowWaveDeformerPreset(waterDeformer);
-        }
-
-        [MenuItem("GameObject/Water/Deformer/Texture", priority = 18)]
-        static void CreateTextureDeformer(MenuCommand menuCommand)
-        {
-            // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Texture Deformer", menuCommand.context);
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-
-            // Add the water surface component
-            var waterDeformer = go.AddComponent<WaterDeformer>();
-
-            // Set the parameters
-            waterDeformer.type = WaterDeformerType.Texture;
-            WaterDeformerPresets.ApplyWaterTextureDeformerPreset(waterDeformer);
-        }
-
-        [MenuItem("GameObject/Water/Deformer/Material", priority = 18)]
-        static void CreateMaterialDeformer(MenuCommand menuCommand)
-        {
-            // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Material Deformer", menuCommand.context);
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-
-            // Add the water surface component
-            var waterDeformer = go.AddComponent<WaterDeformer>();
-
-            // Set the parameters
-            waterDeformer.type = WaterDeformerType.Material;
-            WaterDeformerPresets.ApplyWaterMaterialDeformerPreset(waterDeformer);
-        }
-
-        [MenuItem("GameObject/Water/Foam Generator", priority = 14)]
-        static void CreateFoamGenerator(MenuCommand menuCommand)
-        {
-            // Create the holding game object
-            var go = CoreEditorUtils.CreateGameObject("Water Foam Generator", menuCommand.context);
-            go.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
-
-            // Add the water surface component
-            var foamGenerator = go.AddComponent<WaterFoamGenerator>();
-
-            // Set the parameters
-            foamGenerator.regionSize = new Vector2(10f, 10.0f);
+            var decal = go.AddComponent<WaterDecal>();
+            decal.Reset();
         }
     }
 }

@@ -628,22 +628,30 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WaterTileBufferRW = Shader.PropertyToID("_WaterTileBufferRW");
         public static readonly int _WaterNumTiles = Shader.PropertyToID("_WaterNumTiles");
 
+        // Water Decals
+        public static readonly string kAffectsDeformation = "_AffectDeformation";
+        public static readonly string kAffectsFoam = "_AffectFoam";
+        public static readonly string kAffectsSimulationMask = "_AffectSimulationMask";
+        public static readonly string kAffectsLargeCurrent = "_AffectLargeCurrent";
+        public static readonly string kAffectsRipplesCurrent = "_AffectRipplesCurrent";
+        public static readonly int _AffectDeformation = Shader.PropertyToID(kAffectsDeformation);
+        public static readonly int _AffectsFoam = Shader.PropertyToID(kAffectsFoam);
+        public static readonly int _AffectsSimulationMask = Shader.PropertyToID(kAffectsSimulationMask);
+        public static readonly int _AffectsLargeCurrent = Shader.PropertyToID(kAffectsLargeCurrent);
+        public static readonly int _AffectsRipplesCurrent = Shader.PropertyToID(kAffectsRipplesCurrent);
+        public static readonly int _WaterDecalData = Shader.PropertyToID("_WaterDecalData");
+        public static readonly int _WaterDecalAtlas = Shader.PropertyToID("_WaterDecalAtlas");
+
         // Water Current parameters
         public static readonly int _Group0CurrentMap = Shader.PropertyToID("_Group0CurrentMap");
         public static readonly int _Group1CurrentMap = Shader.PropertyToID("_Group1CurrentMap");
         public static readonly int _WaterSectorData = Shader.PropertyToID("_WaterSectorData");
 
         // Water Deformation
-        public static readonly int _WaterDeformerData = Shader.PropertyToID("_WaterDeformerData");
-        public static readonly int _WaterDeformerTextureAtlas = Shader.PropertyToID("_WaterDeformerTextureAtlas");
         public static readonly int _WaterDeformationBuffer = Shader.PropertyToID("_WaterDeformationBuffer");
         public static readonly int _WaterDeformationBufferRW = Shader.PropertyToID("_WaterDeformationBufferRW");
         public static readonly int _WaterDeformationSGBuffer = Shader.PropertyToID("_WaterDeformationSGBuffer");
         public static readonly int _WaterDeformationSGBufferRW = Shader.PropertyToID("_WaterDeformationSGBufferRW");
-
-        // Water Foam Generation
-        public static readonly int _WaterGeneratorData = Shader.PropertyToID("_WaterGeneratorData");
-        public static readonly int _WaterGeneratorTextureAtlas = Shader.PropertyToID("_WaterGeneratorTextureAtlas");
 
         // Water caustics
         public static readonly int _WaterCausticsDataBuffer = Shader.PropertyToID("_WaterCausticsDataBuffer");

@@ -946,28 +946,18 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterSimulationResolution, Styles.waterSimulationResolutionContent);
 
-                // Deformation
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterDeformation, Styles.supportWaterDeformationContent);
-                ++EditorGUI.indentLevel;
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDeformation.boolValue))
+                // Decals
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterDecals);
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterDecals.boolValue))
+                using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.deformationAtlasSize, Styles.deformationAtlasSizeContent);
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterDecalAtlasSize, Styles.waterDecalAtlasSizeContent);
 
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.maximumDeformerCount, Styles.maximumDeformerCountContent);
+                    EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.maximumWaterDecalCount, Styles.maximumWaterDecalCountContent);
                     if (EditorGUI.EndChangeCheck())
-                        serialized.renderPipelineSettings.maximumDeformerCount.intValue = Mathf.Clamp(serialized.renderPipelineSettings.maximumDeformerCount.intValue, 1, 256);
+                        serialized.renderPipelineSettings.maximumWaterDecalCount.intValue = Mathf.Clamp(serialized.renderPipelineSettings.maximumWaterDecalCount.intValue, 1, 256);
                 }
-                --EditorGUI.indentLevel;
-
-                // Foam
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterFoam, Styles.supportWaterFoamContent);
-                ++EditorGUI.indentLevel;
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportWaterFoam.boolValue))
-                {
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.foamAtlasSize, Styles.foamAtlasSizeContent);
-                }
-                --EditorGUI.indentLevel;
 
                 // Exclusion
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterExclusion, Styles.supportWaterExclusionContent);

@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 15295.346, g: 14093.014, b: 12056.993, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1740,6 +1739,79 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 443684069}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &478886697
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 478886698}
+  - component: {fileID: 478886699}
+  - component: {fileID: 478886700}
+  m_Layer: 0
+  m_Name: Water Deformation Foam Decal
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &478886698
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478886697}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.031000018, y: -0.45, z: 0.20000005}
+  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1033127765}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &478886699
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478886697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5ede582eab822e4ab05a6a5defb4d9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scaleMode: 1
+  regionSize: {x: 1, y: 1}
+  amplitude: 0
+  surfaceFoamDimmer: 0.384
+  deepFoamDimmer: 1
+  resolution: {x: 128, y: 128}
+  updateMode: 1
+  material: {fileID: 2100000, guid: 2288f389ebaf2f646ada5f51e12fccfd, type: 2}
+--- !u!114 &478886700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478886697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5ede582eab822e4ab05a6a5defb4d9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scaleMode: 0
+  regionSize: {x: 1.2, y: 1.2}
+  amplitude: 0.15
+  surfaceFoamDimmer: 0
+  deepFoamDimmer: 0
+  resolution: {x: 64, y: 64}
+  updateMode: 1
+  material: {fileID: 2100000, guid: 2288f389ebaf2f646ada5f51e12fccfd, type: 2}
 --- !u!64 &500389430
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -3401,11 +3473,17 @@ MonoBehaviour:
   underWaterScatteringColorMode: 0
   underWaterScatteringColor: {r: 0, g: 0.26999998, b: 0.22999996, a: 1}
   underWaterRefraction: 0
+  decalRegionSize: {x: 10, y: 10}
+  decalRegionAnchor: {fileID: 1033127765}
+  supportLargeCurrent: 1
+  largeCurrentRes: 256
   largeCurrentSpeedValue: 0
   largeCurrentMap: {fileID: 2800000, guid: c0bb0d3007c0a3c4591462e1930bb0e1, type: 3}
   largeCurrentRegionExtent: {x: 3, y: 3}
   largeCurrentRegionOffset: {x: 1.77, y: 1.44}
   largeCurrentMapInfluence: 1
+  supportRipplesCurrent: 0
+  ripplesCurrentRes: 512
   ripplesCurrentSpeedValue: 0
   ripplesCurrentMap: {fileID: 0}
   ripplesCurrentRegionExtent: {x: 1, y: 1}
@@ -3413,19 +3491,15 @@ MonoBehaviour:
   ripplesCurrentMapInfluence: 1
   deformation: 1
   deformationRes: 256
-  deformationAreaSize: {x: 10, y: 10}
-  deformationAreaOffset: {x: 0, y: 0}
   foam: 1
   foamResolution: 256
-  foamAreaSize: {x: 5, y: 5}
-  foamAreaOffset: {x: 0, y: 0}
   foamPersistenceMultiplier: 0.5
   foamCurrentInfluence: 0.25
   foamColor: {r: 0.62863654, g: 1, b: 0.9852917, a: 1}
   foamTextureTiling: 0.4
   foamSmoothness: 0.3
-  simulationFoam: 0
   simulationFoamAmount: 0.3
+  supportSimulationFoamMask: 0
   simulationFoamMask: {fileID: 0}
   simulationFoamMaskExtent: {x: 100, y: 100}
   simulationFoamMaskOffset: {x: 0, y: 0}
@@ -3491,6 +3565,8 @@ MonoBehaviour:
   ripplesFadeMode: 2
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
+  simulationMask: 0
+  maskRes: 512
   waterMask: {fileID: 0}
   waterMaskRemap: {x: 0, y: 1}
   waterMaskExtent: {x: 100, y: 100}
@@ -3508,6 +3584,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 478886698}
+  - {fileID: 2089862545}
   - {fileID: 1262031105}
   m_Father: {fileID: 1610319056}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4333,15 +4411,20 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262031102}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 78cf48dc57241ca4180a616b92b5d9f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 5
-  amplitude: 0.15
-  regionSize: {x: 1.2, y: 1.2}
   scaleMode: 0
+  regionSize: {x: 1.2, y: 1.2}
+  amplitude: 0.15
+  surfaceFoamDimmer: 1
+  deepFoamDimmer: 1
+  resolution: {x: 64, y: 64}
+  updateMode: 1
+  material: {fileID: 2100000, guid: 2288f389ebaf2f646ada5f51e12fccfd, type: 2}
+  type: 5
   boxBlend: {x: 0, y: 0}
   cubicBlend: 1
   waveLength: 3
@@ -4354,11 +4437,6 @@ MonoBehaviour:
   bowWaveElevation: 1
   range: {x: 0, y: 1}
   texture: {fileID: 0}
-  resolution: {x: 64, y: 64}
-  updateMode: 1
-  material: {fileID: 2100000, guid: 2288f389ebaf2f646ada5f51e12fccfd, type: 2}
-  deepFoamDimmer: 1
-  surfaceFoamDimmer: 1
 --- !u!114 &1262031104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4366,21 +4444,22 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1262031102}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0050ecd2d32680645848edd91f37442d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 3
+  scaleMode: 1
   regionSize: {x: 1, y: 1}
-  texture: {fileID: 2800000, guid: 940b1c9ababba9547b0214a2d9e3292a, type: 3}
+  amplitude: 2
+  surfaceFoamDimmer: 0.384
+  deepFoamDimmer: 1
   resolution: {x: 128, y: 128}
   updateMode: 1
   material: {fileID: 2100000, guid: 2288f389ebaf2f646ada5f51e12fccfd, type: 2}
-  surfaceFoamDimmer: 0.384
-  deepFoamDimmer: 1
-  scaleMode: 1
-  m_Version: 1
+  type: 3
+  texture: {fileID: 2800000, guid: 940b1c9ababba9547b0214a2d9e3292a, type: 3}
+  m_Version: 2
 --- !u!4 &1262031105
 Transform:
   m_ObjectHideFlags: 0
@@ -5182,11 +5261,17 @@ MonoBehaviour:
   underWaterScatteringColorMode: 0
   underWaterScatteringColor: {r: 0, g: 0.27, b: 0.23, a: 1}
   underWaterRefraction: 0
+  decalRegionSize: {x: 200, y: 200}
+  decalRegionAnchor: {fileID: 0}
+  supportLargeCurrent: 0
+  largeCurrentRes: 512
   largeCurrentSpeedValue: 0
   largeCurrentMap: {fileID: 0}
   largeCurrentRegionExtent: {x: 100, y: 100}
   largeCurrentRegionOffset: {x: 0, y: 0}
   largeCurrentMapInfluence: 1
+  supportRipplesCurrent: 0
+  ripplesCurrentRes: 512
   ripplesCurrentSpeedValue: 0
   ripplesCurrentMap: {fileID: 0}
   ripplesCurrentRegionExtent: {x: 100, y: 100}
@@ -5194,19 +5279,15 @@ MonoBehaviour:
   ripplesCurrentMapInfluence: 1
   deformation: 1
   deformationRes: 512
-  deformationAreaSize: {x: 10, y: 10}
-  deformationAreaOffset: {x: 0, y: 0}
   foam: 0
   foamResolution: 512
-  foamAreaSize: {x: 200, y: 200}
-  foamAreaOffset: {x: 0, y: 0}
   foamPersistenceMultiplier: 1
   foamCurrentInfluence: 0.6
   foamColor: {r: 1, g: 1, b: 1, a: 1}
   foamTextureTiling: 0.2
   foamSmoothness: 0.3
-  simulationFoam: 1
   simulationFoamAmount: 0.3
+  supportSimulationFoamMask: 0
   simulationFoamMask: {fileID: 0}
   simulationFoamMaskExtent: {x: 100, y: 100}
   simulationFoamMaskOffset: {x: 0, y: 0}
@@ -5272,6 +5353,8 @@ MonoBehaviour:
   ripplesFadeMode: 2
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
+  simulationMask: 0
+  maskRes: 512
   waterMask: {fileID: 0}
   waterMaskRemap: {x: 0, y: 1}
   waterMaskExtent: {x: 100, y: 100}
@@ -7473,6 +7556,58 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &2089862544
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2089862545}
+  - component: {fileID: 2089862546}
+  m_Layer: 0
+  m_Name: Water Current Decal
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2089862545
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2089862544}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1033127765}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2089862546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2089862544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5ede582eab822e4ab05a6a5defb4d9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scaleMode: 0
+  regionSize: {x: 3, y: 3}
+  amplitude: 2
+  surfaceFoamDimmer: 0.384
+  deepFoamDimmer: 1
+  resolution: {x: 128, y: 128}
+  updateMode: 1
+  material: {fileID: 2100000, guid: 734d8402b7329d74b9cf00e62c9315db, type: 2}
 --- !u!1 &2093019024
 GameObject:
   m_ObjectHideFlags: 0

@@ -49,6 +49,7 @@ namespace UnityEditor.ShaderGraph
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
+            m_DefaultValue = value;
             m_Value = value;
             if ((label1 != null) || (label2 != null) || (label3 != null) || (label4 != null))
             {
