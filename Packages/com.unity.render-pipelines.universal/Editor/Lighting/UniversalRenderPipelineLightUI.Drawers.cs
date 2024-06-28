@@ -268,7 +268,6 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
-            serializedLight.settings.DrawRenderMode();
             EditorGUILayout.PropertyField(serializedLight.settings.cullingMask, Styles.CullingMask);
         }
 
