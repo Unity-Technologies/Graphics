@@ -243,8 +243,6 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawRenderingContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
-            serializedLight.settings.DrawRenderMode();
-
             if (serializedLight.settings.light.type != LightType.Rectangle &&
                 !serializedLight.settings.isCompletelyBaked)
             {
