@@ -349,8 +349,12 @@ namespace UnityEngine.VFX.SDF
 
             CreateRenderTextureIfNeeded(ref m_textureVoxel, rtDesc4Channels);
             CreateRenderTextureIfNeeded(ref m_textureVoxelBis, rtDesc4Channels);
-            m_RayMaps = new RenderTexture[2];
-            m_SignMaps = new RenderTexture[2];
+
+            if(m_RayMaps == null)
+                m_RayMaps = new RenderTexture[2];
+            if(m_SignMaps == null)
+                m_SignMaps = new RenderTexture[2];
+
             for (int i = 0; i < 2; i++)
             {
                 CreateRenderTextureIfNeeded(ref m_RayMaps[i], rtDesc4Channels);
