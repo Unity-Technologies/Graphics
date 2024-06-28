@@ -158,5 +158,27 @@ namespace UnityEditor.VFX
                     $" so the resulted computed bounds can be too small or big" +
                     $" Please use padding to mitigate this discrepancy.");
         }
+
+        public override IEnumerable<VFXExpression> instancingSplitCPUExpressions
+        {
+            get
+            {
+                foreach (var exp in base.instancingSplitCPUExpressions)
+                    yield return exp;
+
+                // Only single mesh, multi-mesh will be patched later
+                if (meshCount == 1)
+                {
+                    foreach (var name in VFXMultiMeshHelper.GetCPUExpressionNames(1))
+                    {
+                        var exp = inputSlots.First(s => s.name == name).GetExpression();
+                        if (exp != null && !exp.IsAny(VFXExpression.Flags.Constant))
+                            yield return exp;
+                    }
+                }
+            }
+        }
+
+
     }
 }

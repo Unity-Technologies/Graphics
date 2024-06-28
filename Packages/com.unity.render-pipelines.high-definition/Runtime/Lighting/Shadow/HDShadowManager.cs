@@ -505,7 +505,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_ShadowRequestCount >= m_MaxShadowRequests)
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the Maximum Shadows on Screen property in the HDRP asset.");
+#endif
                 return -1;
             }
 

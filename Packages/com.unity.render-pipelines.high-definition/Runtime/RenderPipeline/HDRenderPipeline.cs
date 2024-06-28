@@ -1993,6 +1993,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (DebugManager.instance.isAnyDebugUIActive)
                 m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
+
+            // This is for texture streaming
+            m_DebugDisplaySettings.UpdateMaterials();
 #endif
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);

@@ -88,7 +88,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
 {
     if (id.x < _ProbeCount)
     {
-        int probeIdx = id.x;
+        uint probeIdx = id.x;
 
         if (_NeedDilating[probeIdx] > 0)
         {

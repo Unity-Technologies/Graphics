@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
         public VFXSGInputs SGInputs;
+        public List<uint> instancingSplitValues;
         public ReadOnlyDictionary<VFXExpression, Type> graphicsBufferUsage;
         public VFXMapping[] parameters;
         public (VFXSlot slot, VFXData data)[] linkedEventOut;
@@ -1102,6 +1103,7 @@ namespace UnityEditor.VFX
                     contextData.cpuMapper = cpuMapper;
                     contextData.parameters = context.additionalMappings.ToArray();
                     contextData.linkedEventOut = ComputeEventListFromSlot(context.allLinkedOutputSlot).ToArray();
+                    contextData.instancingSplitValues = context.CreateInstancingSplitValues(m_ExpressionGraph);
                     contextToCompiledData[context] = contextData;
                 }
 

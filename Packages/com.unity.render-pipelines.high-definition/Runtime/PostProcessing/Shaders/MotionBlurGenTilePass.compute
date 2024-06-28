@@ -91,7 +91,7 @@ void TileGenPass(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2
 
     float2 motionVec = LOAD_TEXTURE2D_X(_MotionVecAndDepth, id.xy).xy;
 	float2 maxMotionVec = motionVec;
-	float minMotionVecLength = length(motionVec);
+	float minMotionVecLength = MotionVecLengthFromEncoded(motionVec);
 	float3 minMaxMotionVec = ParallelReduction(gid, threadIdx, motionVec);
 
 	if (all(id.xy < uint2(_ScreenSize.xy - TILE_SIZE)))

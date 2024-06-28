@@ -47,6 +47,39 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
     return output;
 }
 
+// https://bottosson.github.io/posts/oklab/ for perceptual blend mode in gradients
+float3 LinearToOklab(float3 rgb)
+{
+    float l = 0.4122214708f * rgb.r + 0.5363325363f * rgb.g + 0.0514459929f * rgb.b;
+    float m = 0.2119034982f * rgb.r + 0.6806995451f * rgb.g + 0.1073969566f * rgb.b;
+    float s = 0.0883024619f * rgb.r + 0.2817188376f * rgb.g + 0.6299787005f * rgb.b;
+
+    float l_ = pow(l, 0.333333f);
+    float m_ = pow(m, 0.333333f);
+    float s_ = pow(s, 0.333333f);
+
+    return float3(
+        0.2104542553f * l_ + 0.7936177850f * m_ - 0.0040720468f * s_,
+        1.9779984951f * l_ - 2.4285922050f * m_ + 0.4505937099f * s_,
+        0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_);
+}
+
+float3 OklabToLinear(float3 lab)
+{
+    float l_ = lab.r + 0.3963377774f * lab.g + 0.2158037573f * lab.b;
+    float m_ = lab.r - 0.1055613458f * lab.g - 0.0638541728f * lab.b;
+    float s_ = lab.r - 0.0894841775f * lab.g - 1.2914855480f * lab.b;
+
+    float l = l_ * l_ * l_;
+    float m = m_ * m_ * m_;
+    float s = s_ * s_ * s_;
+
+    return float3(
+         4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s,
+		-1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s,
+		-0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s);
+}
+
 #ifndef SHADERGRAPH_SAMPLE_SCENE_DEPTH
     #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_SampleSceneDepth(uv)
 #endif
@@ -60,7 +93,7 @@ Gradient NewGradient(int type, int colorsLength, int alphasLength,
 #endif
 
 #ifndef SHADERGRAPH_BAKED_GI
-    #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, positionSS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+    #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_BakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #endif
 
 #ifndef SHADERGRAPH_REFLECTION_PROBE
@@ -109,7 +142,7 @@ float3 shadergraph_SampleSceneNormal(float2 uv)
     return 0;
 }
 
-float3 shadergraph_BakedGI(float3 positionWS, float3 normalWS, uint2 positionSS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
+float3 shadergraph_BakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
     return 0;
 }

@@ -983,7 +983,7 @@ float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float sc
     return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL)
     #define MIP_COUNT_SUPPORTED 1
 #endif
     // TODO: Bug workaround, switch defines GLCORE when it shouldn't

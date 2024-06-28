@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 18
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Needs fixing on DX12
@@ -30,6 +31,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Needs MSAA fixing on OpenGLES3
@@ -39,6 +41,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -49,6 +52,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Crash on iOS
@@ -59,6 +63,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
@@ -69,15 +74,39 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
+    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GLES on Deferred.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
+    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GL on Deferred.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: c8a775519652940ac936ad7b75d2c615, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: 'Bug: iPhone yamato instability for unknown reason.'
@@ -87,6 +116,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -96,6 +126,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
@@ -105,6 +136,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
@@ -114,6 +146,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 18
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1394999/
@@ -123,6 +156,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
@@ -132,6 +166,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
@@ -141,6 +176,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
@@ -150,24 +186,17 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 17
-    XrSdk: None
-    StereoModes: 0
-    Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing on OSX
@@ -177,6 +206,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -189,6 +219,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 8
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: No GLES2 on Deferred. Not supported.
@@ -201,6 +232,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: No GLES3 on Deferred. Not supported.
@@ -213,6 +245,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: No GL on Deferred. Not supported.
@@ -222,6 +255,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: URP-1199
@@ -231,9 +265,20 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 21
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: URP-1199
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    Architecture: 0
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
@@ -247,6 +292,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1325306/
@@ -263,15 +309,28 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 07434decccca04d53bb951a513c06901, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: UUM-60205
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    - {fileID: 102900000, guid: f90a5e19ecb1e114e8644daf35f393d5, type: 3}
     ColorSpace: -1
     BuildPlatform: 38
     GraphicsDevice: 22
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-12033
@@ -282,6 +341,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 8
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Decals not supported
@@ -291,6 +351,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
@@ -300,6 +361,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/URP-1313
@@ -313,6 +375,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 8
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Rendering Layers not supported
@@ -326,6 +389,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Rendering Layers not supported
@@ -339,6 +403,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: Rendering Layers not supported
@@ -351,35 +416,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 44
     GraphicsDevice: 4
+    Architecture: 0
     XrSdk: 
     StereoModes: 0
     Reason: UUM-15388
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
-    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 17
-    XrSdk: 
-    StereoModes: 0
-    Reason: No GL on Deferred.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
-    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 11
-    XrSdk: 
-    StereoModes: 0
-    Reason: No GLES on Deferred.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 07434decccca04d53bb951a513c06901, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: OculusLoader
-    StereoModes: 0
-    Reason: UUM-60205

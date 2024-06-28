@@ -685,5 +685,21 @@ namespace UnityEditor.VFX
         {
             return CanTransferSetting(setting.field.Name);
         }
+
+        public List<uint> CreateInstancingSplitValues(VFXExpressionGraph expressionGraph)
+        {
+            List<uint> instancingSplitValues = new List<uint>();
+            foreach (var exp in instancingSplitCPUExpressions)
+            {
+                int index = expressionGraph.GetFlattenedIndex(exp);
+                if (index >= 0)
+                {
+                    instancingSplitValues.Add((uint)index);
+                }
+            }
+            return instancingSplitValues;
+        }
+
+        public virtual IEnumerable<VFXExpression> instancingSplitCPUExpressions { get { return Enumerable.Empty<VFXExpression>(); } }
     }
 }
