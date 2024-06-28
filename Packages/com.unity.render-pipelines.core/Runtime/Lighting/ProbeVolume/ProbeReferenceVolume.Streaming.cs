@@ -596,7 +596,7 @@ namespace UnityEngine.Rendering
                 maxStreamingScore = Mathf.Max(maxStreamingScore, m_LoadedCells[m_LoadedCells.size - 1].streamingInfo.streamingScore);
             }
         }
-        
+
         /// <summary>
         /// Updates the cell streaming for a <see cref="Camera"/>
         /// </summary>
