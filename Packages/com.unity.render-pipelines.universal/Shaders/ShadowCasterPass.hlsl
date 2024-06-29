@@ -12,6 +12,7 @@
 // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 float3 _LightDirection;
 float3 _LightPosition;
+float _ShadowPancaking;
 
 struct Attributes
 {
@@ -43,11 +44,14 @@ float4 GetShadowPositionHClip(Attributes input)
 
     float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
 
+    if (_ShadowPancaking != 0.0)
+    {
 #if UNITY_REVERSED_Z
-    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+        positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
 #else
-    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+        positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
 #endif
+    }
 
     return positionCS;
 }

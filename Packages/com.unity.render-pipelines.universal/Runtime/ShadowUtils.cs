@@ -500,6 +500,9 @@ namespace UnityEngine.Rendering.Universal
             // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
             Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
             SetLightPosition(cmd, lightPosition);
+
+            // Disable Shadow Pancaking for Spot Light. Spot shadow space should be defined from near plane and range.
+            SetShadowPancaking(cmd, shadowLight.lightType != LightType.Spot);
         }
 
         internal static void SetShadowBias(RasterCommandBuffer cmd, Vector4 shadowBias)
@@ -515,6 +518,11 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetLightPosition(RasterCommandBuffer cmd, Vector3 lightPosition)
         {
             cmd.SetGlobalVector(ShaderPropertyId.lightPosition, new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
+        }
+
+        internal static void SetShadowPancaking(RasterCommandBuffer cmd, bool shadowPancaking)
+        {
+            cmd.SetGlobalFloat(ShaderPropertyId.shadowPancaking, shadowPancaking ? 1.0f : 0.0f);
         }
 
         internal static void SetCameraPosition(RasterCommandBuffer cmd, Vector3 worldSpaceCameraPos)
