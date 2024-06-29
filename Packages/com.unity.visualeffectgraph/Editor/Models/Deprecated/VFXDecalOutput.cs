@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    [VFXHelpURL("Context-OutputForwardDecal")]
-    [VFXInfo(name = "Output Particle|Forward Decal", category = "#6Output Deprecated")]
     class VFXDecalOutput : VFXAbstractParticleOutput
     {
         public override string name => "Output Particle".AppendLabel("Forward Decal", false);

@@ -14,7 +14,7 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    [ScriptedImporter(1, "pcache")]
+    [ScriptedImporter(1, "pcache", -802)]
     class PointCacheImporter : ScriptedImporter
     {
         public static T[] SubArray<T>(T[] data, int index, int length)
