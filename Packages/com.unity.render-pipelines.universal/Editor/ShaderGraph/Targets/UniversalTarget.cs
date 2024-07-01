@@ -717,10 +717,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             T data = null;
             foreach (var x in m_Datas.SelectValue())
             {
-                if (x.GetType().Equals(typeof(T)))
+                if (x is T y)
                 {
-                    data = x as T;
-                    continue;
+                    data = y;
+                    break;
                 }
             }
 
