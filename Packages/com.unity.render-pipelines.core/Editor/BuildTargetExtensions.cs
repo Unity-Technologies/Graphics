@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Build;
 
 namespace UnityEditor.Rendering
 {
@@ -27,8 +28,9 @@ namespace UnityEditor.Rendering
 
             var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
             var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
 
-            QualitySettings.GetRenderPipelineAssetsForPlatform<T>(activeBuildTargetGroupName, out var buildPipelineAssets);
+            QualitySettings.GetRenderPipelineAssetsForPlatform<T>(namedBuildTarget.TargetName, out var buildPipelineAssets);
             srpAssets.AddRange(buildPipelineAssets);
 
             int count = QualitySettings.GetActiveQualityLevelsForPlatformCount(activeBuildTargetGroupName);
