@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Operator
                     yield return new Variant(
                         type.ToString().Label().AppendLiteral("Curl Noise").AppendLabel(VFXBlockUtility.GetNameString(dimension)),
                         category,
-                        typeof(Noise),
+                        typeof(CurlNoise),
                         new[]
                         {
                             new KeyValuePair<string, object>("type", type),

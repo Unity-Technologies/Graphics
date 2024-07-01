@@ -395,7 +395,11 @@ namespace UnityEditor.VFX.Test
         public void CreateAllOperatorsTest()
         {
             var viewController = VFXTestCommon.StartEditTestAsset();
-            Assert.DoesNotThrow(() =>CreateAllOperators(viewController));
+            Assert.DoesNotThrow(() =>
+            {
+                var operators = CreateAllOperators(viewController);
+                Debug.Log($"Created {operators.Length} operators");
+            });
         }
 
         [UnityTest]
@@ -434,6 +438,7 @@ namespace UnityEditor.VFX.Test
         VFXOperator[] CreateAllOperators(VFXViewController viewController)
         {
             return VFXLibrary.GetOperators()
+                .SelectMany(x => new [] {x}.Concat(x.subVariantDescriptors))
                 .Select((x, i) => viewController.AddVFXOperator(new Vector2(700, 150 * i), x.variant))
                 .ToArray();
         }
@@ -1009,14 +1014,16 @@ namespace UnityEditor.VFX.Test
             {
                 return VFXLibrary.GetBlocks()
                     .Where(x => predicate(x))
-                    //.GroupBy(x => x.category)
-                    //.Select(x => x.First())
+                    .SelectMany(x => new [] { x }.Concat(x.subVariantDescriptors))
+                    .Cast<VFXModelDescriptor<VFXBlock>>()
                     .ToArray();
             }
             else
             {
                 return VFXLibrary.GetBlocks()
                     .Where(x => predicate(x))
+                    .SelectMany(x => new [] { x }.Concat(x.subVariantDescriptors))
+                    .Cast<VFXModelDescriptor<VFXBlock>>()
                     .ToArray();
             }
         }
