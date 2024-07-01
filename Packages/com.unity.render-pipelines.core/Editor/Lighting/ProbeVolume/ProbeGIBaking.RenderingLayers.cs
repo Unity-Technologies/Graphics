@@ -117,15 +117,11 @@ namespace UnityEngine.Rendering
                         continue;
 
                     int subMeshCount = mesh.subMeshCount;
-                    for (int i = 0; i < subMeshCount; ++i)
-                    {
-                        var matIndices = new uint[subMeshCount];
-                        Array.Fill(matIndices, renderer.component.renderingLayerMask); // repurpose the material id as we don't need it here
-                        var perSubMeshMask = new uint[subMeshCount];
-
-                        Array.Fill(perSubMeshMask, GetInstanceMask(renderer.component.shadowCastingMode));
-                        accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices);
-                    }
+                    var matIndices = new uint[subMeshCount];
+                    Array.Fill(matIndices, renderer.component.renderingLayerMask); // repurpose the material id as we don't need it here
+                    var perSubMeshMask = new uint[subMeshCount];
+                    Array.Fill(perSubMeshMask, GetInstanceMask(renderer.component.shadowCastingMode));
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices);
                 }
 
                 foreach (var terrain in contributors.terrains)
